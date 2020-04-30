@@ -41,6 +41,8 @@ public class BinaryInvoker extends Invoker {
     private final String binary;
     private final boolean failByEV;
 
+    private BinaryRunner br;
+
 
     /**
      * Binary Invoker constructor.
@@ -64,8 +66,12 @@ public class BinaryInvoker extends Invoker {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
+
         this.binary = binaryImpl.getBinary();
         this.failByEV = binaryImpl.isFailByEV();
+
+        // Internal binary runner
+        this.br = null;
     }
 
     @Override
@@ -83,7 +89,9 @@ public class BinaryInvoker extends Invoker {
 
         // Close out streams if any
         try {
-            BinaryRunner.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            if (this.br != null) {
+                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
@@ -131,12 +139,16 @@ public class BinaryInvoker extends Invoker {
             outLog.println("[BINARY INVOKER] Binary STDERR: " + streamValues.getStdErr());
         }
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), this.failByEV);
+        this.br = new BinaryRunner();
+        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+            this.context.getThreadErrStream(), null, this.failByEV);
     }
 
     @Override
     public void cancelMethod() {
-
+        LOGGER.debug("Cancelling binary process");
+        if (this.br != null) {
+            this.br.cancelProcess();
+        }
     }
 }

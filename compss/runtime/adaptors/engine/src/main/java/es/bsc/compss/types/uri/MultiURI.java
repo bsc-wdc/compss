@@ -60,7 +60,7 @@ public class MultiURI implements Comparable<MultiURI> {
     }
 
     public void setInternalURI(String adaptor, Object uri) {
-        internal.put(adaptor, uri);
+        this.internal.put(adaptor, uri);
     }
 
     /**
@@ -71,14 +71,18 @@ public class MultiURI implements Comparable<MultiURI> {
      * @throws UnstartedNodeException Error because host of the MultiURI not started
      */
     public Object getInternalURI(String adaptor) throws UnstartedNodeException {
-        Object o = internal.get(adaptor);
+        Object o = this.internal.get(adaptor);
 
         if (o == null) {
             // Try to register the URI now
-            host.setInternalURI(this);
-            o = internal.get(adaptor);
+            this.host.setInternalURI(this);
+            o = this.internal.get(adaptor);
         }
         return o;
+    }
+
+    public ProtocolType getProtocol() {
+        return this.protocol;
     }
 
     public Resource getHost() {
@@ -87,14 +91,6 @@ public class MultiURI implements Comparable<MultiURI> {
 
     public String getPath() {
         return this.path;
-    }
-
-    public ProtocolType getProtocol() {
-        return this.protocol;
-    }
-
-    public String getScheme() {
-        return this.protocol.getSchema();
     }
 
     @Override
@@ -108,11 +104,16 @@ public class MultiURI implements Comparable<MultiURI> {
      * @return
      */
     public String debugString() {
-        StringBuilder sb =
-            new StringBuilder(this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");
-        for (Entry<String, Object> e : internal.entrySet()) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(this.protocol.getSchema());
+        sb.append(this.host.getName()).append(File.separator).append(this.path);
+        sb.append("\n");
+
+        for (Entry<String, Object> e : this.internal.entrySet()) {
             sb.append("\t * ").append(e.getKey()).append(" -> ").append(e.getValue()).append("\n");
         }
+
         return sb.toString();
     }
 
@@ -121,9 +122,9 @@ public class MultiURI implements Comparable<MultiURI> {
         if (o == null) {
             throw new NullPointerException();
         }
-        int compare = host.getName().compareTo(o.host.getName());
+        int compare = this.host.getName().compareTo(o.host.getName());
         if (compare == 0) {
-            compare = path.compareTo(o.path);
+            compare = this.path.compareTo(o.path);
         }
         return compare;
     }

@@ -31,7 +31,6 @@ from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
-from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -82,52 +81,21 @@ class MPI(object):
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
                             "@mpi")
+            # Replace the legacy annotation
+            if 'computingNodes' in self.kwargs:
+                self.kwargs['processes'] = self.kwargs.pop('computingNodes')
+            if 'computing_nodes' in self.kwargs:
+                  self.kwargs['processes'] = self.kwargs.pop('computing_nodes')
 
-            # Get the computing nodes: This parameter will have to go down
-            # until execution when invoked.
-            if 'processes' not in self.kwargs and \
-                    'computing_nodes' not in self.kwargs and \
-                    'computingNodes' not in self.kwargs :
+            # Set default value if it has not been defined
+            if 'processes' not in self.kwargs:
                 self.kwargs['processes'] = 1
-            else:
-                if 'computing_nodes' in self.kwargs:
-                    self.kwargs['processes'] = \
-                        self.kwargs.pop('computing_nodes')
-                elif 'computingNodes' in self.kwargs :
-                    self.kwargs['processes'] = \
-                        self.kwargs.pop('computingNodes')
-                computing_nodes = self.kwargs['processes']
-                if isinstance(computing_nodes, int):
-                    # Nothing to do
-                    pass
-                elif isinstance(computing_nodes, str):
-                    # Check if it is an environment variable to be loaded
-                    if computing_nodes.strip().startswith('$'):
-                        # Computing nodes is an ENV variable, load it
-                        env_var = computing_nodes.strip()[1:]  # Remove $
-                        if env_var.startswith('{'):
-                            env_var = env_var[1:-1]  # remove brackets
-                        try:
-                            self.kwargs['processes'] = \
-                                int(os.environ[env_var])
-                        except ValueError:
-                            raise Exception(
-                                cast_env_to_int_error('processes'))
-                    else:
-                        # ComputingNodes is in string form, cast it
-                        try:
-                            self.kwargs['processes'] = \
-                                int(computing_nodes)
-                        except ValueError:
-                            raise Exception(
-                                cast_string_to_int_error('processes'))
-                else:
-                    raise Exception("ERROR: Wrong processes value at" +
-                                    " @mpi decorator.")
+
+            # The processes parameter will have to go down until the execution is invoked.
+            # WARN: processes can be an int, a env string, a str with dynamic variable name.
+            processes = self.kwargs['processes']
             if __debug__:
-                logger.debug("This MPI task will have " +
-                             str(self.kwargs['processes']) +
-                             " processes.")
+                logger.debug("This MPI task will have " + str(processes) + " processes.")
         else:
             pass
 
@@ -138,6 +106,7 @@ class MPI(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         @wraps(func)
         def mpi_f(*args, **kwargs):
             if not self.scope:
@@ -151,8 +120,7 @@ class MPI(object):
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
-                if (self.module == '__main__' or
-                        self.module == 'pycompss.runtime.launch'):
+                if self.module == '__main__' or self.module == 'pycompss.runtime.launch':
                     # The module where the function is defined was run as
                     # __main__, so we need to find out the real module name.
 
@@ -186,8 +154,8 @@ class MPI(object):
                 from pycompss.api.task import current_core_element as cce
                 if not self.registered:
                     self.registered = True
-                    # Update the core element information with the @mpi
-                    # information
+
+                    # Update the core element information with the @mpi information
                     if "binary" in self.kwargs:
                         binary = self.kwargs['binary']
                         cce.set_impl_type("MPI")
@@ -200,6 +168,7 @@ class MPI(object):
                         working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
+
                     runner = self.kwargs['runner']
                     if 'flags' in self.kwargs:
                         flags = self.kwargs['flags']
@@ -238,8 +207,9 @@ class MPI(object):
                     if binary == "[unassigned]":
                         impl_signature = "MPI."
                     else:
-                        impl_signature = 'MPI.' + binary
+                        impl_signature = 'MPI.' + str(self.kwargs['processes']) + "." + binary
 
+                    # Add information to CoreElement
                     cce.set_impl_signature(impl_signature)
                     impl_args = [binary, working_dir, runner, flags, scale_by_cu_str, fail_by_ev_str]
                     cce.set_impl_type_args(impl_args)

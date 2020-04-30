@@ -40,7 +40,7 @@ else:
 
 try:
     # Wrong app_name name (without underscore) - it should behave as if it is missing
-    @compss(runcompss="${RUNCOMPSS}", flags="-d", appname="${APP_DIR}/src/simple_compss_nested.py", worker_in_master="false", computing_nodes="2")
+    @compss(runcompss="${RUNCOMPSS}", flags="-d", appname="${APP_DIR}/src/simple_compss_nested.py", worker_in_master="false", processes="2")
     @constraint(computing_units="2")
     @task(returns=int)
     def compss_task(value):

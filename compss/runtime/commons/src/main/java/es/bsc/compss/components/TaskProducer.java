@@ -14,10 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.components.impl;
-
-import es.bsc.compss.types.AbstractTask;
-
+package es.bsc.compss.components;
 
 /**
  * Abstract interface for task producer implementations.
@@ -25,10 +22,10 @@ import es.bsc.compss.types.AbstractTask;
 public interface TaskProducer {
 
     /**
-     * Notifies the end of task {@code task}.
+     * Cancellation of all the tasks in the given group.
      * 
-     * @param task Ended task.
+     * @param groupName Task group name to cancel.
      */
-    public void notifyTaskEnd(AbstractTask task);
+    public void cancelTaskGroup(Long appId, String groupName);
 
 }

@@ -45,7 +45,7 @@
 
   #----------------------------------------------------------------------------------
   # Check normal tasks are executed in the same worker (because it has slots and has data locality)
-  normalWorkers=$(grep "Assigning action" "${runtime_log}" | grep "normalTask" | awk '{ print $17 }')
+  normalWorkers=$(grep "Assigning action" "${runtime_log}" | grep "normalTask" | awk '{ print $16 }')
   normalWorker1=$(echo "${normalWorkers}" | head -n 1)
   normalWorker2=$(echo "${normalWorkers}" | tail -n 1)
   if [ "${normalWorker1}" != "${normalWorker2}" ]; then
@@ -55,7 +55,7 @@
   
   #----------------------------------------------------------------------------------
   # Check distributed tasks are executed in different workers
-  distributedWorkers=$(grep "Assigning action" "${runtime_log}" | grep "distributedTask" | awk '{ print $17 }')
+  distributedWorkers=$(grep "Assigning action" "${runtime_log}" | grep "distributedTask" | awk '{ print $16 }')
   distributedWorker1=$(echo "${distributedWorkers}" | head -n 1)
   distributedWorker2=$(echo "${distributedWorkers}" | tail -n 1)
   if [ "${distributedWorker1}" == "${distributedWorker2}" ]; then

@@ -25,7 +25,7 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
 public interface Operations {
 
-    public static final Object knownHosts = new Object();
+    public static final Object KNOWN_HOSTS = new Object();
 
 
     /**

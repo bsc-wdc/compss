@@ -260,7 +260,7 @@ public class ResourceManagerTest {
         CloudProvider cp1 = addProvider();
 
         CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
-        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);
+        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1, null);
 
         if (ResourceManager.getPendingCreationRequests().size() != 1
             || !ResourceManager.getPendingCreationRequests().contains(rcr1)) {
@@ -298,13 +298,13 @@ public class ResourceManagerTest {
         CloudProvider cp2 = addProvider();
 
         final CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
-        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);
+        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1, null);
 
         final CloudMethodResourceDescription cmrd2 = createResourceDescriptionFromProvider(cp2);
-        ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd1);
+        ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd1, null);
 
         final CloudMethodResourceDescription cmrd3 = createResourceDescriptionFromProvider(cp1);
-        ResourceCreationRequest rcr3 = cp1.requestResourceCreation(cmrd3);
+        ResourceCreationRequest rcr3 = cp1.requestResourceCreation(cmrd3, null);
 
         if (ResourceManager.getPendingCreationRequests().size() != 3
             || !ResourceManager.getPendingCreationRequests().contains(rcr1)
@@ -385,7 +385,7 @@ public class ResourceManagerTest {
         }
 
         CloudMethodResourceDescription cmrd4 = createResourceDescriptionFromProvider(cp1);
-        ResourceCreationRequest rcr4 = cp1.requestResourceCreation(cmrd4);
+        ResourceCreationRequest rcr4 = cp1.requestResourceCreation(cmrd4, null);
         if (ResourceManager.getPendingCreationRequests().size() != 1
             || !ResourceManager.getPendingCreationRequests().contains(rcr4)) {
             fail("ResourceManager is not properly registering the pending resouce creations");

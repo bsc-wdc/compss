@@ -42,7 +42,16 @@ public class MethodConfiguration extends Configuration {
     private String pythonpath = "";
     private String libraryPath = "";
 
+    // Only used for NIO but declared here for connectors
+    private int minPort;
+    private int maxPort;
 
+
+    /**
+     * Creates a new MethodConfiguration for the given adaptor name.
+     * 
+     * @param adaptorName Associated adaptor.
+     */
     public MethodConfiguration(String adaptorName) {
         super(adaptorName);
     }
@@ -50,7 +59,7 @@ public class MethodConfiguration extends Configuration {
     /**
      * Method Configuration constructors cloning an existing configuration.
      * 
-     * @param clone Configuration to clone
+     * @param clone Configuration to clone.
      */
     public MethodConfiguration(MethodConfiguration clone) {
         super(clone);
@@ -70,14 +79,74 @@ public class MethodConfiguration extends Configuration {
         this.classpath = clone.classpath;
         this.pythonpath = clone.pythonpath;
         this.libraryPath = clone.libraryPath;
+
+        this.minPort = clone.minPort;
+        this.maxPort = clone.maxPort;
     }
 
+    /**
+     * Copies the current MethodConfiguration.
+     * 
+     * @return A copy of the current MethodConfiguration.
+     */
     public MethodConfiguration copy() {
         return new MethodConfiguration(this);
     }
 
+    /**
+     * Returns the host name.
+     * 
+     * @return The host name.
+     */
+    public String getHost() {
+        return this.host;
+    }
+
+    /**
+     * Sets a new host name.
+     * 
+     * @param host New host name.
+     */
+    public void setHost(String host) {
+        if (host != null) {
+            this.host = host;
+        } else {
+            this.host = "";
+        }
+        String newHost = this.getHost().replace("/", "_").replace(":", "_"); // Replace nasty characters
+        String sandboxWorkingDir = this.getWorkingDir() + DEPLOYMENT_ID + File.separator + newHost + File.separator;
+        this.setSandboxWorkingDir(sandboxWorkingDir);
+    }
+
+    /**
+     * Returns the user name.
+     * 
+     * @return The user name.
+     */
+    public String getUser() {
+        return this.user;
+    }
+
+    /**
+     * Set the user name.
+     * 
+     * @param user New user name.
+     */
+    public void setUser(String user) {
+        if (user != null) {
+            this.user = user;
+        } else {
+            this.user = "";
+        }
+    }
+
+    /**
+     * Returns the installation directory.
+     * 
+     * @return The installation directory.
+     */
     public String getInstallDir() {
-        return installDir;
+        return this.installDir;
     }
 
     /**
@@ -97,22 +166,37 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the sandboxed working directory.
+     * 
+     * @return The sandboxed working directory.
+     */
     public String getSandboxWorkingDir() {
-        return sandboxWorkingDir;
+        return this.sandboxWorkingDir;
     }
 
+    /**
+     * Sets a new sandbox for the working directory.
+     * 
+     * @param sandboxWorkingDir New sandbox for the working directory.
+     */
     public void setSandboxWorkingDir(String sandboxWorkingDir) {
         this.sandboxWorkingDir = sandboxWorkingDir;
     }
 
+    /**
+     * Returns the working directory.
+     * 
+     * @return The working directory.
+     */
     public String getWorkingDir() {
-        return workingDir;
+        return this.workingDir;
     }
 
     /**
      * Set the working directory.
      * 
-     * @param workingDir Working directory path
+     * @param workingDir Working directory path.
      */
     public void setWorkingDir(String workingDir) {
         if (workingDir == null) {
@@ -131,14 +215,19 @@ public class MethodConfiguration extends Configuration {
         this.setSandboxWorkingDir(sandboxWorkingDir);
     }
 
+    /**
+     * Returns the total number of CPU computing units.
+     * 
+     * @return The total number of CPU computing units.
+     */
     public int getTotalComputingUnits() {
-        return totalComputingUnits;
+        return this.totalComputingUnits;
     }
 
     /**
-     * Set total computing units.
+     * Sets a new total of CPU computing units.
      * 
-     * @param totalCUs Total computing units
+     * @param totalCUs New total of CPU computing units
      */
     public void setTotalComputingUnits(int totalCUs) {
         if (totalCUs > 0) {
@@ -148,14 +237,19 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the total number of GPU computing units.
+     * 
+     * @return The total number of GPU computing units.
+     */
     public int getTotalGPUComputingUnits() {
-        return totalGPUComputingUnits;
+        return this.totalGPUComputingUnits;
     }
 
     /**
      * Set total GPU computing units.
      * 
-     * @param totalGPUs Total GPU computing units
+     * @param totalGPUs Total GPU computing units.
      */
     public void setTotalGPUComputingUnits(int totalGPUs) {
         if (totalGPUs > 0) {
@@ -165,8 +259,13 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the total number of FPGA computing units.
+     * 
+     * @return The total number of FPGA computing units.
+     */
     public int getTotalFPGAComputingUnits() {
-        return totalFPGAComputingUnits;
+        return this.totalFPGAComputingUnits;
     }
 
     /**
@@ -182,8 +281,13 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the total number of OTHER computing units.
+     * 
+     * @return The total number of OTHER computing units.
+     */
     public int getTotalOTHERComputingUnits() {
-        return totalOTHERComputingUnits;
+        return this.totalOTHERComputingUnits;
     }
 
     /**
@@ -199,8 +303,13 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the application directory path.
+     * 
+     * @return The application directory path.
+     */
     public String getAppDir() {
-        return appDir;
+        return this.appDir;
     }
 
     /**
@@ -218,8 +327,13 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the classpath.
+     * 
+     * @return The classpath.
+     */
     public String getClasspath() {
-        return classpath;
+        return this.classpath;
     }
 
     /**
@@ -235,8 +349,13 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the application's pythonpath.
+     * 
+     * @return The application's pythonpath.
+     */
     public String getPythonpath() {
-        return pythonpath;
+        return this.pythonpath;
     }
 
     /**
@@ -252,8 +371,13 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    /**
+     * Returns the application's library path.
+     * 
+     * @return The application's library path.
+     */
     public String getLibraryPath() {
-        return libraryPath;
+        return this.libraryPath;
     }
 
     /**
@@ -269,50 +393,40 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
-    public String getHost() {
-        return host;
-    }
-
     /**
-     * Set the hostname of the configuration.
+     * Returns the minimum port.
      * 
-     * @param host Hostname
+     * @return The minimum port.
      */
-    public void setHost(String host) {
-        if (host != null) {
-            this.host = host;
-        } else {
-            this.host = "";
-        }
-        String newHost = this.getHost().replace("/", "_").replace(":", "_"); // Replace nasty characters
-        String sandboxWorkingDir = this.getWorkingDir() + DEPLOYMENT_ID + File.separator + newHost + File.separator;
-        this.setSandboxWorkingDir(sandboxWorkingDir);
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    /**
-     * Set the username.
-     * 
-     * @param user username
-     */
-    public void setUser(String user) {
-        if (user != null) {
-            this.user = user;
-        } else {
-            this.user = "";
-        }
-    }
-
-    // For JClouds connector
-    public int getMaxPort() {
-        return -1;
-    }
-
     public int getMinPort() {
-        return -1;
+        return this.minPort;
+    }
+
+    /**
+     * Sets a new value for the minimum port.
+     * 
+     * @param minPort New minimum port.
+     */
+    public void setMinPort(int minPort) {
+        this.minPort = minPort;
+    }
+
+    /**
+     * Returns the maximum port.
+     * 
+     * @return The maximum port.
+     */
+    public int getMaxPort() {
+        return this.maxPort;
+    }
+
+    /**
+     * Sets a new value for the maximum port.
+     * 
+     * @param maxPort New maximum port.
+     */
+    public void setMaxPort(int maxPort) {
+        this.maxPort = maxPort;
     }
 
 }

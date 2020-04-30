@@ -35,6 +35,7 @@ public class CancelApplicationTasksRequest extends APRequest {
      * Creates a request to cancel all tasks of an application.
      * 
      * @param appId Application Id.
+     * @param sem Synchronising semaphore.
      */
     public CancelApplicationTasksRequest(Long appId, Semaphore sem) {
         this.appId = appId;
@@ -61,6 +62,11 @@ public class CancelApplicationTasksRequest extends APRequest {
         ta.cancelApplicationTasks(this);
     }
 
+    /**
+     * Returns the associated application Id.
+     * 
+     * @return The associated application Id.
+     */
     public Long getAppId() {
         return appId;
     }

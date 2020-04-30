@@ -69,7 +69,7 @@
   else
     appearances=$(grep -c "$mondayDate2" "$monday_file")
     if [ ! "$appearances" -eq "4" ]; then
-      echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function computing_nodes parameter failed." | tee -a "${output_file}"
+      echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a "${output_file}"
       exit 1
     fi
   fi

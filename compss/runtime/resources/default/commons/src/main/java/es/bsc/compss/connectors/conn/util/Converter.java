@@ -85,9 +85,8 @@ public class Converter {
         String osDist = cmrd.getOperatingSystemDistribution();
         String osVersion = cmrd.getOperatingSystemVersion();
         List<String> apps = cmrd.getAppSoftware();
-        CloudImageDescription cid = cmrd.getImage();
-        MethodConfiguration mc = cid.getConfig();
-        InstallationDescription installDesc = getInstallationDescription(mc);
+        InstallationDescription installDesc = getInstallationDescription(cmrd.getImage().getConfig());
+
         return new SoftwareDescription(osType, osDist, osVersion, apps, installDesc);
     }
 
@@ -137,8 +136,10 @@ public class Converter {
      * @return Installation description.
      */
     private static InstallationDescription getInstallationDescription(MethodConfiguration config) {
-        return new InstallationDescription(config.getInstallDir(), config.getAppDir(), config.getClasspath(),
+        InstallationDescription installDesc = new InstallationDescription(config.getAdaptorName(), config.getMinPort(),
+            config.getMaxPort(), config.getInstallDir(), config.getAppDir(), config.getClasspath(),
             config.getPythonpath(), config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
+        return installDesc;
     }
 
     /*
@@ -161,6 +162,9 @@ public class Converter {
         setSoftwareInResourceDescription(cmrd, vr.getSd(), requested);
         CloudImageDescription cid = getCloudImageDescription(vr.getHd(), vr.getSd(), requested);
         cmrd.setImage(cid);
+        cmrd.getImage().getConfig().setMinPort(vr.getSd().getInstallation().getMinPort());
+        cmrd.getImage().getConfig().setMaxPort(vr.getSd().getInstallation().getMaxPort());
+
         return cmrd;
     }
 

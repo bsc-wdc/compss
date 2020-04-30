@@ -244,7 +244,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void setInternalURI(MultiURI uri) {
-        String scheme = uri.getScheme();
+        String scheme = uri.getProtocol().getSchema();
         String user = this.config.getUser().isEmpty() ? "" : this.config.getUser() + "@";
         String host = this.config.getHost();
         String filePath = uri.getPath();

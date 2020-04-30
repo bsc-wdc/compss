@@ -957,7 +957,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         public void perform() {
             RUNTIME_LOGGER.debug("[MOResourceOptimizer] Performing Add action " + this);
             CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(this.instance, this.image);
-            this.provider.requestResourceCreation(cmrd);
+            this.provider.requestResourceCreation(cmrd, null);
         }
     }
 

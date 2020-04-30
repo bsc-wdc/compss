@@ -18,8 +18,8 @@ package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
@@ -84,12 +84,12 @@ public class ExecutionAction extends AllocatableAction {
     private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
 
     // Execution Info
-    protected final TaskProducer producer;
+    protected final AccessProcessor ap;
     protected final Task task;
     private final LinkedList<Integer> jobs;
     private int transferErrors = 0;
     protected int executionErrors = 0;
-    private Job<?> currentJob;
+    protected Job<?> currentJob;
     boolean cancelledBeforeSubmit = false;
 
 
@@ -98,15 +98,15 @@ public class ExecutionAction extends AllocatableAction {
      *
      * @param schedulingInformation Associated scheduling information.
      * @param orchestrator Task orchestrator.
-     * @param producer Task producer.
+     * @param ap Access processor.
      * @param task Associated task.
      */
     public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-        TaskProducer producer, Task task) {
+        AccessProcessor ap, Task task) {
 
         super(schedulingInformation, orchestrator);
 
-        this.producer = producer;
+        this.ap = ap;
         this.task = task;
         this.jobs = new LinkedList<>();
         this.transferErrors = 0;
@@ -352,8 +352,8 @@ public class ExecutionAction extends AllocatableAction {
     public final void failedTransfers(int failedtransfers) {
         JOB_LOGGER
             .debug("Received a notification for the transfers for task " + this.task.getId() + " with state FAILED");
-        ++transferErrors;
-        if (transferErrors < TRANSFER_CHANCES && this.task.getOnFailure() == OnFailure.RETRY) {
+        ++this.transferErrors;
+        if (this.transferErrors < TRANSFER_CHANCES && this.task.getOnFailure() == OnFailure.RETRY) {
             JOB_LOGGER.debug("Resubmitting input files for task " + this.task.getId() + " to host "
                 + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
             doInputTransfers();
@@ -375,10 +375,10 @@ public class ExecutionAction extends AllocatableAction {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + this.task.getId() + " with state DONE");
         JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = submitJob(transferGroupId, listener);
-        if (!cancelledBeforeSubmit) {
+        if (!this.cancelledBeforeSubmit) {
             // Register job
             this.jobs.add(job.getJobId());
-            JOB_LOGGER.info((this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
+            JOB_LOGGER.info((getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
                 + " (Task: " + this.task.getId() + ")");
             JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
             JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
@@ -775,7 +775,7 @@ public class ExecutionAction extends AllocatableAction {
         // Decrease the execution counter and set the task as finished and notify the producer
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
-        this.producer.notifyTaskEnd(task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     @Override
@@ -839,7 +839,7 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task failure
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FAILED);
-        this.producer.notifyTaskEnd(this.task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     @Override
@@ -877,7 +877,7 @@ public class ExecutionAction extends AllocatableAction {
         // Decrease the execution counter and set the task as finished and notify the producer
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
-        this.producer.notifyTaskEnd(task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     @Override
@@ -890,7 +890,7 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task cancellation
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.CANCELED);
-        this.producer.notifyTaskEnd(this.task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     @Override
@@ -909,7 +909,7 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task completion despite the failure
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
-        this.producer.notifyTaskEnd(this.task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     /*
@@ -1058,12 +1058,12 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
 
-            Score resourceScore = worker.generateResourceScore(this, task.getTaskDescription(), actionScore);
+            Score resourceScore = worker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
             ++usefulResources;
             if (resourceScore != null) {
                 for (Implementation impl : getCompatibleImplementations(worker)) {
                     Score implScore =
-                        worker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
+                        worker.generateImplementationScore(this, this.task.getTaskDescription(), impl, resourceScore);
                     if (DEBUG) {
                         debugString.append(" Resource ").append(worker.getName()).append(" ").append(" Implementation ")
                             .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore)
@@ -1101,7 +1101,7 @@ public class ExecutionAction extends AllocatableAction {
 
         if (targetWorker == null
             // Resource is not compatible with the Core
-            || !targetWorker.getResource().canRun(task.getTaskDescription().getCoreElement().getCoreId())
+            || !targetWorker.getResource().canRun(this.task.getTaskDescription().getCoreElement().getCoreId())
             // already ran on the resource
             || this.getExecutingResources().contains(targetWorker)) {
 
@@ -1113,10 +1113,10 @@ public class ExecutionAction extends AllocatableAction {
 
         Implementation bestImpl = null;
         Score bestScore = null;
-        Score resourceScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
+        Score resourceScore = targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
         for (Implementation impl : getCompatibleImplementations(targetWorker)) {
             Score implScore =
-                targetWorker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
+                targetWorker.generateImplementationScore(this, this.task.getTaskDescription(), impl, resourceScore);
             if (Score.isBetter(implScore, bestScore)) {
                 bestImpl = impl;
                 bestScore = implScore;
@@ -1153,18 +1153,8 @@ public class ExecutionAction extends AllocatableAction {
         assignResource(targetWorker);
         targetWorker.scheduleAction(this);
 
-        TaskMonitor monitor = task.getTaskMonitor();
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSchedule();
-    }
-
-    /*
-     * ***************************************************************************************************************
-     * OTHER
-     * ***************************************************************************************************************
-     */
-    @Override
-    public String toString() {
-        return "ExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName() + ")";
     }
 
     @Override
@@ -1182,6 +1172,17 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
         }
+    }
+
+    /*
+     * ***************************************************************************************************************
+     * OTHER
+     * ***************************************************************************************************************
+     */
+    @Override
+    public String toString() {
+        return "ExecutionAction (Task " + this.task.getId() + ", CE name " + this.task.getTaskDescription().getName()
+            + ")";
     }
 
 }

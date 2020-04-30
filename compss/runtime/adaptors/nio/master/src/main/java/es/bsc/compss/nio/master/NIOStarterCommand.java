@@ -32,11 +32,12 @@ public class NIOStarterCommand extends WorkerStarterCommand {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
+    // NIO Script path
     private static final String SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
         + File.separator + "adaptors" + File.separator + "nio" + File.separator;
-
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
 
+    // Script name
     private String scriptName;
 
 
@@ -64,7 +65,8 @@ public class NIOStarterCommand extends WorkerStarterCommand {
 
         super(workerName, workerPort, masterName, workingDir, installDir, appDir, classpathFromFile, pythonpathFromFile,
             libPathFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks, hostId);
-        scriptName = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + SCRIPT_PATH
+
+        this.scriptName = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + SCRIPT_PATH
             + STARTER_SCRIPT_NAME;
     }
 
@@ -77,13 +79,13 @@ public class NIOStarterCommand extends WorkerStarterCommand {
          * ************************************************************************************************************
          */
         String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER
-            + jvmFlags.length + 1 + fpgaArgs.length];
+            + this.jvmFlags.length + 1 + this.fpgaArgs.length];
 
         /* SCRIPT ************************************************ */
-        cmd[0] = scriptName;
+        cmd[0] = this.scriptName;
 
         /* Values ONLY for persistent_worker.sh ****************** */
-        cmd[1] = workerLibPath.isEmpty() ? "null" : workerLibPath;
+        cmd[1] = this.workerLibPath.isEmpty() ? "null" : this.workerLibPath;
 
         if (appDir.isEmpty()) {
             LOGGER.warn("No path passed via appdir option neither xml AppDir field");
@@ -92,78 +94,78 @@ public class NIOStarterCommand extends WorkerStarterCommand {
             cmd[2] = appDir;
         }
 
-        cmd[3] = workerClasspath.isEmpty() ? "null" : workerClasspath;
+        cmd[3] = this.workerClasspath.isEmpty() ? "null" : this.workerClasspath;
 
         cmd[4] = Comm.getStreamingBackend().name();
 
-        cmd[5] = String.valueOf(jvmFlags.length);
-        for (int i = 0; i < jvmFlags.length; ++i) {
-            cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = jvmFlags[i];
+        cmd[5] = String.valueOf(this.jvmFlags.length);
+        for (int i = 0; i < this.jvmFlags.length; ++i) {
+            cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = this.jvmFlags[i];
         }
 
-        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
-        cmd[nextPosition++] = String.valueOf(fpgaArgs.length);
-        for (String fpgaArg : fpgaArgs) {
+        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + this.jvmFlags.length;
+        cmd[nextPosition++] = String.valueOf(this.fpgaArgs.length);
+        for (String fpgaArg : this.fpgaArgs) {
             cmd[nextPosition++] = fpgaArg;
         }
 
         /* Values for NIOWorker ********************************** */
-        cmd[nextPosition++] = workerDebug;
+        cmd[nextPosition++] = this.workerDebug;
 
         // Internal parameters
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MAX_SEND_WORKER);
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MAX_RECEIVE_WORKER);
-        cmd[nextPosition++] = workerName;
-        cmd[nextPosition++] = String.valueOf(workerPort);
-        cmd[nextPosition++] = masterName;
+        cmd[nextPosition++] = this.workerName;
+        cmd[nextPosition++] = String.valueOf(this.workerPort);
+        cmd[nextPosition++] = this.masterName;
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MASTER_PORT);
         cmd[nextPosition++] = String.valueOf(Comm.getStreamingPort());
 
         // Worker parameters
-        cmd[nextPosition++] = String.valueOf(totalCPU);
-        cmd[nextPosition++] = String.valueOf(totalGPU);
-        cmd[nextPosition++] = String.valueOf(totalFPGA);
+        cmd[nextPosition++] = String.valueOf(this.totalCPU);
+        cmd[nextPosition++] = String.valueOf(this.totalGPU);
+        cmd[nextPosition++] = String.valueOf(this.totalFPGA);
 
         // affinity
         cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(GPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(FPGA_AFFINITY);
         cmd[nextPosition++] = String.valueOf(IO_EXECUTORS);
-        cmd[nextPosition++] = String.valueOf(limitOfTasks);
+        cmd[nextPosition++] = String.valueOf(this.limitOfTasks);
 
         // Application parameters
         cmd[nextPosition++] = DEPLOYMENT_ID;
-        cmd[nextPosition++] = lang;
-        cmd[nextPosition++] = workingDir;
-        cmd[nextPosition++] = installDir;
+        cmd[nextPosition++] = this.lang;
+        cmd[nextPosition++] = this.sandboxedWorkingDir;
+        cmd[nextPosition++] = this.installDir;
 
         cmd[nextPosition++] = cmd[2];
-        cmd[nextPosition++] = workerLibPath.isEmpty() ? "null" : workerLibPath;
-        cmd[nextPosition++] = workerClasspath.isEmpty() ? "null" : workerClasspath;
-        cmd[nextPosition++] = workerPythonpath.isEmpty() ? "null" : workerPythonpath;
+        cmd[nextPosition++] = this.workerLibPath.isEmpty() ? "null" : this.workerLibPath;
+        cmd[nextPosition++] = this.workerClasspath.isEmpty() ? "null" : this.workerClasspath;
+        cmd[nextPosition++] = this.workerPythonpath.isEmpty() ? "null" : this.workerPythonpath;
 
         // Tracing parameters
         cmd[nextPosition++] = String.valueOf(NIOTracer.getLevel());
         cmd[nextPosition++] = NIOTracer.getExtraeFile();
-        cmd[nextPosition++] = hostId;
+        cmd[nextPosition++] = this.hostId;
 
         // Storage parameters
-        cmd[nextPosition++] = storageConf;
-        cmd[nextPosition++] = executionType;
+        cmd[nextPosition++] = this.storageConf;
+        cmd[nextPosition++] = this.executionType;
 
         // persistent_c parameter
-        cmd[nextPosition++] = workerPersistentC;
+        cmd[nextPosition++] = this.workerPersistentC;
 
         // Python interpreter parameter
-        cmd[nextPosition++] = pythonInterpreter;
+        cmd[nextPosition++] = this.pythonInterpreter;
         // Python interpreter version
-        cmd[nextPosition++] = pythonVersion;
+        cmd[nextPosition++] = this.pythonVersion;
         // Python virtual environment parameter
-        cmd[nextPosition++] = pythonVirtualEnvironment;
+        cmd[nextPosition++] = this.pythonVirtualEnvironment;
         // Python propagate virtual environment parameter
-        cmd[nextPosition++] = pythonPropagateVirtualEnvironment;
+        cmd[nextPosition++] = this.pythonPropagateVirtualEnvironment;
         // Python use MPI worker parameter
-        cmd[nextPosition++] = pythonMpiWorker;
+        cmd[nextPosition++] = this.pythonMpiWorker;
 
         if (cmd.length != nextPosition) {
             throw new Exception(
@@ -176,7 +178,6 @@ public class NIOStarterCommand extends WorkerStarterCommand {
     @Override
     public void setScriptName(String scriptName) {
         this.scriptName = scriptName;
-
     }
 
 }

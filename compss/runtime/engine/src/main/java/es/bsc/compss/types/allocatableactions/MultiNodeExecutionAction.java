@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
-import es.bsc.compss.components.impl.TaskProducer;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
@@ -44,14 +44,14 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      *
      * @param schedulingInformation Scheduling information.
      * @param orchestrator Task orchestrator.
-     * @param producer Task producer.
+     * @param ap Access Processor.
      * @param task Associated task.
      * @param group Multi-node group.
      */
     public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-        TaskProducer producer, Task task, MultiNodeGroup group) {
+        AccessProcessor ap, Task task, MultiNodeGroup group) {
 
-        super(schedulingInformation, orchestrator, producer, task);
+        super(schedulingInformation, orchestrator, ap, task);
 
         this.group = group;
     }
@@ -135,10 +135,27 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         List<String> slaveNames = this.group.getSlavesNames();
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, listener);
+        this.currentJob = job;
         job.setTransferGroupId(transferGroupId);
         job.setHistory(JobHistory.NEW);
 
         return job;
+    }
+
+    /**
+     * Code executed to cancel a running execution.
+     * 
+     * @throws Exception Unstarted node exception.
+     */
+    @Override
+    protected void stopAction() throws Exception {
+        // The stop petition needs only to be submitted for the master action
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
+            LOGGER.info("Task " + this.task.getId() + " starts cancelling MultiNode master running job");
+            super.stopAction();
+        } else {
+            LOGGER.info("Task " + this.task.getId() + " starts cancelling MultiNode slave running job");
+        }
     }
 
     /*

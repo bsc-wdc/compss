@@ -27,40 +27,51 @@
 #include "BindingDataManager.h"
 
 using namespace std;
+
+typedef struct {
+  int isLocked;
+  JNIEnv* localJniEnv;
+  JavaVM* localJvm;
+  int isAttached;
+} ThreadStatus;
+
 const int NUM_FIELDS = 7;
 
-JNIEnv *m_env;
-jobject jobjIT;
-jclass clsITimpl;
-JavaVM * m_jvm;
+JNIEnv* globalJniEnv;
+JavaVM* globalJvm;
+pthread_mutex_t globalJniAccessMutex;
+jobject globalRuntime;
 
-pthread_mutex_t mtx;
+jmethodID midAppDir;                    /* ID of the getApplicationDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midExecute;                   /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midExecuteNew;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midCancelApplicationTasks;    /* ID of the CancelApplicationTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jobject appId;
+jmethodID midIsFileAccessed;            /* ID of the isFileAccessed method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midOpenFile;                  /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midCloseFile;                 /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midDeleteFile;                /* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midGetFile;                   /* ID of the getFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jmethodID midAppDir;                /* ID of the getApplicationDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midExecute;               /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midExecuteNew;            /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midRegisterCE;            /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midEmitEvent;             /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midCancelApplicationTasks; /* ID of the CancelApplicationTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midGetDirectory;              /* ID of the getDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jmethodID midIsFileAccessed;        /* ID of the isFileAccessed method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midOpenFile;              /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midCloseFile;             /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midDeleteFile;            /* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midGetFile;               /* ID of the getFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midBarrier; 		            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midBarrierNew;                /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midBarrierGroup;              /* ID of the barrierGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midOpenTaskGroup;             /* ID of the openTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midCloseTaskGroup;            /* ID of the closeTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jmethodID midGetDirectory;          /* ID of the getDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midGetBindingObject;		    /* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midDeleteBindingObject; 	    /* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
-jmethodID midBarrier; 		        /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midBarrierNew;            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midBarrierGroup;            /* ID of the barrierGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midOpenTaskGroup;         /* ID of the openTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midCloseTaskGroup;        /* ID of the closeTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midGetNumberOfResources;      /* ID of the getNumberOfResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midRequestResources;          /* ID of the requestResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midFreeResources;             /* ID of the freeResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jmethodID midgetBindingObject;		/* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
-jmethodID midDeleteBindingObject; 	/* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midNoMoreTasksIT;             /* ID of the noMoreTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jobject jobjParDirIN; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirOUT; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
@@ -103,322 +114,398 @@ jclass clsDouble;         /* java.lang.Double class */
 jmethodID midDoubleCon;   /* ID of the java.lang.Double class constructor method */
 
 
-void init_basic_jni_types() {
+// ******************************
+// Private helper methods
+// ******************************
+
+/**
+ * Registers and attaches the current thread to access the JVM.
+ * Requires globalJniAccessMutex, globalJniEnv, and globalJvm to be initialised.
+ */
+ThreadStatus* access_request() {
+    ThreadStatus* status = new ThreadStatus();
+    
+    // Lock mutex
+    pthread_mutex_lock(&globalJniAccessMutex);
+    status->isLocked = 1;
+    
+    // Attach thread to JVM
+    status->localJniEnv = globalJniEnv;
+    status->localJvm = globalJvm;
+    status->isAttached = check_and_attach(globalJvm, status->localJniEnv); // WARN: Updates isAttached and localEnv
+
+    // Return status
+    return status;
+}
+
+/**
+ * Revokes the current thread to access the JVM. The given status cannot be user after this callee.
+ */
+void access_revoke(ThreadStatus* status) {
+    // Detach thread from JVM
+    if (status->localJvm != NULL && status->isAttached == 1) {
+        status->localJvm->DetachCurrentThread();
+
+        status->localJniEnv = NULL;
+        status->localJvm = NULL;
+        status->isAttached = 0;
+    }
+
+    // Unlock mutex
+    if (status->isLocked == 1) {
+        pthread_mutex_unlock(&globalJniAccessMutex);
+
+        status->isLocked = 0;
+    }
+
+    // Free status memory
+    free(status);
+}
+
+/**
+ * Checks if an exception occurred. If an exception is registered, log it, revoke the
+ * thread JVM permissions, and exit.
+ */
+void check_exception(ThreadStatus* status, const char* message) {
+    if (status->localJniEnv->ExceptionOccurred()) {
+        // Log provided exception message
+        printf("\n[BINDING_COMMONS] ERROR: %s. \n", message);
+
+        // Log exception
+        status->localJniEnv->ExceptionDescribe();
+
+        // Free thread status
+        access_revoke(status);
+
+        // Error Exit
+        exit(1);
+    }
+}
+
+/**
+ * Gets the containing message of a given a COMPSsException. Does not stop the execution.
+ */
+void check_and_get_compss_exception(ThreadStatus* status, char** buf) {
+    jthrowable exception = status->localJniEnv->ExceptionOccurred();
+    if (exception) {
+        // Log exception
+        status->localJniEnv->ExceptionDescribe();
+
+        // Parse COMPSsException
+        jclass exceptionClazz = status->localJniEnv->GetObjectClass((jobject) exception);
+        jclass classClazz = status->localJniEnv->GetObjectClass((jobject) exceptionClazz);
+        jmethodID classGetNameMethod = status->localJniEnv->GetMethodID(classClazz, "getName", "()Ljava/lang/String;");
+        jstring classNameStr = (jstring)status->localJniEnv->CallObjectMethod(exceptionClazz, classGetNameMethod);
+        if (strcmp(status->localJniEnv->GetStringUTFChars(classNameStr ,0), "es.bsc.compss.worker.COMPSsException") != 0) {
+            status->localJniEnv->ExceptionClear();
+        } else {
+            const char* classNameChars = status->localJniEnv->GetStringUTFChars(classNameStr, NULL);
+            if (classNameChars != NULL) {
+                jmethodID throwableGetMessageMethod = status->localJniEnv->GetMethodID(exceptionClazz, "getMessage", "()Ljava/lang/String;");
+                jstring messageStr = (jstring) status->localJniEnv->CallObjectMethod(exception, throwableGetMessageMethod);
+                if (messageStr != NULL) {
+                    const char* messageChars = status->localJniEnv->GetStringUTFChars( messageStr, NULL);
+                    if (messageChars != NULL) {
+                        *buf = strdup(messageChars);
+                        status->localJniEnv->ReleaseStringUTFChars(messageStr, messageChars);
+                        status->localJniEnv->ExceptionClear();
+                    } else {
+                        status->localJniEnv->ExceptionClear();
+                    }
+                    status->localJniEnv->DeleteLocalRef(messageStr);
+                }
+                status->localJniEnv->ReleaseStringUTFChars(classNameStr, classNameChars);
+                status->localJniEnv->DeleteLocalRef(classNameStr);
+            }
+            status->localJniEnv->DeleteLocalRef(classClazz);
+            status->localJniEnv->DeleteLocalRef(exceptionClazz);
+        }
+    }
+}
+
+
+/**
+ * Initialises the JNI basic types.
+ */
+void init_basic_jni_types(ThreadStatus* status) {
     // Parameter classes
     debug_printf ("[BINDING-COMMONS]  -  @Init JNI Types\n");
 
-    jclass clsLocal = m_env->FindClass("java/lang/Object");
-    check_and_treat_exception(m_env, "Looking for object class");
-    clsObject = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for object class");
+    jclass clsLocal = status->localJniEnv->FindClass("java/lang/Object");
+    check_exception(status, "Cannot find object class");
+    clsObject = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot create global object class");
+    midObjCon = status->localJniEnv->GetMethodID(clsObject, "<init>", "()V");
+    check_exception(status, "Cannot find object constructor");
 
-    midObjCon = m_env->GetMethodID(clsObject, "<init>", "()V");
-    check_and_treat_exception(m_env, "Looking for object constructor");
-    clsLocal = m_env->FindClass("java/lang/String");
-    check_and_treat_exception(m_env, "Looking for string class");
-    clsString = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for string class");
-    midStrCon = m_env->GetMethodID(clsString, "<init>", "(Ljava/lang/String;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
-    clsLocal = m_env->FindClass("java/lang/Character");
-    check_and_treat_exception(m_env, "Looking for string class");
-    clsCharacter = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for string class");
+    clsLocal = status->localJniEnv->FindClass("java/lang/String");
+    check_exception(status, "Cannot find string class");
+    clsString = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot create global string class");
+    midStrCon = status->localJniEnv->GetMethodID(clsString, "<init>", "(Ljava/lang/String;)V");
+    check_exception(status, "Cannot find string constructor");
 
-    midCharCon = m_env->GetMethodID(clsCharacter, "<init>", "(C)V");
-    check_and_treat_exception(m_env, "Looking for string constructor");
+    clsLocal = status->localJniEnv->FindClass("java/lang/Character");
+    check_exception(status, "Cannot find char class");
+    clsCharacter = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot create global char class");
+    midCharCon = status->localJniEnv->GetMethodID(clsCharacter, "<init>", "(C)V");
+    check_exception(status, "Cannot find char constructor");
 
-    clsLocal = m_env->FindClass("java/lang/Boolean");
-    check_and_treat_exception(m_env, "Looking for boolean class");
-    clsBoolean = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for boolean class");
+    clsLocal = status->localJniEnv->FindClass("java/lang/Boolean");
+    check_exception(status, "Cannot find boolean class");
+    clsBoolean = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot find boolean class");
 
-    midBoolCon = m_env->GetMethodID(clsBoolean, "<init>", "(Z)V");
-    check_and_treat_exception(m_env, "Looking for boolean class");
+    midBoolCon = status->localJniEnv->GetMethodID(clsBoolean, "<init>", "(Z)V");
+    check_exception(status, "Cannot find boolean class");
 
-    clsLocal = m_env->FindClass("java/lang/Short");
-    check_and_treat_exception(m_env, "Looking for boolean class");
-    clsShort = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for boolean class");
+    clsLocal = status->localJniEnv->FindClass("java/lang/Short");
+    check_exception(status, "Cannot find boolean class");
+    clsShort = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot find boolean class");
 
-    midShortCon = m_env->GetMethodID(clsShort, "<init>", "(S)V");
-    check_and_treat_exception(m_env, "Looking for boolean constructor");
+    midShortCon = status->localJniEnv->GetMethodID(clsShort, "<init>", "(S)V");
+    check_exception(status, "Cannot find boolean constructor");
 
-    clsLocal = m_env->FindClass("java/lang/Integer");
-    check_and_treat_exception(m_env, "Looking for Integer class");
-    clsInteger = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for Integer class");
+    clsLocal = status->localJniEnv->FindClass("java/lang/Integer");
+    check_exception(status, "Cannot find Integer class");
+    clsInteger = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot find Integer class");
 
-    midIntCon = m_env->GetMethodID(clsInteger, "<init>", "(I)V");
-    check_and_treat_exception(m_env, "Looking for Integer constructor");
+    midIntCon = status->localJniEnv->GetMethodID(clsInteger, "<init>", "(I)V");
+    check_exception(status, "Cannot find Integer constructor");
 
-    clsLocal = m_env->FindClass("java/lang/Long");
-    check_and_treat_exception(m_env, "Looking for Long class");
-    clsLong = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for Long class");
+    clsLocal = status->localJniEnv->FindClass("java/lang/Long");
+    check_exception(status, "Cannot find Long class");
+    clsLong = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot find Long class");
 
-    midLongCon = m_env->GetMethodID(clsLong, "<init>", "(J)V");
-    check_and_treat_exception(m_env, "Looking for Long constructor");
+    midLongCon = status->localJniEnv->GetMethodID(clsLong, "<init>", "(J)V");
+    check_exception(status, "Cannot find Long constructor");
 
-    clsLocal = m_env->FindClass("java/lang/Float");
-    check_and_treat_exception(m_env, "Looking for Float Class");
-    clsFloat = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for Float Class");
+    clsLocal = status->localJniEnv->FindClass("java/lang/Float");
+    check_exception(status, "Cannot find Float Class");
+    clsFloat = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot find Float Class");
 
-    midFloatCon = m_env->GetMethodID(clsFloat, "<init>", "(F)V");
-    check_and_treat_exception(m_env, "Looking for Float Constructor");
+    midFloatCon = status->localJniEnv->GetMethodID(clsFloat, "<init>", "(F)V");
+    check_exception(status, "Cannot find Float Constructor");
 
-    clsLocal = m_env->FindClass("java/lang/Double");
-    check_and_treat_exception(m_env, "Looking for Double Class");
-    clsDouble = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Looking for Double Class");
+    clsLocal = status->localJniEnv->FindClass("java/lang/Double");
+    check_exception(status, "Cannot find Double Class");
+    clsDouble = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot find Double Class");
 
-    midDoubleCon = m_env->GetMethodID(clsDouble, "<init>", "(D)V");
-    check_and_treat_exception(m_env, "Looking for Double Constructor");
+    midDoubleCon = status->localJniEnv->GetMethodID(clsDouble, "<init>", "(D)V");
+    check_exception(status, "Cannot find Double Constructor");
 
-    debug_printf ("[BINDING_COMMONS]  -  @Init DONE\n");
+    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Types DONE\n");
 }
 
 
-void init_master_jni_types() {
-    jclass clsParDir; 		    /* es.bsc.compss.types.annotations.parameter.Direction class */
-    jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
-    jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.StdIOStream class */
-    jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
+/**
+ * Initialises the COMPSs related types.
+ */
+void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Master\n");
 
+
+    // JNI API method calls
     debug_printf ("[BINDING-COMMONS]  -  @Init JNI Methods\n");
 
     // getApplicationDirectory method
-    midAppDir = m_env->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
-    check_and_treat_exception(m_env, "Looking for getApplicationDirectory method");
+    midAppDir = status->localJniEnv->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
+    check_exception(status, "Cannot find getApplicationDirectory method");
 
     // executeTask method - C binding
-    midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midExecute = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    check_exception(status, "Cannot find executeTask C");
 
     // executeTask method - Python binding
-    midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;IZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midExecuteNew = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;IZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    check_exception(status, "Cannot find executeTask Python");
 
     // barrier method
-    midBarrier = m_env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midBarrier = status->localJniEnv->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;)V");
+    check_exception(status, "Cannot find barrier");
 
     // barrier method (with no more tasks flag)
-    midBarrierNew = m_env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;Z)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midBarrierNew = status->localJniEnv->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;Z)V");
+    check_exception(status, "Cannot find barrier new");
 
     // barrierGroup method
-    midBarrierGroup = m_env->GetMethodID(clsITimpl, "barrierGroup", "(Ljava/lang/Long;Ljava/lang/String;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midBarrierGroup = status->localJniEnv->GetMethodID(clsITimpl, "barrierGroup", "(Ljava/lang/Long;Ljava/lang/String;)V");
+    check_exception(status, "Cannot find barrierGroup");
 
     // openTaskGroup method
-    midOpenTaskGroup = m_env->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;ZLjava/lang/Long;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midOpenTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;ZLjava/lang/Long;)V");
+    check_exception(status, "Cannot find openTaskGroup");
 
     // closeTaskGroup method
-    midCloseTaskGroup = m_env->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midCloseTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
+    check_exception(status, "Cannot find closeTaskGroup");
 
     // EmitEvent method
-    midEmitEvent = m_env->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midEmitEvent = status->localJniEnv->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
+    check_exception(status, "Cannot find emitEvent");
 
     // CancelApplicationTasks method
-    midCancelApplicationTasks = m_env->GetMethodID(clsITimpl, "cancelApplicationTasks", "(Ljava/lang/Long;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midCancelApplicationTasks = status->localJniEnv->GetMethodID(clsITimpl, "cancelApplicationTasks", "(Ljava/lang/Long;)V");
+    check_exception(status, "Cannot find cancelApplicationTasks");
 
     // RegisterCE method
-    midRegisterCE = m_env->GetMethodID(clsITimpl, 
-    "registerCoreElement",  
-    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
+    check_exception(status, "Cannot find registerCoreElement");
+
+    // isFileAccessed method
+    midIsFileAccessed = status->localJniEnv->GetMethodID(clsITimpl, "isFileAccessed", "(Ljava/lang/String;)Z");
+    check_exception(status, "Cannot find isFileAccessed");
 
     // openFile method
-    midIsFileAccessed = m_env->GetMethodID(clsITimpl, "isFileAccessed", "(Ljava/lang/String;)Z");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
-
-    // openFile method
-    midOpenFile = m_env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midOpenFile = status->localJniEnv->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
+    check_exception(status, "Cannot find openFile");
 
     // closeFile method
-    midCloseFile = m_env->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midCloseFile = status->localJniEnv->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
+    check_exception(status, "Cannot find closeFile");
 
     // deleteFile method
-    midDeleteFile = m_env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;Z)Z");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midDeleteFile = status->localJniEnv->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;Z)Z");
+    check_exception(status, "Cannot find deleteFile");
 
     // getFile method
-    midGetFile = m_env->GetMethodID(clsITimpl, "getFile", "(Ljava/lang/Long;Ljava/lang/String;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midGetFile = status->localJniEnv->GetMethodID(clsITimpl, "getFile", "(Ljava/lang/Long;Ljava/lang/String;)V");
+    check_exception(status, "Cannot find getFile");
 
     // getDirectory method
-    midGetDirectory = m_env->GetMethodID(clsITimpl, "getDirectory", "(Ljava/lang/Long;Ljava/lang/String;)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midGetDirectory = status->localJniEnv->GetMethodID(clsITimpl, "getDirectory", "(Ljava/lang/Long;Ljava/lang/String;)V");
+    check_exception(status, "Cannot find getDirectory");
 
     // deleteFile method
-    midDeleteBindingObject = m_env->GetMethodID(clsITimpl, "deleteBindingObject", "(Ljava/lang/String;)Z");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midDeleteBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "deleteBindingObject", "(Ljava/lang/String;)Z");
+    check_exception(status, "Cannot find deleteBindingObject");
+
     // openFile method
-    midgetBindingObject = m_env->GetMethodID(clsITimpl, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    midGetBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
+    check_exception(status, "Cannot find getBindingObject");
+
+    // getNumberOfResources method
+    midGetNumberOfResources = status->localJniEnv->GetMethodID(clsITimpl, "getNumberOfResources", "()I");
+    check_exception(status, "Cannot find getNumberOfResources");
+
+    // requestResourcesCreation method
+    midRequestResources = status->localJniEnv->GetMethodID(clsITimpl, "requestResources", "(Ljava/lang/Long;ILjava/lang/String;)V");
+    check_exception(status, "Cannot find requestResources");
+
+    // requestResourcesDestruction method
+    midFreeResources = status->localJniEnv->GetMethodID(clsITimpl, "freeResources", "(Ljava/lang/Long;ILjava/lang/String;)V");
+    check_exception(status, "Cannot find freeResources");
+
+    // Load NoMoreTasks
+    midNoMoreTasksIT = status->localJniEnv->GetMethodID(clsITimpl, "noMoreTasks", "(Ljava/lang/Long;)V");
+    check_exception(status, "Cannot find noMoreTasks method.");
+
+    // Load stopIT
+    midStopIT = status->localJniEnv->GetMethodID(clsITimpl, "stopIT", "(Z)V");
+    check_exception(status, "Cannot find stopIT method.");
+
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Methods DONE\n");
 
 
-    // PARAMETER DIRECTIONS
-
+    // Parameter directions
     debug_printf ("[BINDING_COMMONS]  -  @Init JNI Direction Types\n");
 
-    clsParDir = m_env->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
-    midParDirCon = m_env->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    jclass clsParDir; 		    /* es.bsc.compss.types.annotations.parameter.Direction class */
+    jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
 
-    jobject objLocal = m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("IN"));
-    check_and_treat_exception(m_env, "Error getting Direction.IN object");
-    jobjParDirIN = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Direction.IN object");
+    clsParDir = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
+    check_exception(status, "Cannot find Direction Class");
+    midParDirCon = status->localJniEnv->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
+    check_exception(status, "Cannot find Direction constructor");
 
-    objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("OUT"));
-    check_and_treat_exception(m_env, "Error getting Direction.OUT object");
-    jobjParDirOUT = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Direction.OUT object");
+    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("IN"));
+    check_exception(status, "Cannot retrieve Direction.IN object");
+    jobjParDirIN = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for Direction.IN object");
 
-    objLocal = m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("INOUT"));
-    check_and_treat_exception(m_env, "Error getting Direction.INOUT object");
-    jobjParDirINOUT = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Direction.INOUT object");
+    objLocal =  status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("OUT"));
+    check_exception(status, "Cannot retrieve Direction.OUT object");
+    jobjParDirOUT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for Direction.OUT object");
 
-    objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("CONCURRENT"));
-    check_and_treat_exception(m_env, "Error getting Direction.CONCURRENT object");
-    jobjParDirCONCURRENT = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Direction.CONCURRENT object");
+    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("INOUT"));
+    check_exception(status, "Cannot retrieve Direction.INOUT object");
+    jobjParDirINOUT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for Direction.INOUT object");
 
-    objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("COMMUTATIVE"));
-    check_and_treat_exception(m_env, "Error getting Direction.COMMUTATIVE object");
-    jobjParDirCOMMUTATIVE = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Direction.COMMUTATIVE object");
+    objLocal =  status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("CONCURRENT"));
+    check_exception(status, "Cannot retrieve Direction.CONCURRENT object");
+    jobjParDirCONCURRENT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for Direction.CONCURRENT object");
+
+    objLocal =  status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("COMMUTATIVE"));
+    check_exception(status, "Cannot retrieve Direction.COMMUTATIVE object");
+    jobjParDirCOMMUTATIVE = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for Direction.COMMUTATIVE object");
+
+    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Direction Types DONE\n");
+
 
     // Parameter streams
+    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Stream Types\n");
+
+    jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.StdIOStream class */
+    jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
+
+    clsParStream = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/StdIOStream");
+    check_exception(status, "Cannot find StdIOStream class");
+    midParStreamCon = status->localJniEnv->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
+    check_exception(status, "Cannot find StdIOStream constructor");
+
+    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDIN"));
+    check_exception(status, "Cannot retrieve StdIOStream.STDIN object");
+    jobjParStreamSTDIN = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for StdIOStream.STDIN object");
+
+    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDOUT"));
+    check_exception(status, "Cannot retrieve StdIOStream.STDOUT object");
+    jobjParStreamSTDOUT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for StdIOStream.STDOUT object");
+
+    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDERR"));
+    check_exception(status, "Cannot retrieve StdIOStream.STDERR object");
+    jobjParStreamSTDERR = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for StdIOStream.STDERR object");
+
+    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("UNSPECIFIED"));
+    check_exception(status, "Cannot retrieve StdIOStream.UNSPECIFIED object");
+    jobjParStreamUNSPECIFIED = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for StdIOStream.UNSPECIFIED object");
 
     debug_printf ("[BINDING_COMMONS]  -  @Init JNI Stream Types\n");
 
-    clsParStream = m_env->FindClass("es/bsc/compss/types/annotations/parameter/StdIOStream");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
-    midParStreamCon = m_env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
-    objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDIN"));
-    check_and_treat_exception(m_env, "Error getting StdIOStream.STDIN object");
-    jobjParStreamSTDIN = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting StdIOStream.STDIN object");
-
-    objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDOUT"));
-    check_and_treat_exception(m_env, "Error getting StdIOStream.STDOUT object");
-    jobjParStreamSTDOUT = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting StdIOStream.STDOUT object");
-
-    objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDERR"));
-    check_and_treat_exception(m_env, "Error getting StdIOStream.STDERR object");
-    jobjParStreamSTDERR = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting StdIOStream.STDERR object");
-
-    objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("UNSPECIFIED"));
-    check_and_treat_exception(m_env, "Error getting StdIOStream.UNSPECIFIED object");
-    jobjParStreamUNSPECIFIED = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting StdIOStream.UNSPECIFIED object");
-
 
     // Parameter prefix empty
-    jstring objStr = m_env->NewStringUTF("null");
-    check_and_treat_exception(m_env, "Error getting null string object");
-    jobjParPrefixEMPTY = (jstring)m_env->NewGlobalRef(objStr);
-    check_and_treat_exception(m_env, "Error getting null string object");
+    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Parameter Prefix\n");
 
-    init_basic_jni_types();
+    jstring objStr = status->localJniEnv->NewStringUTF("null");
+    check_exception(status, "Error getting null string object");
+    jobjParPrefixEMPTY = (jstring)status->localJniEnv->NewGlobalRef(objStr);
+    check_exception(status, "Error getting null string object");
 
-    debug_printf ("[BINDING_COMMONS]  -  @Master JNI Init DONE\n");
+    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Parameter Prefix DONE\n");
+
+
+    // Done
+    debug_printf ("[BINDING_COMMONS]  -  @Init Master DONE\n");
 }
 
-int release_lock() {
-    return pthread_mutex_unlock(&mtx);
-}
 
-int get_lock() {
-    return pthread_mutex_lock(&mtx);
-}
-
-void process_param(void **params, int i, jobjectArray jobjOBJArr) {
-
+/**
+ * Processes the given parameter information.
+ */
+void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobjOBJArr) {
     debug_printf("[BINDING_COMMONS]  -  @process_param\n");
     // params     is of the form: value type direction stream prefix name
     // jobjOBJArr is of the form: value type direction stream prefix name
@@ -431,7 +518,6 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         pn = NUM_FIELDS * i + 5,
         pc = NUM_FIELDS * i + 6;
 
-
     void *parVal        =           params[pv];
     int parType         = *(int*)   params[pt];
     int parDirect       = *(int*)   params[pd];
@@ -441,20 +527,12 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     void *parConType    =           params[pc];
 
     jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
-    clsParType = m_env->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
+    clsParType = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
+    check_exception(status, "Cannot load DataType class");
 
     jmethodID midParTypeCon = NULL; /* ID of the es.bsc.compss.api.COMPSsRuntime$DataType class constructor method */
-    midParTypeCon = m_env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
+    midParTypeCon = status->localJniEnv->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
+    check_exception(status, "Cannot get DataType constructor");
 
     jobject jobjParType = NULL;
     jobject jobjParVal = NULL;
@@ -462,362 +540,205 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM DATA_TYPE: %d\n", (enum datatype) parType);
 
     switch ( (enum datatype) parType) {
-    case char_dt:
-    case wchar_dt:
-        jobjParVal = m_env->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+        case char_dt:
+        case wchar_dt:
+            jobjParVal = status->localJniEnv->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
+            check_exception(status, "Cannot instantiate new char object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Char: %c\n", *(char*)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Char: %c\n", *(char*)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("CHAR_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case boolean_dt:
-        jobjParVal = m_env->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("CHAR_T"));
+            check_exception(status, "Exception calling char constructor");
+            break;
+        case boolean_dt:
+            jobjParVal = status->localJniEnv->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
+            check_exception(status, "Cannot instantiate new boolean object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Bool: %d\n", *(int*)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Bool: %d\n", *(int*)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("BOOLEAN_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case short_dt:
-        jobjParVal = m_env->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("BOOLEAN_T"));
+            check_exception(status, "Exception calling boolean constructor");
+            break;
+        case short_dt:
+            jobjParVal = status->localJniEnv->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
+            check_exception(status, "Cannot instantiate new short object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Short: %hu\n", *(short*)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Short: %hu\n", *(short*)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("SHORT_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case int_dt:
-        jobjParVal = m_env->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("SHORT_T"));
+            check_exception(status, "Exception calling short constructor");
+            break;
+        case int_dt:
+            jobjParVal = status->localJniEnv->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
+            check_exception(status, "Cannot instantiate new int object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Int: %d\n", *(int*)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Int: %d\n", *(int*)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("INT_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case long_dt:
-        jobjParVal = m_env->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("INT_T"));
+            check_exception(status, "Exception calling int constructor");
+            break;
+        case long_dt:
+            jobjParVal = status->localJniEnv->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
+            check_exception(status, "Cannot instantiate new long object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Long: %ld\n", *(long*)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Long: %ld\n", *(long*)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("LONG_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case longlong_dt:
-    case float_dt:
-        jobjParVal = m_env->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("LONG_T"));
+            check_exception(status, "Exception calling long constructor");
+            break;
+        case longlong_dt:
+        case float_dt:
+            jobjParVal = status->localJniEnv->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
+            check_exception(status, "Cannot instantiate new float object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Float: %f\n", *(float*)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Float: %f\n", *(float*)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("FLOAT_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case double_dt:
-        jobjParVal = m_env->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("FLOAT_T"));
+            check_exception(status, "Exception calling float constructor");
+            break;
+        case double_dt:
+            jobjParVal = status->localJniEnv->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
+            check_exception(status, "Cannot instantiate new double object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Double: %f\n", *(double*)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Double: %f\n", *(double*)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("DOUBLE_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case file_dt:
-        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("DOUBLE_T"));
+            check_exception(status, "Exception calling double constructor");
+            break;
+        case file_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object (for file)");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  File: %s\n", *(char **)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  File: %s\n", *(char **)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("FILE_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("FILE_T"));
+            check_exception(status, "Exception calling string constructor (for file)");
+            break;
+        case directory_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object (for directory)");
 
-    case directory_dt:
-        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Directory: %s\n", *(char **)parVal);
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Directory: %s\n", *(char **)parVal);
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("DIRECTORY_T"));
+            check_exception(status, "Exception calling string constructor (for directory)");
+            break;
+        case external_stream_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object (for stream)");
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("DIRECTORY_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  External Stream: %s\n", *(char **)parVal);
 
-    case external_stream_dt:
-        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("EXTERNAL_STREAM_T"));
+            check_exception(status, "Exception calling string constructor (for stream)");
+            break;
+        case external_psco_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object (for psco)");
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  External Stream: %s\n", *(char **)parVal);
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("EXTERNAL_PSCO_T"));
+            check_exception(status, "Exception calling string constructor (for psco)");
+            break;
+        case string_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object");
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("EXTERNAL_STREAM_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case external_psco_dt:
-        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  String: %s\n", *(char **)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("EXTERNAL_PSCO_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case string_dt:
-        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("STRING_T"));
+            check_exception(status, "Exception calling string constructor");
+            break;
+        case binding_object_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object (for binding object)");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  String: %s\n", *(char **)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  BindingObject: %s\n", *(char **)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("STRING_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case binding_object_dt:
-        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("BINDING_OBJECT_T"));
+            check_exception(status, "Exception calling string constructor (for binding object)");
+            break;
+        case collection_dt:
+            jobjParVal = globalJniEnv -> NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object (for collection)");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  BindingObject: %s\n", *(char **)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Collection: %s\n", *(char **)parVal);
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("BINDING_OBJECT_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case collection_dt:
-        jobjParVal = m_env -> NewStringUTF(*(char **)parVal);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("COLLECTION_T"));
+            check_exception(status, "Exception calling string constructor (for collection)");
+            break;
+        case null_dt:
+            jobjParVal = globalJniEnv -> NewStringUTF("NULL");
+            check_exception(status, "Cannot instantiate new null object");
 
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Collection: %s\n", *(char **)parVal);
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Null: NULL\n");
 
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("COLLECTION_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case null_dt:
-        jobjParVal = m_env -> NewStringUTF("NULL");
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Null: NULL\n");
-
-        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("NULL_T"));
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            exit(1);
-        }
-        break;
-    case void_dt:
-    case any_dt:
-    default:
-        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  The type of the parameter %s is not registered\n", *(char **)parName);
-        break;
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("NULL_T"));
+            check_exception(status, "Exception calling null constructor");
+            break;
+        case void_dt:
+        case any_dt:
+        default:
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  The type of the parameter %s is not registered\n", *(char **)parName);
+            break;
     }
 
     // Sets the parameter value and type
-    m_env->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
-    m_env->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
+    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
+    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
 
     // Add param direction
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM DIRECTION: %d\n", (enum direction) parDirect);
     switch ((enum direction) parDirect) {
-    case in_dir:
-        m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN);
-        break;
-    case out_dir:
-        m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirOUT);
-        break;
-    case inout_dir:
-        m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirINOUT);
-        break;
-    case concurrent_dir:
-        m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCONCURRENT);
-        break;
-    case commutative_dir:
-        m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCOMMUTATIVE);
-        break;
-    default:
-        break;
+        case in_dir:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN);
+            break;
+        case out_dir:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirOUT);
+            break;
+        case inout_dir:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirINOUT);
+            break;
+        case concurrent_dir:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCONCURRENT);
+            break;
+        case commutative_dir:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCOMMUTATIVE);
+            break;
+        default:
+            break;
     }
 
     // Add param stream
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM STD IO STREAM: %d\n", (enum io_stream) parIOStream);
     switch ((enum io_stream) parIOStream) {
-    case STD_IN:
-        m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);
-        break;
-    case STD_OUT:
-        m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDOUT);
-        break;
-    case STD_ERR:
-        m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDERR);
-        break;
-    default:
-        m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
-        break;
+        case STD_IN:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);
+            break;
+        case STD_OUT:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDOUT);
+            break;
+        case STD_ERR:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDERR);
+            break;
+        default:
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
+            break;
     }
 
     // Add param prefix
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  PREFIX: %s\n", *(char**)parPrefix);
-    jstring jobjParPrefix = m_env->NewStringUTF(*(char**)parPrefix);
-    m_env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
+    jstring jobjParPrefix = status->localJniEnv->NewStringUTF(*(char**)parPrefix);
+    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
     //env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
 
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  NAME: %s\n", *(char**)parName);
-    jstring jobjParName = m_env->NewStringUTF(*(char**)parName);
-    m_env->SetObjectArrayElement(jobjOBJArr, pn, jobjParName);
+    jstring jobjParName = status->localJniEnv->NewStringUTF(*(char**)parName);
+    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pn, jobjParName);
 
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  CONTENT TYPE: %s\n", *(char**)parConType);
-    jstring jobConType = m_env->NewStringUTF(*(char**)parConType);
-    m_env->SetObjectArrayElement(jobjOBJArr, pc, jobConType);
-}
-
-
-// Given a COMPSsException, get its containing message
-static void getReceivedException(JNIEnv* env, jthrowable exception, char** buf)
-{
-    int success = 0;
-    jclass exceptionClazz = env->GetObjectClass((jobject)exception);
-    jclass classClazz = env->GetObjectClass((jobject)exceptionClazz);
-    jmethodID classGetNameMethod = env->GetMethodID(classClazz, "getName", "()Ljava/lang/String;");
-    jstring classNameStr = (jstring)env->CallObjectMethod(exceptionClazz, classGetNameMethod);
-    if (strcmp(env->GetStringUTFChars(classNameStr ,0), "es.bsc.compss.worker.COMPSsException") != 0) {
-        env->ExceptionClear();
-    } else {
-        const char* classNameChars = env->GetStringUTFChars(classNameStr, NULL);
-        if (classNameChars != NULL) {
-            jmethodID throwableGetMessageMethod = env->GetMethodID(exceptionClazz, "getMessage", "()Ljava/lang/String;");
-            jstring messageStr = (jstring)env->CallObjectMethod(exception, throwableGetMessageMethod);
-            if (messageStr != NULL) {
-                const char* messageChars = env->GetStringUTFChars( messageStr, NULL);
-                if (messageChars != NULL) {
-                    *buf = strdup(messageChars);
-                    env->ReleaseStringUTFChars(messageStr, messageChars);
-                    env->ExceptionClear();
-                } else {
-                    env->ExceptionClear();
-                }
-                env->DeleteLocalRef(messageStr);
-            }
-            env->ReleaseStringUTFChars(classNameStr, classNameChars);
-            env->DeleteLocalRef(classNameStr);
-        }
-        env->DeleteLocalRef(classClazz);
-        env->DeleteLocalRef(exceptionClazz);
-    }
+    jstring jobConType = status->localJniEnv->NewStringUTF(*(char**)parConType);
+    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pc, jobConType);
 }
 
 
@@ -825,229 +746,230 @@ static void getReceivedException(JNIEnv* env, jthrowable exception, char** buf)
 // API functions
 // ******************************
 
-void GS_On(AbstractCache *absCache) {
+void GS_On(AbstractCache* absCache) {
     init_data_manager(absCache);
     GS_On();
 }
 
+
 void GS_On() {
     debug_printf ("[BINDING-COMMONS]  -  @GS_On\n");
-    pthread_mutex_init(&mtx,NULL);
-    clsITimpl = NULL;
-    jmethodID midITImplConst = NULL;
-    jmethodID midStartIT = NULL;
 
+    // Initialise COMPSs env vars for debugging (from commons.h)
+    debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Initialising environment\n");
+    pthread_mutex_init(&globalJniAccessMutex, NULL);
     init_env_vars();
+
+    // Create the JVM instance
     debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Creating the JVM\n");
-    m_env = create_vm(&m_jvm);
-    if (m_env == NULL) {
+    globalJniEnv = create_vm(&globalJvm);
+    if (globalJniEnv == NULL) {
         printf ("[BINDING-COMMONS]  -  @GS_On  -  Error creating the JVM\n");
         exit(1);
     }
-    // Obtaining Runtime Class
-    jclass clsLocal = m_env->FindClass("es/bsc/compss/api/impl/COMPSsRuntimeImpl");
-    check_and_treat_exception(m_env, "Error looking for the COMPSsRuntimeImpl class");
-    clsITimpl = (jclass)m_env->NewGlobalRef(clsLocal);
-    check_and_treat_exception(m_env, "Error looking for the COMPSsRuntimeImpl class");
+
+    // Request thread access to JVM
+    // debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Request thread access to JVM\n");
+    ThreadStatus* status = access_request();
+
+    // Obtain Runtime classes
+    debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Obtaining Runtime classes\n");
+    jclass clsITimpl = NULL;
+    jmethodID midITImplConst = NULL;
+    jmethodID midStartIT = NULL;
+
+    jclass clsLocal = status->localJniEnv->FindClass("es/bsc/compss/api/impl/COMPSsRuntimeImpl");
+    check_exception(status, "Cannot find the COMPSsRuntimeImpl class");
+    clsITimpl = (jclass) status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, "Cannot instantiate the COMPSsRuntimeImpl class");
 
     if (clsITimpl != NULL) {
         // Get constructor ID for COMPSsRuntimeImpl
-        midITImplConst = m_env->GetMethodID(clsITimpl, "<init>", "()V");
-        check_and_treat_exception(m_env, "Error looking for the init method");
+        midITImplConst = status->localJniEnv->GetMethodID(clsITimpl, "<init>", "()V");
+        check_exception(status, "Cannot find the COMPSsRuntimeImpl init method");
 
         // Get startIT method ID
-        midStartIT = m_env->GetMethodID(clsITimpl, "startIT", "()V");
-        check_and_treat_exception(m_env,"Error looking for the startIT method");
+        midStartIT = status->localJniEnv->GetMethodID(clsITimpl, "startIT", "()V");
+        check_exception(status, "Cannot find the startIT method");
     } else {
         printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the runtime class\n");
         exit(1);
     }
 
-    /************************************************************************/
-    /* Now we will call the functions using the their method IDs            */
-    /************************************************************************/
-
     if (midITImplConst != NULL) {
-        if (clsITimpl != NULL && midITImplConst != NULL) {
-            // Creating the Object of IT.
-            debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Creating runtime object\n");
-            jobject objLocal = m_env->NewObject(clsITimpl, midITImplConst);
-            check_and_treat_exception(m_env,"Error creating runtime object");
-            jobjIT = (jobject)m_env->NewGlobalRef(objLocal);
-            check_and_treat_exception(m_env,"Error creating runtime object");
-        } else {
-            printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the runtime constructor or runtime class\n");
-            exit(1);
-        }
-
-        if (jobjIT != NULL && midStartIT != NULL) {
-            debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Calling runtime start\n");
-            m_env->CallVoidMethod(jobjIT, midStartIT); //Calling the method and passing IT Object as parameter
-            check_and_treat_exception(m_env,"Error calling start runtime");
-        } else {
-            printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the start method\n");
-            exit(1);
-        }
+        // Creating the Object of IT.
+        debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Creating runtime object\n");
+        jobject objLocal = status->localJniEnv->NewObject(clsITimpl, midITImplConst);
+        check_exception(status, "Cannot instantiate the COMPSsRuntimeImpl object");
+        globalRuntime = (jobject) status->localJniEnv->NewGlobalRef(objLocal);
+        check_exception(status, "Cannot create global COMPSsRuntimeImpl object");
     } else {
         printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the runtime constructor\n");
         exit(1);
     }
 
-    init_master_jni_types();
+    if (globalRuntime != NULL && midStartIT != NULL) {
+        debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Calling runtime start\n");
+        status->localJniEnv->CallVoidMethod(globalRuntime, midStartIT); //Calling the method and passing IT Object as parameter
+        check_exception(status, "Exception calling start runtime");
+    } else {
+        printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the start method\n");
+        exit(1);
+    }
 
-    jobject objLocal = m_env->NewObject(clsLong, midLongCon, (jlong) 0);
-    check_and_treat_exception(m_env,"Error creating appId object");
-    appId = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env,"Error creating appId object");
+    // Init basic JNI types
+    init_basic_jni_types(status);
+
+    // Init master types
+    init_master_jni_types(status, clsITimpl);
+
+    // Revoke thread access to JVM
+    // debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Revoke thread access to JVM\n");
+    access_revoke(status);
 }
 
-void GS_Off(int exit_code) {
+
+void GS_Off(int code) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Off\n");
 
-    jmethodID midStopIT = NULL;
-    jmethodID midNoMoreTasksIT = NULL;
+    // Request thread access to JVM
+    // debug_printf ("[BINDING-COMMONS]  -  @GS_Off  -  Request thread access to JVM\n");
+    ThreadStatus* status = access_request();
 
-    check_and_attach(m_jvm, m_env);
+    // Create fake app Id (id = 0)
+    jobject objLocal = status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) 0);
+    check_exception(status, "Cannot instantiate application Id");
+    jobject fakeAppId = (jobject) status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create application Id");
 
-    midNoMoreTasksIT = m_env->GetMethodID(clsITimpl, "noMoreTasks", "(Ljava/lang/Long;)V");
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @Off  -  Error: Exception loading noMoreTasks method.\n");
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    // Call noMoreTasks
+    debug_printf("[BINDING-COMMONS]  -  @Off - Waiting to end tasks\n");
+    status->localJniEnv->CallVoidMethod(globalRuntime, midNoMoreTasksIT, fakeAppId, "TRUE");
+    check_exception(status, "Exception received when calling noMoreTasks.");
 
-    midStopIT = m_env->GetMethodID(clsITimpl, "stopIT", "(Z)V");
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @Off  -  Error: Exception loading stop.\n");
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
-    //if (exit_code == 0){
-        debug_printf("[BINDING-COMMONS]  -  @Off - Waiting to end tasks\n");
-        m_env->CallVoidMethod(jobjIT, midNoMoreTasksIT, appId, "TRUE");
-        if (m_env->ExceptionOccurred()) {
-            debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling noMoreTasks.\n");
-            m_env->ExceptionDescribe();
-            exit(1);
-        }
-    //}
+    // Call stopIT
     debug_printf("[BINDING-COMMONS]  -  @Off - Stopping runtime\n");
-    m_env->CallVoidMethod(jobjIT, midStopIT, "TRUE"); //Calling the method and passing IT Object as parameter
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @Off  -  Error: Exception received when calling stop runtime.\n");
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
+    status->localJniEnv->CallVoidMethod(globalRuntime, midStopIT, "TRUE");
+    check_exception(status, "Exception received when calling stopIT.");
+
+    // Revoke thread access to JVM
+    // debug_printf ("[BINDING-COMMONS]  -  @GS_Off  -  Revoke thread access to JVM\n");
+    access_revoke(status);
+
+    // Remove JVM
     debug_printf("[BINDING-COMMONS]  -  @Off - Removing JVM\n");
-    destroy_vm(m_jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
+    destroy_vm(globalJvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
     // delete jvm;    // free(): invalid pointer: 0x00007fbc11ba8020 ***
-    m_jvm = NULL;
+    globalJvm = NULL;
+
+    // Delete environment
+    debug_printf("[BINDING-COMMONS]  -  @Off - Removing environment\n");
+    pthread_mutex_destroy(&globalJniAccessMutex);
+
+    // End
     debug_printf("[BINDING-COMMONS]  -  @Off - End\n");
-    pthread_mutex_destroy(&mtx);
 }
 
-void GS_Cancel_Application_Tasks(long _appId) {
+
+void GS_Cancel_Application_Tasks(long appId) {
     debug_printf ("[BINDING-COMMONS]  -  @GS_Cancel_Application_Tasks\n");
 
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-    release_lock();
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    local_env->CallVoidMethod(jobjIT, midCancelApplicationTasks, appId);
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midCancelApplicationTasks,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
+    check_exception(status, "Exception received when calling cancelApplicationTasks");
 
-    if (local_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_CancelApplicationTasks  -  Error: Exception received when calling cancelApplicationTasks.\n");
-        local_env->ExceptionDescribe();
-        exit(1);
-    }
+    // Revoke thread access to JVM
+    access_revoke(status);
 
-    if (isAttached == 1) {
-        m_jvm->DetachCurrentThread();
-
-    }
     debug_printf ("[BINDING-COMMONS]  -  @GS_Cancel_Application_Tasks  -  Tasks cancelled\n");
-
 }
 
-void GS_Get_AppDir(char **buf) {
+
+void GS_Get_AppDir(char** buf) {
     debug_printf ("[BINDING-COMMONS]  -  @GS_Get_AppDir - Getting application directory.\n");
 
-    const char *cstr;
-    jstring jstr = NULL;
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    jstring jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midAppDir);
+    check_exception(status, "Exception received when calling getAppDir");
+
+    // Parse return
     jboolean isCopy;
-
-    get_lock();
-
-    int isAttached = check_and_attach(m_jvm, m_env);
-
-    jstr = (jstring)m_env->CallObjectMethod(jobjIT, midAppDir);
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  Error: Exception received when calling getAppDir.\n");
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
-
-    cstr = m_env->GetStringUTFChars(jstr, &isCopy);
+    const char* cstr = status->localJniEnv->GetStringUTFChars(jstr, &isCopy);
     *buf = strdup(cstr);
-    m_env->ReleaseStringUTFChars(jstr, cstr);
-    if (isAttached == 1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
+    status->localJniEnv->ReleaseStringUTFChars(jstr, cstr);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  directory name: %s\n", *buf);
 }
 
-void GS_ExecuteTask(long _appId, char *class_name, char *on_failure, int time_out, char *method_name, int priority, int has_target, int num_returns, int num_params, void **params) {
 
+void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority,
+    int hasTarget, int numReturns, int numParams, void** params) {
+
+    debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTask - Processing task execution in bindings-common.\n");
+
+    // Values to be passed to the JVM
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
-    debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTask - Processing task execution in bindings-common. \n");
-    //Default values
     bool _priority = false;
     if (priority != 0) _priority = true;
 
-    bool _has_target = false;
-    if (has_target != 0) _has_target = true;
+    bool _hasTarget = false;
+    if (hasTarget != 0) _hasTarget = true;
 
-    get_lock();
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    int isAttached = check_and_attach(m_jvm, m_env);
+    // Convert numReturns from int to integer
+    jobject numReturnsInteger = status->localJniEnv->NewObject(clsInteger, midIntCon, numReturns);
+    check_exception(status, "Exception converting numReturns to integer");
 
-    jobject num_returns_integer = m_env->NewObject(clsInteger, midIntCon, num_returns);
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
-
-    jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params * NUM_FIELDS, clsObject, m_env->NewObject(clsObject,midObjCon));
-
-    for (int i = 0; i < num_params; i++) {
+    // Create array of parameters
+    jobjOBJArr = (jobjectArray)status->localJniEnv->NewObjectArray(numParams * NUM_FIELDS, clsObject, status->localJniEnv->NewObject(clsObject, midObjCon));
+    for (int i = 0; i < numParams; i++) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Processing parameter %d\n", i);
-        process_param(params, i, jobjOBJArr);
+        process_param(status, params, i, jobjOBJArr);
     }
 
-    m_env->CallVoidMethod(jobjIT, midExecute, appId, m_env->NewStringUTF(class_name), m_env->NewStringUTF(on_failure), time_out, m_env->NewStringUTF(method_name), _priority, _has_target, num_returns_integer, num_params, jobjOBJArr);
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling executeTask.\n");
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
+    // Call to JNI execute task method
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midExecute,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewStringUTF(className),
+                              status->localJniEnv->NewStringUTF(onFailure),
+                              timeout,
+                              status->localJniEnv->NewStringUTF(methodName),
+                              _priority,
+                              _hasTarget,
+                              numReturnsInteger,
+                              numParams,
+                              jobjOBJArr);
+    check_exception(status, "Exception received when calling executeTask");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTask - Task processed.\n");
 }
 
-void GS_ExecuteTaskNew(long _appId, char *signature, char *on_failure, int time_out, int priority, int num_nodes, int replicated, int distributed,
-                       int has_target, int num_returns, int num_params, void **params) {
 
-    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
+void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int replicated, int distributed,
+                       int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew - Processing task execution in bindings-common. \n");
+
+    // Values to be passed to the JVM
+    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
     bool _priority = false;
     if (priority != 0) _priority = true;
@@ -1058,434 +980,489 @@ void GS_ExecuteTaskNew(long _appId, char *signature, char *on_failure, int time_
     bool _distributed = false;
     if (distributed != 0) _distributed = true;
 
-    bool _has_target = false;
-    if (has_target != 0) _has_target = true;
+    bool _hasTarget = false;
+    if (hasTarget != 0) _hasTarget = true;
 
-    get_lock();
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    int isAttached = check_and_attach(m_jvm, m_env);
-
-    // Convert num_returns from int to integer
-    jobject num_returns_integer = m_env->NewObject(clsInteger, midIntCon, num_returns);
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
+    // Convert numReturns from int to integer
+    jobject numReturnsInteger = status->localJniEnv->NewObject(clsInteger, midIntCon, numReturns);
+    check_exception(status, "Exception converting numReturns to integer");
 
     // Create array of parameters
-    jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params * NUM_FIELDS, clsObject, m_env->NewObject(clsObject, midObjCon));
-
-    for (int i = 0; i < num_params; i++) {
+    jobjOBJArr = (jobjectArray)status->localJniEnv->NewObjectArray(numParams * NUM_FIELDS, clsObject, status->localJniEnv->NewObject(clsObject, midObjCon));
+    for (int i = 0; i < numParams; i++) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Processing parameter %d\n", i);
-        process_param(params, i, jobjOBJArr);
+        process_param(status, params, i, jobjOBJArr);
     }
 
     // Call to JNI execute task method
-    m_env->CallVoidMethod(jobjIT,
-                          midExecuteNew,
-                          appId,
-                          m_env->NewStringUTF(signature),
-                          m_env->NewStringUTF(on_failure),
-                          time_out,
-                          _priority,
-                          num_nodes,
-                          _replicated,
-                          _distributed,
-                          _has_target,
-                          num_returns_integer,
-                          num_params,
-                          jobjOBJArr);
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Error: Exception received when calling executeTaskNew.\n");
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midExecuteNew,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewStringUTF(signature),
+                              status->localJniEnv->NewStringUTF(onFailure),
+                              timeout,
+                              _priority,
+                              numNodes,
+                              _replicated,
+                              _distributed,
+                              _hasTarget,
+                              numReturnsInteger,
+                              numParams,
+                              jobjOBJArr);
+    check_exception(status, "Exception received when calling executeTaskNew");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew - Task processed.\n");
 }
 
-void GS_RegisterCE(char *CESignature, char *ImplSignature, char 
-*ImplConstraints, char *ImplType, char *ImplIO, int num_params, char **ImplTypeArgs) {
-    get_lock();
-	int isAttached = check_and_attach(m_jvm, m_env);
+void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, int numParams, char** implTypeArgs) {
+    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ceSignature:     %s\n", ceSignature);
+    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - implSignature:   %s\n", implSignature);
+    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - implConstraints: %s\n", implConstraints);
+    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - implType:        %s\n", implType);
+    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - implIO:        %s\n", implIO);
+    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - numParams:      %d\n", numParams);
 
-    debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - Registering Core element.\n");
-    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - CESignature:     %s\n", CESignature);
-    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplSignature:   %s\n", ImplSignature);
-    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplConstraints: %s\n", ImplConstraints);
-    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplType:        %s\n", ImplType);
-    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplIO:         %s\n", ImplIO);
-    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - num_params:      %d\n", num_params);
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    jobjectArray implArgs; //  array of Objects to be passed to register core element
-    implArgs = (jobjectArray)m_env->NewObjectArray(num_params, clsString, m_env->NewStringUTF(""));
-    for (int i = 0; i < num_params; i++) {
+    // Array of Objects to pass to the register
+    jobjectArray implArgs;
+    implArgs = (jobjectArray)status->localJniEnv->NewObjectArray(numParams, clsString, status->localJniEnv->NewStringUTF(""));
+    for (int i = 0; i < numParams; i++) {
         //debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -    Processing pos %d\n", i);
-        jstring tmp = m_env->NewStringUTF(ImplTypeArgs[i]);
-        m_env->SetObjectArrayElement(implArgs, i, tmp);
+        jstring tmp = status->localJniEnv->NewStringUTF(implTypeArgs[i]);
+        status->localJniEnv->SetObjectArrayElement(implArgs, i, tmp);
     }
+
     //debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -    Calling Runtime Function Register Core Element \n");
-    m_env->CallVoidMethod(jobjIT, midRegisterCE, m_env->NewStringUTF(CESignature),
-                          m_env->NewStringUTF(ImplSignature),
-                          m_env->NewStringUTF(ImplConstraints),
-                          m_env->NewStringUTF(ImplType),
-                          m_env->NewStringUTF(ImplIO),
-                          implArgs);
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Error: Exception received when calling registerCE.\n");
-        m_env->ExceptionDescribe();
-        release_lock();
-        GS_Off(1);
-        exit(1);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
-    debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Task registered: %s\n", CESignature);
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midRegisterCE,
+                              status->localJniEnv->NewStringUTF(ceSignature),
+                              status->localJniEnv->NewStringUTF(implSignature),
+                              status->localJniEnv->NewStringUTF(implConstraints),
+                              status->localJniEnv->NewStringUTF(implType),
+                              status->localJniEnv->NewStringUTF(implIO),
+                              implArgs);
+    check_exception(status, "Exception received when calling registerCE");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Task registered: %s\n", ceSignature);
 }
 
+int GS_Accessed_File(char* fileName){
+    debug_printf("[BINDING-COMMONS]  -  @GS_Accessed_File  -  Calling runtime isFileAccessed method  for %s  ...\n", fileName);
 
-int GS_Accessed_File(char *file_name){
-	get_lock();
-	JNIEnv* local_env = m_env;
-	int isAttached = check_and_attach(m_jvm, local_env);
-	debug_printf("[BINDING-COMMONS]  -  @GS_Accessed_File  -  Calling runtime isFileAccessed method  for %s  ...\n", file_name);
-	jstring filename_str = local_env->NewStringUTF(file_name);
-	check_and_treat_exception(local_env, "Error getting String UTF");
-	release_lock();
-	jboolean is_accessed = (jboolean)local_env->CallBooleanMethod(jobjIT, midIsFileAccessed, filename_str);
-    check_and_treat_exception(local_env, "Error calling runtime openFile");
-    local_env->DeleteLocalRef(filename_str);
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Format filename
+	jstring filename_str = status->localJniEnv->NewStringUTF(fileName);
+	check_exception(status, "Error getting String UTF");
+
+    // Perform operation
+	jboolean is_accessed = (jboolean)status->localJniEnv->CallBooleanMethod(globalRuntime, midIsFileAccessed, filename_str);
+    check_exception(status, "Error calling runtime isFileAccessed");
+    status->localJniEnv->DeleteLocalRef(filename_str);
+
+    // Parse result
     int ret = 0;
-    if ((bool)is_accessed){
+    if ((bool) is_accessed) {
     	ret = 1;
     }
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Accessed_File  -  Access to file %s marked as %d\n", fileName, ret);
     return ret;
 }
 
-void GS_Open_File(char *file_name, int mode, char **buf) {
+void GS_Open_File(char* fileName, int mode, char** buf) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_Open_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", fileName, mode);
 
-    const char *cstr;
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Parse fileName
+    jstring filename_str = status->localJniEnv->NewStringUTF(fileName);
+    check_exception(status, "Error getting String UTF");
+
+    // Call operation
     jstring jstr = NULL;
-    jboolean isCopy;
-
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-    debug_printf("[BINDING-COMMONS]  -  @GS_Open_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", file_name, mode);
-    jstring filename_str = local_env->NewStringUTF(file_name);
-    check_and_treat_exception(local_env, "Error getting String UTF");
-    release_lock();
-
     switch ((enum direction) mode) {
-    case in_dir:
-        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirIN);
-        break;
-    case out_dir:
-        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirOUT);
-        break;
-    case inout_dir:
-        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirINOUT);
-        break;
-    case concurrent_dir:
-        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirCONCURRENT);
-        break;
-    case commutative_dir:
-        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirCOMMUTATIVE);
-        break;
-    default:
-        break;
+        case in_dir:
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirIN);
+            break;
+        case out_dir:
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirOUT);
+            break;
+        case inout_dir:
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirINOUT);
+            break;
+        case concurrent_dir:
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirCONCURRENT);
+            break;
+        case commutative_dir:
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirCOMMUTATIVE);
+            break;
+        default:
+            break;
     }
-    check_and_treat_exception(local_env, "Error calling runtime openFile");
-    local_env->DeleteLocalRef(filename_str);
+    check_exception(status, "Exception calling runtime openFile");
+    status->localJniEnv->DeleteLocalRef(filename_str);
 
-    cstr = local_env->GetStringUTFChars(jstr, &isCopy);
-    check_and_treat_exception(local_env, "Error getting String UTF");
+    // Parse output
+    jboolean isCopy;
+    const char* cstr = status->localJniEnv->GetStringUTFChars(jstr, &isCopy);
+    check_exception(status, "Exception getting String UTF");
 
     *buf = strdup(cstr);
-    local_env->ReleaseStringUTFChars(jstr, cstr);
-    local_env->DeleteLocalRef(jstr);
+    status->localJniEnv->ReleaseStringUTFChars(jstr, cstr);
+    status->localJniEnv->DeleteLocalRef(jstr);
 
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
+    // Revoke thread access to JVM
+    access_revoke(status);
+
     debug_printf("[BINDING-COMMONS]  -  @GS_Open_File  -  COMPSs filename: %s\n", *buf);
 }
 
-void GS_Close_File(char *file_name, int mode) {
-	get_lock();
-    int isAttached = check_and_attach(m_jvm, m_env);
+
+void GS_Close_File(char* fileName, int mode) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  Calling runtime closeFile method...\n");
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
     switch ((enum direction) mode) {
-    case in_dir:
-        m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirIN);
-        break;
-    case out_dir:
-        m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirOUT);
-        break;
-    case inout_dir:
-        m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirINOUT);
-        break;
-    case concurrent_dir:
-        m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirCONCURRENT);
-        break;
-    case commutative_dir:
-        m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirCOMMUTATIVE);
-        break;
-    default:
-        break;
+        case in_dir:
+            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirIN);
+            break;
+        case out_dir:
+            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirOUT);
+            break;
+        case inout_dir:
+            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirINOUT);
+            break;
+        case concurrent_dir:
+            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirCONCURRENT);
+            break;
+        case commutative_dir:
+            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirCOMMUTATIVE);
+            break;
+        default:
+            break;
     }
-    check_and_treat_exception(m_env, "Error calling runtime closeFile");
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
-    debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  COMPSs filename: %s\n", file_name);
+    check_exception(status, "Exception calling runtime closeFile");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  COMPSs filename: %s\n", fileName);
 }
 
-void GS_Delete_File(char *file_name, int wait) {
 
-	get_lock();
-    int isAttached = check_and_attach(m_jvm, m_env);
+void GS_Delete_File(char* fileName, int wait) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  Calling runtime deleteFile method...\n");
 
+    // Local variables for JVM call
     bool _wait = false;
     if (wait != 0) _wait = true;
 
-    jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteFile, m_env->NewStringUTF(file_name), _wait);
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  Error: Exception received when calling deleteFile.\n");
-        m_env->ExceptionDescribe();
-        release_lock();
-        GS_Off(1);
-        exit(1);
-    }
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime, midDeleteFile, status->localJniEnv->NewStringUTF(fileName), _wait);
+    check_exception(status, "Exception received when calling deleteFile");
     //*buf = (int*)&res;
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
-    debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  COMPSs filename: %s\n", file_name);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  COMPSs filename: %s\n", fileName);
+    debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  File erased with status: %i\n", (bool) res);
 }
 
-void GS_Get_File(long _appId, char *file_name) {
 
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-    release_lock();
+void GS_Get_File(long appId, char* fileName) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  Calling runtime getFile method...\n");
 
-    local_env->CallVoidMethod(jobjIT, midGetFile, appId, m_env->NewStringUTF(file_name));
-    if (local_env->ExceptionOccurred()) {
-        local_env->ExceptionDescribe();
-        exit(1);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", file_name);
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midGetFile,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewStringUTF(fileName));
+    check_exception(status, "Exception received when calling getFile");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", fileName);
 }
 
-void GS_Get_Directory(long _appId, char *dir_name) {
+void GS_Get_Directory(long appId, char* dirName) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_Directory  -  Calling runtime getDirectory method...\n");
 
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-    release_lock();
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    local_env->CallVoidMethod(jobjIT, midGetDirectory, appId, m_env->NewStringUTF(dir_name));
-    if (local_env->ExceptionOccurred()) {
-        local_env->ExceptionDescribe();
-        exit(1);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime, midGetDirectory, appId, status->localJniEnv->NewStringUTF(dirName));
+    check_exception(status, "Exception received when calling getDirectory");
 
-    debug_printf("[BINDING-COMMONS]  -  @GS_Get_Directory  -  COMPSs directory: %s\n", dir_name);
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_Directory  -  COMPSs directory: %s\n", dirName);
 }
 
-void GS_Get_Object(char *file_name, char**buf) {
+void GS_Get_Object(char* fileName, char** buf) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  Calling runtime getObject method...\n");
 
-	const char *cstr;
-    jstring jstr = NULL;
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    jstring jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midGetBindingObject, status->localJniEnv->NewStringUTF(fileName));
+    check_exception(status, "Exception received when calling getObject");
+
+    // Parse output
     jboolean isCopy;
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-    release_lock();
-    jstr = (jstring)local_env->CallObjectMethod(jobjIT, midgetBindingObject, local_env->NewStringUTF(file_name));
-
-    if (local_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  Error: Exception received when calling getObject.\n");
-        local_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
-
-    cstr = local_env->GetStringUTFChars(jstr, &isCopy);
+    const char* cstr = status->localJniEnv->GetStringUTFChars(jstr, &isCopy);
     *buf = strdup(cstr);
-    local_env->ReleaseStringUTFChars(jstr, cstr);
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
+    status->localJniEnv->ReleaseStringUTFChars(jstr, cstr);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  COMPSs data id: %s\n", *buf);
-
 }
 
-void GS_Delete_Object(char *file_name, int **buf) {
-	get_lock();
 
-	int isAttached = check_and_attach(m_jvm, m_env);
+void GS_Delete_Object(char* fileName, int** buf) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Object  -  Calling runtime deleteObject method...\n");
 
-    jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteBindingObject, m_env->NewStringUTF(file_name));
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  Error: Exception received when calling deleteObject.\n");
-        m_env->ExceptionDescribe();
-        release_lock();
-        exit(1);
-    }
-    *buf = (int*)&res;
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
-    debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  COMPSs obj: %s\n", file_name);
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime, midDeleteBindingObject, status->localJniEnv->NewStringUTF(fileName));
+    check_exception(status, "Exception received when calling deleteObject");
+    *buf = (int*) &res;
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  COMPSs obj: %s\n", fileName);
 }
 
-void GS_Barrier(long _appId) {
+
+void GS_Barrier(long appId) {
 	debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu\n", appId);
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-	release_lock();
 
-	local_env->CallVoidMethod(jobjIT, midBarrier, appId);
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    if (local_env->ExceptionOccurred()) {
-        local_env->ExceptionDescribe();
-        exit(1);
-    }
+    // Perform operation
+	status->localJniEnv->CallVoidMethod(globalRuntime,
+	                          midBarrier,
+	                          status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
+    check_exception(status, "Exception received when calling barrier");
 
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
+    // Revoke thread access to JVM
+    access_revoke(status);
+
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
 }
 
-void GS_BarrierNew(long _appId, int noMoreTasks) {
-	get_lock();
-	JNIEnv* local_env = m_env;
-	int isAttached = check_and_attach(m_jvm, local_env);
 
+void GS_BarrierNew(long appId, int noMoreTasks) {
+    debug_printf("[   BINDING]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu\n", appId);
+
+    // Local variables for JVM call
     bool _noMoreTasks = false;
     if (noMoreTasks != 0) _noMoreTasks = true;
-
-    debug_printf("[   BINDING]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu\n", appId);
     debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s\n", _noMoreTasks ? "true":"false");
-    release_lock();
 
-    local_env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
 
-    if (local_env->ExceptionOccurred()) {
-        local_env->ExceptionDescribe();
-        GS_Off(1);
-        exit(1);
-    }
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midBarrierNew,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              _noMoreTasks);
+    check_exception(status, "Exception received when calling barrierNew");
 
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
+    // Revoke thread access to JVM
+    access_revoke(status);
+
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
 }
 
-void GS_BarrierGroup(long _appId, char *group_name, char **exception_message) {
-    jstring jstr = NULL;
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-    release_lock();
-    local_env->CallVoidMethod(jobjIT, midBarrierGroup, appId, local_env->NewStringUTF(group_name));
-    jthrowable exception = local_env->ExceptionOccurred();
-    if (exception) {
-        local_env->ExceptionDescribe();
-        getReceivedException(local_env, exception, exception_message);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierGroup  -  COMPSs group name: %s\n", group_name);
+
+void GS_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierGroup  -  COMPSs group name: %s\n", groupName);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midBarrierGroup,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewStringUTF(groupName));
+    check_and_get_compss_exception(status, exceptionMessage);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierGroup  -  Barrier ended for COMPSs group name: %s\n", groupName);
 }
 
 
+void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
+    debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  Opening task group...\n");
 
-void GS_OpenTaskGroup(char *group_name, int implicitBarrier, long _appId){
-    jstring jstr = NULL;
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
+    // Local variables for JVM call
     bool _implicitBarrier = false;
     if (implicitBarrier != 0) _implicitBarrier = true;
-    release_lock();
-    local_env->CallVoidMethod(jobjIT, midOpenTaskGroup, local_env->NewStringUTF(group_name), _implicitBarrier, appId);
-
-    if (local_env->ExceptionOccurred()) {
-        local_env->ExceptionDescribe();
-        exit(1);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  COMPSs group name: %s\n", group_name);
     debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  implicit barrier: %s\n", _implicitBarrier ? "true":"false");
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midOpenTaskGroup,
+                              status->localJniEnv->NewStringUTF(groupName),
+                              _implicitBarrier,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
+    check_exception(status, "Exception received when calling openTaskGroup");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  COMPSs group name: %s\n", groupName);
 }
 
-void GS_CloseTaskGroup(char *group_name, long _appId){
-    jstring jstr = NULL;
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-    release_lock();
-    local_env->CallVoidMethod(jobjIT, midCloseTaskGroup, local_env->NewStringUTF(group_name), appId);
 
-    if (local_env->ExceptionOccurred()) {
-        local_env->ExceptionDescribe();
-        GS_Off(1);
-        exit(1);
-    }
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    debug_printf("[BINDING-COMMONS]  -  @GS_CloseTaskGroup  -  COMPSs group name: %s\n", group_name);
+void GS_CloseTaskGroup(char* groupName, long appId){
+    debug_printf("[BINDING-COMMONS]  -  @GS_CloseTaskGroup  -  COMPSs group name: %s\n", groupName);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midCloseTaskGroup,
+                              status->localJniEnv->NewStringUTF(groupName),
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
+    check_exception(status, "Exception received when calling closeTaskGroup");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_CloseTaskGroup  -  Task group %s closed.\n", groupName);
 }
+
 
 void GS_EmitEvent(int type, long id) {
-	get_lock();
-	int isAttached = check_and_attach(m_jvm, m_env);
+    debug_printf("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Emit Event\n");
 
-    if ( (type < 0 ) or (id < 0) ) {
+    // Check validity
+    if (type < 0  or id < 0) {
         debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Error: event type and ID must be positive integers, but found: type: %u, ID: %lu\n", type, id);
-        release_lock();
+
         GS_Off(1);
         exit(1);
-    } else {
-        debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Type: %u, ID: %lu\n", type, id);
-        m_env->CallVoidMethod(jobjIT, midEmitEvent, type, id);
-        if (m_env->ExceptionOccurred()) {
-            m_env->ExceptionDescribe();
-            release_lock();
-            GS_Off(1);
-            exit(1);
-        }
     }
 
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    release_lock();
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Type: %u, ID: %lu\n", type, id);
+    status->localJniEnv->CallVoidMethod(globalRuntime, midEmitEvent, type, id);
+    check_exception(status, "Exception received when calling emitEvent");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Event emitted\n");
+}
+
+
+int GS_GetNumberOfResources(long appId) {
+    debug_printf("[   BINDING]  -  @GS_GetNumberOfResources  -  Requesting number of resources\n");
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    jint resources = status->localJniEnv->CallIntMethod(globalRuntime, midGetNumberOfResources);
+    check_exception(status, "Exception received when calling getNumberOfResources");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[   BINDING]  -  @GS_GetNumberOfResources  -  Number of active resources %u\n", (int) resources);
+    return (int) resources;
+}
+
+void GS_RequestResources(long appId, int numResources, char* groupName) {
+    debug_printf("[   BINDING]  -  @GS_RequestResources  -  Requesting resources for APP id: %lu\n", appId);
+    debug_printf("[   BINDING]  -  @GS_RequestResources  -  numResources: %u\n", numResources);
+    debug_printf("[   BINDING]  -  @GS_RequestResources  -  groupName: %s\n", groupName);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midRequestResources,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              numResources,
+                              status->localJniEnv->NewStringUTF(groupName));
+    check_exception(status, "Exception received when calling requestResources");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[   BINDING]  -  @GS_RequestResources  -  Resources creation requested");
+}
+
+void GS_FreeResources(long appId, int numResources, char* groupName) {
+    debug_printf("[   BINDING]  -  @GS_FreeResources  -  Freeing resources for APP id: %lu\n", appId);
+    debug_printf("[   BINDING]  -  @GS_FreeResources  -  numResources: %u\n", numResources);
+    debug_printf("[   BINDING]  -  @GS_FreeResources  -  groupName: %s\n", groupName);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midFreeResources,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              numResources,
+                              status->localJniEnv->NewStringUTF(groupName));
+    check_exception(status, "Exception received when calling freeResources");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+    
+    debug_printf("[   BINDING]  -  @GS_FreeResources  -  Resources destruction requested");
 }

@@ -191,17 +191,17 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     /**
      * Adds a new execute task request.
      *
-     * @param producer Task producer.
+     * @param ap Access processor.
      * @param task Task to execute.
      */
-    public void executeTask(TaskProducer producer, AbstractTask task) {
+    public void executeTask(AccessProcessor ap, AbstractTask task) {
         if (task instanceof Task) {
             if (DEBUG) {
                 StringBuilder sb = new StringBuilder("Schedule task: ");
                 sb.append(((Task) task).getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
                 LOGGER.debug(sb);
             }
-            ExecuteTasksRequest request = new ExecuteTasksRequest(producer, (Task) task);
+            ExecuteTasksRequest request = new ExecuteTasksRequest(ap, (Task) task);
             addRequest(request);
         }
     }

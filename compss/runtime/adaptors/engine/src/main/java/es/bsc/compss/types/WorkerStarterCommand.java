@@ -84,6 +84,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected int workerPort;
     protected String masterName;
     protected String workingDir;
+    protected String sandboxedWorkingDir;
     protected String installDir;
     protected String appDir = "";
     protected String workerClasspath = "";
@@ -134,6 +135,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         this.workerPort = workerPort;
         this.masterName = masterName;
         this.workingDir = workingDir;
+        this.sandboxedWorkingDir = workingDir;
         this.installDir = installDir;
 
         if (!appDir.isEmpty()) {
@@ -152,93 +154,96 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         // Merge command classpath and worker defined classpath
         if (!classpathFromFile.isEmpty()) {
             if (!CLASSPATH_FROM_ENVIRONMENT.isEmpty()) {
-                workerClasspath = classpathFromFile + LIB_SEPARATOR + CLASSPATH_FROM_ENVIRONMENT;
+                this.workerClasspath = classpathFromFile + LIB_SEPARATOR + CLASSPATH_FROM_ENVIRONMENT;
             } else {
-                workerClasspath = classpathFromFile;
+                this.workerClasspath = classpathFromFile;
             }
         } else {
-            workerClasspath = CLASSPATH_FROM_ENVIRONMENT;
+            this.workerClasspath = CLASSPATH_FROM_ENVIRONMENT;
         }
         if (!pythonpathFromFile.isEmpty()) {
             if (!PYTHONPATH_FROM_ENVIRONMENT.isEmpty()) {
-                workerPythonpath = pythonpathFromFile + LIB_SEPARATOR + PYTHONPATH_FROM_ENVIRONMENT;
+                this.workerPythonpath = pythonpathFromFile + LIB_SEPARATOR + PYTHONPATH_FROM_ENVIRONMENT;
             } else {
-                workerPythonpath = pythonpathFromFile;
+                this.workerPythonpath = pythonpathFromFile;
             }
         } else {
-            workerPythonpath = PYTHONPATH_FROM_ENVIRONMENT;
+            this.workerPythonpath = PYTHONPATH_FROM_ENVIRONMENT;
         }
 
         if (!libPathFromFile.isEmpty()) {
             if (!LIBPATH_FROM_ENVIRONMENT.isEmpty()) {
-                workerLibPath = libPathFromFile + LIB_SEPARATOR + LIBPATH_FROM_ENVIRONMENT;
+                this.workerLibPath = libPathFromFile + LIB_SEPARATOR + LIBPATH_FROM_ENVIRONMENT;
             } else {
-                workerLibPath = libPathFromFile;
+                this.workerLibPath = libPathFromFile;
             }
         } else {
-            workerLibPath = LIBPATH_FROM_ENVIRONMENT;
+            this.workerLibPath = LIBPATH_FROM_ENVIRONMENT;
         }
 
         // Get JVM Flags
         String workerJVMflags = System.getProperty(COMPSsConstants.WORKER_JVM_OPTS);
-        jvmFlags = new String[0];
+        this.jvmFlags = new String[0];
         if (workerJVMflags != null && !workerJVMflags.isEmpty()) {
-            jvmFlags = workerJVMflags.split(",");
+            this.jvmFlags = workerJVMflags.split(",");
         }
 
         // Get FPGA reprogram args
         String workerFPGAargs = System.getProperty(COMPSsConstants.WORKER_FPGA_REPROGRAM);
-        fpgaArgs = new String[0];
+        this.fpgaArgs = new String[0];
         if (workerFPGAargs != null && !workerFPGAargs.isEmpty()) {
-            fpgaArgs = workerFPGAargs.split(" ");
+            this.fpgaArgs = workerFPGAargs.split(" ");
         }
 
         // Configure worker debug level
-        workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
+        this.workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
 
         // Configure storage
-        storageConf = System.getProperty(COMPSsConstants.STORAGE_CONF);
-        if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
-            storageConf = "null";
+        this.storageConf = System.getProperty(COMPSsConstants.STORAGE_CONF);
+        if (this.storageConf == null || this.storageConf.equals("") || this.storageConf.equals("null")) {
+            this.storageConf = "null";
         }
-        executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
-        if (executionType == null || executionType.equals("") || executionType.equals("null")) {
-            executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
+        this.executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
+        if (this.executionType == null || this.executionType.equals("") || this.executionType.equals("null")) {
+            this.executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
         }
 
         // configure persistent_worker_c execution
-        workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
-        if (workerPersistentC == null || workerPersistentC.isEmpty() || workerPersistentC.equals("null")) {
-            workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
+        this.workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
+        if (this.workerPersistentC == null || this.workerPersistentC.isEmpty()
+            || this.workerPersistentC.equals("null")) {
+            this.workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
         }
 
         // Configure python interpreter
-        pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
-        if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
-            pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+        this.pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+        if (this.pythonInterpreter == null || this.pythonInterpreter.isEmpty()
+            || this.pythonInterpreter.equals("null")) {
+            this.pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
         }
 
         // Configure python version
-        pythonVersion = System.getProperty(COMPSsConstants.PYTHON_VERSION);
-        if (pythonVersion == null || pythonVersion.isEmpty() || pythonVersion.equals("null")) {
-            pythonVersion = COMPSsConstants.DEFAULT_PYTHON_VERSION;
+        this.pythonVersion = System.getProperty(COMPSsConstants.PYTHON_VERSION);
+        if (this.pythonVersion == null || this.pythonVersion.isEmpty() || this.pythonVersion.equals("null")) {
+            this.pythonVersion = COMPSsConstants.DEFAULT_PYTHON_VERSION;
         }
 
         // Configure python virtual environment
-        pythonVirtualEnvironment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
-        if (pythonVirtualEnvironment == null || pythonVirtualEnvironment.isEmpty()
-            || pythonVirtualEnvironment.equals("null")) {
-            pythonVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+        this.pythonVirtualEnvironment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
+        if (this.pythonVirtualEnvironment == null || this.pythonVirtualEnvironment.isEmpty()
+            || this.pythonVirtualEnvironment.equals("null")) {
+            this.pythonVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
         }
-        pythonPropagateVirtualEnvironment = System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
-        if (pythonPropagateVirtualEnvironment == null || pythonPropagateVirtualEnvironment.isEmpty()
-            || pythonPropagateVirtualEnvironment.equals("null")) {
-            pythonPropagateVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+        this.pythonPropagateVirtualEnvironment =
+            System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+        if (this.pythonPropagateVirtualEnvironment == null || this.pythonPropagateVirtualEnvironment.isEmpty()
+            || this.pythonPropagateVirtualEnvironment.equals("null")) {
+            this.pythonPropagateVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
         }
 
-        pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
-        if (pythonMpiWorker == null || pythonMpiWorker.isEmpty() || pythonMpiWorker.equals("null")) {
-            pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
+        this.pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
+        if (this.pythonMpiWorker == null || this.pythonMpiWorker.isEmpty() || this.pythonMpiWorker.equals("null")) {
+            this.pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
         }
         this.lang = System.getProperty(COMPSsConstants.LANG);
 
@@ -249,15 +254,10 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         this.hostId = hostId;
     }
 
-    /**
-     * Generate the command to start the worker.
-     * 
-     * @return Command as string array
-     * @throws Exception Error when generating the starter command
-     */
-    public abstract String[] getStartCommand() throws Exception;
-
-    public abstract void setScriptName(String scriptName);
+    @Override
+    public String getBaseWorkingDir() {
+        return this.workingDir;
+    }
 
     @Override
     public void setWorkerName(String workerName) {
@@ -267,7 +267,11 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     @Override
     public void setNodeId(String nodeId) {
         this.hostId = nodeId;
+    }
 
+    @Override
+    public void setSandboxedWorkingDir(String sandboxedWorkingDir) {
+        this.sandboxedWorkingDir = sandboxedWorkingDir;
     }
 
 }

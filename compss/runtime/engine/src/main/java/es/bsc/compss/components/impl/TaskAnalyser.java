@@ -29,7 +29,6 @@ import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.Direction;
 import es.bsc.compss.types.data.DataInfo;
@@ -53,6 +52,7 @@ import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
+import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
@@ -552,6 +552,27 @@ public class TaskAnalyser {
     }
 
     /**
+     * Cancels all the task within the given task group.
+     *
+     * @param request Cancel task group request.
+     */
+    public void cancelTaskGroup(CancelTaskGroupRequest request) {
+        Long appId = request.getAppId();
+        String groupName = request.getGroupName();
+        if (DEBUG) {
+            LOGGER.debug("Cancelling tasks of group " + request.getGroupName());
+        }
+
+        Semaphore sem = request.getSemaphore();
+        if (this.taskGroups.containsKey(appId) && this.taskGroups.get(appId).containsKey(groupName)) {
+            TaskGroup tg = this.taskGroups.get(appId).get(groupName);
+            tg.cancelTasks();
+            this.taskGroups.remove(appId);
+        }
+        sem.release();
+    }
+
+    /**
      * Returns the written files and deletes them.
      *
      * @param appId Application id.
@@ -724,37 +745,46 @@ public class TaskAnalyser {
      * @param request Barrier group request
      */
     public void barrierGroup(BarrierGroupRequest request) {
-        String groupName = request.getGroupName();
         Long appId = request.getAppId();
-        TaskGroup tg = this.taskGroups.get(request.getAppId()).get(groupName);
-        Integer count = this.appIdToTaskCount.get(appId);
-        // Addition of missing commutative groups to graph
-        if (IS_DRAW_GRAPH) {
-            addMissingCommutativeTasksToGraph();
-            addNewGroupBarrier(tg);
-            // We can draw the graph on a barrier while we wait for tasks
-            this.gm.commitGraph();
-        }
+        String groupName = request.getGroupName();
 
-        if (count == null || count == 0) {
-            if (tg != null && !tg.hasPendingTasks()) {
-                if (tg.hasException()) {
-                    request.setException(tg.getException());
+        if (this.taskGroups.containsKey(appId)) {
+            TaskGroup tg = this.taskGroups.get(appId).get(groupName);
+            if (tg != null) {
+                Integer count = this.appIdToTaskCount.get(appId);
+                // Addition of missing commutative groups to graph
+                if (IS_DRAW_GRAPH) {
+                    addMissingCommutativeTasksToGraph();
+                    addNewGroupBarrier(tg);
+                    // We can draw the graph on a barrier while we wait for tasks
+                    this.gm.commitGraph();
                 }
-                request.getSemaphore().release();
+
+                if (count == null || count == 0) {
+                    if (tg != null && !tg.hasPendingTasks()) {
+                        if (tg.hasException()) {
+                            request.setException(tg.getException());
+                        }
+                        request.getSemaphore().release();
+                    } else {
+                        // Release the semaphore only if all application tasks have finished
+                        request.getSemaphore().release();
+                    }
+                } else {
+                    if (tg != null && !tg.hasPendingTasks()) {
+                        if (tg.hasException()) {
+                            request.setException(tg.getException());
+                        }
+                        request.getSemaphore().release();
+                    } else {
+                        tg.addBarrier(request);
+                    }
+                }
             } else {
-                // Release the semaphore only if all application tasks have finished
                 request.getSemaphore().release();
             }
         } else {
-            if (tg != null && !tg.hasPendingTasks()) {
-                if (tg.hasException()) {
-                    request.setException(tg.getException());
-                }
-                request.getSemaphore().release();
-            } else {
-                tg.addBarrier(request);
-            }
+            request.getSemaphore().release();
         }
     }
 

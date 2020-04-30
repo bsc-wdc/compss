@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
@@ -30,6 +31,7 @@ public class ResourceCreationRequest {
     private int[][] requestedSimultaneousTaskCount;
     private final long requestedTime;
     private String requestID; // It will be the same as the VM name
+    private ResourceCreationListener listener;
 
 
     /**
@@ -41,13 +43,14 @@ public class ResourceCreationRequest {
      * @param requestID Request Id.
      */
     public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks,
-        CloudProvider cp, String requestID) {
+        CloudProvider cp, String requestID, ResourceCreationListener listener) {
 
         this.requested = requestedResource;
         this.provider = cp;
         this.requestedSimultaneousTaskCount = simultaneousTasks;
         this.requestedTime = System.currentTimeMillis();
         this.requestID = requestID;
+        this.listener = listener;
     }
 
     /**
@@ -84,6 +87,15 @@ public class ResourceCreationRequest {
      */
     public String getRequestID() {
         return this.requestID;
+    }
+
+    /**
+     * Returns the request's listener.
+     * 
+     * @return The request's listener.
+     */
+    public ResourceCreationListener getListener() {
+        return this.listener;
     }
 
     /**

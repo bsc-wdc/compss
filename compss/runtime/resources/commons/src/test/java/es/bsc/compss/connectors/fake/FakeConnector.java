@@ -40,6 +40,11 @@ public class FakeConnector implements Connector, Cost {
     }
 
     @Override
+    public boolean isAutomaticScalingEnabled() {
+        return true;
+    }
+
+    @Override
     public boolean turnON(String name, ResourceCreationRequest rR) {
         PROCESSED_REQUESTS.add(rR);
         return true;

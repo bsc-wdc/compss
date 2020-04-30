@@ -236,11 +236,11 @@ public class ScoresTest {
         Comm.registerData(d2v2.getRenaming());
 
         DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
-            Constants.PREFIX_EMPTY, "dp1");
+            Constants.PREFIX_EMPTY, "dp1", null);
         dpD1V1.setDataAccessId(new RAccessId(1, 1));
 
         DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
-            Constants.PREFIX_EMPTY, "dp2");
+            Constants.PREFIX_EMPTY, "dp2", null);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
         TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""),

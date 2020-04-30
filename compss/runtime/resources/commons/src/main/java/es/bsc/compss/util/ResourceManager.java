@@ -21,6 +21,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
+import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
@@ -33,6 +34,8 @@ import es.bsc.compss.types.resources.ResourceType;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.types.resources.description.CloudImageDescription;
+import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
 import es.bsc.compss.types.resources.updates.PendingReduction;
@@ -391,6 +394,12 @@ public class ResourceManager {
         CloudProvider cloudProvider = origin.getProvider();
         cloudProvider.confirmedCreation(origin, worker, granted);
         addDynamicWorker(worker, granted);
+
+        // Notify if listener is set
+        ResourceCreationListener listener = origin.getListener();
+        if (listener != null) {
+            listener.notifyResourceCreation();
+        }
     }
 
     /**
@@ -576,6 +585,57 @@ public class ResourceManager {
         terminateDynamicResource(worker, reduction);
         CloudProvider cp = worker.getProvider();
         cp.requestResourceReduction(worker, reduction);
+    }
+
+    /**
+     * Requests the creation of {@code numResources} new machines.
+     * 
+     * @param numResources Number of resources to create.
+     */
+    public static void requestResources(int numResources, ResourceCreationListener listener) {
+        CloudProvider cp = getAvailableCloudProviders().iterator().next(); // first
+        if (cp != null) {
+            CloudImageDescription imageDescription = cp.getAllImages().iterator().next(); // first
+            CloudInstanceTypeDescription typeDescription = cp.getAllTypes().iterator().next(); // first
+            CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(typeDescription, imageDescription);
+            for (int i = 1; i <= numResources; ++i) {
+                ResourceCreationRequest rcr = cp.requestResourceCreation(cmrd, listener);
+                if (rcr != null) {
+                    RUNTIME_LOGGER.info("Submited request for new resources (" + i + "/" + numResources + ")");
+                }
+            }
+        }
+    }
+
+    /**
+     * Requests the destruction of {@code numResources} machines.
+     * 
+     * @param numResources Number of resources to destroy.
+     */
+    public static void freeResources(int numResources) {
+        // Iterator for Cloud providers
+        Collection<CloudProvider> availableCloudProviders = getAvailableCloudProviders();
+        int n = 1;
+        for (CloudProvider cp : availableCloudProviders) {
+            for (CloudMethodWorker cmw : cp.getHostedWorkers()) {
+                if (cmw != null) {
+                    n = n + 1;
+                    requestWorkerReduction(cmw, cmw.getDescription());
+                    RUNTIME_LOGGER.info(
+                        "Submited request to destroy resources " + cmw.getName() + " (" + n + "/" + numResources + ")");
+                }
+
+                // Stop if we have freed enough resources
+                if (n > numResources) {
+                    return;
+                }
+            }
+        }
+
+        // Check if we have not freed enough resources
+        if (n <= numResources) {
+            RUNTIME_LOGGER.info("No remaining workers to destroy. Skipping the rest of requests");
+        }
     }
 
     /**

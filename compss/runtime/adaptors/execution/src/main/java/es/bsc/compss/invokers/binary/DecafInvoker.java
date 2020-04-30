@@ -49,6 +49,8 @@ public class DecafInvoker extends Invoker {
     private String dfLib;
     private final boolean failByEV;
 
+    private BinaryRunner br;
+
 
     /**
      * Decaf Invoker constructor.
@@ -72,11 +74,15 @@ public class DecafInvoker extends Invoker {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
+
         this.mpiRunner = decafImpl.getMpiRunner();
         this.dfScript = decafImpl.getDfScript();
         this.dfExecutor = decafImpl.getDfExecutor();
         this.dfLib = decafImpl.getDfLib();
         this.failByEV = decafImpl.isFailByEV();
+
+        // Internal binary runner
+        this.br = null;
     }
 
     @Override
@@ -95,7 +101,9 @@ public class DecafInvoker extends Invoker {
 
         // Close out streams if any
         try {
-            BinaryRunner.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            if (this.br != null) {
+                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
@@ -197,12 +205,16 @@ public class DecafInvoker extends Invoker {
             outLog.println("[DECAF INVOKER] Decaf STDERR: " + streamValues.getStdErr());
         }
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), this.failByEV);
+        this.br = new BinaryRunner();
+        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+            this.context.getThreadErrStream(), null, this.failByEV);
     }
 
     @Override
     public void cancelMethod() {
-
+        LOGGER.debug("Cancelling Decaf process");
+        if (this.br != null) {
+            this.br.cancelProcess();
+        }
     }
 }

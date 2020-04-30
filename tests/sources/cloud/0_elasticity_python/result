@@ -9,7 +9,7 @@
 
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
-  resources_log="${target_log_folder}/resources.log"
+  #resources_log="${target_log_folder}/resources.log"
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
@@ -64,10 +64,8 @@
 
   #elasticity_value_GOT=$(grep "CURRENT_VM" "${resources_log}" | rev | cut -c -1 | sort | tail -n 1)
   #elasticity_value_EXPECTED="$maxVM"
-  elasticity_creation_GOT=$(grep -c "RESOURCE_GRANTED" "${resources_log}")
+  elasticity_creation_GOT=$(grep "currentVMs" "${runtime_log}"  | awk '{ print $(NF-4) }' | sort -nr | head -n 1)
   elasticity_creation_EXPECTED="$maxVM"
-  elasticity_destruction_GOT=$(grep -c "Resource removed from the pool" "${resources_log}")
-  elasticity_destruction_EXPECTED=$((maxVM - minVM))
   elasticity_termination_GOT=$(grep -c "Destroying VM" "${runtime_log}")
   elasticity_termination_EXPECTED=$minVM
 
@@ -81,14 +79,9 @@
     exit 4
   fi
 
-  if [ "${elasticity_destruction_GOT}" != "${elasticity_destruction_EXPECTED}" ]; then
-    echo "[ERROR] Elasticity not terminating intermediate VMs (${elasticity_destruction_GOT}-> Expected: ${elasticity_destruction_EXPECTED})" | tee "${output_file}"
-    exit 5
-  fi
-
   if [ "${elasticity_termination_GOT}" != "${elasticity_termination_EXPECTED}" ]; then
     echo "[ERROR] Elasticity not reaching minVM at the end (${elasticity_termination_GOT} -> Expected: ${elasticity_termination_EXPECTED}" | tee "${output_file}"
-    exit 6
+    exit 5
   fi
 
   # Report result status

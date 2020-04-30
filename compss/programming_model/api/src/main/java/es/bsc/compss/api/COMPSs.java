@@ -75,4 +75,35 @@ public class COMPSs {
         System.out.println(SKIP_MESSAGE);
     }
 
+    /**
+     * Returns the number of active resources.
+     * 
+     * @return The number of active resources.
+     */
+    public int getNumberOfResources() {
+        // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+        return 0;
+    }
+
+    /**
+     * Requests the creation of {@code numResources} resources.
+     * 
+     * @param numResources Number of resources to create.
+     */
+    public void requestResources(int numResources) {
+        // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+    }
+
+    /**
+     * Requests the destruction of {@code numResources} resources.
+     * 
+     * @param numResources Number of resources to destroy.
+     */
+    public void freeResources(int numResources) {
+        // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+    }
+
 }

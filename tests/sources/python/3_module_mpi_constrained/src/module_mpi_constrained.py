@@ -14,7 +14,7 @@ from pycompss.api.constraint import constraint
 
 
 @constraint(computing_units="2")
-@mpi(binary="date", runner="mpirun", computing_nodes=2)
+@mpi(binary="date", runner="mpirun", processes="2", scale_by_cu=True)
 @task()
 def myDateConstrained(dprefix, param):
     pass

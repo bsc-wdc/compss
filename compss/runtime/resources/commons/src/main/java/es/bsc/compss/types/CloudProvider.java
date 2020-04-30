@@ -19,6 +19,7 @@ package es.bsc.compss.types;
 import es.bsc.compss.connectors.Connector;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.connectors.Cost;
+import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -64,6 +65,7 @@ public class CloudProvider {
 
     // Loggers
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CM_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
     /**
@@ -278,6 +280,15 @@ public class CloudProvider {
     }
 
     /**
+     * Returns whether the connector supports automatic scaling or not.
+     * 
+     * @return {@literal true} if the connector supports automatic scaling, {@literal false} otherwise.
+     */
+    public boolean isAutomaticScalingEnabled() {
+        return this.connector.isAutomaticScalingEnabled();
+    }
+
+    /**
      * Returns the time until the next VM creation.
      * 
      * @return The time until the next VM creation.
@@ -359,13 +370,17 @@ public class CloudProvider {
      * @param instanceDescription Resource description to create.
      * @return The new ResourceCreationRequest.
      */
-    public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription) {
+    public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription,
+        ResourceCreationListener listener) {
+
         int[][] simultaneousCounts = computeSimultaneousCounts(instanceDescription);
         String requestID = "compss" + UUID.randomUUID().toString();
         ResourceCreationRequest rcr =
-            new ResourceCreationRequest(instanceDescription, simultaneousCounts, this, requestID);
-        LOGGER.debug("[Cloud Manager] Asking for resource creation " + instanceDescription.getName() + " with image "
-            + instanceDescription.getImage().getImageName());
+            new ResourceCreationRequest(instanceDescription, simultaneousCounts, this, requestID, listener);
+        if (DEBUG) {
+            LOGGER.debug("[Cloud Manager] Asking for resource creation with image "
+                + instanceDescription.getImage().getImageName());
+        }
 
         boolean isRequestAccepted = this.connector.turnON(requestID, rcr);
         if (isRequestAccepted) {

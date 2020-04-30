@@ -359,7 +359,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             "/bin/echo " + "\"" + key + "\"" + " >> " + System.getProperty("user.home") + File.separator + ".ssh"
                 + File.separator + "known_hosts" };
 
-        synchronized (knownHosts) {
+        synchronized (KNOWN_HOSTS) {
             errors = 0;
             int exitValue = -1;
             while (exitValue == 0 && errors < MAX_ALLOWED_ERRORS) {

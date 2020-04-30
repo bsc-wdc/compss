@@ -35,7 +35,6 @@ import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
-import es.bsc.conn.types.StarterCommand;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -706,37 +705,6 @@ public class Comm {
         } catch (FileNotFoundException ex) {
             LOGGER.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
         }
-    }
-
-    /**
-     * Creates the WorkerStarterCommand.
-     * 
-     * @param adaptorName name of the adaptor to be used
-     * @param workerName worker name
-     * @param workerPort worker Port number
-     * @param masterName master name
-     * @param workingDir worker working directory
-     * @param installDir worker COMPSs install directory
-     * @param appDir worker application install directory
-     * @param classpathFromFile worker classpath in projects.xml file
-     * @param pythonpathFromFile worker python path in projects.xml file
-     * @param libPathFromFile worker library path path in project.xml file
-     * @param totalCPU total CPU computing units
-     * @param totalGPU total GPU
-     * @param totalFPGA total FPGA
-     * @param limitOfTasks limit of tasks
-     * @param hostId tracing worker identifier
-     * @return WorkerStarterCommand
-     */
-    public StarterCommand getStarterCommand(String adaptorName, String workerName, int workerPort, String masterName,
-        String workingDir, String installDir, String appDir, String classpathFromFile, String pythonpathFromFile,
-        String libPathFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
-
-        CommAdaptor adaptor = ADAPTORS.get(adaptorName);
-        return adaptor.getStarterCommand(workerName, workerPort, masterName, workingDir, installDir, appDir,
-            classpathFromFile, pythonpathFromFile, libPathFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks,
-            hostId);
-
     }
 
 }

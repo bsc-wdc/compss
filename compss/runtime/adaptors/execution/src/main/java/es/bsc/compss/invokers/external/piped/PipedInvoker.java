@@ -124,4 +124,5 @@ public abstract class PipedInvoker extends ExternalInvoker {
     public void cancelMethod() {
         this.pipes.getMirror().cancelJob(this.pipes);
     }
+
 }

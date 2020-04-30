@@ -17,6 +17,7 @@
 package es.bsc.compss.connectors.conn.util;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.connectors.ConnectorException;
 
 import es.bsc.conn.Connector;
@@ -47,41 +48,60 @@ public class ConnectorProxy {
         if (conn == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
+
         this.connector = conn;
+    }
+
+    /**
+     * Returns whether the connector supports automatic scaling or not.
+     * 
+     * @return {@literal true} if the connector supports automatic scaling, {@literal false} otherwise.
+     */
+    public boolean isAutomaticScalingEnabled() {
+        return this.connector.isAutomaticScalingEnabled();
     }
 
     /**
      * Creates a new machine in the given connector with the given information.
      * 
      * @param name Machine name.
-     * @param hardwareDescription Connector hardware properties.
-     * @param softwareDescription Connector software properties.
+     * @param hd Connector hardware properties.
+     * @param sd Connector software properties.
      * @param properties Specific properties.
-     * @param adaptorName Name of the adaptor used to connect to this machine.
      * @return Machine Object.
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
-    public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription,
-        Map<String, String> properties, String adaptorName) throws ConnectorException {
+    public Object create(String name, HardwareDescription hd, SoftwareDescription sd, Map<String, String> properties)
+        throws ConnectorException {
 
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
-        Object created;
+
+        Object created = null;
         try {
-            StarterCommand starterCMD =
-                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
-            created = this.connector.create(name, hardwareDescription, softwareDescription, properties, starterCMD);
+            StarterCommand starterCMD = getStarterCommand(name, hd, sd);
+            created = this.connector.create(name, hd, sd, properties, starterCMD);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }
         return created;
     }
 
-    private StarterCommand getStarterCommand(String adaptorName, String name, HardwareDescription hd,
-        SoftwareDescription sd, Map<String, String> properties) {
-        return null;
-
+    private StarterCommand getStarterCommand(String name, HardwareDescription hd, SoftwareDescription sd) {
+        String adaptorName = sd.getInstallation().getAdaptorName();
+        CommAdaptor adaptor = Comm.getAdaptor(adaptorName);
+        if (adaptor != null) {
+            String hostId = null; // Set by connector
+            return adaptor.getStarterCommand(name, sd.getInstallation().getMinPort(), Comm.getAppHost().getName(),
+                sd.getInstallation().getWorkingDir(), sd.getInstallation().getInstallDir(),
+                sd.getInstallation().getAppDir(), sd.getInstallation().getClasspath(),
+                sd.getInstallation().getPythonPath(), sd.getInstallation().getLibraryPath(),
+                hd.getTotalCPUComputingUnits(), hd.getTotalGPUComputingUnits(), hd.getTotalFPGAComputingUnits(),
+                sd.getInstallation().getLimitOfTasks(), hostId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -89,26 +109,22 @@ public class ConnectorProxy {
      * 
      * @param replicas Number of replicas for this machine
      * @param name Machine name.
-     * @param hardwareDescription Connector hardware properties.
-     * @param softwareDescription Connector software properties.
+     * @param hd Connector hardware properties.
+     * @param sd Connector software properties.
      * @param properties Specific properties.
-     * @param adaptorName Name of the adaptor used to connect to this machine.
      * @return Machine Object.
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
-    public Object createMultiple(int replicas, String name, HardwareDescription hardwareDescription,
-        SoftwareDescription softwareDescription, Map<String, String> properties, String adaptorName)
-        throws ConnectorException {
+    public Object createMultiple(int replicas, String name, HardwareDescription hd, SoftwareDescription sd,
+        Map<String, String> properties) throws ConnectorException {
 
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
-        Object[] created;
+        Object[] created = null;
         try {
-            StarterCommand starterCMD =
-                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
-            created = this.connector.createMultiple(replicas, name, hardwareDescription, softwareDescription,
-                properties, starterCMD);
+            StarterCommand starterCMD = getStarterCommand(name, hd, sd);
+            created = this.connector.createMultiple(replicas, name, hd, sd, properties, starterCMD);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }
@@ -141,7 +157,7 @@ public class ConnectorProxy {
             throw new ConnectorException(ERROR_NO_CONN);
         }
 
-        VirtualResource vr;
+        VirtualResource vr = null;
         try {
             vr = this.connector.waitUntilCreation(id);
         } catch (ConnException ce) {
@@ -175,6 +191,7 @@ public class ConnectorProxy {
         if (this.connector == null) {
             return defaultLength;
         }
+
         return this.connector.getTimeSlot();
     }
 

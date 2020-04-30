@@ -19,7 +19,6 @@ package es.bsc.compss.nio;
 import static java.lang.Math.abs;
 
 import es.bsc.comm.Connection;
-import es.bsc.comm.Node;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.nio.NIOEventManager;
@@ -62,12 +61,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -79,6 +75,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -780,93 +777,79 @@ public abstract class NIOAgent {
         if (this.finish == true && !hasPendingTransfers()) {
             shutdown(closingConnection);
         }
-
     }
 
     private boolean extractFolder(String zipFilePath, String destination) {
-        try {
-            // todo: what to do if the zip already exists?
-            int buffer = 2048;
-            File destDir = new File(destination);
-            if (destDir.exists() && !destDir.isDirectory()) {
-                LOGGER.warn(" Removing existing file: " + destination);
-                if (!destDir.delete()) {
-                    LOGGER.error("Cannot remove: '" + destination + "' ");
-                    LOGGER.error("Cannot extract: '" + zipFilePath + "' ");
-                    return false;
-                }
-            }
+        // Remove destination directory
+        File destDir = new File(destination);
+        if (destDir.exists()) {
+            LOGGER.warn("Removing existing file: " + destination);
             if (destDir.isDirectory()) {
-                // directories must be deleted recursively
-                Path directory = Paths.get(destination);
+                // Delete directory
                 try {
-                    Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-
-                        @Override
-                        public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-                            Files.delete(file);
-                            return FileVisitResult.CONTINUE;
-                        }
-
-                        @Override
-                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                            Files.delete(dir);
-                            return FileVisitResult.CONTINUE;
-                        }
-                    });
-                } catch (IOException e) {
-                    LOGGER.error("Cannot delete directory " + destination);
+                    FileUtils.deleteDirectory(destDir);
+                } catch (IOException ioe) {
+                    LOGGER.error("Cannot remove existing folder: " + destination, ioe);
+                    LOGGER.error("Cannot extract: " + zipFilePath);
+                    return false;
+                }
+            } else {
+                // Delete file
+                if (!destDir.delete()) {
+                    LOGGER.error("Cannot remove existing file: " + destination);
+                    LOGGER.error("Cannot extract: " + zipFilePath);
                     return false;
                 }
             }
+        }
 
-            // destination doesn't exist, create the directory and extract the compressed data into it
-            destDir.mkdir();
+        // Create extraction directory
+        destDir.mkdirs();
 
-            File zipFile = new File(zipFilePath);
-            ZipFile zip = new ZipFile(zipFile);
-            Enumeration zipFileEntries = zip.entries();
+        // Extract data
+        final int bufferSize = 2_048;
 
-            // Process each entry
+        File zipAsFile = new File(zipFilePath);
+        try (ZipFile zip = new ZipFile(zipAsFile)) {
+            @SuppressWarnings("unchecked")
+            Enumeration<ZipEntry> zipFileEntries = (Enumeration<ZipEntry>) zip.entries();
             while (zipFileEntries.hasMoreElements()) {
-                // grab a zip file entry
-                ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
+                // Grab a zip file entry
+                ZipEntry entry = zipFileEntries.nextElement();
                 String currentEntry = entry.getName();
 
                 File destFile = new File(destination, currentEntry);
                 File destinationParent = destFile.getParentFile();
 
-                // create the parent directory structure if needed
+                // Create the parent directory structure if needed
                 destinationParent.mkdirs();
 
                 if (!entry.isDirectory()) {
-                    BufferedInputStream is = new BufferedInputStream(zip.getInputStream(entry));
-                    int currentByte;
-                    // establish buffer for writing file
-                    byte[] data = new byte[buffer];
+                    try (BufferedInputStream is = new BufferedInputStream(zip.getInputStream(entry));
+                        BufferedOutputStream dest =
+                            new BufferedOutputStream(new FileOutputStream(destFile), bufferSize)) {
 
-                    // write the current file to disk
-                    FileOutputStream fos = new FileOutputStream(destFile);
-                    BufferedOutputStream dest = new BufferedOutputStream(fos, buffer);
-
-                    // read and write until last byte is encountered
-                    while ((currentByte = is.read(data, 0, buffer)) != -1) {
-                        dest.write(data, 0, currentByte);
+                        // Read and write until last byte is encountered
+                        int currentByte;
+                        byte[] data = new byte[bufferSize];
+                        while ((currentByte = is.read(data, 0, bufferSize)) != -1) {
+                            dest.write(data, 0, currentByte);
+                        }
+                        dest.flush();
                     }
-                    dest.flush();
-                    dest.close();
-                    is.close();
                 }
-
             }
-
-            if (!zipFile.delete()) {
-                LOGGER.warn(" Cannot remove zip file after decompression: " + zipFile.getName());
-            }
-        } catch (Exception e) {
-            LOGGER.error(e);
+        } catch (IOException ioe) {
+            LOGGER.error("ERROR extracting ZIP file " + zipFilePath, ioe);
             return false;
         }
+
+        // Remove ZIP file
+        if (!zipAsFile.delete()) {
+            LOGGER.warn(" Cannot remove zip file after decompression: " + zipAsFile.getName());
+        }
+
+        // All ok
         return true;
     }
 

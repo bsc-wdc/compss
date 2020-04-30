@@ -201,14 +201,17 @@ public class CreationThread extends Thread {
             // Turn on the VM and expects the new mr description
             envID = this.operations.poweron(this.name, requested);
         } catch (ConnectorException e) {
-            RUNTIME_LOGGER.error(ERROR_ASKING_NEW_RESOURCE + provider + "\n", e);
-            RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_ASKING_NEW_RESOURCE + provider + "\n]", e);
+            RUNTIME_LOGGER.error(ERROR_ASKING_NEW_RESOURCE + this.name + " to " + this.provider.getName() + "\n", e);
+            RESOURCE_LOGGER.error(
+                "ERROR_MSG = [\n\t" + ERROR_ASKING_NEW_RESOURCE + this.name + " to " + this.provider.getName() + "\n]",
+                e);
             throw e;
         }
 
         if (envID == null) {
             RUNTIME_LOGGER.info(WARN_CANNOT_PROVIDE_VM);
-            RESOURCE_LOGGER.info("INFO_MSG = [\n\t" + provider + WARN_CANNOT_PROVIDE_VM + "\n]");
+            RESOURCE_LOGGER.info("INFO_MSG = [\n\t" + this.provider.getName() + WARN_CANNOT_PROVIDE_VM + " with name "
+                + this.name + "\n]");
             throw new ConnectorException(WARN_CANNOT_PROVIDE_VM);
         }
 
@@ -217,8 +220,9 @@ public class CreationThread extends Thread {
             // Wait until the VM has been created
             granted = this.operations.waitCreation(envID, requested);
         } catch (ConnectorException e) {
-            RUNTIME_LOGGER.error(ERROR_WAITING_VM + this.provider + "\n", e);
-            RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_WAITING_VM + this.provider + "\n]", e);
+            RUNTIME_LOGGER.error(ERROR_WAITING_VM + envID + " to " + this.provider.getName() + "\n", e);
+            RESOURCE_LOGGER
+                .error("ERROR_MSG = [\n\t" + ERROR_WAITING_VM + envID + " to " + this.provider.getName() + "\n]", e);
             try {
                 this.operations.destroy(envID);
             } catch (ConnectorException ex) {
@@ -291,6 +295,18 @@ public class CreationThread extends Thread {
         mc.setTotalFPGAComputingUnits(granted.getTotalFPGAComputingUnits());
         mc.setLimitOfOTHERsTasks(granted.getTotalOTHERComputingUnits());
         mc.setTotalOTHERComputingUnits(granted.getTotalOTHERComputingUnits());
+
+        // Fix NIO port range if requested by VM
+        int minPort = granted.getImage().getConfig().getMinPort();
+        if (minPort != -1) {
+            mc.setMinPort(minPort);
+        }
+        int maxPort = granted.getImage().getConfig().getMaxPort();
+        if (maxPort != -1) {
+            mc.setMaxPort(maxPort);
+        }
+
+        // Create cloud method worker
         CloudMethodWorker worker =
             new CloudMethodWorker(granted.getName(), this.provider, granted, mc, cid.getSharedDisks());
 

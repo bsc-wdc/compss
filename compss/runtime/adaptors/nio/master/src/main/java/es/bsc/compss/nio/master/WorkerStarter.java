@@ -19,7 +19,6 @@ package es.bsc.compss.nio.master;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
@@ -28,13 +27,13 @@ import es.bsc.compss.nio.commands.CommandCheckWorker;
 import es.bsc.compss.nio.master.handlers.Ender;
 import es.bsc.compss.nio.master.handlers.ProcessOut;
 import es.bsc.compss.types.COMPSsNode;
-import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.util.Tracer;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -47,20 +46,6 @@ public class WorkerStarter {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
-
-    // Static Environment variables
-
-    private static final boolean IS_CPU_AFFINITY_DEFINED =
-        System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) != null
-            && !System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty();
-
-    private static final boolean IS_GPU_AFFINITY_DEFINED =
-        System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) != null
-            && !System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY).isEmpty();
-
-    private static final boolean IS_FPGA_AFFINITY_DEFINED =
-        System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
-            && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
 
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);

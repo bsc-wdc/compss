@@ -17,8 +17,8 @@
 package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
@@ -50,18 +50,18 @@ public class ExecuteTasksRequest extends TDRequest {
             || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
     }
 
-    private final TaskProducer producer;
+    private final AccessProcessor ap;
     private final Task task;
 
 
     /**
      * Constructs a new ScheduleTasks Request.
      *
-     * @param producer taskProducer to be notified when the task ends.
+     * @param ap Access Processor to be notified when the task ends.
      * @param t Task to run.
      */
-    public ExecuteTasksRequest(TaskProducer producer, Task t) {
-        this.producer = producer;
+    public ExecuteTasksRequest(AccessProcessor ap, Task t) {
+        this.ap = ap;
         this.task = t;
     }
 
@@ -161,7 +161,7 @@ public class ExecuteTasksRequest extends TDRequest {
 
         LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
         ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource),
-            ts.getOrchestrator(), this.producer, this.task);
+            ts.getOrchestrator(), this.ap, this.task);
         ts.newAllocatableAction(action);
     }
 
@@ -173,9 +173,8 @@ public class ExecuteTasksRequest extends TDRequest {
         // Can use one or more resources depending on the computingNodes
         MultiNodeGroup group = new MultiNodeGroup(numNodes);
         for (int i = 0; i < numNodes; ++i) {
-            MultiNodeExecutionAction action =
-                new MultiNodeExecutionAction(ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(),
-                    this.producer, this.task, group);
+            MultiNodeExecutionAction action = new MultiNodeExecutionAction(
+                ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), this.ap, this.task, group);
             ts.newAllocatableAction(action);
         }
     }

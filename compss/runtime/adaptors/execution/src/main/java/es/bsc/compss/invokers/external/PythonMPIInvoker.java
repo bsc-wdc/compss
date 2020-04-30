@@ -46,6 +46,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
     private final boolean scaleByCU;
     private final boolean failByEV;
 
+    private BinaryRunner br;
+
 
     /**
      * Python MPI Invoker constructor.
@@ -76,6 +78,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
         this.scaleByCU = pythonmpiImpl.getScaleByCU();
         this.failByEV = pythonmpiImpl.isFailByEV();
 
+        // Internal binary runner
+        this.br = null;
     }
 
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
@@ -97,7 +101,9 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Close out streams if any
         try {
-            BinaryRunner.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            if (this.br != null) {
+                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
@@ -200,13 +206,16 @@ public class PythonMPIInvoker extends ExternalInvoker {
         }
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        this.br = new BinaryRunner();
+        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), pythonPath, this.failByEV);
-
     }
 
     @Override
     public void cancelMethod() {
-
+        LOGGER.debug("Cancelling PythonMPI process");
+        if (this.br != null) {
+            this.br.cancelProcess();
+        }
     }
 }

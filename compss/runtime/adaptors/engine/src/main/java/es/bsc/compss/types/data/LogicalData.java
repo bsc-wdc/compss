@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,8 +79,6 @@ public class LogicalData {
     // Indicates if LogicalData has been ordered to save before
     private boolean isBeingSaved;
     private boolean isBindingData;
-    // Locks the host while LogicalData is being copied
-    private final Semaphore lockHostRemoval = new Semaphore(1);
 
 
     /*

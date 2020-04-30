@@ -26,6 +26,8 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.Classpath;
 
 import es.bsc.conn.Connector;
+import es.bsc.conn.types.HardwareDescription;
+import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.VirtualResource;
 
 import java.io.File;
@@ -53,7 +55,7 @@ public class DefaultNoSSHConnector extends AbstractConnector {
     // Constraints default values
     private static final float UNASSIGNED_FLOAT = -1.0f;
 
-    private ConnectorProxy connector;
+    private ConnectorProxy connectorProxy;
 
 
     /**
@@ -102,7 +104,7 @@ public class DefaultNoSSHConnector extends AbstractConnector {
             Class<?> conClass = Class.forName(connectorMainClass);
             Constructor<?> constructor = conClass.getDeclaredConstructors()[0];
             conn = (Connector) constructor.newInstance(connectorProperties);
-            LOGGER.debug("Ending connector creaton handling");
+            LOGGER.debug("Ending connector handling");
         } catch (FileNotFoundException fnfe) {
             LOGGER.error("Specific connector jar file not found", fnfe);
             throw new ConnectorException("Specific Connector jar file (" + connectorJarPath + ") not found", fnfe);
@@ -113,29 +115,37 @@ public class DefaultNoSSHConnector extends AbstractConnector {
             if (conn == null) {
                 LOGGER.fatal("Connector constructor null");
             }
-            this.connector = new ConnectorProxy(conn);
+            this.connectorProxy = new ConnectorProxy(conn);
         }
     }
 
     @Override
+    public boolean isAutomaticScalingEnabled() {
+        return this.connectorProxy.isAutomaticScalingEnabled();
+    }
+
+    @Override
     public void destroy(Object id) throws ConnectorException {
-        LOGGER.debug("Destroy connection with id " + id);
-        this.connector.destroy(id);
+        LOGGER.debug("Destroy connectorProxy with id " + id);
+        this.connectorProxy.destroy(id);
     }
 
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
-        LOGGER.debug("Create connection " + name);
-        return this.connector.create(name, Converter.getHardwareDescription(cmrd),
-            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties(),
-            cmrd.getImage().getConfig().getAdaptorName());
+        LOGGER.debug("Create connectorProxy " + name);
+
+        HardwareDescription hd = Converter.getHardwareDescription(cmrd);
+        SoftwareDescription sd = Converter.getSoftwareDescription(cmrd);
+        return this.connectorProxy.create(name, hd, sd, cmrd.getImage().getProperties());
     }
 
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested)
         throws ConnectorException {
-        LOGGER.debug("Waiting for " + id);
-        VirtualResource vr = this.connector.waitUntilCreation(id);
+
+        LOGGER.debug("Waiting connectorProxy with id " + id);
+
+        VirtualResource vr = this.connectorProxy.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);
         LOGGER.debug("Return cloud method resource description " + cmrd.toString());
         return cmrd;
@@ -143,18 +153,19 @@ public class DefaultNoSSHConnector extends AbstractConnector {
 
     @Override
     public float getMachineCostPerTimeSlot(CloudMethodResourceDescription cmrd) {
-        return this.connector.getPriceSlot(Converter.getVirtualResource("-1", cmrd), UNASSIGNED_FLOAT);
+        return this.connectorProxy.getPriceSlot(Converter.getVirtualResource("-1", cmrd), UNASSIGNED_FLOAT);
     }
 
     @Override
     public long getTimeSlot() {
-        return this.connector.getTimeSlot(TWO_MIN);
+        return this.connectorProxy.getTimeSlot(TWO_MIN);
     }
 
     @Override
     protected void close() {
         LOGGER.debug("Close connector");
-        this.connector.close();
+
+        this.connectorProxy.close();
     }
 
     @Override

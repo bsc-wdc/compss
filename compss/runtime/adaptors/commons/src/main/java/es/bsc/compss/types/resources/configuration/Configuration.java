@@ -19,6 +19,7 @@ package es.bsc.compss.types.resources.configuration;
 import es.bsc.compss.log.Loggers;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,10 +31,11 @@ import org.apache.logging.log4j.Logger;
  */
 public class Configuration {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     private final String adaptorName;
-    private final HashMap<String, String> additionalProperties = new HashMap<>();
+    private final Map<String, String> additionalProperties;
+
     private int limitOfTasks = -1;
     private int limitOfGPUTasks = -1;
     private int limitOfFPGATasks = -1;
@@ -43,19 +45,21 @@ public class Configuration {
     /**
      * Instantiates the class.
      *
-     * @param adaptorName Adaptor name
+     * @param adaptorName Adaptor name.
      */
     public Configuration(String adaptorName) {
         this.adaptorName = adaptorName;
+        this.additionalProperties = new HashMap<>();
     }
 
     /**
      * Clones a class instance.
      *
-     * @param clone Configuration to clone
+     * @param clone Configuration to clone.
      */
     public Configuration(Configuration clone) {
         this.adaptorName = clone.adaptorName;
+        this.additionalProperties = new HashMap<>();
 
         this.limitOfTasks = clone.limitOfTasks;
         this.limitOfGPUTasks = clone.limitOfGPUTasks;
@@ -63,7 +67,7 @@ public class Configuration {
         this.limitOfOTHERsTasks = clone.limitOfOTHERsTasks;
 
         for (Entry<String, String> addProp : clone.additionalProperties.entrySet()) {
-            additionalProperties.put(addProp.getKey(), addProp.getValue());
+            this.additionalProperties.put(addProp.getKey(), addProp.getValue());
         }
     }
 
@@ -77,30 +81,30 @@ public class Configuration {
     }
 
     /**
-     * Returns a HashMap with all the additional properties. The keys are the names of the properties and the values are
-     * the values of the properties
+     * Returns a Map with all the additional properties. The keys are the names of the properties and the values are the
+     * values of the properties.
      *
-     * @return
+     * @return A Map with the additional properties.
      */
-    public final HashMap<String, String> getAdditionalProperties() {
+    public final Map<String, String> getAdditionalProperties() {
         return this.additionalProperties;
     }
 
     /**
-     * Returns the value of the property with name @name. Null if key doesn't exist
+     * Returns the value of the property with name {@code name}. Null if key doesn't exist
      *
      * @param name Property name.
-     * @return
+     * @return The property value.
      */
     public final String getProperty(String name) {
         return this.additionalProperties.get(name);
     }
 
     /**
-     * Adds a property with name @name and value @value.
+     * Adds a property with name {@code name} and value {@code value}.
      *
-     * @param name Property name
-     * @param value Property value
+     * @param name Property name.
+     * @param value Property value.
      */
     public final void addProperty(String name, String value) {
         this.additionalProperties.put(name, value);
@@ -109,7 +113,7 @@ public class Configuration {
     /**
      * Gets the limit of tasks.
      *
-     * @return
+     * @return The limit of tasks.
      */
     public int getLimitOfTasks() {
         return limitOfTasks;
@@ -118,7 +122,7 @@ public class Configuration {
     /**
      * Sets the limit of tasks.
      *
-     * @param limitOfTasks maximum number of tasks
+     * @param limitOfTasks Maximum number of tasks.
      */
     public void setLimitOfTasks(int limitOfTasks) {
         this.limitOfTasks = limitOfTasks;
@@ -127,7 +131,7 @@ public class Configuration {
     /**
      * Gets the limit of GPU tasks.
      *
-     * @return
+     * @return The limit of GPU tasks.
      */
     public int getLimitOfGPUTasks() {
         return limitOfGPUTasks;
@@ -136,7 +140,7 @@ public class Configuration {
     /**
      * Sets the limit of GPU tasks.
      *
-     * @param limitOfGPUTasks Limit of tasks with GPUS
+     * @param limitOfGPUTasks Limit of tasks with GPUS.
      */
     public void setLimitOfGPUTasks(int limitOfGPUTasks) {
         this.limitOfGPUTasks = limitOfGPUTasks;
@@ -145,7 +149,7 @@ public class Configuration {
     /**
      * Gets the limit of FPGA tasks.
      *
-     * @return
+     * @return The limit of FPGA tasks.
      */
     public int getLimitOfFPGATasks() {
         return limitOfFPGATasks;
@@ -154,7 +158,7 @@ public class Configuration {
     /**
      * Sets the limit of FPGA tasks.
      *
-     * @param limitOfFPGATasks Limit of tasks with GPU
+     * @param limitOfFPGATasks Limit of tasks with FPGA.
      */
     public void setLimitOfFPGATasks(int limitOfFPGATasks) {
         this.limitOfFPGATasks = limitOfFPGATasks;
@@ -163,7 +167,7 @@ public class Configuration {
     /**
      * Gets the limit of OTHER tasks.
      *
-     * @return
+     * @return The limit of OTHER tasks.
      */
     public int getLimitOfOTHERsTasks() {
         return limitOfOTHERsTasks;
@@ -172,7 +176,7 @@ public class Configuration {
     /**
      * Sets the limit of OTHERS tasks.
      *
-     * @param limitOfOTHERsTasks Limit of task with OTHER devices
+     * @param limitOfOTHERsTasks Limit of task with OTHER devices.
      */
     public void setLimitOfOTHERsTasks(int limitOfOTHERsTasks) {
         this.limitOfOTHERsTasks = limitOfOTHERsTasks;

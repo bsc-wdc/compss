@@ -32,9 +32,9 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     public static final CloudMethodResourceDescription EMPTY = new CloudMethodResourceDescription();
 
     // Resource Description
-    private String name = "";
+    private String name;
     private final Map<CloudInstanceTypeDescription, int[]> typeComposition;
-    private CloudImageDescription image = null;
+    private CloudImageDescription image;
 
 
     /**
@@ -42,7 +42,10 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription() {
         super();
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
+        this.image = null;
     }
 
     /**
@@ -52,7 +55,10 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(Constraints constraints) {
         super(constraints);
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
+        this.image = null;
     }
 
     /**
@@ -62,7 +68,10 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(MethodResourceDescription constraints) {
         super(constraints);
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
+        this.image = null;
     }
 
     /**
@@ -72,6 +81,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(CloudMethodResourceDescription clone) {
         super(clone);
+
         this.name = clone.name;
         this.typeComposition = new HashMap<>();
         for (Entry<CloudInstanceTypeDescription, int[]> entry : clone.typeComposition.entrySet()) {
@@ -88,6 +98,8 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(CloudInstanceTypeDescription type, CloudImageDescription image) {
         super(type.getResourceDescription());
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
         this.typeComposition.put(type, new int[] { 1 });
         this.image = image;
@@ -114,6 +126,24 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Returns the associated image.
+     * 
+     * @return The associated cloud image.
+     */
+    public CloudImageDescription getImage() {
+        return this.image;
+    }
+
+    /**
+     * Sets a new associated cloud image.
+     * 
+     * @param image New cloud image.
+     */
+    public void setImage(CloudImageDescription image) {
+        this.image = image;
     }
 
     /**
@@ -218,24 +248,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
             int[] count = typeCount.getValue();
             removeInstances(type, count[0]);
         }
-    }
-
-    /**
-     * Returns the associated image.
-     * 
-     * @return The associated cloud image.
-     */
-    public CloudImageDescription getImage() {
-        return this.image;
-    }
-
-    /**
-     * Sets a new associated cloud image.
-     * 
-     * @param image New cloud image.
-     */
-    public void setImage(CloudImageDescription image) {
-        this.image = image;
     }
 
     @Override

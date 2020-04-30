@@ -209,7 +209,7 @@ public class GATAdaptor implements CommAdaptor {
 
     @Override
     public void completeMasterURI(MultiURI uri) {
-        String scheme = uri.getScheme();
+        String scheme = uri.getProtocol().getSchema();
         String user = masterUser + "@";
         String host = uri.getHost().getName();
         String path = uri.getPath();

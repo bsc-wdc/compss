@@ -54,6 +54,7 @@ import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -893,7 +894,7 @@ public class TaskScheduler {
         DynamicMethodWorker dynamicWorker = (DynamicMethodWorker) worker.getResource();
         if (dynamicWorker.shouldBeStopped()) {
             LOGGER.info("Starting stop process for worker " + worker.getName());
-            this.workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
+            workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
             StopWorkerAction action;
             action = new StopWorkerAction(generateSchedulingInformation(worker), worker, this, modification);
             try {
@@ -938,7 +939,8 @@ public class TaskScheduler {
             }
         }
 
-        PriorityQueue<AllocatableAction> blockedOnResource = resource.getBlockedActions();
+        // We convert PriorityQueue -> List to obtain a shallow copy
+        List<AllocatableAction> blockedOnResource = new ArrayList<>(resource.getBlockedActions());
         for (AllocatableAction action : blockedOnResource) {
             action.abortExecution();
             try {

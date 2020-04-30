@@ -333,7 +333,7 @@ public class CloudProviderTest {
         }
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
         if (!FakeConnector.getProcessedRequests().contains(crc)) {
             fail("Turn on has not reached the connector");
         }
@@ -351,7 +351,7 @@ public class CloudProviderTest {
 
         cmrd = new CloudMethodResourceDescription(citd, cid);
         cmrd.addInstance(citd);
-        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd, null);
         pendingRequests = cp.getPendingRequests();
         if (!pendingRequests.contains(crc)) {
             fail("Cloud Provider is not properly registering the pending creations requests");
@@ -397,7 +397,7 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
         if (!FakeConnector.getProcessedRequests().contains(crc)) {
             fail("Turn on has not reached the connector");
         }
@@ -451,14 +451,14 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
         if (!FakeConnector.getProcessedRequests().contains(crc)) {
             fail("Turn on has not reached the connector");
         }
 
         CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
         cmrd2.addInstance(citd);
-        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2, null);
         if (!FakeConnector.getProcessedRequests().contains(crc)) {
             fail("Turn on has not reached the connector");
         }
@@ -509,7 +509,7 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
         if (cp.getCurrentVMCount() != 1) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
@@ -569,7 +569,7 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
         CloudMethodWorker cmw =
@@ -616,10 +616,10 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         final CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
 
         final CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
-        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2, null);
         if (cp.getCurrentVMCount() != 2) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
@@ -693,10 +693,10 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         final CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
 
         final CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
-        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2, null);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
         final CloudMethodWorker cmw =
@@ -760,7 +760,7 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw =
@@ -808,10 +808,10 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
 
         CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2, null);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw =
@@ -876,10 +876,10 @@ public class CloudProviderTest {
         cp.addInstanceType(citd);
 
         final CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd, null);
 
         final CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
-        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2, null);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw =

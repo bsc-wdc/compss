@@ -48,6 +48,7 @@ import inspect
 import logging
 import traceback
 import base64
+import hashlib
 
 from collections import *
 from shutil import rmtree
@@ -158,7 +159,23 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     # Force_insertion implies assign_new_key
     assert not force_insertion or assign_new_key
 
-    obj_addr = id(obj)
+    # obj_addr = id(obj)  # Does not guarantee uniqueness
+    # Alternative, use hash of:
+    #  - The object id
+    #  - The size of the object
+    #  - The object representation
+    # This avoids the issue of id reuse and object increase/modification
+    # WARNNING: Caveats:
+    #  - User defined object with parameter change without __repr__
+    #  - Breaks the dependency detection of user defined objects if modified
+    #    (it is required to enhance the object returned to be automatically
+    #    sychronized if modified).
+    hash_id = hashlib.md5()
+    hash_id.update(str(id(obj)).encode())            # Consider the memory pointer
+    hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size
+    hash_id.update(repr(obj).encode())               # Include the object representation
+    obj_addr = hash_id.hexdigest()
+
     # Assign an empty dictionary (in case there is nothing there)
     _id2obj = _addr2id2obj.setdefault(obj_addr, {})
 

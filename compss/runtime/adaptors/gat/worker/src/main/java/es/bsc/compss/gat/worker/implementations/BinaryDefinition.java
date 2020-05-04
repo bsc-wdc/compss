@@ -53,11 +53,7 @@ public class BinaryDefinition extends ImplementationDefinition {
         }
         this.failByEV = Boolean.parseBoolean(args[execArgsIdx++]);
 
-<<<<<<< HEAD
-        this.impl = new BinaryImplementation(this.binary, this.workingDir, this.failByEV, null, null, "", null);
-=======
-        this.impl = new BinaryImplementation(this.binary, this.workingDir, null, null, null, "", null);
->>>>>>> Implementation of Container Annotation & Conditioning of the binary
+        this.impl = new BinaryImplementation(this.binary, this.workingDir, this.failByEV, null, null, null, "", null);
     }
 
     @Override

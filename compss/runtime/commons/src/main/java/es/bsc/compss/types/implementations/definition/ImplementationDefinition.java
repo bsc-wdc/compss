@@ -102,7 +102,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                             "Empty binary annotation for BINARY method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, binaryc, binaryWorkingDirc,
-                    		binaryfailByEVc, containerc, (MethodResourceDescription) implConstraints);
+                        binaryfailByEVc, containerc, (MethodResourceDescription) implConstraints);
                     break;
                 case METHOD:
                     if (implTypeArgs.length != MethodImplementation.NUM_PARAMS) {

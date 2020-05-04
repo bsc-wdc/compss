@@ -61,8 +61,9 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      * @param signature Binary signature.
      * @param annot Binary requirements.
      */
-    public BinaryImplementation(String binary, String workingDir, boolean failByEV, BinaryContainerDescription container,Integer coreId,
-        Integer implementationId, String signature, MethodResourceDescription annot) {
+    public BinaryImplementation(String binary, String workingDir, boolean failByEV,
+        BinaryContainerDescription container, Integer coreId, Integer implementationId, String signature,
+        MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 
@@ -98,8 +99,8 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
     public boolean isFailByEV() {
         return failByEV;
     }
-    
-	/**
+
+    /**
      * Returns the container.
      * 
      * @return The container implementation.

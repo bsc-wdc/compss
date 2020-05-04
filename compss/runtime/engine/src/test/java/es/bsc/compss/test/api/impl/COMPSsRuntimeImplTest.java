@@ -123,7 +123,7 @@ public class COMPSsRuntimeImplTest {
             "binaryWorkingDir",
             "fasle",
             "engine",
-            "container"};
+            "container" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(2).getImplementations().get(0);

@@ -79,7 +79,6 @@ if context.in_pycompss():
         listType = types.ListType
         dictType = types.DictType
 
-
     def compss_start():
         """
         Starts the runtime.
@@ -88,7 +87,6 @@ if context.in_pycompss():
         """
         start_runtime()
 
-
     def compss_stop(code=0):
         """
         Stops the runtime.
@@ -96,7 +94,6 @@ if context.in_pycompss():
         :return: None
         """
         stop_runtime(code)
-
 
     def compss_file_exists(file_name):
         """
@@ -113,7 +110,6 @@ if context.in_pycompss():
         else:
             return True
 
-
     def compss_open(file_name, mode='r'):
         """
         Open a file -> Calls runtime.
@@ -127,7 +123,6 @@ if context.in_pycompss():
         compss_name = open_file(file_name, compss_mode)
         return open(compss_name, mode)
 
-
     def compss_delete_file(file_name):
         """
         Delete a file -> Calls runtime.
@@ -136,7 +131,6 @@ if context.in_pycompss():
         :return: True if success. False otherwise.
         """
         return delete_file(file_name)
-
 
     def compss_wait_on_file(file_name):
         """
@@ -164,7 +158,6 @@ if context.in_pycompss():
         """
         return delete_object(obj)
 
-
     def compss_barrier(no_more_tasks=False):
         """
         Perform a barrier when called.
@@ -173,7 +166,6 @@ if context.in_pycompss():
         :param no_more_tasks: No more tasks boolean
         """
         barrier(no_more_tasks)
-
 
     def compss_barrier_group(group_name):
         """
@@ -187,7 +179,6 @@ if context.in_pycompss():
         if exception_message is not None:
             raise COMPSsException(exception_message)
 
-
     def compss_get_number_of_resources():
         """
         Request for the number of active resources.
@@ -196,7 +187,6 @@ if context.in_pycompss():
             +type: <int>
         """
         return get_number_of_resources()
-
 
     def compss_request_resources(num_resources, group_name):
         """
@@ -210,7 +200,6 @@ if context.in_pycompss():
         """
         request_resources(num_resources, group_name)
 
-
     def compss_free_resources(num_resources, group_name):
         """
         Requests the destruction of num_resources resources.
@@ -223,7 +212,6 @@ if context.in_pycompss():
         """
         free_resources(num_resources, group_name)
 
-
     def compss_wait_on(*args, **kwargs):
         """
         Wait for objects.
@@ -232,7 +220,6 @@ if context.in_pycompss():
         :return: List with the final values.
         """
         return wait_on(*args, **kwargs)
-
 
     class TaskGroup(object):
         def __init__(self, group_name, implicit_barrier=True):
@@ -286,10 +273,8 @@ else:
     from pycompss.api.dummy.api import compss_free_resources as \
         __dummy_compss_free_resources__
 
-
     def compss_start():
         __dummy_compss_start__()
-
 
     def compss_stop():
         __dummy_compss_stop__()
@@ -304,46 +289,35 @@ else:
     def compss_open(file_name, mode='r'):
         return __dummy_compss_open__(file_name, mode)
 
-
     def compss_delete_file(file_name):
         return __dummy_compss_delete_file__(file_name)
-
 
     def compss_wait_on_file(file_name):
         return __dummy_compss_wait_on_file__(file_name)
 
-
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)
-
 
     def compss_barrier(no_more_tasks=False):
         __dummy_compss_barrier__(no_more_tasks)
 
-
     def compss_barrier_group(group_name):
         __dummy_compss_barrier_group__(group_name)
-
 
     def compss_wait_on(*args):
         return __dummy_compss_wait_on__(*args)
 
-
     def compss_open_task_group(group_name, implicit_barrier):
         return __dummy_compss_open_task_group__(group_name, implicit_barrier)
-
 
     def compss_close_task_group(group_name):
         return __dummy_compss_close_task_group__(group_name)
 
-
     def compss_get_number_of_resources():
         return __dummy_compss_get_number_of_resources__()
 
-
     def compss_request_resources(num_resources, group_name):
         __dummy_compss_request_resources__(num_resources, group_name)
-
 
     def compss_free_resources(num_resources, group_name):
         __dummy_compss_free_resources__(num_resources, group_name)

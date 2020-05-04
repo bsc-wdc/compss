@@ -171,9 +171,9 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     #    (it is required to enhance the object returned to be automatically
     #    sychronized if modified).
     hash_id = hashlib.md5()
-    hash_id.update(str(id(obj)).encode())            # Consider the memory pointer
-    hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size
-    hash_id.update(repr(obj).encode())               # Include the object representation
+    hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+    hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+    hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
     obj_addr = hash_id.hexdigest()
 
     # Assign an empty dictionary (in case there is nothing there)
@@ -519,9 +519,10 @@ def request_resources(num_resources, group_name):
         group_name = "NULL"
 
     if __debug__:
-        logger.debug(
-            "Request the creation of " + str(num_resources) + " resources with notification to task group " + str(
-                group_name))
+        logger.debug("Request the creation of " +
+                     str(num_resources) +
+                     " resources with notification to task group " +
+                     str(group_name))
 
     # Call the Runtime (appId 0)
     compss.request_resources(0, num_resources, group_name)
@@ -542,9 +543,10 @@ def free_resources(num_resources, group_name):
         group_name = "NULL"
 
     if __debug__:
-        logger.debug(
-            "Request the destruction of " + str(num_resources) + " resources with notification to task group " + str(
-                group_name))
+        logger.debug("Request the destruction of " +
+                     str(num_resources) +
+                     " resources with notification to task group " +
+                     str(group_name))
 
     # Call the Runtime (appId 0)
     compss.free_resources(0, num_resources, group_name)
@@ -564,7 +566,7 @@ def register_ce(core_element):
         String impl_constraints = 'ComputingUnits:2';
         String impl_type = 'METHOD';
         String[] impl_type_args = new String[] { 'methodClass', 'methodName' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // MPI
         System.out.println('Registering MPI implementation');
@@ -572,8 +574,8 @@ def register_ce(core_element):
         impl_signature = 'mpi.MPI';
         impl_constraints = 'StorageType:SSD';
         impl_type = 'MPI';
-        impl_type_args = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };  # noqa
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        impl_type_args = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };  # noqa: E501
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // PYTHON MPI
         System.out.println('Registering PYTHON MPI implementation');
@@ -581,8 +583,8 @@ def register_ce(core_element):
         impl_signature = 'MPI.methodClass1.methodName';
         impl_constraints = 'ComputingUnits:2';
         impl_type = 'PYTHON_MPI';
-        impl_type_args = new String[] { 'methodClass', 'methodName', 'mpiWorkingDir', 'mpiRunner' };  # noqa
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        impl_type_args = new String[] { 'methodClass', 'methodName', 'mpiWorkingDir', 'mpiRunner' };  # noqa: E501
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // BINARY
         System.out.println('Registering BINARY implementation');
@@ -591,7 +593,7 @@ def register_ce(core_element):
         impl_constraints = 'MemoryType:RAM';
         impl_type = 'BINARY';
         impl_type_args = new String[] { 'binary', 'binaryWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // OMPSS
         System.out.println('Registering OMPSS implementation');
@@ -600,7 +602,7 @@ def register_ce(core_element):
         impl_constraints = 'ComputingUnits:3';
         impl_type = 'OMPSS';
         impl_type_args = new String[] { 'ompssBinary', 'ompssWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // OPENCL
         System.out.println('Registering OPENCL implementation');
@@ -609,7 +611,7 @@ def register_ce(core_element):
         impl_constraints = 'ComputingUnits:4';
         impl_type = 'OPENCL';
         impl_type_args = new String[] { 'openclKernel', 'openclWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // VERSIONING
         System.out.println('Registering METHOD implementation');
@@ -618,18 +620,18 @@ def register_ce(core_element):
         impl_constraints = 'ComputingUnits:1';
         impl_type = 'METHOD';
         impl_type_args = new String[] { 'anotherClass', 'anotherMethodName' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
     ---------------------
 
     Core Element fields:
 
-    ce_signature: <String> Core Element signature  (e.g.- 'methodClass.methodName')  # noqa
-    impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')  # noqa
-    impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')  # noqa
-    impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')  # noqa
+    ce_signature: <String> Core Element signature  (e.g.- 'methodClass.methodName')  # noqa: E501
+    impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')  # noqa: E501
+    impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')  # noqa: E501
+    impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')  # noqa: E501
     impl_io: <String> IO Implementation  #noga
-    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa
+    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa: E501
 
     :param core_element: <CE> Core Element to register
     :return: None
@@ -788,7 +790,7 @@ def synchronize(obj, mode):
         real_file_name = compss_file.split('/')[-1]
         if real_file_name == 'null':
             print("WARNING: Could not retrieve the object " + str(file_name) +
-                  " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa
+                  " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa: E501
             return None
         new_obj = deserialize_from_file(compss_file)
         compss.close_file(file_name, mode)
@@ -1307,12 +1309,12 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                         p.object = v.encode(STR_ESCAPE)
                         p.type = TYPE.STRING
                         if __debug__:
-                            logger.debug("Inferred type modified (Object converted to String).")  # noqa
+                            logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
                     except SerializerException:
                         p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug("The object cannot be converted due to: not serializable.")  # noqa
+                            logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
                 else:
                     p.type = TYPE.OBJECT
                     if __debug__:
@@ -1349,12 +1351,12 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                         p.object = v
                         p.type = TYPE.STRING
                         if __debug__:
-                            logger.debug("Inferred type modified (Object converted to String).")  # noqa
+                            logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
                     else:
                         p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug("Inferred type reestablished to Object.")  # noqa
+                            logger.debug("Inferred type reestablished to Object.")  # noqa: E501
                             # if the parameter converts to an object, release
                             # the size to be used for converted objects?
                             # No more objects can be converted
@@ -1365,7 +1367,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                     p.object = real_value
                     p.type = TYPE.OBJECT
                     if __debug__:
-                        logger.debug("The object cannot be converted due to: not serializable.")  # noqa
+                        logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
     else:
         if __debug__:
             logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")
@@ -1391,7 +1393,7 @@ def _serialize_object_into_file(name, p):
                 # Is there a future object within the list?
                 if any(isinstance(v, Future) for v in p.object):
                     if __debug__:
-                        logger.debug("Found a list that contains future objects - synchronizing...")  # noqa
+                        logger.debug("Found a list that contains future objects - synchronizing...")  # noqa: E501
                     mode = get_compss_mode('in')
                     p.object = list(map(synchronize,
                                         p.object,
@@ -1405,9 +1407,9 @@ def _serialize_object_into_file(name, p):
             lines = traceback.format_exception(exc_type,
                                                exc_value,
                                                exc_traceback)
-            logger.exception("Pickling error exception: non-serializable object found as a parameter.")  # noqa
+            logger.exception("Pickling error exception: non-serializable object found as a parameter.")  # noqa: E501
             logger.exception(''.join(line for line in lines))
-            print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")  # noqa
+            print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")  # noqa: E501
             print("[ ERROR ]: Object: %s" % p.object)
             # Raise the exception up tu launch.py in order to point where the
             # error is in the user code.

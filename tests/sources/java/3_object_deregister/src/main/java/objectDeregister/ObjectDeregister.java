@@ -26,7 +26,7 @@ public class ObjectDeregister {
         }
 
         COMPSs.barrier();
-        ObjectDeregisterImpl.task4();
+        ObjectDeregisterImpl.task5();
         COMPSs.barrier();
         System.gc();
         Thread.sleep(10000);
@@ -43,6 +43,58 @@ public class ObjectDeregister {
          * object task2 used
          */
 
+        /*
+         * This second part of the test checks that accesses from the main are properly handled.
+         */
+        // IN
+        Dummy dIn = new Dummy(1);
+        ObjectDeregisterImpl.task3(dIn);
+        BlackBox.method(dIn);
+        COMPSs.deregisterObject((Object) dIn);
+        dIn = null;
+        Thread.sleep(2000);
+        COMPSs.barrier();
+        System.gc();
+
+        k = ClassInstanceTest.countInstances(Dummy.class);
+        if (k > 0) {
+            System.out.println(
+                "[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
+            System.exit(-1);
+        }
+
+        // OUT
+        Dummy dOut = ObjectDeregisterImpl.task4(1);
+        BlackBox.method(dOut);
+        COMPSs.deregisterObject((Object) dOut);
+        dOut = null;
+        Thread.sleep(2000);
+        COMPSs.barrier();
+        System.gc();
+
+        k = ClassInstanceTest.countInstances(Dummy.class);
+        if (k > 0) {
+            System.out.println(
+                "[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
+            System.exit(-1);
+        }
+
+        // INOUT
+        Dummy dInout = new Dummy(2);
+        ObjectDeregisterImpl.task1(2, dInout);
+        BlackBox.method(dInout);
+        COMPSs.deregisterObject((Object) dInout);
+        dInout = null;
+        Thread.sleep(2000);
+        COMPSs.barrier();
+        System.gc();
+
+        k = ClassInstanceTest.countInstances(Dummy.class);
+        if (k > 0) {
+            System.out.println(
+                "[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
+            System.exit(-1);
+        }
     }
 
 }

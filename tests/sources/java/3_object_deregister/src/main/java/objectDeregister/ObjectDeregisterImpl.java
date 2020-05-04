@@ -14,7 +14,11 @@ public class ObjectDeregisterImpl {
         d3.getDummyNumber();
     }
 
-    public static void task4() throws Exception { // Null
+    public static Dummy task4(int n) { // Writes
+        return new Dummy(n);
+    }
+
+    public static void task5() throws Exception { // Null
         System.gc();
         Thread.sleep(100);
         int k = ClassInstanceTest.countInstances(Dummy.class);

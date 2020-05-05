@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/p#!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
 #
@@ -81,49 +81,21 @@ class MPI(object):
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
                             "@mpi")
+            # Replace the legacy annotation
+            if 'computingNodes' in self.kwargs:
+                self.kwargs['processes'] = self.kwargs.pop('computingNodes')
+            if 'computing_nodes' in self.kwargs:
+                self.kwargs['processes'] = self.kwargs.pop('computing_nodes')
 
-            # Get the computing nodes: This parameter will have to go down
-            # until execution when invoked.
-            if 'processes' not in self.kwargs and \
-                    'computing_nodes' not in self.kwargs and \
-                    'computingNodes' not in self.kwargs:
+            # Set default value if it has not been defined
+            if 'processes' not in self.kwargs:
                 self.kwargs['processes'] = 1
-            else:
-                if 'computing_nodes' in self.kwargs:
-                    self.kwargs['processes'] = \
-                        self.kwargs.pop('computing_nodes')
-                elif 'computingNodes' in self.kwargs:
-                    self.kwargs['processes'] = \
-                        self.kwargs.pop('computingNodes')
-                computing_nodes = self.kwargs['processes']
-                if isinstance(computing_nodes, int):
-                    # Nothing to do
-                    pass
-                elif isinstance(computing_nodes, str):
-                    # Check if it is an environment variable to be loaded
-                    if computing_nodes.strip().startswith('$'):
-                        # Computing nodes is an ENV variable, load it
-                        env_var = computing_nodes.strip()[1:]  # Remove $
-                        if env_var.startswith('{'):
-                            env_var = env_var[1:-1]  # remove brackets
-                        try:
-                            self.kwargs['processes'] = \
-                                int(os.environ[env_var])
-                        except ValueError:
-                            raise Exception(
-                                cast_env_to_int_error('processes'))
-                    else:
-                        # ComputingNodes is in string form, cast it
-                        try:
-                            self.kwargs['processes'] = \
-                                int(computing_nodes)
-                        except ValueError:
-                            raise Exception(
-                                cast_string_to_int_error('processes'))
-                else:
-                    raise Exception("ERROR: Wrong processes value at" +
-                                    " @mpi decorator.")
 
+            # The processes parameter will have to go down until the execution
+            # is invoked.
+            # WARNING: processes can be an int, a env string, a str with
+            # dynamic variable name.
+            processes = self.kwargs['processes']
             if __debug__:
                 logger.debug("This MPI task will have " +
                              str(processes) + " processes.")
@@ -217,8 +189,8 @@ class MPI(object):
                         elif isinstance(scale_by_cu, str):
                             scale_by_cu_str = scale_by_cu
                         else:
-                            raise Exception("Incorrect format for scale_by_cu property. " +  # noqa: E501
-                                            "It should be boolean or an environment variable")  # noqa: E501
+                            raise Exception("Incorrect format for scale_by_cu property. " +      # noqa: E501
+                                            " It should be boolean or an environment variable")  # noqa: E501
                     else:
                         scale_by_cu_str = 'false'
 
@@ -233,7 +205,7 @@ class MPI(object):
                             fail_by_ev_str = fail_by_ev
                         else:
                             raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
-                                            "It should be boolean or an environment variable")  # noqa: E501
+                                            " It should be boolean or an environment variable")     # noqa: E501
                     else:
                         fail_by_ev_str = 'false'
 
@@ -242,8 +214,7 @@ class MPI(object):
                     else:
                         impl_signature = 'MPI.' + \
                                          str(self.kwargs['processes']) + \
-                                         "." + \
-                                         binary
+                                         "." + binary
 
                     # Add information to CoreElement
                     cce.set_impl_signature(impl_signature)

@@ -20,34 +20,34 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.accessparams.FileAccessParams;
+import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 
-public class FinishFileAccessRequest extends APRequest {
+public class FinishDataAccessRequest extends APRequest {
 
-    private final FileAccessParams fap;
+    private final AccessParams access;
 
 
     /**
      * Creates a new finish FileAccess request.
      * 
-     * @param fap Associated FileAccessParams.
+     * @param ap Associated AccessParams.
      */
-    public FinishFileAccessRequest(FileAccessParams fap) {
-        this.fap = fap;
+    public FinishDataAccessRequest(AccessParams ap) {
+        this.access = ap;
     }
 
     @Override
     public APRequestType getRequestType() {
-        return APRequestType.FINISH_ACCESS_FILE;
+        return APRequestType.FINISH_DATA_ACCESS;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
 
-        dip.finishFileAccess(this.fap.getMode(), this.fap.getLocation());
+        access.registerAccessCompletion(dip);
     }
 
 }

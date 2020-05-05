@@ -53,12 +53,10 @@ import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
-import es.bsc.compss.types.request.ap.FinishBindingObjectAccessRequest;
-import es.bsc.compss.types.request.ap.FinishFileAccessRequest;
+import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetLastRenamingRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
-import es.bsc.compss.types.request.ap.NewVersionSameValueRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteObjectDataRequest;
@@ -152,15 +150,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     public void setGM(GraphGenerator gm) {
         this.taskAnalyser.setGM(gm);
-    }
-
-    /**
-     * Returns the internal DataInfoProvider instance.
-     *
-     * @return The internal DataInfoProvider instance.
-     */
-    public DataInfoProvider getDataInfoProvider() {
-        return this.dataInfoProvider;
     }
 
     @Override
@@ -291,13 +280,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
 
         // Tell the DM that the application wants to access a file.
-        finishFileAccess(fap);
+        finishDataAccess(fap);
 
     }
 
-    private void finishFileAccess(FileAccessParams fap) {
-        if (!this.requestQueue.offer(new FinishFileAccessRequest(fap))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing file access");
+    private void finishDataAccess(AccessParams fap) {
+        if (!this.requestQueue.offer(new FinishDataAccessRequest(fap))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
         }
     }
 
@@ -482,13 +471,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param hashCode Object hashcode.
      * @return Synchronized object.
      */
-    public Object mainAcessToObject(Object obj, int hashCode) {
+    public Object mainAccessToObject(Object obj, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to object with hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, this.dataInfoProvider, obj, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -516,7 +505,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (DEBUG) {
             LOGGER.debug("Object retrieved. Set new version to: " + wRename);
         }
+
         setObjectVersionValue(wRename, oUpdated);
+        finishDataAccess(oap);
+
         return oUpdated;
     }
 
@@ -527,13 +519,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param hashCode Object hashcode.
      * @return Location containing final the PSCO Id.
      */
-    public String mainAcessToExternalPSCO(String id, int hashCode) {
+    public String mainAccessToExternalPSCO(String id, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to external object with hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, this.dataInfoProvider, id, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -582,7 +574,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param hashCode Binding object's hashcode.
      * @return Location containing the binding's object final path.
      */
-    public String mainAcessToBindingObject(BindingObject bo, int hashCode) {
+    public String mainAccessToBindingObject(BindingObject bo, int hashCode) {
         if (DEBUG) {
             LOGGER.debug(
                 "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
@@ -591,8 +583,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Tell the DIP that the application wants to access an object
         // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
         // hashCode);
-        BindingObjectAccessParams oap =
-            new BindingObjectAccessParams(AccessMode.R, this.dataInfoProvider, bo, hashCode);
+        BindingObjectAccessParams oap = new BindingObjectAccessParams(AccessMode.R, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
         // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
@@ -615,15 +606,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
-        finishBindingObjectAccess(oap);
+        finishDataAccess(oap);
 
         return bindingObjectID;
-    }
-
-    private void finishBindingObjectAccess(BindingObjectAccessParams boAP) {
-        if (!this.requestQueue.offer(new FinishBindingObjectAccessRequest(boAP))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing binding object access");
-        }
     }
 
     /**
@@ -793,19 +778,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         sem.acquireUninterruptibly();
 
         return request.getResponse();
-    }
-
-    /**
-     * Registers a new version of file/object with the same value.
-     *
-     * @param rRenaming Read renaming path.
-     * @param wRenaming Write renaming path.
-     */
-    public void newVersionSameValue(String rRenaming, String wRenaming) {
-        NewVersionSameValueRequest request = new NewVersionSameValueRequest(rRenaming, wRenaming);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "new version");
-        }
     }
 
     /**

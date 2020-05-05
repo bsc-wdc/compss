@@ -42,7 +42,6 @@ public abstract class AccessParams implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected final AccessMode mode;
-    protected final DataInfoProvider dip;
 
 
     /**
@@ -50,9 +49,8 @@ public abstract class AccessParams implements Serializable {
      * 
      * @param mode Access Mode.
      */
-    public AccessParams(AccessMode mode, DataInfoProvider dip) {
+    public AccessParams(AccessMode mode) {
         this.mode = mode;
-        this.dip = dip;
     }
 
     /**
@@ -64,5 +62,18 @@ public abstract class AccessParams implements Serializable {
         return this.mode;
     }
 
-    public abstract DataAccessId register();
+    /**
+     * Registers the access on a given DataInfoProvider.
+     * 
+     * @param dip DataInfoProvider where to register the DataAccess
+     * @return Description of the dataAccess
+     */
+    public abstract DataAccessId registerAccess(DataInfoProvider dip);
+
+    /**
+     * Registers the completion of the access on a given DataInfoProvider.
+     * 
+     * @param dip DataInfoProvider where to register the DataAccess
+     */
+    public abstract void registerAccessCompletion(DataInfoProvider dip);
 }

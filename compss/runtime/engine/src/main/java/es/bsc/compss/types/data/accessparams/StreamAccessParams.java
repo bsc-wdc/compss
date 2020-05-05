@@ -35,13 +35,13 @@ public class StreamAccessParams extends ObjectAccessParams {
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    public StreamAccessParams(AccessMode mode, DataInfoProvider dip, Object value, int hashCode) {
-        super(mode, dip, value, hashCode);
+    public StreamAccessParams(AccessMode mode, Object value, int hashCode) {
+        super(mode, value, hashCode);
     }
 
     @Override
-    public DataAccessId register() {
-        return this.dip.registerStreamAccess(this.mode, getValue(), getCode());
+    public DataAccessId registerAccess(DataInfoProvider dip) {
+        return dip.registerStreamAccess(this.mode, getValue(), getCode());
     }
 
 }

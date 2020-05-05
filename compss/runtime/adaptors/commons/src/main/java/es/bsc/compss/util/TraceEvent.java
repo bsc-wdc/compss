@@ -58,7 +58,7 @@ public enum TraceEvent {
     GRAPHSTATE(34, Tracer.RUNTIME_EVENTS, "Access Processor: Graphstate"), // Graph state
     TASKSTATE(35, Tracer.RUNTIME_EVENTS, "Access Processor: Taskstate"), // Task state
     DELETE_FILE(36, Tracer.RUNTIME_EVENTS, "Access Processor: Delete file"), // Delete file
-    FINISH_ACCESS_FILE(37, Tracer.RUNTIME_EVENTS, "Access Processor: Finish acess to file"), // Finish access to file
+    FINISH_DATA_ACCESS(37, Tracer.RUNTIME_EVENTS, "Access Processor: Finish access to file"), // Finish access to file
     CANCEL_ALL_TASKS(56, Tracer.RUNTIME_EVENTS, "Acces Processor: Cancel all tasks"),
 
     // Storage Events

@@ -93,7 +93,7 @@ public class DataInfoProvider {
     // Map: file identifier -> file information
     private TreeMap<Integer, DataInfo> idToData;
     // Map: Object_Version_Renaming -> Object value
-    private TreeMap<String, Object> renamingToValue; // TODO: Remove obsolete from here
+    private TreeSet<String> valuesOnMain; // TODO: Remove obsolete from here
 
     // Component logger - No need to configure, ProActive does
     private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
@@ -108,7 +108,7 @@ public class DataInfoProvider {
         this.collectionToId = new TreeMap<>();
         this.codeToId = new TreeMap<>();
         this.idToData = new TreeMap<>();
-        this.renamingToValue = new TreeMap<>();
+        this.valuesOnMain = new TreeSet<>();
 
         LOGGER.info("Initialization finished");
     }
@@ -145,7 +145,7 @@ public class DataInfoProvider {
     public DataAccessId registerDataAccess(AccessParams access) {
         // The abstract method comes back to this class and executes the corresponding
         // registerFileAccess, registerObjectAccess, registerBindingObjectAccess or registerStreamAccess
-        return access.register();
+        return access.registerAccess(this);
     }
 
     /**
@@ -469,13 +469,13 @@ public class DataInfoProvider {
     }
 
     /**
-     * Marks the access to a BindingObject as finished.
+     * Marks the access to a Object as finished.
      *
-     * @param mode Binding Object Access Mode.
-     * @param code Binding Object hashcode.
+     * @param mode Object Access Mode.
+     * @param code Object hashcode.
      */
-    public void finishBindingObjectAccess(AccessMode mode, int code) {
-        DataInfo boInfo;
+    public void finishObjectAccess(AccessMode mode, int code) {
+        DataInfo oInfo;
 
         Integer aoId = this.codeToId.get(code);
 
@@ -484,8 +484,8 @@ public class DataInfoProvider {
             LOGGER.warn("Binding Object " + code + " has not been accessed before");
             return;
         }
-        boInfo = this.idToData.get(aoId);
-        DataAccessId daid = getAccess(mode, boInfo);
+        oInfo = this.idToData.get(aoId);
+        DataAccessId daid = getAccess(mode, oInfo);
         if (daid == null) {
             LOGGER.warn("Binding Object " + code + " has not been accessed before");
             return;
@@ -700,7 +700,7 @@ public class DataInfoProvider {
      * @param value Object value.
      */
     public void setObjectVersionValue(String renaming, Object value) {
-        this.renamingToValue.put(renaming, value);
+        this.valuesOnMain.add(renaming);
         Comm.registerValue(renaming, value);
     }
 
@@ -711,27 +711,7 @@ public class DataInfoProvider {
      * @return {@code true} if the renaming is registered in the master, {@code false} otherwise.
      */
     public boolean isHere(DataInstanceId dId) {
-        return this.renamingToValue.get(dId.getRenaming()) != null;
-    }
-
-    /**
-     * Returns the object associated to the given renaming {@code renaming}.
-     *
-     * @param renaming Object renaming.
-     * @return Associated object value.
-     */
-    public Object getObject(String renaming) {
-        return this.renamingToValue.get(renaming);
-    }
-
-    /**
-     * Creates a new version with the same value.
-     *
-     * @param rRenaming Read renaming.
-     * @param wRenaming Write renaming.
-     */
-    public void newVersionSameValue(String rRenaming, String wRenaming) {
-        this.renamingToValue.put(wRenaming, this.renamingToValue.get(rRenaming));
+        return this.valuesOnMain.contains(dId.getRenaming());
     }
 
     /**

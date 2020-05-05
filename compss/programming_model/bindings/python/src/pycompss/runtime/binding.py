@@ -142,6 +142,32 @@ _addr2id2obj = {}
 content_type_format = "{}:{}"  # <module_path>:<class_name>
 
 
+def calculate_identifier(obj):
+    """
+    Calculates the identifier for the given object.
+
+    :param obj: Object to get the identifier
+    :return: String (md5 string)
+    """
+    # obj_addr = id(obj)  # Does not guarantee uniqueness
+    # Alternative, use hash of:
+    #  - The object id
+    #  - The size of the object
+    #  - The object representation
+    # This avoids the issue of id reuse and object increase/modification
+    # WARNNING: Caveats:
+    #  - User defined object with parameter change without __repr__
+    #  - Breaks the dependency detection of user defined objects if modified
+    #    (it is required to enhance the object returned to be automatically
+    #    sychronized if modified).
+    hash_id = hashlib.md5()
+    hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+    hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+    hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+    obj_addr = str(hash_id.hexdigest())
+    return obj_addr
+
+
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
     """
     Gets the identifier of an object. If not found or we are forced to,
@@ -159,22 +185,7 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     # Force_insertion implies assign_new_key
     assert not force_insertion or assign_new_key
 
-    # obj_addr = id(obj)  # Does not guarantee uniqueness
-    # Alternative, use hash of:
-    #  - The object id
-    #  - The size of the object
-    #  - The object representation
-    # This avoids the issue of id reuse and object increase/modification
-    # WARNNING: Caveats:
-    #  - User defined object with parameter change without __repr__
-    #  - Breaks the dependency detection of user defined objects if modified
-    #    (it is required to enhance the object returned to be automatically
-    #    sychronized if modified).
-    hash_id = hashlib.md5()
-    hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-    hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-    hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-    obj_addr = hash_id.hexdigest()
+    obj_addr = calculate_identifier(obj)
 
     # Assign an empty dictionary (in case there is nothing there)
     _id2obj = _addr2id2obj.setdefault(obj_addr, {})
@@ -207,8 +218,8 @@ def pop_object_id(obj):
     :param obj: Object to pop
     :return: Popped object, None if obj was not in _addr2id2obj
     """
-    obj_addr = id(obj)
-    _id2obj = _addr2id2obj.setdefault(id(obj), {})
+    obj_addr = calculate_identifier(obj)
+    _id2obj = _addr2id2obj.setdefault(obj_addr, {})
     for (k, v) in list(_id2obj.items()):
         _id2obj.pop(k)
     _addr2id2obj.pop(obj_addr)

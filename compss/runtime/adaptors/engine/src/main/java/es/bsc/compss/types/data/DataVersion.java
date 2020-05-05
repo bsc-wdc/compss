@@ -25,7 +25,7 @@ public class DataVersion {
 
     private final DataInstanceId dataInstanceId;
     private int readers;
-    private int writters;
+    private int writers;
     private boolean toDelete;
     private boolean used; // The version has been read or written
     private boolean semUsed;
@@ -41,7 +41,7 @@ public class DataVersion {
     public DataVersion(int dataId, int versionId) {
         this.readers = 0;
         this.dataInstanceId = new DataInstanceId(dataId, versionId);
-        this.writters = 0;
+        this.writers = 0;
         this.toDelete = false;
         this.used = false;
         this.semReaders = new LinkedList<>();
@@ -58,7 +58,7 @@ public class DataVersion {
     public DataVersion(int dataId, int versionId, String dataRename) {
         this.readers = 0;
         this.dataInstanceId = new DataInstanceId(dataId, versionId, dataRename);
-        this.writters = 0;
+        this.writers = 0;
         this.toDelete = false;
         this.used = false;
         this.semReaders = new LinkedList<>();
@@ -85,7 +85,7 @@ public class DataVersion {
      * Marks a write access on the data version.
      */
     public void willBeWritten() {
-        this.writters++;
+        this.writers++;
     }
 
     /**
@@ -128,7 +128,7 @@ public class DataVersion {
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
      */
     public boolean hasBeenWritten() {
-        this.writters--;
+        this.writers--;
         return checkDeletion();
     }
 
@@ -147,7 +147,7 @@ public class DataVersion {
      * @return The number of writers
      */
     public Integer getNumberOfWriters() {
-        return writters;
+        return writers;
     }
 
     /**
@@ -157,7 +157,7 @@ public class DataVersion {
      */
     public boolean markToDelete() {
         this.toDelete = true;
-        if (this.readers == 0 && this.writters == 0) {
+        if (this.readers == 0 && this.writers == 0) {
             return true;
         }
         return false;
@@ -183,7 +183,7 @@ public class DataVersion {
      */
     private boolean checkDeletion() {
         if (this.toDelete // deletion requested
-            && this.writters == 0 // version has been generated
+            && this.writers == 0 // version has been generated
             && this.readers == 0 // version has been read
         ) {
 

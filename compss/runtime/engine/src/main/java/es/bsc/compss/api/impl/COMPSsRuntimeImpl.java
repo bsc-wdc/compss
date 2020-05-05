@@ -42,6 +42,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
+import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -1660,7 +1661,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     private void finishAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir) {
-        FileAccessParams fap = new FileAccessParams(am, ap.getDataInfoProvider(), loc);
+        FileAccessParams fap = new FileAccessParams(am, loc);
 
         ap.finishAccessToFile(loc, fap, destDir);
     }
@@ -1668,7 +1669,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private String mainAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir,
         boolean isDirectory) {
         // Tell the AP that the application wants to access a file.
-        FileAccessParams fap = new FileAccessParams(am, ap.getDataInfoProvider(), loc);
+        FileAccessParams fap = new FileAccessParams(am, loc);
         DataLocation targetLocation;
         if (isDirectory) {
             targetLocation = ap.mainAccessToDirectory(loc, fap, destDir);
@@ -1705,7 +1706,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         // Otherwise we request it from a task
-        return ap.mainAcessToObject(obj, hashCode);
+        return ap.mainAccessToObject(obj, hashCode);
     }
 
     private String mainAccessToExternalPSCO(String fileName, DataLocation loc) {
@@ -1719,7 +1720,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         // Otherwise we request it from a task
-        return ap.mainAcessToExternalPSCO(id, hashCode);
+        return ap.mainAccessToExternalPSCO(id, hashCode);
     }
 
     private String mainAccessToBindingObject(String fileName, BindingObjectLocation loc) {
@@ -1733,7 +1734,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         // Otherwise we request it from a task
-        return ap.mainAcessToBindingObject(loc.getBindingObject(), hashCode);
+        return ap.mainAccessToBindingObject(loc.getBindingObject(), hashCode);
     }
 
     private DataLocation createLocation(String fileName) throws IOException {

@@ -38,8 +38,8 @@ public class FileAccessParams extends AccessParams {
      * @param mode Access mode.
      * @param loc File location.
      */
-    public FileAccessParams(AccessMode mode, DataInfoProvider dip, DataLocation loc) {
-        super(mode, dip);
+    public FileAccessParams(AccessMode mode, DataLocation loc) {
+        super(mode);
         this.loc = loc;
     }
 
@@ -53,8 +53,12 @@ public class FileAccessParams extends AccessParams {
     }
 
     @Override
-    public DataAccessId register() {
-        return this.dip.registerFileAccess(this.mode, this.loc);
+    public DataAccessId registerAccess(DataInfoProvider dip) {
+        return dip.registerFileAccess(this.mode, this.loc);
     }
 
+    @Override
+    public void registerAccessCompletion(DataInfoProvider dip) {
+        dip.finishFileAccess(this.mode, this.loc);
+    }
 }

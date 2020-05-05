@@ -38,8 +38,8 @@ public class ObjectAccessParams extends AccessParams {
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    public ObjectAccessParams(AccessMode mode, DataInfoProvider dip, Object value, int hashCode) {
-        super(mode, dip);
+    public ObjectAccessParams(AccessMode mode, Object value, int hashCode) {
+        super(mode);
         this.value = value;
         this.hashCode = hashCode;
     }
@@ -63,7 +63,13 @@ public class ObjectAccessParams extends AccessParams {
     }
 
     @Override
-    public DataAccessId register() {
-        return this.dip.registerObjectAccess(this.mode, this.value, this.hashCode);
+    public DataAccessId registerAccess(DataInfoProvider dip) {
+        return dip.registerObjectAccess(this.mode, this.value, this.hashCode);
     }
+
+    @Override
+    public void registerAccessCompletion(DataInfoProvider dip) {
+        dip.finishObjectAccess(this.mode, this.hashCode);
+    }
+
 }

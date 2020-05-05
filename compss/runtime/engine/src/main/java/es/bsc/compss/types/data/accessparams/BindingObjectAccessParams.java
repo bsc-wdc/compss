@@ -21,15 +21,12 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.DataAccessId;
 
 
-public class BindingObjectAccessParams extends AccessParams {
+public class BindingObjectAccessParams extends ObjectAccessParams {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
-
-    private final int hashCode;
-    private final BindingObject bindingObject;
 
 
     /**
@@ -39,10 +36,8 @@ public class BindingObjectAccessParams extends AccessParams {
      * @param bo Associated BindingObject.
      * @param hashCode Hashcode of the associated BindingObject.
      */
-    public BindingObjectAccessParams(AccessMode mode, DataInfoProvider dip, BindingObject bo, int hashCode) {
-        super(mode, dip);
-        this.bindingObject = bo;
-        this.hashCode = hashCode;
+    public BindingObjectAccessParams(AccessMode mode, BindingObject bo, int hashCode) {
+        super(mode, bo, hashCode);
     }
 
     /**
@@ -51,21 +46,12 @@ public class BindingObjectAccessParams extends AccessParams {
      * @return The associated BindingObject.
      */
     public BindingObject getBindingObject() {
-        return this.bindingObject;
-    }
-
-    /**
-     * Returns the associated BindingObject's hashcode.
-     * 
-     * @return The associated BindingObject's hashcode.
-     */
-    public int getCode() {
-        return this.hashCode;
+        return (BindingObject) this.getValue();
     }
 
     @Override
-    public DataAccessId register() {
-        return this.dip.registerBindingObjectAccess(this.mode, this.bindingObject, this.hashCode);
+    public DataAccessId registerAccess(DataInfoProvider dip) {
+        return dip.registerBindingObjectAccess(this.mode, this.getBindingObject(), this.getCode());
     }
 
 }

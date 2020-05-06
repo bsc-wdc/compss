@@ -407,3 +407,36 @@ def numpy_obj_creator():
     assert isinstance(value, numbers.Number) == True
     print(type(value))  # <type 'numpy.float64'>
     return value
+
+
+@task(returns=1)
+def mod_task(o):
+    o.append(3)
+    return o
+
+
+@task(returns=1)
+def pass_task(o):
+    return o
+
+
+class mod_class(object):
+
+    def __init__(self):
+        self.a = 1
+        self.b = [1, 2]
+
+    def increment(self):
+        self.a = self.a + 1
+
+    def increase(self):
+        self.b.append(3)
+
+    def __repr__(self):
+        # We only need to return the representation of the objects
+        # whose modification does not vary the object size.
+        return "Internal a: " + str(self.a)
+        # There is no need to show b because we are increasing the size
+        # and we want to evaluate that it checks correctly.
+        # IMPORTANT: Any modification within the b list will not be seen unless
+        # included in the __repr__

@@ -29,6 +29,7 @@ from modules.test_tasks import function_moduleObject, Foo
 from modules.test_tasks import create_block, update_block
 from modules.test_tasks import empty_string, char_to_int
 from modules.test_tasks import numpy_obj_creator
+from modules.test_tasks import mod_task, pass_task, mod_class
 
 
 def test_empty_function():
@@ -729,6 +730,63 @@ def test_numpy_type_assurance():
         print("- Test numpy type assurance: ERROR")
         assert isinstance(value, numbers.Number)
 
+
+def test_object_modification():
+    # Check with a list
+    a = [1, 2]
+    x = mod_task(a)
+    a.append(10)
+    y = mod_task(a)
+    x = compss_wait_on(x)
+    y = compss_wait_on(y)
+    if x == y:
+        print("- Test object modification: ERROR")
+    else:
+        if x != [1, 2, 3]:
+            print("- Test object modification: ERROR - A task returned an unexpected value")
+        else:
+            if y != [1, 2, 10, 3]:
+                print("- Test object modification: ERROR - Got unexpected value")
+            else:
+                print("- Test object modification: OK")
+
+    # Check object change by repr
+    o = mod_class()
+    x = pass_task(o)
+    o.increment()
+    y = pass_task(o)
+    x = compss_wait_on(x)
+    y = compss_wait_on(y)
+    if x.a != 1 or y.a != 2:
+        print("- Test object modification increment: ERROR")
+    else:
+        if x.a != 1:
+            print("- Test object modification increment: ERROR - A task returned an unexpected value")
+        else:
+            if y.a != 2:
+                print("- Test object modification increment: ERROR - Got unexpected value")
+            else:
+                print("- Test object modification increment: OK")
+
+    # Check object change by size
+    o = mod_class()
+    x = pass_task(o)
+    o.increase()
+    y = pass_task(o)
+    x = compss_wait_on(x)
+    y = compss_wait_on(y)
+    if x.b != [1, 2] or y.b != [1, 2, 3]:
+        print("- Test object modification increase: ERROR")
+    else:
+        if x.b != [1, 2]:
+            print("- Test object modification increase: ERROR - A task returned an unexpected value")
+        else:
+            if y.b != [1, 2, 3]:
+                print("- Test object modification increase: ERROR - Got unexpected value")
+            else:
+                print("- Test object modification increase: OK")
+
+
 def main_program():
     test_empty_function()
     test_function_primitives()
@@ -777,6 +835,8 @@ def main_program():
     test_character()
 
     test_numpy_type_assurance()
+
+    test_object_modification()
 
 if __name__ == "__main__":
     main_program()

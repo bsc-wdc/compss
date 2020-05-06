@@ -44,6 +44,16 @@ def _dict_handler(d):
     return chain.from_iterable(d.items())
 
 
+def _user_object_handler(d):
+    """
+    User object to dictionary handler converter.
+
+    :param d: User object
+    :return: Dictionary handler
+    """
+    return chain.from_iterable(d.__dict__.items())
+
+
 def total_sizeof(o, handlers=None, verbose=False):
     """
     Returns the approximate memory footprint an object and all of its contents.
@@ -66,6 +76,9 @@ def total_sizeof(o, handlers=None, verbose=False):
                     set: iter,
                     frozenset: iter,
                     }
+    if type(o) not in all_handlers.keys() and type(o) is not object:
+        # It is something else include its __dict__
+        all_handlers[type(o)] = _user_object_handler
     if handlers is not None:
         all_handlers.update(handlers)  # user handlers take precedence
     seen = set()  # track which object id's have already been seen

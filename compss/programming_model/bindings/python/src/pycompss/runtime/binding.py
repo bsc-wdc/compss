@@ -149,22 +149,25 @@ def calculate_identifier(obj):
     :param obj: Object to get the identifier
     :return: String (md5 string)
     """
-    # obj_addr = id(obj)  # Does not guarantee uniqueness
-    # Alternative, use hash of:
-    #  - The object id
-    #  - The size of the object
-    #  - The object representation
-    # This avoids the issue of id reuse and object increase/modification
-    # WARNNING: Caveats:
-    #  - User defined object with parameter change without __repr__
-    #  - Breaks the dependency detection of user defined objects if modified
-    #    (it is required to enhance the object returned to be automatically
-    #    sychronized if modified).
-    hash_id = hashlib.md5()
-    hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-    hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-    hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-    obj_addr = str(hash_id.hexdigest())
+    inmutable_types = [bool, int, float, complex, str, tuple, frozenset, bytes]
+    obj_type = type(obj)
+    if obj_type in inmutable_types:
+        obj_addr = id(obj)  # Only guarantees uniqueness with inmutable objects
+    else:
+        # For all the rest, use hash of:
+        #  - The object id
+        #  - The size of the object (object increase/decrease)
+        #  - The object representation (object size is the same but has been
+        #                               modified (e.g. list element))
+        # WARNING: Caveat:
+        #  - IN User defined object with parameter change without __repr__
+        # INOUT parameters to be modified require a synchronization, so they
+        # are not affected.
+        hash_id = hashlib.md5()
+        hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+        hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+        hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+        obj_addr = str(hash_id.hexdigest())
     return obj_addr
 
 

@@ -363,13 +363,13 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         }
         long appId;
         Orchestrator orchestrator = request.getOrchestrator();
-        int numParams = arguments.length;
-        if (target != null) {
-            numParams++;
-        }
-        if (hasResult) {
-            numParams++;
-        }
+        // int numParams = arguments.length;
+        // if (target != null) {
+        // numParams++;
+        // }
+        // if (hasResult) {
+        // numParams++;
+        // }
         AppTaskMonitor monitor = new AppTaskMonitor(arguments, target, results, orchestrator);
 
         try {

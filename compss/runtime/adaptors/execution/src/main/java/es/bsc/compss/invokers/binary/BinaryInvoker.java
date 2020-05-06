@@ -77,7 +77,6 @@ public class BinaryInvoker extends Invoker {
         this.binary = binaryImpl.getBinary();
         this.failByEV = binaryImpl.isFailByEV();
 
-
         // Internal binary runner
         this.br = null;
 

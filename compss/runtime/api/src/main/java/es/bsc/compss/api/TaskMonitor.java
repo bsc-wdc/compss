@@ -42,6 +42,11 @@ public interface TaskMonitor {
     public void onSubmission();
 
     /**
+     * Actions to be performed by monitor when the designed worker receives the necessary data value to run the task.
+     */
+    public void onDataReception();
+
+    /**
      * Actions to be performed by the monitor when a new {@code type}-value, identyfied by the Id {@code dataId}, has
      * been generated at location {@code location} according to the parameter on position {@code paramId} of the task
      * with name {@code paramName}.

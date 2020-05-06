@@ -39,6 +39,10 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
+    public void onDataReception() {
+    }
+
+    @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
     }
 

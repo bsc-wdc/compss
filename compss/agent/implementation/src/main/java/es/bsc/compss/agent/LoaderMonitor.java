@@ -66,6 +66,11 @@ public class LoaderMonitor implements TaskMonitor {
     }
 
     @Override
+    public void onDataReception() {
+        this.nestedMonitor.onDataReception();
+    }
+
+    @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
         this.nestedMonitor.valueGenerated(paramId, paramName, paramType, dataId, dataLocation);
     }

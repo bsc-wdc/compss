@@ -99,6 +99,10 @@ public abstract class AppMonitor implements TaskMonitor {
     }
 
     @Override
+    public void onDataReception() {
+    }
+
+    @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
         this.paramTypes[paramId] = paramType;
         if (paramType == DataType.OBJECT_T) {

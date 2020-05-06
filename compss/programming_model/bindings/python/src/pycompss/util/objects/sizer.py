@@ -76,7 +76,7 @@ def total_sizeof(o, handlers=None, verbose=False):
                     set: iter,
                     frozenset: iter,
                     }
-    if type(o) not in all_handlers.keys() and type(o) is not object:
+    if type(o) not in all_handlers.keys() and hasattr(o, '__dict__'):
         # It is something else include its __dict__
         all_handlers[type(o)] = _user_object_handler
     if handlers is not None:

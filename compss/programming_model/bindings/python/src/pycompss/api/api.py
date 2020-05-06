@@ -285,7 +285,6 @@ else:
     def compss_file_exists(file_name):
         return __dummy_compss_file_exists__(file_name)
 
-
     def compss_open(file_name, mode='r'):
         return __dummy_compss_open__(file_name, mode)
 

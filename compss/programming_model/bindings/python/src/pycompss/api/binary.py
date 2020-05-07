@@ -40,7 +40,7 @@ SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
                        'fail_by_exit_value',
                        'engine',
-                       'container'}
+                       'image'}
 DEPRECATED_ARGUMENTS = {'workingDir'}
 
 
@@ -135,10 +135,10 @@ class Binary(object):
                         engine = self.kwargs['engine']
                     else :
                         engine = '[unassigned]'
-                    if 'container' in self.kwargs:
-                        container = self.kwargs['container']
+                    if 'image' in self.kwargs:
+                        image = self.kwargs['image']
                     else :
-                        container = '[unassigned]'
+                        image = '[unassigned]'
                     # Set as registered
                     self.registered = True
                     # Retrieve the base core_element established at @task
@@ -172,7 +172,7 @@ class Binary(object):
 
                     impl_signature = 'BINARY.' + _binary
                     cce.set_impl_signature(impl_signature)
-                    impl_args = [_binary, working_dir, fail_by_ev_str, engine, container]
+                    impl_args = [_binary, working_dir, fail_by_ev_str, engine, image]
 
                     cce.set_impl_type_args(impl_args)
             else:

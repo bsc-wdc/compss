@@ -36,11 +36,12 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'engine',
-                        'container',
+                        'image',
                         'binary',
                         'working_dir'}
 SUPPORTED_ARGUMENTS = {'engine',
-                        'container',
+                        'image',
+                        'fail_by_exit_value',
                         'binary',
                         'working_dir'}
 DEPRECATED_ARGUMENTS = {'workingDir'}
@@ -143,14 +144,15 @@ class Container(object):
                     cce.set_impl_type("CONTAINER")
                     _binary = self.kwargs['binary']
                     engine = self.kwargs['engine']
-                    container = self.kwargs['container']
+                    image = self.kwargs['image']
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
                     elif 'workingDir' in self.kwargs:
                         working_dir = self.kwargs['workingDir']
+                    fail_by_ev_str = 'false'
                     impl_signature = 'CONTAINER.' + _binary
                     cce.set_impl_signature(impl_signature)
-                    impl_args = [_binary, working_dir, engine, container] #inicializar unassigned
+                    impl_args = [_binary, working_dir, fail_by_ev_str, engine, image] #inicializar unassigned
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code

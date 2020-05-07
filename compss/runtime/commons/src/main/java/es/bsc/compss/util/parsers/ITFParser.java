@@ -532,6 +532,7 @@ public class ITFParser {
             String image = EnvironmentLoader.loadFromEnvironment(containerAnnot.image());
             String binaryC = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
             String hostDir = EnvironmentLoader.loadFromEnvironment(containerAnnot.workingDir());
+            String failByEVstrC = Boolean.toString(false);
 
             if (image == null || image.isEmpty()) {
                 ErrorManager.error("Empty image annotation for method " + m.getName());
@@ -561,7 +562,7 @@ public class ITFParser {
                 LOGGER.debug("container.getEngine() : " + engine + "\n");
                 LOGGER.debug("container.getImage() : " + image + "\n");
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binaryC, hostDir, engine, image);
+                    implConstraints, binaryC, hostDir, failByEVstrC, engine, image);
                 LOGGER.debug("implDef = " + implDef + "\n");
                 LOGGER.debug("Aqui muere el try CONTAINER \n");
 
@@ -610,7 +611,7 @@ public class ITFParser {
                 LOGGER.debug("container.getEngine() : " + container.getEngine() + "\n");
                 LOGGER.debug("container.getImage() : " + container.getImage() + "\n");
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binary, workingDir, failByEVstr, container.getImage());
+                    implConstraints, binary, workingDir, failByEVstr, container.getEngine(), container.getImage());
                 LOGGER.debug("implDef = " + implDef + "\n");
                 LOGGER.debug("Aqui muere el try \n");
             } catch (Exception e) {

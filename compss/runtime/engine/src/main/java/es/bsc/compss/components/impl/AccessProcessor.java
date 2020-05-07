@@ -1056,7 +1056,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     public void deregisterObject(Object o) {
         if (!this.requestQueue.offer(new DeregisterObject(o))) {
-
             ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }
     }

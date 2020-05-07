@@ -22,6 +22,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.Resource;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.master.NIOAdaptor;
@@ -98,8 +99,10 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     }
 
     @Override
-    public void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteFiles) {
-        // TODO: prune obsolete data
+    public void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteData) {
+        for (String obsolete : obsoleteData) {
+            Comm.removeData(obsolete);
+        }
         receivedNewTask(master, (CommTask) t);
     }
 
@@ -126,6 +129,13 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     @Override
     public void removeNode(String node) {
         this.ownAgent.removeNode(node);
+    }
+
+    @Override
+    public void receivedRemoveObsoletes(NIONode node, List<String> obsolete) {
+        for (String obsoleteData : obsolete) {
+            Comm.removeData(obsoleteData);
+        }
     }
 
     @Override

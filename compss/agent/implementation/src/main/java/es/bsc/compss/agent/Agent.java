@@ -465,7 +465,7 @@ public class Agent {
                 ld = Comm.registerData(remote.getRenaming());
             } else {
                 try {
-                    Comm.linkData(remote.getRenaming(), otherNamedLocalData.getName());
+                    Comm.linkData(otherNamedLocalData.getName(), remote.getRenaming());
                 } catch (CommException ce) {
                     ErrorManager
                         .error("Could not link " + remote.getRenaming() + " and " + otherNamedLocalData.getName(), ce);

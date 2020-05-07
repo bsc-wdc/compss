@@ -53,6 +53,15 @@ class CommAgentWorker extends NIOWorkerNode {
         started = true;
     }
 
+    /**
+     * Returns the hostname of the worker node.
+     *
+     * @return The hostname of the worker node.
+     */
+    public String getHost() {
+        return this.remoteResource.getName();
+    }
+
     @Override
     public String getUser() {
         // Comm agents need no user to interact

@@ -49,23 +49,6 @@ public class DataVersion {
     }
 
     /**
-     * Creates a new DataVersion instance with a first version with an alternative data renaming.
-     *
-     * @param dataId Data Id.
-     * @param versionId Version Id.
-     * @param dataRename alternative rename for the data
-     */
-    public DataVersion(int dataId, int versionId, String dataRename) {
-        this.readers = 0;
-        this.dataInstanceId = new DataInstanceId(dataId, versionId, dataRename);
-        this.writers = 0;
-        this.toDelete = false;
-        this.used = false;
-        this.semReaders = new LinkedList<>();
-        this.semUsed = false;
-    }
-
-    /**
      * Returns the associated data instance.
      *
      * @return The associated data instance.

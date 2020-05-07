@@ -22,6 +22,7 @@ import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.CommException;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -46,12 +47,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -505,28 +500,29 @@ public class Comm {
      * @param dataId first data identifier
      * @param dataId2 second data identifier
      * @return the LogicalData pointed by both data values
+     * @throws CommException inconsistent information stored within the LogicalDatas
      */
-    public static synchronized LogicalData linkData(String dataId, String dataId2) {
+    public static synchronized LogicalData linkData(String dataId, String dataId2) throws CommException {
         LogicalData ld = DATA.get(dataId);
         LogicalData ld2 = DATA.get(dataId2);
         if (ld != null) {
             if (ld2 != null) {
-                // Both already value exist. Merge them!
-                for (DataLocation dloc : ld2.getLocations()) {
-                    ld.addLocation(dloc);
-                }
                 DATA.put(dataId2, ld);
+                LogicalData.link(ld, ld2);
             } else {
                 DATA.put(dataId2, ld);
+                ld.addKnownAlias(dataId2);
             }
         } else {
             if (ld2 != null) {
                 DATA.put(dataId, ld2);
                 ld = ld2;
+                ld2.addKnownAlias(dataId);
             } else {
                 // None of the values exists. Create an empty LogicalData for both
                 ld = registerData(dataId);
                 DATA.put(dataId2, ld);
+                ld.addKnownAlias(dataId2);
             }
         }
         return ld;
@@ -587,7 +583,8 @@ public class Comm {
                     try {
                         internal = u.getInternalURI(adaptor);
                         if (internal != null) {
-                            sb.append("\t\t\t - ").append(internal.toString()).append("\n");
+                            sb.append("\t\t\t - ").append(adaptor).append(" -> ").append(internal.toString())
+                                .append("\n");
                         }
                     } catch (UnstartedNodeException une) {
                         // Node was not started. Cannot print internal object.
@@ -619,6 +616,7 @@ public class Comm {
         LogicalData ld = DATA.remove(renaming);
         if (ld != null) {
             for (Resource res : ld.getAllHosts()) {
+                System.out.println("Removing logical data " + ld);
                 res.removeLogicalData(ld);
             }
         }
@@ -636,44 +634,11 @@ public class Comm {
 
         LogicalData ld = DATA.remove(renaming);
         if (ld != null) {
-            ld.isObsolete();
-            for (DataLocation dl : ld.getLocations()) {
-                MultiURI uri = dl.getURIInHost(appHost);
-
-                if (uri != null) {
-                    File f = new File(uri.getPath());
-                    if (f.exists()) {
-                        LOGGER.info("Deleting file " + f.getAbsolutePath());
-                        if (!f.delete()) {
-                            LOGGER.error("Cannot delete file " + f.getAbsolutePath());
-                        } else if (f.isDirectory()) {
-                            // directories must be removed recursively
-                            Path directory = Paths.get(uri.getPath());
-                            try {
-                                Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-
-                                    @Override
-                                    public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
-                                        throws IOException {
-                                        Files.delete(file);
-                                        return FileVisitResult.CONTINUE;
-                                    }
-
-                                    @Override
-                                    public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                                        throws IOException {
-                                        Files.delete(dir);
-                                        return FileVisitResult.CONTINUE;
-                                    }
-                                });
-                            } catch (IOException e) {
-                                LOGGER.error("Cannot delete directory " + f.getAbsolutePath());
-                            }
-                        }
-                    }
-                }
+            ld.removeKnownAlias(renaming);
+            for (Resource res : ld.getAllHosts()) {
+                System.out.println("Removing logical data " + ld);
+                res.removeLogicalData(ld);
             }
-            ld.removeValue();
         }
         return ld;
 

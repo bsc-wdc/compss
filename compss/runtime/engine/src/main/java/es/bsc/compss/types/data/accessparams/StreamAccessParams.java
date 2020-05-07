@@ -31,17 +31,18 @@ public class StreamAccessParams extends ObjectAccessParams {
     /**
      * Creates a new StreamAccessParams instance for the given object.
      * 
+     * @param appId Id of the application accessing the stream.
      * @param mode Access mode.
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    public StreamAccessParams(AccessMode mode, Object value, int hashCode) {
-        super(mode, value, hashCode);
+    public StreamAccessParams(Long appId, AccessMode mode, Object value, int hashCode) {
+        super(appId, mode, value, hashCode);
     }
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerStreamAccess(this.mode, getValue(), getCode());
+        return dip.registerStreamAccess(this.appId, this.mode, getValue(), getCode());
     }
 
 }

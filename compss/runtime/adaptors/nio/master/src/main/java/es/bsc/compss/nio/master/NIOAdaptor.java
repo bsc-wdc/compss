@@ -50,6 +50,7 @@ import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
 import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
+import es.bsc.compss.nio.master.types.TransferGroup;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.requests.MasterDataRequest;
 import es.bsc.compss.types.BindingObject;
@@ -127,7 +128,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final ConcurrentMap<Integer, NIOJob> RUNNING_JOBS = new ConcurrentHashMap<>();
 
-    private static final Map<Integer, LinkedList<Copy>> GROUP_TO_COPY = new HashMap<>();
+    private static final Map<Integer, TransferGroup> PENDING_TRANSFER_GROUPS = new HashMap<>();
 
     private static final Map<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
 
@@ -361,6 +362,14 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     protected static void submitTask(NIOJob job) throws Exception {
+        int transferGroupId = job.getTransferGroupId();
+        TransferGroup group = PENDING_TRANSFER_GROUPS.get(transferGroupId);
+        if (group == null) {
+            group = new TransferGroup(transferGroupId);
+            PENDING_TRANSFER_GROUPS.put(transferGroupId, group);
+        }
+        group.bindToJob(job);
+
         LOGGER.debug("NIO submitting new job " + job.getJobId());
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
@@ -590,12 +599,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public void registerCopy(Copy c) {
         for (EventListener el : c.getEventListeners()) {
             Integer groupId = el.getId();
-            LinkedList<Copy> copies = GROUP_TO_COPY.get(groupId);
+            TransferGroup copies = PENDING_TRANSFER_GROUPS.get(groupId);
             if (copies == null) {
-                copies = new LinkedList<Copy>();
-                GROUP_TO_COPY.put(groupId, copies);
+                copies = new TransferGroup(groupId);
+                PENDING_TRANSFER_GROUPS.put(groupId, copies);
             }
-            copies.add(c);
+            copies.addCopy(c);
         }
     }
 
@@ -640,11 +649,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void copiedData(int transferGroupId) {
         LOGGER.debug("Notifying copied Data to master");
-        LinkedList<Copy> copies = GROUP_TO_COPY.remove(transferGroupId);
-        if (copies == null) {
-            LOGGER.debug("No copies to process");
+        TransferGroup group = PENDING_TRANSFER_GROUPS.remove(transferGroupId);
+        if (group == null) {
+            LOGGER.debug("Group " + transferGroupId + " had no pending copies");
             return;
         }
+        List<Copy> copies = group.getCopies();
         for (Copy c : copies) {
             LOGGER.debug("Treating copy " + c.getName());
             if (!c.isRegistered()) {
@@ -679,6 +689,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 LOGGER.warn("No target Data defined for copy " + c.getName());
             }
         }
+        group.notifyGroupEnd();
     }
 
     // Return the data that a worker should be obtaining and has not yet confirmed

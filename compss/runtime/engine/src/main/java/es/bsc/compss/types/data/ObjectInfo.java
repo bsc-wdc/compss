@@ -22,27 +22,17 @@ import java.util.concurrent.Semaphore;
 public class ObjectInfo extends DataInfo {
 
     // Hash code of the object
-    private int code;
+    private final int code;
 
 
     /**
      * Creates a new ObjectInfo instance with the given hashcode.
      *
+     * @param appId application generating the data
      * @param code Object hashcode.
      */
-    public ObjectInfo(int code) {
-        super();
-        this.code = code;
-    }
-
-    /**
-     * Creates a new ObjectInfo instance with the given hashcode for an already existing data value.
-     *
-     * @param code Object hashcode.
-     * @param data Already existing data value
-     */
-    public ObjectInfo(int code, String data) {
-        super(data);
+    public ObjectInfo(Long appId, int code) {
+        super(appId);
         this.code = code;
     }
 

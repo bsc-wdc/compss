@@ -22,16 +22,17 @@ import java.util.concurrent.Semaphore;
 public class StreamInfo extends DataInfo {
 
     // Hash code of the object
-    private int code;
+    private final int code;
 
 
     /**
      * Creates a new StreamInfo instance with the given hashcode.
      * 
+     * @param appId application generating the data
      * @param code Object hashcode.
      */
-    public StreamInfo(int code) {
-        super();
+    public StreamInfo(Long appId, int code) {
+        super(appId);
         this.code = code;
     }
 

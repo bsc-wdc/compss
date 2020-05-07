@@ -29,6 +29,7 @@ import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
+import es.bsc.compss.types.CommException;
 
 import es.bsc.compss.types.CoreElementDefinition;
 
@@ -38,6 +39,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -119,6 +121,18 @@ public class Agent {
 
         RUNTIME.startIT();
 
+        LogicalData ld = Comm.registerData("runtime");
+        ld.setValue(RUNTIME);
+        String targetPath = ProtocolType.OBJECT_URI.getSchema() + "runtime";
+        SimpleURI uri = new SimpleURI(targetPath);
+        try {
+            DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), uri);
+            ld.addLocation(loc);
+        } catch (Exception e) {
+            ErrorManager.fatal("Could not create the location for the runtime object.", e);
+        }
+        RUNTIME.registerData(null, DataType.OBJECT_T, RUNTIME, "runtime");
+
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(LOADER_SIGNATURE);
         MethodResourceDescription mrd = new MethodResourceDescription("");
@@ -127,6 +141,7 @@ public class Agent {
             LOADER_CLASS_NAME, LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
+
     }
 
     /**
@@ -148,8 +163,9 @@ public class Agent {
         AppMonitor monitor) throws AgentException {
 
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
+        monitor.setAppId(appId);
+
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
-        monitor.setAppId(mainAppId);
 
         try {
             int taskParamsCount = arguments.length;
@@ -222,13 +238,13 @@ public class Agent {
             int position = loadParams.length;
             for (ApplicationParameter param : arguments) {
                 LOGGER.debug("\t Parameter:" + param.getParamName());
-                addParameterToTaskArguments(param, position, params);
+                addParameterToTaskArguments(mainAppId, param, position, params);
                 position += 7;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
-                addParameterToTaskArguments(target, position, params);
+                addParameterToTaskArguments(mainAppId, target, position, params);
                 position += 7;
             }
 
@@ -242,9 +258,9 @@ public class Agent {
                 params[position + 6] = param.getContentType();
                 position += 7;
             }
-
+            LoaderMonitor mainMonitor = new LoaderMonitor(mainAppId, monitor);
             RUNTIME.executeTask(mainAppId, // Task application ID
-                monitor, // Corresponding task monitor
+                mainMonitor, // Corresponding task monitor
                 lang, // language of the task
                 true, LOADER_CLASS_NAME, LOADER_METHOD_NAME, LOADER_SIGNATURE + LOADER_CLASS_NAME, // Method to run
                 OnFailure.RETRY, // On failure behavior
@@ -284,8 +300,21 @@ public class Agent {
         System.out.println("New request to run as a " + lang + " task " + className + "." + methodName);
         System.out.println("Parameters: ");
         for (ApplicationParameter param : arguments) {
-            System.out.println("\t* " + param);
+            System.out.println("\t* " + param.getDirection() + " " + param.getType()
+                + (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")"));
         }
+        System.out.println("Target: ");
+        if (target != null) {
+            System.out.println("\t* " + target.getDirection() + " " + target.getType()
+                + (target.getDataMgmtId() == null ? "" : " (" + target.getDataMgmtId() + ")"));
+        }
+        System.out.println("Results: ");
+        for (ApplicationParameter param : results) {
+            System.out.println("\t* " + param.getDirection() + " " + param.getType()
+                + (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")"));
+        }
+        System.out.println("");
+        System.out.println("");
 
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
         LOGGER.debug("Parameters: ");
@@ -319,13 +348,13 @@ public class Agent {
                 } else {
                     typesSB.append("OBJECT_T");
                 }
-                addParameterToTaskArguments(param, position, params);
+                addParameterToTaskArguments(appId, param, position, params);
                 position += 7;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
-                addParameterToTaskArguments(target, position, params);
+                addParameterToTaskArguments(appId, target, position, params);
                 position += 7;
             }
 
@@ -367,8 +396,8 @@ public class Agent {
         return appId;
     }
 
-    private static void addParameterToTaskArguments(ApplicationParameter param, int position, Object[] arguments)
-        throws AgentException, Exception {
+    private static void addParameterToTaskArguments(Long appId, ApplicationParameter param, int position,
+        Object[] arguments) throws AgentException, Exception {
 
         RemoteDataInformation remote = param.getRemoteData();
         if (param.getRemoteData() == null) {
@@ -378,8 +407,8 @@ public class Agent {
             Object stub = new Object();
             LOGGER.debug("\t\tRegistering manually " + stub + "as" + param.getRemoteData());
             arguments[position] = stub;
-            Agent.addRemoteData(remote);
-            RUNTIME.registerData(param.getType(), stub, remote.getRenaming());
+            addRemoteData(remote);
+            RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
         }
         System.out.println("Loading argument " + arguments[position]);
         arguments[position + 1] = param.getType();
@@ -435,7 +464,12 @@ public class Agent {
             if (otherNamedLocalData == null) {
                 ld = Comm.registerData(remote.getRenaming());
             } else {
-                Comm.linkData(remote.getRenaming(), otherNamedLocalData.getName());
+                try {
+                    Comm.linkData(remote.getRenaming(), otherNamedLocalData.getName());
+                } catch (CommException ce) {
+                    ErrorManager
+                        .error("Could not link " + remote.getRenaming() + " and " + otherNamedLocalData.getName(), ce);
+                }
                 addedSources++;
             }
         }
@@ -636,5 +670,15 @@ public class Agent {
             ErrorManager.fatal("Could not start any interface");
         }
         start();
+    }
+
+    /**
+     * Handles the notification of the end of an application.
+     *
+     * @param appId Identifier of the finished application
+     */
+    public static void finishedApplication(long appId) {
+        // Remove all data bound to the application
+        RUNTIME.removeApplicationData(appId);
     }
 }

@@ -573,13 +573,11 @@ public class NIOWorkerNode extends COMPSsWorker {
                 for (Copy inProgressCopy : ld.getCopiesInProgress()) {
                     LOGGER.debug("No source locations for copy " + c.getName() + "." + " Waiting for copy "
                         + inProgressCopy.getName() + " to finish.");
+                    prepareCopy(c, dataSources);
                     inProgressCopy.addEventListener(new EventListener() {
 
                         @Override
                         public void notifyEnd(DataOperation fOp) {
-                            synchronized (ld) {
-                                prepareCopy(c, dataSources);
-                            }
                             c.end(OperationEndState.OP_OK);
                         }
 

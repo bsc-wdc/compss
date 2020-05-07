@@ -239,7 +239,7 @@ public class TaskAnalyser {
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             boolean isConstraining = paramIdx == constrainingParam;
             boolean paramHasEdge =
-                registerParameterAccessAndAddDependencies(currentTask, parameters.get(paramIdx), isConstraining);
+                registerParameterAccessAndAddDependencies(appId, currentTask, parameters.get(paramIdx), isConstraining);
             taskHasEdge = taskHasEdge || paramHasEdge;
         }
         if (IS_DRAW_GRAPH) {
@@ -804,7 +804,8 @@ public class TaskAnalyser {
      * DATA DEPENDENCY MANAGEMENT PRIVATE METHODS
      ***************************************************************************************************************/
 
-    private boolean registerParameterAccessAndAddDependencies(Task currentTask, Parameter p, boolean isConstraining) {
+    private boolean registerParameterAccessAndAddDependencies(Long appId, Task currentTask, Parameter p,
+        boolean isConstraining) {
         // Conversion: direction -> access mode
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
@@ -835,29 +836,30 @@ public class TaskAnalyser {
             case DIRECTORY_T:
                 DirectoryParameter dp = (DirectoryParameter) p;
                 // register file access for now, and directory will be accessed as a file
-                daId = this.dip.registerFileAccess(am, dp.getLocation());
+                daId = this.dip.registerFileAccess(appId, am, dp.getLocation());
                 break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                daId = this.dip.registerFileAccess(am, fp.getLocation());
+                daId = this.dip.registerFileAccess(appId, am, fp.getLocation());
                 break;
             case PSCO_T:
                 ObjectParameter pscop = (ObjectParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 pscop.setType(DataType.PSCO_T);
-                daId = this.dip.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
+                daId = this.dip.registerObjectAccess(appId, am, pscop.getValue(), pscop.getCode());
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                daId = dip.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                daId =
+                    dip.registerExternalPSCOAccess(appId, am, externalPSCOparam.getId(), externalPSCOparam.getCode());
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
                 // Check if its Binding OBJ and register its access
                 bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
-                daId = dip.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(),
+                daId = dip.registerBindingObjectAccess(appId, am, bindingObjectparam.getBindingObject(),
                     bindingObjectparam.getCode());
                 break;
             case OBJECT_T:
@@ -866,24 +868,24 @@ public class TaskAnalyser {
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.dip.registerObjectAccess(am, op.getValue(), op.getCode());
+                daId = this.dip.registerObjectAccess(appId, am, op.getValue(), op.getCode());
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
-                daId = this.dip.registerStreamAccess(am, sp.getValue(), sp.getCode());
+                daId = this.dip.registerStreamAccess(appId, am, sp.getValue(), sp.getCode());
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                daId = this.dip.registerExternalStreamAccess(am, esp.getLocation());
+                daId = this.dip.registerExternalStreamAccess(appId, am, esp.getLocation());
                 break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter content : cp.getParameters()) {
                     boolean hasCollectionParamEdge =
-                        registerParameterAccessAndAddDependencies(currentTask, content, isConstraining);
+                        registerParameterAccessAndAddDependencies(appId, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
-                daId = dip.registerCollectionAccess(am, cp);
+                daId = dip.registerCollectionAccess(appId, am, cp);
                 DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
                 deleteData(ci);
                 break;

@@ -456,7 +456,7 @@ public class ExecutionAction extends AllocatableAction {
 
     /**
      * Code executed to cancel a running execution.
-     * 
+     *
      * @throws Exception Unstarted node exception.
      */
     @Override
@@ -753,6 +753,16 @@ public class ExecutionAction extends AllocatableAction {
                 return;
             }
         }
+    }
+
+    /**
+     * Notification announcing that all input data for a specific job is available on the node.
+     * 
+     * @param job job whose input data is in the worker
+     */
+    public void allInputDataOnWorker(Job<?> job) {
+        TaskMonitor monitor = this.task.getTaskMonitor();
+        monitor.onDataReception();
     }
 
     /*

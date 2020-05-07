@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.job;
 
-import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -24,6 +23,13 @@ import es.bsc.compss.worker.COMPSsException;
  * Abstract Representation of a listener for the job execution.
  */
 public interface JobListener {
+
+    /**
+     * Actions to perform when all input data has been copied into the executing worker.
+     * 
+     * @param job job whose data has been copied
+     */
+    public void allInputDataOnWorker(Job<?> job);
 
     /**
      * Actions when job has successfully ended.
@@ -37,6 +43,7 @@ public interface JobListener {
      * 
      * @param job Job to notify completion.
      * @param endStatus Failure status.
+     * @param e Exception raised during the job execution
      */
     public void jobFailed(Job<?> job, JobEndStatus endStatus, COMPSsException e);
 

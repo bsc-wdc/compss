@@ -60,19 +60,6 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
     }
 
     /**
-     * Creates a new DataInstanceId for data {@code dataId} and version {@code versionId} and not the default renaming.
-     *
-     * @param dataId Data Id.
-     * @param versionId Version Id.
-     * @param renaming alternative renaming
-     */
-    public DataInstanceId(int dataId, int versionId, String renaming) {
-        this.dataId = dataId;
-        this.versionId = versionId;
-        this.renaming = renaming;
-    }
-
-    /**
      * Returns the associated dataId.
      *
      * @return The associated dataId.

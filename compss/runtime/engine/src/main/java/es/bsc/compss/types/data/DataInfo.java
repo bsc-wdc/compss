@@ -31,7 +31,9 @@ public abstract class DataInfo {
 
     protected static int nextDataId = FIRST_FILE_ID;
     // Data identifier
-    protected int dataId;
+    protected final int dataId;
+    // Generating applicatication
+    protected final Long appId;
 
     // Current version
     protected DataVersion currentVersion;
@@ -52,30 +54,16 @@ public abstract class DataInfo {
 
     /**
      * Creates a new DataInfo instance with and registers a new LogicalData.
+     * 
+     * @param appId application generating the data
      */
-    public DataInfo() {
+    public DataInfo(Long appId) {
         this.dataId = nextDataId++;
+        this.appId = appId;
         this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
         this.currentVersion = new DataVersion(dataId, 1);
         Comm.registerData(currentVersion.getDataInstanceId().getRenaming());
-        this.versions.put(currentVersionId, currentVersion);
-        this.deletionBlocks = 0;
-        this.pendingDeletions = new LinkedList<>();
-        this.canceledVersions = new LinkedList<>();
-        this.deleted = false;
-    }
-
-    /**
-     * Creates a new DataInfo instance for an already existing LogicalData.
-     *
-     * @param data data being accessed
-     */
-    public DataInfo(String data) {
-        this.dataId = nextDataId++;
-        this.versions = new TreeMap<>();
-        this.currentVersionId = FIRST_VERSION_ID;
-        this.currentVersion = new DataVersion(dataId, 1, data);
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
@@ -90,6 +78,15 @@ public abstract class DataInfo {
      */
     public final int getDataId() {
         return this.dataId;
+    }
+
+    /**
+     * Returns the Id of the application generating the DataInfo.
+     * 
+     * @return the Id of the application generating the DataInfo.
+     */
+    public Long getGeneratingAppId() {
+        return appId;
     }
 
     /**
@@ -234,10 +231,6 @@ public abstract class DataInfo {
             for (DataVersion version : this.versions.values()) {
                 String sourceName = version.getDataInstanceId().getRenaming();
                 if (version.markToDelete()) {
-                    LogicalData ld = Comm.getData(sourceName);
-                    if (ld != null) {
-                        ld.removeValue();
-                    }
                     Comm.removeData(sourceName);
                     removedVersions.add(version.getDataInstanceId().getVersionId());
                 }

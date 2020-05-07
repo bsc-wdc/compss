@@ -30,6 +30,11 @@ public class JobStatusListener implements JobListener {
     }
 
     @Override
+    public void allInputDataOnWorker(Job<?> job) {
+        this.execution.allInputDataOnWorker(job);
+    }
+
+    @Override
     public void jobCompleted(Job<?> job) {
         // Mark execution as completed
         this.execution.completedJob(job);

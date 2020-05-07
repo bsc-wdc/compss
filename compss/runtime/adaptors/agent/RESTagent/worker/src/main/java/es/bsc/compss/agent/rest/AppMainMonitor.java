@@ -61,6 +61,11 @@ public class AppMainMonitor extends AppMonitor {
     }
 
     @Override
+    public void onDataReception() {
+        super.onDataReception();
+    }
+
+    @Override
     public void onAbortedExecution() {
         super.onAbortedExecution();
         profile.finished();

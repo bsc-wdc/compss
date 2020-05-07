@@ -21,6 +21,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.CommException;
 import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
@@ -64,6 +65,7 @@ import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -92,8 +94,10 @@ public class DataInfoProvider {
     private TreeMap<Integer, Integer> codeToId;
     // Map: file identifier -> file information
     private TreeMap<Integer, DataInfo> idToData;
-    // Map: Object_Version_Renaming -> Object value
+    // Set: Object values available for main code
     private TreeSet<String> valuesOnMain; // TODO: Remove obsolete from here
+    // Map: appId -> Data Information
+    private final TreeMap<Long, List<DataInfo>> applicationData;
 
     // Component logger - No need to configure, ProActive does
     private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
@@ -109,17 +113,19 @@ public class DataInfoProvider {
         this.codeToId = new TreeMap<>();
         this.idToData = new TreeMap<>();
         this.valuesOnMain = new TreeSet<>();
+        this.applicationData = new TreeMap<>();
 
         LOGGER.info("Initialization finished");
     }
 
     /**
      * Registers the remote object resources.
-     * 
+     *
+     * @param appId Id of application accessing the value
      * @param code Object Id.
-     * @param data Data info.
+     * @param data Existing LogicalData to bind the value access.
      */
-    public void registerRemoteObjectSources(int code, String data) {
+    public void registerRemoteObjectSources(Long appId, int code, String data) {
         DataInfo oInfo;
         Integer aoId = this.codeToId.get(code);
         if (aoId == null) {
@@ -127,13 +133,34 @@ public class DataInfoProvider {
                 LOGGER.debug("Registering Remote object on DIP with code " + code);
             }
             // Update mappings
-            oInfo = new ObjectInfo(code, data);
+            oInfo = new ObjectInfo(appId, code);
+            addDataToApplication(appId, oInfo);
             aoId = oInfo.getDataId();
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
+        } else {
+            oInfo = idToData.get(aoId);
         }
-        // if data already exists no need to do anything else
+        if (data != null) {
+            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
+            try {
+                Comm.linkData(data, existingRename);
+            } catch (CommException ce) {
+                ErrorManager.error(
+                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
+            }
+        }
+    }
 
+    private void addDataToApplication(Long appId, DataInfo data) {
+        if (appId != null) {
+            List<DataInfo> appData = this.applicationData.get(appId);
+            if (appData == null) {
+                appData = new LinkedList<>();
+                this.applicationData.put(appId, appData);
+            }
+            appData.add(data);
+        }
     }
 
     /**
@@ -151,11 +178,12 @@ public class DataInfoProvider {
     /**
      * DataAccess interface: registers a new file access.
      *
+     * @param appId Id of the application accessing the file
      * @param mode File Access Mode.
      * @param location File location.
      * @return The registered access Id.
      */
-    public DataAccessId registerFileAccess(AccessMode mode, DataLocation location) {
+    public DataAccessId registerFileAccess(Long appId, AccessMode mode, DataLocation location) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
         Integer fileId = this.nameToId.get(locationKey);
@@ -167,7 +195,8 @@ public class DataInfoProvider {
             }
 
             // Update mappings
-            fileInfo = new FileInfo(location);
+            fileInfo = new FileInfo(appId, location);
+            addDataToApplication(appId, fileInfo);
             fileId = fileInfo.getDataId();
             this.nameToId.put(locationKey, fileId);
             this.idToData.put(fileId, fileInfo);
@@ -193,12 +222,13 @@ public class DataInfoProvider {
     /**
      * DataAccess interface: registers a new object access.
      *
+     * @param appId Id of the application accessing the file
      * @param mode Object access mode.
      * @param value Object value.
      * @param code Object hashcode.
      * @return The registered access Id.
      */
-    public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code) {
+    public DataAccessId registerObjectAccess(Long appId, AccessMode mode, Object value, int code) {
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
 
@@ -209,7 +239,8 @@ public class DataInfoProvider {
             }
 
             // Update mappings
-            oInfo = new ObjectInfo(code);
+            oInfo = new ObjectInfo(appId, code);
+            addDataToApplication(appId, oInfo);
             aoId = oInfo.getDataId();
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
@@ -238,12 +269,13 @@ public class DataInfoProvider {
     /**
      * DataAccess interface: registers a new stream access.
      *
+     * @param appId Id of the application accessing the stream
      * @param mode Stream access mode.
      * @param value Stream object value.
      * @param code Stream hashcode.
      * @return The registered access Id.
      */
-    public DataAccessId registerStreamAccess(AccessMode mode, Object value, int code) {
+    public DataAccessId registerStreamAccess(Long appId, AccessMode mode, Object value, int code) {
         DataInfo oInfo;
         Integer aoId = this.codeToId.get(code);
 
@@ -254,7 +286,8 @@ public class DataInfoProvider {
             }
 
             // Update mappings
-            oInfo = new StreamInfo(code);
+            oInfo = new StreamInfo(appId, code);
+            addDataToApplication(appId, oInfo);
             aoId = oInfo.getDataId();
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
@@ -293,11 +326,12 @@ public class DataInfoProvider {
     /**
      * DataAccess interface: registers a new file access.
      *
+     * @param appId Id of the application accessing the external stream
      * @param mode File Access Mode.
      * @param location File location.
      * @return The registered access Id.
      */
-    public DataAccessId registerExternalStreamAccess(AccessMode mode, DataLocation location) {
+    public DataAccessId registerExternalStreamAccess(Long appId, AccessMode mode, DataLocation location) {
         DataInfo externalStreamInfo;
         int locationKey = location.getLocationKey().hashCode();
         Integer externalStreamId = this.codeToId.get(locationKey);
@@ -309,7 +343,8 @@ public class DataInfoProvider {
             }
 
             // Update mappings
-            externalStreamInfo = new StreamInfo(locationKey);
+            externalStreamInfo = new StreamInfo(appId, locationKey);
+            addDataToApplication(appId, externalStreamInfo);
             externalStreamId = externalStreamInfo.getDataId();
             this.codeToId.put(locationKey, externalStreamId);
             this.idToData.put(externalStreamId, externalStreamInfo);
@@ -354,12 +389,13 @@ public class DataInfoProvider {
     /**
      * DataAccess interface: registers a new binding object access.
      *
+     * @param appId Id of the application accessing the binding object
      * @param mode Binding Object access mode.
      * @param bo Binding Object.
      * @param code Binding Object hashcode.
      * @return The registered access Id.
      */
-    public DataAccessId registerBindingObjectAccess(AccessMode mode, BindingObject bo, int code) {
+    public DataAccessId registerBindingObjectAccess(Long appId, AccessMode mode, BindingObject bo, int code) {
         DataInfo oInfo;
 
         Integer aoId = this.codeToId.get(code);
@@ -371,7 +407,8 @@ public class DataInfoProvider {
             }
 
             // Update mappings
-            oInfo = new ObjectInfo(code);
+            oInfo = new ObjectInfo(appId, code);
+            addDataToApplication(appId, oInfo);
             aoId = oInfo.getDataId();
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
@@ -400,12 +437,13 @@ public class DataInfoProvider {
     /**
      * DataAccess interface: registers a new PSCO access.
      *
+     * @param appId Id of the application accessing the file
      * @param mode PSCO Access Mode.
      * @param pscoId PSCO Id.
      * @param code PSCO hashcode.
      * @return The registered access Id.
      */
-    public DataAccessId registerExternalPSCOAccess(AccessMode mode, String pscoId, int code) {
+    public DataAccessId registerExternalPSCOAccess(Long appId, AccessMode mode, String pscoId, int code) {
         DataInfo oInfo;
         Integer aoId = this.codeToId.get(code);
 
@@ -416,7 +454,8 @@ public class DataInfoProvider {
             }
 
             // Update mappings
-            oInfo = new ObjectInfo(code);
+            oInfo = new ObjectInfo(appId, code);
+            addDataToApplication(appId, oInfo);
             aoId = oInfo.getDataId();
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
@@ -610,7 +649,7 @@ public class DataInfoProvider {
             }
 
             if (deleted) {
-                idToData.remove(dataId);
+                removeDataFromInternalStructures(di);
             }
         } else {
             LOGGER.debug("Access of Data" + dAccId.getDataId() + " in Mode " + dAccId.getDirection().name()
@@ -653,7 +692,7 @@ public class DataInfoProvider {
         }
 
         if (deleted) {
-            idToData.remove(dataId);
+            removeDataFromInternalStructures(di);
         }
     }
 
@@ -814,7 +853,7 @@ public class DataInfoProvider {
         this.nameToId.remove(locationKey);
         if (dataInfo != null) {
             if (dataInfo.delete(noReuse)) {
-                idToData.remove(dataId);
+                removeDataFromInternalStructures(dataInfo);
             }
             return dataInfo;
         } else {
@@ -842,7 +881,7 @@ public class DataInfoProvider {
         if (dataInfo != null) {
             // We delete the data associated with all the versions of the same object
             if (dataInfo.delete(noReuse)) {
-                idToData.remove(id);
+                removeDataFromInternalStructures(dataInfo);
             }
             return dataInfo;
         } else {
@@ -865,7 +904,7 @@ public class DataInfoProvider {
 
         // We delete the data associated with all the versions of the same object
         if (dataInfo.delete(noReuse)) {
-            idToData.remove(oId);
+            removeDataFromInternalStructures(dataInfo);
         }
 
         return dataInfo;
@@ -1050,7 +1089,6 @@ public class DataInfoProvider {
                     }
 
                     // If no PSCO location is found, perform normal getData
-
                     if (rf.getOriginalLocation().getProtocol() == ProtocolType.BINDING_URI) {
                         // Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new
                         // BindingObjectTransferable(),
@@ -1058,13 +1096,16 @@ public class DataInfoProvider {
                         if (DEBUG) {
                             LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
                         }
-                    } else if (rf.getOriginalLocation().getProtocol() == ProtocolType.DIR_URI) {
-                        listener.addOperation();
-                        Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new DirectoryTransferable(),
-                            listener);
                     } else {
-                        listener.addOperation();
-                        Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
+                        if (rf.getOriginalLocation().getProtocol() == ProtocolType.DIR_URI) {
+                            listener.addOperation();
+                            Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new DirectoryTransferable(),
+                                listener);
+                        } else {
+                            listener.addOperation();
+                            Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(),
+                                listener);
+                        }
                     }
 
                     return rf;
@@ -1076,7 +1117,7 @@ public class DataInfoProvider {
                             LOGGER.debug("Trying to delete file " + origName);
                         }
                         if (fileInfo.delete(true)) {
-                            idToData.remove(dataId);
+                            removeDataFromInternalStructures(fileInfo);
                         }
                     }
                 }
@@ -1095,16 +1136,17 @@ public class DataInfoProvider {
     /**
      * Registers the access to a collection.
      *
+     * @param appId Id of the application accessing the collection
      * @param am AccesMode.
      * @param cp CollectionParameter.
      * @return DataAccessId Representation of the access to the collection.
      */
-    public DataAccessId registerCollectionAccess(AccessMode am, CollectionParameter cp) {
+    public DataAccessId registerCollectionAccess(Long appId, AccessMode am, CollectionParameter cp) {
         String collectionId = cp.getCollectionId();
         Integer oId = this.collectionToId.get(collectionId);
         CollectionInfo cInfo;
         if (oId == null) {
-            cInfo = new CollectionInfo(collectionId);
+            cInfo = new CollectionInfo(appId, collectionId);
             oId = cInfo.getDataId();
             this.collectionToId.put(collectionId, oId);
             this.idToData.put(oId, cInfo);
@@ -1123,5 +1165,30 @@ public class DataInfoProvider {
             cInfo = (CollectionInfo) this.idToData.get(oId);
         }
         return willAccess(am, cInfo);
+    }
+
+    /**
+     * Removes all data bound to the specified application.
+     *
+     * @param appId Id of the application whose that must be removed from the system
+     */
+    public void removeAllApplicationData(Long appId) {
+        if (appId != null) {
+            List<DataInfo> data = this.applicationData.remove(appId);
+            if (data != null) {
+                for (DataInfo di : data) {
+                    di.delete(true);
+                }
+            }
+        }
+    }
+
+    private void removeDataFromInternalStructures(DataInfo di) {
+        int dataId = di.getDataId();
+        idToData.remove(dataId);
+        Long appId = di.getGeneratingAppId();
+        if (appId != null) {
+            this.applicationData.get(appId).remove(di);
+        }
     }
 }

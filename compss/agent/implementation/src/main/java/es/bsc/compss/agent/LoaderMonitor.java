@@ -14,67 +14,106 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types;
+package es.bsc.compss.agent;
 
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 
-public class DoNothingTaskMonitor implements TaskMonitor {
+public class LoaderMonitor implements TaskMonitor {
+
+    private long appId;
+    private AppMonitor nestedMonitor;
+
+
+    /**
+     * Constructs a new Loader monitor.
+     *
+     * @param appId AppId corresponding to the loader task
+     * @param nestedMonitor monitor for the execution of the inner tasks.
+     */
+    public LoaderMonitor(long appId, AppMonitor nestedMonitor) {
+        this.nestedMonitor = nestedMonitor;
+        this.appId = appId;
+    }
+
+    public void setAppId(long appId) {
+        this.appId = appId;
+    }
+
+    public long getAppId() {
+        return this.appId;
+    }
 
     @Override
     public void onCreation() {
+        this.nestedMonitor.onCreation();
     }
 
     @Override
     public void onAccessesProcessed() {
+        this.nestedMonitor.onAccessesProcessed();
     }
 
     @Override
     public void onSchedule() {
+        this.nestedMonitor.onSchedule();
     }
 
     @Override
     public void onSubmission() {
+        this.nestedMonitor.onSubmission();
     }
 
     @Override
     public void onDataReception() {
+        this.nestedMonitor.onDataReception();
     }
 
     @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
+        this.nestedMonitor.valueGenerated(paramId, paramName, paramType, dataId, dataLocation);
     }
 
     @Override
     public void onAbortedExecution() {
+        this.nestedMonitor.onAbortedExecution();
     }
 
     @Override
     public void onErrorExecution() {
+        this.nestedMonitor.onErrorExecution();
     }
 
     @Override
     public void onFailedExecution() {
+        this.nestedMonitor.onFailedExecution();
     }
 
     @Override
     public void onSuccesfulExecution() {
+        this.nestedMonitor.onSuccesfulExecution();
     }
 
     @Override
     public void onCancellation() {
-    }
-
-    @Override
-    public void onCompletion() {
-    }
-
-    @Override
-    public void onFailure() {
+        this.nestedMonitor.onCancellation();
     }
 
     @Override
     public void onException() {
+        this.nestedMonitor.onException();
+    }
+
+    @Override
+    public void onCompletion() {
+        this.nestedMonitor.onCompletion();
+        Agent.finishedApplication(appId);
+    }
+
+    @Override
+    public void onFailure() {
+        this.nestedMonitor.onFailure();
+        Agent.finishedApplication(appId);
     }
 }

@@ -46,5 +46,6 @@ public enum APRequestType {
     DEBUG, // Enables the debug
     DEREGISTER_OBJECT, // Unregisters a given object
     CANCEL_ALL_TASKS, // Cancels all application tasks
-    CANCEL_TASK_GROUP // Cancel all tasks in the given task group
+    CANCEL_TASK_GROUP, // Cancel all tasks in the given task group
+    REMOVE_APP_DATA, // Removes all the data associated to an application
 }

@@ -46,10 +46,11 @@ public class FileInfo extends DataInfo {
     /**
      * Creates a new FileInfo instance with the given location {@code loc}.
      * 
+     * @param appId application generating the data
      * @param loc File location.
      */
-    public FileInfo(DataLocation loc) {
-        super();
+    public FileInfo(Long appId, DataLocation loc) {
+        super(appId);
         this.origLocation = loc;
     }
 

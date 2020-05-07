@@ -34,12 +34,13 @@ public class ObjectAccessParams extends AccessParams {
     /**
      * Creates a new ObjectAccessParams instance for the given object.
      * 
+     * @param appId Id of the application accessing the object.
      * @param mode Access mode.
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    public ObjectAccessParams(AccessMode mode, Object value, int hashCode) {
-        super(mode);
+    public ObjectAccessParams(Long appId, AccessMode mode, Object value, int hashCode) {
+        super(appId, mode);
         this.value = value;
         this.hashCode = hashCode;
     }
@@ -64,7 +65,7 @@ public class ObjectAccessParams extends AccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerObjectAccess(this.mode, this.value, this.hashCode);
+        return dip.registerObjectAccess(this.appId, this.mode, this.value, this.hashCode);
     }
 
     @Override

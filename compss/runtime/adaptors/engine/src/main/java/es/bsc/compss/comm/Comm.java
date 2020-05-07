@@ -115,6 +115,7 @@ public class Comm {
         ADAPTORS = new ConcurrentHashMap<>();
 
         DATA = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
+
     }
 
 
@@ -364,7 +365,6 @@ public class Comm {
      */
     public static synchronized LogicalData registerData(String dataId) {
         LOGGER.debug("Register new data " + dataId);
-
         LogicalData logicalData = new LogicalData(dataId);
         DATA.put(dataId, logicalData);
 
@@ -616,7 +616,6 @@ public class Comm {
         LogicalData ld = DATA.remove(renaming);
         if (ld != null) {
             for (Resource res : ld.getAllHosts()) {
-                System.out.println("Removing logical data " + ld);
                 res.removeLogicalData(ld);
             }
         }
@@ -631,12 +630,10 @@ public class Comm {
      */
     public static synchronized LogicalData removeData(String renaming) {
         LOGGER.debug("Removing data " + renaming);
-
         LogicalData ld = DATA.remove(renaming);
         if (ld != null) {
             ld.removeKnownAlias(renaming);
             for (Resource res : ld.getAllHosts()) {
-                System.out.println("Removing logical data " + ld);
                 res.removeLogicalData(ld);
             }
         }

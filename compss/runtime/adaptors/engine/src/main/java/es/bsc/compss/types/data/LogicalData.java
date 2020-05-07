@@ -229,15 +229,16 @@ public class LogicalData {
      * Removes an alias from the data. If no more aliases are known for that data, all the values stored locally on the
      * devices, either on memory or disk, are removed.
      *
-     * @param name Alias to remove from the list of known aliases.
+     * @param alias Alias to remove from the list of known aliases.
      */
-    public void removeKnownAlias(String name) {
-        if (this.knownAlias.remove(name)) {
+    public void removeKnownAlias(String alias) {
+        if (this.knownAlias.remove(alias)) {
             if (this.knownAlias.isEmpty()) {
-                isObsolete();
+                for (Resource res : this.getAllHosts()) {
+                    res.addObsolete(this);
+                }
                 for (DataLocation dl : this.locations) {
                     MultiURI uri = dl.getURIInHost(Comm.getAppHost());
-
                     if (uri != null) {
                         File f = new File(uri.getPath());
                         if (f.exists()) {
@@ -275,12 +276,23 @@ public class LogicalData {
                 }
                 value = null;
             } else {
+                String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
+                SimpleURI uri = new SimpleURI(targetPath);
+                for (Resource res : this.getAllHosts()) {
+                    try {
+                        LogicalData ld = new LogicalData(alias);
+                        DataLocation loc = DataLocation.createLocation(res, uri);
+                        ld.addLocation(loc);
+                        this.locations.remove(loc);
+                        res.addObsolete(ld);
+                    } catch (Exception e) {
+                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                    }
+                }
                 // There are other alias pointing to the data. Remove only
                 if (this.isInMemory()) {
-                    String targetPath = ProtocolType.OBJECT_URI.getSchema() + name;
                     try {
                         DataLocation loc;
-                        SimpleURI uri = new SimpleURI(targetPath);
                         loc = DataLocation.createLocation(Comm.getAppHost(), uri);
                         this.locations.remove(loc);
                     } catch (Exception e) {
@@ -807,15 +819,6 @@ public class LogicalData {
         }
     }
 
-    /**
-     * Sets the LogicalData as obsolete.
-     */
-    public synchronized void isObsolete() {
-        for (Resource res : this.getAllHosts()) {
-            res.addObsolete(this);
-        }
-    }
-
     @Override
     public synchronized String toString() {
         StringBuilder sb = new StringBuilder();
@@ -829,6 +832,7 @@ public class LogicalData {
             }
         }
         return sb.toString();
+
     }
 
 

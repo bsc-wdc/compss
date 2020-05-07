@@ -47,7 +47,6 @@ public class DeregisterObject extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-
         ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(this.hashCode, true);
         if (objectInfo == null) {
             LOGGER.info("The object with code: " + String.valueOf(this.hashCode) + " is not used by any task");

@@ -44,7 +44,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -404,22 +403,23 @@ public class BinaryRunner {
             builder.environment().put("PYTHONPATH", pythonPath);
         }
 
-        // Setup SLURM environment (for elasticity MPI in MN4)
+        // Setup SLURM environment (for elasticity with MPI in supercomputers)
         int numNodes = Integer.parseInt(System.getProperty(Invoker.COMPSS_NUM_NODES));
-        int procsPerNode = 16;
+        int procsPerNode = Integer.parseInt(System.getProperty(Invoker.COMPSS_NUM_THREADS));
         String uniqueHostnames =
             String.join(",", new HashSet<>(Arrays.asList(System.getProperty(Invoker.COMPSS_HOSTNAMES).split(","))));
+
         builder.environment().put("SLURM_NODELIST", uniqueHostnames);
         builder.environment().put("SLURM_JOB_NODELIST", uniqueHostnames);
         builder.environment().put("SLURM_NNODES", System.getProperty(Invoker.COMPSS_NUM_NODES));
         builder.environment().put("SLURM_JOB_NUM_NODES", System.getProperty(Invoker.COMPSS_NUM_NODES));
         builder.environment().put("SLURM_JOB_CPUS_PER_NODE",
-            "16(x" + System.getProperty(Invoker.COMPSS_NUM_NODES) + ")");
+            procsPerNode + "(x" + System.getProperty(Invoker.COMPSS_NUM_NODES) + ")");
         builder.environment().put("SLURM_TASKS_PER_NODE",
             procsPerNode + "(x" + System.getProperty(Invoker.COMPSS_NUM_NODES) + ")");
-
         builder.environment().put("SLURM_NPROCS", Integer.toString(procsPerNode * numNodes));
         builder.environment().put("SLURM_NTASKS", Integer.toString(procsPerNode * numNodes));
+
         builder.environment().remove("SLURM_MEM_PER_CPU");
         builder.environment().remove("SLURM_STEP_NUM_TASKS");
         builder.environment().remove("SLURM_STEP_TASKS_PER_NODE");
@@ -440,11 +440,6 @@ public class BinaryRunner {
         builder.environment().remove("SLURM_TASK_PID");
         builder.environment().remove("SLURM_DISTRIBUTION");
         builder.environment().remove("SLURM_PROCID");
-
-        // outLog.println("[ENV] ------------------------------------");
-        // for (Entry<String, String> e : builder.environment().entrySet()) {
-        // outLog.println(e.getKey() + " = " + e.getValue());
-        // }
 
         // Setup STD redirections
         String fileInPath = stdIOStreamValues.getStdIn();

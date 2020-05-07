@@ -128,4 +128,9 @@ public class FakeResourceDescription extends WorkerResourceDescription {
         return null;
     }
 
+    @Override
+    public boolean usesCPUs() {
+        return true;
+    }
+
 }

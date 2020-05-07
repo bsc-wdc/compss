@@ -139,10 +139,10 @@ public class ResourceManager {
      */
     public InvocationResources acquireResources(int jobId, ResourceDescription rd)
         throws UnsufficientAvailableComputingUnitsException {
+
         int cpus;
         int gpus;
         int fpgas;
-        int ios = 0;
         MethodResourceDescription mrd;
         try {
             mrd = (MethodResourceDescription) rd;

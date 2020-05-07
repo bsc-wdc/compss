@@ -66,7 +66,6 @@ class Request(object):
             + type: string
         - response_msg: Client response message.
             + type: string
-
     """
 
     def __init__(self, rt=None):
@@ -197,7 +196,8 @@ class RegisterStreamRequest(Request):
             + type: StreamType
         - access_mode: Associated stream access mode.
             + type: ConsumerMode
-        - internal_stream_info: Associated information about the internal stream implementation.
+        - internal_stream_info: Associated information about the internal
+                                stream implementation.
             + type: List<string>
     """
 
@@ -211,7 +211,8 @@ class RegisterStreamRequest(Request):
             + type: StreamType
         :param access_mode: Associated stream access mode.
             + type: ConsumerMode
-        :param internal_stream_info: Associated information about the internal stream implementation.
+        :param internal_stream_info: Associated information about the internal
+                                     stream implementation.
             + type: List<string>
         """
         super(RegisterStreamRequest, self).__init__(rt=REGISTER_STREAM)

@@ -32,7 +32,7 @@ from pycompss.streams.types.requests import StreamStatusRequest
 from pycompss.streams.types.requests import BootstrapServerRequest
 from pycompss.streams.types.requests import PollRequest
 from pycompss.streams.types.requests import PublishRequest
-from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
+from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
 #
 # Logger definition
@@ -127,8 +127,9 @@ class DistroStream(object):
     @abstractmethod
     def poll(self, timeout=None):
         """
-        Polls the produced messages. If there are registered messages, returns immediately. Otherwise,
-         waits until a record is produced or the timeout is exceeded.
+        Polls the produced messages. If there are registered messages, returns
+         immediately. Otherwise, waits until a record is produced or the
+         timeout is exceeded.
 
         :param timeout: Maximum request time to poll new messages.
         :return: List of polled messages.
@@ -175,7 +176,8 @@ class DistroStreamImpl(DistroStream):
             + type: ConsumerMode
     """
 
-    def __init__(self, alias=None, stream_type=None, access_mode=AT_MOST_ONCE, internal_stream_info=None):
+    def __init__(self, alias=None, stream_type=None, access_mode=AT_MOST_ONCE,
+                 internal_stream_info=None):
         """
         Creates a new DistroStream instance.
 
@@ -187,7 +189,8 @@ class DistroStreamImpl(DistroStream):
             + type: ConsumerMode
         :param internal_stream_info: Implementation specific information.
             + type: List<T>
-        :raise RegistrationException: When client cannot register the stream into the server.
+        :raise RegistrationException: When client cannot register the stream
+                                      into the server.
         """
         super(DistroStreamImpl, self).__init__()
 
@@ -198,7 +201,10 @@ class DistroStreamImpl(DistroStream):
         self.access_mode = access_mode
 
         # Retrieve registration id
-        req = RegisterStreamRequest(self.alias, self.stream_type, self.access_mode, internal_stream_info)
+        req = RegisterStreamRequest(self.alias,
+                                    self.stream_type,
+                                    self.access_mode,
+                                    internal_stream_info)
         DistroStreamClientHandler.request(req)
 
         req.wait_processed()
@@ -287,7 +293,8 @@ class FileDistroStream(DistroStreamImpl):
             + type: ConsumerMode
         :param base_dir: Base directory for the file stream.
             + type: string
-        :raise RegistrationException: When client cannot register the stream into the server.
+        :raise RegistrationException: When client cannot register the stream
+                                      into the server.
         """
         super(FileDistroStream, self).__init__(alias=alias,
                                                stream_type=FILE,
@@ -297,11 +304,11 @@ class FileDistroStream(DistroStreamImpl):
 
     def publish(self, message):
         # Nothing to do since server automatically publishes the written files
-        logger.warn("WARN: Unnecessary call on publish on FileDistroStream")
+        logger.warning("WARN: Unnecessary call on publish on FileDistroStream")
 
     def publish_list(self, messages):
         # Nothing to do since server automatically publishes the written files
-        logger.warn("WARN: Unnecessary call on publish on FileDistroStream")
+        logger.warning("WARN: Unnecessary call on publish on FileDistroStream")
 
     def poll(self, timeout=None):
         logger.info("Polling new stream items...")
@@ -358,14 +365,15 @@ class ObjectDistroStream(DistroStreamImpl):
             + type: string
         :param access_mode: Stream access mode.
             + type: ConsumerMode
-        :raise RegistrationException: When client cannot register the stream into the server.
+        :raise RegistrationException: When client cannot register the stream
+                                      into the server.
         """
         super(ObjectDistroStream, self).__init__(alias=alias,
                                                  stream_type=OBJECT,
                                                  access_mode=access_mode,
                                                  internal_stream_info=[])
         if alias is None:
-            self.kafka_topic_name = ObjectDistroStream.TOPIC_REGULAR_MESSAGES_PREFIX + "-" + self.id
+            self.kafka_topic_name = ObjectDistroStream.TOPIC_REGULAR_MESSAGES_PREFIX + "-" + self.id  # noqa: E501
         else:
             self.kafka_topic_name = alias
 
@@ -374,22 +382,24 @@ class ObjectDistroStream(DistroStreamImpl):
         self.consumer = None
 
     def _register_publisher(self):
-        from pycompss.streams.components.objects.kafka_connectors import ODSPublisher
+        from pycompss.streams.components.objects.kafka_connectors import ODSPublisher  # noqa: E501
         if self.publisher is None:
             if self.bootstrap_server is None:
-                self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()
+                self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()  # noqa: E501
 
             logger.info("Creating internal producer...")
             self.publisher = ODSPublisher(self.bootstrap_server)
 
     def _register_consumer(self):
-        from pycompss.streams.components.objects.kafka_connectors import ODSConsumer
+        from pycompss.streams.components.objects.kafka_connectors import ODSConsumer  # noqa: E501
         if self.consumer is None:
             if self.bootstrap_server is None:
-                self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()
+                self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()  # noqa: E501
 
             logger.info("Creating internal consumer...")
-            self.consumer = ODSConsumer(self.bootstrap_server, self.kafka_topic_name, self.access_mode)
+            self.consumer = ODSConsumer(self.bootstrap_server,
+                                        self.kafka_topic_name,
+                                        self.access_mode)
 
     @staticmethod
     def _request_bootstrap_server_info():
@@ -450,7 +460,8 @@ class PscoDistroStream(DistroStreamImpl):
             + type: string
         :param access_mode: Stream access mode.
             + type: ConsumerMode
-        :raise RegistrationException: When client cannot register the stream into the server.
+        :raise RegistrationException: When client cannot register the stream
+                                      into the server.
         """
         super(PscoDistroStream, self).__init__(alias=alias,
                                                stream_type=PSCO,
@@ -588,5 +599,6 @@ class TestDistroStream(unittest.TestCase):
 #
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s | %(levelname)s | %(name)s - %(message)s')
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s | %(levelname)s | %(name)s - %(message)s')  # noqa: E501
     unittest.main()

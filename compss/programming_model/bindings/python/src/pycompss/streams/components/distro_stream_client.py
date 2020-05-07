@@ -61,7 +61,8 @@ class DistroStreamClientHandler:
 
     def __init__(self):
         """
-        Creates a new handler instance. Should never be called directly since all attributes are static.
+        Creates a new handler instance. Should never be called directly since
+        all attributes are static.
         """
         # Nothing to do since this is a static handler
         pass
@@ -77,7 +78,7 @@ class DistroStreamClientHandler:
             + type: int
         :return: None.
         """
-        DistroStreamClientHandler.CLIENT = DistroStreamClient(master_ip=master_ip, master_port=master_port)
+        DistroStreamClientHandler.CLIENT = DistroStreamClient(master_ip=master_ip, master_port=master_port)  # noqa: E501
         DistroStreamClientHandler.CLIENT.start()
 
     @staticmethod
@@ -118,7 +119,6 @@ class DistroStreamClient(Thread):
             + type: boolean
         - requests: Queue of pending client requests
             + type: Queue.Queue
-
     """
 
     BUFFER_SIZE = 4096
@@ -134,7 +134,8 @@ class DistroStreamClient(Thread):
         """
         super(DistroStreamClient, self).__init__()
 
-        logger.info("Initializing DS Client on " + str(master_ip) + ":" + str(master_port))
+        logger.info("Initializing DS Client on " +
+                    str(master_ip) + ":" + str(master_port))
 
         # Register information
         self.master_ip = master_ip
@@ -191,9 +192,10 @@ class DistroStreamClient(Thread):
             # Receive answer
             chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
             answer = chunk
-            while chunk is not None and chunk and not chunk.endswith("\n".encode()):
+            while chunk is not None and \
+                    chunk and not chunk.endswith("\n".encode()):
                 if __debug__:
-                    logger.debug("Received chunk answer from server with size = " + str(len(chunk)))
+                    logger.debug("Received chunk answer from server with size = " + str(len(chunk)))  # noqa: E501
                 chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
                 if chunk is not None and chunk:
                     answer = answer + chunk
@@ -215,7 +217,8 @@ class DistroStreamClient(Thread):
         :return: None.
         """
         if __debug__:
-            logger.debug("Adding new request to client queue: " + str(req.get_type()))
+            logger.debug("Adding new request to client queue: " +
+                         str(req.get_type()))
 
         self.requests.put(req, block=True)
 
@@ -247,11 +250,15 @@ class TestDistroStreamClient(unittest.TestCase):
         try:
             # Start
             print("Start")
-            DistroStreamClientHandler.init_and_start(master_ip="localhost", master_port=master_port)
+            DistroStreamClientHandler.init_and_start(master_ip="localhost",
+                                                     master_port=master_port)
 
             # Send request
             print("Send request")
-            req = RegisterStreamRequest(None, FILE, AT_MOST_ONCE, ["/tmp/file_stream_python/"])
+            req = RegisterStreamRequest(None,
+                                        FILE,
+                                        AT_MOST_ONCE,
+                                        ["/tmp/file_stream_python/"])
             DistroStreamClientHandler.request(req)
 
             # Wait response
@@ -328,5 +335,6 @@ class TestDistroStreamClient(unittest.TestCase):
 #
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s | %(levelname)s | %(name)s - %(message)s')
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s | %(levelname)s | %(name)s - %(message)s')  # noqa: E501
     unittest.main()

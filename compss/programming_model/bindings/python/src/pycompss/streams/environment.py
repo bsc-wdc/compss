@@ -24,10 +24,13 @@ This file contains the methods to setup the environment when using streaming.
 It is called from interactive.py and launch.py scripts.
 """
 
-from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
+from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
 
-def init_streaming(streaming_backend, streaming_master_name, streaming_master_port, logger):
+def init_streaming(streaming_backend,
+                   streaming_master_name,
+                   streaming_master_port,
+                   logger):
     """
     Initialize the streaming client.
 
@@ -38,21 +41,23 @@ def init_streaming(streaming_backend, streaming_master_name, streaming_master_po
     :return: <Boolean> True if initialized successfully, False otherwise.
     """
     # Fix options if necessary
-    if streaming_master_name is None or not streaming_master_name or streaming_master_name == "null":
+    if streaming_master_name is None or \
+            not streaming_master_name or \
+            streaming_master_name == "null":
         streaming_master_name = "localhost"
 
     # Check if the stream backend is enabled
     streaming_enabled = streaming_backend is not None \
-                        and streaming_backend \
-                        and streaming_backend != "null" \
-                        and streaming_backend != "NONE"
+        and streaming_backend \
+        and streaming_backend != "null" \
+        and streaming_backend != "NONE"
 
     # Init stream backend if needed
     if streaming_enabled:
         if __debug__:
             logger.debug("Starting DistroStream library")
-        DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,
-                                                 master_port=int(streaming_master_port))
+        DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,         # noqa: E501
+                                                 master_port=int(streaming_master_port))  # noqa: E501
 
     # Return whether the streaming backend is enabled or not
     return streaming_enabled

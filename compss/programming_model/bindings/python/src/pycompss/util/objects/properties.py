@@ -24,7 +24,8 @@ PyCOMPSs Util - Object properties
     For example, check if an object belongs to a module and so on.
 """
 
-import os, sys
+import os
+import sys
 import imp
 import inspect
 from pycompss.runtime.commons import IS_PYTHON3
@@ -33,6 +34,7 @@ if IS_PYTHON3:
     import builtins as _builtins
 else:
     import __builtin__ as _builtins
+
 
 def get_defining_class(meth):
     """

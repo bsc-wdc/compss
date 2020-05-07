@@ -43,7 +43,7 @@ DEPRECATED_ARGUMENTS = {''}
 class IO(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on IO task creation.
     """
 
     def __init__(self, *args, **kwargs):
@@ -69,12 +69,11 @@ class IO(object):
                 logger.debug("Init @IO decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, 
-                            DEPRECATED_ARGUMENTS, 
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS, 
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()), "@IO")
-             
-             
+
     def __call__(self, func):
         """
         Parse and set the IO parameters within the task core element.

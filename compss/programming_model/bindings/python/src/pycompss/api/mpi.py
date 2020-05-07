@@ -85,17 +85,20 @@ class MPI(object):
             if 'computingNodes' in self.kwargs:
                 self.kwargs['processes'] = self.kwargs.pop('computingNodes')
             if 'computing_nodes' in self.kwargs:
-                  self.kwargs['processes'] = self.kwargs.pop('computing_nodes')
+                self.kwargs['processes'] = self.kwargs.pop('computing_nodes')
 
             # Set default value if it has not been defined
             if 'processes' not in self.kwargs:
                 self.kwargs['processes'] = 1
 
-            # The processes parameter will have to go down until the execution is invoked.
-            # WARN: processes can be an int, a env string, a str with dynamic variable name.
+            # The processes parameter will have to go down until the execution
+            # is invoked.
+            # WARNING: processes can be an int, a env string, a str with
+            # dynamic variable name.
             processes = self.kwargs['processes']
             if __debug__:
-                logger.debug("This MPI task will have " + str(processes) + " processes.")
+                logger.debug("This MPI task will have " +
+                             str(processes) + " processes.")
         else:
             pass
 
@@ -120,7 +123,8 @@ class MPI(object):
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
-                if self.module == '__main__' or self.module == 'pycompss.runtime.launch':
+                if self.module == '__main__' or \
+                        self.module == 'pycompss.runtime.launch':
                     # The module where the function is defined was run as
                     # __main__, so we need to find out the real module name.
 
@@ -155,7 +159,8 @@ class MPI(object):
                 if not self.registered:
                     self.registered = True
 
-                    # Update the core element information with the @mpi information
+                    # Update the core element information with the @mpi
+                    # information
                     if "binary" in self.kwargs:
                         binary = self.kwargs['binary']
                         cce.set_impl_type("MPI")
@@ -177,18 +182,18 @@ class MPI(object):
                     if 'scale_by_cu' in self.kwargs:
                         scale_by_cu = self.kwargs['scale_by_cu']
                         if isinstance(scale_by_cu, bool):
-                            if scale_by_cu :
+                            if scale_by_cu:
                                 scale_by_cu_str = 'true'
                             else:
                                 scale_by_cu_str = 'false'
                         elif isinstance(scale_by_cu, str):
                             scale_by_cu_str = scale_by_cu
                         else:
-                            raise Exception("Incorrect format for scale_by_cu property. " +
-                                            " It should be boolean or an environment variable")
-                    else :
+                            raise Exception("Incorrect format for scale_by_cu property. " +      # noqa: E501
+                                            " It should be boolean or an environment variable")  # noqa: E501
+                    else:
                         scale_by_cu_str = 'false'
-                        
+
                     if 'fail_by_exit_value' in self.kwargs:
                         fail_by_ev = self.kwargs['fail_by_exit_value']
                         if isinstance(fail_by_ev, bool):
@@ -199,19 +204,26 @@ class MPI(object):
                         elif isinstance(fail_by_ev, str):
                             fail_by_ev_str = fail_by_ev
                         else:
-                            raise Exception("Incorrect format for fail_by_exit_value property. " +
-                                            " It should be boolean or an environment variable")
-                    else :
+                            raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
+                                            " It should be boolean or an environment variable")     # noqa: E501
+                    else:
                         fail_by_ev_str = 'false'
-                    
+
                     if binary == "[unassigned]":
                         impl_signature = "MPI."
                     else:
-                        impl_signature = 'MPI.' + str(self.kwargs['processes']) + "." + binary
+                        impl_signature = 'MPI.' + \
+                                         str(self.kwargs['processes']) + \
+                                         "." + binary
 
                     # Add information to CoreElement
                     cce.set_impl_signature(impl_signature)
-                    impl_args = [binary, working_dir, runner, flags, scale_by_cu_str, fail_by_ev_str]
+                    impl_args = [binary,
+                                 working_dir,
+                                 runner,
+                                 flags,
+                                 scale_by_cu_str,
+                                 fail_by_ev_str]
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code

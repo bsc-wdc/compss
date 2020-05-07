@@ -48,6 +48,7 @@ import inspect
 import logging
 import traceback
 import base64
+import hashlib
 
 from collections import *
 from shutil import rmtree
@@ -141,6 +142,35 @@ _addr2id2obj = {}
 content_type_format = "{}:{}"  # <module_path>:<class_name>
 
 
+def calculate_identifier(obj):
+    """
+    Calculates the identifier for the given object.
+
+    :param obj: Object to get the identifier
+    :return: String (md5 string)
+    """
+    inmutable_types = [bool, int, float, complex, str, tuple, frozenset, bytes]
+    obj_type = type(obj)
+    if obj_type in inmutable_types:
+        obj_addr = id(obj)  # Only guarantees uniqueness with inmutable objects
+    else:
+        # For all the rest, use hash of:
+        #  - The object id
+        #  - The size of the object (object increase/decrease)
+        #  - The object representation (object size is the same but has been
+        #                               modified (e.g. list element))
+        # WARNING: Caveat:
+        #  - IN User defined object with parameter change without __repr__
+        # INOUT parameters to be modified require a synchronization, so they
+        # are not affected.
+        hash_id = hashlib.md5()
+        hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+        hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+        hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+        obj_addr = str(hash_id.hexdigest())
+    return obj_addr
+
+
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
     """
     Gets the identifier of an object. If not found or we are forced to,
@@ -158,7 +188,8 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     # Force_insertion implies assign_new_key
     assert not force_insertion or assign_new_key
 
-    obj_addr = id(obj)
+    obj_addr = calculate_identifier(obj)
+
     # Assign an empty dictionary (in case there is nothing there)
     _id2obj = _addr2id2obj.setdefault(obj_addr, {})
 
@@ -190,8 +221,8 @@ def pop_object_id(obj):
     :param obj: Object to pop
     :return: Popped object, None if obj was not in _addr2id2obj
     """
-    obj_addr = id(obj)
-    _id2obj = _addr2id2obj.setdefault(id(obj), {})
+    obj_addr = calculate_identifier(obj)
+    _id2obj = _addr2id2obj.setdefault(obj_addr, {})
     for (k, v) in list(_id2obj.items()):
         _id2obj.pop(k)
     _addr2id2obj.pop(obj_addr)
@@ -502,9 +533,10 @@ def request_resources(num_resources, group_name):
         group_name = "NULL"
 
     if __debug__:
-        logger.debug(
-            "Request the creation of " + str(num_resources) + " resources with notification to task group " + str(
-                group_name))
+        logger.debug("Request the creation of " +
+                     str(num_resources) +
+                     " resources with notification to task group " +
+                     str(group_name))
 
     # Call the Runtime (appId 0)
     compss.request_resources(0, num_resources, group_name)
@@ -525,9 +557,10 @@ def free_resources(num_resources, group_name):
         group_name = "NULL"
 
     if __debug__:
-        logger.debug(
-            "Request the destruction of " + str(num_resources) + " resources with notification to task group " + str(
-                group_name))
+        logger.debug("Request the destruction of " +
+                     str(num_resources) +
+                     " resources with notification to task group " +
+                     str(group_name))
 
     # Call the Runtime (appId 0)
     compss.free_resources(0, num_resources, group_name)
@@ -547,7 +580,7 @@ def register_ce(core_element):
         String impl_constraints = 'ComputingUnits:2';
         String impl_type = 'METHOD';
         String[] impl_type_args = new String[] { 'methodClass', 'methodName' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // MPI
         System.out.println('Registering MPI implementation');
@@ -555,8 +588,8 @@ def register_ce(core_element):
         impl_signature = 'mpi.MPI';
         impl_constraints = 'StorageType:SSD';
         impl_type = 'MPI';
-        impl_type_args = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };  # noqa
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        impl_type_args = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };  # noqa: E501
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // PYTHON MPI
         System.out.println('Registering PYTHON MPI implementation');
@@ -564,8 +597,8 @@ def register_ce(core_element):
         impl_signature = 'MPI.methodClass1.methodName';
         impl_constraints = 'ComputingUnits:2';
         impl_type = 'PYTHON_MPI';
-        impl_type_args = new String[] { 'methodClass', 'methodName', 'mpiWorkingDir', 'mpiRunner' };  # noqa
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        impl_type_args = new String[] { 'methodClass', 'methodName', 'mpiWorkingDir', 'mpiRunner' };  # noqa: E501
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // BINARY
         System.out.println('Registering BINARY implementation');
@@ -574,7 +607,7 @@ def register_ce(core_element):
         impl_constraints = 'MemoryType:RAM';
         impl_type = 'BINARY';
         impl_type_args = new String[] { 'binary', 'binaryWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // OMPSS
         System.out.println('Registering OMPSS implementation');
@@ -583,7 +616,7 @@ def register_ce(core_element):
         impl_constraints = 'ComputingUnits:3';
         impl_type = 'OMPSS';
         impl_type_args = new String[] { 'ompssBinary', 'ompssWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // OPENCL
         System.out.println('Registering OPENCL implementation');
@@ -592,7 +625,7 @@ def register_ce(core_element):
         impl_constraints = 'ComputingUnits:4';
         impl_type = 'OPENCL';
         impl_type_args = new String[] { 'openclKernel', 'openclWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
         // VERSIONING
         System.out.println('Registering METHOD implementation');
@@ -601,18 +634,18 @@ def register_ce(core_element):
         impl_constraints = 'ComputingUnits:1';
         impl_type = 'METHOD';
         impl_type_args = new String[] { 'anotherClass', 'anotherMethodName' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
 
     ---------------------
 
     Core Element fields:
 
-    ce_signature: <String> Core Element signature  (e.g.- 'methodClass.methodName')  # noqa
-    impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')  # noqa
-    impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')  # noqa
-    impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')  # noqa
+    ce_signature: <String> Core Element signature  (e.g.- 'methodClass.methodName')  # noqa: E501
+    impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')  # noqa: E501
+    impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')  # noqa: E501
+    impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')  # noqa: E501
     impl_io: <String> IO Implementation  #noga
-    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa
+    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa: E501
 
     :param core_element: <CE> Core Element to register
     :return: None
@@ -765,13 +798,13 @@ def synchronize(obj, mode):
 
     # Runtime can return a path or a PSCOId
     if compss_file.startswith('/'):
-        # If the real filename is null, then return None. The task that produces
-        # the output file may have been ignored or cancelled, so its result
-        # does not exist.
+        # If the real filename is null, then return None. The task that
+        # produces the output file may have been ignored or cancelled, so its
+        # result does not exist.
         real_file_name = compss_file.split('/')[-1]
         if real_file_name == 'null':
             print("WARNING: Could not retrieve the object " + str(file_name) +
-                  " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa
+                  " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa: E501
             return None
         new_obj = deserialize_from_file(compss_file)
         compss.close_file(file_name, mode)
@@ -837,15 +870,14 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
         path = module_name + '.' + class_name
 
     # Infer COMPSs types from real types, except for files
-    coll_objs_to_delete = _serialize_objects(f_parameters)
+    _serialize_objects(f_parameters)
 
     # Build values and COMPSs types and directions
     vtdsc = _build_values_types_directions(ftype,
                                            f_parameters,
                                            f_returns,
                                            f.__code_strings__)
-    values, names, compss_types, compss_directions, compss_streams, \
-    compss_prefixes, content_types = vtdsc  # noqa
+    values, names, compss_types, compss_directions, compss_streams, compss_prefixes, content_types = vtdsc  # noqa: E501
 
     # Get priority
     has_priority = task_kwargs['priority']
@@ -995,8 +1027,7 @@ def _build_return_objects(f_returns):
                 fo = ret_value()
             except TypeError:
                 if __debug__:
-                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(
-                        ret_value))  # noqa
+                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(ret_value))  # noqa: E501
                 fo = Future()
         else:
             fo = Future()  # modules, functions, methods
@@ -1028,9 +1059,7 @@ def _build_return_objects(f_returns):
                     foe = v.object()
                 except TypeError:
                     if __debug__:
-                        logger.warning(
-                            "Type {0} does not have an empty constructor, building generic future object".format(
-                                v['Value']))  # noqa
+                        logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))  # noqa: E501
                     foe = Future()
             else:
                 foe = Future()  # modules, functions, methods
@@ -1080,6 +1109,7 @@ def _serialize_objects(f_parameters):
         if __debug__:
             logger.debug("Final type for parameter %s: %d" % (k, p.type))
 
+
 def _build_values_types_directions(ftype, f_parameters, f_returns,
                                    code_strings):
     """
@@ -1102,6 +1132,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     compss_streams = []
     compss_prefixes = []
     content_types = list()
+    slf_name = None
 
     # Build the range of elements
     ra = list(f_parameters.keys())
@@ -1147,8 +1178,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         names.append(result_names.pop(0))
         content_types.append(p.content_type)
 
-    return values, names, compss_types, compss_directions, compss_streams, \
-           compss_prefixes, content_types
+    return values, names, compss_types, compss_directions, compss_streams, compss_prefixes, content_types  # noqa: E501
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
@@ -1221,7 +1251,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN IdN pyTypeN
         _class_name = str(param.object.__class__.__name__)
         con_type = content_type_format.format("collection", _class_name)
-        value = "{} {} {}".format(get_object_id(param.object), len(param.object), con_type)
+        value = "{} {} {}".format(get_object_id(param.object),
+                                  len(param.object), con_type)
         pop_object_id(param.object)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
@@ -1292,12 +1323,12 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                         p.object = v.encode(STR_ESCAPE)
                         p.type = TYPE.STRING
                         if __debug__:
-                            logger.debug("Inferred type modified (Object converted to String).")  # noqa
+                            logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
                     except SerializerException:
                         p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug("The object cannot be converted due to: not serializable.")  # noqa
+                            logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
                 else:
                     p.type = TYPE.OBJECT
                     if __debug__:
@@ -1334,12 +1365,12 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                         p.object = v
                         p.type = TYPE.STRING
                         if __debug__:
-                            logger.debug("Inferred type modified (Object converted to String).")  # noqa
+                            logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
                     else:
                         p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug("Inferred type reestablished to Object.")  # noqa
+                            logger.debug("Inferred type reestablished to Object.")  # noqa: E501
                             # if the parameter converts to an object, release
                             # the size to be used for converted objects?
                             # No more objects can be converted
@@ -1350,7 +1381,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                     p.object = real_value
                     p.type = TYPE.OBJECT
                     if __debug__:
-                        logger.debug("The object cannot be converted due to: not serializable.")  # noqa
+                        logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
     else:
         if __debug__:
             logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")
@@ -1376,13 +1407,13 @@ def _serialize_object_into_file(name, p):
                 # Is there a future object within the list?
                 if any(isinstance(v, Future) for v in p.object):
                     if __debug__:
-                        logger.debug("Found a list that contains future objects - synchronizing...")  # noqa
+                        logger.debug("Found a list that contains future objects - synchronizing...")  # noqa: E501
                     mode = get_compss_mode('in')
                     p.object = list(map(synchronize,
                                         p.object,
                                         [mode] * len(p.object)))
-            _skip_file_creation = ((p.direction == DIRECTION.OUT)
-                                   and p.type != TYPE.EXTERNAL_STREAM)
+            _skip_file_creation = (p.direction == DIRECTION.OUT and
+                                   p.type != TYPE.EXTERNAL_STREAM)
             _turn_into_file(name, p, skip_creation=_skip_file_creation)
         except SerializerException:
             import sys
@@ -1390,9 +1421,9 @@ def _serialize_object_into_file(name, p):
             lines = traceback.format_exception(exc_type,
                                                exc_value,
                                                exc_traceback)
-            logger.exception("Pickling error exception: non-serializable object found as a parameter.")  # noqa
+            logger.exception("Pickling error exception: non-serializable object found as a parameter.")  # noqa: E501
             logger.exception(''.join(line for line in lines))
-            print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")  # noqa
+            print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")  # noqa: E501
             print("[ ERROR ]: Object: %s" % p.object)
             # Raise the exception up tu launch.py in order to point where the
             # error is in the user code.

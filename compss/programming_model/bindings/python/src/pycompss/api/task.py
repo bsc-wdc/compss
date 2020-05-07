@@ -179,7 +179,7 @@ class Task(object):
             # Not all decorator arguments are necessarily parameters
             # (see self.get_default_decorator_values)
             if parameter.is_parameter(value):
-                self.decorator_arguments[key] = parameter.get_parameter_copy(value)
+                self.decorator_arguments[key] = parameter.get_parameter_copy(value)  # noqa: E501
             # Specific case when value is a dictionary
             # Use case example:
             # @binary(binary="ls")
@@ -189,7 +189,10 @@ class Task(object):
             #   pass
             # Transform this dictionary to a Parameter object
             if parameter.is_dict_specifier(value):
-                if key not in ['numba', 'numba_flags', 'numba_signature', 'numba_declaration']:
+                if key not in ['numba',
+                               'numba_flags',
+                               'numba_signature',
+                               'numba_declaration']:
                     # Perform user -> instance substitution
                     # param = self.decorator_arguments[key][parameter.Type]
                     # Replace the whole dict by a single parameter object
@@ -311,7 +314,7 @@ class Task(object):
                 # that consists of putting all user code that may be executed
                 # in the worker on a file.
                 # This file has to be visible for all workers.
-                from pycompss.util.interactive.helpers import update_tasks_code_file  # noqa
+                from pycompss.util.interactive.helpers import update_tasks_code_file  # noqa: E501
                 update_tasks_code_file(self.user_function, path)
                 print("Found task: " + str(self.user_function.__name__))
         else:
@@ -365,7 +368,8 @@ class Task(object):
         # It is python2 or could not find type-hinting
         source_code = get_wrapped_source(f).strip()
 
-        if self.first_arg_name == 'self' or source_code.startswith('@classmethod'):
+        if self.first_arg_name == 'self' or \
+                source_code.startswith('@classmethod'):
             # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code
             # with ast since the class does not exist yet).
@@ -528,7 +532,7 @@ class Task(object):
         func = f
         while not got_func_code:
             try:
-                from pycompss.util.objects.properties import get_wrapped_sourcelines  # noqa
+                from pycompss.util.objects.properties import get_wrapped_sourcelines  # noqa: E501
                 func_code = get_wrapped_sourcelines(func)
                 got_func_code = True
             except IOError:
@@ -690,11 +694,11 @@ class Task(object):
         """
         try:
             arguments = self._getargspec(self.user_function)
-            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa
+            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa: E501
         except TypeError:
             # This is a numba jit declared task
             arguments = self._getargspec(self.user_function.py_func)
-            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa
+            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa: E501
         # It will be easier to deal with functions if we pretend that all have
         # the signature f(positionals, *variadic, **named). This is why we are
         # substituting
@@ -846,7 +850,7 @@ class Task(object):
                     num_rets = self.user_function.__globals__.get(_returns)
                 except AttributeError:
                     # This is a numba jit declared task
-                    num_rets = self.user_function.py_func.__globals__.get(_returns)
+                    num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
             # Construct hidden multi-return
             if num_rets > 1:
                 to_return = [tuple([]) for _ in range(num_rets)]
@@ -906,7 +910,7 @@ class Task(object):
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
-        impl_signature = self.prepare_core_element_information(self.user_function)
+        impl_signature = self.prepare_core_element_information(self.user_function)  # noqa: E501
         if not self.registered or self.signature != impl_signature:
             self.register_task(self.user_function)
             self.registered = True
@@ -944,22 +948,31 @@ class Task(object):
                     try:
                         parsed_computing_nodes = int(os.environ[env_var])
                     except ValueError:
-                        raise Exception(cast_env_to_int_error('ComputingNodes'))
+                        raise Exception(
+                            cast_env_to_int_error('ComputingNodes')
+                        )
                 else:
                     # Dynamic global variable
                     try:
                         # Load from global variables
-                        parsed_computing_nodes = self.user_function.__globals__.get(self.computing_nodes)
+                        parsed_computing_nodes = \
+                            self.user_function.__globals__.get(
+                                self.computing_nodes
+                            )
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
-                            parsed_computing_nodes = self.user_function.py_func.__globals__.get(self.computing_nodes)
+                            parsed_computing_nodes = \
+                                self.user_function.py_func.__globals__.get(
+                                    self.computing_nodes
+                                )
                         except AttributeError:
                             # No more chances
-                            # Ignore error and parsed_computing_nodes will raise the exception
+                            # Ignore error and parsed_computing_nodes will
+                            # raise the exception
                             pass
         if parsed_computing_nodes is None:
-            raise Exception("ERROR: Wrong Computing Nodes value at @mpi decorator.")
+            raise Exception("ERROR: Wrong Computing Nodes value at @mpi decorator.")  # noqa: E501
         if parsed_computing_nodes <= 0:
             logger.warn("Registered computing_nodes is less than 1 (" + str(
                 parsed_computing_nodes) + " <= 0). Automatically set it to 1")
@@ -1078,8 +1091,8 @@ class Task(object):
         # defaults[-2] goes with positionals[-2]
         # ...
         # Also, |defaults| <= |positionals|
-        for (var_name, default_value) in reversed(list(zip(list(reversed(self.param_args))[:num_defaults],  # noqa
-                                                           list(reversed(self.param_defaults))))):  # noqa
+        for (var_name, default_value) in reversed(list(zip(list(reversed(self.param_args))[:num_defaults],  # noqa: E501
+                                                           list(reversed(self.param_defaults))))):  # noqa: E501
             if var_name not in parameter_values:
                 real_var_name = parameter.get_kwarg_name(var_name)
                 parameter_values[real_var_name] = default_value
@@ -1089,7 +1102,7 @@ class Task(object):
         # and their order in the case of the variadic ones
         # Process the variadic arguments
         for (i, var_arg) in enumerate(args[num_positionals:]):
-            parameter_values[parameter.get_vararg_name(self.param_varargs, i)] = var_arg  # noqa
+            parameter_values[parameter.get_vararg_name(self.param_varargs, i)] = var_arg  # noqa: E501
         # Process keyword arguments
         for (name, value) in kwargs.items():
             parameter_values[parameter.get_kwarg_name(name)] = value
@@ -1100,11 +1113,11 @@ class Task(object):
             # Is the argument a vararg? or a kwarg? Then check the direction
             # for varargs or kwargs
             if parameter.is_vararg(var_name):
-                self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())  # noqa
+                self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())  # noqa: E501
             elif parameter.is_kwarg(var_name):
                 real_name = parameter.get_name_from_kwarg(var_name)
-                self.parameters[var_name] = self.decorator_arguments.get(real_name,  # noqa
-                                                                         self.get_default_direction(real_name))  # noqa
+                self.parameters[var_name] = self.decorator_arguments.get(real_name,  # noqa: E501
+                                                                         self.get_default_direction(real_name))  # noqa: E501
             else:
                 # The argument is named, check its direction
                 # Default value = IN if not class or instance method and
@@ -1114,19 +1127,19 @@ class Task(object):
                 # will have priority over the default
                 # direction resolution, even if this implies a contradiction
                 # with the target_direction flag
-                self.parameters[var_name] = self.decorator_arguments.get(var_name,  # noqa
-                                                                         self.get_default_direction(var_name))  # noqa
+                self.parameters[var_name] = self.decorator_arguments.get(var_name,  # noqa: E501
+                                                                         self.get_default_direction(var_name))  # noqa: E501
 
             # If the parameter is a FILE then its type will already be defined,
             # and get_compss_type will misslabel it as a TYPE.STRING
             if self.parameters[var_name].type is None:
-                self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])  # noqa
+                self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])  # noqa: E501
 
             # TODO: add 'dir_name' to the parameter object
             if parameter.is_file(self.parameters[var_name]) or \
                parameter.is_directory(self.parameters[var_name]):
                 if parameter_values[var_name]:
-                    self.parameters[var_name].file_name = parameter_values[var_name]  # noqa
+                    self.parameters[var_name].file_name = parameter_values[var_name]  # noqa: E501
                 else:
                     # is None: Used None for a FILE or DIRECTORY parameter path
                     self.parameters[var_name].type = parameter.TYPE.NULL
@@ -1134,7 +1147,7 @@ class Task(object):
                 self.parameters[var_name].object = parameter_values[var_name]
 
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_args = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS + self.param_args  # noqa
+        supported_args = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS + self.param_args  # noqa: E501
         check_arguments(MANDATORY_ARGUMENTS,
                         DEPRECATED_ARGUMENTS,
                         supported_args,
@@ -1191,7 +1204,8 @@ class Task(object):
 
     def is_parameter_file_collection(self, name):
         """
-        Given the name of a parameter, determine if it is an file collection or not
+        Given the name of a parameter, determine if it is an file collection
+        or not
 
         :param name: Name of the parameter
         :return: True if the parameter is a file collection
@@ -1261,7 +1275,7 @@ class Task(object):
                 _col_dep = _dec_arg.depth if _dec_arg else depth
 
                 for (i, line) in enumerate(open(col_f_name, 'r')):
-                    data_type, content_file, content_type = line.strip().split()
+                    data_type, content_file, content_type = line.strip().split()  # noqa: E501
                     # Same naming convention as in COMPSsRuntimeImpl.java
                     sub_name = "%s.%d" % (arg.name, i)
                     if name_prefix:
@@ -1330,7 +1344,7 @@ class Task(object):
 
         # Deal with all the parameters that are NOT returns
         for arg in [x for x in args if
-                    isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:  # noqa
+                    isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:  # noqa: E501
             retrieve_content(arg, "")
 
     def worker_call(self, *args, **kwargs):
@@ -1499,7 +1513,7 @@ class Task(object):
                     target_label = 'targetDirection'
                 else:
                     target_label = 'target_direction'
-                compss_exception.target_direction = self.decorator_arguments[target_label]
+                compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
 
         # Reestablish the hook if it was disabled
         if restore_hook:
@@ -1561,10 +1575,11 @@ class Task(object):
             if not (_is_inout or _is_col_out):
                 continue
 
-            # Now it's 'INOUT' or 'COL_OUT' object param, serialize to a file
+            # Now it's 'INOUT' or 'COLLLECTION_OUT' object param, serialize
+            # to a file
             if arg.type == parameter.TYPE.COLLECTION:
                 # handle collections recursively
-                for (content, elem) in get_collection_objects(arg.content, arg):
+                for (content, elem) in get_collection_objects(arg.content, arg):  # noqa: E501
                     f_name = get_file_name(elem.file_name)
                     if python_mpi:
                         serialize_to_file_mpienv(content, f_name, False)
@@ -1637,7 +1652,7 @@ class Task(object):
             else:
                 original_name = parameter.get_original_name(arg.name)
                 param = self.decorator_arguments.get(original_name,
-                                                     self.get_default_direction(original_name))  # noqa
+                                                     self.get_default_direction(original_name))  # noqa: E501
                 if arg.type == parameter.TYPE.EXTERNAL_PSCO:
                     # It was originally a persistent object
                     new_types.append(parameter.TYPE.EXTERNAL_PSCO)
@@ -1660,7 +1675,7 @@ class Task(object):
 
         # Add self type and value if exist
         if has_self:
-            if self.decorator_arguments[target_label].direction == parameter.DIRECTION.INOUT:  # noqa
+            if self.decorator_arguments[target_label].direction == parameter.DIRECTION.INOUT:  # noqa: E501
                 # Check if self is a PSCO that has been persisted inside the
                 # task and target_direction.
                 # Update self type and value

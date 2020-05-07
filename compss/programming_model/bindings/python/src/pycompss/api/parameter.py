@@ -65,7 +65,7 @@ except ImportError:
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 TYPE = DataType
-# Content type format is <module_path> and <class_name> separated by colon (':')
+# Content type format is <module_path>:<class_name>, separated by colon (':')
 UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
 
 

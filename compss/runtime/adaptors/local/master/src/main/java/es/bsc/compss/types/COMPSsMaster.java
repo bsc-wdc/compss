@@ -995,14 +995,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             /*
              * PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer
              */
-
-            for (DataLocation loc : ld.getLocations()) {
-                if (loc.getProtocol().equals(ProtocolType.PERSISTENT_URI)) {
-                    LOGGER.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
-                    reason.setDataTarget(loc.getPath());
-                    listener.notifyEnd(null);
-                    return;
-                }
+            String pscoId = ld.getPscoId();
+            if (pscoId != null) {
+                LOGGER.debug("Object in Persistent Storage. Set dataTarget to " + pscoId);
+                reason.setDataTarget(pscoId);
+                listener.notifyEnd(null);
+                return;
             }
 
             /*

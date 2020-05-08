@@ -961,6 +961,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     LOGGER.debug("tgtData: " + tgtData.toString());
                 }
             }
+
             if (reason != null && reason.getType().equals(DataType.COLLECTION_T)) {
 
                 String targetPath;
@@ -1010,20 +1011,28 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
             if (ld.isInMemory()) {
                 String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
-                // Serialize value to file
-                try {
-                    Serializer.serialize(ld.getValue(), targetPath);
-                } catch (IOException ex) {
-                    ErrorManager.warn("Error copying file from memory to " + targetPath, ex);
-                }
+                if (ld == tgtData) {
+                    LOGGER.debug("Object already in memory. Avoiding copy and setting dataTarget to " + targetPath);
+                    reason.setDataTarget(targetPath);
+                    listener.notifyEnd(null);
+                    return;
+                } else {
+                    LOGGER.debug("Serializing data " + ld.getName() + " to " + targetPath);
+                    // Serialize value to file
+                    try {
+                        Serializer.serialize(ld.getValue(), targetPath);
+                    } catch (IOException ex) {
+                        ErrorManager.warn("Error copying file from memory to " + targetPath, ex);
+                    }
 
-                if (tgtData != null) {
-                    tgtData.addLocation(target);
+                    if (tgtData != null) {
+                        tgtData.addLocation(target);
+                    }
+                    LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
+                    reason.setDataTarget(targetPath);
+                    listener.notifyEnd(null);
+                    return;
                 }
-                LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
-                reason.setDataTarget(targetPath);
-                listener.notifyEnd(null);
-                return;
             }
 
             obtainFileData(ld, source, target, tgtData, reason, listener);

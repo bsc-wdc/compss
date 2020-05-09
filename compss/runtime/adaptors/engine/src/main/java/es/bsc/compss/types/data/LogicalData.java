@@ -117,72 +117,76 @@ public class LogicalData {
      * @throws CommException the values within the logicalData instances are inconsistent.
      */
     public static void link(LogicalData ld, LogicalData ld2) throws CommException {
-        Object value = null;
-        String pscoId = null;
-        String bindingId = null;
-        if (ld.value != null) {
-            if (ld2.value != null) {
-                if (ld2.value != ld.value) {
-                    throw new CommException("Linking two LogicalData with different value in memory");
+        synchronized (ld) {
+            synchronized (ld2) {
+                Object value = null;
+                String pscoId = null;
+                String bindingId = null;
+                if (ld.value != null) {
+                    if (ld2.value != null) {
+                        if (ld2.value != ld.value) {
+                            throw new CommException("Linking two LogicalData with different value in memory");
+                        }
+                    } else {
+                        value = ld.value;
+                    }
+                } else {
+                    value = ld2.value;
                 }
-            } else {
-                value = ld.value;
-            }
-        } else {
-            value = ld2.value;
-        }
-        if (ld.pscoId != null) {
-            if (ld2.pscoId != null) {
-                if (ld2.pscoId.compareTo(ld.pscoId) != 0) {
-                    throw new CommException("Linking two LogicalData with different pscoId in memory");
+                if (ld.pscoId != null) {
+                    if (ld2.pscoId != null) {
+                        if (ld2.pscoId.compareTo(ld.pscoId) != 0) {
+                            throw new CommException("Linking two LogicalData with different pscoId in memory");
+                        }
+                    } else {
+                        pscoId = ld.pscoId;
+                    }
+                } else {
+                    pscoId = ld2.pscoId;
                 }
-            } else {
-                pscoId = ld.pscoId;
-            }
-        } else {
-            pscoId = ld2.pscoId;
-        }
-        if (ld.bindingId != null) {
-            if (ld2.bindingId != null) {
-                if (ld2.bindingId.compareTo(ld.bindingId) != 0) {
-                    throw new CommException("Linking two LogicalData with different value in memory");
+                if (ld.bindingId != null) {
+                    if (ld2.bindingId != null) {
+                        if (ld2.bindingId.compareTo(ld.bindingId) != 0) {
+                            throw new CommException("Linking two LogicalData with different value in memory");
+                        }
+                    } else {
+                        bindingId = ld.bindingId;
+                    }
+                } else {
+                    bindingId = ld2.bindingId;
                 }
-            } else {
-                bindingId = ld.bindingId;
-            }
-        } else {
-            bindingId = ld2.bindingId;
-        }
 
-        if (ld.isInMemory()) {
-            if (!ld2.isInMemory()) {
-                for (String alias : ld2.knownAlias) {
-                    ld.addKnownAlias(alias);
+                if (ld.isInMemory()) {
+                    if (!ld2.isInMemory()) {
+                        for (String alias : ld2.knownAlias) {
+                            ld.addKnownAlias(alias);
+                        }
+                        ld2.knownAlias = ld.knownAlias;
+                    } // If they both have the same value, it will be locations will be added later on
+                } else {
+                    if (ld2.isInMemory()) {
+                        for (String alias : ld.knownAlias) {
+                            ld2.addKnownAlias(alias);
+                        }
+                        ld.knownAlias = ld2.knownAlias;
+                    } else {
+                        ld.knownAlias.addAll(ld2.knownAlias);
+                        ld2.knownAlias = ld.knownAlias;
+                    }
                 }
-                ld2.knownAlias = ld.knownAlias;
-            } // If they both have the same value, it will be locations will be added later on
-        } else {
-            if (ld2.isInMemory()) {
-                for (String alias : ld.knownAlias) {
-                    ld2.addKnownAlias(alias);
-                }
-                ld.knownAlias = ld2.knownAlias;
-            } else {
-                ld.knownAlias.addAll(ld2.knownAlias);
-                ld2.knownAlias = ld.knownAlias;
+
+                ld.value = value;
+                ld2.value = value;
+                ld.pscoId = pscoId;
+                ld2.pscoId = pscoId;
+                ld.bindingId = bindingId;
+                ld2.bindingId = bindingId;
+                ld.locations.addAll(ld2.locations);
+                ld2.locations = ld.locations;
+                ld.inProgress.addAll(ld2.inProgress);
+                ld2.inProgress = ld.inProgress;
             }
         }
-
-        ld.value = value;
-        ld2.value = value;
-        ld.pscoId = pscoId;
-        ld2.pscoId = pscoId;
-        ld.bindingId = bindingId;
-        ld2.bindingId = bindingId;
-        ld.locations.addAll(ld2.locations);
-        ld2.locations = ld.locations;
-        ld.inProgress.addAll(ld2.inProgress);
-        ld2.inProgress = ld.inProgress;
     }
 
     /**
@@ -207,12 +211,12 @@ public class LogicalData {
     /**
      * Adds a new alias to the data, and includes the corresponding new locations if the object is in memory.
      *
-     * @param name The new alias that the data is known as
+     * @param alias The new alias that the data is known as
      */
-    public void addKnownAlias(String name) {
-        if (this.knownAlias.add(name)) {
+    public synchronized void addKnownAlias(String alias) {
+        if (this.knownAlias.add(alias)) {
             if (this.isInMemory()) {
-                String targetPath = ProtocolType.OBJECT_URI.getSchema() + name;
+                String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
                 try {
                     DataLocation loc;
                     SimpleURI uri = new SimpleURI(targetPath);
@@ -231,7 +235,7 @@ public class LogicalData {
      *
      * @param alias Alias to remove from the list of known aliases.
      */
-    public void removeKnownAlias(String alias) {
+    public synchronized void removeKnownAlias(String alias) {
         if (this.knownAlias.remove(alias)) {
             if (this.knownAlias.isEmpty()) {
                 for (Resource res : this.getAllHosts()) {

@@ -38,6 +38,8 @@ public abstract class Parameter implements Serializable {
     private final String prefix;
     private final String name;
     private final String contentType;
+    private final double weight;
+    private final boolean keepRename;
 
 
     /**
@@ -51,7 +53,7 @@ public abstract class Parameter implements Serializable {
      * @param contentType Python object type.
      */
     public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType) {
+        String contentType, double weight, boolean keepRename) {
         this.type = type;
         this.direction = direction;
         this.stream = stream;
@@ -62,6 +64,8 @@ public abstract class Parameter implements Serializable {
         }
         this.name = name;
         this.contentType = contentType;
+        this.weight = weight;
+        this.keepRename = keepRename;
     }
 
     /**
@@ -125,5 +129,23 @@ public abstract class Parameter implements Serializable {
      */
     public String getContentType() {
         return this.contentType;
+    }
+
+    /**
+     * Returns the parameter weight.
+     * 
+     * @return The parameter weight.
+     */
+    public double getWeight() {
+        return weight;
+    }
+
+    /**
+     * Check is parameter can keep the renamed name.
+     * 
+     * @return True if parameter can keep the renamed name. Otherwise, false.
+     */
+    public boolean isKeepRename() {
+        return keepRename;
     }
 }

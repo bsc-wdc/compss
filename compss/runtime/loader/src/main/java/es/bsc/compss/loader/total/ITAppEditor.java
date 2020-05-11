@@ -562,7 +562,9 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append(infoParam.getStream()).append(",");
             toAppend.append(infoParam.getPrefix() + ",");
             toAppend.append("\"\"" + ","); // Parameter Name
-            toAppend.append("\"\""); // Parameter Content Type
+            toAppend.append("\"\"" + ","); // Parameter Content Type
+            toAppend.append(infoParam.getWeight() + ",");
+            toAppend.append(infoParam.getKeepRename() + ",");
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
             }
@@ -591,6 +593,8 @@ public class ITAppEditor extends ExprEditor {
         Direction paramDirection = par.direction();
         StdIOStream paramStream = par.stream();
         String paramPrefix = par.prefix();
+        String paramWeight = par.weight();
+        boolean paramKeepRenames = par.keepRename();
 
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
@@ -621,7 +625,7 @@ public class ITAppEditor extends ExprEditor {
 
         // Build the parameter information and return
         ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(),
-            type, paramDirection, paramStream, paramPrefix);
+            type, paramDirection, paramStream, paramPrefix, paramWeight, paramKeepRenames);
         return infoParam;
     }
 
@@ -1053,16 +1057,20 @@ public class ITAppEditor extends ExprEditor {
         private final Direction direction;
         private final StdIOStream stream;
         private final String prefix;
+        private final String weight;
+        private final boolean keepRename;
 
 
         public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction,
-            StdIOStream stream, String prefix) {
+            StdIOStream stream, String prefix, String weight, boolean keepRename) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;
             this.direction = direction;
             this.stream = stream;
             this.prefix = prefix;
+            this.weight = weight;
+            this.keepRename = keepRename;
         }
 
         public String getToAppend() {
@@ -1087,6 +1095,14 @@ public class ITAppEditor extends ExprEditor {
 
         public String getPrefix() {
             return "\"" + this.prefix + "\"";
+        }
+
+        public String getWeight() {
+            return "\"" + weight + "\"";
+        }
+
+        public boolean getKeepRename() {
+            return this.keepRename;
         }
 
     }

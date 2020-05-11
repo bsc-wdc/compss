@@ -277,6 +277,7 @@ public class Score implements Comparable<Score> {
                         }
                     }
                 }
+                resourceScore = (long) (p.getWeight() * resourceScore);
             }
         }
         return resourceScore;

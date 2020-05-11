@@ -35,7 +35,7 @@ typedef struct {
   int isAttached;
 } ThreadStatus;
 
-const int NUM_FIELDS = 7;
+const int NUM_FIELDS = 9;
 
 JNIEnv* globalJniEnv;
 JavaVM* globalJvm;
@@ -509,14 +509,16 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     debug_printf("[BINDING_COMMONS]  -  @process_param\n");
     // params     is of the form: value type direction stream prefix name
     // jobjOBJArr is of the form: value type direction stream prefix name
-    // This means that the ith parameters occupies the fields in the interval [NF * k, NK * k + 6]
+    // This means that the ith parameters occupies the fields in the interval [NF * k, NK * k + 8]
     int pv = NUM_FIELDS * i + 0,
         pt = NUM_FIELDS * i + 1,
         pd = NUM_FIELDS * i + 2,
         ps = NUM_FIELDS * i + 3,
         pp = NUM_FIELDS * i + 4,
         pn = NUM_FIELDS * i + 5,
-        pc = NUM_FIELDS * i + 6;
+        pc = NUM_FIELDS * i + 6,
+        pw = NUM_FIELDS * i + 7,
+        pkr = NUM_FIELDS * i + 8;
 
     void *parVal        =           params[pv];
     int parType         = *(int*)   params[pt];
@@ -525,6 +527,8 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     void *parPrefix     =           params[pp];
     void *parName       =           params[pn];
     void *parConType    =           params[pc];
+    void *parWeight	=           params[pw];
+    int parKeepRename   = *(int*)   params[pkr];
 
     jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
     clsParType = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
@@ -730,7 +734,6 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  PREFIX: %s\n", *(char**)parPrefix);
     jstring jobjParPrefix = status->localJniEnv->NewStringUTF(*(char**)parPrefix);
     status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
-    //env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
 
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  NAME: %s\n", *(char**)parName);
     jstring jobjParName = status->localJniEnv->NewStringUTF(*(char**)parName);
@@ -739,6 +742,59 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  CONTENT TYPE: %s\n", *(char**)parConType);
     jstring jobConType = status->localJniEnv->NewStringUTF(*(char**)parConType);
     status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pc, jobConType);
+
+    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  WEIGHT : %s\n", *(char**)parWeight);
+    jstring jobjParWeight = status->localJniEnv->NewStringUTF(*(char**)parWeight);
+    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pw, jobjParWeight);
+
+    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  KEEP RENAME : %d\n", parKeepRename);
+    bool _KeepRename = false;
+    if (parKeepRename != 0) _KeepRename = true;
+	jobject jobjParKeepRename = status->localJniEnv->NewObject(clsBoolean, midBoolCon, _KeepRename);
+	if (status->localJniEnv->ExceptionOccurred()) {
+		status->localJniEnv->ExceptionDescribe();
+		release_lock();
+		exit(1);
+	}
+	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pkr, jobjParKeepRename);
+
+
+}
+
+
+// Given a COMPSsException, get its containing message
+static void getReceivedException(JNIEnv* env, jthrowable exception, char** buf)
+{
+    int success = 0;
+    jclass exceptionClazz = env->GetObjectClass((jobject)exception);
+    jclass classClazz = env->GetObjectClass((jobject)exceptionClazz);
+    jmethodID classGetNameMethod = env->GetMethodID(classClazz, "getName", "()Ljava/lang/String;");
+    jstring classNameStr = (jstring)env->CallObjectMethod(exceptionClazz, classGetNameMethod);
+    if (strcmp(env->GetStringUTFChars(classNameStr ,0), "es.bsc.compss.worker.COMPSsException") != 0) {
+        env->ExceptionClear();
+    } else {
+        const char* classNameChars = env->GetStringUTFChars(classNameStr, NULL);
+        if (classNameChars != NULL) {
+            jmethodID throwableGetMessageMethod = env->GetMethodID(exceptionClazz, "getMessage", "()Ljava/lang/String;");
+            jstring messageStr = (jstring)env->CallObjectMethod(exception, throwableGetMessageMethod);
+            if (messageStr != NULL) {
+                const char* messageChars = env->GetStringUTFChars( messageStr, NULL);
+                if (messageChars != NULL) {
+                    *buf = strdup(messageChars);
+                    env->ReleaseStringUTFChars(messageStr, messageChars);
+                    env->ExceptionClear();
+                } else {
+                    env->ExceptionClear();
+                }
+                env->DeleteLocalRef(messageStr);
+            }
+            env->ReleaseStringUTFChars(classNameStr, classNameChars);
+            env->DeleteLocalRef(classNameStr);
+        }
+        env->DeleteLocalRef(classClazz);
+        env->DeleteLocalRef(exceptionClazz);
+    }
+>>>>>>>  add weight and keep rename parameter properties
 }
 
 

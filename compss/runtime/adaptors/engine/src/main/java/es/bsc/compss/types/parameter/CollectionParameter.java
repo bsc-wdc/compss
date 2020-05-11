@@ -50,16 +50,18 @@ public class CollectionParameter extends DependencyParameter {
      * @param stream N/A (At least temporarily)
      * @param prefix N/A (At least temporarily)
      * @param name Name of the parameter in the user code
+     * @param weight Parameter weight.
+     * @param keepRename Parameter keep rename.
      * @see DependencyParameter
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
     public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction,
-        StdIOStream stream, String prefix, String name, String contentType) {
+        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename) {
 
         // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
-        super(DataType.COLLECTION_T, direction, stream, prefix, name, contentType);
+        super(DataType.COLLECTION_T, direction, stream, prefix, name, contentType, weight, keepRename);
         this.parameters = parameters;
         this.collectionId = collectionFile;
     }

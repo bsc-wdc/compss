@@ -39,13 +39,15 @@ public class ObjectParameter extends DependencyParameter {
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param contentType Parameter content type.
+     * @param weight Parameter weight.
      * @param value Parameter object value.
      * @param hashCode Parameter object hashcode.
      */
     public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        Object value, int hashCode) {
+        double weight, Object value, int hashCode) {
 
-        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType);
+        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false);
         this.value = value;
         this.hashCode = hashCode;
     }

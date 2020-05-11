@@ -633,14 +633,20 @@ public class Executor implements Runnable {
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
-            bindOriginalFilenameToRenames(param, sandbox);
+            if (!param.isKeepRename()) {
+                bindOriginalFilenameToRenames(param, sandbox);
+            }
         }
         if (invocation.getTarget() != null) {
             LOGGER.debug("Invocation has non-null target");
-            bindOriginalFilenameToRenames(invocation.getTarget(), sandbox);
+            if (!invocation.getTarget().isKeepRename()) {
+                bindOriginalFilenameToRenames(invocation.getTarget(), sandbox);
+            }
         }
         for (InvocationParam param : invocation.getResults()) {
-            bindOriginalFilenameToRenames(param, sandbox);
+            if (!param.isKeepRename()) {
+                bindOriginalFilenameToRenames(param, sandbox);
+            }
         }
     }
 
@@ -699,39 +705,45 @@ public class Executor implements Runnable {
         String message = null;
         boolean failure = false;
         for (InvocationParam param : invocation.getParams()) {
-            try {
-                unbindOriginalFilenameToRename(param, invocation);
-            } catch (JobExecutionException e) {
-                if (!failure) {
-                    message = e.getMessage();
-                } else {
-                    message = message.concat("\n" + e.getMessage());
+            if (!param.isKeepRename()) {
+                try {
+                    unbindOriginalFilenameToRename(param, invocation);
+                } catch (JobExecutionException e) {
+                    if (!failure) {
+                        message = e.getMessage();
+                    } else {
+                        message = message.concat("\n" + e.getMessage());
+                    }
+                    failure = true;
                 }
-                failure = true;
             }
         }
         if (invocation.getTarget() != null) {
-            try {
-                unbindOriginalFilenameToRename(invocation.getTarget(), invocation);
-            } catch (JobExecutionException e) {
-                if (!failure) {
-                    message = e.getMessage();
-                } else {
-                    message = message.concat("\n" + e.getMessage());
+            if (!invocation.getTarget().isKeepRename()) {
+                try {
+                    unbindOriginalFilenameToRename(invocation.getTarget(), invocation);
+                } catch (JobExecutionException e) {
+                    if (!failure) {
+                        message = e.getMessage();
+                    } else {
+                        message = message.concat("\n" + e.getMessage());
+                    }
+                    failure = true;
                 }
-                failure = true;
             }
         }
         for (InvocationParam param : invocation.getResults()) {
-            try {
-                unbindOriginalFilenameToRename(param, invocation);
-            } catch (JobExecutionException e) {
-                if (!failure) {
-                    message = e.getMessage();
-                } else {
-                    message = message.concat("\n" + e.getMessage());
+            if (!param.isKeepRename()) {
+                try {
+                    unbindOriginalFilenameToRename(param, invocation);
+                } catch (JobExecutionException e) {
+                    if (!failure) {
+                        message = e.getMessage();
+                    } else {
+                        message = message.concat("\n" + e.getMessage());
+                    }
+                    failure = true;
                 }
-                failure = true;
             }
         }
         if (failure && !alreadyFailed) {

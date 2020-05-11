@@ -158,6 +158,9 @@ public abstract class ImplementationDefinition implements Invocation {
                 pyType = "";
             }
 
+            double weight = Double.parseDouble(args[appArgsIdx++]);
+            boolean keepRename = Boolean.parseBoolean(args[appArgsIdx++]);
+
             // // So far, not available in args array
             // String pyType = "null";
 
@@ -218,7 +221,7 @@ public abstract class ImplementationDefinition implements Invocation {
                     throw new Exception(WARN_UNSUPPORTED_DATA_TYPE + argType);
             }
 
-            Param p = new Param(argType, prefix, name, pyType, stream, originalName, writeFinal);
+            Param p = new Param(argType, prefix, name, pyType, stream, weight, keepRename, originalName, writeFinal);
             if (value != null) {
                 p.setValue(value);
             }
@@ -355,18 +358,22 @@ public abstract class ImplementationDefinition implements Invocation {
         private final String prefix;
         private final String name;
         private final String contentType;
+        private final double weight;
+        private final boolean keepRename;
         private final StdIOStream stream;
         private String originalName;
         private String renamedName;
         private final boolean writeFinalValue;
 
 
-        public Param(DataType type, String prefix, String name, String contentType, StdIOStream stream,
-            String originalName, boolean writeFinalValue) {
+        public Param(DataType type, String prefix, String name, String contentType, StdIOStream stream, double weight,
+            boolean keepRename, String originalName, boolean writeFinalValue) {
             this.type = type;
             this.prefix = prefix;
             this.name = name;
             this.contentType = contentType;
+            this.weight = weight;
+            this.keepRename = keepRename;
             this.stream = stream;
             this.originalName = originalName;
             this.writeFinalValue = writeFinalValue;
@@ -410,6 +417,16 @@ public abstract class ImplementationDefinition implements Invocation {
         @Override
         public StdIOStream getStdIOStream() {
             return this.stream;
+        }
+
+        @Override
+        public double getWeight() {
+            return this.weight;
+        }
+
+        @Override
+        public boolean isKeepRename() {
+            return this.keepRename;
         }
 
         @Override

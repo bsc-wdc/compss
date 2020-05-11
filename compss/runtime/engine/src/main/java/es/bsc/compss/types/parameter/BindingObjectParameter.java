@@ -41,13 +41,14 @@ public class BindingObjectParameter extends DependencyParameter {
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param weight Parameter weight.
      * @param bo Parameter binding object.
      * @param hashCode Parameter object hashcode.
      */
     public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, BindingObject bo, int hashCode) {
+        String contentType, double weight, BindingObject bo, int hashCode) {
 
-        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType);
+        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, false);
         this.bo = bo;
         this.hashCode = hashCode;
     }

@@ -36,6 +36,8 @@ public class FakeInvocationParam implements InvocationParam {
     private final String prefix;
     private final String name;
     private final String contentType;
+    private final double weight;
+    private final boolean keepRename;
     private final StdIOStream stream;
     private final boolean writeFinalValue;
     private final String dataMgmtId;
@@ -54,11 +56,13 @@ public class FakeInvocationParam implements InvocationParam {
      * @param writeFinalValue Write final value flag
      */
     public FakeInvocationParam(DataType type, String prefix, String name, String contentType, StdIOStream stream,
-        String originalName, String dataMgmtId, boolean writeFinalValue) {
+        double weight, boolean keepRename, String originalName, String dataMgmtId, boolean writeFinalValue) {
         this.type = type;
         this.prefix = prefix;
         this.name = name;
         this.contentType = contentType;
+        this.weight = weight;
+        this.keepRename = keepRename;
         this.stream = stream;
         this.originalName = originalName;
         this.writeFinalValue = writeFinalValue;
@@ -103,6 +107,16 @@ public class FakeInvocationParam implements InvocationParam {
     @Override
     public StdIOStream getStdIOStream() {
         return this.stream;
+    }
+
+    @Override
+    public double getWeight() {
+        return this.weight;
+    }
+
+    @Override
+    public boolean isKeepRename() {
+        return this.keepRename;
     }
 
     @Override

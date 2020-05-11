@@ -48,10 +48,12 @@ public class DependencyParameter extends Parameter implements Transferable {
      * @param stream Parameter IO stream mode.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param weight Parameter weight.
+     * @param keepRename Parameter keep rename property.
      */
     public DependencyParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType) {
-        super(type, direction, stream, prefix, name, contentType);
+        String contentType, double weight, boolean keepRename) {
+        super(type, direction, stream, prefix, name, contentType, weight, keepRename);
     }
 
     /**

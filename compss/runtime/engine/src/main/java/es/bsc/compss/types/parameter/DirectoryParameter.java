@@ -41,13 +41,16 @@ public class DirectoryParameter extends DependencyParameter {
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param contentType Parameter content type.
+     * @param weight Parameter weight.
+     * @param keepRename Parameter keep rename property.
      * @param location Directory location.
      * @param originalName Original dir name.
      */
     public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        DataLocation location, String originalName) {
+        double weight, boolean keepRename, DataLocation location, String originalName) {
 
-        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType);
+        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename);
         this.location = location;
         this.originalName = originalName;
 

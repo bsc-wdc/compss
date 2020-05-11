@@ -196,6 +196,16 @@ public class LocalParameter implements InvocationParam {
     }
 
     @Override
+    public double getWeight() {
+        return this.param.getWeight();
+    }
+
+    @Override
+    public boolean isKeepRename() {
+        return this.param.isKeepRename();
+    }
+
+    @Override
     public String getOriginalName() {
         return this.originalName;
     }

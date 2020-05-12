@@ -238,6 +238,8 @@ public class TaskGroup implements AutoCloseable {
 
     /**
      * Returns if the task group is closed or not.
+     * 
+     * @return @literal{true}, if the group is closed
      */
     public boolean isClosed() {
         return this.closed;

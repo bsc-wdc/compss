@@ -21,7 +21,7 @@ package es.bsc.compss.types.request.td;
  */
 public enum TDRequestType {
     ACTION_UPDATE, // Update action
-    CANCEL_TASKS, // Cancel a set of tasks
+    CANCEL_TASKS, // Cancel a task
     CE_REGISTRATION, // Register new coreElement
     EXECUTE_TASKS, // Execute task
     GET_CURRENT_SCHEDULE, // get the current schedule status

@@ -404,6 +404,16 @@ public class TaskScheduler {
     }
 
     /**
+     * Registers an action as canceled.
+     *
+     * @param action Action to cancel
+     */
+    @SuppressWarnings("unchecked")
+    public final void cancelAllocatableAction(AllocatableAction action) {
+        action.cancel();
+    }
+
+    /**
      * Registers an action as running and releases its stream dependencies.
      * 
      * @param action Running AllocatableAction.

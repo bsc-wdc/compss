@@ -31,9 +31,9 @@ import java.util.concurrent.Semaphore;
 
 public class CancelTaskGroupRequest extends APRequest {
 
-    private Long appId;
-    private String groupName;
-    private Semaphore sem;
+    private final Long appId;
+    private final String groupName;
+    private final Semaphore sem;
 
 
     /**
@@ -54,7 +54,7 @@ public class CancelTaskGroupRequest extends APRequest {
      *
      * @return The waiting semaphore.
      */
-    public Semaphore getSemaphore() {
+    public final Semaphore getSemaphore() {
         return this.sem;
     }
 
@@ -70,7 +70,7 @@ public class CancelTaskGroupRequest extends APRequest {
         cancelGroup(ta, td);
     }
 
-    protected void cancelGroup(TaskAnalyser ta, TaskDispatcher td) {
+    protected final void cancelGroup(TaskAnalyser ta, TaskDispatcher td) {
         TaskGroup tg = ta.removeTaskGroup(appId, groupName);
         if (tg != null) {
             List<Task> tasks = tg.getTasks();
@@ -90,7 +90,7 @@ public class CancelTaskGroupRequest extends APRequest {
      *
      * @return The associated application Id.
      */
-    public Long getAppId() {
+    public final Long getAppId() {
         return this.appId;
     }
 
@@ -99,7 +99,7 @@ public class CancelTaskGroupRequest extends APRequest {
      *
      * @return The associated task group name.
      */
-    public String getGroupName() {
+    public final String getGroupName() {
         return this.groupName;
     }
 }

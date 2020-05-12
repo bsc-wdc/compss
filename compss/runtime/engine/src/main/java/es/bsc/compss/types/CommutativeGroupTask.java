@@ -47,12 +47,12 @@ public class CommutativeGroupTask extends AbstractTask {
     /**
      * Creates a new CommutativeTaskGroup instance.
      * 
-     * @param appId Application Id.
+     * @param app Application.
      * @param comId Commutative group identifier.
      */
-    public CommutativeGroupTask(Long appId, CommutativeIdentifier comId) {
-        super(appId);
-        this.commutativeTasks = new LinkedList<Task>();
+    public CommutativeGroupTask(Application app, CommutativeIdentifier comId) {
+        super(app);
+        this.commutativeTasks = new LinkedList<>();
         this.finalVersion = 0;
         this.currentlyExecuting = false;
         this.executionCount = 0;

@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.types.Application;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
@@ -33,7 +34,7 @@ public abstract class DataInfo {
     // Data identifier
     protected final int dataId;
     // Generating applicatication
-    protected final Long appId;
+    protected final Application app;
 
     // Current version
     protected DataVersion currentVersion;
@@ -55,11 +56,11 @@ public abstract class DataInfo {
     /**
      * Creates a new DataInfo instance with and registers a new LogicalData.
      * 
-     * @param appId application generating the data
+     * @param app application generating the data
      */
-    public DataInfo(Long appId) {
+    public DataInfo(Application app) {
         this.dataId = nextDataId++;
-        this.appId = appId;
+        this.app = app;
         this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
         this.currentVersion = new DataVersion(dataId, 1);
@@ -81,12 +82,12 @@ public abstract class DataInfo {
     }
 
     /**
-     * Returns the Id of the application generating the DataInfo.
+     * Returns the application generating the DataInfo.
      * 
-     * @return the Id of the application generating the DataInfo.
+     * @return the application generating the DataInfo.
      */
-    public Long getGeneratingAppId() {
-        return appId;
+    public Application getGeneratingAppId() {
+        return this.app;
     }
 
     /**

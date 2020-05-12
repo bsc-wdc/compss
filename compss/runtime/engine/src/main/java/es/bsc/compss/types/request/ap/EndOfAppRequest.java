@@ -20,33 +20,36 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
+import es.bsc.compss.types.Barrier;
+import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
 
 
-public class EndOfAppRequest extends APRequest {
+public class EndOfAppRequest extends APRequest implements Barrier {
 
-    private final Long appId;
+    private final Application app;
     private final Semaphore sem;
 
 
     /**
      * Creates a new request to end the application.
      * 
-     * @param appId Application Id.
+     * @param app Application Id.
      * @param sem Waiting semaphore.
      */
-    public EndOfAppRequest(Long appId, Semaphore sem) {
-        this.appId = appId;
+    public EndOfAppRequest(Application app, Semaphore sem) {
+        this.app = app;
         this.sem = sem;
     }
 
     /**
-     * Returns the application Id of the request.
+     * Returns the application of the request.
      * 
-     * @return The application Id of the request.
+     * @return The application of the request.
      */
-    public Long getAppId() {
-        return this.appId;
+    public Application getApp() {
+        return this.app;
     }
 
     /**
@@ -66,6 +69,22 @@ public class EndOfAppRequest extends APRequest {
     @Override
     public APRequestType getRequestType() {
         return APRequestType.END_OF_APP;
+    }
+
+    @Override
+    public void setException(COMPSsException exception) {
+        // EndOfApp does not support exceptions.
+    }
+
+    @Override
+    public COMPSsException getException() {
+        // EndOfApp does not support exceptions.
+        return null;
+    }
+
+    @Override
+    public void release() {
+        sem.release();
     }
 
 }

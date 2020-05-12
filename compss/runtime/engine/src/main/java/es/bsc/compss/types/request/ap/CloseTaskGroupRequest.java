@@ -20,20 +20,21 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 
 
 public class CloseTaskGroupRequest extends APRequest {
 
-    private Long appId;
+    private Application app;
 
 
-    public CloseTaskGroupRequest(Long appId) {
-        this.appId = appId;
+    public CloseTaskGroupRequest(Application app) {
+        this.app = app;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.closeCurrentTaskGroup(this.appId);
+        ta.closeCurrentTaskGroup(app);
     }
 
     @Override

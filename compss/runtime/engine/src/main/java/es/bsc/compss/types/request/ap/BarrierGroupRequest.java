@@ -20,35 +20,37 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
+import es.bsc.compss.types.Barrier;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.concurrent.Semaphore;
 
 
-public class BarrierGroupRequest extends APRequest {
+public class BarrierGroupRequest extends APRequest implements Barrier {
 
     private String groupName;
     private Semaphore sem;
-    private Long appId;
+    private Application app;
     private COMPSsException exception;
 
 
     /**
      * Creates a new group barrier request.
      * 
-     * @param appId Application Id.
+     * @param app Application Id.
      * @param groupName Name of the group.
      * @param sem Waiting semaphore.
      */
-    public BarrierGroupRequest(Long appId, String groupName, Semaphore sem) {
-        this.appId = appId;
+    public BarrierGroupRequest(Application app, String groupName, Semaphore sem) {
+        this.app = app;
         this.groupName = groupName;
         this.sem = sem;
         this.exception = null;
     }
 
-    public Long getAppId() {
-        return this.appId;
+    public Application getApp() {
+        return this.app;
     }
 
     public String getGroupName() {
@@ -63,10 +65,12 @@ public class BarrierGroupRequest extends APRequest {
         this.sem = sem;
     }
 
+    @Override
     public COMPSsException getException() {
         return this.exception;
     }
 
+    @Override
     public void setException(COMPSsException exception) {
         this.exception = exception;
     }
@@ -79,5 +83,10 @@ public class BarrierGroupRequest extends APRequest {
     @Override
     public APRequestType getRequestType() {
         return APRequestType.WAIT_FOR_ALL_TASKS;
+    }
+
+    @Override
+    public void release() {
+        sem.release();
     }
 }

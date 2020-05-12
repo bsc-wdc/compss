@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.operation.ResultListener;
 
@@ -30,7 +31,7 @@ import java.util.concurrent.Semaphore;
 
 public class GetResultFilesRequest extends APRequest {
 
-    private final Long appId;
+    private final Application app;
     private final Semaphore sem;
 
     private final LinkedList<ResultFile> blockedData;
@@ -39,22 +40,22 @@ public class GetResultFilesRequest extends APRequest {
     /**
      * Creates a new request to retrieve the result files.
      * 
-     * @param appId Application Id.
+     * @param app Application.
      * @param sem Waiting semaphore.
      */
-    public GetResultFilesRequest(Long appId, Semaphore sem) {
-        this.appId = appId;
+    public GetResultFilesRequest(Application app, Semaphore sem) {
+        this.app = app;
         this.sem = sem;
         this.blockedData = new LinkedList<>();
     }
 
     /**
-     * Returns the application Id of the request.
+     * Returns the application of the request.
      * 
-     * @return The application Id of the request.
+     * @return The application of the request.
      */
-    public Long getAppId() {
-        return this.appId;
+    public Application getApp() {
+        return this.app;
     }
 
     /**
@@ -78,7 +79,7 @@ public class GetResultFilesRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ResultListener listener = new ResultListener(sem);
-        Set<Integer> writtenDataIds = ta.getAndRemoveWrittenFiles(this.appId);
+        Set<Integer> writtenDataIds = ta.getAndRemoveWrittenFiles(this.app);
         if (writtenDataIds != null) {
             for (int dataId : writtenDataIds) {
                 ResultFile rf;

@@ -860,7 +860,7 @@ public class ExecutionAction extends AllocatableAction {
     protected void doException(COMPSsException e) {
         LinkedList<TaskGroup> taskGroups = this.task.getTaskGroupList();
         for (TaskGroup group : taskGroups) {
-            if (!group.getName().equals("App" + this.task.getAppId())) {
+            if (!group.getName().equals("App" + this.task.getApplication().getId())) {
                 group.setException((COMPSsException) e);
                 for (Task t : group.getTasks()) {
                     if (t.getId() != this.getTask().getId()) {

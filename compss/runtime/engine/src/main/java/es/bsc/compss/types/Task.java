@@ -62,7 +62,7 @@ public class Task extends AbstractTask {
     /**
      * Creates a new METHOD task with the given parameters.
      *
-     * @param appId Application Id.
+     * @param app Application to which the task belongs.
      * @param lang Application language.
      * @param signature Task signature.
      * @param isPrioritary Whether the task has priority or not.
@@ -76,11 +76,11 @@ public class Task extends AbstractTask {
      * @param onFailure On failure mechanisms.
      * @param timeOut Time for a task time out.
      */
-    public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
+    public Task(Application app, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
         boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
         OnFailure onFailure, long timeOut) {
 
-        super(appId);
+        super(app);
         CoreElement core = CoreManager.getCore(signature);
         this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, core, isPrioritary, numNodes,
             isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
@@ -92,7 +92,7 @@ public class Task extends AbstractTask {
     /**
      * Creates a new SERVICE task with the given parameters.
      *
-     * @param appId Application Id.
+     * @param app Application to which the tasks belongs.
      * @param namespace Service namespace.
      * @param service Service name.
      * @param port Service port.
@@ -105,11 +105,11 @@ public class Task extends AbstractTask {
      * @param onFailure On failure mechanisms.
      * @param timeOut Time for a task time out.
      */
-    public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
+    public Task(Application app, String namespace, String service, String port, String operation, boolean isPrioritary,
         boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
         long timeOut) {
 
-        super(appId);
+        super(app);
         String signature =
             ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, numReturns, parameters);
         CoreElement core = CoreManager.getCore(signature);
@@ -221,12 +221,12 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Returns whether the task is scheduling forced or not. Registers a new task group for the dataId @daId.
+     * Adds a new TaskGroup to the task.
      * 
      * @param taskGroup Group of tasks.
      */
 
-    public void setTaskGroup(TaskGroup taskGroup) {
+    public void addTaskGroup(TaskGroup taskGroup) {
         this.taskGroups.add(taskGroup);
     }
 

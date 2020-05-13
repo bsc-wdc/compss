@@ -19,8 +19,8 @@ package es.bsc.compss.types;
 import es.bsc.compss.connectors.Connector;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.connectors.Cost;
-import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.listeners.ResourceCreationListener;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
@@ -368,6 +368,7 @@ public class CloudProvider {
      * Requests for a new resource creation.
      * 
      * @param instanceDescription Resource description to create.
+     * @param listener listener to be notified progress on the resource creation
      * @return The new ResourceCreationRequest.
      */
     public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription,

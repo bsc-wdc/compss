@@ -14,18 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.components;
+package es.bsc.compss.types.listeners;
 
-/**
- * Abstract interface for task producer implementations.
- */
-public interface TaskProducer {
+import es.bsc.compss.types.resources.ResourceDescription;
+
+
+public interface ResourceCreationListener {
 
     /**
-     * Cancellation of all the tasks in the given group.
+     * Notifies the creation of the requested resources.
      * 
-     * @param groupName Task group name to cancel.
+     * @param desc description of the resources created
      */
-    public void cancelTaskGroup(Long appId, String groupName);
-
+    public void notifyResourceCreation(ResourceDescription desc);
 }

@@ -25,7 +25,6 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
-import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
@@ -48,6 +47,7 @@ import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
@@ -1012,7 +1012,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
             + " for application " + appId);
         // Create listener to cancel the associated task group
-        ResourceCreationListener rcl = new ResourceCreationListener(ap, appId, groupName);
+        CancelTaskGroupOnResourceCreation rcl = new CancelTaskGroupOnResourceCreation(ap, appId, groupName);
 
         // Create resources
         ResourceManager.requestResources(numResources, rcl);

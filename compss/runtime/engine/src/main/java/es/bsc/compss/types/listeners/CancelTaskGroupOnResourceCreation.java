@@ -14,17 +14,18 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.listeners;
+package es.bsc.compss.types.listeners;
 
-import es.bsc.compss.components.TaskProducer;
+import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.types.resources.ResourceDescription;
 
 
 /**
  * Listener to acknowledge the creation of resources through API calls.
  */
-public class ResourceCreationListener {
+public class CancelTaskGroupOnResourceCreation implements ResourceCreationListener {
 
-    private final TaskProducer taskProducer;
+    private final AccessProcessor taskProducer;
     private final Long appId;
     private final String groupName;
 
@@ -36,16 +37,14 @@ public class ResourceCreationListener {
      * @param appId Application Id.
      * @param groupName Task group to be notified.
      */
-    public ResourceCreationListener(TaskProducer taskProducer, Long appId, String groupName) {
+    public CancelTaskGroupOnResourceCreation(AccessProcessor taskProducer, Long appId, String groupName) {
         this.taskProducer = taskProducer;
         this.appId = appId;
         this.groupName = groupName;
     }
 
-    /**
-     * Notifies the creation of the requested resources.
-     */
-    public void notifyResourceCreation() {
+    @Override
+    public void notifyResourceCreation(ResourceDescription desc) {
         // Cancel associated task group (if provided)
         if (this.taskProducer != null && this.appId != null && this.groupName != null && !this.groupName.isEmpty()
             && !this.groupName.equals("NULL")) {

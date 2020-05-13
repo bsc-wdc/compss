@@ -25,8 +25,10 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.request.listener.RequestListener;
 import es.bsc.compss.types.request.td.ActionUpdate;
 import es.bsc.compss.types.request.td.CERegistration;
+import es.bsc.compss.types.request.td.CancelTaskRequest;
 import es.bsc.compss.types.request.td.ExecuteTasksRequest;
 import es.bsc.compss.types.request.td.MonitoringDataRequest;
 import es.bsc.compss.types.request.td.PrintCurrentGraphRequest;
@@ -204,6 +206,17 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             ExecuteTasksRequest request = new ExecuteTasksRequest(ap, (Task) task);
             addRequest(request);
         }
+    }
+
+    /**
+     * Cancels the execution of a set of tasks.
+     * 
+     * @param task task to cancel
+     * @param listener object to notify when the tasks have been cancelled
+     */
+    public void cancelTasks(Task task, RequestListener listener) {
+        CancelTaskRequest request = new CancelTaskRequest(task, listener);
+        addRequest(request);
     }
 
     // Notification thread
@@ -401,4 +414,5 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
         return scheduler;
     }
+
 }

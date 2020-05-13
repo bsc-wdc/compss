@@ -20,6 +20,7 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.components.monitor.impl.EdgeType;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
@@ -52,7 +53,6 @@ import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
-import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
@@ -533,43 +533,19 @@ public class TaskAnalyser {
     }
 
     /**
-     * Cancels tasks of a given application.
+     * Removes a given group from an application.
      *
-     * @param request Cancel application tasks request.
+     * @param appId Application to whom the group belongs.
+     * @param groupName group to remove
+     * @return removed group; @literal{null}, if the group was not found
      */
-    public void cancelApplicationTasks(CancelApplicationTasksRequest request) {
-        LOGGER.debug("Cancelling tasks of application " + request.getAppId());
-        Semaphore sem = request.getSemaphore();
-        Long appId = request.getAppId();
-        String groupName = "App" + appId;
-
+    public TaskGroup removeTaskGroup(Long appId, String groupName) {
+        TaskGroup tg = null;
         if (this.taskGroups.containsKey(appId) && this.taskGroups.get(appId).containsKey(groupName)) {
-            TaskGroup tg = this.taskGroups.get(appId).get(groupName);
-            tg.cancelTasks();
+            tg = this.taskGroups.get(appId).get(groupName);
             this.taskGroups.remove(appId);
         }
-        sem.release();
-    }
-
-    /**
-     * Cancels all the task within the given task group.
-     *
-     * @param request Cancel task group request.
-     */
-    public void cancelTaskGroup(CancelTaskGroupRequest request) {
-        Long appId = request.getAppId();
-        String groupName = request.getGroupName();
-        if (DEBUG) {
-            LOGGER.debug("Cancelling tasks of group " + request.getGroupName());
-        }
-
-        Semaphore sem = request.getSemaphore();
-        if (this.taskGroups.containsKey(appId) && this.taskGroups.get(appId).containsKey(groupName)) {
-            TaskGroup tg = this.taskGroups.get(appId).get(groupName);
-            tg.cancelTasks();
-            this.taskGroups.remove(appId);
-        }
-        sem.release();
+        return tg;
     }
 
     /**

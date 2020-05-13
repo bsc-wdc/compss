@@ -540,7 +540,7 @@ public class TaskScheduler {
         // Process the action error (removes the assigned resource)
         try {
             if (action.isCancelling()) {
-                action.canceled();
+                action.cancel();
             } else {
                 action.error();
             }

@@ -895,7 +895,7 @@ public abstract class AllocatableAction {
         // Forward cancellation to members of the same task group
         for (AllocatableAction aa : groupActions) {
             if (aa.state == State.RUNNING || aa.state == State.WAITING || aa.state == State.RUNNABLE) {
-                cancel.addAll(aa.canceled());
+                cancel.addAll(aa.cancel());
             }
         }
 
@@ -926,7 +926,7 @@ public abstract class AllocatableAction {
         doFailed();
 
         for (AllocatableAction succ : successors) {
-            failed.addAll(succ.canceled());
+            failed.addAll(succ.cancel());
         }
 
         this.dataPredecessors.clear();
@@ -963,7 +963,7 @@ public abstract class AllocatableAction {
      *
      * @return List of cancelled successor Allocatable Actions.
      */
-    public final List<AllocatableAction> canceled() {
+    public final List<AllocatableAction> cancel() {
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
 
@@ -998,7 +998,7 @@ public abstract class AllocatableAction {
                     if (!succ.isFinished()) {
                         LOGGER.debug("Cancelling action " + succ.getId() + " because of successor of canceled action "
                             + this.getId());
-                        cancel.addAll(succ.canceled());
+                        cancel.addAll(succ.cancel());
                     }
                 }
 

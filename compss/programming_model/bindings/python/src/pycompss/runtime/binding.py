@@ -48,7 +48,6 @@ import inspect
 import logging
 import traceback
 import base64
-import hashlib
 
 from collections import *
 from shutil import rmtree
@@ -174,6 +173,7 @@ def calculate_identifier(obj):
     #     #  - IN User defined object with parameter change without __repr__
     #     # INOUT parameters to be modified require a synchronization, so they
     #     # are not affected.
+    #     import hashlib
     #     hash_id = hashlib.md5()
     #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
     #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501

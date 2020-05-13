@@ -19,7 +19,6 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.TaskProducer;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
@@ -92,7 +91,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * Component to handle the tasks accesses to files and object.
  */
-public class AccessProcessor implements Runnable, TaskProducer {
+public class AccessProcessor implements Runnable {
 
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
@@ -711,7 +710,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         LOGGER.info("Tasks cancelled for application with id " + appId);
     }
 
-    @Override
+    /**
+     * Cancellation of the remaining tasks of a group.
+     * 
+     * @param appId Application Id.
+     * @param groupName name of the group whose tasks will be cancelled.
+     */
     public void cancelTaskGroup(Long appId, String groupName) {
         LOGGER.info("Cancel remaining tasks for application " + appId + " and group " + groupName);
 

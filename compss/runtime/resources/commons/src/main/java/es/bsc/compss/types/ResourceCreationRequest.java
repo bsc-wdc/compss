@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.listeners.ResourceCreationListener;
+import es.bsc.compss.types.listeners.ResourceCreationListener;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
@@ -41,6 +41,7 @@ public class ResourceCreationRequest {
      * @param simultaneousTasks Simultaneous tasks that are required to run in the created resource.
      * @param cp Associated Cloud Provider.
      * @param requestID Request Id.
+     * @param listener listener to be notified progress on the resource creation
      */
     public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks,
         CloudProvider cp, String requestID, ResourceCreationListener listener) {

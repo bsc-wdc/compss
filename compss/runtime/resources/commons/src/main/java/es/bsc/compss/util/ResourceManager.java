@@ -21,10 +21,10 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
-import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
+import es.bsc.compss.types.listeners.ResourceCreationListener;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
@@ -398,7 +398,7 @@ public class ResourceManager {
         // Notify if listener is set
         ResourceCreationListener listener = origin.getListener();
         if (listener != null) {
-            listener.notifyResourceCreation();
+            listener.notifyResourceCreation(granted);
         }
     }
 
@@ -591,6 +591,7 @@ public class ResourceManager {
      * Requests the creation of {@code numResources} new machines.
      * 
      * @param numResources Number of resources to create.
+     * @param listener listener to be notified progress on the resource creation
      */
     public static void requestResources(int numResources, ResourceCreationListener listener) {
         CloudProvider cp = getAvailableCloudProviders().iterator().next(); // first

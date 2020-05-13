@@ -25,30 +25,16 @@ import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
 
 
-public class CancelApplicationTasksRequest extends APRequest {
-
-    private Long appId;
-    private Semaphore sem;
-
+public class CancelApplicationTasksRequest extends CancelTaskGroupRequest {
 
     /**
      * Creates a request to cancel all tasks of an application.
-     * 
+     *
      * @param appId Application Id.
      * @param sem Synchronising semaphore.
      */
     public CancelApplicationTasksRequest(Long appId, Semaphore sem) {
-        this.appId = appId;
-        this.sem = sem;
-    }
-
-    /**
-     * Returns the waiting semaphore.
-     * 
-     * @return The waiting semaphore.
-     */
-    public Semaphore getSemaphore() {
-        return this.sem;
+        super(appId, "App" + appId, sem);
     }
 
     @Override
@@ -59,15 +45,8 @@ public class CancelApplicationTasksRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException, COMPSsException {
-        ta.cancelApplicationTasks(this);
+        LOGGER.debug("Cancelling tasks of application " + getAppId());
+        super.cancelGroup(ta, td);
     }
 
-    /**
-     * Returns the associated application Id.
-     * 
-     * @return The associated application Id.
-     */
-    public Long getAppId() {
-        return appId;
-    }
 }

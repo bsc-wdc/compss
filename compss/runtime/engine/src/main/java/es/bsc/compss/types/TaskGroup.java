@@ -17,7 +17,6 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -242,19 +241,6 @@ public class TaskGroup implements AutoCloseable {
      */
     public boolean isClosed() {
         return this.closed;
-    }
-
-    /**
-     * Cancels group tasks.
-     */
-    public void cancelTasks() {
-        LOGGER.debug("Cancelling " + this.tasks.size() + " tasks.");
-        for (Task t : this.tasks) {
-            for (AllocatableAction aa : t.getExecutions()) {
-                aa.canceled();
-            }
-        }
-        LOGGER.debug("All the application tasks have been cancelled.");
     }
 
     /**

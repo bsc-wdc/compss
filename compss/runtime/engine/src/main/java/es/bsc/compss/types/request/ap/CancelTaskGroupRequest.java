@@ -20,8 +20,12 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Task;
+import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.request.listener.StaticMultioperationSemaphore;
 import es.bsc.compss.worker.COMPSsException;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 
@@ -34,7 +38,7 @@ public class CancelTaskGroupRequest extends APRequest {
 
     /**
      * Creates a request to cancel all tasks of an application.
-     * 
+     *
      * @param appId Application Id.
      * @param groupName Task group name to cancel.
      * @param sem Synchronising semaphore.
@@ -47,7 +51,7 @@ public class CancelTaskGroupRequest extends APRequest {
 
     /**
      * Returns the waiting semaphore.
-     * 
+     *
      * @return The waiting semaphore.
      */
     public Semaphore getSemaphore() {
@@ -62,12 +66,28 @@ public class CancelTaskGroupRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException, COMPSsException {
-        ta.cancelTaskGroup(this);
+        LOGGER.debug("Cancelling tasks of group " + groupName);
+        cancelGroup(ta, td);
+    }
+
+    protected void cancelGroup(TaskAnalyser ta, TaskDispatcher td) {
+        TaskGroup tg = ta.removeTaskGroup(appId, groupName);
+        if (tg != null) {
+            List<Task> tasks = tg.getTasks();
+            int taskCount = tasks.size();
+            StaticMultioperationSemaphore listener = new StaticMultioperationSemaphore(taskCount, sem);
+            LOGGER.debug("Cancelling " + taskCount + " tasks.");
+            for (Task t : tasks) {
+                td.cancelTasks(t, listener);
+            }
+        } else {
+            sem.release();
+        }
     }
 
     /**
      * Returns the associated application Id.
-     * 
+     *
      * @return The associated application Id.
      */
     public Long getAppId() {
@@ -76,7 +96,7 @@ public class CancelTaskGroupRequest extends APRequest {
 
     /**
      * Returns the associated task group name.
-     * 
+     *
      * @return The associated task group name.
      */
     public String getGroupName() {

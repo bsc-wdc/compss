@@ -254,8 +254,10 @@ public class ExecutionAction extends AllocatableAction {
                 JOB_LOGGER.debug("Detected CollectionParameter " + cp);
                 // Recursively send all the collection parameters
                 for (Parameter p : cp.getParameters()) {
-                    DependencyParameter dp = (DependencyParameter) p;
-                    transferJobData(dp, listener);
+                    if (p instanceof DependencyParameter) {
+                        DependencyParameter dp = (DependencyParameter) p;
+                        transferJobData(dp, listener);
+                    }
                 }
                 // Send the collection parameter itself
                 transferSingleParameter(param, listener);
@@ -278,7 +280,7 @@ public class ExecutionAction extends AllocatableAction {
         if (access instanceof WAccessId) {
             /*
              * String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
-             * 
+             *
              * // Workaround for return objects in bindings converted to PSCOs inside tasks DataType type =
              * param.getType(); if (type.equals(DataType.EXTERNAL_PSCO_T)) { ExternalPSCOParameter epp =
              * (ExternalPSCOParameter) param; tgtName = epp.getId(); } if (DEBUG) {
@@ -424,8 +426,10 @@ public class ExecutionAction extends AllocatableAction {
                 JOB_LOGGER.debug("Detected CollectionParameter " + cp);
                 // Recursively send all the collection parameters
                 for (Parameter p : cp.getParameters()) {
-                    DependencyParameter dp = (DependencyParameter) p;
-                    removeTmpData(dp);
+                    if (p instanceof DependencyParameter) {
+                        DependencyParameter dp = (DependencyParameter) p;
+                        removeTmpData(dp);
+                    }
                 }
             }
 
@@ -757,7 +761,7 @@ public class ExecutionAction extends AllocatableAction {
 
     /**
      * Notification announcing that all input data for a specific job is available on the node.
-     * 
+     *
      * @param job job whose input data is in the worker
      */
     public void allInputDataOnWorker(Job<?> job) {

@@ -48,7 +48,6 @@ import inspect
 import logging
 import traceback
 import base64
-import hashlib
 
 from collections import *
 from shutil import rmtree
@@ -149,26 +148,38 @@ def calculate_identifier(obj):
     :param obj: Object to get the identifier
     :return: String (md5 string)
     """
-    inmutable_types = [bool, int, float, complex, str, tuple, frozenset, bytes]
-    obj_type = type(obj)
-    if obj_type in inmutable_types:
-        obj_addr = id(obj)  # Only guarantees uniqueness with inmutable objects
-    else:
-        # For all the rest, use hash of:
-        #  - The object id
-        #  - The size of the object (object increase/decrease)
-        #  - The object representation (object size is the same but has been
-        #                               modified (e.g. list element))
-        # WARNING: Caveat:
-        #  - IN User defined object with parameter change without __repr__
-        # INOUT parameters to be modified require a synchronization, so they
-        # are not affected.
-        hash_id = hashlib.md5()
-        hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-        hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-        hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-        obj_addr = str(hash_id.hexdigest())
-    return obj_addr
+    return id(obj)
+    # # If we want to detect automatically IN objects modification we need
+    # # to ensure uniqueness of the identifier. At this point, obj is a
+    # # reference to the object that we want to compute its identifier.
+    # # This means that we do not have the previous object to compare directly.
+    # # So the only way would be to ensure the uniqueness by calculating
+    # # an id which depends on the object.
+    # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the object
+    # #                                   (IN) to be modified explicitly.
+    # immutable_types = [bool, int, float, complex, str,
+    #                    tuple, frozenset, bytes]
+    # obj_type = type(obj)
+    # if obj_type in immutable_types:
+    #     obj_addr = id(obj)  # Only guarantees uniqueness with
+    #                         # immutable objects
+    # else:
+    #     # For all the rest, use hash of:
+    #     #  - The object id
+    #     #  - The size of the object (object increase/decrease)
+    #     #  - The object representation (object size is the same but has been
+    #     #                               modified (e.g. list element))
+    #     # WARNING: Caveat:
+    #     #  - IN User defined object with parameter change without __repr__
+    #     # INOUT parameters to be modified require a synchronization, so they
+    #     # are not affected.
+    #     import hashlib
+    #     hash_id = hashlib.md5()
+    #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+    #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+    #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+    #     obj_addr = str(hash_id.hexdigest())
+    # return obj_addr
 
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):

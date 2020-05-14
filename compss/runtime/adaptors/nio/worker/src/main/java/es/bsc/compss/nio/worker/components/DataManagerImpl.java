@@ -249,6 +249,7 @@ public class DataManagerImpl implements DataManager {
                 break;
             default:
                 // Nothing to do since basic type parameters require no action
+                tt.fetchedValue(param.getDataMgmtId());
                 break;
         }
     }

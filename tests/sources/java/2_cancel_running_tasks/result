@@ -68,7 +68,7 @@
   fi
   
   # Check if barriers have been aded
-  output1=$(cat "${runtime_log}" | grep "Added barrier for group" | wc -l)
+  output1=$(cat "${runtime_log}" | grep "Added barrier for group" | grep -v "group App1" | wc -l)
   if [ "${output1}" -ne 2 ]; then
   	echo "ERROR: The barriers have not been added to the groups."
   	exit 1

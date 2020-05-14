@@ -21,6 +21,7 @@ import es.bsc.compss.types.data.DataInfo;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
@@ -32,10 +33,18 @@ public class Application {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 
-    private static final TreeMap<Long, Application> APPLICATIONS = new TreeMap<>();
-    private static final Application NO_APPLICATION = new Application(null);
+    private static final Random APP_ID_GENERATOR = new Random();
 
+    private static final TreeMap<Long, Application> APPLICATIONS = new TreeMap<>();
+    private static final Application NO_APPLICATION = new Application(null, null);
+
+    /*
+     * Application definition
+     */
+    // Id of the application
     private final Long id;
+    // Parallelism source
+    private final String parallelismSource;
 
     /*
      * Application state variables
@@ -88,6 +97,39 @@ public class Application {
     }
 
     /**
+     * Registers a new application with a non-currently-used appId.
+     *
+     * @return Application instance registered.
+     */
+    public static Application registerApplication() {
+        Application app;
+        Long appId = APP_ID_GENERATOR.nextLong();
+        while (APPLICATIONS.containsKey(appId)) {
+            appId = APP_ID_GENERATOR.nextLong();
+        }
+        app = new Application(appId, null);
+        APPLICATIONS.put(appId, app);
+        return app;
+    }
+
+    /**
+     * Registers a new application with a non-currently-used appId.
+     *
+     * @param parallelismSource element identifying the inner tasks
+     * @return Application instance registered.
+     */
+    public static Application registerApplication(String parallelismSource) {
+        Application app;
+        Long appId = APP_ID_GENERATOR.nextLong();
+        while (APPLICATIONS.containsKey(appId)) {
+            appId = APP_ID_GENERATOR.nextLong();
+        }
+        app = new Application(appId, parallelismSource);
+        APPLICATIONS.put(appId, app);
+        return app;
+    }
+
+    /**
      * Registers an application with Id @code{appId}. If the application has already been registered, it returns the
      * previous instance. Otherwise, it creates a new application instance.
      *
@@ -99,10 +141,31 @@ public class Application {
         if (appId == null) {
             app = NO_APPLICATION;
         } else {
-
             app = APPLICATIONS.get(appId);
             if (app == null) {
-                app = new Application(appId);
+                app = new Application(appId, null);
+                APPLICATIONS.put(appId, app);
+            }
+        }
+        return app;
+    }
+
+    /**
+     * Registers an application with Id @code{appId}. If the application has already been registered, it returns the
+     * previous instance. Otherwise, it creates a new application instance.
+     *
+     * @param appId Id of the application to be registered
+     * @param parallelismSource element identifying the inner tasks
+     * @return Application instance registered for that appId.
+     */
+    public static Application registerApplication(Long appId, String parallelismSource) {
+        Application app;
+        if (appId == null) {
+            app = NO_APPLICATION;
+        } else {
+            app = APPLICATIONS.get(appId);
+            if (app == null) {
+                app = new Application(appId, parallelismSource);
                 APPLICATIONS.put(appId, app);
             }
         }
@@ -142,8 +205,9 @@ public class Application {
         }
     }
 
-    private Application(Long appId) {
+    private Application(Long appId, String parallelismSource) {
         this.id = appId;
+        this.parallelismSource = parallelismSource;
         this.totalTaskCount = 0;
         this.ending = false;
         this.currentTaskGroups = new Stack<>();
@@ -156,6 +220,10 @@ public class Application {
 
     public long getId() {
         return this.id;
+    }
+
+    public String getParallelismSource() {
+        return parallelismSource;
     }
 
     /*

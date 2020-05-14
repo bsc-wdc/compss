@@ -56,7 +56,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -70,19 +69,18 @@ public class Agent {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
     private static final String LOADER_CLASS_NAME = Loader.class.getCanonicalName();
     private static final String LOADER_METHOD_NAME = "load";
-    private static final String LOADER_PARAMS = "(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,INT_T,OBJECT_T)";
+    private static final String LOADER_PARAMS = "(OBJECT_T,OBJECT_T,STRING_T,STRING_T,STRING_T,INT_T,OBJECT_T)";
     private static final String LOADER_SIGNATURE = LOADER_METHOD_NAME + LOADER_PARAMS;
 
     private static final String AGENT_NAME;
 
     private static final COMPSsRuntimeImpl RUNTIME;
 
-    private static final Random APP_ID_GENERATOR = new Random();
     private static final List<AgentInterface<?>> INTERFACES;
 
     private static final int PARAM_LENGTH = COMPSsRuntimeImpl.NUM_FIELDS_PER_PARAM;
 
-    private static final int LOAD_PARAMS_COUNT = 7;
+    private static final int LOAD_PARAMS_COUNT = 6;
 
     static {
         AGENT_NAME = COMPSsNode.getMasterName();
@@ -166,10 +164,8 @@ public class Agent {
         ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
         AppMonitor monitor) throws AgentException {
 
-        long appId = Math.abs(APP_ID_GENERATOR.nextLong());
-        monitor.setAppId(appId);
-
-        long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
+        long mainAppId = RUNTIME.registerApplication();
+        monitor.setAppId(mainAppId);
 
         try {
             int taskParamsCount = arguments.length;
@@ -285,9 +281,8 @@ public class Agent {
                 params[position + 8] = new Boolean(param.isKeepRename());
                 position += PARAM_LENGTH;
             }
-            LoaderMonitor mainMonitor = new LoaderMonitor(mainAppId, monitor);
             RUNTIME.executeTask(mainAppId, // Task application ID
-                mainMonitor, // Corresponding task monitor
+                monitor, // Corresponding task monitor
                 lang, // language of the task
                 true, LOADER_CLASS_NAME, LOADER_METHOD_NAME, LOADER_SIGNATURE + LOADER_CLASS_NAME, // Method to run
                 OnFailure.RETRY, // On failure behavior
@@ -297,6 +292,7 @@ public class Agent {
                 params // Argument values
             );
         } catch (Exception e) {
+            Agent.finishedApplication(mainAppId);
             throw new AgentException(e);
         }
         return mainAppId;
@@ -349,9 +345,10 @@ public class Agent {
             LOGGER.debug("\t* " + param);
         }
         LOGGER.debug("The task requires " + requirements);
-        long appId = Math.abs(APP_ID_GENERATOR.nextLong());
 
+        Long appId = RUNTIME.registerApplication();
         monitor.setAppId(appId);
+
         try {
             // PREPARING PARAMETERS
             StringBuilder typesSB = new StringBuilder();
@@ -712,5 +709,6 @@ public class Agent {
     public static void finishedApplication(long appId) {
         // Remove all data bound to the application
         RUNTIME.removeApplicationData(appId);
+        RUNTIME.deregisterApplication(appId);
     }
 }

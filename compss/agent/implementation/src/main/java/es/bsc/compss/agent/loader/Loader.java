@@ -24,6 +24,7 @@ import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.lang.reflect.Method;
@@ -50,14 +51,13 @@ public class Loader {
      * @param runtime COMPSs runtime that will handle the execution of the nested tasks
      * @param api COMPSs runtime that will handle the execution of the nested tasks
      * @param ceiClass CEI to detect tasks
-     * @param appId application Id that will be used by the nested tasks
      * @param className name of the class containing the method to run
      * @param methodName name of the method to run
      * @param params values of the parameters to pass in to the method
      * @return returns the return value of the executed method
      * @throws AgentException could not instrument the code or the execution raised an exception
      */
-    public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className,
+    public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, String className,
         String methodName, Object... params) throws AgentException {
 
         // Register Core Elements on Runtime
@@ -70,7 +70,7 @@ public class Loader {
         } catch (ClassNotFoundException cnfe) {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
-
+        long appId = runtime.registerApplication(ceiClass);
         try {
             // Add the jars that the custom class loader needs
             String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
@@ -120,6 +120,9 @@ public class Loader {
 
         } catch (Throwable e) {
             throw new AgentException(e);
+        } finally {
+            runtime.removeApplicationData(appId);
+            runtime.deregisterApplication(appId);
         }
     }
 

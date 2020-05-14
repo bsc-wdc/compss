@@ -54,14 +54,14 @@ public interface COMPSsRuntime {
 
     /**
      * Returns the number of active resources.
-     * 
+     *
      * @return The number of active resources.
      */
     public int getNumberOfResources();
 
     /**
      * Requests the creation of {@code numResources} resources.
-     * 
+     *
      * @param appId Application Id.
      * @param numResources Number of resources to create.
      * @param groupName Task group to notify upon resource creation.
@@ -70,7 +70,7 @@ public interface COMPSsRuntime {
 
     /**
      * Requests the destruction of {@code numResources} resources.
-     * 
+     *
      * @param appId Application Id.
      * @param numResources Number of resources to destroy.
      * @param groupName Task group to notify upon resource destruction.
@@ -81,6 +81,43 @@ public interface COMPSsRuntime {
      * *****************************************************************************************************************
      * TASK METHODS
      ******************************************************************************************************************/
+    /**
+     * Registers in the runtime a new application with no inner parallelism.
+     * 
+     * @return Id of the registered application
+     */
+    public long registerApplication();
+
+    /**
+     * Registers in the runtime a new application with with parallelism defined by a specific source.
+     *
+     * @param parallelismSource Element defining the task within the application
+     * @return Id of the registered application
+     */
+    public long registerApplication(String parallelismSource);
+
+    /**
+     * Registers in the runtime a new application with no inner parallelism.
+     *
+     * @param appId Id of the application.
+     */
+    public void registerApplication(Long appId);
+
+    /**
+     * Registers in the runtime a new application with with parallelism defined by a specific source.
+     *
+     * @param appId Id of the application.
+     * @param parallelismSource Element defining the task within the application
+     */
+    public void registerApplication(Long appId, String parallelismSource);
+
+    /**
+     * Deregisters an application from the runtime.
+     *
+     * @param appId Id of the application.
+     */
+    public void deregisterApplication(Long appId);
+
     /**
      * Registers a new CoreElement in the Runtime.
      *
@@ -240,7 +277,6 @@ public interface COMPSsRuntime {
      * *****************************************************************************************************************
      * DATA ACCESS METHODS
      ******************************************************************************************************************/
-
     /**
      * Registers a new Data value.
      *
@@ -253,7 +289,7 @@ public interface COMPSsRuntime {
 
     /**
      * Checks if a file has been accessed by the runtime.
-     * 
+     *
      * @param fileName File to check
      * @return True if accessed.
      */
@@ -270,7 +306,7 @@ public interface COMPSsRuntime {
 
     /**
      * Returns the renaming of the file version opened.
-     * 
+     *
      * @param dirName Directory name.
      * @param mode Access mode.
      * @return
@@ -341,7 +377,7 @@ public interface COMPSsRuntime {
 
     /**
      * Removes all the data information related to a specific application.
-     * 
+     *
      * @param appId Id of the application whose data is to be remove
      */
     public void removeApplicationData(Long appId);

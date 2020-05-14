@@ -399,7 +399,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * CONSTRUCTOR
      * ************************************************************************************************************
      */
-
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -437,7 +436,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * COMPSsRuntime INTERFACE
      * ************************************************************************************************************
      */
-
     @Override
     public synchronized void startIT() {
         if (Tracer.extraeEnabled()) {
@@ -569,6 +567,33 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      */
     public static ActionOrchestrator getOrchestrator() {
         return td;
+    }
+
+    @Override
+    public long registerApplication() {
+        Application app = Application.registerApplication();
+        return app.getId();
+    }
+
+    @Override
+    public long registerApplication(String parallelismSource) {
+        Application app = Application.registerApplication(parallelismSource);
+        return app.getId();
+    }
+
+    @Override
+    public void registerApplication(Long appId) {
+        Application.registerApplication(appId);
+    }
+
+    @Override
+    public void registerApplication(Long appId, String parallelismSource) {
+        Application.registerApplication(appId, parallelismSource);
+    }
+
+    @Override
+    public void deregisterApplication(Long appId) {
+        Application.deregisterApplication(appId);
     }
 
     @Override
@@ -858,8 +883,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NO_MORE_TASKS.getType());
         }
-
-        Application.deregisterApplication(appId);
     }
 
     @Override
@@ -1282,7 +1305,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * COMMON IN BOTH APIs
      * ************************************************************************************************************
      */
-
     @Override
     public boolean isFileAccessed(String fileName) {
         DataLocation loc;
@@ -1498,7 +1520,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * PRIVATE HELPER METHODS
      * ************************************************************************************************************
      */
-
     private boolean hasReturn(List<Parameter> parameters) {
         boolean hasReturn = false;
         if (parameters.size() != 0) {

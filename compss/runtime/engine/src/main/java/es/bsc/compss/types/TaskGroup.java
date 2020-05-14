@@ -143,6 +143,7 @@ public class TaskGroup implements AutoCloseable {
      * @param request object to notify the end of the group
      */
     public void registerBarrier(Barrier request) {
+        LOGGER.debug("Added barrier for group " + this.name);
         COMPSsException currentException = this.barrier.getException();
         request.setException(currentException);
         if (hasPendingTasks()) {

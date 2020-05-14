@@ -303,7 +303,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
                             False,
                             "",
                             logger)
-    except BaseException:
+    except BaseException:  # noqa
         # Catch any other user/decorators exception.
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
@@ -381,7 +381,7 @@ class TimeOutError(BaseException):
     pass
 
 
-def task_timed_out(signum, frame):
+def task_timed_out(signum, frame):  # noqa
     """
     Task time out signal handler
 
@@ -396,7 +396,7 @@ class CancelError(BaseException):
     pass
 
 
-def task_cancel(signum, frame):
+def task_cancel(signum, frame):  # noqa
     raise CancelError
 
 
@@ -559,7 +559,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
         try:
             module = __import__(module_name, fromlist=[class_name])
             klass = getattr(module, class_name)
-        except Exception:
+        except Exception:  # noqa
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type,
                                                exc_value,
@@ -597,7 +597,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                         logger.debug("Deserialize self from file.")
                     try:
                         obj = deserialize_from_file(file_name)
-                    except Exception:
+                    except Exception:  # noqa
                         exc_type, exc_value, exc_traceback = sys.exc_info()
                         lines = traceback.format_exception(exc_type,
                                                            exc_value,
@@ -657,7 +657,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                                      file_name)
                     try:
                         serialize_to_file(obj, file_name)
-                    except:
+                    except Exception:  # noqa
+                        # Catch any serialization exception
                         exc_type, exc_value, exc_traceback = sys.exc_info()
                         lines = traceback.format_exception(exc_type,
                                                            exc_value,

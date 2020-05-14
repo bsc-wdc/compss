@@ -138,7 +138,7 @@ def serialize_to_handler(obj, handler):
             try:
                 pickle_generator(obj, handler, serializer)
                 success = True
-            except Exception:
+            except Exception:  # noqa
                 if __debug__:
                     traceback.print_exc()
         # General case
@@ -155,7 +155,7 @@ def serialize_to_handler(obj, handler):
                                     handler,
                                     protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
-            except Exception:
+            except Exception:  # noqa
                 success = False
                 # if __debug__:
                 #    traceback.print_exc()  # No need to show all stacktraces
@@ -253,7 +253,7 @@ def get_numpy_dummy_obj():
     """
     try:
         return numpy.zeros(1)
-    except:
+    except AttributeError:
         return []
 
 
@@ -270,7 +270,8 @@ def deserialize_from_handler(handler):
     try:
         original_position = handler.tell()
         serializer = idx2lib[int(handler.read(4))]
-    except:
+    except KeyError:
+        # The first 4 bytes return a value that is not within idx2lib
         handler.seek(original_position)
         error_message = 'Handler does not refer to a valid PyCOMPSs object'
         raise SerializerException(error_message)

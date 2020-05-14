@@ -25,7 +25,6 @@ PyCOMPSs API - Implement (Versioning)
 """
 
 import inspect
-import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
@@ -33,6 +32,7 @@ from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
+    import logging
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'source_class',
@@ -86,7 +86,7 @@ class Implement(object):
         def implement_f(*args, **kwargs):
             # This is executed only when called.
             if not self.scope:
-                # from pycompss.api.dummy.implement import implement as dummy_implement  # noqa
+                # from pycompss.api.dummy.implement import implement as dummy_implement  # noqa: E501
                 # d_i = dummy_implement(self.args, self.kwargs)
                 # return d_i.__call__(func)
                 raise Exception(not_in_pycompss("implement"))

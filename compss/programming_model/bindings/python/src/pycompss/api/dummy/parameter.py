@@ -26,6 +26,7 @@ PyCOMPSs API - Parameter
         - OUT
         - INOUT
         - CONCURRENT
+        - COMMUTATIVE
     2. TYPE.
         - FILE
         - BOOLEAN
@@ -34,9 +35,9 @@ PyCOMPSs API - Parameter
         - LONG
         - FLOAT
         - OBJECT
-        - PSCO
         - EXTERNAL_PSCO
-    3. STREAM.
+        - EXTERNAL_STREAM
+    3. IOSTREAM.
         - STDIN
         - STDOUT
         - STDERR
@@ -75,43 +76,7 @@ class PREFIX(object):
     """
     Used as enum for prefix
     """
-    PREFIX = "null"
-
-
-# CAUTION! This is automatically generated in the data_type file.
-# Please, keep updated.
-class TYPE(object):
-    BOOLEAN = 0
-    CHAR = 1
-    BYTE = 2
-    SHORT = 3
-    INT = 4
-    LONG = 5
-    FLOAT = 6
-    DOUBLE = 7
-    STRING = 8
-    FILE = 9
-    OBJECT = 10
-    PSCO = 11
-    EXTERNAL_PSCO = 12
-    BINDING_OBJECT = 13
-    WCHAR = 14
-    WSTRING = 15
-    LONGLONG = 16
-    VOID = 17
-    ANY = 18
-    ARRAY_CHAR = 19
-    ARRAY_BYTE = 20
-    ARRAY_SHORT = 21
-    ARRAY_INT = 22
-    ARRAY_LONG = 23
-    ARRAY_FLOAT = 24
-    ARRAY_DOUBLE = 25
-    COLLECTION = 26
-    STREAM = 27
-    EXTERNAL_STREAM = 28
-    ENUM = 29
-    NULL = 30
+    PREFIX = 'null'
 
 
 class Parameter(object):
@@ -128,7 +93,9 @@ class Parameter(object):
                  p_object=None,
                  file_name=None,
                  is_future=False,
-                 depth=1):
+                 depth=1,
+                 is_file_collection=False,
+                 content_type=UNDEFINED_CONTENT_TYPE):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -137,6 +104,22 @@ class Parameter(object):
         self.file_name = file_name  # placeholder for object's serialized file
         self.is_future = is_future
         self.depth = depth          # Recursive depth for collections
+        self.is_file_collection = is_file_collection
+        self.content_type = content_type
+
+    def __repr__(self):
+        return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
+               '          object=%s\n' \
+               '          content_type=%s\n' \
+               '          file_name=%s\n' \
+               '          is_future=%s)' % (str(self.type),
+                                            str(self.direction),
+                                            str(self.stream),
+                                            str(self.prefix),
+                                            str(self.object),
+                                            str(self.content_type),
+                                            str(self.file_name),
+                                            str(self.is_future))
 
 
 class TaskParameter(object):
@@ -154,7 +137,8 @@ class TaskParameter(object):
                  key=None,
                  content=None,
                  stream=None,
-                 prefix=None):
+                 prefix=None,
+                 content_type=UNDEFINED_CONTENT_TYPE):
         self.name = name
         self.type = p_type
         self.file_name = file_name
@@ -162,6 +146,18 @@ class TaskParameter(object):
         self.content = content
         self.stream = stream
         self.prefix = prefix
+        self.content_type = content_type
+
+    def __repr__(self):
+        return '\nParameter %s' % self.name + '\n' + \
+               '\tType %s' % str(self.type) + '\n' + \
+               '\tFile Name %s' % self.file_name + '\n' + \
+               '\tKey %s' % str(self.key) + '\n' + \
+               '\tContent %s' % str(self.content) + '\n' + \
+               '\tStream %s' % str(self.stream) + '\n' + \
+               '\tPrefix %s' % str(self.prefix) + '\n' + \
+               '\tContent Type %s' % str(self.content_type) + '\n' + \
+               '-' * 20 + '\n'
 
 
 class _Param(object):
@@ -210,10 +206,22 @@ FILE_COMMUTATIVE_STDIN = _Param('FILE_COMMUTATIVE_STDIN')
 FILE_COMMUTATIVE_STDERR = _Param('FILE_COMMUTATIVE_STDERR')
 FILE_COMMUTATIVE_STDOUT = _Param('FILE_COMMUTATIVE_STDOUT')
 
+# Aliases for dirs
+
+DIRECTORY = _Param('DIRECTORY')
+DIRECTORY_IN = _Param('DIRECTORY_IN')
+DIRECTORY_OUT = _Param('DIRECTORY_OUT')
+DIRECTORY_INOUT = _Param('DIRECTORY_INOUT')
+
 # Aliases for collections
 COLLECTION = _Param('COLLECTION')
 COLLECTION_IN = _Param('COLLECTION_IN')
 COLLECTION_INOUT = _Param('COLLECTION_INOUT')
+COLLECTION_OUT = _Param('COLLECTION_OUT')
+COLLECTION_FILE = _Param('COLLECTION_FILE')
+COLLECTION_FILE_IN = _Param('COLLECTION_FILE_IN')
+COLLECTION_FILE_INOUT = _Param('COLLECTION_FILE_INOUT')
+COLLECTION_FILE_OUT = _Param('COLLECTION_FILE_OUT')
 
 # Aliases for streams
 STREAM_IN = _Param("STREAM_IN")

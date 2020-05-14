@@ -127,26 +127,6 @@ def compss_wait_on(*args):
     return ret
 
 
-def compss_open_task_group(group_name):
-    """
-    Dummy open task group.
-
-    :param group_name: Name of the group to open
-    :return: None
-    """
-    pass
-
-
-def compss_close_task_group(group_name):
-    """
-    Dummy close task group.
-
-    :param group_name: Name of the group to close
-    :return: None
-    """
-    pass
-
-
 def compss_get_number_of_resources():
     """
     Request for the number of active resources.
@@ -181,3 +161,17 @@ def compss_free_resources(num_resources, group_name):
     :return: None
     """
     pass
+
+
+class TaskGroup(object):
+    """
+    Dummy TaskGroup context manager.
+    """
+    def __init__(self, group_name, implicit_barrier=True):  # noqa
+        pass
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):  # noqa
+        pass

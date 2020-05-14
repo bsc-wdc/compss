@@ -25,7 +25,6 @@ PyCOMPSs API - BINARY
 """
 
 import inspect
-import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
@@ -33,6 +32,7 @@ from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
+    import logging
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'binary'}
@@ -155,7 +155,7 @@ class Binary(object):
                             fail_by_ev_str = fail_by_ev
                         else:
                             raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
-                                            "It should be boolean or an environment variable")  # noqa: E501
+                                            "It should be boolean or an environment variable")      # noqa: E501
                     else:
                         fail_by_ev_str = 'false'
 

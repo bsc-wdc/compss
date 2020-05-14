@@ -107,8 +107,8 @@ def main():
     persistent_storage = False
     if storage_conf != 'null':
         persistent_storage = True
-        from storage.api import initWorker as initStorageAtWorker
-        from storage.api import finishWorker as finishStorageAtWorker
+        from storage.api import initWorker as initStorageAtWorker      # noqa
+        from storage.api import finishWorker as finishStorageAtWorker  # noqa
 
     streaming = False
     if stream_backend not in [None, 'null', 'NONE']:
@@ -116,7 +116,7 @@ def main():
 
     if tracing:
         # Start tracing
-        import pyextrae.multiprocessing as pyextrae
+        import pyextrae.multiprocessing as pyextrae  # noqa
         pyextrae.eventandcounters(SYNC_EVENTS, task_id)
         # pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING_EVENT)

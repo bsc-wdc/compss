@@ -25,7 +25,6 @@ PyCOMPSs API - COMPSs
 """
 
 import inspect
-import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
@@ -35,6 +34,7 @@ from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
+    import logging
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'app_name'}
@@ -219,7 +219,7 @@ class COMPSs(object):
                             fail_by_ev_str = fail_by_ev
                         else:
                             raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
-                                            "It should be boolean or an environment variable")  # noqa: E501
+                                            "It should be boolean or an environment variable")      # noqa: E501
                     else:
                         fail_by_ev_str = 'false'
 

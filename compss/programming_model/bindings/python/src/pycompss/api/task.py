@@ -48,7 +48,6 @@ from pycompss.worker.commons.worker import build_task_parameter
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}
@@ -370,7 +369,6 @@ class Task(object):
 
         if self.first_arg_name == 'self' or \
                 source_code.startswith('@classmethod'):
-            # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code
             # with ast since the class does not exist yet).
             # Alternatively, the only way I see is to parse it manually
@@ -468,8 +466,8 @@ class Task(object):
             # code[0] = the entire function code.
             # code[1] = the number of lines of the function code.
             dec_func_code = code[0]
-            decorators = [l.strip() for l in
-                          dec_func_code if l.strip().startswith('@')]
+            decorators = [dfline.strip() for dfline in
+                          dec_func_code if dfline.strip().startswith('@')]
             # Could be improved if it stops when the first line without @ is
             # found, but we have to be careful if a decorator is commented
             # (# before @).
@@ -500,10 +498,10 @@ class Task(object):
             # code[0] = the entire function code.
             # code[1] = the number of lines of the function code.
             dec_func_code = code[0]
-            full_decorators = [l.strip() for l in
-                               dec_func_code if l.strip().startswith('@')]
+            full_decorators = [dfline.strip() for dfline in
+                               dec_func_code if dfline.strip().startswith('@')]
             # Get only the decorators used. Remove @ and parameters.
-            decorators = [l[1:].split('(')[0] for l in full_decorators]
+            decorators = [fline[1:].split('(')[0] for fline in full_decorators]
             # Look for the decorator used from the filter list and return it
             # when found if @mpi and no binary then this is an python_mpi task
             index = 0
@@ -653,7 +651,7 @@ class Task(object):
 
         return impl_signature
 
-    def register_task(self, f):
+    def register_task(self, f):  # noqa
         """
         This function is used to register the task in the runtime.
         This registration must be done only once on the task decorator
@@ -680,7 +678,9 @@ class Task(object):
             as_defaults = full_argspec.defaults
             return as_args, as_varargs, as_keywords, as_defaults
         else:
-            return inspect.getargspec(function)
+            # Using getargspec in python 2 (deprecated in python 3 in favour
+            # of getfullargspec).
+            return inspect.getargspec(function)  # noqa
 
     def inspect_user_function_arguments(self):
         """
@@ -974,8 +974,9 @@ class Task(object):
         if parsed_computing_nodes is None:
             raise Exception("ERROR: Wrong Computing Nodes value at @mpi decorator.")  # noqa: E501
         if parsed_computing_nodes <= 0:
-            logger.warn("Registered computing_nodes is less than 1 (" + str(
-                parsed_computing_nodes) + " <= 0). Automatically set it to 1")
+            logger.warning("Registered computing_nodes is less than 1 (" +
+                           str(parsed_computing_nodes) +
+                           " <= 0). Automatically set it to 1")
             parsed_computing_nodes = 1
 
         # Deal with the return part.
@@ -1092,7 +1093,7 @@ class Task(object):
         # ...
         # Also, |defaults| <= |positionals|
         for (var_name, default_value) in reversed(list(zip(list(reversed(self.param_args))[:num_defaults],  # noqa: E501
-                                                           list(reversed(self.param_defaults))))):  # noqa: E501
+                                                           list(reversed(self.param_defaults))))):          # noqa: E501
             if var_name not in parameter_values:
                 real_var_name = parameter.get_kwarg_name(var_name)
                 parameter_values[real_var_name] = default_value
@@ -1102,7 +1103,7 @@ class Task(object):
         # and their order in the case of the variadic ones
         # Process the variadic arguments
         for (i, var_arg) in enumerate(args[num_positionals:]):
-            parameter_values[parameter.get_vararg_name(self.param_varargs, i)] = var_arg  # noqa: E501
+            parameter_values[parameter.get_vararg_name(self.param_varargs, i)] = var_arg                    # noqa: E501
         # Process keyword arguments
         for (name, value) in kwargs.items():
             parameter_values[parameter.get_kwarg_name(name)] = value
@@ -1113,7 +1114,7 @@ class Task(object):
             # Is the argument a vararg? or a kwarg? Then check the direction
             # for varargs or kwargs
             if parameter.is_vararg(var_name):
-                self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())  # noqa: E501
+                self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())      # noqa: E501
             elif parameter.is_kwarg(var_name):
                 real_name = parameter.get_name_from_kwarg(var_name)
                 self.parameters[var_name] = self.decorator_arguments.get(real_name,  # noqa: E501
@@ -1128,18 +1129,18 @@ class Task(object):
                 # direction resolution, even if this implies a contradiction
                 # with the target_direction flag
                 self.parameters[var_name] = self.decorator_arguments.get(var_name,  # noqa: E501
-                                                                         self.get_default_direction(var_name))  # noqa: E501
+                                                                         self.get_default_direction(var_name))   # noqa: E501
 
             # If the parameter is a FILE then its type will already be defined,
             # and get_compss_type will misslabel it as a TYPE.STRING
             if self.parameters[var_name].type is None:
-                self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])  # noqa: E501
+                self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])      # noqa: E501
 
             # TODO: add 'dir_name' to the parameter object
             if parameter.is_file(self.parameters[var_name]) or \
                parameter.is_directory(self.parameters[var_name]):
                 if parameter_values[var_name]:
-                    self.parameters[var_name].file_name = parameter_values[var_name]  # noqa: E501
+                    self.parameters[var_name].file_name = parameter_values[var_name]                        # noqa: E501
                 else:
                     # is None: Used None for a FILE or DIRECTORY parameter path
                     self.parameters[var_name].type = parameter.TYPE.NULL
@@ -1147,7 +1148,7 @@ class Task(object):
                 self.parameters[var_name].object = parameter_values[var_name]
 
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_args = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS + self.param_args  # noqa: E501
+        supported_args = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS + self.param_args                       # noqa: E501
         check_arguments(MANDATORY_ARGUMENTS,
                         DEPRECATED_ARGUMENTS,
                         supported_args,
@@ -1237,59 +1238,59 @@ class Task(object):
             # If this feature is not available (storage does not support it)
             # getByID operations will be performed one after the other
             try:
-                import storage.api
+                import storage.api  # noqa
                 return storage.api.__pipelining__
-            except Exception:
+            except (ImportError, AttributeError):
                 return False
 
-        def retrieve_content(arg, name_prefix, depth=0):
+        def retrieve_content(_arg, name_prefix, depth=0):
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
-            if parameter.is_vararg(arg.name):
-                self.param_varargs = arg.name
-            if arg.type == parameter.TYPE.FILE:
-                if self.is_parameter_an_object(arg.name):
+            if parameter.is_vararg(_arg.name):
+                self.param_varargs = _arg.name
+            if _arg.type == parameter.TYPE.FILE:
+                if self.is_parameter_an_object(_arg.name):
                     # The object is stored in some file, load and deserialize
-                    arg.content = deserialize_from_file(
-                        arg.file_name.split(':')[-1]
+                    _arg.content = deserialize_from_file(
+                        _arg.file_name.split(':')[-1]
                     )
                 else:
                     # The object is a FILE, just forward the path of the file
                     # as a string parameter
-                    arg.content = arg.file_name.split(':')[-1]
-            elif arg.type == parameter.TYPE.DIRECTORY:
-                arg.content = arg.file_name.split(":")[-1]
-            elif arg.type == parameter.TYPE.EXTERNAL_STREAM:
-                arg.content = deserialize_from_file(arg.file_name)
-            elif arg.type == parameter.TYPE.COLLECTION:
-                arg.content = []
+                    _arg.content = _arg.file_name.split(':')[-1]
+            elif _arg.type == parameter.TYPE.DIRECTORY:
+                _arg.content = _arg.file_name.split(":")[-1]
+            elif _arg.type == parameter.TYPE.EXTERNAL_STREAM:
+                _arg.content = deserialize_from_file(_arg.file_name)
+            elif _arg.type == parameter.TYPE.COLLECTION:
+                _arg.content = []
                 # This field is exclusive for COLLECTION_T parameters, so make
                 # sure you have checked this parameter is a collection before
                 # consulting it
-                arg.collection_content = []
-                col_f_name = arg.file_name.split(':')[-1]
+                _arg.collection_content = []
+                col_f_name = _arg.file_name.split(':')[-1]
 
                 # maybe it is an inner-collection..
-                _dec_arg = self.decorator_arguments.get(arg.name, None)
+                _dec_arg = self.decorator_arguments.get(_arg.name, None)
                 _col_dir = _dec_arg.direction if _dec_arg else None
                 _col_dep = _dec_arg.depth if _dec_arg else depth
 
                 for (i, line) in enumerate(open(col_f_name, 'r')):
                     data_type, content_file, content_type = line.strip().split()  # noqa: E501
                     # Same naming convention as in COMPSsRuntimeImpl.java
-                    sub_name = "%s.%d" % (arg.name, i)
+                    sub_name = "%s.%d" % (_arg.name, i)
                     if name_prefix:
-                        sub_name = "%s.%s" % (name_prefix, arg.name)
+                        sub_name = "%s.%s" % (name_prefix, _arg.name)
                     else:
                         sub_name = "@%s" % sub_name
 
-                    if not self.is_parameter_file_collection(arg.name):
+                    if not self.is_parameter_file_collection(_arg.name):
                         sub_arg, _ = build_task_parameter(int(data_type),
                                                           None,
                                                           "",
                                                           sub_name,
                                                           content_file,
-                                                          arg.content_type)
+                                                          _arg.content_type)
 
                         # if direction of the collection is 'out', it means we
                         # haven't received serialized objects from the Master
@@ -1305,29 +1306,29 @@ class Task(object):
                             if _col_dep == 1:
                                 temp = create_object_by_con_type(content_type)
                                 sub_arg.content = temp
-                                arg.content.append(sub_arg.content)
-                                arg.collection_content.append(sub_arg)
+                                _arg.content.append(sub_arg.content)
+                                _arg.collection_content.append(sub_arg)
                             else:
                                 retrieve_content(sub_arg, sub_name,
                                                  depth=_col_dep - 1)
-                                arg.content.append(sub_arg.content)
-                                arg.collection_content.append(sub_arg)
+                                _arg.content.append(sub_arg.content)
+                                _arg.collection_content.append(sub_arg)
                         else:
                             # Recursively call the retrieve method, fill the
                             # content field in our new taskParameter object
                             retrieve_content(sub_arg, sub_name)
-                            arg.content.append(sub_arg.content)
-                            arg.collection_content.append(sub_arg)
+                            _arg.content.append(sub_arg.content)
+                            _arg.collection_content.append(sub_arg)
                     else:
-                        arg.content.append(content_file)
-                        arg.collection_content.append(content_file)
+                        _arg.content.append(content_file)
+                        _arg.collection_content.append(content_file)
 
             elif not storage_supports_pipelining() and \
-                    arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                    _arg.type == parameter.TYPE.EXTERNAL_PSCO:
                 # The object is a PSCO and the storage does not support
                 # pipelining, do a single getByID of the PSCO
-                from storage.api import getByID
-                arg.content = getByID(arg.key)
+                from storage.api import getByID  # noqa
+                _arg.content = getByID(_arg.key)
                 # If we have not entered in any of these cases we will assume
                 # that the object was a basic type and the content is already
                 # available and properly casted by the python worker
@@ -1336,7 +1337,7 @@ class Task(object):
             # Perform the pipelined getByID operation
             pscos = [x for x in args if x.type == parameter.TYPE.EXTERNAL_PSCO]
             identifiers = [x.key for x in pscos]
-            from storage.api import getByID
+            from storage.api import getByID  # noqa
             objects = getByID(*identifiers)
             # Just update the TaskParameter object with its content
             for (obj, value) in zip(objects, pscos):
@@ -1374,6 +1375,8 @@ class Task(object):
         # Return parameters, save them apart to match the user returns with
         # the internal parameters
         ret_params = []
+        # User function return result
+        user_returns = None
 
         for arg in args:
             # Just fill the three data structures declared above
@@ -1539,7 +1542,7 @@ class Task(object):
                     for sub_el in get_collection_objects(new_con, _elem):
                         yield sub_el
             else:
-                yield (_content, _arg)
+                yield _content, _arg
 
         for arg in args:
             # handle only task parameters that are objects
@@ -1603,9 +1606,9 @@ class Task(object):
                 user_returns = [user_returns]
             elif num_returns > 1 and python_mpi:
 
-                def get_ret_rank(ret_params):
+                def get_ret_rank(_ret_params):
                     from mpi4py import MPI
-                    return [ret_params[MPI.COMM_WORLD.rank]]
+                    return [_ret_params[MPI.COMM_WORLD.rank]]
 
                 user_returns = [user_returns]
                 ret_params = get_ret_rank(ret_params)

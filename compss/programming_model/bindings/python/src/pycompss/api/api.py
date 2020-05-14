@@ -179,6 +179,15 @@ if context.in_pycompss():
         if exception_message is not None:
             raise COMPSsException(exception_message)
 
+    def compss_wait_on(*args, **kwargs):
+        """
+        Wait for objects.
+
+        :param args: Objects to wait on
+        :return: List with the final values.
+        """
+        return wait_on(*args, **kwargs)
+
     def compss_get_number_of_resources():
         """
         Request for the number of active resources.
@@ -211,15 +220,6 @@ if context.in_pycompss():
         :return: None
         """
         free_resources(num_resources, group_name)
-
-    def compss_wait_on(*args, **kwargs):
-        """
-        Wait for objects.
-
-        :param args: Objects to wait on
-        :return: List with the final values.
-        """
-        return wait_on(*args, **kwargs)
 
     class TaskGroup(object):
         def __init__(self, group_name, implicit_barrier=True):
@@ -262,25 +262,20 @@ else:
         __dummy_compss_barrier_group__
     from pycompss.api.dummy.api import compss_wait_on as \
         __dummy_compss_wait_on__
-    from pycompss.api.dummy.api import compss_open_task_group as \
-        __dummy_compss_open_task_group__
-    from pycompss.api.dummy.api import compss_close_task_group as \
-        __dummy_compss_close_task_group__
     from pycompss.api.dummy.api import compss_get_number_of_resources as \
         __dummy_compss_get_number_of_resources__
     from pycompss.api.dummy.api import compss_request_resources as \
         __dummy_compss_request_resources__
     from pycompss.api.dummy.api import compss_free_resources as \
         __dummy_compss_free_resources__
+    # Hidden TaskGroup context manager
+    from pycompss.api.dummy.api import TaskGroup  # noqa
 
     def compss_start():
         __dummy_compss_start__()
 
     def compss_stop():
         __dummy_compss_stop__()
-
-    def compss_file_exists(file_name):
-        return __dummy_compss_file_exists__(file_name)
 
     def compss_file_exists(file_name):
         return __dummy_compss_file_exists__(file_name)
@@ -305,12 +300,6 @@ else:
 
     def compss_wait_on(*args):
         return __dummy_compss_wait_on__(*args)
-
-    def compss_open_task_group(group_name, implicit_barrier):
-        return __dummy_compss_open_task_group__(group_name, implicit_barrier)
-
-    def compss_close_task_group(group_name):
-        return __dummy_compss_close_task_group__(group_name)
 
     def compss_get_number_of_resources():
         return __dummy_compss_get_number_of_resources__()

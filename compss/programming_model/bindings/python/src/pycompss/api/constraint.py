@@ -25,12 +25,12 @@ PyCOMPSs API - CONSTRAINT
 """
 
 import inspect
-import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
 
 if __debug__:
+    import logging
     logger = logging.getLogger(__name__)
 
 
@@ -70,7 +70,7 @@ class Constraint(object):
         @wraps(func)
         def constrained_f(*args, **kwargs):
             if not self.scope:
-                from pycompss.api.dummy.constraint import constraint as dummy_constraint  # noqa
+                from pycompss.api.dummy.constraint import constraint as dummy_constraint  # noqa: E501
                 d_c = dummy_constraint(self.args, self.kwargs)
                 return d_c.__call__(func)(*args, **kwargs)
 

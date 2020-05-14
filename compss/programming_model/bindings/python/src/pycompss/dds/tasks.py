@@ -174,4 +174,3 @@ def map_and_save_pickle(func, index, path, partition, *collection):
 
     file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
     pickle.dump(list(partition), open(file_name, "wb"))
-

@@ -76,12 +76,13 @@ def main():
     :return: None
     """
 
-    help = ['-h', '--help']
+    _help = ['-h', '--help']
+    parser = None
 
     # Check params
     if len(sys.argv) > 1 and \
             sys.argv[1] not in TAGS and \
-            sys.argv[1] not in help:
+            sys.argv[1] not in _help:
         # No action specified. Assume run.
         class Object(object):
             # Dummy class to mimic argparse return object

@@ -279,10 +279,10 @@ def launch_pycompss_application(app, func,
                                 specific_log_dir=None,
                                 extrae_cfg=None,
                                 comm='NIO',
-                                conn='es.bsc.compss.connectors.DefaultSSHConnector',  # noqa
+                                conn='es.bsc.compss.connectors.DefaultSSHConnector',                        # noqa: E501
                                 master_name='',
                                 master_port='',
-                                scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # noqa
+                                scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',   # noqa: E501
                                 jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
                                 cpu_affinity='automatic',
                                 gpu_affinity='automatic',
@@ -458,17 +458,27 @@ def launch_pycompss_application(app, func,
     logger.debug("[LOG] Starting streaming")
     streaming = init_streaming(all_vars['streaming_backend'],
                                all_vars['streaming_master_name'],
-                               all_vars['streaming_master_port'])
+                               all_vars['streaming_master_port'],
+                               logger)
 
     saved_argv = sys.argv
     sys.argv = args
     # Execution:
     if func is None or func == '__main__':
-        execfile(app)
+        if IS_PYTHON3:
+            exec(open(app).read())
+        else:
+            execfile(app)  # noqa
         result = None
     else:
-        import imp
-        imported_module = imp.load_source(all_vars['file_name'], app)
+        if IS_PYTHON3:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(all_vars['file_name'], app)  # noqa: E501
+            imported_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(imported_module)
+        else:
+            import imp  # noqa
+            imported_module = imp.load_source(all_vars['file_name'], app)  # noqa
         method_to_call = getattr(imported_module, func)
         result = method_to_call(*args, **kwargs)
     # Recover the system arguments
@@ -480,7 +490,7 @@ def launch_pycompss_application(app, func,
 
     if streaming:
         logger.debug("[LOG] Stopping streaming")
-        stop_streaming()
+        stop_streaming(logger)
 
     logger.debug('--- END ---')
 

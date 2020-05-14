@@ -26,7 +26,6 @@ PyCOMPSs Util - Object properties
 
 import os
 import sys
-import imp
 import inspect
 from pycompss.runtime.commons import IS_PYTHON3
 
@@ -99,7 +98,8 @@ def get_top_decorator(code, decorator_keys):
     # code[0] = the entire function code.
     # code[1] = the number of lines of the function code.
     func_code = code[0]
-    decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+    decorators = [code_line.strip() for code_line in
+                  func_code if code_line.strip().startswith('@')]
     # Could be improved if it stops when the first line without @ is found,
     # but we have to be care if a decorator is commented (# before @)
     # The strip is due to the spaces that appear before functions definitions,
@@ -182,7 +182,13 @@ def is_module_available(module_name):
     :return: Boolean -> True if the module is available, False otherwise
     """
     try:
-        imp.find_module(module_name)
+        py_version = sys.version_info
+        if py_version > (3, 4):
+            import importlib
+            importlib.util.find_spec(module_name)
+        else:
+            import imp
+            imp.find_module(module_name)
         return True
     except ImportError:
         return False
@@ -212,9 +218,10 @@ def object_belongs_to_module(obj, module_name):
     return any(module_name == x for x in type(obj).__module__.split('.'))
 
 
-def create_object_by_con_type(con_type, default=object):
+def create_object_by_con_type(con_type):
     """
     Knowing its class name create an 'empty' object.
+
     :param con_type: object type info in <path_to_module>:<class_name> format.
     :param default: default object type to be returned if class not found.
     :return: 'empty' object of a type
@@ -242,7 +249,3 @@ def create_object_by_con_type(con_type, default=object):
     klass = getattr(module, class_name)
     ret = klass()
     return ret
-    # except Exception:
-    #     # todo: handle the exception?
-    #     pass
-    # return default()

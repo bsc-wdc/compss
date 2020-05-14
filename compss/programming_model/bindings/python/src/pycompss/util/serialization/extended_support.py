@@ -42,14 +42,14 @@ def pickle_generator(f_gen, f, serializer):
     serializer.dump(gen_snapshot, f)
 
 
-def convert_to_generator(l):
+def convert_to_generator(lst):
     """
     Converts a list into a generator.
 
-    :param l: List to be converted.
+    :param lst: List to be converted.
     :return: the generator from the list.
     """
-    gen = __list2gen__(l)
+    gen = __list2gen__(lst)
     return gen
 
 

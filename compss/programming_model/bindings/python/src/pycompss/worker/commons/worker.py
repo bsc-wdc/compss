@@ -657,7 +657,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                                      file_name)
                     try:
                         serialize_to_file(obj, file_name)
-                    except:
+                    except:  # noqa: E722
+                        # Catch any serialization exception
                         exc_type, exc_value, exc_traceback = sys.exc_info()
                         lines = traceback.format_exception(exc_type,
                                                            exc_value,

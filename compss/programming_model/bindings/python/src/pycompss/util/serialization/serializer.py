@@ -138,7 +138,7 @@ def serialize_to_handler(obj, handler):
             try:
                 pickle_generator(obj, handler, serializer)
                 success = True
-            except Exception:
+            except Exception:  # noqa
                 if __debug__:
                     traceback.print_exc()
         # General case
@@ -155,7 +155,7 @@ def serialize_to_handler(obj, handler):
                                     handler,
                                     protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
-            except Exception:
+            except Exception:  # noqa
                 success = False
                 # if __debug__:
                 #    traceback.print_exc()  # No need to show all stacktraces

@@ -84,11 +84,11 @@ if IS_PYTHON3:
 else:
     listType = types.ListType
     dictType = types.DictType
-    _python_to_compss = {types.IntType: TYPE.INT,  # int
-                         types.LongType: TYPE.LONG,  # long
-                         types.FloatType: TYPE.DOUBLE,  # float
-                         types.BooleanType: TYPE.BOOLEAN,  # bool
-                         types.StringType: TYPE.STRING,  # str
+    _python_to_compss = {types.IntType: TYPE.INT,          # noqa # int
+                         types.LongType: TYPE.LONG,        # noqa # long
+                         types.FloatType: TYPE.DOUBLE,     # noqa # float
+                         types.BooleanType: TYPE.BOOLEAN,  # noqa # bool
+                         types.StringType: TYPE.STRING,    # noqa # str
                          # The type of instances of user-defined classes
                          # types.InstanceType: TYPE.OBJECT,
                          # The type of methods of user-defined class instances
@@ -98,13 +98,13 @@ else:
                          # The type of modules
                          # types.ModuleType: TYPE.OBJECT,
                          # The type of tuples (e.g. (1, 2, 3, 'Spam'))
-                         types.TupleType: TYPE.OBJECT,
+                         types.TupleType: TYPE.OBJECT,     # noqa
                          # The type of lists (e.g. [0, 1, 2, 3])
                          types.ListType: TYPE.OBJECT,
                          # The type of dictionaries (e.g. {'Bacon':1,'Ham':0})
                          types.DictType: TYPE.OBJECT,
                          # The type of generic objects
-                         types.ObjectType: TYPE.OBJECT
+                         types.ObjectType: TYPE.OBJECT     # noqa
                          }
 
 # Set temporary dir
@@ -310,7 +310,7 @@ def stop_runtime(code=0):
     if __debug__:
         logger.info("Stopping runtime...")
 
-    if (code != 0):
+    if code != 0:
         if __debug__:
             logger.info("Canceling all application tasks...")
         compss.cancel_application_tasks(0)
@@ -687,10 +687,8 @@ def register_ce(core_element):
                      impl_constraints_str)
         logger.debug("\t - Implementation type: %s" %
                      impl_type)
-    impl_type_args_string = ' '.join(impl_type_args)
-    if __debug__:
         logger.debug("\t - Implementation type arguments: %s" %
-                     impl_type_args_string)
+                     ' '.join(impl_type_args))
 
     # Call runtime with the appropriate parameters
     compss.register_core_element(ce_signature,
@@ -1134,6 +1132,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     :return: <List,List,List,List,List> List of values, their types, their
              directions, their streams and their prefixes
     """
+    slf = None
     values = []
     names = []
     arg_names = list(f_parameters.keys())
@@ -1301,6 +1300,11 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
     """
     is_future = p.is_future
 
+    if IS_PYTHON3:
+        base_string = str
+    else:
+        base_string = basestring  # noqa
+
     num_bytes = 0
     if policy == 'objectSize':
         # Check if the object is small in order to serialize it.
@@ -1310,15 +1314,15 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
         # in terms of time and precision
         if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) \
                 and not is_future and p.direction == DIRECTION.IN:
-            if not isinstance(p.object, basestring) and \
+            if not isinstance(p.object, base_string) and \
                     isinstance(p.object,
                                (list, dict, tuple, deque, set, frozenset)):
                 # check object size - The following line does not work
                 # properly with recursive objects
                 # bytes = sys.getsizeof(p.object)
                 num_bytes = total_sizeof(p.object)
-                megabytes = num_bytes / 1000000  # truncate
                 if __debug__:
+                    megabytes = num_bytes / 1000000  # truncate
                     logger.debug("Object size %d bytes (%d Mb)." % (num_bytes,
                                                                     megabytes))
 
@@ -1351,20 +1355,23 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                         # if max_obj_arg_size > 320000:
                         #     max_obj_arg_size = 320000
     elif policy == 'serializedSize':
-        from cPickle import PicklingError
+        if IS_PYTHON3:
+            from pickle import PicklingError
+        else:
+            from cPickle import PicklingError  # noqa
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size after serializing the parameter
         if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) \
                 and not is_future and p.direction == DIRECTION.IN:
-            if not isinstance(p.object, basestring):
+            if not isinstance(p.object, base_string):
                 real_value = p.object
                 try:
                     v = serialize_to_string(p.object)
                     v = v.encode(STR_ESCAPE)
                     # check object size
                     num_bytes = sys.getsizeof(v)
-                    megabytes = num_bytes / 1000000  # truncate
                     if __debug__:
+                        megabytes = num_bytes / 1000000  # truncate
                         logger.debug("Object size %d bytes (%d Mb)." %
                                      (num_bytes, megabytes))
                     if num_bytes < max_obj_arg_size:
@@ -1425,7 +1432,7 @@ def _serialize_object_into_file(name, p):
                                         [mode] * len(p.object)))
             _skip_file_creation = (p.direction == DIRECTION.OUT and
                                    p.type != TYPE.EXTERNAL_STREAM)
-            _turn_into_file(name, p, skip_creation=_skip_file_creation)
+            _turn_into_file(p, skip_creation=_skip_file_creation)
         except SerializerException:
             import sys
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -1451,7 +1458,7 @@ def _serialize_object_into_file(name, p):
             # This must be serialized to prevent overflow with Java long
             p.type = TYPE.OBJECT
             _skip_file_creation = (p.direction == DIRECTION.OUT)
-            _turn_into_file(name, p, _skip_file_creation)
+            _turn_into_file(p, _skip_file_creation)
     elif p.type == TYPE.STRING:
         from pycompss.api.task import prepend_strings
         if prepend_strings:
@@ -1514,7 +1521,7 @@ def _manage_persistent_object(p):
         logger.debug("Managed persistent object: %s" % obj_id)
 
 
-def _turn_into_file(name, p, skip_creation=False):
+def _turn_into_file(p, skip_creation=False):
     """
     Write a object into a file if the object has not been already written
     (p.object).
@@ -1592,5 +1599,5 @@ def _clean_temps():
     rmtree(temp_dir, True)
     cwd = os.getcwd()
     for f in os.listdir(cwd):
-        if re.search('d\d+v\d+_\d+\.IT', f):
+        if re.search(r'd\d+v\d+_\d+\.IT', f):
             os.remove(os.path.join(cwd, f))

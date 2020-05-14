@@ -155,9 +155,9 @@ def _get_ipython_imports():
         # We only get the lines that start with from or import and do not
         # have blank spaces before.
         lines = i.split('\n')
-        for l in lines:
-            if l.startswith("from") or l.startswith("import"):
-                imports.append(l + '\n')
+        for line in lines:
+            if line.startswith("from") or line.startswith("import"):
+                imports.append(line + '\n')
     return imports
 
 
@@ -190,12 +190,12 @@ def _get_ipython_globals():
         # have blank spaces before.
         lines = i.split('\n')
         found_one = False
-        for l in lines:
+        for line in lines:
             # if the line starts without spaces and is a variable assignation
             glob_name = ''
-            if not (l.startswith(' ') or l.startswith('\t')) and \
-                    _is_variable_assignation(l):
-                line_parts = l.split()
+            if not (line.startswith(' ') or line.startswith('\t')) and \
+                    _is_variable_assignation(line):
+                line_parts = line.split()
                 glob_name = line_parts[0]
                 if not glob_name.isupper():
                     # It is an assignation where the variable name is not in
@@ -206,14 +206,14 @@ def _get_ipython_globals():
                     # call
                     found_one = False
                 else:
-                    glob_lines[glob_name] = l.strip()
+                    glob_lines[glob_name] = line.strip()
                     found_one = True
                 continue
             # if the next line/s start with space or tab belong also to the
             # global variable
-            if found_one and (l.startswith(' ') or l.startswith('\t')):
+            if found_one and (line.startswith(' ') or line.startswith('\t')):
                 # It is a multiple lines global variable definition
-                glob_lines[glob_name] += l.strip()
+                glob_lines[glob_name] += line.strip()
             else:
                 found_one = False
     return glob_lines
@@ -390,9 +390,9 @@ def _clean(lines_list):
         return result
     else:
         # If it is longer, remove all single \n appearances
-        for l in lines_list:
-            if l.strip() != '':
-                result.append(l)
+        for line in lines_list:
+            if line.strip() != '':
+                result.append(line)
         return result
 
 
@@ -476,7 +476,7 @@ def _get_old_code(file_path):
     collapsed = ''.join(file_classes).strip()
     # Then split by "class" and filter the empty results, then iterate
     # concatenating "class" to all results.
-    cls = [('class ' + l) for l in
+    cls = [('class ' + class_line) for class_line in
            [name for name in collapsed.split('class ') if name]]
     # Add classes to dictionary by class name:
     for c in cls:
@@ -487,7 +487,7 @@ def _get_old_code(file_path):
     # Process functions
     functions = {}
     # Clean empty lines
-    clean_functions = [l for l in file_functions if l]
+    clean_functions = [f_line for f_line in file_functions if f_line]
     # Iterate over the lines splitting by the ones that start with def
     funcs = []
     f = ''
@@ -510,7 +510,7 @@ def _get_old_code(file_path):
     collapsed = ''.join(file_tasks).strip()
     # Then split by "@" and filter the empty results, then iterate
     # concatenating "@" to all results.
-    tsks = [('@' + l) for l in [deco for deco in collapsed.split('@') if deco]]
+    tsks = [('@' + deco_line) for deco_line in [deco for deco in collapsed.split('@') if deco]]  # noqa: E501
     # Take into account that other decorators my be over @task, so it is
     # necessary to collapse the function stack
     tasks_list = []

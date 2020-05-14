@@ -503,7 +503,7 @@ def __show_graph__(name='complete_graph', fit=False):
     """
 
     try:
-        from graphviz import Source
+        from graphviz import Source  # noqa
     except ImportError:
         print('Oops! graphviz is not available.')
         raise
@@ -520,7 +520,7 @@ def __show_graph__(name='complete_graph', fit=False):
                 os.remove(filename + '.' + extension)
             s = Source(text, filename=filename, format=extension)
             s.render()
-            from IPython.display import Image
+            from IPython.display import Image  # noqa
             image = Image(filename=filename + '.' + extension)
             return image
         except Exception:

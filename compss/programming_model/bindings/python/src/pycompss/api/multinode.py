@@ -25,7 +25,6 @@ PyCOMPSs API - MultiNode
 """
 
 import inspect
-import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
@@ -35,6 +34,7 @@ from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
+    import logging
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}

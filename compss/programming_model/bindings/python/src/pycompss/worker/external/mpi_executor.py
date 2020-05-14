@@ -38,7 +38,7 @@ from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
 
-def shutdown_handler(signal, frame):
+def shutdown_handler(signal, frame):  # noqa
     """
     Shutdown handler (do not remove the parameters).
 
@@ -80,7 +80,7 @@ def executor(process_name, command):
     logger = logging.getLogger('pycompss.worker.external.mpi_worker')
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
-    logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
+    logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)  # noqa
 
     if __debug__:
         logger.debug("[PYTHON EXECUTOR] [%s] Starting process" %
@@ -266,8 +266,7 @@ def process_task(current_line, process_name,
             logger.exception("%s - Exception %s" % (str(process_name),
                                                     str(e)))
             exit_value = 7
-            message = message = END_TASK_TAG + " " + str(job_id)
-            message += " " + str(exit_value) + "\n"
+            message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"  # noqa: E501
 
         # Clean environment variables
         if __debug__:

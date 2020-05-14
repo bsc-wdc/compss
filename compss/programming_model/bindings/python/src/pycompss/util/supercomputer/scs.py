@@ -182,11 +182,11 @@ def generate_xmls(compss_home, nodes, master_port):
     # Find project and resource files
     project_xml = None
     resources_xml = None
-    for l in xml_generator_raw_output:
-        if l.startswith('Project.xml:'):
+    for line in xml_generator_raw_output:
+        if line.startswith('Project.xml:'):
             # Project.xml:   ./project_1532694575.xml
-            project_xml = l.split()[1]
-        if l.startswith('Resources.xml:'):
+            project_xml = line.split()[1]
+        if line.startswith('Resources.xml:'):
             # Resources.xml: ./resources_1532694575.xml
-            resources_xml = l.split()[1]
+            resources_xml = line.split()[1]
     return project_xml, resources_xml

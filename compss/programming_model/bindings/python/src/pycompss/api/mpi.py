@@ -25,15 +25,14 @@ PyCOMPSs API - MPI
 """
 
 import inspect
-import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
+    import logging
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'runner'}
@@ -95,10 +94,9 @@ class MPI(object):
             # is invoked.
             # WARNING: processes can be an int, a env string, a str with
             # dynamic variable name.
-            processes = self.kwargs['processes']
             if __debug__:
                 logger.debug("This MPI task will have " +
-                             str(processes) + " processes.")
+                             str(self.kwargs['processes']) + " processes.")
         else:
             pass
 
@@ -190,7 +188,7 @@ class MPI(object):
                             scale_by_cu_str = scale_by_cu
                         else:
                             raise Exception("Incorrect format for scale_by_cu property. " +      # noqa: E501
-                                            " It should be boolean or an environment variable")  # noqa: E501
+                                            "It should be boolean or an environment variable")   # noqa: E501
                     else:
                         scale_by_cu_str = 'false'
 
@@ -205,7 +203,7 @@ class MPI(object):
                             fail_by_ev_str = fail_by_ev
                         else:
                             raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
-                                            " It should be boolean or an environment variable")     # noqa: E501
+                                            "It should be boolean or an environment variable")      # noqa: E501
                     else:
                         fail_by_ev_str = 'false'
 

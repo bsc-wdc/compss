@@ -62,7 +62,7 @@ try:
 except ImportError:
     np = None
 
-PYCOMPSS_LONG = int if IS_PYTHON3 else long
+PYCOMPSS_LONG = int if IS_PYTHON3 else long  # noqa
 
 TYPE = DataType
 # Content type format is <module_path>:<class_name>, separated by colon (':')
@@ -126,11 +126,6 @@ class Parameter(object):
         self.is_future = is_future
         self.depth = depth          # Recursive depth for collections
         self.is_file_collection = is_file_collection
-
-        # TODO: Remove this 'if'
-        # empty content types break the format while splitting by space (' ')
-        if not content_type:
-            content_type = UNDEFINED_CONTENT_TYPE
         self.content_type = content_type
 
     def __repr__(self):
@@ -172,10 +167,6 @@ class TaskParameter(object):
         self.content = content
         self.stream = stream
         self.prefix = prefix
-        # TODO: Remove this 'if'
-        # empty content types break the format while splitting by space (' ')
-        if not content_type:
-            content_type = UNDEFINED_CONTENT_TYPE
         self.content_type = content_type
 
     def __repr__(self):
@@ -605,7 +596,7 @@ def is_command_line_parameter(cla):
     :return: Boolean
     """
     import re
-    return bool(re.match('\*PARAM_.+_.+', cla))
+    return bool(re.match(r'\*PARAM_.+_.+', cla))
 
 
 def stringify(object_name, object_type, object_content):
@@ -669,7 +660,6 @@ def get_compss_type(value, depth=0):
         return TYPE.DOUBLE
     elif has_id(value):
         # If has method getID maybe is a PSCO
-        # TODO: L4 less error-prone methods
         try:
             if get_id(value) not in [None, 'None']:
                 # the 'getID' + id == criteria for persistent object

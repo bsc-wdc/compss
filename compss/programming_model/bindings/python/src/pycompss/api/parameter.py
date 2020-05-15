@@ -775,8 +775,8 @@ Direction = 'direction'  # parameter type
 StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
 Depth = 'depth'  # collection recursive depth
-Weight = 'weight' # parameter weight
-Keep_rename = 'keep_rename' #parameter keep rename property
+Weight = 'weight'  # parameter weight
+Keep_rename = 'keep_rename'  # parameter keep rename property
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

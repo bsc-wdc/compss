@@ -883,9 +883,9 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
 
     # Build values and COMPSs types and directions
     vtdsc = _build_values_types_directions(ftype,
-                                          f_parameters,
-                                          f_returns,
-                                          f.__code_strings__)
+                                           f_parameters,
+                                           f_returns,
+                                           f.__code_strings__)
     values, names, compss_types, compss_directions, compss_streams, \
       compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
@@ -935,7 +935,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
     # Check that there is the same amount of values as their types, as well
     # as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) ==
-            len(compss_streams) == len(compss_prefixes) == len(content_types) == 
+            len(compss_streams) == len(compss_prefixes) == len(content_types) ==
             len(weights) == len(keep_renames))
 
     # Submit task to the runtime (call to the C extension):
@@ -1164,7 +1164,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     # compss_prefixes from function parameters
     for i in ra:
         val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(f_parameters[i],
-                                                      code_strings)
+                                                                    code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)
@@ -1179,7 +1179,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     if ftype == FunctionType.INSTANCE_METHOD:
         # self is always an object
         val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(f_parameters[slf],
-                                                      code_strings)
+                                                                    code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)

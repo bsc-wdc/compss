@@ -44,6 +44,7 @@
   SCauxScript=$5
   PRELOAD_ENV=$6
   kafka=1 # Set to 0 to skip kafka compilation
+
   # CREATE SC TMP DIR
   echo "Creating remote tmp directory..."
 
@@ -100,7 +101,7 @@
 
   # Compile streaming backend (kafka)
   echo "- Compiling Streaming Backend (Kafka)"
-  if [ $kakfa -ne 0 ]; then
+  if [ "$kafka" -ne 0 ]; then
     cd "${TMP_DIR}"/dependencies/kafka
     if which gradle; then
       gradle

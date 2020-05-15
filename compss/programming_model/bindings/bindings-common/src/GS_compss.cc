@@ -751,11 +751,7 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     bool _KeepRename = false;
     if (parKeepRename != 0) _KeepRename = true;
 	jobject jobjParKeepRename = status->localJniEnv->NewObject(clsBoolean, midBoolCon, _KeepRename);
-	if (status->localJniEnv->ExceptionOccurred()) {
-		status->localJniEnv->ExceptionDescribe();
-		release_lock();
-		exit(1);
-	}
+	check_exception(status, "Exception creating a new boolean for keep rename property");
 	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pkr, jobjParKeepRename);
 
 
@@ -794,7 +790,6 @@ static void getReceivedException(JNIEnv* env, jthrowable exception, char** buf)
         env->DeleteLocalRef(classClazz);
         env->DeleteLocalRef(exceptionClazz);
     }
->>>>>>>  add weight and keep rename parameter properties
 }
 
 

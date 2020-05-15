@@ -1494,32 +1494,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return hasReturn;
     }
 
-    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
-        ArrayList<Parameter> pars = new ArrayList<>();
-        // Parameter parsing needed, object is not serializable
-        for (int i = 0; i < parameterCount; ++i) {
-            Object content = parameters[NUM_FIELDS_PER_PARAM * i];
-            DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
-            if (type == null) {
-                type = DataType.NULL_T;
-            }
-            Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
-            StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
-            String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
-            String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
-            // Add parameter to list
-            // This function call is isolated for better readability and to easily
-            // allow recursion in the case of collections
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + i + " has type " + type.name());
-            }
-            addParameter(content, type, direction, stream, prefix, name, null, pars, 0, null);
-        }
-
-        // Return parameters
-        return pars;
-    }
-
     private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
         String name, String pyType, double weight, boolean keepRename, ArrayList<Parameter> pars, int offset,
         String[] vals) {
@@ -1663,11 +1637,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
         }
         return 1;
-    }
-
-    @Override
-    public void cancelApplicationTasks(Long appId) {
-        ap.cancelApplicationTasks(appId);
     }
 
     /*

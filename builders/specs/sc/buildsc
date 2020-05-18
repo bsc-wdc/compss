@@ -1,32 +1,41 @@
 #!/bin/bash -e
 
-# INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
-# REQUIRES 2 PARAMETERS: 
-#  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
-#  $2 PATH WHERE TO INSTALL THE ADAPTOR
-install_adaptor() {
-    adaptor_name=$(basename "$1")
-    echo "------ Copying ${adaptor_name} adaptor"
-    mkdir "$2/${adaptor_name}"
-    if [ -d "${src_path}"/master/ ]; then
-      mkdir "$2/${adaptor_name}"/master
-      cp "$1"/master/*.jar "$2"/"${adaptor_name}"/master
-      if [ -f "$1"/master/properties ]; then
-        cp "$1"/master/properties "$2"/"${adaptor_name}"/master
+  # INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
+  # REQUIRES 2 PARAMETERS: 
+  #  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
+  #  $2 PATH WHERE TO INSTALL THE ADAPTOR
+  install_adaptor() {
+      local src_path=$1
+      local dest_path=$2
+      local adaptor_name
+      adaptor_name=$(basename "${src_path}")
+
+      echo "------ Copying ${adaptor_name} adaptor"
+      mkdir "${dest_path}/${adaptor_name}"
+      if [ -d "${src_path}"/master/ ]; then
+        mkdir "${dest_path}/${adaptor_name}"/master
+        cp "${src_path}"/master/*.jar "${dest_path}/${adaptor_name}"/master
+        if [ -f "${src_path}"/master/properties ]; then
+          cp "${src_path}"/master/properties "${dest_path}/${adaptor_name}"/master
+        fi
       fi
-    fi
-    if [ -d "$1"/worker/ ]; then
-      mkdir "$2/${adaptor_name}"/worker
-      cp "$1"/worker/*.jar "$2"/"${adaptor_name}"/worker
-    fi
-    if [ -f "$1"/worker/properties ]; then 
-      cp "$1"/worker/properties "$2"/"${adaptor_name}"/worker
-    fi
-    if [ -d "$1"/scripts/ ]; then
-      mkdir -p "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
-      cp -r "$1"/scripts/* "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
-    fi
-}
+      if [ -d "${src_path}"/worker/ ]; then
+        mkdir "${dest_path}/${adaptor_name}"/worker
+        cp "${src_path}"/worker/*.jar "${dest_path}/${adaptor_name}"/worker
+      fi
+      if [ -f "${src_path}"/worker/properties ]; then 
+        cp "${src_path}"/worker/properties "${dest_path}/${adaptor_name}"/worker
+      fi
+      if [ -d "${src_path}"/scripts/ ]; then
+        mkdir -p "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+        cp -r "${src_path}"/scripts/* "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+      fi
+  }
+
+
+  #
+  # MAIN
+  #
 
   COMPSs_version=$1
   distribution=sc
@@ -38,13 +47,42 @@ install_adaptor() {
   echo "* Erasing previous tmp Files..."
   rm -rf tmp/
 
-  echo " "
+  echo ""
   echo "* Compiling sources..."
   cd ${trunk_rel_path}
   mvn -U -DskipTests clean install
   cd -
 
-  echo " "
+  # Compile streaming backend (kafka)
+  echo ""
+  echo "* Compiling Streaming Backend (Kafka)..."
+  kafka=1 # 0 to skip kafka compilation
+  if [ "$kafka" -ne 0 ]; then
+      cd "${trunk_rel_path}"/dependencies/kafka
+      if which gradle; then
+        gradle
+        ev=$?
+      elif [ -n "${GRADLE_HOME}" ]; then
+        "${GRADLE_HOME}"/bin/gradle
+        ev=$?
+      else
+         echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
+         exit 1
+      fi
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Failed to compile Kafka dependency"
+        exit 1
+      fi
+      ./gradlew jar
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Failed to build Kafka dependency"
+        exit 1
+      fi
+      cd -
+  fi
+
+  echo ""
   echo "* Create deployment folders"
   COMPSs_target=tmp/COMPSs
   mkdir -p ${COMPSs_target}
@@ -63,7 +101,6 @@ install_adaptor() {
   mkdir -p ${COMPSs_target}/Bindings
   mkdir -p ${COMPSs_target}/Bindings/bindings-common
 
-
   echo " "
   echo "* Copy deployment files"
   cp ${trunk_rel_path}/changelog ${COMPSs_target}
@@ -78,6 +115,7 @@ install_adaptor() {
   cp -r ${trunk_rel_path}/dependencies/extrae ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/dependencies/autoparallel ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/dependencies/pluto ${COMPSs_target}/Dependencies/
+  cp -r ${trunk_rel_path}/dependencies/kafka ${COMPSs_target}/Dependencies/
 
   # Config
   cp -r ${trunk_rel_path}/compss/runtime/config/* ${COMPSs_target}/Runtime/configuration/

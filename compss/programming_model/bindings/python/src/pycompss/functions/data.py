@@ -23,6 +23,7 @@ PyCOMPSs Functions: Data generators
     This file defines the common data producing functions.
 """
 
+import random
 from pycompss.api.task import task
 
 
@@ -51,57 +52,48 @@ def chunks(lst, n, balanced=False):
 
 
 @task(returns=list)
-def _gen_random(size, frag_size, seed, jumps):
+def _gen_random(size, frag_size, seed):
     """
     Random generator.
 
     :param size: Size
     :param frag_size: Fragment size
     :param seed: Random seed
-    :param jumps: Number of jumps
     :return: a fragment of elements
     """
 
-    import random
     random.seed(seed)
-    random.jumpahead(jumps)
     return [[random.random() for _ in range(size)] for _ in range(frag_size)]
 
 
 @task(returns=list)
-def _gen_normal(size, frag_size, seed, jumps):
+def _gen_normal(size, frag_size, seed):
     """
     Normal generator.
 
     :param size: Size
     :param frag_size: Fragment size
     :param seed: Random seed
-    :param jumps: Number of jumps
     :return: a fragment of elements
     """
 
-    import random
     random.seed(seed)
-    random.jumpahead(jumps)
     return [[random.gauss(mu=0.0, sigma=1.0) for _ in range(size)]
             for _ in range(frag_size)]
 
 
 @task(returns=list)
-def _gen_uniform(size, frag_size, seed, jumps):
+def _gen_uniform(size, frag_size, seed):
     """
     Uniform generator.
 
     :param size: Size
     :param frag_size: Fragment size
     :param seed: Random seed
-    :param jumps: Number of jumps
     :return: a fragment of elements
     """
 
-    import random
     random.seed(seed)
-    random.jumpahead(jumps)
     return [[random.uniform(-1.0, 1.0) for _ in range(size)]
             for _ in range(frag_size)]
 
@@ -118,6 +110,7 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
     :return: random dataset
     """
 
+    data = None
     frag_size = size[0] / num_frag
     if distribution == 'random':
         data = [_gen_random(size[1], frag_size, seed, frag_size * i)

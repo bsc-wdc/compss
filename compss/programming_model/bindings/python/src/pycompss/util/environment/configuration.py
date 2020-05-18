@@ -262,6 +262,8 @@ def check_infrastructure_variables(project_xml, resources_xml, compss_home,
     # Check if running within a virtual environment
     if 'VIRTUAL_ENV' in os.environ:
         python_virtual_environment = os.environ['VIRTUAL_ENV']
+    elif 'CONTA_DEFAULT_ENV' in os.environ:
+        python_virtual_environment = os.environ['CONTA_DEFAULT_ENV']
     else:
         python_virtual_environment = 'null'
     inf_vars = {'project_xml': project_xml,

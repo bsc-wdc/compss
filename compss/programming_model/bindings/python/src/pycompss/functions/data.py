@@ -26,28 +26,28 @@ PyCOMPSs Functions: Data generators
 from pycompss.api.task import task
 
 
-def chunks(l, n, balanced=False):
+def chunks(lst, n, balanced=False):
     """
     Generator to chunk data.
 
-    :param l: List of data to be chunked
+    :param lst: List of data to be chunked
     :param n: length of the fragments
     :param balanced: True to generate balanced fragments
-    :return: yield fragments of size n from l
+    :return: yield fragments of size n from lst
     """
 
-    if not balanced or not len(l) % n:
-        for i in range(0, len(l), n):
-            yield l[i:i + n]
+    if not balanced or not len(lst) % n:
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
     else:
-        rest = len(l) % n
+        rest = len(lst) % n
         start = 0
         while rest:
-            yield l[start: start + n + 1]
+            yield lst[start: start + n + 1]
             rest -= 1
             start += n + 1
-        for i in range(start, len(l), n):
-            yield l[i:i + n]
+        for i in range(start, len(lst), n):
+            yield lst[i:i + n]
 
 
 @task(returns=list)

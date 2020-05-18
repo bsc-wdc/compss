@@ -9,21 +9,24 @@ CONTENT
 -------
 
 src
-  L ext             -> external C module to interact with the COMPSs C/C++ binding
-    L pycompss      -> Python modules
-        L api       -> API modules to be imported by the programmer in the application
-        L functions -> Helper functions
-        L matlib    -> Math library
-        L runtime   -> master runtime
-        L util      -> utilities
-        L worker    -> worker runtime
+  L exaqute     -> Exaqute wrappers
+  L ext         -> external C module to interact with the binding-commons
+  L pycompss    -> Python modules
+    L api       -> API modules to be imported by the programmer in the application
+    L dds       -> DDS library
+    L functions -> Helper functions
+    L runtime   -> Master runtime
+    L streams   -> Streaming functions
+    L util      -> utilities
+    L worker    -> Worker runtime
+    L interactive.py -> Integration with jupyter utilities.
 
 
 DEPENDENCIES
 ------------
-- Python 2.x (optionally Python 3.x)
+- Python 3.x (optionally Python 2.x)
 - COMPSs Java runtime
-- COMPSs C/C++ binding
+- COMPSs binding-commons
 
 
 INSTALLATION
@@ -35,7 +38,9 @@ INSTALLATION
 This will install PyCOMPSs in /usr/local/lib/pythonX.Y/site-packages.
 
 - Alternatively, specify an installation directory:
-    ./install <install_dir> <create_symlinks> <only_python_version>
+    ./install <install_dir> <create_symlinks> <unify_installs> <only_python_version>
 
-    create_symlinks: Create symbolic links within site-packages (options: true | false)
-    only_python_version: Install a specific version (options: python2 | python 3)
+    <install_dir>: Target directory to install.
+    <create_symlinks>: Create symbolic links within site-packages (options: true | false).
+    <unify_installs>: Remove sources from 3 and link to 2 if exists.
+    <only_python_version>: Install a specific version (options: python2 | python 3).

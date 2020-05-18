@@ -26,17 +26,17 @@ PyCOMPSs Utils - External Storage
 
 try:
     # Try to import the external storage API module methods
-    from storage.api import init
-    from storage.api import finish
-    from storage.api import getByID
-    from storage.api import TaskContext
+    from storage.api import init         # noqa
+    from storage.api import finish       # noqa
+    from storage.api import getByID      # noqa
+    from storage.api import TaskContext  # noqa
     print("INFO: Storage API successfully imported.")
 except ImportError as e:
     # print("INFO: No storage API defined.")
     # Defined methods throwing exceptions.
     ERROR_MSG = e
 
-    def init(config_file_path=None):
+    def init(config_file_path=None):  # noqa
         raise Exception('Unexpected call to init from storage. Reason: %s' %
                         ERROR_MSG)
 
@@ -44,7 +44,7 @@ except ImportError as e:
         raise Exception('Unexpected call to finish from storage. Reason: %s' %
                         ERROR_MSG)
 
-    def getByID(id):
+    def getByID(id):  # noqa
         raise Exception('Unexpected call to getByID. Reason: %s' % ERROR_MSG)
 
     class TaskContext(object):
@@ -109,14 +109,14 @@ def get_id(psco):
     return psco.getID()
 
 
-def get_by_id(id):
+def get_by_id(identifier):
     """
     Retrieve the actual object from a persistent object identifier.
 
-    :param id: Persistent object identifier
+    :param identifier: Persistent object identifier
     :return: The object that corresponds to the id
     """
-    return getByID(id)
+    return getByID(identifier)
 
 
 def init_storage(storage_conf, logger):

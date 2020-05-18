@@ -134,7 +134,12 @@ public class BinaryInvoker extends Invoker {
                 cmd[1] = "run";
                 cmd[2] = "--rm";
                 cmd[3] = "-v";
-                cmd[4] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
+                cmd[4] = this.taskSandboxWorkingDir + "/../..";
+                if (cmd[4].contains("sandBox")) {
+                    cmd[4] = this.taskSandboxWorkingDir + "/../.." + ":" + this.taskSandboxWorkingDir + "/../..";
+                } else {
+                    cmd[4] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
+                }
                 cmd[5] = container.getImage();
                 cmd[6] = this.binary;
                 for (int i = 0; i < binaryParams.size(); ++i) {
@@ -161,6 +166,8 @@ public class BinaryInvoker extends Invoker {
                     cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);
                 }
                 break;
+            default:
+                throw new InvokeExecutionException("Invalid engine name");
         }
 
         if (invocation.isDebugEnabled()) {

@@ -32,7 +32,6 @@ public class BinaryContainerDescription implements Serializable {
 
 
     public BinaryContainerDescription() {
-        super();
     }
 
     /**

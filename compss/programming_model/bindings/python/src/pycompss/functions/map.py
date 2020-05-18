@@ -26,7 +26,7 @@ PyCOMPSs Functions: Map
 from pycompss.runtime.commons import IS_PYTHON3
 
 
-def map(*args):
+def map(*args):  # noqa
     """
     Apply function to every item of iterable and return a list of the results.
     If additional iterable arguments are passed, function must take that many
@@ -47,7 +47,7 @@ def map(*args):
             import builtins
             return list(builtins.map(*args))
         else:
-            import __builtin__
+            import __builtin__  # noqa
             return __builtin__.map(*args)
     except Exception as e:
         raise e

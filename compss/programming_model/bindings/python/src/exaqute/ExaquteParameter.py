@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 IN = None
 INOUT = None
 
@@ -31,4 +32,3 @@ Direction = 'direction'  # parameter type
 StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
 Depth = 'depth'  # collection recursive depth
-

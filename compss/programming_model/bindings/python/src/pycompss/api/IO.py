@@ -134,7 +134,6 @@ class IO(object):
                     # argument information
 
                     cce.set_impl_io(True)
-                    impl_args = []
             else:
                 # worker code
                 pass

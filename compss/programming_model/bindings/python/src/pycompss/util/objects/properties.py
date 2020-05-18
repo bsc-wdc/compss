@@ -187,8 +187,8 @@ def is_module_available(module_name):
             import importlib
             importlib.util.find_spec(module_name)
         else:
-            import imp
-            imp.find_module(module_name)
+            import imp  # noqa
+            imp.find_module(module_name)  # noqa
         return True
     except ImportError:
         return False
@@ -223,7 +223,6 @@ def create_object_by_con_type(con_type):
     Knowing its class name create an 'empty' object.
 
     :param con_type: object type info in <path_to_module>:<class_name> format.
-    :param default: default object type to be returned if class not found.
     :return: 'empty' object of a type
     """
     path, class_name = con_type.split(":")

@@ -89,6 +89,7 @@ def simple_reduce(f, data):
             import functools
             return functools.reduce(f, data)
         else:
-            return reduce(f, data)
+            import __builtin__  # noqa
+            return __builtin__.reduce(f, data)
     except Exception as e:
         raise e

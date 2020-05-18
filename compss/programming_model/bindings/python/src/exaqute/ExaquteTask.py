@@ -43,6 +43,7 @@ def delete_object(obj):
 def compute(obj):
     raise Exception("Compute not implemented in the current scheduler")
 
+
 def from_args_to_vector(obj):
     print("FROM ARGS TO VECTOR")
     index = [i for i, x in enumerate(obj) if x == "#"]

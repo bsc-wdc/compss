@@ -141,13 +141,14 @@ if context.in_pycompss():
         """
         return get_file(file_name)
 
-    def compss_wait_on_directory(dir_name):
+    def compss_wait_on_directory(directory_name):
         """
+        Gets a directory -> Calls runtime.
 
         :param dir_name: Directory name.
         :return: True if success. False otherwise.
         """
-        return get_directory(dir_name)
+        return get_directory(directory_name)
 
     def compss_delete_object(obj):
         """

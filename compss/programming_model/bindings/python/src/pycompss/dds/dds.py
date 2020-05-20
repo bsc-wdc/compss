@@ -628,7 +628,7 @@ class DDS(object):
                     buf_1.append(v)
                 elif n == 2:
                     buf_2.append(v)
-            return [[v, w] for v in buf_1 for w in buf_2]
+            return [(v, w) for v in buf_1 for w in buf_2]
 
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions

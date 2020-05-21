@@ -76,6 +76,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1173,10 +1174,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 LOGGER.error("Move not possible ", e1);
             }
         } catch (FileSystemException fse) {
-            deleteFolder(new File(target));
-            moveDirectory(source, target);
-        } catch (IOException e) {
-            LOGGER.error("Atomic move not possible ", e);
+            // Target Folder already Exists
+            deleteDestinationAndMoveFolder(sourcePath, destinationPath);
+        } catch (Exception e) {
+            LOGGER.error("Directory move failed", e);
+        }
+    }
+
+    private void deleteDestinationAndMoveFolder(Path sourcePath, Path destinationPath) {
+        deleteFolder(destinationPath.toFile());
+        try {
+            Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            LOGGER.error("Could not move folder " + sourcePath + " to " + destinationPath, e);
         }
     }
 
@@ -1187,7 +1198,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             }
         }
         if (!folder.delete()) {
-            LOGGER.error("Error deleting folder " + (folder == null ? "" : folder.getName()));
+            LOGGER.error("Error deleting folder " + folder.getName());
         }
     }
 

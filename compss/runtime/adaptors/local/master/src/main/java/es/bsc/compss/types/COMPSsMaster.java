@@ -776,10 +776,18 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                         + " to " + targetPath);
                                 }
                                 try {
-                                    Path tgtPath = (new File(copy.getFinalTarget())).toPath();
+                                    Path tgtPath = (new File(targetPath)).toPath();
                                     Path copyPath = (new File(copy.getFinalTarget())).toPath();
                                     if (tgtPath.compareTo(copyPath) != 0) {
                                         Files.copy(copyPath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+                                        Files.walk(copyPath).forEach((Path source) -> {
+                                            try {
+                                                Path fileDest = tgtPath.resolve(copyPath.relativize(source));
+                                                Files.copy(source, fileDest, StandardCopyOption.REPLACE_EXISTING);
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        });
                                     }
                                     if (tgtData != null) {
                                         tgtData.addLocation(target);
@@ -963,7 +971,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
 
             if (reason != null && reason.getType().equals(DataType.COLLECTION_T)) {
-
                 String targetPath;
                 if (target != null) {
                     targetPath = target.getURIInHost(Comm.getAppHost()).getPath();

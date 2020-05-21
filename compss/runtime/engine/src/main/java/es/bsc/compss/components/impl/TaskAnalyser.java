@@ -1407,7 +1407,7 @@ public class TaskAnalyser {
             switch (p.getType()) {
                 case DIRECTORY_T:
                 case FILE_T:
-                    FileParameter fp = (FileParameter) p;
+                    DependencyParameter fp = (DependencyParameter) p;
                     switch (fp.getDirection()) {
                         case IN:
                         case CONCURRENT:

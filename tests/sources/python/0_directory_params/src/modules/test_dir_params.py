@@ -71,7 +71,7 @@ class TestDirParams(unittest.TestCase):
         with(open(f_out, 'w')) as nm:
             nm.write("written in dir out #{}".format(i))
 
-    @task(dir_inout=DIRECTORY_INOUT, returs=list)
+    @task(dir_inout=DIRECTORY_INOUT, returns=list)
     def dir_inout_task_i(self, dir_inout, i):
 
         res = list()

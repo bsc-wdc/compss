@@ -357,7 +357,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         if (hasResult) {
             results = new ApplicationParameterImpl[1];
             results[1] = new ApplicationParameterImpl(null, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED,
-                "", "result", "");
+                "", "result", "", 1.0, false);
         } else {
             results = new ApplicationParameterImpl[0];
         }
@@ -376,6 +376,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             appId = Agent.runTask(lang, className, methodName, arguments, target, results,
                 MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
         } catch (AgentException e) {
+            LOGGER.error("ERROR IN runTask : ", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return Response.ok(appId, MediaType.TEXT_PLAIN).build();

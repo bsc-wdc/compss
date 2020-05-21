@@ -113,7 +113,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private static boolean initialized = false;
 
     // Number of fields per parameter
-    private static final int NUM_FIELDS_PER_PARAM = 9;
+    public static final int NUM_FIELDS_PER_PARAM = 9;
 
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);

@@ -34,7 +34,7 @@
     <properties>
         <!-- BSC Components versions -->
         <cepbatools-extrae.version>1.4</cepbatools-extrae.version>
-        <comm.version>1.7-22</comm.version>
+        <comm.version>1.7-23</comm.version>
         <conn.version>1.6-45</conn.version>
 
         <!-- ZK version -->

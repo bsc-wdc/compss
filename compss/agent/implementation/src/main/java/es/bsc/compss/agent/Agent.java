@@ -80,6 +80,10 @@ public class Agent {
     private static final Random APP_ID_GENERATOR = new Random();
     private static final List<AgentInterface<?>> INTERFACES;
 
+    private static final int PARAM_LENGTH = COMPSsRuntimeImpl.NUM_FIELDS_PER_PARAM;
+
+    private static final int LOAD_PARAMS_COUNT = 7;
+
     static {
         AGENT_NAME = COMPSsNode.getMasterName();
         LOGGER.info("Initializing agent with name: " + AGENT_NAME);
@@ -173,52 +177,70 @@ public class Agent {
                 taskParamsCount++;
             }
             taskParamsCount += results.length;
-            int loadParamsCount = 7;
-            int totalParamsCount = taskParamsCount + loadParamsCount;
-            Object[] params = new Object[7 * totalParamsCount];
+            int totalParamsCount = taskParamsCount + LOAD_PARAMS_COUNT;
+            Object[] params = new Object[PARAM_LENGTH * totalParamsCount];
 
-            Object[] loadParams = new Object[] { RUNTIME,
-                DataType.OBJECT_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "runtime", // Runtime API
-                "",
+            Object[] loadParams = new Object[] {
+                // Runtime API
                 RUNTIME,
                 DataType.OBJECT_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
-                "api", // Loader API
+                "runtime",
                 "",
+                "1.0",
+                new Boolean(false),
+                // Loader API
+                RUNTIME,
+                DataType.OBJECT_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
+                "api",
+                "",
+                "1.0",
+                new Boolean(false),
+                // CEI
                 ceiClass,
                 DataType.STRING_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
-                "ceiClass", // CEI
+                "ceiClass",
                 "",
+                "1.0",
+                new Boolean(false),
+                // Nested tasks App ID
                 appId,
                 DataType.LONG_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
-                "appId", // Nested tasks App ID
+                "appId",
                 "",
+                "1.0",
+                new Boolean(false),
+                // Class name
                 className,
                 DataType.STRING_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
-                "className", // Class name
+                "className",
                 "",
+                "1.0",
+                new Boolean(false),
+                // Method name
                 methodName,
                 DataType.STRING_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
-                "methodName", // Method name
+                "methodName",
                 "",
+                "1.0",
+                new Boolean(false),
                 /*
                  * When passing a single parameter with array type to the loaded method, the Object... parameter of the
                  * load method assumes that each element of the array is a different parameter ( any array matches
@@ -226,26 +248,29 @@ public class Agent {
                  * ensures that the array is detected as the second parameter -- Object... is resolved as [ Integer,
                  * array].
                  */
+                // Fake param
                 3,
                 DataType.INT_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
-                "fakeParam", // Fake param
-                "" };
+                "fakeParam",
+                "",
+                "1.0",
+                new Boolean(false) };
 
             System.arraycopy(loadParams, 0, params, 0, loadParams.length);
             int position = loadParams.length;
             for (ApplicationParameter param : arguments) {
                 LOGGER.debug("\t Parameter:" + param.getParamName());
                 addParameterToTaskArguments(mainAppId, param, position, params);
-                position += 7;
+                position += PARAM_LENGTH;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
                 addParameterToTaskArguments(mainAppId, target, position, params);
-                position += 7;
+                position += PARAM_LENGTH;
             }
 
             for (ApplicationParameter param : results) {
@@ -256,7 +281,9 @@ public class Agent {
                 params[position + 4] = param.getPrefix();
                 params[position + 5] = param.getParamName();
                 params[position + 6] = param.getContentType();
-                position += 7;
+                params[position + 7] = Double.toString(param.getWeight());
+                params[position + 8] = new Boolean(param.isKeepRename());
+                position += PARAM_LENGTH;
             }
             LoaderMonitor mainMonitor = new LoaderMonitor(mainAppId, monitor);
             RUNTIME.executeTask(mainAppId, // Task application ID
@@ -335,7 +362,7 @@ public class Agent {
             }
             paramsCount += results.length;
 
-            Object[] params = new Object[7 * paramsCount];
+            Object[] params = new Object[PARAM_LENGTH * paramsCount];
             int position = 0;
             LOGGER.debug("Handles parameters:");
             for (ApplicationParameter param : arguments) {
@@ -349,13 +376,13 @@ public class Agent {
                     typesSB.append("OBJECT_T");
                 }
                 addParameterToTaskArguments(appId, param, position, params);
-                position += 7;
+                position += PARAM_LENGTH;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
                 addParameterToTaskArguments(appId, target, position, params);
-                position += 7;
+                position += PARAM_LENGTH;
             }
 
             for (ApplicationParameter param : results) {
@@ -366,7 +393,9 @@ public class Agent {
                 params[position + 4] = param.getPrefix();
                 params[position + 5] = param.getParamName();
                 params[position + 6] = param.getContentType();
-                position += 7;
+                params[position + 7] = Double.toString(param.getWeight());
+                params[position + 8] = new Boolean(param.isKeepRename());
+                position += PARAM_LENGTH;
             }
 
             String paramsTypes = typesSB.toString();
@@ -417,6 +446,9 @@ public class Agent {
         arguments[position + 4] = param.getPrefix();
         arguments[position + 5] = param.getParamName();
         arguments[position + 6] = param.getContentType();
+        arguments[position + 7] = Double.toString(param.getWeight());
+        arguments[position + 8] = new Boolean(param.isKeepRename());
+
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {

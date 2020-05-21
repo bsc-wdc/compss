@@ -714,6 +714,11 @@ public class ITAppEditor extends ExprEditor {
             targetObj.append(',').append("\"").append("\"");
             // Add empty parameter content type
             targetObj.append(',').append("\"").append("\"");
+            // Add default parameter weight
+            targetObj.append(',').append("\"").append("1.0").append("\"");
+            // Add default parameter keep rename
+            targetObj.append(',').append("new Boolean(false)");
+
         }
 
         return targetObj.toString();
@@ -743,6 +748,12 @@ public class ITAppEditor extends ExprEditor {
                     .append(DATA_DIRECTION + ".OUT").append(',').append(DATA_STREAM + "." + StdIOStream.UNSPECIFIED)
                     .append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",").append("\"")
                     .append("\"");
+                // Add empty parameter content
+                infoToAppend.append(',').append("\"").append("\"");
+                // Add default parameter weight
+                infoToAppend.append(',').append("\"").append("1.0").append("\"");
+                // Add default parameter keep rename
+                infoToAppend.append(',').append("new Boolean(false)");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -808,6 +819,12 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append("$_,").append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
                     .append(',').append(DATA_STREAM + ".UNSPECIFIED").append(',').append("\"")
                     .append(Constants.PREFIX_EMPTY).append("\"").append(',').append("\"").append("\"");
+                // Add empty parameter content
+                infoToAppend.append(',').append("\"").append("\"");
+                // Add default parameter weight
+                infoToAppend.append(',').append("\"").append("1.0").append("\"");
+                // Add default parameter keep rename
+                infoToAppend.append(',').append("new Boolean(false)");
             } else {
                 // OBJECT
                 // Wrapper for a primitive type: return a default value
@@ -849,6 +866,12 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
                 // Add empty parameter name
                 infoToAppend.append(',').append("\"").append("\"");
+                // Add empty parameter content
+                infoToAppend.append(',').append("\"").append("\"");
+                // Add default parameter weight
+                infoToAppend.append(',').append("\"").append("1.0").append("\"");
+                // Add default parameter keep rename
+                infoToAppend.append(',').append("new Boolean(false)");
             }
         }
 

@@ -73,3 +73,8 @@ SERIALIZE_TAG = "SERIALIZE"
 # Should be equal to Tracer.java definitions (but only worker running all
 # other are trace through with function-list)
 # Still uses the events defined in commons.worker_constants
+
+# ################# #
+#  Other variables  #
+# ################# #
+HEADER = "[PYTHON WORKER] "

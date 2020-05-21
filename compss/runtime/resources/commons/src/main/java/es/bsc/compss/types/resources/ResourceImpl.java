@@ -408,6 +408,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
             if (this.node.generateWorkersDebugInfo()) {
                 getWorkersDebugInfo();
                 LOGGER.debug("Workers Debug files obtained for " + this.getName());
+                getBindingWorkersDebugInfo();
+                LOGGER.debug("Binding Workers Debug files obtained for " + this.getName());
             }
         }
     }
@@ -580,6 +582,87 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         LOGGER.debug("- Target: " + errFileTarget);
         masterNode.obtainData(new LogicalData("workerErr" + this.getName()), errSource, errTarget,
             new LogicalData("workerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
+
+        // Wait transfers
+        wdil.enable();
+        try {
+            sem.acquire();
+        } catch (InterruptedException ex) {
+            LOGGER.error("Error waiting for worker debug files in resource " + getName() + " to get saved");
+        }
+
+        LOGGER.debug("Worker files from resource " + getName() + "received");
+    }
+
+    /**
+     * Retrieves the binding worker debug files.
+     */
+    private void getBindingWorkersDebugInfo() {
+        if (DEBUG) {
+            LOGGER.debug("Copying Binding Workers Information");
+        }
+
+        Semaphore sem = new Semaphore(0);
+        WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
+
+        // Get Worker output
+        wdil.addOperation();
+        String outFileNameOriginal = "binding_worker.out";
+        String outFileName = "binding_worker_" + getName() + ".out";
+        SimpleURI outFileOrigin =
+            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + outFileNameOriginal);
+        String outFileTarget =
+            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + outFileName;
+
+        DataLocation outSource = null;
+        try {
+            outSource = DataLocation.createLocation(this, outFileOrigin);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + outFileOrigin.toString(), e);
+        }
+
+        DataLocation outTarget = null;
+        try {
+            SimpleURI uri = new SimpleURI(outFileTarget);
+            outTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + outFileTarget);
+        }
+
+        LOGGER.debug("- Source: " + outFileOrigin);
+        LOGGER.debug("- Target: " + outFileTarget);
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
+        masterNode.obtainData(new LogicalData("bindingWorkerOut" + this.getName()), outSource, outTarget,
+            new LogicalData("bindingWorkerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
+
+        // Get Worker error
+        wdil.addOperation();
+        String errFileNameOriginal = "binding_worker.err";
+        String errFileName = "binding_worker_" + getName() + ".err";
+        SimpleURI errFileOrigin =
+            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + errFileNameOriginal);
+        String errFileTarget =
+            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + errFileName;
+
+        DataLocation errSource = null;
+        try {
+            errSource = DataLocation.createLocation(this, errFileOrigin);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + errFileOrigin.toString(), e);
+        }
+
+        DataLocation errTarget = null;
+        try {
+            SimpleURI uri = new SimpleURI(errFileTarget);
+            errTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + errFileTarget);
+        }
+
+        LOGGER.debug("- Source: " + errFileOrigin);
+        LOGGER.debug("- Target: " + errFileTarget);
+        masterNode.obtainData(new LogicalData("bindingWorkerErr" + this.getName()), errSource, errTarget,
+            new LogicalData("bindingWorkerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Wait transfers
         wdil.enable();

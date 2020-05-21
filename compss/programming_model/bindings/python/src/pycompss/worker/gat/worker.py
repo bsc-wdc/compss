@@ -131,13 +131,16 @@ def main():
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == 'true' or log_level == "debug":
         # Debug
-        init_logging_worker(worker_path + '/../../../log/logging_debug.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_worker_debug.json')
     elif log_level == "info" or log_level == "off":
         # Info or no debug
-        init_logging_worker(worker_path + '/../../../log/logging_off.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_worker_off.json')
     else:
         # Default
-        init_logging_worker(worker_path + '/../../../log/logging.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_worker.json')
 
     if persistent_storage:
         # Initialize storage

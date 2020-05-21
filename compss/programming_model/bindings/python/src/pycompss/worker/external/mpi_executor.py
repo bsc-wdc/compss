@@ -202,6 +202,7 @@ def process_task(current_line, process_name,
                                   current_line[9:],
                                   tracing,
                                   logger,
+                                  (job_out, job_err),
                                   python_mpi)
             exit_value, new_types, new_values, time_out, except_msg = result
 

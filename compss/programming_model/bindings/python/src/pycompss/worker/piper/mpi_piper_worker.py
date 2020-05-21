@@ -30,8 +30,9 @@ from pycompss.worker.commons.constants import *
 from pycompss.worker.piper.commons.constants import *
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.piper_worker import load_loggers
-from pycompss.worker.piper.piper_worker import PiperWorkerConfiguration
+from pycompss.worker.piper.commons.utils import load_loggers
+from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
+from pycompss.worker.piper.commons.constants import HEADER
 from mpi4py import MPI
 
 # Persistent worker global variables
@@ -61,7 +62,7 @@ def shutdown_handler(signal, frame):
     :return: None
     """
     if is_worker():
-        print("[PYTHON WORKER] Shutdown signal handler")
+        print(HEADER + "Shutdown signal handler")
     else:
         print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
@@ -75,7 +76,7 @@ def user_signal_handler(signal, frame):
     :return: None
     """
     if is_worker():
-        print("[PYTHON WORKER] Default user signal handler")
+        print(HEADER + "Default user signal handler")
     else:
         print("[PYTHON EXECUTOR %s] Default user signal handler" % RANK)
 
@@ -114,14 +115,14 @@ def compss_persistent_worker(config):
     logger, storage_loggers = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] mpi_piper_worker.py rank: " + str(RANK) +
+        logger.debug(HEADER + "mpi_piper_worker.py rank: " + str(RANK) +
                      " wake up")
         config.print_on_logger(logger)
 
     # Start storage
     if persistent_storage:
         # Initialize storage
-        logger.debug("[PYTHON WORKER] Starting persistent storage")
+        logger.debug(HEADER + "Starting persistent storage")
         from storage.api import initWorker
         initWorker(config_file_path=config.storage_conf)
 
@@ -131,8 +132,8 @@ def compss_persistent_worker(config):
         PROCESSES[child_in_pipe] = child_pid
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] Starting alive")
-        logger.debug("[PYTHON WORKER] Control pipe: " +
+        logger.debug(HEADER + "Starting alive")
+        logger.debug(HEADER + "Control pipe: " +
                      str(config.control_pipe))
     # Read command from control pipe
     alive = True
@@ -162,7 +163,7 @@ def compss_persistent_worker(config):
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
                 pid = PROCESSES.get(in_pipe)
-                logger.debug("[PYTHON WORKER] Signaling process with PID " +
+                logger.debug(HEADER + "Signaling process with PID " +
                              pid + " to cancel a task")
                 kill(int(pid), signal.SIGUSR2)
 
@@ -172,19 +173,19 @@ def compss_persistent_worker(config):
             elif line[0] == QUIT_TAG:
                 alive = False
             else:
-                logger.debug("[PYTHON WORKER] ERROR: UNKNOWN COMMAND: " +
+                logger.debug(HEADER + "ERROR: UNKNOWN COMMAND: " +
                              command)
                 alive = False
 
     # Stop storage
     if persistent_storage:
         # Finish storage
-        logger.debug("[PYTHON WORKER] Stopping persistent storage")
+        logger.debug(HEADER + "Stopping persistent storage")
         from storage.api import finishWorker
         finishWorker()
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] Finished")
+        logger.debug(HEADER + "Finished")
 
     if TRACING:
         pyextrae.eventandcounters(TASK_EVENTS, 0)

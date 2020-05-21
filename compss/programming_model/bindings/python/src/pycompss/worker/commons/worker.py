@@ -400,8 +400,8 @@ def task_cancel(signum, frame):  # noqa
     raise CancelError
 
 
-def execute_task(process_name, storage_conf, params, tracing, logger,
-                 python_mpi=False):
+def execute_task(process_name, storage_conf, params, tracing,
+                 logger, log_files, python_mpi=False):
     """
     ExecuteTask main method.
 
@@ -410,6 +410,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
     :param params: List of parameters
     :param tracing: Tracing flag
     :param logger: Logger to use
+    :param log_files: Tuple with (out filename, err filename)
     :param python_mpi: If it is a MPI task
     :return: exit code, new types and new values
     """
@@ -450,11 +451,14 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,
+        'compss_log_files': log_files,
         'python_MPI': python_mpi
     }
 
     if __debug__:
         logger.debug("Storage conf: %s" % str(storage_conf))
+        logger.debug("Log out file: %s" % str(log_files[0]))
+        logger.debug("Log err file: %s" % str(log_files[1]))
         logger.debug("Params: %s" % str(params))
         logger.debug("Path: %s" % str(path))
         logger.debug("Method name: %s" % str(method_name))

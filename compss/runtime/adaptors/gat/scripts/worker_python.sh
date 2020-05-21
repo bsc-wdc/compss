@@ -90,34 +90,40 @@
     prefix=${params[$((index + 2))]}
     name=${params[$((index + 3))]}
     conType=${params[$((index + 4))]}
+    weight=${params[$((index + 5))]}
+    kr=${params[$((index + 6))]}
     case ${ptype} in
       [0-7]) 
-        value=${params[$((index + 5))]}
+        value=${params[$((index + 7))]}
         param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${value}" )
-        index=$((index + 6))
+        index=$((index + 8))
         ;;
       8) 
-        lengthPos=$((index + 5))
+        lengthPos=$((index + 7))
         length=${params[${lengthPos}]}
-        stringValue=${params[@]:$((index + 6)):${length}}
+        stringValue=${params[@]:$((index + 8)):${length}}
         param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${length}" "${stringValue[@]}" )
-        index=$((index + length + 6))
+        index=$((index + length + 8))
         ;;
       9)
-        originalNameIdx=$((index + 5))
-        dataLocationIdx=$((index + 6))
+        originalNameIdx=$((index + 7))
+        dataLocationIdx=$((index + 8))
         originalName=${params[$originalNameIdx]}
         dataLocation=${params[${dataLocationIdx}]}
-        moveFileToSandbox "${dataLocation}" "${originalName}"
-        param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${sandbox}/${originalName}" )
-        index=$((index + 7))
+        if [ "$kr" = "false" ]; then
+	    moveFileToSandbox "${dataLocation}" "${originalName}"
+            param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${sandbox}/${originalName}" )
+	else
+	    param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${dataLocation}" )
+	fi
+        index=$((index + 9))
 
         ;;
       *)
-        value=${params[$((index + 5))]}
-        write=${params[$((index + 6))]}
+        value=${params[$((index + 7))]}
+        write=${params[$((index + 8))]}
         param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${value}" "${write}")
-        index=$((index + 7))
+        index=$((index + 9))
         ;;
     esac
     invocationParams=( ${invocationParams[@]} ${param[@]} )

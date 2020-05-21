@@ -37,6 +37,10 @@ public interface InvocationParam {
 
     public String getContentType();
 
+    public boolean isKeepRename();
+
+    public double getWeight();
+
     public StdIOStream getStdIOStream();
 
     public String getOriginalName();

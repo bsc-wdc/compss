@@ -62,4 +62,18 @@ public @interface Parameter {
      */
     String prefix() default Constants.PREFIX_EMPTY;
 
+    /**
+     * Returns the weight of the parameter.
+     * 
+     * @return the weight of the parameter.
+     */
+    String weight() default "1.0";
+
+    /**
+     * Returns if the parameter can keep the rename in the task execution.
+     * 
+     * @return True if parameter can keep the rename in the task execution.
+     */
+    boolean keepRename() default false;
+
 }

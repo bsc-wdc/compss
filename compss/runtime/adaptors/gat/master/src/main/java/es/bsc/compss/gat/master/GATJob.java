@@ -624,6 +624,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
         String conType = param.getContentType();
         paramDesc.add((conType == null) ? "null" : (conType.isEmpty()) ? "null" : conType);
+        paramDesc.add(Double.toString(param.getWeight()));
+        paramDesc.add(Boolean.toString(param.isKeepRename()));
 
         switch (type) {
             case FILE_T:

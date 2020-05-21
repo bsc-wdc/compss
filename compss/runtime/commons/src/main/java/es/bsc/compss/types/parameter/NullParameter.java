@@ -35,7 +35,7 @@ public class NullParameter extends Parameter implements Serializable {
      * Creates a new Parameter instance from the given values.
      */
     public NullParameter() {
-        super(DataType.NULL_T, Direction.IN, StdIOStream.UNSPECIFIED, null, "null", "None");
+        super(DataType.NULL_T, Direction.IN, StdIOStream.UNSPECIFIED, null, "null", "None", 0.0, false);
     }
 
 }

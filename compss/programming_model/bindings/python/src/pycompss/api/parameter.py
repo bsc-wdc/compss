@@ -116,7 +116,9 @@ class Parameter(object):
                  is_future=False,
                  depth=1,
                  is_file_collection=False,
-                 content_type=UNDEFINED_CONTENT_TYPE):
+                 content_type=UNDEFINED_CONTENT_TYPE,
+                 weight="1.0",
+                 keep_rename=False):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -127,11 +129,15 @@ class Parameter(object):
         self.depth = depth          # Recursive depth for collections
         self.is_file_collection = is_file_collection
         self.content_type = content_type
+        self.weight = weight
+        self.keep_rename = keep_rename
 
     def __repr__(self):
         return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
                '          object=%s\n' \
                '          content_type=%s\n' \
+               '          weight=%s\n' \
+               '          keep_rename=%s\n' \
                '          file_name=%s\n' \
                '          is_future=%s)' % (str(self.type),
                                             str(self.direction),
@@ -139,6 +145,8 @@ class Parameter(object):
                                             str(self.prefix),
                                             str(self.object),
                                             str(self.content_type),
+                                            str(self.weight),
+                                            str(self.keep_rename),
                                             str(self.file_name),
                                             str(self.is_future))
 
@@ -159,7 +167,9 @@ class TaskParameter(object):
                  content=None,
                  stream=None,
                  prefix=None,
-                 content_type=UNDEFINED_CONTENT_TYPE):
+                 content_type=UNDEFINED_CONTENT_TYPE,
+                 weight="1.0",
+                 keep_rename=False):
         self.name = name
         self.type = p_type
         self.file_name = file_name
@@ -168,6 +178,8 @@ class TaskParameter(object):
         self.stream = stream
         self.prefix = prefix
         self.content_type = content_type
+        self.weight = weight
+        self.keep_rename = keep_rename
 
     def __repr__(self):
         return '\nParameter %s' % self.name + '\n' + \
@@ -178,6 +190,8 @@ class TaskParameter(object):
                '\tStream %s' % str(self.stream) + '\n' + \
                '\tPrefix %s' % str(self.prefix) + '\n' + \
                '\tContent Type %s' % str(self.content_type) + '\n' + \
+               '\tWeight %s' % str(self.weight) + '\n' + \
+               '\tKeep Rename %s' % str(self.keep_rename) + '\n' + \
                '-' * 20 + '\n'
 
 
@@ -433,6 +447,10 @@ def get_parameter_from_dictionary(d):
         p.prefix = d[Prefix]
     if Depth in d:
         p.depth = d[Depth]
+    if Weight in d:
+        p.weight = d[Weight]
+    if Keep_rename in d:
+        p.keep_rename = d[Keep_rename]
     return p
 
 
@@ -757,6 +775,8 @@ Direction = 'direction'  # parameter type
 StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
 Depth = 'depth'  # collection recursive depth
+Weight = 'weight'  # parameter weight
+Keep_rename = 'keep_rename'  # parameter keep rename property
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

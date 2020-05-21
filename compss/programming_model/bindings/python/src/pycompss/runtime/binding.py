@@ -886,7 +886,8 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
                                            f_parameters,
                                            f_returns,
                                            f.__code_strings__)
-    values, names, compss_types, compss_directions, compss_streams, compss_prefixes, content_types = vtdsc  # noqa: E501
+    values, names, compss_types, compss_directions, compss_streams, \
+      compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
     # Get priority
     has_priority = task_kwargs['priority']
@@ -907,6 +908,8 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
             prefixes_str = ' '.join(str(p) for p in compss_prefixes)
             names_str = ' '.join(x for x in names)
             ct_str = ' '.join(str(x) for x in content_types)
+            weights_str = ' '.join(str(x) for x in weights)
+            keep_renames_str = ' '.join(str(x) for x in keep_renames)
             logger.debug("Processing task:")
             logger.debug("\t- App id: " + str(app_id))
             logger.debug("\t- Path: " + path)
@@ -926,11 +929,14 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
             logger.debug("\t- COMPSs streams: " + streams_str)
             logger.debug("\t- COMPSs prefixes: " + prefixes_str)
             logger.debug("\t- Content Types: " + ct_str)
+            logger.debug("\t- Weights: " + weights_str)
+            logger.debug("\t- Keep_renames: " + keep_renames_str)
 
     # Check that there is the same amount of values as their types, as well
     # as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) ==
-            len(compss_streams) == len(compss_prefixes) == len(content_types))
+            len(compss_streams) == len(compss_prefixes) == len(content_types) ==
+            len(weights) == len(keep_renames))
 
     # Submit task to the runtime (call to the C extension):
     # Parameters:
@@ -973,7 +979,9 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
                         compss_directions,
                         compss_streams,
                         compss_prefixes,
-                        content_types)
+                        content_types,
+                        weights,
+                        keep_renames)
 
     # Return the future object/s corresponding to the task
     # This object will substitute the user expected return from the task and
@@ -1143,6 +1151,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     compss_prefixes = []
     content_types = list()
     slf_name = None
+    weights = []
+    keep_renames = []
 
     # Build the range of elements
     ra = list(f_parameters.keys())
@@ -1153,8 +1163,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from function parameters
     for i in ra:
-        val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[i],
-                                                          code_strings)
+        val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(f_parameters[i],
+                                                                    code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)
@@ -1162,12 +1172,14 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_prefixes.append(pre)
         names.append(arg_names.pop(0))
         content_types.append(ct)
+        weights.append(wght)
+        keep_renames.append(kr)
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from self (if exist)
     if ftype == FunctionType.INSTANCE_METHOD:
         # self is always an object
-        val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[slf],
-                                                          code_strings)
+        val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(f_parameters[slf],
+                                                                    code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)
@@ -1175,6 +1187,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_prefixes.append(pre)
         names.append(slf_name)
         content_types.append(ct)
+        weights.append(wght)
+        keep_renames.append(kr)
 
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from function returns
@@ -1187,8 +1201,11 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_prefixes.append(p.prefix)
         names.append(result_names.pop(0))
         content_types.append(p.content_type)
+        weights.append(p.weight)
+        keep_renames.append(p.keep_rename)
 
-    return values, names, compss_types, compss_directions, compss_streams, compss_prefixes, content_types  # noqa: E501
+    return values, names, compss_types, compss_directions, compss_streams,\
+        compss_prefixes, content_types, weights, keep_renames
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
@@ -1266,7 +1283,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         pop_object_id(param.object)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
-            x_value, x_type, _, _, _, x_con_type = _extract_parameter(
+            x_value, x_type, _, _, _, x_con_type, _, _ = _extract_parameter(
                 x,
                 code_strings,
                 param.depth - 1
@@ -1283,7 +1300,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
     # Get stream and prefix
     stream = param.stream
     prefix = param.prefix
-    return value, typ, direction, stream, prefix, con_type
+    return value, typ, direction, stream, prefix, con_type, param.weight, param.keep_rename
 
 
 def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):

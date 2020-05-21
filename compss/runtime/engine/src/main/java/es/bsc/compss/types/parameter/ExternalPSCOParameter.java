@@ -40,13 +40,14 @@ public class ExternalPSCOParameter extends DependencyParameter {
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param weight Parameter weight.
      * @param pscoId Parameter PSCO Id.
      * @param hashCode Parameter object hashcode.
      */
-    public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, String pscoId,
-        int hashCode) {
+    public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, double weight,
+        String pscoId, int hashCode) {
 
-        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null");
+        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
     }

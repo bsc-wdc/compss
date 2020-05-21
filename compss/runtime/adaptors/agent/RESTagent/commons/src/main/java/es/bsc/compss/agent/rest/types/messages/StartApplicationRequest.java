@@ -116,39 +116,39 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public void addParameter(String name, String prefix, boolean value) {
-        addParameter(value, Direction.IN, DataType.BOOLEAN_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.BOOLEAN_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, byte value) {
-        addParameter(value, Direction.IN, DataType.BYTE_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.BYTE_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, char value) {
-        addParameter(value, Direction.IN, DataType.CHAR_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.CHAR_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, short value) {
-        addParameter(value, Direction.IN, DataType.SHORT_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.SHORT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, int value) {
-        addParameter(value, Direction.IN, DataType.INT_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.INT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, long value) {
-        addParameter(value, Direction.IN, DataType.LONG_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.LONG_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, float value) {
-        addParameter(value, Direction.IN, DataType.FLOAT_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.FLOAT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, double value) {
-        addParameter(value, Direction.IN, DataType.DOUBLE_T, StdIOStream.UNSPECIFIED, prefix, name, "");
+        addParameter(value, Direction.IN, DataType.DOUBLE_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String value) {
-        addParameter(value, Direction.IN, DataType.STRING_T, StdIOStream.UNSPECIFIED, "", "", "");
+        addParameter(value, Direction.IN, DataType.STRING_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
     }
 
     public void addParameter(Object value) {
@@ -156,19 +156,19 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public void addParameter(Direction direction, Object value) {
-        addParameter(value, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED, "", "", "");
+        addParameter(value, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
     }
 
     public void addParameter(Parameter p, Object value) {
         addParameter(value, p.getDirection(), p.getType(), p.getStream(), p.getPrefix(), p.getName(),
-            p.getContentType());
+            p.getContentType(), p.getWeight(), p.isKeepRename());
     }
 
     private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type, StdIOStream stream,
-        String prefix, String name, String contentType) {
+        String prefix, String name, String contentType, double weight, boolean keepRename) {
 
         ApplicationParameterImpl p;
-        p = new ApplicationParameterImpl(value, direction, type, stream, prefix, name, contentType);
+        p = new ApplicationParameterImpl(value, direction, type, stream, prefix, name, contentType, weight, keepRename);
         p.setParamId(this.params.length);
 
         ApplicationParameterImpl[] oldParams = this.params;
@@ -184,8 +184,15 @@ public class StartApplicationRequest implements Serializable {
         addPersistedParameter(Direction.IN, id);
     }
 
+    /**
+     * Add a Persistent parameter.
+     * 
+     * @param direction parameter direction
+     * @param id parameter identifier
+     */
     public void addPersistedParameter(Direction direction, String id) {
-        ApplicationParameterImpl p = addParameter(id, direction, DataType.PSCO_T, StdIOStream.UNSPECIFIED, "", "", "");
+        ApplicationParameterImpl p =
+            addParameter(id, direction, DataType.PSCO_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
         ((ElementParameter) p.getValue()).setClassName("storage.StubItf");
     }
 

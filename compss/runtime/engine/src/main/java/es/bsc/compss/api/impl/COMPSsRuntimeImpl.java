@@ -65,6 +65,7 @@ import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
@@ -112,7 +113,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private static boolean initialized = false;
 
     // Number of fields per parameter
-    private static final int NUM_FIELDS_PER_PARAM = 7;
+    public static final int NUM_FIELDS_PER_PARAM = 9;
 
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
@@ -1493,34 +1494,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return hasReturn;
     }
 
-    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
-        ArrayList<Parameter> pars = new ArrayList<>();
-        // Parameter parsing needed, object is not serializable
-        for (int i = 0; i < parameterCount; ++i) {
-            Object content = parameters[NUM_FIELDS_PER_PARAM * i];
-            DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
-            if (type == null) {
-                type = DataType.NULL_T;
-            }
-            Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
-            StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
-            String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
-            String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
-            // Add parameter to list
-            // This function call is isolated for better readability and to easily
-            // allow recursion in the case of collections
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + i + " has type " + type.name());
-            }
-            addParameter(content, type, direction, stream, prefix, name, null, pars, 0, null);
-        }
-
-        // Return parameters
-        return pars;
-    }
-
     private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
-        String name, String pyType, ArrayList<Parameter> pars, int offset, String[] vals) {
+        String name, String pyType, double weight, boolean keepRename, ArrayList<Parameter> pars, int offset,
+        String[] vals) {
 
         switch (type) {
             case DIRECTORY_T:
@@ -1531,7 +1507,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     String canonicalPath = dirFile.getCanonicalPath();
                     String fullPath = ProtocolType.DIR_URI.getSchema() + canonicalPath;
                     DataLocation location = createLocation(fullPath);
-                    pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, location, originalName));
+                    pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, weight, keepRename,
+                        location, originalName));
                 } catch (Exception e) {
                     LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
                     ErrorManager.fatal(ERROR_DIR_NAME, e);
@@ -1542,7 +1519,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     String fileName = (String) content;
                     String originalName = new File(fileName).getName();
                     DataLocation location = createLocation((String) content);
-                    pars.add(new FileParameter(direction, stream, prefix, name, pyType, location, originalName));
+                    pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
+                        originalName));
                 } catch (Exception e) {
                     LOGGER.error(ERROR_FILE_NAME, e);
                     ErrorManager.fatal(ERROR_FILE_NAME, e);
@@ -1551,7 +1529,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             case OBJECT_T:
             case PSCO_T:
                 int code = oReg.newObjectParameter(content);
-                pars.add(new ObjectParameter(direction, stream, prefix, name, pyType, content, code));
+                pars.add(new ObjectParameter(direction, stream, prefix, name, pyType, weight, content, code));
                 break;
             case STREAM_T:
                 int streamCode = oReg.newObjectParameter(content);
@@ -1572,7 +1550,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case EXTERNAL_PSCO_T:
                 String id = (String) content;
-                pars.add(new ExternalPSCOParameter(direction, stream, prefix, name, id, externalObjectHashcode(id)));
+                pars.add(
+                    new ExternalPSCOParameter(direction, stream, prefix, name, weight, id, externalObjectHashcode(id)));
                 break;
             case BINDING_OBJECT_T:
                 String value = (String) content;
@@ -1582,7 +1561,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                         String extObjectId = fields[0];
                         int extObjectType = Integer.parseInt(fields[1]);
                         int extObjectElements = Integer.parseInt(fields[2]);
-                        pars.add(new BindingObjectParameter(direction, stream, prefix, name, pyType,
+                        pars.add(new BindingObjectParameter(direction, stream, prefix, name, pyType, weight,
                             new BindingObject(extObjectId, extObjectType, extObjectElements),
                             externalObjectHashcode(extObjectId)));
                     } else {
@@ -1636,10 +1615,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                         elemName = "@" + elemName;
                     }
                     ret += addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName, elemPyType,
-                        collectionParameters, offset + ret + 1, values) + 2;
+                        weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
-                    prefix, name, colPyType);
+                    prefix, name, colPyType, weight, keepRename);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER
                         .debug("Add Collection " + cp.getName() + " with " + cp.getParameters().size() + " parameters");
@@ -1654,10 +1633,45 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, "null"));
+                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null"));
                 break;
         }
         return 1;
+    }
+
+    /*
+     * *********************************************************************************************************
+     * *********************************** PRIVATE HELPER METHODS **********************************************
+     * *********************************************************************************************************
+     */
+    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
+        ArrayList<Parameter> pars = new ArrayList<>();
+        // Parameter parsing needed, object is not serializable
+        for (int i = 0; i < parameterCount; ++i) {
+            Object content = parameters[NUM_FIELDS_PER_PARAM * i];
+            DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
+            if (type == null) {
+                type = DataType.NULL_T;
+            }
+            Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
+            StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
+            String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
+            String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
+            // String pyContent = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
+            double weight = Double
+                .parseDouble(EnvironmentLoader.loadFromEnvironment((String) parameters[NUM_FIELDS_PER_PARAM * i + 7]));
+            boolean keepRename = (Boolean) parameters[NUM_FIELDS_PER_PARAM * i + 8];
+            // Add parameter to list
+            // This function call is isolated for better readability and to easily
+            // allow recursion in the case of collections
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("  Parameter " + i + " has type " + type.name());
+            }
+            addParameter(content, type, direction, stream, prefix, name, null, weight, keepRename, pars, 0, null);
+        }
+
+        // Return parameters
+        return pars;
     }
 
     private int externalObjectHashcode(String id) {

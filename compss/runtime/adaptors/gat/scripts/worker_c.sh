@@ -47,40 +47,46 @@
     prefix=${params[$((index + 2))]}
     name=${params[$((index + 3))]}
     conType=${params[$((index + 4))]}
+    weight=${params[$((index + 5))]}
+    kr=${params[$((index + 6))]}
     case ${type} in
       [0-7]) #BASIC TYPE PARAM
-        value=${params[$((index + 5))]}
+        value=${params[$((index + 7))]}
         param=( "${type}" "${stream}" "${prefix}" "${name}" "${conType}" "${value}" )
-        index=$((index + 6))
+        index=$((index + 8))
         ;;
       8)  # STRING PARAM
-        lengthPos=$((index + 5))
+        lengthPos=$((index + 7))
         length=${params[${lengthPos}]}
-        stringValue=${params[@]:$((index + 6)):${length}}
+        stringValue=${params[@]:$((index + 8)):${length}}
         param=( "${type}" "${stream}" "${prefix}" "${name}" "${conType}" "${length}" "${stringValue[@]}" )
-        index=$((index + length + 6))
+        index=$((index + length + 8))
         ;;
       9) # FILE PARAM
-        originalNameIdx=$((index + 5))
-        dataLocationIdx=$((index + 6))
+        originalNameIdx=$((index + 7))
+        dataLocationIdx=$((index + 8))
         originalName=${params[$originalNameIdx]}
         dataLocation=${params[${dataLocationIdx}]}
-        moveFileToSandbox "${dataLocation}" "${originalName}"
-        param=( "${type}" "${stream}" "${prefix}" "${name}" "${conType}" "${sandbox}/${originalName}" )
-        index=$((index + 7))
+        if [ "$kr" = "false" ]; then
+        	moveFileToSandbox "${dataLocation}" "${originalName}"
+        	param=( "${type}" "${stream}" "${prefix}" "${name}" "${conType}" "${sandbox}/${originalName}" )
+        else 
+            param=( "${type}" "${stream}" "${prefix}" "${name}" "${conType}" "${dataLocation}" )
+        fi
+        index=$((index + 9))
         ;;
       13) #BINDING OBJECT
-        bo_id=${params[$((index + 5))]}
-        bo_type=${params[$((index + 6))]}
-        bo_elements=${params[$((index + 7))]}
+        bo_id=${params[$((index + 7))]}
+        bo_type=${params[$((index + 8))]}
+        bo_elements=${params[$((index + 9))]}
         param=( "${type}" "${stream}" "${prefix}" "${name}" "${conType}" "${bo_id}" "${bo_type}" "${bo_elements}" )
-        index=$((index + 8))
+        index=$((index + 10))
       ;;
       *)
-        value=${params[$((index + 5))]}
-        write=${params[$((index + 6))]}
+        value=${params[$((index + 7))]}
+        write=${params[$((index + 8))]}
         param=( "${type}" "${stream}" "${prefix}" "${name}" "${conType}" "${value}" "${write}")
-        index=$((index + 7))
+        index=$((index + 9))
         ;;
     esac
     invocationParams=( ${invocationParams[@]} ${param[@]} )

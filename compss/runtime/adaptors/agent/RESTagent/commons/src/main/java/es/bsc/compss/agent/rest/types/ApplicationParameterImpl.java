@@ -39,6 +39,8 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     private String prefix;
     private String paramName;
     private String contentType;
+    private double weight;
+    private boolean keepRename;
 
 
     public ApplicationParameterImpl() {
@@ -56,7 +58,7 @@ public class ApplicationParameterImpl implements ApplicationParameter {
      * @param paramName name of the parameter
      */
     public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream, String prefix,
-        String paramName, String contentType) {
+        String paramName, String contentType, double weight, boolean keepRename) {
         this.value = ApplicationParameterValue.createParameterValue(val);
         this.direction = dir;
         this.stdIOStream = stream;
@@ -64,6 +66,8 @@ public class ApplicationParameterImpl implements ApplicationParameter {
         this.prefix = prefix;
         this.paramName = paramName;
         this.contentType = contentType;
+        this.weight = weight;
+        this.keepRename = keepRename;
     }
 
     @XmlAttribute
@@ -153,6 +157,16 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     @Override
     public String getDataMgmtId() {
         return null;
+    }
+
+    @Override
+    public boolean isKeepRename() {
+        return this.keepRename;
+    }
+
+    @Override
+    public double getWeight() {
+        return this.weight;
     }
 
 }

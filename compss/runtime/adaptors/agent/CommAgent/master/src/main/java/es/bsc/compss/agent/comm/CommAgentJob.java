@@ -133,7 +133,10 @@ class CommAgentJob extends NIOJob {
         String prefix = param.getPrefix();
         String name = param.getName();
         String pyType = param.getContentType();
-        CommParam commParam = new CommParam(null, type, dir, stdIOStream, prefix, name, pyType, null);
+        double weight = param.getWeight();
+        boolean keepRename = param.isKeepRename();
+        CommParam commParam =
+            new CommParam(null, type, dir, stdIOStream, prefix, name, pyType, weight, keepRename, null);
         commParam.setValue(((BasicTypeParameter) param).getValue());
         return commParam;
     }
@@ -184,8 +187,10 @@ class CommAgentJob extends NIOJob {
         String prefix = dPar.getPrefix();
         String name = dPar.getName();
         String pyType = dPar.getContentType();
-        CommParam commParam =
-            new CommParam(dataMgmtId, type, dir, stdIOStream, prefix, name, pyType, dPar.getOriginalName());
+        double weight = dPar.getWeight();
+        boolean keepRename = dPar.isKeepRename();
+        CommParam commParam = new CommParam(dataMgmtId, type, dir, stdIOStream, prefix, name, pyType, weight,
+            keepRename, dPar.getOriginalName());
         NIOData sourceData = (NIOData) dPar.getDataSource();
         if (sourceData != null) {
             RemoteDataInformation remoteData = new RemoteDataInformation(renaming);

@@ -38,6 +38,9 @@ public class NIOParam implements Externalizable, InvocationParam {
     private String prefix;
     private String name;
     private String contentType;
+    private double weight;
+    private boolean keepRename;
+
     private boolean preserveSourceData;
     private boolean writeFinalValue;
 
@@ -71,8 +74,8 @@ public class NIOParam implements Externalizable, InvocationParam {
      * @param originalName The original parameter name.
      */
     public NIOParam(String dataMgmtId, DataType type, StdIOStream stream, String prefix, String name,
-        String contentType, boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data,
-        String originalName) {
+        String contentType, double weight, boolean keepRename, boolean preserveSourceData, boolean writeFinalValue,
+        Object value, NIOData data, String originalName) {
 
         this.dataMgmtId = dataMgmtId;
         this.type = type;
@@ -84,6 +87,8 @@ public class NIOParam implements Externalizable, InvocationParam {
         } else {
             this.contentType = contentType;
         }
+        this.weight = weight;
+        this.keepRename = keepRename;
         this.value = value;
         this.preserveSourceData = preserveSourceData;
         this.writeFinalValue = writeFinalValue;
@@ -103,6 +108,8 @@ public class NIOParam implements Externalizable, InvocationParam {
         this.prefix = p.prefix;
         this.name = p.name;
         this.contentType = p.contentType;
+        this.weight = p.weight;
+        this.keepRename = p.keepRename;
         this.value = p.value;
         this.preserveSourceData = p.preserveSourceData;
         this.writeFinalValue = p.writeFinalValue;
@@ -133,6 +140,16 @@ public class NIOParam implements Externalizable, InvocationParam {
     @Override
     public String getContentType() {
         return this.contentType;
+    }
+
+    @Override
+    public double getWeight() {
+        return this.weight;
+    }
+
+    @Override
+    public boolean isKeepRename() {
+        return this.keepRename;
     }
 
     @Override
@@ -222,6 +239,8 @@ public class NIOParam implements Externalizable, InvocationParam {
         this.prefix = in.readUTF();
         this.name = in.readUTF();
         this.contentType = in.readUTF();
+        this.weight = in.readDouble();
+        this.keepRename = in.readBoolean();
         this.preserveSourceData = in.readBoolean();
         this.writeFinalValue = in.readBoolean();
         this.originalName = (String) in.readObject();
@@ -241,6 +260,8 @@ public class NIOParam implements Externalizable, InvocationParam {
         out.writeUTF(this.prefix);
         out.writeUTF(this.name);
         out.writeUTF(this.contentType);
+        out.writeDouble(this.weight);
+        out.writeBoolean(this.keepRename);
         out.writeBoolean(this.preserveSourceData);
         out.writeBoolean(this.writeFinalValue);
         out.writeObject(this.originalName);
@@ -262,6 +283,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         sb.append("[PREFIX = ").append(this.prefix).append("]");
         sb.append("[NAME = ").append(this.name).append("]");
         sb.append("[CONTENT TYPE = ").append(this.contentType).append("]");
+        sb.append("[KEEP_RENAME = ").append(this.keepRename).append("]");
         sb.append("[PRESERVE SOURCE DATA = ").append(this.preserveSourceData).append("]");
         sb.append("[WRITE FINAL VALUE = ").append(this.writeFinalValue).append("]");
         sb.append("[ORIGINAL NAME = ").append(this.originalName).append("]");

@@ -34,9 +34,11 @@
 	<modules>
         <module>0_api_calls</module>
         <module>0_basic_tasks</module>
-        <module>0_basic_types</module>
+	<module>0_basic_types</module>
+	<module>0_keep_rename</module>
         <module>0_no_task</module>
-        <module>0_objects</module>
+	<module>0_objects</module>
+	<module>0_weights</module>
         <module>0_priority_tasks</module>
 	<module>1_annotation_commutative</module>
 	<module>1_annotation_compss</module>

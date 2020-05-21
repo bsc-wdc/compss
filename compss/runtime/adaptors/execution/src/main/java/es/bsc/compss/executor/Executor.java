@@ -635,17 +635,33 @@ public class Executor implements Runnable {
         for (InvocationParam param : invocation.getParams()) {
             if (!param.isKeepRename()) {
                 bindOriginalFilenameToRenames(param, sandbox);
+            } else {
+                String renamedFilePath = (String) param.getValue();
+                LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                param.setRenamedName(renamedFilePath);
+                param.setOriginalName(renamedFilePath);
             }
         }
         if (invocation.getTarget() != null) {
             LOGGER.debug("Invocation has non-null target");
-            if (!invocation.getTarget().isKeepRename()) {
-                bindOriginalFilenameToRenames(invocation.getTarget(), sandbox);
+            InvocationParam param = invocation.getTarget();
+            if (!param.isKeepRename()) {
+                bindOriginalFilenameToRenames(param, sandbox);
+            } else {
+                String renamedFilePath = (String) param.getValue();
+                LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                param.setRenamedName(renamedFilePath);
+                param.setOriginalName(renamedFilePath);
             }
         }
         for (InvocationParam param : invocation.getResults()) {
             if (!param.isKeepRename()) {
                 bindOriginalFilenameToRenames(param, sandbox);
+            } else {
+                String renamedFilePath = (String) param.getValue();
+                LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                param.setRenamedName(renamedFilePath);
+                param.setOriginalName(renamedFilePath);
             }
         }
     }

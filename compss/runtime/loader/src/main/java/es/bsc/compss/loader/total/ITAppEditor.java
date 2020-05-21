@@ -564,7 +564,7 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append("\"\"" + ","); // Parameter Name
             toAppend.append("\"\"" + ","); // Parameter Content Type
             toAppend.append(infoParam.getWeight() + ",");
-            toAppend.append(infoParam.getKeepRename() + ",");
+            toAppend.append("new Boolean(" + infoParam.getKeepRename() + ")");
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
             }

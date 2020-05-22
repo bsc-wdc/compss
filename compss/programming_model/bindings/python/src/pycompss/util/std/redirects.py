@@ -39,6 +39,18 @@ c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
 
 
 @contextmanager
+def not_std_redirector():
+    """
+    Context which does nothing.
+    Use this context instead of the std_redirector context to avoid
+    stdout and stderr redirection.
+
+    :return: None
+    """
+    yield
+
+
+@contextmanager
 def std_redirector(out_filename, err_filename):
     """
     Stdout and stderr redirector to the given out and err filenames.

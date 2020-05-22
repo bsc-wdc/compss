@@ -119,6 +119,9 @@ setup(
              'log/logging_worker.json',
              'log/logging_worker_debug.json',
              'log/logging_worker_off.json',
+             'log/logging_gat_worker.json',
+             'log/logging_gat_worker_debug.json',
+             'log/logging_gat_worker_off.json',
              'README.md', 'tests/*']
     },
     ext_modules=[compssmodule, thread_affinity]

@@ -410,7 +410,8 @@ def execute_task(process_name, storage_conf, params, tracing,
     :param params: List of parameters
     :param tracing: Tracing flag
     :param logger: Logger to use
-    :param log_files: Tuple with (out filename, err filename)
+    :param log_files: Tuple with (out filename, err filename). None to avoid
+                      stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task
     :return: exit code, new types and new values
     """
@@ -457,8 +458,11 @@ def execute_task(process_name, storage_conf, params, tracing,
 
     if __debug__:
         logger.debug("Storage conf: %s" % str(storage_conf))
-        logger.debug("Log out file: %s" % str(log_files[0]))
-        logger.debug("Log err file: %s" % str(log_files[1]))
+        if log_files:
+            logger.debug("Log out file: %s" % str(log_files[0]))
+            logger.debug("Log err file: %s" % str(log_files[1]))
+        else:
+            logger.debug("Log out and err not redirected")
         logger.debug("Params: %s" % str(params))
         logger.debug("Path: %s" % str(path))
         logger.debug("Method name: %s" % str(method_name))

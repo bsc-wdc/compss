@@ -21,34 +21,13 @@
     },
     "error_console": {
       "class": "logging.StreamHandler",
-      "level": "ERROR",
-      "formatter": "medium",
-      "stream": "ext://sys.stderr"
-    },
-    "debug_worker_file_handler": {
-      "class": "logging.handlers.RotatingFileHandler",
       "level": "DEBUG",
       "formatter": "medium",
-      "filename": "log/binding_worker.out",
-      "maxBytes": 10485760,
-      "backupCount": 20,
-      "encoding": "utf8",
-      "delay": "true"
-    },
-    "error_worker_file_handler": {
-      "class": "logging.handlers.RotatingFileHandler",
-      "level": "ERROR",
-      "formatter": "medium",
-      "filename": "log/binding_worker.err",
-      "maxBytes": 10485760,
-      "backupCount": 20,
-      "encoding": "utf8",
-      "delay": "true"
+      "stream": "ext://sys.stderr"
     }
   },
   "loggers": {
-    "pycompss.worker.piper.piper_worker":  { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
-    "pycompss.worker.external.mpi_worker": { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.worker.gat.worker":          { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
 
     "dataclay":                     { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
     "hecuba":                       { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},

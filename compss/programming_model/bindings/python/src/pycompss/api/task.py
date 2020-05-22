@@ -45,6 +45,7 @@ from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import serialize_to_file_mpienv
 from pycompss.util.std.redirects import std_redirector
+from pycompss.util.std.redirects import not_std_redirector
 from pycompss.worker.commons.worker import build_task_parameter
 
 if __debug__:
@@ -1447,10 +1448,15 @@ class Task(object):
 
         # Call the user function with all the reconstructed parameters and
         # get the return values.
-        # Redirect all stdout and stderr during the user code execution
-        # jo job out and err files.
-        job_out, job_err = kwargs['compss_log_files']
-        with std_redirector(job_out, job_err):
+        redirect_std = True
+        if kwargs['compss_log_files']:
+            # Redirect all stdout and stderr during the user code execution
+            # jo job out and err files.
+            job_out, job_err = kwargs['compss_log_files']
+        else:
+            redirect_std = False
+
+        with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
             if self.decorator_arguments['numba']:
                 # Import all supported functionalities
                 from numba import jit

@@ -17,6 +17,7 @@
 package es.bsc.compss.api;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -117,6 +118,13 @@ public interface COMPSsRuntime {
      * @param appId Id of the application.
      */
     public void deregisterApplication(Long appId);
+
+    /**
+     * Registers a new CoreElement in the Runtime.
+     * 
+     * @param ced Definition of the core element to add.
+     */
+    public void registerCoreElement(CoreElementDefinition ced);
 
     /**
      * Registers a new CoreElement in the Runtime.

@@ -153,10 +153,19 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
     @Override
     public void receivedNewTask(NIONode master, CommTask request) {
-        Lang lang = request.getLang();
-        MethodImplementation impl = (MethodImplementation) request.getMethodImplementation();
-        String className = impl.getDeclaringClass();
-        String methodName = impl.getAlternativeMethodName();
+        Lang lang;
+        lang = request.getLang();
+
+        MethodImplementation impl;
+        impl = (MethodImplementation) request.getMethodImplementation();
+
+        String className;
+        className = impl.getDeclaringClass();
+        String methodName;
+        methodName = impl.getAlternativeMethodName();
+
+        String ceiClass;
+        ceiClass = request.getParallelismSource();
 
         int argsCount = request.getParams().size();
         int resultsCount = request.getResults().size();
@@ -175,7 +184,6 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             paramId++;
         }
 
-        String cei = request.getCei();
         MethodResourceDescription requirements = request.getRequirements();
         CommResource orchestrator = request.getOrchestrator();
         System.out.println("S'ha de notificat la peticio a " + orchestrator);
@@ -186,36 +194,15 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             monitor = new TaskMonitor(arguments, target, results, orchestrator, request);
         }
 
-        if (cei != null) {
-            startMain(lang, className, methodName, arguments, target, results, cei, requirements, monitor);
-        } else {
-            startTask(lang, className, methodName, arguments, target, results, requirements, monitor);
-        }
+        startTask(lang, className, methodName, ceiClass, arguments, target, results, requirements, monitor);
     }
 
-    private void startMain(Lang lang, String className, String methodName, ApplicationParameter[] params,
-        ApplicationParameter target, ApplicationParameter[] results, String ceiName,
+    private void startTask(Lang lang, String className, String methodName, String ceiClass,
+        ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
         MethodResourceDescription requirements, AppMonitor monitor) {
-        System.out.println(
-            "Es vol executar el main " + lang + " " + className + "." + methodName + " parallelitzat amb " + ceiName);
-        System.out.println("Parameters: ");
-        for (ApplicationParameter param : params) {
-            System.out.println("\t* " + param);
-        }
-        System.out.println("La tasca reservarà " + requirements);
-        try {
-            Agent.runMain(lang, ceiName, className, methodName, params, target, results, monitor);
-        } catch (AgentException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void startTask(Lang lang, String className, String methodName, ApplicationParameter[] params,
-        ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
-        AppMonitor monitor) {
 
         try {
-            Agent.runTask(lang, className, methodName, params, target, results, requirements, monitor);
+            Agent.runTask(lang, className, methodName, ceiClass, params, target, results, requirements, monitor);
         } catch (AgentException ex) {
             ex.printStackTrace();
         }

@@ -131,6 +131,11 @@ public class FakeInvocation implements Invocation {
         return false;
     }
 
+    @Override
+    public String getParallelismSource() {
+        return null;
+    }
+
 
     public static class Builder {
 

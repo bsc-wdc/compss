@@ -41,6 +41,7 @@ public class NIOTask implements Externalizable, Invocation {
     private Lang lang;
     private boolean workerDebug;
     private AbstractMethodImplementation impl;
+    private String parallelismSource;
 
     private LinkedList<NIOParam> arguments;
     private NIOParam target;
@@ -70,6 +71,7 @@ public class NIOTask implements Externalizable, Invocation {
      * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param impl Implementation to execute.
+     * @param parallelismSource Identifier of the object describing how the task should be parallelized
      * @param hasTarget Whether the task has a target object or not.
      * @param params List of task parameters.
      * @param numReturns Number of returns.
@@ -83,14 +85,15 @@ public class NIOTask implements Externalizable, Invocation {
      * @param transferGroupId Transfer group Id.
      * @param timeOut Task timeout.
      */
-    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns,
-        LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
-        int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId, OnFailure onFailure,
-        long timeOut) {
+    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
+        boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
+        List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
+        int transferGroupId, OnFailure onFailure, long timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
+        this.parallelismSource = parallelismSource;
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
         this.onFailure = onFailure;
@@ -128,6 +131,7 @@ public class NIOTask implements Externalizable, Invocation {
      * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param impl Implementation to execute.
+     * @param parallelismSource Identifier of the object describing how the task should be parallelized
      * @param arguments List of task's method arguments.
      * @param target Task's method callee
      * @param results List of task's method results.
@@ -138,9 +142,10 @@ public class NIOTask implements Externalizable, Invocation {
      * @param transferGroupId Transfer group Id.
      * @param timeOut Task deadline
      */
-    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, LinkedList<NIOParam> arguments,
-        NIOParam target, LinkedList<NIOParam> results, List<String> slaveWorkersNodeNames, int taskId, int jobId,
-        JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut) {
+    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
+        LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
+        List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
+        OnFailure onFailure, long timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -162,21 +167,11 @@ public class NIOTask implements Externalizable, Invocation {
         this.numReturns = results.size();
     }
 
-    /**
-     * Returns the task language.
-     *
-     * @return The task language.
-     */
     @Override
     public Lang getLang() {
         return this.lang;
     }
 
-    /**
-     * Returns whether the worker debug is enabled or not.
-     *
-     * @return {@literal true} if the worker debug is enabled, {@literal false} otherwise.
-     */
     @Override
     public boolean isDebugEnabled() {
         return this.workerDebug;
@@ -191,11 +186,6 @@ public class NIOTask implements Externalizable, Invocation {
         return this.impl.getMethodDefinition();
     }
 
-    /**
-     * Returns the method implementation type.
-     *
-     * @return The method implementation type.
-     */
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
         return this.impl;
@@ -225,41 +215,21 @@ public class NIOTask implements Externalizable, Invocation {
         return this.numReturns;
     }
 
-    /**
-     * Returns the task Id.
-     *
-     * @return The task Id.
-     */
     @Override
     public int getTaskId() {
         return this.taskId;
     }
 
-    /**
-     * Returns the task type.
-     *
-     * @return The task type.
-     */
     @Override
     public TaskType getTaskType() {
         return this.taskType;
     }
 
-    /**
-     * Returns the job Id.
-     *
-     * @return The job Id.
-     */
     @Override
     public int getJobId() {
         return this.jobId;
     }
 
-    /**
-     * Returns the job history.
-     *
-     * @return The job history.
-     */
     @Override
     public JobHistory getHistory() {
         return this.history;
@@ -274,26 +244,17 @@ public class NIOTask implements Externalizable, Invocation {
         return this.transferGroupId;
     }
 
-    /**
-     * Returns the resource description needed for the task execution.
-     *
-     * @return The resource description needed for the task execution.
-     */
     @Override
     public MethodResourceDescription getRequirements() {
         return this.reqs;
     }
 
-    /**
-     * Returns the slave workers node names.
-     *
-     * @return The slave workers node names.
-     */
     @Override
     public List<String> getSlaveNodesNames() {
         return this.slaveWorkersNodeNames;
     }
 
+    @Override
     public OnFailure getOnFailure() {
         return this.onFailure;
     }
@@ -303,12 +264,21 @@ public class NIOTask implements Externalizable, Invocation {
         return this.timeOut;
     }
 
+    @Override
+    public String getParallelismSource() {
+        return this.parallelismSource;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.lang = Lang.valueOf((String) in.readObject());
         this.workerDebug = in.readBoolean();
         this.impl = (AbstractMethodImplementation) in.readObject();
+        boolean ceiDefined = in.readBoolean();
+        if (ceiDefined) {
+            this.parallelismSource = in.readUTF();
+        }
         this.numReturns = in.readInt();
         this.arguments = (LinkedList<NIOParam>) in.readObject();
         this.target = (NIOParam) in.readObject();
@@ -329,6 +299,11 @@ public class NIOTask implements Externalizable, Invocation {
         out.writeObject(this.lang.toString());
         out.writeBoolean(this.workerDebug);
         out.writeObject(this.impl);
+        boolean ceiDefined = this.parallelismSource != null && !this.parallelismSource.isEmpty();
+        out.writeBoolean(ceiDefined);
+        if (ceiDefined) {
+            out.writeUTF(this.parallelismSource);
+        }
         out.writeInt(this.numReturns);
         out.writeObject(this.arguments);
         out.writeObject(this.target);
@@ -353,6 +328,7 @@ public class NIOTask implements Externalizable, Invocation {
         sb.append("[JOB ID= ").append(this.jobId).append("]");
         sb.append("[HISTORY= ").append(this.history).append("]");
         sb.append("[IMPLEMENTATION= ").append(this.impl.getMethodDefinition()).append("]");
+        sb.append("[PARALLELISM SOURCE= ").append(this.parallelismSource).append("]");
         sb.append(" [PARAMS ");
         for (NIOParam param : this.arguments) {
             sb.append(param);

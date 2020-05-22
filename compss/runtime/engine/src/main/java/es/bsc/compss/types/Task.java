@@ -82,8 +82,9 @@ public class Task extends AbstractTask {
 
         super(app);
         CoreElement core = CoreManager.getCore(signature);
-        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, core, isPrioritary, numNodes,
-            isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
+        String parallelismSource = app.getParallelismSource();
+        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, core, parallelismSource,
+            isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
         this.taskMonitor = monitor;
         this.commutativeGroup = new TreeMap<>();
         this.taskGroups = new LinkedList<>();
@@ -117,9 +118,9 @@ public class Task extends AbstractTask {
         int numNodes = Constants.SINGLE_NODE;
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
-
-        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core, isPrioritary,
-            numNodes, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
+        String parallelismSource = app.getParallelismSource();
+        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core, parallelismSource,
+            isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
         this.taskMonitor = monitor;
         this.commutativeGroup = new TreeMap<>();
         this.taskGroups = new LinkedList<>();

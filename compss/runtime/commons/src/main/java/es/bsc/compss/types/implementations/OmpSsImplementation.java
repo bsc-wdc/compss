@@ -32,6 +32,7 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
     private static final long serialVersionUID = 1L;
 
     public static final int NUM_PARAMS = 3;
+    public static String SIGNATURE = "ompss.OMPSS";
 
     private String binary;
     private String workingDir;

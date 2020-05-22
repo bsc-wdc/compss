@@ -28,11 +28,11 @@ public class JobExecutionException extends Exception {
         super(message);
     }
 
-    public JobExecutionException(Exception e) {
+    public JobExecutionException(Throwable e) {
         super(e);
     }
 
-    public JobExecutionException(String message, Exception e) {
+    public JobExecutionException(String message, Throwable e) {
         super(message, e);
     }
 }

@@ -78,7 +78,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -429,6 +428,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         ErrorManager.init(this);
+        ((MasterResourceImpl) Comm.getAppHost()).setupNestedSupport(this, this);
     }
 
     /*
@@ -631,11 +631,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         td.registerNewCoreElement(ced);
     }
 
-    /**
-     * Registers a new core element definition into the Runtime.
-     *
-     * @param ced Core Element definition.
-     */
+    @Override
     public void registerCoreElement(CoreElementDefinition ced) {
         LOGGER.info("Registering CoreElement " + ced.getCeSignature());
         if (LOGGER.isDebugEnabled()) {

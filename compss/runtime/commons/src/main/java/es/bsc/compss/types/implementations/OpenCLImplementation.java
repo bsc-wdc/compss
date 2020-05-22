@@ -32,6 +32,7 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
     private static final long serialVersionUID = 1L;
 
     public static final int NUM_PARAMS = 2;
+    public static String SIGNATURE = "opencl.OPENCL";
 
     private String kernel;
     private String workingDir;

@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -41,9 +42,10 @@ public class JavaInvoker extends Invoker {
     public static final String ERROR_CLASS_REFLECTION = "Cannot get class by reflection";
     public static final String ERROR_METHOD_REFLECTION = "Cannot get method by reflection";
 
-    private final String className;
-    private final String methodName;
-    protected final Method method;
+    protected final String className;
+    protected Class<?> methodClass;
+    protected final String methodName;
+    protected Method method;
 
 
     /**
@@ -82,113 +84,17 @@ public class JavaInvoker extends Invoker {
         this.method = findMethod();
     }
 
-    private Method findMethod() throws JobExecutionException {
-        Class<?> methodClass = null;
+    protected Method findMethod() throws JobExecutionException {
         try {
             methodClass = Class.forName(this.className);
         } catch (ClassNotFoundException e) {
             throw new JobExecutionException(ERROR_CLASS_REFLECTION, e);
         }
         try {
-            Method method = null;
-            List<? extends InvocationParam> params = this.invocation.getParams();
-            try {
-                Class<?>[] types = new Class<?>[params.size()];
-                int paramIdx = 0;
-                for (InvocationParam param : params) {
-                    types[paramIdx++] = param.getValueClass();
-                }
-                method = methodClass.getMethod(methodName, types);
-            } catch (NoSuchMethodException | SecurityException e) {
-                for (Method m : methodClass.getDeclaredMethods()) {
-                    if (m.getName().equals(methodName)) {
-                        java.lang.reflect.Parameter[] reflectionParams = m.getParameters();
-                        boolean arbitraryParamCount;
-                        if (reflectionParams.length > 0) {
-                            // If the method has an arbitrary number of parameters, the last parameter is an array.
-                            arbitraryParamCount = reflectionParams[reflectionParams.length - 1].isVarArgs();
-                        } else {
-                            arbitraryParamCount = false;
-                        }
-                        if (arbitraryParamCount) {
-                            // If it has an arbitrary number of parameters, the call may have more parameters or 1 less
-                            if (params.size() < m.getParameterCount() - 1) {
-                                continue;
-                            }
-                        } else {
-                            if (params.size() != m.getParameterCount()) {
-                                continue;
-                            }
-                        }
-
-                        boolean isMatch = true;
-                        for (int paramId = 0; paramId < reflectionParams.length && isMatch; paramId++) {
-                            java.lang.reflect.Parameter reflectionParam = reflectionParams[paramId];
-                            if (arbitraryParamCount && paramId == reflectionParams.length - 1) {
-                                Class<?> componentType = reflectionParam.getType().getComponentType();
-                                for (; paramId < params.size() && isMatch; paramId++) {
-                                    Object paramValue = params.get(paramId).getValue();
-                                    isMatch = areTypesMatching(componentType, paramValue);
-                                }
-                            } else {
-                                Object paramValue = params.get(paramId).getValue();
-                                isMatch = areTypesMatching(reflectionParam.getType(), paramValue);
-                            }
-                        }
-                        if (isMatch) {
-                            method = m;
-                        }
-                    }
-                }
-                if (method == null) {
-                    throw new JobExecutionException(ERROR_METHOD_REFLECTION, e);
-                }
-            }
-            return method;
-        } catch (SecurityException e) {
+            return ClassUtils.findMethod(methodClass, methodName, this.invocation.getParams());
+        } catch (NoSuchMethodException | SecurityException e) {
             throw new JobExecutionException(ERROR_METHOD_REFLECTION, e);
         }
-    }
-
-    private boolean areTypesMatching(Class<?> reflectionParam, Object paramValue) {
-        boolean isMatch = true;
-        if (reflectionParam.isPrimitive()) {
-            if (reflectionParam != paramValue.getClass()) {
-                switch (reflectionParam.getCanonicalName()) {
-                    case "byte":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Byte");
-                        break;
-                    case "char":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Char");
-                        break;
-                    case "short":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Short");
-                        break;
-                    case "int":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Integer");
-                        break;
-                    case "long":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Long");
-                        break;
-                    case "float":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Float");
-                        break;
-                    case "double":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Double");
-                        break;
-                    case "boolean":
-                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Boolean");
-                        break;
-                }
-            }
-        } else {
-            try {
-                reflectionParam.cast(paramValue);
-            } catch (ClassCastException cce) {
-                isMatch = false;
-            }
-        }
-        return isMatch;
     }
 
     @Override

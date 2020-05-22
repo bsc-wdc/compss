@@ -133,15 +133,14 @@ public abstract class Invoker {
         for (InvocationParam np : invocation.getParams()) {
             processParameter(np);
             // Check if object is still null
-            if (np.getValue() == null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Object parameter ").append(paramIdx);
-                sb.append(" with renaming ").append(np.getDataMgmtId());
-                sb.append(" in MethodDefinition ").append(impl.getMethodDefinition());
-                sb.append(" is null!").append("\n");
-
-                throw new JobExecutionException(sb.toString());
-            }
+            /*
+             * if (np.getValue() == null) { StringBuilder sb = new StringBuilder();
+             * sb.append("Object parameter ").append(paramIdx); sb.append(" with renaming ").append(np.getDataMgmtId());
+             * sb.append(" in MethodDefinition ").append(impl.getMethodDefinition());
+             * sb.append(" is null!").append("\n");
+             * 
+             * throw new JobExecutionException(sb.toString()); }
+             */
             paramIdx++;
         }
         if (invocation.getTarget() != null) {
@@ -157,7 +156,9 @@ public abstract class Invoker {
             out.println("  * Method definition: " + impl.getMethodDefinition());
             out.print("  * Parameter types:");
             for (InvocationParam p : invocation.getParams()) {
-                out.print(" " + p.getValueClass().getName());
+                if (p.getValueClass() != null) {
+                    out.print(" " + p.getValueClass().getName());
+                }
             }
             out.println("");
 
@@ -186,7 +187,7 @@ public abstract class Invoker {
             out.println("");
 
             out.println("  * Has Target: " + (invocation.getTarget() != null));
-            out.println("  * Has Return: " + (invocation.getResults() != null));
+            out.println("  * Has Return: " + (!invocation.getResults().isEmpty()));
         }
     }
 

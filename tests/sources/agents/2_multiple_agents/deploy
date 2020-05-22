@@ -11,5 +11,6 @@
 
   cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
-
+  cp "${source_base_dir}"/profiles.json "${target_base_dir}"/profiles.json
+  
   cp "${source_base_dir}"/execution "${target_base_dir}"/execution

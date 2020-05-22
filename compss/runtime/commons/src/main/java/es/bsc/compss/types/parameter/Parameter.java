@@ -51,6 +51,9 @@ public abstract class Parameter implements Serializable {
      * @param prefix Parameter prefix.
      * @param name Parameter name.
      * @param contentType Python object type.
+     * @param weight Parameter weigth for taking scheduling decisions
+     * @param keepRename if {@literal true}, parameter remains renamed within the task's execution sandbox; otherwise,
+     *            the value recovers its original name
      */
     public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, boolean keepRename) {

@@ -94,6 +94,12 @@ COMPSs options:
   --scheduler_config_file=<path>     Path to the file which contains the scheduler configuration.
                                      Default: Empty
 
+  --input_profile=<path>             Path to the file which stores the input application profile
+                                     Default: Empty
+
+  --output_profile=<path>            Path to the file to store the application profile at the end of the execution
+                                     Default: Empty
+
   --summary                          Displays a task execution summary at the end of the application execution
                                      Default: ${DEFAULT_SUMMARY}
 
@@ -184,6 +190,10 @@ parse_options() {
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
+          input_profile=*)
+            # Specify the file where there is stored the tasks profiles
+            input_profile=${OPTARG//input_profile=/}
+            ;;            
 	        library_path=*)
 	          # Additional library path
 	          library_path=${OPTARG//library_path=/}
@@ -199,6 +209,10 @@ parse_options() {
           master_port=*)
             # Preset a Master port
             master_port=${OPTARG//master_port=/}
+            ;;
+          output_profile=*)
+            # Specify the file where COMPSs will store the tasks profile
+            output_profile=${OPTARG//output_profile=/}
             ;;
           pythonpath=*)
             # Additional pythonpath

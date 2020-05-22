@@ -24,6 +24,7 @@ import es.bsc.comm.stage.Transfer.Destination;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
+import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
@@ -34,6 +35,7 @@ import es.bsc.compss.executor.utils.ThreadedPrintStream;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
+import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
@@ -1212,6 +1214,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error receiving remove obsoletes command. Not handeled");
 
+    }
+
+    @Override
+    public COMPSsRuntime getRuntimeAPI() {
+        return null;
+    }
+
+    @Override
+    public LoaderAPI getLoaderAPI() {
+        return null;
     }
 
 }

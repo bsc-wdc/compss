@@ -1,0 +1,67 @@
+{
+  "cloud": {},
+  "resources": {
+    "COMPSsWorker01": {
+      "idlePrice": 0.1,
+      "idlePower": 10,
+      "implementations": {
+        "demoFunction(STRING_T)es.bsc.compss.test.DemoClass": {
+          "maxTime": 10000,
+          "executions": 1000,
+          "avgTime": 10000,
+          "minTime": 10000,
+          "price": 0.0001,
+          "power": 1.5
+        },
+        "addDelay()es.bsc.compss.test.DemoClass": {
+          "maxTime": 1000,
+          "executions": 48,
+          "avgTime": 1000,
+          "minTime": 1000,
+          "price": 0.0001,
+          "power": 1.5
+        }
+      }
+    },
+    "COMPSsWorker03": {
+      "idlePrice": 0.1,
+      "idlePower": 10,
+      "implementations": {
+        "demoFunction(STRING_T)es.bsc.compss.test.DemoClass": {
+          "maxTime": 10000,
+          "executions": 1000,
+          "avgTime": 10000,
+          "minTime": 10000,
+          "price": 0.0001,
+          "power": 1.5
+        },
+        "addDelay()es.bsc.compss.test.DemoClass": {
+          "maxTime": 1000,
+          "executions": 48,
+          "avgTime": 1000,
+          "minTime": 1000,
+          "price": 0.0001,
+          "power": 1.5
+        }
+      }
+    }
+  },
+  "implementations": {
+    "demoFunction(STRING_T)es.bsc.compss.test.DemoClass": {
+      "maxTime": 1,
+      "executions": 1000,
+      "avgTime": 1,
+      "minTime": 1,
+      "price": 0.0001,
+      "power": 1.5
+    },
+    "addDelay()es.bsc.compss.test.DemoClass": {
+      "maxTime": 1000,
+      "executions": 1000,
+      "avgTime": 1000,
+      "minTime": 1000,
+      "price": 0.0001,
+      "power": 1.5
+    }
+  }
+}

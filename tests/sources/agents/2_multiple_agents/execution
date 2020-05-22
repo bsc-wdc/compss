@@ -89,6 +89,7 @@
    "--rest_port=46101" \
    "--comm_port=46102" \
    "-d" \
+   "--input_profile=profiles.json" \
    "--project=${base_app_dir}/project.xml" \
    "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
@@ -359,6 +360,7 @@
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
     exit 1
   fi
+  sleep 1
   method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job1_NEW.out" | awk '{print $2}')
   if [ ! "${method_name}" == "demoFunction" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
@@ -459,6 +461,7 @@
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
     exit 1
   fi
+  sleep 1
   method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" | awk '{print $2}')
   if [ ! "${method_name}" == "demoFunction" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
@@ -700,6 +703,7 @@
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
     exit 1
   fi
+  sleep 1
   method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" | awk '{print $2}')
   if [ ! "${method_name}" == "demoFunction" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")

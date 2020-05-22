@@ -37,7 +37,16 @@
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-commons</artifactId>
         </dependency>
-               
+        <!-- COMPSs Runtime Interface for Nested invocations -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-api</artifactId>
+        </dependency>
+        <!-- COMPSs Loader Interface for Nested invocations -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-loader</artifactId>
+        </dependency>               
         <!-- Storage -->
         <dependency>
             <groupId>es.bsc.compss</groupId>

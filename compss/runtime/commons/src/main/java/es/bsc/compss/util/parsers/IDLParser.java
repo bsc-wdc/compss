@@ -17,17 +17,17 @@
 package es.bsc.compss.util.parsers;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
@@ -62,10 +62,11 @@ public class IDLParser {
      * Parses the methods found in the IDL file.
      *
      * @param constraintsFile IDL file location.
+     * @return list CE defined in the IDL
      */
-    public static void parseIDLMethods(String constraintsFile) {
+    public static List<CoreElementDefinition> parseIDLMethods(String constraintsFile) {
         LOGGER.debug("Loading file " + constraintsFile);
-
+        List<CoreElementDefinition> detectedCEDs = new LinkedList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(constraintsFile))) {
             MethodResourceDescription defaultCtr = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
             boolean isReadingCodeRegion = false;
@@ -104,7 +105,9 @@ public class IDLParser {
                                         if (type.equals(CodeRegion.FUNCTION)) {
                                             LOGGER.debug("[IDL Parser] Loading function: " + structureString.toString()
                                                 + " constraint:" + currConstraints);
-                                            parseCFunction(structureString.toString(), currConstraints, implementation);
+                                            CoreElementDefinition ced = parseCFunction(structureString.toString(),
+                                                currConstraints, implementation);
+                                            detectedCEDs.add(ced);
                                             currConstraints = new MethodResourceDescription(defaultCtr);
                                             implementation = null;
                                         }
@@ -155,7 +158,9 @@ public class IDLParser {
                                                 // Line contains a function
                                                 LOGGER.debug("[IDL Parser] Loading function: " + line + " constraint:"
                                                     + currConstraints);
-                                                parseCFunction(line, currConstraints, implementation);
+                                                CoreElementDefinition ced =
+                                                    parseCFunction(line, currConstraints, implementation);
+                                                detectedCEDs.add(ced);
 
                                                 currConstraints = new MethodResourceDescription(defaultCtr);
                                                 implementation = null;
@@ -178,6 +183,7 @@ public class IDLParser {
         } catch (IOException ioe) {
             LOGGER.fatal(CONSTR_LOAD_ERR, ioe);
         }
+        return detectedCEDs;
     }
 
     private static CImplementation loadCImplementation(String line) {
@@ -203,7 +209,7 @@ public class IDLParser {
         }
     }
 
-    private static void parseCFunction(String line, MethodResourceDescription currConstraints,
+    private static CoreElementDefinition parseCFunction(String line, MethodResourceDescription currConstraints,
         CImplementation implementation) {
 
         final StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
@@ -343,15 +349,7 @@ public class IDLParser {
             ErrorManager.error(e.getMessage());
         }
         ced.addImplementation(implDef);
-
-        // Create the core Element if it does not exist
-        CoreElement ce = CoreManager.registerNewCoreElement(ced);
-
-        Integer coreId = ce.getCoreId();
-        LOGGER.debug("CoreId for task " + taskSignature + " is " + coreId);
-
-        LOGGER
-            .debug("[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + coreId);
+        return ced;
     }
 
     private static MethodResourceDescription loadCConstraints(String line) {

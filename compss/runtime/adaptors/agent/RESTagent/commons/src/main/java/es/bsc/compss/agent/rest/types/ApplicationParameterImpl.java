@@ -44,7 +44,7 @@ public class ApplicationParameterImpl implements ApplicationParameter {
 
 
     public ApplicationParameterImpl() {
-
+        weight = 1.0D;
     }
 
     /**

@@ -102,14 +102,7 @@ public class Application {
      * @return Application instance registered.
      */
     public static Application registerApplication() {
-        Application app;
-        Long appId = APP_ID_GENERATOR.nextLong();
-        while (APPLICATIONS.containsKey(appId)) {
-            appId = APP_ID_GENERATOR.nextLong();
-        }
-        app = new Application(appId, null);
-        APPLICATIONS.put(appId, app);
-        return app;
+        return registerApplication((String) null);
     }
 
     /**
@@ -119,14 +112,11 @@ public class Application {
      * @return Application instance registered.
      */
     public static Application registerApplication(String parallelismSource) {
-        Application app;
         Long appId = APP_ID_GENERATOR.nextLong();
         while (APPLICATIONS.containsKey(appId)) {
             appId = APP_ID_GENERATOR.nextLong();
         }
-        app = new Application(appId, parallelismSource);
-        APPLICATIONS.put(appId, app);
-        return app;
+        return registerApplication(appId, parallelismSource);
     }
 
     /**
@@ -137,17 +127,7 @@ public class Application {
      * @return Application instance registered for that appId.
      */
     public static Application registerApplication(Long appId) {
-        Application app;
-        if (appId == null) {
-            app = NO_APPLICATION;
-        } else {
-            app = APPLICATIONS.get(appId);
-            if (app == null) {
-                app = new Application(appId, null);
-                APPLICATIONS.put(appId, app);
-            }
-        }
-        return app;
+        return registerApplication(appId, null);
     }
 
     /**

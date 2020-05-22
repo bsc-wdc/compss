@@ -30,7 +30,15 @@ import logging
 import os
 import sys
 import time
-import thread_affinity
+try:
+    THREAD_AFFINITY = True
+    import thread_affinity
+except ImportError:
+    from pycompss.worker.piper.commons.constants import HEADER as MAIN_HEADER
+    print(MAIN_HEADER +
+          "WARNING: Could not import process affinity library: " +
+          "CPU AFFINITY NOT SUPPORTED!")
+    THREAD_AFFINITY = False
 
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
@@ -294,7 +302,7 @@ def process_task(current_line, process_name, pipe, queue, tracing,
     if current_line[0] == EXECUTE_TASK_TAG:
         # CPU binding
         cpus = current_line[-3]
-        if cpus != "-":
+        if cpus != "-" and THREAD_AFFINITY:
             affinity_ok = bind_cpus(cpus, process_name, logger)
 
         # GPU binding
@@ -359,9 +367,9 @@ def process_task(current_line, process_name, pipe, queue, tracing,
 
         try:
             # Check thread affinity
-            if not affinity_ok:
-                err.write("WARNING: This task is going to be executed with default thread affinity %s" %  # noqa: E501
-                          thread_affinity.getaffinity())
+            if not affinity_ok and THREAD_AFFINITY:
+                logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
+                               thread_affinity.getaffinity())
 
             # Setup process environment
             cn = int(current_line[12])
@@ -457,7 +465,8 @@ def process_task(current_line, process_name, pipe, queue, tracing,
         if __debug__:
             logger.debug("Cleaning environment.")
         if cpus != "-":
-            del os.environ['COMPSS_BINDED_CPUS']
+            if 'COMPSS_BINDED_CPUS' in os.environ:
+                del os.environ['COMPSS_BINDED_CPUS']
         if gpus != "-":
             del os.environ['COMPSS_BINDED_GPUS']
             del os.environ['CUDA_VISIBLE_DEVICES']

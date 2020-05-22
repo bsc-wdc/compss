@@ -647,13 +647,10 @@ def get_compss_type(value, depth=0):
     :param depth: Collections depth.
     :return: The Type of the value
     """
-    # If it is a numpy object, we manage it as all objects to avoid to
+    # If it is a numpy scalar, we manage it as all objects to avoid to
     # infer its type wrong. For instance isinstance(np.float64 object, float)
     # returns true
-    if np and \
-            (isinstance(value, np.ndarray) or
-             isinstance(value, np.matrix) or
-             isinstance(value, np.generic)):
+    if np and isinstance(value, np.generic):
         return TYPE.OBJECT
 
     if isinstance(value, bool):

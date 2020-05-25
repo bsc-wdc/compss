@@ -70,10 +70,6 @@
     "pycompss":                     { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.runtime.launch":      { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
 
-    "pycompss.worker.piper.piper_worker":  { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
-    "pycompss.worker.external.mpi_worker": { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
-    "pycompss.worker.gat.worker":          { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
-
     "dataclay":                     { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
     "hecuba":                       { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
     "redis":                        { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},

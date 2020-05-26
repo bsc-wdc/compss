@@ -72,10 +72,10 @@ def executor(process_name, command):
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if debug:
         # Debug
-        init_logging_worker(worker_path + '/../../../log/logging_debug.json')
+        init_logging_worker(worker_path + '/../../../log/logging_worker_debug.json')
     else:
         # Default
-        init_logging_worker(worker_path + '/../../../log/logging_off.json')
+        init_logging_worker(worker_path + '/../../../log/logging_worker_off.json')
 
     logger = logging.getLogger('pycompss.worker.external.mpi_worker')
     logger_handlers = copy.copy(logger.handlers)

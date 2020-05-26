@@ -44,6 +44,8 @@ from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import serialize_to_file_mpienv
+from pycompss.util.std.redirects import std_redirector
+from pycompss.util.std.redirects import not_std_redirector
 from pycompss.worker.commons.worker import build_task_parameter
 
 if __debug__:
@@ -1445,78 +1447,88 @@ class Task(object):
                 restore_hook = True
 
         # Call the user function with all the reconstructed parameters and
-        # get the return values
-        if self.decorator_arguments['numba']:
-            # Import all supported functionalities
-            from numba import jit
-            from numba import njit
-            from numba import generated_jit
-            from numba import vectorize
-            from numba import guvectorize
-            from numba import stencil
-            from numba import cfunc
-            numba_mode = self.decorator_arguments['numba']
-            numba_flags = self.decorator_arguments['numba_flags']
-            if type(numba_mode) is dict:
-                # Use the flags defined by the user
-                numba_flags['cache'] = True  # Always force cache
-                user_returns = \
-                    jit(self.user_function,
-                        **numba_flags)(*user_args, **user_kwargs)
-            elif numba_mode is True or numba_mode == 'jit':
-                numba_flags['cache'] = True  # Always force cache
-                user_returns = jit(self.user_function,
-                                   **numba_flags)(*user_args,
-                                                  **user_kwargs)
-                # Alternative way of calling:
-                # user_returns = jit(cache=True)(self.user_function) \
-                #                   (*user_args, **user_kwargs)
-            elif numba_mode == 'generated_jit':
-                user_returns = generated_jit(self.user_function,
-                                             **numba_flags)(*user_args,
-                                                            **user_kwargs)
-            elif numba_mode == 'njit':
-                numba_flags['cache'] = True  # Always force cache
-                user_returns = njit(self.user_function,
-                                    **numba_flags)(*user_args, **user_kwargs)
-            elif numba_mode == 'vectorize':
-                numba_signature = self.decorator_arguments['numba_signature']
-                user_returns = vectorize(
-                    numba_signature,
-                    **numba_flags
-                )(self.user_function)(*user_args, **user_kwargs)
-            elif numba_mode == 'guvectorize':
-                numba_signature = self.decorator_arguments['numba_signature']
-                numba_decl = self.decorator_arguments['numba_declaration']
-                user_returns = guvectorize(
-                    numba_signature,
-                    numba_decl,
-                    **numba_flags
-                )(self.user_function)(*user_args, **user_kwargs)
-            elif numba_mode == 'stencil':
-                user_returns = stencil(
-                    **numba_flags
-                )(self.user_function)(*user_args, **user_kwargs)
-            elif numba_mode == 'cfunc':
-                numba_signature = self.decorator_arguments['numba_signature']
-                user_returns = cfunc(
-                    numba_signature
-                )(self.user_function).ctypes(*user_args,
-                                             **user_kwargs)
-            else:
-                raise Exception("Unsupported numba mode.")
+        # get the return values.
+        redirect_std = True
+        if kwargs['compss_log_files']:
+            # Redirect all stdout and stderr during the user code execution
+            # jo job out and err files.
+            job_out, job_err = kwargs['compss_log_files']
         else:
-            try:
-                # Normal task execution
-                user_returns = self.user_function(*user_args, **user_kwargs)
-            except COMPSsException as ce:
-                compss_exception = ce
-                # Check old targetDirection
-                if 'targetDirection' in self.decorator_arguments:
-                    target_label = 'targetDirection'
+            redirect_std = False
+
+        with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
+            if self.decorator_arguments['numba']:
+                # Import all supported functionalities
+                from numba import jit
+                from numba import njit
+                from numba import generated_jit
+                from numba import vectorize
+                from numba import guvectorize
+                from numba import stencil
+                from numba import cfunc
+                numba_mode = self.decorator_arguments['numba']
+                numba_flags = self.decorator_arguments['numba_flags']
+                if type(numba_mode) is dict:
+                    # Use the flags defined by the user
+                    numba_flags['cache'] = True  # Always force cache
+                    user_returns = \
+                        jit(self.user_function,
+                            **numba_flags)(*user_args, **user_kwargs)
+                elif numba_mode is True or numba_mode == 'jit':
+                    numba_flags['cache'] = True  # Always force cache
+                    user_returns = jit(self.user_function,
+                                       **numba_flags)(*user_args,
+                                                      **user_kwargs)
+                    # Alternative way of calling:
+                    # user_returns = jit(cache=True)(self.user_function) \
+                    #                   (*user_args, **user_kwargs)
+                elif numba_mode == 'generated_jit':
+                    user_returns = generated_jit(self.user_function,
+                                                 **numba_flags)(*user_args,
+                                                                **user_kwargs)
+                elif numba_mode == 'njit':
+                    numba_flags['cache'] = True  # Always force cache
+                    user_returns = njit(self.user_function,
+                                        **numba_flags)(*user_args, **user_kwargs)
+                elif numba_mode == 'vectorize':
+                    numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+                    user_returns = vectorize(
+                        numba_signature,
+                        **numba_flags
+                    )(self.user_function)(*user_args, **user_kwargs)
+                elif numba_mode == 'guvectorize':
+                    numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+                    numba_decl = self.decorator_arguments['numba_declaration']
+                    user_returns = guvectorize(
+                        numba_signature,
+                        numba_decl,
+                        **numba_flags
+                    )(self.user_function)(*user_args, **user_kwargs)
+                elif numba_mode == 'stencil':
+                    user_returns = stencil(
+                        **numba_flags
+                    )(self.user_function)(*user_args, **user_kwargs)
+                elif numba_mode == 'cfunc':
+                    numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+                    user_returns = cfunc(
+                        numba_signature
+                    )(self.user_function).ctypes(*user_args,
+                                                 **user_kwargs)
                 else:
-                    target_label = 'target_direction'
-                compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
+                    raise Exception("Unsupported numba mode.")
+            else:
+                try:
+                    # Normal task execution
+                    user_returns = self.user_function(*user_args,
+                                                      **user_kwargs)
+                except COMPSsException as ce:
+                    compss_exception = ce
+                    # Check old targetDirection
+                    if 'targetDirection' in self.decorator_arguments:
+                        target_label = 'targetDirection'
+                    else:
+                        target_label = 'target_direction'
+                    compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
 
         # Reestablish the hook if it was disabled
         if restore_hook:

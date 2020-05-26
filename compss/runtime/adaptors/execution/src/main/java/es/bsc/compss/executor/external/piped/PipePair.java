@@ -137,6 +137,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 }
                 this.sendMutex.lock();
                 try {
+                    LOGGER.debug("Writting command...");
                     output = new FileOutputStream(writePipe, true);
                     output.write(taskCMD.getBytes());
                     output.flush();

@@ -33,7 +33,7 @@
     echo "$pid"
     exit 0
   fi
- 
+
   # Normal start -----------------------------------------------------
   # Setup
   setup_environment
@@ -55,6 +55,11 @@
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
+  # Prepare binding log files
+  # TODO: avoid to create always these log files. Create and transfer only when needed.
+  touch $workingDir/log/binding_worker.out
+  touch $workingDir/log/binding_worker.err
+
   # shellcheck disable=SC2086
   setsid $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
   endCode=$?
@@ -68,4 +73,3 @@
 	echo 1>&2 "[persistent_worker.sh] Worker could not be initalized"
 	exit 7
   fi
-

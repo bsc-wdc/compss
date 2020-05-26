@@ -113,7 +113,16 @@ setup(
     package_dir={'pycompss': 'src/pycompss', 'exaqute': 'src/exaqute'},
     packages=[''] + find_packages(),
     package_data={
-        '': ['log/logging.json', 'log/logging_debug.json', 'log/logging_off.json', 'README.md', 'tests/*']
+        '': ['log/logging.json',
+             'log/logging_debug.json',
+             'log/logging_off.json',
+             'log/logging_worker.json',
+             'log/logging_worker_debug.json',
+             'log/logging_worker_off.json',
+             'log/logging_gat_worker.json',
+             'log/logging_gat_worker_debug.json',
+             'log/logging_gat_worker_off.json',
+             'README.md', 'tests/*']
     },
     ext_modules=[compssmodule, thread_affinity]
 )

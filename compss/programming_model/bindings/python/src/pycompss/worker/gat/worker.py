@@ -69,7 +69,8 @@ def compss_worker(tracing, task_id, storage_conf, params):
                           storage_conf,
                           params,
                           tracing,
-                          logger)
+                          logger,
+                          None)
     exit_code, new_types, new_values, timed_out, except_msg = result
 
     if __debug__:
@@ -131,13 +132,16 @@ def main():
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == 'true' or log_level == "debug":
         # Debug
-        init_logging_worker(worker_path + '/../../../log/logging_debug.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_gat_worker_debug.json')
     elif log_level == "info" or log_level == "off":
         # Info or no debug
-        init_logging_worker(worker_path + '/../../../log/logging_off.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_gat_worker_off.json')
     else:
         # Default
-        init_logging_worker(worker_path + '/../../../log/logging.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_gat_worker.json')
 
     if persistent_storage:
         # Initialize storage

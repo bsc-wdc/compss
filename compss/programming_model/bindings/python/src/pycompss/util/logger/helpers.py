@@ -62,6 +62,7 @@ def init_logging_worker(log_config_file):
     Worker logging initialization.
 
     :param log_config_file: Log file name.
+    :param create_initial: Creates initial empty log files.
     :return: None
     """
     if os.path.exists(log_config_file):

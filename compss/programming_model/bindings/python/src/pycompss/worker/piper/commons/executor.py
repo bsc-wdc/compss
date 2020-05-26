@@ -30,7 +30,15 @@ import logging
 import os
 import sys
 import time
-import thread_affinity
+try:
+    THREAD_AFFINITY = True
+    import thread_affinity
+except ImportError:
+    from pycompss.worker.piper.commons.constants import HEADER as MAIN_HEADER
+    print(MAIN_HEADER +
+          "WARNING: Could not import process affinity library: " +
+          "CPU AFFINITY NOT SUPPORTED!")
+    THREAD_AFFINITY = False
 
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
@@ -39,13 +47,14 @@ from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
 from pycompss.worker.commons.executor import build_return_params_message
+from pycompss.worker.commons.worker import execute_task
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
 HEADER = "*[PYTHON EXECUTOR] "
 
 
-def shutdown_handler(signal, frame):
+def shutdown_handler(signal, frame):  # noqa
     """
     Shutdown handler (do not remove the parameters).
 
@@ -283,8 +292,6 @@ def process_task(current_line, process_name, pipe, queue, tracing,
     :param storage_loggers_handlers: Storage loggers handlers
     :return: <Boolean> True if processed successfully, False otherwise.
     """
-    stdout = sys.stdout
-    stderr = sys.stderr
 
     affinity_ok = True
 
@@ -295,7 +302,7 @@ def process_task(current_line, process_name, pipe, queue, tracing,
     if current_line[0] == EXECUTE_TASK_TAG:
         # CPU binding
         cpus = current_line[-3]
-        if cpus != "-":
+        if cpus != "-" and THREAD_AFFINITY:
             affinity_ok = bind_cpus(cpus, process_name, logger)
 
         # GPU binding
@@ -359,16 +366,10 @@ def process_task(current_line, process_name, pipe, queue, tracing,
                          str(current_line))
 
         try:
-            # Setup out/err wrappers
-            out = open(job_out, 'a')
-            err = open(job_err, 'a')
-            sys.stdout = out
-            sys.stderr = err
-
             # Check thread affinity
-            if not affinity_ok:
-                err.write("WARNING: This task is going to be executed with default thread affinity %s" %  # noqa: E501
-                          thread_affinity.getaffinity())
+            if not affinity_ok and THREAD_AFFINITY:
+                logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
+                               thread_affinity.getaffinity())
 
             # Setup process environment
             cn = int(current_line[12])
@@ -385,25 +386,13 @@ def process_task(current_line, process_name, pipe, queue, tracing,
                 logger.debug("\t - Number of threads: %s" % (str(cu)))
 
             # Execute task
-            from pycompss.worker.commons.worker import execute_task
             result = execute_task(process_name,
                                   storage_conf,
                                   current_line[9:],
                                   tracing,
-                                  logger)
-            exit_value = result[0]
-            new_types = result[1]
-            new_values = result[2]
-            timed_out = result[3]
-            except_msg = result[4]
-
-            # Restore out/err wrappers
-            sys.stdout = stdout
-            sys.stderr = stderr
-            sys.stdout.flush()
-            sys.stderr.flush()
-            out.close()
-            err.close()
+                                  logger,
+                                  (job_out, job_err))
+            exit_value, new_types, new_values, timed_out, except_msg = result
 
             if exit_value == 0:
                 # Task has finished without exceptions
@@ -476,7 +465,8 @@ def process_task(current_line, process_name, pipe, queue, tracing,
         if __debug__:
             logger.debug("Cleaning environment.")
         if cpus != "-":
-            del os.environ['COMPSS_BINDED_CPUS']
+            if 'COMPSS_BINDED_CPUS' in os.environ:
+                del os.environ['COMPSS_BINDED_CPUS']
         if gpus != "-":
             del os.environ['COMPSS_BINDED_GPUS']
             del os.environ['CUDA_VISIBLE_DEVICES']

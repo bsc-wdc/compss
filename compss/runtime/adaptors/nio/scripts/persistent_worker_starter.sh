@@ -32,7 +32,7 @@
   setup_jvm
 
   # Launch the Worker JVM
-  pre_launch  
+  pre_launch
 
   reprogram_fpga
 
@@ -50,6 +50,11 @@
     echo "Computing units GPU is greater than zero, Nanos6 scheduler set to hierarchical"
     export NANOS6_SCHEDULER=hierarchical
   fi
+
+  # Prepare binding log files
+  # TODO: avoid to create always these log files. Create and transfer only when needed.
+  touch $workingDir/log/binding_worker.out
+  touch $workingDir/log/binding_worker.err
 
   $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err
 

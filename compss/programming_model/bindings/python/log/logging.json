@@ -19,12 +19,6 @@
       "formatter": "medium",
       "stream": "ext://sys.stdout"
     },
-    "runtime_file_handler": {
-      "class": "logging.StreamHandler",
-      "level": "ERROR",
-      "formatter": "simple",
-      "stream": "ext://sys.stdout"
-    },
     "debug_file_handler": {
       "class": "logging.handlers.RotatingFileHandler",
       "level": "ERROR",
@@ -49,10 +43,6 @@
   "loggers": {
     "pycompss":                     { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.runtime.launch":      { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
-
-    "pycompss.worker.piper.piper_worker":  { "level": "ERROR", "handlers": ["runtime_file_handler"], "propagate": "no"},
-    "pycompss.worker.external.mpi_worker": { "level": "ERROR", "handlers": ["runtime_file_handler"], "propagate": "no"},
-    "pycompss.worker.gat.worker":          { "level": "ERROR", "handlers": ["runtime_file_handler"], "propagate": "no"},
 
     "dataclay":                     { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
     "hecuba":                       { "level": "ERROR", "handlers": ["console"], "propagate": "no" },

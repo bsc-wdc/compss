@@ -1,0 +1,86 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  job_log="${target_log_folder}/jobs/job1_NEW.out"
+  job_err="${target_log_folder}/jobs/job1_NEW.err"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for messages that must appear in the logs
+  if [ -f "${job_log}" ]; then
+    grep_simple=$(cat "${job_log}" | grep "FROM PYTHON TO C" | cat)
+    grep_fprintf=$(cat "${job_log}" | grep "Hello World using printf" | cat)
+    grep_fprintf_stdout=$(cat "${job_log}" | grep "This is me using fprintf(stdout)" | cat)
+    if [ "${grep_simple}" == "" ] || [ "${grep_fprintf}" == "" ] || [ "${grep_fprintf_stdout}" == "" ]; then
+      echo "ERROR: Could not catch a stdout message from the task." | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] ${job_log} not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  if [ -f "${job_err}" ]; then
+    grep_fprintf_stderr=$(cat "${job_err}" | grep "Bad message using fprintf(stderr)" | cat)
+    if [ "${grep_fprintf_stderr}" == "" ]; then
+      echo "ERROR: Could not catch a stderr message from the task." | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] ${job_err} not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Report result status
+  exit 0

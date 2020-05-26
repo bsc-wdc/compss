@@ -27,84 +27,21 @@ import os
 from os import kill
 import sys
 import signal
-import logging
 from multiprocessing import Process
 from multiprocessing import Queue
-from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.constants import *
 from pycompss.worker.piper.commons.constants import *
 from pycompss.worker.piper.commons.executor import Pipe
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
+from pycompss.worker.piper.commons.utils import load_loggers
+from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
 import pycompss.util.context as context
 
 # Persistent worker global variables
 PROCESSES = {}  # IN_PIPE -> PROCESS
 TRACING = False
 WORKER_CONF = None
-HEADER = "[PYTHON WORKER] "
-
-
-class PiperWorkerConfiguration(object):
-    """
-    Description of the configuration parameters for the Piper Worker
-    """
-
-    def __init__(self):
-        """
-        Constructs an empty configuration description for the piper worker
-        """
-        self.debug = False
-        self.tracing = False
-        self.storage_conf = None
-        self.stream_backend = None
-        self.stream_master_name = None
-        self.stream_master_port = None
-        self.tasks_x_node = 0
-        self.pipes = []
-        self.control_pipe = None
-
-    def update_params(self, argv):
-        """
-        Constructs a configuration description for the piper worker using the
-        arguments
-
-        :param argv: arguments from the command line
-        """
-        self.debug = argv[1] == 'true'
-        self.tracing = argv[2] == 'true'
-        self.storage_conf = argv[3]
-        self.stream_backend = argv[4]
-        self.stream_master_name = argv[5]
-        self.stream_master_port = argv[6]
-        self.tasks_x_node = int(argv[7])
-        in_pipes = argv[8:8 + self.tasks_x_node]
-        out_pipes = argv[8 + self.tasks_x_node:-2]
-        if self.debug:
-            assert self.tasks_x_node == len(in_pipes)
-            assert self.tasks_x_node == len(out_pipes)
-        self.pipes = []
-        for i in range(0, self.tasks_x_node):
-            self.pipes.append(Pipe(in_pipes[i], out_pipes[i]))
-        self.control_pipe = Pipe(argv[-2], argv[-1])
-
-    def print_on_logger(self, logger):
-        """
-        Prints the configuration through the logger
-
-        :param logger: logger to output the configuration
-        """
-        logger.debug(HEADER + "-----------------------------")
-        logger.debug(HEADER + "Persistent worker parameters:")
-        logger.debug(HEADER + "-----------------------------")
-        logger.debug(HEADER + "Debug          : " + str(self.debug))
-        logger.debug(HEADER + "Tracing        : " + str(self.tracing))
-        logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))
-        logger.debug(HEADER + "Pipe Pairs     : ")
-        for pipe in self.pipes:
-            logger.debug(HEADER + "                 * " + str(pipe))
-        logger.debug(HEADER + "Storage conf.  : " + str(self.storage_conf))
-        logger.debug(HEADER + "-----------------------------")
 
 
 def shutdown_handler(signal, frame):
@@ -118,35 +55,6 @@ def shutdown_handler(signal, frame):
     for proc in PROCESSES.values():
         if proc.is_alive():
             proc.terminate()
-
-
-def load_loggers(debug, persistent_storage):
-    """
-    Loads all the loggers
-
-    :param debug: is Debug enabled
-    :param persistent_storage: is persistent storage enabled
-    :return logger: main logger of the application
-    :return storage_loggers: loggers for the persistent data engine
-    """
-    # Load log level configuration file
-    worker_path = os.path.dirname(os.path.realpath(__file__))
-    if debug:
-        # Debug
-        init_logging_worker(worker_path + '/../../../log/logging_debug.json')
-    else:
-        # Default
-        init_logging_worker(worker_path + '/../../../log/logging_off.json')
-
-    # Define logger facilities
-    logger = logging.getLogger('pycompss.worker.piper.piper_worker')
-    storage_loggers = []
-    if persistent_storage:
-        storage_loggers.append(logging.getLogger('dataclay'))
-        storage_loggers.append(logging.getLogger('hecuba'))
-        storage_loggers.append(logging.getLogger('redis'))
-        storage_loggers.append(logging.getLogger('storage'))
-    return logger, storage_loggers
 
 
 ######################

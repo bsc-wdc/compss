@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.ActionNotWaitingException;
@@ -582,6 +583,9 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         long waitingScore = -this.blocked.size();
         // Computes the priority of the resource
         long resourceScore = Score.calculateDataLocalityScore(params, this.myWorker);
+        if (this.myWorker == Comm.getAppHost()) {
+            resourceScore++;
+        }
 
         return new Score(priority, groupId, resourceScore, waitingScore, 0);
     }

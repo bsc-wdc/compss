@@ -58,7 +58,7 @@ check_tracing_setup () {
   if [ -z "${custom_extrae_config_file}" ]; then
     custom_extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
   fi
-  
+
   if [ -z "${trace_label}" ]; then
     trace_label=${DEFAULT_TRACE_LABEL}
   fi
@@ -107,6 +107,9 @@ EOT
 start_tracing() {
   if [ ${tracing} -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
+    if [ "$lang" == "python" ]; then
+      export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
+    fi
   fi
 }
 

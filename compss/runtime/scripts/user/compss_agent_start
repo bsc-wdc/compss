@@ -70,7 +70,7 @@ COMPSs options:
 
   --log_dir=<path>                   Log directory. (Default: /tmp/${app_uuid})
 
-  --log_level=<level>                Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
+  --log_level=<level>                Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
                                      Default: ${DEFAULT_LOG_LEVEL}
 
   --master_port=<int>                Port to run the COMPSs master communications. 

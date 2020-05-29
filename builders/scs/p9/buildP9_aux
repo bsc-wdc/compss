@@ -26,7 +26,7 @@
 
   # SET SCRIPT VARIABLES
   targetDir=$1
-  scriptDir=$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
   modules="gcc openmpi boost java atlas/3.10.3 python/2.7.14"

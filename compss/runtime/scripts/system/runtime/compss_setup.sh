@@ -364,7 +364,7 @@ exec_python() {
   export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
 
   # Initialize python flags
-  if [ "$log_level" != "debug" ]; then
+  if [ "$log_level" != "debug" ] && [ "$log_level" != "trace" ] ; then
     py_flags="-u -O"
   else
     py_flags="-u"

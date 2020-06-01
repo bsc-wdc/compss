@@ -11,7 +11,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-trunk</artifactId>
-        <version>2.6.rc2005</version>
+        <version>2.6.rc2006</version>
         <relativePath>../../</relativePath>
     </parent>
 

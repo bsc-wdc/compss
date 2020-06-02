@@ -37,6 +37,7 @@
 
   # DEFINE CONFIGURATION PARAMETERS
   additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/usr/include/libxml:$PATH"
+  additional_module_use_folder="ignore"
   queues_cfg="knl.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
@@ -45,7 +46,7 @@
   autoparallel="false"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}"
 
   # END
   exit 0

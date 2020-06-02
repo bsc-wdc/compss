@@ -38,6 +38,7 @@
   # DEFINE CONFIGURATION PARAMETERS
   #additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
   additionalExports="$PATH"
+  additional_module_use_folder="ignore"
   queues_cfg="asgard.cfg"
   extrae_with_openmpi="true"
   openmpi_version=""
@@ -46,7 +47,7 @@
   autoparallel="false"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}"
 
   # END
   exit 0

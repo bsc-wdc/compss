@@ -48,7 +48,11 @@ def init_logging(log_config_file, log_path):
             handler = "error_file_handler"
             errors_file = conf["handlers"][handler].get("filename")
             conf["handlers"][handler]["filename"] = log_path + errors_file
-        if "error_file_handler" in conf["handlers"]:
+        if "info_file_handler" in conf["handlers"]:
+            handler = "info_file_handler"
+            info_file = conf["handlers"][handler].get("filename")
+            conf["handlers"][handler]["filename"] = log_path + info_file
+        if "debug_file_handler" in conf["handlers"]:
             handler = "debug_file_handler"
             debug_file = conf["handlers"][handler].get("filename")
             conf["handlers"][handler]["filename"] = log_path + debug_file
@@ -62,7 +66,6 @@ def init_logging_worker(log_config_file):
     Worker logging initialization.
 
     :param log_config_file: Log file name.
-    :param create_initial: Creates initial empty log files.
     :return: None
     """
     if os.path.exists(log_config_file):

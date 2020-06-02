@@ -114,8 +114,9 @@ setup(
     packages=[''] + find_packages(),
     package_data={
         '': ['log/logging.json',
-             'log/logging_debug.json',
              'log/logging_off.json',
+             'log/logging_info.json',
+             'log/logging_debug.json',
              'log/logging_worker.json',
              'log/logging_worker_debug.json',
              'log/logging_worker_off.json',

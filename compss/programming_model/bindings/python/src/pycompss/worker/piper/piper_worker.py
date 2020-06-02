@@ -96,7 +96,7 @@ def compss_persistent_worker(config):
 
     if persistent_storage:
         # Initialize storage
-        logger.debug(HEADER + "Starting persitent storage")
+        logger.debug(HEADER + "Starting persistent storage")
         from storage.api import initWorker as initStorageAtWorker
         initStorageAtWorker(config_file_path=config.storage_conf)
 

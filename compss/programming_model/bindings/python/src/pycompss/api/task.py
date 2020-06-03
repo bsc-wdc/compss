@@ -1363,7 +1363,6 @@ class Task(object):
         # Self definition (only used when defined in the task)
         self_type = None
         self_value = None
-        compss_exception = None
         # All parameters are in the same args list. At the moment we only know
         # the type, the name and the "value" of the parameter. This value may
         # be treated to get the actual object (e.g: deserialize it, query the
@@ -1377,8 +1376,6 @@ class Task(object):
         # Return parameters, save them apart to match the user returns with
         # the internal parameters
         ret_params = []
-        # User function return result
-        user_returns = None
 
         for arg in args:
             # Just fill the three data structures declared above
@@ -1421,31 +1418,6 @@ class Task(object):
                 self_type = parameter.TYPE.FILE
                 self_value = 'null'
 
-        # Tracing hook is disabled by default during the user code of the task.
-        # The user can enable it with tracing_hook=True in @task decorator for
-        # specific tasks or globally with the COMPSS_TRACING_HOOK=true
-        # environment variable.
-        restore_hook = False
-        pro_f = None
-        if kwargs['compss_tracing']:
-            global_tracing_hook = False
-            if TRACING_HOOK_ENV_VAR in os.environ:
-                hook_enabled = os.environ[TRACING_HOOK_ENV_VAR] == "true"
-                global_tracing_hook = hook_enabled
-            if self.decorator_arguments['tracing_hook'] or global_tracing_hook:
-                # The user wants to keep the tracing hook
-                pass
-            else:
-                # When Extrae library implements the function to disable,
-                # use it, as:
-                #     import pyextrae
-                #     pro_f = pyextrae.shutdown()
-                # Since it is not available yet, we manage the tracing hook
-                # by ourselves
-                pro_f = sys.getprofile()
-                sys.setprofile(None)
-                restore_hook = True
-
         # Call the user function with all the reconstructed parameters and
         # get the return values.
         redirect_std = True
@@ -1454,90 +1426,15 @@ class Task(object):
             # jo job out and err files.
             job_out, job_err = kwargs['compss_log_files']
         else:
+            job_out, job_err = None, None
             redirect_std = False
 
         with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
-            if self.decorator_arguments['numba']:
-                # Import all supported functionalities
-                from numba import jit
-                from numba import njit
-                from numba import generated_jit
-                from numba import vectorize
-                from numba import guvectorize
-                from numba import stencil
-                from numba import cfunc
-                numba_mode = self.decorator_arguments['numba']
-                numba_flags = self.decorator_arguments['numba_flags']
-                if type(numba_mode) is dict:
-                    # Use the flags defined by the user
-                    numba_flags['cache'] = True  # Always force cache
-                    user_returns = \
-                        jit(self.user_function,
-                            **numba_flags)(*user_args, **user_kwargs)
-                elif numba_mode is True or numba_mode == 'jit':
-                    numba_flags['cache'] = True  # Always force cache
-                    user_returns = jit(self.user_function,
-                                       **numba_flags)(*user_args,
-                                                      **user_kwargs)
-                    # Alternative way of calling:
-                    # user_returns = jit(cache=True)(self.user_function) \
-                    #                   (*user_args, **user_kwargs)
-                elif numba_mode == 'generated_jit':
-                    user_returns = generated_jit(self.user_function,
-                                                 **numba_flags)(*user_args,
-                                                                **user_kwargs)
-                elif numba_mode == 'njit':
-                    numba_flags['cache'] = True  # Always force cache
-                    user_returns = njit(self.user_function,
-                                        **numba_flags)(*user_args, **user_kwargs)
-                elif numba_mode == 'vectorize':
-                    numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
-                    user_returns = vectorize(
-                        numba_signature,
-                        **numba_flags
-                    )(self.user_function)(*user_args, **user_kwargs)
-                elif numba_mode == 'guvectorize':
-                    numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
-                    numba_decl = self.decorator_arguments['numba_declaration']
-                    user_returns = guvectorize(
-                        numba_signature,
-                        numba_decl,
-                        **numba_flags
-                    )(self.user_function)(*user_args, **user_kwargs)
-                elif numba_mode == 'stencil':
-                    user_returns = stencil(
-                        **numba_flags
-                    )(self.user_function)(*user_args, **user_kwargs)
-                elif numba_mode == 'cfunc':
-                    numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
-                    user_returns = cfunc(
-                        numba_signature
-                    )(self.user_function).ctypes(*user_args,
-                                                 **user_kwargs)
-                else:
-                    raise Exception("Unsupported numba mode.")
-            else:
-                try:
-                    # Normal task execution
-                    user_returns = self.user_function(*user_args,
-                                                      **user_kwargs)
-                except COMPSsException as ce:
-                    compss_exception = ce
-                    # Check old targetDirection
-                    if 'targetDirection' in self.decorator_arguments:
-                        target_label = 'targetDirection'
-                    else:
-                        target_label = 'target_direction'
-                    compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
-
-        # Reestablish the hook if it was disabled
-        if restore_hook:
-            sys.setprofile(pro_f)
-
-        # Manage all the possible outputs of the task and build the return new
-        # types and values
-        def get_file_name(file_path):
-            return file_path.split(':')[-1]
+            # Now execute the user code
+            result = self.execute_user_code(user_args,
+                                            user_kwargs,
+                                            kwargs['compss_tracing'])
+            user_returns, compss_exception = result
 
         python_mpi = False
         if kwargs["python_MPI"]:
@@ -1555,6 +1452,11 @@ class Task(object):
                         yield sub_el
             else:
                 yield _content, _arg
+
+        # Manage all the possible outputs of the task and build the return new
+        # types and values
+        def get_file_name(file_path):
+            return file_path.split(':')[-1]
 
         for arg in args:
             # handle only task parameters that are objects
@@ -1724,6 +1626,119 @@ class Task(object):
                 new_values.append(ret_value)
 
         return new_types, new_values, self.decorator_arguments[target_label]
+
+    def execute_user_code(self, user_args, user_kwargs, tracing):
+        """
+        Executes the user code.
+        Disables the tracing hook if tracing is enabled. Restores it
+        at the end of the user code execution.
+
+        :param user_args: Function args
+        :param user_kwargs: Function kwargs
+        :param tracing: If tracing enabled
+        :return: The user function returns and the compss exception (if any).
+        """
+        # Tracing hook is disabled by default during the user code of the task.
+        # The user can enable it with tracing_hook=True in @task decorator for
+        # specific tasks or globally with the COMPSS_TRACING_HOOK=true
+        # environment variable.
+        restore_hook = False
+        pro_f = None
+        if tracing:
+            global_tracing_hook = False
+            if TRACING_HOOK_ENV_VAR in os.environ:
+                hook_enabled = os.environ[TRACING_HOOK_ENV_VAR] == "true"
+                global_tracing_hook = hook_enabled
+            if self.decorator_arguments['tracing_hook'] or global_tracing_hook:
+                # The user wants to keep the tracing hook
+                pass
+            else:
+                # When Extrae library implements the function to disable,
+                # use it, as:
+                #     import pyextrae
+                #     pro_f = pyextrae.shutdown()
+                # Since it is not available yet, we manage the tracing hook
+                # by ourselves
+                pro_f = sys.getprofile()
+                sys.setprofile(None)
+                restore_hook = True
+
+        user_returns = None
+        compss_exception = None
+        if self.decorator_arguments['numba']:
+            # Import all supported functionalities
+            from numba import jit
+            from numba import njit
+            from numba import generated_jit
+            from numba import vectorize
+            from numba import guvectorize
+            from numba import stencil
+            from numba import cfunc
+            numba_mode = self.decorator_arguments['numba']
+            numba_flags = self.decorator_arguments['numba_flags']
+            if type(numba_mode) is dict:
+                # Use the flags defined by the user
+                numba_flags['cache'] = True  # Always force cache
+                user_returns = jit(self.user_function,
+                                   **numba_flags)(*user_args, **user_kwargs)
+            elif numba_mode is True or numba_mode == 'jit':
+                numba_flags['cache'] = True  # Always force cache
+                user_returns = jit(self.user_function,
+                                   **numba_flags)(*user_args, **user_kwargs)
+                # Alternative way of calling:
+                # user_returns = jit(cache=True)(self.user_function) \
+                #                   (*user_args, **user_kwargs)
+            elif numba_mode == 'generated_jit':
+                user_returns = generated_jit(self.user_function,
+                                             **numba_flags)(*user_args,
+                                                            **user_kwargs)
+            elif numba_mode == 'njit':
+                numba_flags['cache'] = True  # Always force cache
+                user_returns = njit(self.user_function,
+                                    **numba_flags)(*user_args, **user_kwargs)
+            elif numba_mode == 'vectorize':
+                numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+                user_returns = vectorize(
+                    numba_signature,
+                    **numba_flags
+                )(self.user_function)(*user_args, **user_kwargs)
+            elif numba_mode == 'guvectorize':
+                numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+                numba_decl = self.decorator_arguments['numba_declaration']
+                user_returns = guvectorize(
+                    numba_signature,
+                    numba_decl,
+                    **numba_flags
+                )(self.user_function)(*user_args, **user_kwargs)
+            elif numba_mode == 'stencil':
+                user_returns = stencil(
+                    **numba_flags
+                )(self.user_function)(*user_args, **user_kwargs)
+            elif numba_mode == 'cfunc':
+                numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+                user_returns = cfunc(
+                    numba_signature
+                )(self.user_function).ctypes(*user_args, **user_kwargs)
+            else:
+                raise Exception("Unsupported numba mode.")
+        else:
+            try:
+                # Normal task execution
+                user_returns = self.user_function(*user_args, **user_kwargs)
+            except COMPSsException as ce:
+                compss_exception = ce
+                # Check old targetDirection
+                if 'targetDirection' in self.decorator_arguments:
+                    target_label = 'targetDirection'
+                else:
+                    target_label = 'target_direction'
+                compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
+
+        # Reestablish the hook if it was disabled
+        if restore_hook:
+            sys.setprofile(pro_f)
+
+        return user_returns, compss_exception
 
     def sequential_call(self, *args, **kwargs):
         """

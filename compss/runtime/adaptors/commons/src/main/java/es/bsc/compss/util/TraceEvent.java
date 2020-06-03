@@ -84,17 +84,44 @@ public enum TraceEvent {
     // Task Events
     CREATING_TASK_SANDBOX(54, Tracer.RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
     REMOVING_TASK_SANDBOX(55, Tracer.RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
-    TASK_EXECUTION_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "Task execution"), // Execute python task
-    USER_CODE_PYTHON(2, Tracer.INSIDE_TASKS_TYPE, "User code execution"), // User code
-    IMPORTING_MODULES_PYTHON(3, Tracer.INSIDE_TASKS_TYPE, "Importing modules"), // Import python
-    THREAD_BINDING_PYTHON(4, Tracer.INSIDE_TASKS_TYPE, "Thread binding"), // Thread binding
-    DESERIALIZE_OBJECT_PYTHON1(5, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-    DESERIALIZE_OBJECT_PYTHON2(6, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-    SERIALIZE_OBJECT_PYTHON(7, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize
-    CREATE_THREADS_PYTHON(8, Tracer.INSIDE_TASKS_TYPE, "Create persistent threads"), // Create threads python
-    GET_BY_ID(9, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
-    MAKE_PERSISTENT(10, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
-    DELETE_PERSISTENT(11, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+
+    // Python Events
+    PROCESS_TASK_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "Process task"), // Process python task
+    PROCESS_PING_PYTHON(2, Tracer.INSIDE_TASKS_TYPE, "Process ping"), // Process python ping
+    PROCESS_QUIT_PYTHON(3, Tracer.INSIDE_TASKS_TYPE, "Process quit"), // Process python quit
+
+    CPU_BINDING_PYTHON(4, Tracer.INSIDE_TASKS_TYPE, "CPU binding"), // CPU binding
+    GPU_BINDING_PYTHON(5, Tracer.INSIDE_TASKS_TYPE, "GPU binding"), // GPU binding
+    SETUP_ENVIRONMENT_PYTHON(6, Tracer.INSIDE_TASKS_TYPE, "Setup environment"), // Setup environment
+    GET_TASK_PARAMETERS(7, Tracer.INSIDE_TASKS_TYPE, "Get parameters"), // Get task parameters
+    IMPORT_USER_MODULE(8, Tracer.INSIDE_TASKS_TYPE, "Import user module"), // Import user module
+    EXECUTE_TASK_PYTHON(9, Tracer.INSIDE_TASKS_TYPE, "Execute task"), // Execute python task
+    DESERIALIZE_STRING_PYTHON(10, Tracer.INSIDE_TASKS_TYPE, "Deserializing string"), // Deserialize from string
+    DESERIALIZE_OBJECT_PYTHON(11, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize from file
+    EXECUTE_USER_CODE_PYTHON(12, Tracer.INSIDE_TASKS_TYPE, "User code"), // User code execution
+    SERIALIZE_OBJECT_PYTHON(13, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize to file
+    SERIALIZE_MPIENV_PYTHON(14, Tracer.INSIDE_TASKS_TYPE, "Serializing object MPI env"), // Serialize to file mpienv
+    BUILD_SUCCESS_MESSAGE(15, Tracer.INSIDE_TASKS_TYPE, "Build successful message"), // Build successful message
+    BUILD_COMPSS_EXCEPTION_MESSAGE(16, Tracer.INSIDE_TASKS_TYPE, "Build COMPSs exception message"),
+    BUILD_EXCEPTION_MESSAGE(17, Tracer.INSIDE_TASKS_TYPE, "Build exception message"), // Build exception message
+    CLEAN_ENVIRONMENT_PYTHON(18, Tracer.INSIDE_TASKS_TYPE, "Clean environment"), // Clean environment
+
+    CREATE_THREADS_PYTHON(19, Tracer.INSIDE_TASKS_TYPE, "Create persistent threads"), // Create threads python
+
+    GET_BY_ID(20, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
+    GET_ID(21, Tracer.INSIDE_TASKS_TYPE, "Get object ID"), // GetID
+    MAKE_PERSISTENT(22, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
+    DELETE_PERSISTENT(23, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+    INIT_STORAGE(24, Tracer.INSIDE_TASKS_TYPE, "Init storage"), // Init storage
+    STOP_STORAGE(25, Tracer.INSIDE_TASKS_TYPE, "Stop storage"), // Stop storage
+    INIT_STORAGE_WORKER(26, Tracer.INSIDE_TASKS_TYPE, "Init storage at worker"), // Init storage at worker
+    STOP_STORAGE_WORKER(27, Tracer.INSIDE_TASKS_TYPE, "Stop storage at worker"), // Stop storage at worker
+    INIT_STORAGE_WORKER_PROCESS(28, Tracer.INSIDE_TASKS_TYPE, "Init storage at process"),
+    STOP_STORAGE_WORKER_PROCESS(29, Tracer.INSIDE_TASKS_TYPE, "Stop storage at process"),
+
+    PERSISTENT_WORKER_PYTHON(30, Tracer.INSIDE_TASKS_TYPE, "Python persistent worker"), // Python persistent worker
+    LOAD_LOGGERS_PYTHON(31, Tracer.INSIDE_TASKS_TYPE, "Load loggers"), // Load python loggers
+
     WORKER_RUNNING(102, Tracer.INSIDE_TASKS_TYPE, "Worker running"), // Worker running
 
     READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count");// Ready count

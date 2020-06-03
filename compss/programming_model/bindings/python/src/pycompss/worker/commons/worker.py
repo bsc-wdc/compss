@@ -166,7 +166,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         ), 0
 
 
-def get_input_params(num_params, logger, args):
+def get_task_params(num_params, logger, args):
     """
     Get and prepare the input parameters from string to lists.
 
@@ -400,6 +400,39 @@ def task_cancel(signum, frame):  # noqa
     raise CancelError
 
 
+def import_user_module(path, logger):
+    """
+    Import the user module
+
+    :param path: Path to the user module
+    :return: The module loaded
+    """
+    module = None
+    py_version = sys.version_info
+    if py_version >= (2, 7):
+        import importlib
+        module = importlib.import_module(path)  # Python 2.7
+        if path.startswith('InteractiveMode_'):
+            # Force reload in interactive mode. The user may have
+            # overwritten a function or task.
+            if py_version < (3, 0):
+                reload(module)  # noqa
+            elif py_version < (3, 4):
+                import imp
+                imp.reload(module)
+            else:
+                importlib.reload(module)
+        if __debug__:
+            msg = "Module successfully loaded (Python version >= 2.7)"
+            logger.debug(msg)
+    else:
+        module = __import__(path, globals(), locals(), [path], -1)
+        if __debug__:
+            msg = "Module successfully loaded (Python version < 2.7"
+            logger.debug(msg)
+    return module
+
+
 def execute_task(process_name, storage_conf, params, tracing,
                  logger, log_files, python_mpi=False):
     """
@@ -478,7 +511,7 @@ def execute_task(process_name, storage_conf, params, tracing,
     if __debug__:
         logger.debug("Processing parameters:")
         # logger.debug(args)
-    values = get_input_params(num_params, logger, args)
+    values = get_task_params(num_params, logger, args)
     types = [x.type for x in values]
 
     if __debug__:
@@ -504,28 +537,7 @@ def execute_task(process_name, storage_conf, params, tracing,
         # Try to import the module (for functions)
         if __debug__:
             logger.debug("Trying to import the user module: %s" % path)
-        py_version = sys.version_info
-        if py_version >= (2, 7):
-            import importlib
-            module = importlib.import_module(path)  # Python 2.7
-            if path.startswith('InteractiveMode_'):
-                # Force reload in interactive mode. The user may have
-                # overwritten a function or task.
-                if py_version < (3, 0):
-                    reload(module)
-                elif py_version < (3, 4):
-                    import imp
-                    imp.reload(module)
-                else:
-                    importlib.reload(module)
-            if __debug__:
-                msg = "Module successfully loaded (Python version >= 2.7)"
-                logger.debug(msg)
-        else:
-            module = __import__(path, globals(), locals(), [path], -1)
-            if __debug__:
-                msg = "Module successfully loaded (Python version < 2.7"
-                logger.debug(msg)
+        module = import_user_module(path, logger)
     except ImportError:
         if __debug__:
             msg = "Could not import the module. Reason: Method in class."

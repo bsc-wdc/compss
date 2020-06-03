@@ -77,6 +77,7 @@ public abstract class Tracer {
     private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
     private static final String STORAGE_DESC = "Storage API";
     private static final String INSIDE_TASK_DESC = "Events inside tasks";
+    private static final String INSIDE_WORKER_DESC = "Events inside worker";
     private static final String TASKTYPE_DESC = "Type of task";
     private static final String READY_COUNT_DESC = "Ready queue count";
     private static final String CPU_COUNT_DESC = "Number of requested CPUs";
@@ -100,6 +101,7 @@ public abstract class Tracer {
     protected static final int DISK_BW = 8_000_011;
     protected static final int SYNC_TYPE = 8_000_666;
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
+    protected static final int INSIDE_WORKER_TYPE = 60_000_200;
 
     public static final int EVENT_END = 0;
 
@@ -337,6 +339,10 @@ public abstract class Tracer {
         return INSIDE_TASKS_TYPE;
     }
 
+    public static int getInsideWorkerEventsType() {
+        return INSIDE_WORKER_TYPE;
+    }
+
     public static int getTaskTypeEventsType() {
         return TASKTYPE_EVENTS;
     }
@@ -507,6 +513,7 @@ public abstract class Tracer {
         defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
         defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
         defineEventsForType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC);
+        defineEventsForType(INSIDE_WORKER_TYPE, INSIDE_WORKER_DESC);
         defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
         // Definition of Scheduling and Transfer time events
         Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, new long[0], new String[0]);

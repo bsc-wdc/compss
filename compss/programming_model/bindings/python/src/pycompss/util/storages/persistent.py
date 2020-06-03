@@ -23,6 +23,9 @@ PyCOMPSs Utils - External Storage
     This file contains the methods required to manage PSCOs.
     Isolates the API signature calls.
 """
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.worker.commons.constants import INIT_STORAGE_EVENT
+from pycompss.worker.commons.constants import STOP_STORAGE_EVENT
 
 try:
     # Try to import the external storage API module methods
@@ -119,6 +122,7 @@ def get_by_id(identifier):
     return getByID(identifier)
 
 
+@emit_event(INIT_STORAGE_EVENT)
 def init_storage(storage_conf, logger):
     """
     Initializes the persistent storage with the given storage_conf file.
@@ -137,6 +141,7 @@ def init_storage(storage_conf, logger):
         return False
 
 
+@emit_event(STOP_STORAGE_EVENT)
 def stop_storage():
     """
     Stops the persistent storage.

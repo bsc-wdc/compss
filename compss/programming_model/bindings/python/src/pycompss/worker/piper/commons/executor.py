@@ -48,6 +48,13 @@ from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.util.tracing.helpers import event
+from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
+from pycompss.worker.commons.constants import PROCESS_PING_EVENT
+from pycompss.worker.commons.constants import PROCESS_QUIT_EVENT
+from pycompss.worker.commons.constants import INIT_WORKER_POSTFORK_EVENT
+from pycompss.worker.commons.constants import FINISH_WORKER_POSTFORK_EVENT
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
@@ -193,7 +200,8 @@ def executor(queue, process_name, pipe, conf):
         if storage_conf != 'null':
             try:
                 from storage.api import initWorkerPostFork
-                initWorkerPostFork()
+                with event(INIT_WORKER_POSTFORK_EVENT):
+                    initWorkerPostFork()
             except ImportError:
                 if __debug__:
                     logger.info(HEADER + "[%s] Could not find initWorkerPostFork storage call. Ignoring it." %  # noqa: E501
@@ -247,7 +255,8 @@ def executor(queue, process_name, pipe, conf):
         if storage_conf != 'null':
             try:
                 from storage.api import finishWorkerPostFork
-                finishWorkerPostFork()
+                with event(FINISH_WORKER_POSTFORK_EVENT):
+                    finishWorkerPostFork()
             except ImportError:
                 if __debug__:
                     logger.info(
@@ -324,6 +333,7 @@ def process_message(current_line, process_name, pipe, queue, tracing,
     return True
 
 
+@emit_event(PROCESS_TASK_EVENT)
 def process_task(current_line, process_name, pipe, queue, tracing,
                  logger, logger_handlers, logger_level, logger_formatter,
                  storage_conf, storage_loggers, storage_loggers_handlers):
@@ -525,6 +535,7 @@ def process_task(current_line, process_name, pipe, queue, tracing,
     return True
 
 
+@emit_event(PROCESS_PING_EVENT)
 def process_ping(pipe, logger, process_name):  # noqa
     """
     Process ping message. Response: Pong
@@ -543,6 +554,7 @@ def process_ping(pipe, logger, process_name):  # noqa
     return True
 
 
+@emit_event(PROCESS_QUIT_EVENT)
 def process_quit(logger, process_name):  # noqa
     """
     Process quit message. Response: False

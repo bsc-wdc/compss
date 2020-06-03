@@ -33,6 +33,11 @@ from pycompss.worker.commons.constants import *
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.worker import execute_task
+from pycompss.util.tracing.helpers import trace_multiprocessing_worker
+from pycompss.util.tracing.helpers import dummy_context
+from pycompss.util.tracing.helpers import event
+from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
+from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
@@ -108,61 +113,52 @@ def main():
     persistent_storage = False
     if storage_conf != 'null':
         persistent_storage = True
-        from storage.api import initWorker as initStorageAtWorker      # noqa
-        from storage.api import finishWorker as finishStorageAtWorker  # noqa
 
     streaming = False
     if stream_backend not in [None, 'null', 'NONE']:
         streaming = True
 
-    if tracing:
-        # Start tracing
-        import pyextrae.multiprocessing as pyextrae  # noqa
-        pyextrae.eventandcounters(SYNC_EVENTS, task_id)
-        # pyextrae.eventandcounters(TASK_EVENTS, 0)
-        pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING_EVENT)
+    with trace_multiprocessing_worker() if tracing else dummy_context():
 
-    if streaming:
-        # Start streaming
-        DistroStreamClientHandler.init_and_start(
-            master_ip=stream_master_name,
-            master_port=stream_master_port)
+        if streaming:
+            # Start streaming
+            DistroStreamClientHandler.init_and_start(
+                master_ip=stream_master_name,
+                master_port=stream_master_port)
 
-    # Load log level configuration file
-    worker_path = os.path.dirname(os.path.realpath(__file__))
-    if log_level == 'true' or log_level == "debug":
-        # Debug
-        init_logging_worker(worker_path +
-                            '/../../../log/logging_gat_worker_debug.json')
-    elif log_level == "info" or log_level == "off":
-        # Info or no debug
-        init_logging_worker(worker_path +
-                            '/../../../log/logging_gat_worker_off.json')
-    else:
-        # Default
-        init_logging_worker(worker_path +
-                            '/../../../log/logging_gat_worker.json')
+        # Load log level configuration file
+        worker_path = os.path.dirname(os.path.realpath(__file__))
+        if log_level == 'true' or log_level == "debug":
+            # Debug
+            init_logging_worker(worker_path +
+                                '/../../../log/logging_gat_worker_debug.json')
+        elif log_level == "info" or log_level == "off":
+            # Info or no debug
+            init_logging_worker(worker_path +
+                                '/../../../log/logging_gat_worker_off.json')
+        else:
+            # Default
+            init_logging_worker(worker_path +
+                                '/../../../log/logging_gat_worker.json')
 
-    if persistent_storage:
-        # Initialize storage
-        initStorageAtWorker(config_file_path=storage_conf)
+        if persistent_storage:
+            # Initialize storage
+            with event(INIT_STORAGE_AT_WORKER_EVENT):
+                from storage.api import initWorker as initStorageAtWorker
+                initStorageAtWorker(config_file_path=storage_conf)
 
-    # Init worker
-    exit_code = compss_worker(tracing, str(task_id), storage_conf, params)
+        # Init worker
+        exit_code = compss_worker(tracing, str(task_id), storage_conf, params)
 
-    if tracing:
-        # Finish tracing
-        pyextrae.eventandcounters(TASK_EVENTS, 0)
-        # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
-        pyextrae.eventandcounters(SYNC_EVENTS, task_id)
+        if streaming:
+            # Finish streaming
+            DistroStreamClientHandler.set_stop()
 
-    if streaming:
-        # Finish streaming
-        DistroStreamClientHandler.set_stop()
-
-    if persistent_storage:
-        # Finish storage
-        finishStorageAtWorker()
+        if persistent_storage:
+            # Finish storage
+            with event(FINISH_STORAGE_AT_WORKER_EVENT):
+                from storage.api import finishWorker as finishStorageAtWorker
+                finishStorageAtWorker()
 
     if exit_code == 1:
         exit(1)

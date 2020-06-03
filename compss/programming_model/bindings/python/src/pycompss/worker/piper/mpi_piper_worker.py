@@ -27,7 +27,11 @@ import sys
 import signal
 from os import kill
 from pycompss.worker.commons.constants import *
-from pycompss.worker.piper.commons.constants import *
+from pycompss.util.tracing.helpers import trace_mpi_worker
+from pycompss.util.tracing.helpers import dummy_context
+from pycompss.util.tracing.helpers import event
+from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
+from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
@@ -104,11 +108,6 @@ def compss_persistent_worker(config):
     # Set the binding in worker mode
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
-
-    if TRACING:
-        import pyextrae.mpi as pyextrae
-        pyextrae.eventandcounters(SYNC_EVENTS, 1)
-        pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING_EVENT)
 
     persistent_storage = (config.storage_conf != 'null')
 
@@ -187,10 +186,6 @@ def compss_persistent_worker(config):
     if __debug__:
         logger.debug(HEADER + "Finished")
 
-    if TRACING:
-        pyextrae.eventandcounters(TASK_EVENTS, 0)
-        pyextrae.eventandcounters(SYNC_EVENTS, 0)
-
     control_pipe.write(QUIT_TAG)
     control_pipe.close()
 
@@ -224,8 +219,9 @@ def compss_persistent_executor(config):
 
     if persistent_storage:
         # Initialize storage
-        from storage.api import initWorker as initStorageAtWorker
-        initStorageAtWorker(config_file_path=config.storage_conf)
+        with event(INIT_STORAGE_AT_WORKER_EVENT):
+            from storage.api import initWorker as initStorageAtWorker
+            initStorageAtWorker(config_file_path=config.storage_conf)
 
     process_name = 'Rank-' + str(RANK)
     conf = ExecutorConf(TRACING,
@@ -237,6 +233,14 @@ def compss_persistent_executor(config):
                         config.stream_master_port)
     executor(None, process_name, config.pipes[RANK - 1], conf)
 
+    if persistent_storage:
+        # Finish storage
+        if __debug__:
+            logger.debug(HEADER + "Stopping persistent storage")
+        with event(FINISH_STORAGE_AT_WORKER_EVENT):
+            from storage.api import finishWorker as finishStorageAtWorker
+            finishStorageAtWorker()
+
 
 ############################
 # Main -> Calls main method
@@ -245,11 +249,13 @@ def compss_persistent_executor(config):
 if __name__ == '__main__':
     # Configure the global tracing variable from the argument
     TRACING = (int(sys.argv[2]) > 0)
-    # Configure the piper worker with the arguments
-    WORKER_CONF = PiperWorkerConfiguration()
-    WORKER_CONF.update_params(sys.argv)
 
-    if is_worker():
-        compss_persistent_worker(WORKER_CONF)
-    else:
-        compss_persistent_executor(WORKER_CONF)
+    with trace_mpi_worker() if TRACING else dummy_context():
+        # Configure the piper worker with the arguments
+        WORKER_CONF = PiperWorkerConfiguration()
+        WORKER_CONF.update_params(sys.argv)
+
+        if is_worker():
+            compss_persistent_worker(WORKER_CONF)
+        else:
+            compss_persistent_executor(WORKER_CONF)

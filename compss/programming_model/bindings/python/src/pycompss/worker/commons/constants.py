@@ -29,4 +29,15 @@ PyCOMPSs Worker Constants
 # Should be equal to Tracer.java definitions
 SYNC_EVENTS = 8000666
 TASK_EVENTS = 60000100
-WORKER_RUNNING_EVENT = 102
+WORKER_EVENTS = 60000200
+WORKER_RUNNING_EVENT = 1
+PROCESS_TASK_EVENT = 2              # process_task
+PROCESS_PING_EVENT = 3              # process_ping
+PROCESS_QUIT_EVENT = 4              # process_quit
+LOAD_LOGGERS_EVENT = 5              # load_loggers
+INIT_STORAGE_EVENT = 6              # init_storage
+STOP_STORAGE_EVENT = 7              # stop_storage
+INIT_STORAGE_AT_WORKER_EVENT = 8    # initStorageAtWorker
+FINISH_STORAGE_AT_WORKER_EVENT = 9  # finishStorageAtWorker
+INIT_WORKER_POSTFORK_EVENT = 10     # initWorkerPostFork
+FINISH_WORKER_POSTFORK_EVENT = 11   # finishWorkerPostFork

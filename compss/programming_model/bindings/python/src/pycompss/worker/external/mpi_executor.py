@@ -32,6 +32,8 @@ import sys
 from mpi4py import MPI
 
 from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.commons.executor import build_return_params_message
@@ -102,6 +104,7 @@ def executor(process_name, command):
         sys.exit(sig)
 
 
+@emit_event(PROCESS_TASK_EVENT)
 def process_task(current_line, process_name,
                  logger, logger_handlers, logger_level, logger_formatter):
     """

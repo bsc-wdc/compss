@@ -105,9 +105,9 @@ public enum TraceEvent {
     SETUP_ENVIRONMENT_PYTHON(3, Tracer.INSIDE_TASKS_TYPE, "Setup environment variables"), // Setup environment
     GET_TASK_PARAMETERS(4, Tracer.INSIDE_TASKS_TYPE, "Get parameters"), // Get task parameters
     IMPORT_USER_MODULE(5, Tracer.INSIDE_TASKS_TYPE, "Import user module"), // Import user module
-    DESERIALIZE_STRING_PYTHON(6, Tracer.INSIDE_TASKS_TYPE, "Deserializing string"), // Deserialize from string
-    DESERIALIZE_OBJECT_PYTHON(7, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize from file
-    EXECUTE_USER_CODE_PYTHON(8, Tracer.INSIDE_TASKS_TYPE, "User code"), // User code execution
+    EXECUTE_USER_CODE_PYTHON(6, Tracer.INSIDE_TASKS_TYPE, "User code"), // User code execution
+    DESERIALIZE_STRING_PYTHON(7, Tracer.INSIDE_TASKS_TYPE, "Deserializing string"), // Deserialize from string
+    DESERIALIZE_OBJECT_PYTHON(8, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize from file
     SERIALIZE_OBJECT_PYTHON(9, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize to file
     SERIALIZE_MPIENV_PYTHON(10, Tracer.INSIDE_TASKS_TYPE, "Serializing object MPI env"), // Serialize to file mpienv
     BUILD_SUCCESS_MESSAGE(11, Tracer.INSIDE_TASKS_TYPE, "Build success message"), // Build successful message

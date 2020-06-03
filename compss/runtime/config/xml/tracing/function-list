@@ -3,9 +3,9 @@ bind_gpus
 setup_environment
 get_task_params
 import_user_module
+execute_user_code
 deserialize_from_string
 deserialize_from_file
-execute_user_code
 serialize_to_file
 serialize_to_file_mpienv
 build_successful_message

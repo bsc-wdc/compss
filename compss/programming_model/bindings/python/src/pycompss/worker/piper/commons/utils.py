@@ -28,8 +28,6 @@ import logging
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
-from pycompss.util.tracing.helpers import emit_event
-from pycompss.worker.commons.constants import LOAD_LOGGERS_EVENT
 
 
 class PiperWorkerConfiguration(object):
@@ -94,7 +92,6 @@ class PiperWorkerConfiguration(object):
         logger.debug(HEADER + "-----------------------------")
 
 
-@emit_event(LOAD_LOGGERS_EVENT)
 def load_loggers(debug, persistent_storage):
     """
     Loads all the loggers

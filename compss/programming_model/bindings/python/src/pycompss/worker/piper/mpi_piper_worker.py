@@ -210,9 +210,6 @@ def compss_persistent_executor(config):
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
-    if TRACING:
-        import pyextrae.mpi as pyextrae
-
     persistent_storage = (config.storage_conf != 'null')
 
     logger, storage_loggers = load_loggers(config.debug, persistent_storage)

@@ -217,23 +217,9 @@ if __name__ == '__main__':
     # Configure the global tracing variable from the argument
     TRACING = (int(sys.argv[2]) > 0)
 
-    # if TRACING:
-    #     try:
-    #         user_paths = os.environ['PYTHONPATH']
-    #     except KeyError:
-    #         user_paths = ""
-    #     # print("PYTHON PATH = " + user_paths)
-    #     import pyextrae.multiprocessing as pyextrae
-    #     pyextrae.eventandcounters(SYNC_EVENTS, 1)
-    #     pyextrae.eventandcounters(WORKER_EVENTS, WORKER_RUNNING_EVENT)
-
     with trace_multiprocessing_worker() if TRACING else dummy_context():
         # Configure the piper worker with the arguments
         WORKER_CONF = PiperWorkerConfiguration()
         WORKER_CONF.update_params(sys.argv)
 
         compss_persistent_worker(WORKER_CONF)
-
-    # if TRACING:
-    #     pyextrae.eventandcounters(WORKER_EVENTS, 0)
-    #     pyextrae.eventandcounters(SYNC_EVENTS, 0)

@@ -91,14 +91,13 @@ public enum TraceEvent {
     PROCESS_TASK_PYTHON(2, Tracer.INSIDE_WORKER_TYPE, "Process task"), // Process python task
     PROCESS_PING_PYTHON(3, Tracer.INSIDE_WORKER_TYPE, "Process ping"), // Process python ping
     PROCESS_QUIT_PYTHON(4, Tracer.INSIDE_WORKER_TYPE, "Process quit"), // Process python quit
-    LOAD_LOGGERS_PYTHON(5, Tracer.INSIDE_WORKER_TYPE, "Load loggers"), // Load python loggers
 
-    INIT_STORAGE(6, Tracer.INSIDE_WORKER_TYPE, "Init storage"), // Init storage
-    STOP_STORAGE(7, Tracer.INSIDE_WORKER_TYPE, "Stop storage"), // Stop storage
-    INIT_STORAGE_WORKER(8, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker"), // Init storage at worker
-    STOP_STORAGE_WORKER(9, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker"), // Stop storage at worker
-    INIT_STORAGE_WORKER_PROCESS(10, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker process"),
-    STOP_STORAGE_WORKER_PROCESS(11, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker process"),
+    INIT_STORAGE(5, Tracer.INSIDE_WORKER_TYPE, "Init storage"), // Init storage
+    STOP_STORAGE(6, Tracer.INSIDE_WORKER_TYPE, "Stop storage"), // Stop storage
+    INIT_STORAGE_WORKER(7, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker"), // Init storage at worker
+    STOP_STORAGE_WORKER(8, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker"), // Stop storage at worker
+    INIT_STORAGE_WORKER_PROCESS(9, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker process"),
+    STOP_STORAGE_WORKER_PROCESS(10, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker process"),
 
     // Python Events Inside Tasks
     CPU_BINDING_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "CPU binding"), // CPU binding

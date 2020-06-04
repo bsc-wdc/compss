@@ -100,6 +100,8 @@ class Task(PyCOMPSsDecorator):
             'is_replicated': False,
             'is_distributed': False,
             'computing_nodes': 1,
+            'is_reduce': False,
+            'chunk_size': 0,
             'tracing_hook': False,
             'numba': False,  # numba mode (jit, vectorize, guvectorize)
             'numba_flags': {},  # user defined extra numba flags

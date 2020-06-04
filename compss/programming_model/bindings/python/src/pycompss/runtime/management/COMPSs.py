@@ -285,6 +285,8 @@ def process_task(app_id,             # type: int
                  time_out,           # type: int
                  has_priority,       # type: bool
                  num_nodes,          # type: int
+                 reduction,          # type: bool
+                 chunk_size,         # type: int
                  replicated,         # type: bool
                  distributed,        # type: bool
                  has_target,         # type: bool
@@ -308,6 +310,8 @@ def process_task(app_id,             # type: int
     :param time_out: Task time out
     :param has_priority: Boolean has priority
     :param num_nodes: Number of nodes
+    :param reduction: Boolean indicating if the task is of type reduce
+    :param chunk_size: Size of chunks for executing the reduce operation
     :param replicated: Boolean is replicated
     :param distributed: Boolean is distributed
     :param has_target: Boolean has target
@@ -329,6 +333,8 @@ def process_task(app_id,             # type: int
                          time_out,
                          has_priority,
                          num_nodes,
+                         reduction,
+                         chunk_size,
                          replicated,
                          distributed,
                          has_target,

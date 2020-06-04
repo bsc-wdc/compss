@@ -16,17 +16,29 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.Parameter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
  * Representation of a Task.
  */
 public abstract class AbstractTask implements Comparable<AbstractTask> {
+
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
 
     // Task ID management
     private static final int FIRST_TASK_ID = 1;
@@ -51,6 +63,12 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     // Add execution to task
     private final List<AllocatableAction> executions;
 
+    // Map of predecessors and their dependent parameters
+    private final Map<AbstractTask, DependencyParameter> dependentTasks;
+
+    // List of parameters free of dependencies
+    private final List<Parameter> freeParams;
+
 
     /**
      * Creates a new Abstract Method Task with the given parameters.
@@ -66,6 +84,8 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
         this.executions = new LinkedList<>();
         this.streamDataProducers = new LinkedList<>();
         this.streamDataConsumers = new LinkedList<>();
+        this.dependentTasks = new HashMap<>();
+        this.freeParams = new LinkedList<>();
     }
 
     /**
@@ -82,9 +102,10 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
      *
      * @param producer Producer task.
      */
-    public void addDataDependency(AbstractTask producer) {
+    public void addDataDependency(AbstractTask producer, DependencyParameter dp) {
         producer.successors.add(this);
         this.predecessors.add(producer);
+        this.dependentTasks.put(producer, dp);
     }
 
     /**
@@ -103,10 +124,18 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     public void releaseDataDependents() {
         for (AbstractTask t : this.successors) {
             synchronized (t) {
-                t.predecessors.remove(this);
+                t.removePredecessor(this);
             }
         }
         this.successors.clear();
+    }
+
+    /**
+     * Remove the task from the predecessor's list of successors.
+     */
+    public void removePredecessor(AbstractTask t) {
+        this.predecessors.remove(t);
+        this.dependentTasks.remove(t);
     }
 
     /**
@@ -125,6 +154,33 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
      */
     public List<AbstractTask> getPredecessors() {
         return this.predecessors;
+    }
+
+    /**
+     * Returns the dependency parameter of a concrete task.
+     *
+     * @return The task dependency parameter.
+     */
+    public DependencyParameter getDependencyParameters(AbstractTask t) {
+        return this.dependentTasks.get(t);
+    }
+
+    /**
+     * Returns if the parameter has dependencies.
+     *
+     * @return The list of the parameters free of dependencies.
+     */
+    public List<Parameter> getFreeParams() {
+        return freeParams;
+    }
+
+    /**
+     * Registers a parameter as free of dependencies.
+     *
+     * @param p Parameter to register.
+     */
+    public void registerFreeParam(Parameter p) {
+        this.freeParams.add(p);
     }
 
     /**

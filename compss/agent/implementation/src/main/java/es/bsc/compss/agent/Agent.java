@@ -21,6 +21,7 @@ import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
+import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;

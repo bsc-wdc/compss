@@ -77,7 +77,6 @@ public class FIFODataLocationScheduler extends ReadyScheduler {
         ResourceScheduler<T> resource) {
 
         LOGGER.debug("[FIFODataLocation Scheduler] Treating dependency free actions");
-
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction action : dataFreeActions) {
             Score actionScore = this.generateActionScore(action);

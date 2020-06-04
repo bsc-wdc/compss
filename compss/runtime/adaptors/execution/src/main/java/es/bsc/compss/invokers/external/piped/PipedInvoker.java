@@ -122,11 +122,15 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             if (entryPoint == ExecuteNestedTaskPipeCommand.EntryPoint.SIGNATURE) {
                                 String signature = entpc.getSignature();
                                 int numNodes = entpc.getNumNodes();
+                                boolean isReduce = entpc.isReduce();
+                                int reduceChunkSize = entpc.getReduceChunkSize();
                                 boolean isReplicated = entpc.isReplicated();
                                 boolean isDistributed = entpc.isDistributed();
+
                                 this.context.getRuntimeAPI().executeTask(this.appId, signature, onFailure, timeOut,
-                                    isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
-                                    parameterCount, parameters);
+                                    isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed,
+                                    hasTarget, numReturns, parameterCount, parameters);
+
                             } else {
                                 String methodClass = entpc.getMethodClass();
                                 String methodName = entpc.getMethodName();

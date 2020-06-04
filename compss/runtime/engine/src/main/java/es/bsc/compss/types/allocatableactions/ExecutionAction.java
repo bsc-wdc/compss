@@ -60,6 +60,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
@@ -124,6 +125,10 @@ public class ExecutionAction extends AllocatableAction {
                     for (AllocatableAction e : predecessor.getExecutions()) {
                         if (e != null && e.isPending()) {
                             addDataPredecessor(e);
+                        } else {
+                            if (this instanceof ReduceExecutionAction) {
+                                ((ReduceExecutionAction) this).addAlreadyDoneAction(e);
+                            }
                         }
                     }
                 } else {
@@ -296,7 +301,6 @@ public class ExecutionAction extends AllocatableAction {
     private void transferSingleParameter(DependencyParameter param, JobTransfersListener listener) {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
-
         if (access instanceof WAccessId) {
             /*
              * String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
@@ -323,7 +327,6 @@ public class ExecutionAction extends AllocatableAction {
             } else {
                 // ReadWrite Access, transfer object
                 listener.addOperation();
-
                 String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
                 String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
                 LogicalData tmpData = Comm.registerData("tmp" + tgtName, null);
@@ -1005,6 +1008,7 @@ public class ExecutionAction extends AllocatableAction {
         // COMPUTE RESOURCE CANDIDATES
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
         List<ResourceScheduler<? extends WorkerResourceDescription>> uselessWorkers = new LinkedList<>();
+
         if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
             candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
@@ -1035,8 +1039,10 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
         }
+
         Collections.shuffle(candidates);
         schedule(actionScore, candidates);
+
         return uselessWorkers;
     }
 
@@ -1067,7 +1073,6 @@ public class ExecutionAction extends AllocatableAction {
     private <T extends WorkerResourceDescription> void schedule(Score actionScore,
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
         throws BlockedActionException, UnassignedActionException {
-
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         ResourceScheduler<? extends WorkerResourceDescription> bestWorker = null;
@@ -1121,14 +1126,13 @@ public class ExecutionAction extends AllocatableAction {
                 throw new UnassignedActionException();
             }
         }
-
         schedule(bestWorker, bestImpl);
 
     }
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Score actionScore) throws UnassignedActionException {
+        Score actionScore) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null
             // Resource is not compatible with the Core
             || !targetWorker.getResource().canRun(this.task.getTaskDescription().getCoreElement().getCoreId())
@@ -1152,14 +1156,12 @@ public class ExecutionAction extends AllocatableAction {
                 bestScore = implScore;
             }
         }
-
         schedule(targetWorker, bestImpl);
     }
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Implementation impl) throws UnassignedActionException {
-
+        Implementation impl) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
         }

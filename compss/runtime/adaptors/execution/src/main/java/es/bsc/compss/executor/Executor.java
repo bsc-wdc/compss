@@ -499,6 +499,7 @@ public class Executor implements Runnable {
                     invoker = new DecafInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case MULTI_NODE:
+                case REDUCE:
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case OMPSS:
@@ -591,6 +592,7 @@ public class Executor implements Runnable {
                     + "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
                 break;
             case MULTI_NODE:
+            case REDUCE:
                 // It is executed as a regular native method
                 specificWD = null;
                 break;

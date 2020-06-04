@@ -324,7 +324,7 @@ void PIPE_ExecuteTask(long appId, char* className, char* onFailure, int timeout,
 
 
 void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes,
-		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+		int reduce, int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTaskNew - Processing task execution in bindings-common. \n");
 
@@ -344,6 +344,10 @@ void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeo
 	}
 
     ss << numNodes << " ";
+
+    ss << reduce << " ";
+
+    ss << reduceChunkSize << " ";
 
     if (replicated != 0) {
 		ss << "true ";

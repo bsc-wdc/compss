@@ -166,6 +166,8 @@ public interface COMPSsRuntime {
      * @param timeOut Amount of time for an application time out.
      * @param isPrioritary Whether the task is set as prioritary or not.
      * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
      * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed or not.
      * @param hasTarget Whether the task has a target parameter or not.
@@ -175,8 +177,8 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary,
-        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
-        int parameterCount, Object... parameters);
+        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method Task for Loader.
@@ -188,6 +190,8 @@ public interface COMPSsRuntime {
      * @param methodName The method name.
      * @param isPrioritary Whether the task is set as prioritary or not.
      * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
      * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed or not.
      * @param hasTarget Whether the task has a target parameter or not.
@@ -198,8 +202,9 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
-        boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-        int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
+        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
+        boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
+        Object... parameters);
 
     /**
      * New service task.
@@ -212,6 +217,8 @@ public interface COMPSsRuntime {
      * @param operation The service operation.
      * @param isPrioritary Whether the task is set as prioritary or not.
      * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
      * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed or not.
      * @param hasTarget Whether the task has a target parameter or not.
@@ -222,8 +229,9 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
-        String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-        boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
+        String operation, boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize,
+        boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure,
+        int timeOut, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId.

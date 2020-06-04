@@ -41,14 +41,16 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
                 this.timeout = Integer.parseInt(command[4]);
                 this.prioritary = Boolean.parseBoolean(command[5]);
                 this.numNodes = Integer.parseInt(command[6]);
-                this.isReplicated = Boolean.parseBoolean(command[7]);
-                this.isDistributed = Boolean.parseBoolean(command[8]);
-                this.hasTarget = Boolean.parseBoolean(command[9]);
-                this.numReturns = Integer.parseInt(command[10]);
-                this.parameterCount = Integer.parseInt(command[11]);
-                String[] params = new String[command.length - 12];
-                if (command.length > 12) {
-                    System.arraycopy(command, 12, params, 0, params.length);
+                this.reduce = Boolean.parseBoolean(command[7]);
+                this.reduceChunkSize = Integer.parseInt(command[8]);
+                this.isReplicated = Boolean.parseBoolean(command[9]);
+                this.isDistributed = Boolean.parseBoolean(command[10]);
+                this.hasTarget = Boolean.parseBoolean(command[11]);
+                this.numReturns = Integer.parseInt(command[12]);
+                this.parameterCount = Integer.parseInt(command[13]);
+                String[] params = new String[command.length - 14];
+                if (command.length > 14) {
+                    System.arraycopy(command, 14, params, 0, params.length);
                 }
                 this.parameters = processParameters(params);
                 break;
@@ -61,6 +63,8 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
                 this.timeout = Integer.parseInt(command[4]);
                 this.methodName = command[5];
                 this.prioritary = Boolean.parseBoolean(command[6]);
+                this.reduce = false;
+                this.reduceChunkSize = 0;
                 this.hasTarget = Boolean.parseBoolean(command[7]);
                 this.numReturns = Integer.parseInt(command[8]);
                 this.parameterCount = Integer.parseInt(command[9]);

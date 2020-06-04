@@ -19,6 +19,7 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 

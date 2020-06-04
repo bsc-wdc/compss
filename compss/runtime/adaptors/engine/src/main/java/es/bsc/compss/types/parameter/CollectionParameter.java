@@ -92,7 +92,7 @@ public class CollectionParameter extends DependencyParameter {
         sb.append("Name: ").append(getName()).append("\n");
         sb.append("Contents:\n");
         for (Parameter s : parameters) {
-            sb.append("\t").append(s).append("\n");
+            sb.append("\t").append(s.getName()).append("\n");
         }
         return sb.toString();
     }

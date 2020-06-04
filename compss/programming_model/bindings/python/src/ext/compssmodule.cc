@@ -289,15 +289,15 @@ static PyObject* set_pipes(PyObject* self, PyObject* args){
 static PyObject* process_task(PyObject* self, PyObject* args) {
     /*
       Parse python object arguments and get pointers to them.
-      lsiiiiiOOOOOO must be read as
-      "long, string, integer, integer, integer, integer, integer,
+      lsiiiiiiiOOOOOO must be read as
+      "long, string, integer, integer, integer, integer, integer, integer,
        Object, Object, Object, Object, Object, Object"
     */
     debug("Process task:\n");
     long app_id;
     char* signature;
     char* on_failure;
-    int priority, num_nodes, replicated, distributed, has_target, num_returns, time_out;
+    int priority, num_nodes, reduce, chunk_size, replicated, distributed, has_target, num_returns, time_out;
     PyObject *values;
     PyObject *names;
     PyObject *compss_types;
@@ -308,8 +308,8 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
     PyObject *weights;
     PyObject *keep_renames;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lssiiiiiiiOOOOOOOOO", &app_id, &signature, &on_failure, &time_out, &priority,
-                         &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
+    if(!PyArg_ParseTuple(args, "lssiiiiiiiiiOOOOOOOOO", &app_id, &signature, &on_failure, &time_out, &priority,
+                         &num_nodes, &reduce, &chunk_size, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
                          &compss_directions, &compss_streams, &compss_prefixes, &content_types, &weights, &keep_renames)) {
         // Return NULL after ParseTuple automatically translates to "wrong
         // arguments were passed, we expected an integer instead"-like errors
@@ -320,6 +320,8 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
     debug("- On Failure: %s\n", on_failure);
     debug("- Time Out: %d\n", time_out);
     debug("- Priority: %d\n", priority);
+    debug("- Reduce: %d\n", reduce);
+    debug("- Chunk size: %d\n", chunk_size);
     debug("- MPI Num nodes: %d\n", num_nodes);
     debug("- Replicated: %d\n", replicated);
     debug("- Distributed: %d\n", distributed);
@@ -421,6 +423,8 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
         time_out,
         priority,
         num_nodes,
+        reduce,
+        chunk_size,
         replicated,
         distributed,
         has_target,

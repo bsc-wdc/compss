@@ -25,7 +25,9 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -82,6 +84,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -196,6 +199,8 @@ public class AccessProcessor implements Runnable {
      * @param signature Task signature.
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of nodes.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The size of the chunks to be reduced.
      * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed round-robin or not.
      * @param numReturns Number of task returns.
@@ -205,20 +210,28 @@ public class AccessProcessor implements Runnable {
      * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
+
     public int newTask(Application app, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary,
-        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
-        List<Parameter> parameters, OnFailure onFailure, long timeOut) {
+        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure, long timeOut) {
 
-        Task currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
-            hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+        Task currentTask;
 
-        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        if (isReduce) {
+            currentTask = new ReduceTask(app, lang, signature, isPrioritary, numNodes, reduceChunkSize, isReplicated,
+                isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+        } else {
+            currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                numReturns, parameters, monitor, onFailure, timeOut);
+        }
+        TaskMonitor registeredMonitor = ((Task) currentTask).getTaskMonitor();
         registeredMonitor.onCreation();
 
         LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
         }
+
         return currentTask.getId();
     }
 
@@ -240,18 +253,20 @@ public class AccessProcessor implements Runnable {
      * @return Task Id.
      */
     public int newTask(Application app, TaskMonitor monitor, String namespace, String service, String port,
-        String operation, boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters,
-        OnFailure onFailure, long timeOut) {
+        String operation, boolean priority, boolean isReduce, int reduceChunkSize, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, OnFailure onFailure, long timeOut) {
+
         Task currentTask = new Task(app, namespace, service, port, operation, priority, hasTarget, numReturns,
             parameters, monitor, onFailure, timeOut);
 
-        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        TaskMonitor registeredMonitor = ((Task) currentTask).getTaskMonitor();
         registeredMonitor.onCreation();
 
-        LOGGER.debug("Requesting analysis of new service Task " + currentTask.getId());
-        if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
+        LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
+        if (!this.requestQueue.offer(new TaskAnalysisRequest(((Task) currentTask)))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
         }
+
         return currentTask.getId();
     }
 

@@ -432,6 +432,31 @@ public class GraphGenerator {
     }
 
     /**
+     * Adds a reduce task to the graph.
+     * 
+     * @param identifier Identifier of the task.
+     */
+    public void addReduceTaskToGraph(int identifier) {
+        try {
+            full_graph.newLine();
+
+            StringBuilder msg1 = new StringBuilder();
+            msg1.append("subgraph clusterReduce").append(identifier).append(" {\n");
+            full_graph.write(msg1.toString());
+
+            StringBuilder msg2 = new StringBuilder();
+            msg2.append("shape=rect;\n");
+            msg2.append("node[height=0.75];\n");
+            msg2.append("color=\"#A9A9A9\";\n");
+            msg2.append("rank=same;\n");
+            msg2.append("label=\"RT").append(identifier).append("\";\n");
+            full_graph.write(msg2.toString());
+        } catch (IOException e) {
+            LOGGER.error(ERROR_ADDING_DATA, e);
+        }
+    }
+
+    /**
      * Adds a task group to the graph.
      * 
      * @param identifier Group identifier

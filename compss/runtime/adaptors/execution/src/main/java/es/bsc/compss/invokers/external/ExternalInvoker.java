@@ -31,6 +31,7 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
+import es.bsc.compss.types.implementations.ReduceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -98,7 +99,8 @@ public abstract class ExternalInvoker extends Invoker {
         // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
         if (invocation.getMethodImplementation().getMethodType() != MethodType.METHOD
             && invocation.getMethodImplementation().getMethodType() != MethodType.MULTI_NODE
-            && invocation.getMethodImplementation().getMethodType() != MethodType.PYTHON_MPI) {
+            && invocation.getMethodImplementation().getMethodType() != MethodType.PYTHON_MPI
+            && invocation.getMethodImplementation().getMethodType() != MethodType.REDUCE) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
 
@@ -128,6 +130,11 @@ public abstract class ExternalInvoker extends Invoker {
                 MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) invocation.getMethodImplementation();
                 methodClass = multiNodeImpl.getDeclaringClass();
                 methodName = multiNodeImpl.getMethodName();
+                break;
+            case REDUCE:
+                ReduceImplementation reduceImpl = (ReduceImplementation) invocation.getMethodImplementation();
+                methodClass = reduceImpl.getDeclaringClass();
+                methodName = reduceImpl.getMethodName();
                 break;
             default:
                 throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);

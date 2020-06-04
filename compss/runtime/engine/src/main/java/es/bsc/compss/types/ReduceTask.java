@@ -1,0 +1,264 @@
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package es.bsc.compss.types;
+
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.allocatableactions.ReduceExecutionAction;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.colors.ColorConfiguration;
+import es.bsc.compss.types.colors.ColorNode;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.FileParameter;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.uri.SimpleURI;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
+public class ReduceTask extends Task {
+
+    // Tasks that access the data
+    private final List<Task> tasks;
+
+    private int chunkSize;
+    private double totalOperations;
+
+    private final List<Parameter> partialsIn;
+    private final List<Parameter> usedPartialsIn;
+    private final List<Parameter> partialsOut;
+    private final List<Parameter> usedPartialsOut;
+    private final List<CollectionParameter> intermediateCollections;
+    private CollectionParameter finalCol;
+
+    // Component logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
+
+
+    /**
+     * Creates a new REDUCE task with the given parameters.
+     *
+     * @param app Application to which the task belongs.
+     * @param lang Application language.
+     * @param signature Task signature.
+     * @param isPrioritary Whether the task has priority or not.
+     * @param numNodes Number of nodes used by the task.
+     * @param reduceChunkSize Size of the chunks to execute the reduce.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed round-robin or not.
+     * @param numReturns Number of returns of the task.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param parameters Task parameter values.
+     * @param monitor Task monitor.
+     * @param onFailure On failure mechanisms.
+     * @param timeOut Time for a task time out.
+     */
+    public ReduceTask(Application app, Lang lang, String signature, boolean isPrioritary, int numNodes,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
+        super(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
+            parameters, monitor, onFailure, timeOut);
+        this.tasks = new LinkedList<Task>();
+        this.chunkSize = reduceChunkSize;
+        this.totalOperations = 0;
+        this.partialsIn = new ArrayList<>();
+        this.usedPartialsIn = new ArrayList<>();
+        this.partialsOut = new ArrayList<>();
+        this.usedPartialsOut = new ArrayList<>();
+        this.intermediateCollections = new ArrayList<>();
+        LOGGER.debug("[REDUCE-TASK] The REDUCE task has been created with chunk size " + this.chunkSize);
+
+        try {
+            registerPartials(parameters);
+        } catch (IOException e) {
+            LOGGER.debug("Exception detected when creating location for partials");
+        }
+    }
+
+    /**
+     * Registers the parameters to be fulfilled by the reduce tasks.
+     *
+     * @param parameters Task parameter values.
+     * @throws IOException Error while creating the data location.
+     */
+    public void registerPartials(List<Parameter> parameters) throws IOException {
+        if (parameters.size() == 2) {
+            // 0 --> collection || 1 --> result
+            CollectionParameter p = (CollectionParameter) parameters.get(0);
+            Parameter finalParameter = parameters.get(1);
+            if (p.getType() == DataType.COLLECTION_T) {
+                List<Parameter> colList = p.getParameters();
+                double completeOperations = 0;
+                this.totalOperations = 0;
+                double intermediateResults = 0;
+                double accum = colList.size();
+                while (accum > chunkSize) {
+                    completeOperations = Math.floor(accum / this.chunkSize);
+                    intermediateResults = accum % chunkSize;
+                    accum = completeOperations + intermediateResults;
+                    this.totalOperations = this.totalOperations + accum;
+                }
+
+                for (int i = 0; i < (int) totalOperations; i++) {
+                    String partialId = "reduce" + i + "PartialResultTask" + this.getId();
+                    String canonicalPath = new File(partialId).getCanonicalPath();
+                    SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);
+                    DataLocation dl = DataLocation.createLocation(Comm.getAppHost(), uri);
+
+                    partialsOut.add(new FileParameter(Direction.OUT, finalParameter.getStream(),
+                        finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
+                        finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId));
+                    partialsIn.add(new FileParameter(Direction.IN, finalParameter.getStream(),
+                        finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
+                        finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId));
+
+                    CollectionParameter cp = new CollectionParameter(partialId + "Collection", new ArrayList<>(),
+                        p.getDirection(), p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(),
+                        p.isKeepRename());
+                    intermediateCollections.add(cp);
+                }
+                String finalId = "finalReduceTask" + this.getId();
+                finalCol = new CollectionParameter(finalId, new ArrayList<>(), Direction.IN, p.getStream(),
+                    p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename());
+            }
+        }
+    }
+
+    /**
+     * Returns the list of IN parameters.
+     */
+    public List<Parameter> getIntermediateInParameters() {
+        return partialsIn;
+    }
+
+    /**
+     * Returns the list of used IN parameters.
+     */
+    public List<Parameter> getIntermediateUsedInParameters() {
+        return usedPartialsIn;
+    }
+
+    /**
+     * Sets the parameter to the list of used IN parameters.
+     */
+    public void setPartialInUsed(Parameter partial) {
+        usedPartialsIn.add(partial);
+        partialsIn.remove(partial);
+    }
+
+    /**
+     * Returns the list of OUT parameters.
+     */
+    public List<Parameter> getIntermediateOutParameters() {
+        return partialsOut;
+    }
+
+    /**
+     * Returns the list of used OUT parameters.
+     */
+    public List<Parameter> getIntermediateUsedOutParameters() {
+        return usedPartialsOut;
+    }
+
+    /**
+     * Sets the parameter to the list of used OUT parameters.
+     */
+    public void setPartialOutUsed(Parameter partial) {
+        usedPartialsOut.add(partial);
+        partialsOut.remove(partial);
+    }
+
+    /**
+     * Returns the list of the created intermediate collections.
+     */
+    public List<CollectionParameter> getIntermediateCollections() {
+        return intermediateCollections;
+    }
+
+    /**
+     * Returns the list of the created intermediate collections.
+     */
+    public CollectionParameter getFinalCollection() {
+        return finalCol;
+    }
+
+    /**
+     * Returns list of tasks to execute.
+     * 
+     * @return
+     */
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    /**
+     * Returns the reduce chunk size.
+     * 
+     * @return
+     */
+    public int getChunkSize() {
+        return this.chunkSize;
+    }
+
+    /**
+     * Clears the partial parameters.
+     */
+    public void clearPartials() {
+        this.partialsIn.clear();
+        this.partialsOut.clear();
+        this.intermediateCollections.clear();
+    }
+
+    /**
+     * Returns the list of unused parameters.
+     * 
+     * @return The list of IN and OUT unused parameters.
+     */
+    public List<Parameter> getUnusedParameters() {
+        this.partialsIn.addAll(this.partialsOut);
+        return partialsIn;
+    }
+
+    /**
+     * Returns the total number of operations.
+     * 
+     * @return The number of operations.
+     */
+    public int getTotalOperations() {
+        return (int) this.totalOperations;
+    }
+
+    @Override
+    public String getColor() {
+        int monitorTaskId = this.getTaskDescription().getCoreElement().getCoreId() + 1; // Coherent with Trace.java
+        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % (ColorConfiguration.NUM_COLORS + 1)];
+        return color.getFillColor();
+    }
+}

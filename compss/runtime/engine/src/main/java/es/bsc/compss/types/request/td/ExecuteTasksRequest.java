@@ -21,11 +21,14 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.allocatableactions.MultiNodeExecutionAction;
 import es.bsc.compss.types.allocatableactions.MultiNodeGroup;
+import es.bsc.compss.types.allocatableactions.ReduceExecutionAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
@@ -70,7 +73,7 @@ public class ExecuteTasksRequest extends TDRequest {
      *
      * @return task to execute.
      */
-    public Task getTask() {
+    public AbstractTask getTask() {
         return this.task;
     }
 
@@ -130,6 +133,12 @@ public class ExecuteTasksRequest extends TDRequest {
 
             this.task.setExecutionCount(numNodes);
             submitTask(ts, numNodes, selectedResource);
+            /*
+             * } else if (this.task instanceof ReduceTask) { Collection<ResourceScheduler<? extends
+             * WorkerResourceDescription>> resources = ts.getWorkers(); this.task.setExecutionCount(resources.size() *
+             * numNodes); for (ResourceScheduler<? extends WorkerResourceDescription> rs : resources) { submitTask(ts,
+             * numNodes, rs); }
+             */
         } else {
             // Normal task
             if (DEBUG) {
@@ -159,13 +168,19 @@ public class ExecuteTasksRequest extends TDRequest {
     private <T extends WorkerResourceDescription> void submitSingleTask(TaskScheduler ts,
         ResourceScheduler<T> specificResource) {
 
-        LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
-        ExecutionAction action =
-            new ExecutionAction(
-                ts.generateSchedulingInformation(specificResource, this.task.getTaskDescription().getParameters(),
-                    this.task.getTaskDescription().getCoreElement().getCoreId()),
-                ts.getOrchestrator(), this.ap, this.task);
-        ts.newAllocatableAction(action);
+        if (this.task instanceof ReduceTask) {
+            LOGGER.debug("Scheduling request for reduce task " + this.task.getId() + " treated " + "as singleTask");
+            ReduceExecutionAction action = new ReduceExecutionAction(ts.generateSchedulingInformation(specificResource, 
+				    this.task.getTaskDescription().getParameters(), this.task.getTaskDescription().getCoreElement().getCoreId()),
+                ts.getOrchestrator(), this.ap, (ReduceTask) this.task, ts);
+            ts.newAllocatableAction(action);
+        } else {
+            LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
+            ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource, 
+				    this.task.getTaskDescription().getParameters(), this.task.getTaskDescription().getCoreElement().getCoreId() ),
+                ts.getOrchestrator(), this.ap, (Task) this.task);
+            ts.newAllocatableAction(action);
+        }
     }
 
     private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes,

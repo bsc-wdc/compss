@@ -29,6 +29,7 @@ import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
+import es.bsc.compss.types.implementations.ReduceImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.ContainerDescription;
@@ -308,8 +309,25 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     id = (ImplementationDefinition<T>) new MultiNodeDefinition(implSignature, multiNodeClass,
                         multiNodeName, (MethodResourceDescription) implConstraints);
                     break;
-            }
 
+                case REDUCE:
+                    if (implTypeArgs.length != ReduceImplementation.NUM_PARAMS) {
+                        throw new IllegalArgumentException("Incorrect parameters for type REUCE on " + implSignature
+                            + " (" + implTypeArgs.length + " params received)");
+                    }
+                    String reduceClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                    String reduceName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                    if (reduceClass == null || reduceClass.isEmpty()) {
+                        throw new IllegalArgumentException(
+                            "Empty declaringClass annotation for method " + implSignature);
+                    }
+                    if (reduceName == null || reduceName.isEmpty()) {
+                        throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
+                    }
+                    id = (ImplementationDefinition<T>) new ReduceDefinition(implSignature, reduceClass, reduceName,
+                        (MethodResourceDescription) implConstraints);
+                    break;
+            }
         }
         return id;
     }

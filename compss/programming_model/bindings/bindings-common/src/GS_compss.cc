@@ -29,7 +29,6 @@
 
 using namespace std;
 
-
 int PIPES=0;
 
 
@@ -93,12 +92,12 @@ void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, c
 }
 
 
-void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int replicated, int distributed,
-                       int hasTarget, int numReturns, int numParams, void** params) {
+void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
+                       int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 	if (PIPES) {
-		PIPE_ExecuteTaskNew(appId, signature, onFailure, timeout, priority, numNodes, replicated, distributed, hasTarget, numReturns, numParams, params);
+		PIPE_ExecuteTaskNew(appId, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 	} else {
-		JNI_ExecuteTaskNew(appId, signature, onFailure, timeout, priority, numNodes, replicated, distributed, hasTarget, numReturns, numParams, params);
+		JNI_ExecuteTaskNew(appId, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 	}
 }
 

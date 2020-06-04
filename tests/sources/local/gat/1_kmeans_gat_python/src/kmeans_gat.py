@@ -20,7 +20,10 @@ __copyright__ = '2018 Barcelona Supercomputing Center (BSC-CNS)'
 import numpy as np
 import time
 import unittest
+
+from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on
+from pycompss.api.reduce import reduce
 from pycompss.api.task import task
 
 
@@ -110,6 +113,14 @@ def merge_reduce(data, chunk=50):
         data.append(merge_reduce_task(*dataToReduce))
     return data[0]
 
+# REDUCE
+@reduce(chunk_size="2")
+@task(returns=1, col=COLLECTION_IN)
+def merge_reduce_reduce(col):
+    reduce_value = col[0]
+    for i in range(1, len(col)):
+        reduce_value = reduce_centers(reduce_value, col[i])
+    return reduce_value
 
 # Main implementation functions
 
@@ -194,7 +205,8 @@ def kmeans_frag(X, num_points, num_centers, dimensions, epsilon, max_iterations,
         for f in range(num_fragments):
             partialResult.append(cluster_points_sum(X[f], mu, f * size))
 
-        mu = merge_reduce(partialResult, chunk=50)
+        mu = merge_reduce(partialResult, chunk=2)
+       # mu = merge_reduce_reduce(partialResult)
         mu = compss_wait_on(mu)
         mu = [mu[c][1] / mu[c][0] for c in mu]
 

@@ -610,6 +610,8 @@ def process_task(signature,             # type: str
                  keep_renames,          # type: list
                  has_priority,          # type: bool
                  num_nodes,             # type: int
+                 reduction,             # type: bool
+                 chunk_size,            # type: int
                  replicated,            # type: bool
                  distributed,           # type: bool
                  on_failure,            # type: str
@@ -632,6 +634,8 @@ def process_task(signature,             # type: str
     :param keep_renames: Boolean keep renaming
     :param has_priority: Boolean has priority
     :param num_nodes: Number of nodes that the task must use
+    :param reduction: Boolean indicating if the task is of type reduce
+    :param chunk_size: Size of chunks for executing the reduce operation
     :param replicated: Boolean indicating if the task must be replicated
     :param distributed: Boolean indicating if the task must be distributed
     :param on_failure: Action on failure
@@ -666,6 +670,8 @@ def process_task(signature,             # type: str
         logger.debug("\t- Keep_renames: " + keep_renames_str)
         logger.debug("\t- Priority: " + str(has_priority))
         logger.debug("\t- Num nodes: " + str(num_nodes))
+        logger.debug("\t- Reduce: " + str(reduction))
+        logger.debug("\t- Chunk Size: " + str(chunk_size))
         logger.debug("\t- Replicated: " + str(replicated))
         logger.debug("\t- Distributed: " + str(distributed))
         logger.debug("\t- On failure behavior: " + on_failure)
@@ -714,6 +720,8 @@ def process_task(signature,             # type: str
                         time_out,
                         has_priority,
                         num_nodes,
+                        reduction,
+                        chunk_size,
                         replicated,
                         distributed,
                         has_target,

@@ -158,6 +158,8 @@ SUPPORTED_ARGUMENTS = ['returns',
                        'varargs_type',
                        'target_direction',
                        'computing_nodes',
+                       'is_reduce',
+                       'chunk_size',
                        'numba',
                        'numba_flags',
                        'numba_signature',
@@ -203,6 +205,7 @@ class TaskMaster(TaskCommons):
                  'function_name', 'module_name', 'function_type', 'class_name',
                  'returns', 'multi_return',
                  'core_element', 'registered', 'signature',
+                 'chunk_size', 'is_reduce',
                  'interactive', 'module', 'function_arguments', 'hints']
 
     def __init__(self,
@@ -241,6 +244,10 @@ class TaskMaster(TaskCommons):
         self.core_element = core_element
         self.registered = registered
         self.signature = signature
+        # Reductions
+        self.chunk_size = None
+        self.is_reduce = False
+
         # Parameters that will come from previous tasks
         # TODO: These parameters could be within a "precalculated" parameters
         self.interactive = interactive
@@ -341,6 +348,10 @@ class TaskMaster(TaskCommons):
         with event(GET_COMPUTING_NODES, master=True):
             computing_nodes = self.process_computing_nodes()
 
+        # Deal with reductions
+        with event(GET_COMPUTING_NODES, master=True):
+            is_reduction, chunk_size = self.process_reduction()
+
         # Get other arguments if exist
         # Get is replicated
         with event(PROCESS_OTHER_ARGUMENTS, master=True):
@@ -398,6 +409,8 @@ class TaskMaster(TaskCommons):
             keep_renames,
             has_priority,
             computing_nodes,
+            is_reduction,
+            chunk_size,
             is_replicated,
             is_distributed,
             on_failure,
@@ -557,6 +570,11 @@ class TaskMaster(TaskCommons):
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
         self.computing_nodes = kwargs.pop('computing_nodes', 1)
+        # We take the reduce and chunk size set for the reduce decorator,
+        # otherwise we set them to 0.
+        self.is_reduce = kwargs.pop('is_reduce', False)
+        self.chunk_size = kwargs.pop('chunk_size', 0)
+
         # It is important to know the name of the first argument to determine
         # if we are dealing with a class or instance method (i.e: first
         # argument is named self)
@@ -1003,6 +1021,77 @@ class TaskMaster(TaskCommons):
             parsed_computing_nodes = 1
 
         return parsed_computing_nodes
+
+    def process_reduction(self):
+        # type: () -> (bool, int)
+        """ Process the reduction parameter.
+
+        :return: Is reduction and chunk size.
+        """
+        # Deal with chunk size
+        parsed_chunk_size = None
+        if isinstance(self.chunk_size, int):
+            # Nothing to do
+            parsed_chunk_size = self.chunk_size
+        elif isinstance(self.chunk_size, str):
+            # Check if chunk_size can be casted to string
+            # Check if chunk_size is an environment variable
+            # Check if chunk_size is a dynamic global variable
+            try:
+                # Cast string to int
+                parsed_chunk_size = int(self.chunk_size)
+            except ValueError:
+                # Environment variable
+                if self.chunk_size.strip().startswith('$'):
+                    # Chunk size is an ENV variable, load it
+                    env_var = self.chunk_size.strip()[1:]  # Remove $
+                    if env_var.startswith('{'):
+                        env_var = env_var[1:-1]  # remove brackets
+                    try:
+                        parsed_chunk_size = int(os.environ[env_var])
+                    except ValueError:
+                        raise Exception(
+                            cast_env_to_int_error('ChunkSize')
+                        )
+                else:
+                    # Dynamic global variable
+                    try:
+                        # Load from global variables
+                        parsed_chunk_size = \
+                            self.user_function.__globals__.get(
+                                self.chunk_size
+                            )
+                    except AttributeError:
+                        # This is a numba jit declared task
+                        try:
+                            parsed_chunk_size = \
+                                self.user_function.py_func.__globals__.get(
+                                    self.chunk_size
+                                )
+                        except AttributeError:
+                            # No more chances
+                            # Ignore error and parsed_chunk_size will
+                            # raise the exception
+                            pass
+        if parsed_chunk_size is None:
+            parsed_chunk_size = 0
+
+        # Deal with chunk size
+        parsed_is_reduce = False
+        if isinstance(self.is_reduce, bool):
+            # Nothing to do
+            parsed_is_reduce = self.is_reduce
+        elif isinstance(self.is_reduce, str):
+            # Check if is_reduce can be casted to string
+            try:
+                # Cast string to int
+                parsed_is_reduce = bool(self.is_reduce)
+            except ValueError:
+                pass
+        if parsed_is_reduce is None:
+            parsed_is_reduce = False
+
+        return parsed_is_reduce, parsed_chunk_size
 
     def check_task_hints(self):
         # type: () -> (bool, bool, bool, int, bool, bool)

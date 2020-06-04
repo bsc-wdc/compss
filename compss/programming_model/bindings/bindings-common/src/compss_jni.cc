@@ -322,7 +322,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find executeTask C");
 
     // executeTask method - Python binding
-    midExecuteNew = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;IZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    midExecuteNew = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;IZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     check_exception(status, "Cannot find executeTask Python");
 
     // barrier method
@@ -1025,8 +1025,8 @@ void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, 
 }
 
 
-void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int replicated, int distributed,
-                       int hasTarget, int numReturns, int numParams, void** params) {
+void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+                        int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing task execution in bindings-common. \n");
 
@@ -1038,6 +1038,9 @@ void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeou
 
     bool _replicated = false;
     if (replicated != 0) _replicated = true;
+
+    bool _reduce = false;
+    if (reduce != 0) _reduce = true;
 
     bool _distributed = false;
     if (distributed != 0) _distributed = true;
@@ -1068,6 +1071,8 @@ void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeou
                               timeout,
                               _priority,
                               numNodes,
+                              _reduce,
+                              reduceChunkSize,
                               _replicated,
                               _distributed,
                               _hasTarget,

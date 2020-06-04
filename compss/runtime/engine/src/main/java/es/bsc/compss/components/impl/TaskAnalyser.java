@@ -25,6 +25,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.ReadersInfo;
+import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskGroup;
@@ -60,12 +61,14 @@ import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
@@ -102,6 +105,10 @@ public class TaskAnalyser {
     // Tasks that are accessed commutatively and are pending to be drawn in graph. Map: commutative group identifier ->
     // list of tasks from group
     private Map<String, LinkedList<Task>> pendingToDrawCommutative;
+    // Registered task groups
+    private Map<Long, Stack<TaskGroup>> currentTaskGroups;
+    // List of submitted reduce tasks
+    private List<String> reduceTasksNames;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -119,8 +126,10 @@ public class TaskAnalyser {
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
+        this.currentTaskGroups = new HashMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
+        this.reduceTasksNames = new ArrayList<>();
 
         LOGGER.info("Initialization finished");
     }
@@ -186,6 +195,32 @@ public class TaskAnalyser {
                 registerParameterAccessAndAddDependencies(app, currentTask, parameters.get(paramIdx), isConstraining);
             taskHasEdge = taskHasEdge || paramHasEdge;
         }
+
+        if (currentTask instanceof ReduceTask) {
+            this.reduceTasksNames.add(((ReduceTask) currentTask).getTaskDescription().getName());
+            List<Parameter> reducePartialsOut = ((ReduceTask) currentTask).getIntermediateOutParameters();
+            for (int paramIdx = 0; paramIdx < reducePartialsOut.size(); paramIdx++) {
+                boolean isConstraining = paramIdx == constrainingParam;
+                registerParameterAccessAndAddDependencies(app, currentTask, reducePartialsOut.get(paramIdx),
+                    isConstraining);
+            }
+            List<Parameter> reducePartialsIn = ((ReduceTask) currentTask).getIntermediateInParameters();
+            for (int paramIdx = 0; paramIdx < reducePartialsIn.size(); paramIdx++) {
+                boolean isConstraining = paramIdx == constrainingParam;
+                registerParameterAccessAndAddDependencies(app, currentTask, reducePartialsIn.get(paramIdx),
+                    isConstraining);
+            }
+            List<CollectionParameter> reduceCollections = ((ReduceTask) currentTask).getIntermediateCollections();
+            for (int paramIdx = 0; paramIdx < reduceCollections.size(); paramIdx++) {
+                boolean isConstraining = paramIdx == constrainingParam;
+                registerParameterAccessAndAddDependencies(app, currentTask, reduceCollections.get(paramIdx),
+                    isConstraining);
+            }
+            CollectionParameter finalCollection = ((ReduceTask) currentTask).getFinalCollection();
+            boolean isConstraining = false;
+            registerParameterAccessAndAddDependencies(app, currentTask, finalCollection, isConstraining);
+        }
+
         if (IS_DRAW_GRAPH) {
             if (!taskHasEdge) {
                 // If the graph must be written and the task has no edge due to its parameters,
@@ -309,9 +344,18 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Marking accessed parameters for task " + taskId);
             }
+
             for (Parameter param : task.getTaskDescription().getParameters()) {
                 updateParameterAccess(task, param);
                 updateLastWritters(task, param);
+            }
+
+            if (task instanceof ReduceTask) {
+                List<Parameter> paramList = ((ReduceTask) task).getUnusedParameters();
+                for (Parameter param : paramList) {
+                    updateParameterAccess(task, param);
+                    updateLastWritters(task, param);
+                }
             }
 
             // Check if the finished task was the last writer of a file, but only if task generation has finished
@@ -335,7 +379,17 @@ public class TaskAnalyser {
         if (DEBUG) {
             LOGGER.debug("Releasing data dependant tasks for task " + taskId);
         }
-        aTask.releaseDataDependents();
+
+        // Release data dependent tasks
+        boolean successorIsReduce = false;
+        for (AbstractTask t : aTask.getSuccessors()) {
+            if (this.reduceTasksNames.contains(((Task) t).getTaskDescription().getName())) {
+                successorIsReduce = true;
+            }
+        }
+        if (!successorIsReduce) {
+            aTask.releaseDataDependents();
+        }
         if (DEBUG) {
             long time = System.currentTimeMillis() - start;
             LOGGER.debug("Task " + taskId + " end message processed in " + time + " ms.");
@@ -406,6 +460,16 @@ public class TaskAnalyser {
         } else {
             LOGGER.warn("Writters info for data " + dataId + " not found.");
         }
+    }
+
+    /**
+     * Returns whether a given application has groups registered or not.
+     *
+     * @param appId Application Id.
+     * @return {@literal true} if the application has registered groups, {@literal false} otherwise.
+     */
+    public boolean applicationHasGroups(Long appId) {
+        return this.currentTaskGroups.containsKey(appId);
     }
 
     /**
@@ -716,6 +780,7 @@ public class TaskAnalyser {
             default:
                 // This is a basic type, there are no accesses to register
                 daId = null;
+                currentTask.registerFreeParam(p);
         }
 
         if (daId != null) {
@@ -881,6 +946,9 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
+
+            currentTask.registerFreeParam(dp);
+
             if (IS_DRAW_GRAPH) {
                 // Add edge from last sync point to task
                 drawEdges(currentTask, dp, null);
@@ -898,14 +966,14 @@ public class TaskAnalyser {
         AbstractTask t = commutativeGroup.getParentDataDependency();
         if (t != null) {
             LOGGER.debug("Adding dependency with parent task of commutative group");
-            currentTask.addDataDependency(t);
+            currentTask.addDataDependency(t, dp);
         }
         if (IS_DRAW_GRAPH) {
             drawEdges(currentTask, dp, t);
         }
 
         // Addition of a dependency between the task and the commutative group
-        commutativeGroup.addDataDependency(currentTask);
+        commutativeGroup.addDataDependency(currentTask, dp);
         commutativeGroup.addCommutativeTask(currentTask);
         currentTask.setCommutativeGroup(commutativeGroup, dp.getDataAccessId());
 
@@ -929,7 +997,7 @@ public class TaskAnalyser {
             }
             for (Task t : tasks) {
                 // Add dependency
-                currentTask.addDataDependency(t);
+                currentTask.addDataDependency(t, dp);
                 if (IS_DRAW_GRAPH) {
                     drawEdges(currentTask, dp, t);
                 }
@@ -938,6 +1006,9 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
+
+            currentTask.registerFreeParam(dp);
+
             // Add dependency to last sync point
             if (IS_DRAW_GRAPH) {
                 drawEdges(currentTask, dp, null);
@@ -960,16 +1031,18 @@ public class TaskAnalyser {
 
             if (lastWriter instanceof Task
                 && ((Task) lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()) != null) {
-                currentTask
-                    .addDataDependency(((Task) lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()));
+                currentTask.addDataDependency(((Task) lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()),
+                    dp);
             }
+
             // Add dependency
-            currentTask.addDataDependency(lastWriter);
+            currentTask.addDataDependency(lastWriter, dp);
         } else {
             // Task is free
             if (DEBUG) {
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
+            currentTask.registerFreeParam(dp);
         }
 
         // Add edge to graph
@@ -1424,7 +1497,6 @@ public class TaskAnalyser {
      * @param task Task to print.
      */
     private void addTaskToGraph(Task task) {
-        // Add task to graph
         this.gm.addTaskToGraph(task);
     }
 
@@ -1451,7 +1523,6 @@ public class TaskAnalyser {
 
             if (lastWriter instanceof CommutativeGroupTask && !((CommutativeGroupTask) lastWriter).getGraphDrawn()) {
                 CommutativeIdentifier comId = ((CommutativeGroupTask) lastWriter).getCommutativeIdentifier();
-
                 // Adds the group to the graph and removes task from pendingToDraw
                 addCommutativeGroupTaskToGraph(comId.toString());
                 ((CommutativeGroupTask) lastWriter).setGraphDrawn();

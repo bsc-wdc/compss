@@ -24,6 +24,8 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.ReadersInfo;
+import es.bsc.compss.types.ReduceTask;
+import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
@@ -53,6 +55,8 @@ import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
+import es.bsc.compss.types.parameter.FileParameter;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.uri.MultiURI;
@@ -1318,4 +1322,23 @@ public class DataInfoProvider {
         }
     }
 
+    /**
+     * Removes the partials of the reduce task.
+     * 
+     * @param task Reduce task to be removed of.
+     */
+    public void removeTaskData(Task task) {
+        if (task instanceof ReduceTask) {
+            for (Parameter p : ((ReduceTask) task).getIntermediateInParameters()) {
+                deleteData(task.getApplication(), ((FileParameter) p).getLocation(), true);
+            }
+            for (Parameter p : ((ReduceTask) task).getIntermediateOutParameters()) {
+                deleteData(task.getApplication(), ((FileParameter) p).getLocation(), true);
+            }
+            for (Parameter p : ((ReduceTask) task).getIntermediateCollections()) {
+                deleteCollection(((CollectionParameter) p).getCollectionId(), true);
+            }
+        }
+
+    }
 }

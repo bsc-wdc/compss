@@ -28,6 +28,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Iterator;
@@ -330,7 +331,7 @@ public abstract class AllocatableAction {
      *
      * @param finishedAction Finished Allocatable Action.
      */
-    private void dataPredecessorDone(AllocatableAction finishedAction) {
+    protected void dataPredecessorDone(AllocatableAction finishedAction) {
         Iterator<AllocatableAction> it = this.dataPredecessors.iterator();
         while (it.hasNext()) {
             AllocatableAction aa = it.next();
@@ -793,10 +794,8 @@ public abstract class AllocatableAction {
             }
             this.treatDependencyFreeAction(freeTasks);
         }
-
         if (dataSuccessors.isEmpty()) {
             this.treatDependencyFreeAction(freeTasks);
-
         }
 
         this.dataSuccessors.clear();
@@ -829,17 +828,22 @@ public abstract class AllocatableAction {
     public final List<AllocatableAction> completed() {
         // Mark as finished
         this.state = State.FINISHED;
+        List<AllocatableAction> freeActions = releaseDataSuccessors();
+        // Action notification
+        doCompleted();
+        return freeActions;
+    }
 
+    /**
+     * Operations to perform for releasing the resources.
+     */
+    public void relaseResourcesAndLaunchBlockedActions() {
         if (this.getAssignedResource() != null) {
             // Release resources and run tasks blocked on the resource
             releaseResources();
             selectedResource.unhostAction(this);
             selectedResource.tryToLaunchBlockedActions();
         }
-
-        // Action notification
-        doCompleted();
-        return releaseDataSuccessors();
     }
 
     protected abstract void treatDependencyFreeAction(List<AllocatableAction> freeTasks);

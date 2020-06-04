@@ -57,7 +57,7 @@ class PiperWorkerConfiguration(object):
         :param argv: arguments from the command line
         """
         self.debug = argv[1] == 'true'
-        self.tracing = argv[2] == 'true'
+        self.tracing = argv[2] == '1'
         self.storage_conf = argv[3]
         self.stream_backend = argv[4]
         self.stream_master_name = argv[5]
@@ -92,12 +92,13 @@ class PiperWorkerConfiguration(object):
         logger.debug(HEADER + "-----------------------------")
 
 
-def load_loggers(debug, persistent_storage):
+def load_loggers(debug, persistent_storage, tracing):
     """
     Loads all the loggers
 
     :param debug: is Debug enabled
     :param persistent_storage: is persistent storage enabled
+    :param tracing: if tracing is enabled
     :return logger: main logger of the application
     :return storage_loggers: loggers for the persistent data engine
     """
@@ -106,11 +107,13 @@ def load_loggers(debug, persistent_storage):
     if debug:
         # Debug
         init_logging_worker(worker_path +
-                            '/../../../../log/logging_worker_debug.json')
+                            '/../../../../log/logging_worker_debug.json',
+                            tracing)
     else:
         # Default
         init_logging_worker(worker_path +
-                            '/../../../../log/logging_worker_off.json')
+                            '/../../../../log/logging_worker_off.json',
+                            tracing)
 
     # Define logger facilities
     logger = logging.getLogger('pycompss.worker.piper.piper_worker')

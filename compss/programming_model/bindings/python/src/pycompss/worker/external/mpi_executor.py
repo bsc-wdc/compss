@@ -69,15 +69,20 @@ def executor(process_name, command):
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     debug = command.split()[6] == "true"
+    tracing = command.split()[7] == "true"
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if debug:
         # Debug
-        init_logging_worker(worker_path + '/../../../log/logging_worker_debug.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_worker_debug.json',
+                            tracing)
     else:
         # Default
-        init_logging_worker(worker_path + '/../../../log/logging_worker_off.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_worker_off.json',
+                            tracing)
 
     logger = logging.getLogger('pycompss.worker.external.mpi_worker')
     logger_handlers = copy.copy(logger.handlers)

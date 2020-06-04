@@ -131,15 +131,18 @@ def main():
         if log_level == 'true' or log_level == "debug":
             # Debug
             init_logging_worker(worker_path +
-                                '/../../../log/logging_gat_worker_debug.json')
+                                '/../../../log/logging_gat_worker_debug.json',
+                                tracing)
         elif log_level == "info" or log_level == "off":
             # Info or no debug
             init_logging_worker(worker_path +
-                                '/../../../log/logging_gat_worker_off.json')
+                                '/../../../log/logging_gat_worker_off.json',
+                                tracing)
         else:
             # Default
             init_logging_worker(worker_path +
-                                '/../../../log/logging_gat_worker.json')
+                                '/../../../log/logging_gat_worker.json',
+                                tracing)
 
         if persistent_storage:
             # Initialize storage

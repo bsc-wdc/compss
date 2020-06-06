@@ -1,4 +1,4 @@
-FROM compss/base20:latest
+FROM compss/base18:latest
 MAINTAINER COMPSs Support <support-compss@bsc.es>
 
 ARG release=false

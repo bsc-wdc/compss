@@ -10,8 +10,10 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 # DEFAULT VALUES
 #----------------------------------------------
 # Available Logger levels
+LOG_LEVEL_TRACE=trace
 LOG_LEVEL_DEBUG=debug
 LOG_LEVEL_INFO=info
+LOG_LEVEL_API=api
 LOG_LEVEL_OFF=off
 
 DEFAULT_LOG_LEVEL=${LOG_LEVEL_OFF}
@@ -89,7 +91,7 @@ check_analysis_setup () {
     itlog4j_file="COMPSsMaster-log4j.${log_level}"
   fi
 
-  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
+  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ] || [ "${log_level}" == "${LOG_LEVEL_TRACE}" ]; then
     export COMPSS_BINDINGS_DEBUG=1
   fi
 

@@ -13,41 +13,11 @@
     }
   },
   "handlers": {
-    "console": {
+    "error_console": {
       "class": "logging.StreamHandler",
       "level": "ERROR",
       "formatter": "medium",
-      "stream": "ext://sys.stdout"
-    },
-    "debug_worker_file_handler": {
-      "class": "logging.handlers.RotatingFileHandler",
-      "level": "ERROR",
-      "formatter": "medium",
-      "filename": "pycompss_worker.log",
-      "maxBytes": 10485760,
-      "backupCount": 20,
-      "encoding": "utf8",
-      "delay": "true"
-    },
-    "error_worker_file_handler": {
-      "class": "logging.handlers.RotatingFileHandler",
-      "level": "ERROR",
-      "formatter": "medium",
-      "filename": "pycompss_worker.err",
-      "maxBytes": 10485760,
-      "backupCount": 20,
-      "encoding": "utf8",
-      "delay": "true"
-    },
-    "debug_file_handler": {
-      "class": "logging.handlers.RotatingFileHandler",
-      "level": "ERROR",
-      "formatter": "medium",
-      "filename": "pycompss.log",
-      "maxBytes": 10485760,
-      "backupCount": 20,
-      "encoding": "utf8",
-      "delay": "true"
+      "stream": "ext://sys.stderr"
     },
     "error_file_handler": {
       "class": "logging.handlers.RotatingFileHandler",
@@ -61,27 +31,27 @@
     }
   },
   "loggers": {
-    "pycompss":                     { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
-    "pycompss.runtime.launch":      { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss":                     { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
+    "pycompss.runtime.launch":      { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
 
-    "dataclay":                     { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "hecuba":                       { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "redis":                        { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "storage":                      { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
+    "dataclay":                     { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "hecuba":                       { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "redis":                        { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "storage":                      { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
 
-    "pycompss.api.parallel":                                              { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.arg_utils.arg_utils":                      { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.code_reuser.code_reuser":                  { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.code_loader.code_loader":                  { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.code_replacer.code_replacer":              { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.py2scop.translator_py2scop":               { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py":   { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.py2pycompss.translator_py2pycompss":       { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.py2pycompss.components.loop_taskificator": { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.py2pycompss.components.calculator":        { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
+    "pycompss.api.parallel":                                              { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.arg_utils.arg_utils":                      { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.code_reuser.code_reuser":                  { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.code_loader.code_loader":                  { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.code_replacer.code_replacer":              { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.py2scop.translator_py2scop":               { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py":   { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.py2pycompss.translator_py2pycompss":       { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.py2pycompss.components.loop_taskificator": { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.util.translators.py2pycompss.components.calculator":        { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
 
-    "pycompss.streams.distro_stream_client": { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
-    "pycompss.streams.distro_stream":        { "level": "ERROR", "handlers": ["console"], "propagate": "no" }
+    "pycompss.streams.distro_stream_client": { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" },
+    "pycompss.streams.distro_stream":        { "level": "ERROR", "handlers": ["error_console"], "propagate": "no" }
   },
   "root": {
     "level": "ERROR"

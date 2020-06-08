@@ -184,6 +184,7 @@ def _get_ipython_globals():
 
     raw_code = _get_raw_code()
     glob_lines = {}
+    glob_name = ''
     for i in raw_code:
         # Each i can have more than one line (jupyter-notebook block)
         # We only get the lines that start with from or import and do not
@@ -192,7 +193,6 @@ def _get_ipython_globals():
         found_one = False
         for line in lines:
             # if the line starts without spaces and is a variable assignation
-            glob_name = ''
             if not (line.startswith(' ') or line.startswith('\t')) and \
                     _is_variable_assignation(line):
                 line_parts = line.split()

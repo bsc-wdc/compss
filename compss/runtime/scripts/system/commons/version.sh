@@ -2,7 +2,7 @@
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 2.6 Gardenia"
+  echo "COMPSs version 2.7 Hyacinth"
   echo " "
 }
 
@@ -11,12 +11,12 @@ show_version() {
 ###############################################
 show_full_version() {
   cat << EOF
-        .-~~-.--.            _____           __
-       :         )          |____ \\         / /
- .~ ~ -.\\       /.- ~~ .      ___) |       / /__
- >       \`.   .'       <     / ___/       /  _  \\
-(         .- -.         )   | |____   _  |  |_|  |
- \`- -.-~  \`- -'  ~-.- -'    |______| |_|  \\_____/
+        .-~~-.--.            _____        ________   
+       :         )          |____ \\     |_____  /
+ .~ ~ -.\\       /.- ~~ .      ___) |         / /
+ >       \`.   .'       <     / ___/         / / 
+(         .- -.         )   | |____   _     / /
+ \`- -.-~  \`- -'  ~-.- -'    |______| |_|  /_/ 
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
         ~-.-^-.-~ \\       .~  .-~   .~
@@ -36,11 +36,10 @@ EOF
 ###############################################
 show_flower() {
   cat << EOF
-
-Gardenia is a genus of flowering plants in the coffee family, Rubiaceae, native to the tropical and subtropical regions of Africa, Asia, Madagascar and Pacific Islands.The genus was named by Carl Linnaeus and John Ellis after Dr. Alexander Garden (1730–1791), a Scottish-born American naturalist.They are evergreen shrubs and small trees growing to 1–15 metres (3.3–49.2 ft) tall. The leaves are opposite or in whorls of three or four, 5–50 centimetres (2.0–19.7 in) long and 3–25 centimetres (1.2–9.8 in) broad, dark green and glossy with a leathery texture. The flowers are solitary or in small clusters, white, or pale yellow, with a tubular-based corolla with 5–12 lobes (petals) from 5 to 12 centimetres (2.0 to 4.7 in) diameter. Flowering is from about mid-spring to mid-summer, and many species are strongly scented. 
+Hyacinthus is a small genus of bulbous, spring-blooming perennial, fragrant flowering plants in the family Asparagaceae, subfamily Scilloideae. These are commonly called hyacinths. The genus is native to the eastern Mediterranean. Hyacinthus grows from bulbs, each producing around four to six linear leaves and one to three spikes or racemes of flowers. In the wild species, the flowers are widely spaced with as few as two per raceme in H. litwinovii and typically six to eight in H. orientalis, which grows to a height of 15–20 cm (6–8 in). Cultivars of H. orientalis have much denser flower spikes and are generally more robust.
 
 Check more information:
-   https://en.wikipedia.org/wiki/Gardenia
+   https://en.wikipedia.org/wiki/Hyacinth_(plant)
 
 EOF
 }
@@ -51,14 +50,29 @@ EOF
 show_recipe() {
   cat << EOF
 
-Gardenia  - Cocktail
+Hyacinth  - Cocktail
 
-1 oz of Gin
-1 oz of Pineapple Juice
-1 oz of double cream
-1 tsp of grenadine syrup
+From: http://tasteandtipple.ca/the-hyacinth-cocktail/#Hyacinth
 
-Shake and strain into a saucer. Garnish with a pineapple chunk and a sprig of mint, and serve. 
+Ingredients
+
+    1½ tsp Blueberry Syrup recipe follows
+    4 oz sparkling wine
+    Fresh blueberries for garnish
+
+Instructions
+
+    Place Blueberry Syrup into a Champagne flute. Top with sparkling wine and garnish with 3 or 4 fresh blueberries.
+
+Blueberry Syrup
+
+    1 pint blueberries
+    1½ tbsp sugar
+    ¼ cup water
+
+Instructions
+
+    In a small saucepan, place all ingredients over medium heat. Bring to boil, reduce temperature to low and cook for 4 to 5 minutes until berries soften. Remove pan from heat, strain syrup and cool.
 
 EOF
 }

@@ -71,17 +71,21 @@ def get_logging_cfg_file(log_level):
     """
     Retrieves the logging configuration file.
 
-    :param log_level: Log level [ 'debug' | 'info' | 'off' ]
+    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ]
     :return: Logging configuration file
     """
     logging_cfg_file = 'logging.json'
     cfg_files = {
+        'trace': 'logging_debug.json',  # trace level == debug level
         'debug': 'logging_debug.json',
-        'info': 'logging_off.json',
+        'info': 'logging_info.json',
+        'api': 'logging_off.json',      # api level == off level
         'off': 'logging_off.json'
     }
     if log_level in cfg_files:
         logging_cfg_file = cfg_files[log_level]
+    else:
+        raise Exception("Unsupported logging level.")
     return logging_cfg_file
 
 
@@ -95,7 +99,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description='PyCOMPSs application launcher')
     parser.add_argument('log_level',
-                        help='Logging level [debug|info|off]')
+                        help='Logging level [trace|debug|api|info|off]')
     parser.add_argument('object_conversion',
                         help='Object_conversion [true|false]')
     parser.add_argument('storage_configuration',

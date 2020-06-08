@@ -38,6 +38,7 @@
   # DEFINE CONFIGURATION PARAMETERS
   additionalExports="export CPPFLAGS=-I\${BOOST_INC} LDFLAGS=-L\${BOOST_LIB} BOOST_CPPFLAGS=-I\${BOOST_INC} BOOST_HOME=\${BOOST_DIR} JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-0.el7_5.x86_64/ MPICC=/home/software/openmpi/1.10.7-GNU/bin/mpicc I_MPI_ROOT="
   # intel module sets I_MPI_ROOT which causes troubles with extrae-openmpi installation - reason why it is unsetted
+  additional_module_use_folder="ignore"
   queues_cfg="nextgenio.cfg"
   extrae_with_openmpi="true"
   openmpi_version="/1.10.7-GNU"
@@ -46,7 +47,7 @@
   autoparallel="false"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}"
 
   # END
   exit 0

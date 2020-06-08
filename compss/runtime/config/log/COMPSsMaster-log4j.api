@@ -59,7 +59,7 @@
     
     <!-- RUNTIME API -->
     <!-- es.bsc.compss.API: DEFAULT = INFO -->
-    <Logger name="es.bsc.compss.API" additivity="FALSE" level="warn">
+    <Logger name="es.bsc.compss.API" additivity="FALSE" level="info">
       <AppenderRef ref="Console"/>
     </Logger>
 

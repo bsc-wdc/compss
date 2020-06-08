@@ -957,7 +957,7 @@ set_variables() {
     fi
 
     # Adapt debug flag to worker script
-    if [ "${log_level}" == "debug" ]; then
+    if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
       debug="true"
     else
       debug="false"

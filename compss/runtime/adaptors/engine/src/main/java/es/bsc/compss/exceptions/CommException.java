@@ -14,26 +14,42 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types;
+package es.bsc.compss.exceptions;
 
 /**
- * Class representing an exception raised due to some problem within the Comm layer.
+ * Exception to creation/deletion announce errors.
  */
 public class CommException extends Exception {
 
+    /**
+     * Exceptions Version UID are 2L in all Runtime.
+     */
+    private static final long serialVersionUID = 2L;
+
+
+    /**
+     * New empty Announce Exception.
+     */
     public CommException() {
         super();
     }
 
+    /**
+     * New nested {@code e} Announce Exception.
+     * 
+     * @param e Exception.
+     */
     public CommException(Exception e) {
         super(e);
     }
 
+    /**
+     * New Announce Exception with message {@code msg}.
+     * 
+     * @param msg Exception message.
+     */
     public CommException(String msg) {
         super(msg);
     }
 
-    public CommException(String msg, Exception e) {
-        super(msg, e);
-    }
 }

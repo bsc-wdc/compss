@@ -129,7 +129,6 @@ public abstract class Invoker {
 
         /* Parse the parameters ************************************ */
         AbstractMethodImplementation impl = invocation.getMethodImplementation();
-        int paramIdx = 0;
         for (InvocationParam np : invocation.getParams()) {
             processParameter(np);
             // Check if object is still null
@@ -141,7 +140,6 @@ public abstract class Invoker {
              * 
              * throw new JobExecutionException(sb.toString()); }
              */
-            paramIdx++;
         }
         if (invocation.getTarget() != null) {
             processParameter(invocation.getTarget());

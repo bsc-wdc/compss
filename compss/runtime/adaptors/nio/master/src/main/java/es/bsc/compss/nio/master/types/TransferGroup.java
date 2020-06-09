@@ -26,7 +26,7 @@ import java.util.List;
 public class TransferGroup {
 
     private final int id;
-    private Job job;
+    private Job<?> job;
     private final List<Copy> copies;
 
 
@@ -67,7 +67,7 @@ public class TransferGroup {
      * 
      * @param job job to bind to the transfergroup
      */
-    public void bindToJob(Job job) {
+    public void bindToJob(Job<?> job) {
         this.job = job;
     }
 

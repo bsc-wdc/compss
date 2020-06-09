@@ -19,7 +19,7 @@ package es.bsc.compss.agent;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.types.CommException;
+import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.ProtocolType;

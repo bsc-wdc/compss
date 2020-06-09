@@ -19,9 +19,9 @@ package es.bsc.compss.types.data;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.CannotLoadException;
+import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.CommException;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -647,7 +647,7 @@ public class LogicalData {
     }
 
     private void addLocationsForInMemoryObject() throws IOException {
-        LinkedList<DataLocation> locations = new LinkedList();
+        LinkedList<DataLocation> locations = new LinkedList<>();
         for (String alias : this.knownAlias) {
             String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
             SimpleURI uri = new SimpleURI(targetPath);

@@ -408,7 +408,6 @@ public class TaskScheduler {
      *
      * @param action Action to cancel
      */
-    @SuppressWarnings("unchecked")
     public final void cancelAllocatableAction(AllocatableAction action) {
         action.cancel();
     }

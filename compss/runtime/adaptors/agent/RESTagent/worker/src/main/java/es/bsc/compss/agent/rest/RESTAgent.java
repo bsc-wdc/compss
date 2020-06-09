@@ -29,7 +29,6 @@ import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.ReduceNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
-import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.log.Loggers;
@@ -304,7 +303,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         System.out.println("Received REST call to run a " + request.getLang() + " method");
         Response response;
         try {
-            String ceiClass = request.getCeiClass();
+            // String ceiClass = request.getCeiClass();
             response = runTask(request);
         } catch (Exception e) {
             response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();

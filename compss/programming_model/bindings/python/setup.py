@@ -48,7 +48,7 @@ compssmodule = Extension(
         '../bindings-common/src',
         '../bindings-common/include',
         os.environ['JAVA_HOME'] + '/include',
-        os.environ['JAVA_HOME'] + '/include/linux/'
+        os.environ['JAVA_HOME'] + '/include/darwin/'
     ],
     library_dirs=[
         '../bindings-common/lib'
@@ -57,15 +57,6 @@ compssmodule = Extension(
     extra_compile_args=['-fPIC', '-std=c++11'],
     # extra_compile_args=['-fPIC'],
     sources=['src/ext/compssmodule.cc']
-)
-
-# Thread affinity extension
-thread_affinity = Extension(
-    'thread_affinity',
-    include_dirs=['src/ext'],
-    extra_compile_args=['-std=c++11'],
-    # extra_compile_args=['-fPIC %s' % (' '.join(gcc_debug_flags.split('\n')))],
-    sources=['src/ext/thread_affinity.cc']
 )
 
 
@@ -115,7 +106,7 @@ setup(
     package_data={
         '': ['log/logging.json', 'log/logging_debug.json', 'log/logging_off.json', 'README.md', 'tests/*']
     },
-    ext_modules=[compssmodule, thread_affinity]
+    ext_modules=[compssmodule]
 )
 
 # Only available with setuptools

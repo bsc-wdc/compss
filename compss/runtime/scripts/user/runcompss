@@ -1140,7 +1140,7 @@ EOT
 }
 
 generate_jvm_opts_file() {
-  jvm_options_file=$(mktemp -p /tmp) || display_error "${TMP_FILE_JVM_ERROR}"
+  jvm_options_file=$(mktemp -t /tmp) || display_error "${TMP_FILE_JVM_ERROR}"
 
   # PLEASE: Any new parameter added here may be also added into interactive.py config dict.
 

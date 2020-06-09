@@ -30,7 +30,6 @@ import logging
 import os
 import sys
 import time
-import thread_affinity
 
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG

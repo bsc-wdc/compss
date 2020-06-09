@@ -231,7 +231,7 @@
         reply="ALIVE_REPLY"
         if [ "${line}" != "GET_ALIVE" ]; then
           pids="${line}"
-          alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}')
+          alive_processes=$(ps h -o pid,stat ${pids} | grep -v PID | awk '$2 != "Z" {print $1}')
           for alive_process in ${alive_processes}; do
             reply="${reply} ${alive_process}"
           done

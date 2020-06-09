@@ -47,7 +47,7 @@ void setAffinity(vector<string> commandArgs) {
     }
     for (unsigned int i = 0; i < commandArgs.size(); i++) {
         if (commandArgs[i] == "taskset") {
-            cpu_set_t to_assign;
+        /*    cpu_set_t to_assign;
             CPU_ZERO(&to_assign);
             string assignedCpuString = commandArgs[i+2];
             vector<int>assignedCpus;
@@ -60,7 +60,7 @@ void setAffinity(vector<string> commandArgs) {
             }
             if(sched_setaffinity(gettid(), sizeof(cpu_set_t), &to_assign) < 0) {
                 cout << "[Persistent C(Th " << gettid() <<")] WARN: Error during sched_setaffinity call! Ignoring affinity." << endl << flush;
-            }
+            }*/
         }
     }
 }

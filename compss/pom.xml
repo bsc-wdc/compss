@@ -44,8 +44,8 @@
         <json.version>20180813</json.version>
 
         <!-- Jaxb version -->
-        <jaxb-api.version>2.3.0</jaxb-api.version>
-        <jaxb-xjc.version>2.3.0</jaxb-xjc.version>
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <jaxb-xjc.version>2.3.1</jaxb-xjc.version>
         <cxf.version>3.1.6</cxf.version>
         <cxf.api.version>2.7.18</cxf.api.version>
 

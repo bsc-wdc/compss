@@ -150,9 +150,12 @@ public class PythonMirror extends PipedMirror {
         // LD_LIBRARY_PATH
         String ldLibraryPath = System.getenv(ENV_LD_LIBRARY_PATH);
         String bindingsHome = context.getInstallDir() + BINDINGS_RELATIVE_PATH;
-        ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);
+        if (ldLibraryPath == null) {
+          ldLibraryPath = bindingsHome;
+        } else {
+	  ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);
+        }
         env.put(ENV_LD_LIBRARY_PATH, ldLibraryPath);
-
         return env;
     }
 

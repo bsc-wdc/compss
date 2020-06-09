@@ -9,6 +9,8 @@ DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local
 ###############################################
 # Default values definitions
 ###############################################
+DEFAULT_AGENT_NODE="localhost"
+DEFAULT_AGENT_PORT="46101"
 
 DEFAULT_CPU_COUNT="1"
 DEFAULT_GPU_COUNT="0"

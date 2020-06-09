@@ -146,6 +146,7 @@ public class Application {
             app = APPLICATIONS.get(appId);
             if (app == null) {
                 app = new Application(appId, parallelismSource);
+                System.out.println("Registering application " + appId);
                 APPLICATIONS.put(appId, app);
             }
         }
@@ -160,6 +161,7 @@ public class Application {
      *         registered with that id.
      */
     public static Application deregisterApplication(Long appId) {
+        System.out.println("Deregistered application " + appId);
         return APPLICATIONS.remove(appId);
     }
 

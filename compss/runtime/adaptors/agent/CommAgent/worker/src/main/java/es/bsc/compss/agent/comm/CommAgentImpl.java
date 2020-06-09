@@ -176,7 +176,10 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             arguments[paramId] = (CommParam) np;
             paramId++;
         }
-        ApplicationParameter target = (CommParam) request.getTarget();
+
+        ApplicationParameter target;
+        target = (CommParam) request.getTarget();
+
         ApplicationParameter[] results = new ApplicationParameter[resultsCount];
         paramId = 0;
         for (NIOParam np : request.getResults()) {
@@ -186,13 +189,8 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
         MethodResourceDescription requirements = request.getRequirements();
         CommResource orchestrator = request.getOrchestrator();
-        System.out.println("S'ha de notificat la peticio a " + orchestrator);
         AppMonitor monitor;
-        if (orchestrator == null) {
-            monitor = new PrintMonitor(arguments, target, results);
-        } else {
-            monitor = new TaskMonitor(arguments, target, results, orchestrator, request);
-        }
+        monitor = new TaskMonitor(arguments, target, results, orchestrator, request);
 
         startTask(lang, className, methodName, ceiClass, arguments, target, results, requirements, monitor);
     }

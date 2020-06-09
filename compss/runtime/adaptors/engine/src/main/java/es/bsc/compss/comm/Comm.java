@@ -381,7 +381,6 @@ public class Comm {
     public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
         LOGGER.debug("Registering new Location for data " + dataId + ":");
         LOGGER.debug("  * Location: " + location);
-
         LogicalData logicalData = DATA.get(dataId);
         logicalData.addLocation(location);
 

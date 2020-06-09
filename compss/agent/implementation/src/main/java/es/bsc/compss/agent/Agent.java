@@ -133,30 +133,19 @@ public class Agent {
     public static long runTask(Lang lang, String className, String methodName, String ceiClass,
         ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
         MethodResourceDescription requirements, AppMonitor monitor) throws AgentException {
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        System.out.println("New request to run as a " + lang + " task " + className + "." + methodName);
-        System.out.println("Parameters: ");
-        for (ApplicationParameter param : arguments) {
-            System.out.println("\t* " + param.getDirection() + " " + param.getType()
-                + (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")"));
-        }
-        System.out.println("Target: ");
-        if (target != null) {
-            System.out.println("\t* " + target.getDirection() + " " + target.getType()
-                + (target.getDataMgmtId() == null ? "" : " (" + target.getDataMgmtId() + ")"));
-        }
-        System.out.println("Results: ");
-        for (ApplicationParameter param : results) {
-            System.out.println("\t* " + param.getDirection() + " " + param.getType()
-                + (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")"));
-        }
-        System.out.println("");
-        System.out.println("");
-
+        /*
+         * System.out.println(""); System.out.println(""); System.out.println(""); System.out.println("");
+         * System.out.println(""); System.out.println("New request to run as a " + lang + " task " + className + "." +
+         * methodName); System.out.println("Parameters: "); for (ApplicationParameter param : arguments) {
+         * System.out.println("\t* " + param.getDirection() + " " + param.getType() + (param.getDataMgmtId() == null ?
+         * "" : " (" + param.getDataMgmtId() + ")")); } System.out.println("Target: "); if (target != null) {
+         * System.out.println("\t* " + target.getDirection() + " " + target.getType() + (target.getDataMgmtId() == null
+         * ? "" : " (" + target.getDataMgmtId() + ")")); } System.out.println("Results: "); for (ApplicationParameter
+         * param : results) { System.out.println("\t* " + param.getDirection() + " " + param.getType() +
+         * (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")")); } System.out.println("");
+         * System.out.println("");
+         */
+        System.out.println("New task arrived");
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
         LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
@@ -255,7 +244,6 @@ public class Agent {
             addRemoteData(remote);
             RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
         }
-        System.out.println("Loading argument " + arguments[position]);
         arguments[position + 1] = param.getType();
         arguments[position + 2] = param.getDirection();
         arguments[position + 3] = param.getStdIOStream();
@@ -268,10 +256,8 @@ public class Agent {
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
-        System.out.println("ADDING REMOTE DATA " + remote);
         int addedSources = 0;
         LogicalData ld = Comm.getData(remote.getRenaming());
-        System.out.println(ld);
         LogicalData otherNamedLocalData = null;
 
         LinkedList<DataLocation> locations = new LinkedList<>();
@@ -325,7 +311,6 @@ public class Agent {
             ld.addLocation(loc);
             addedSources++;
         }
-        System.out.println(ld);
         if (addedSources == 0) {
             throw new AgentException("Could not add any source for data " + remote.getRenaming());
         }
@@ -356,7 +341,6 @@ public class Agent {
 
     private static DynamicMethodWorker registerWorker(String workerName, MethodResourceDescription description,
         String adaptor, Map<String, Object> projectConf, Map<String, Object> resourcesConf) throws AgentException {
-        System.out.println("REGISTERING NEW WORKER with adaptor " + adaptor);
         if (description == null) {
             description = new MethodResourceDescription();
         }

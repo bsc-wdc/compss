@@ -60,7 +60,6 @@ class CommAgentJob extends NIOJob {
 
     @Override
     public CommTask prepareJob() {
-        System.out.println("Preparing Job");
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
 
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
@@ -120,7 +119,6 @@ class CommAgentJob extends NIOJob {
                     commParam = buildCommParamFromBasicParameter((BasicTypeParameter) param);
                     break;
             }
-            System.out.println("\t " + commParam);
             params.add(commParam);
         }
         return params;

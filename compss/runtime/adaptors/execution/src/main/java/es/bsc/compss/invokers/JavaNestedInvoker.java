@@ -262,6 +262,10 @@ public class JavaNestedInvoker extends JavaInvoker {
             }
             try {
                 returnValue = super.runMethod();
+                Object internal = context.getLoaderAPI().getObjectRegistry().getInternalObject(returnValue);
+                if (internal != null) {
+                    returnValue = internal;
+                }
                 runtimeAPI.noMoreTasks(appId);
                 return returnValue;
 

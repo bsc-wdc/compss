@@ -203,7 +203,6 @@ public class ITAppEditor extends ExprEditor {
         } else if (fullName.equals(COMPSsGroup.class.getCanonicalName())) {
             ne.replace(substitutesCOMPSsGroup());
         }
-        ;
     }
 
     /**

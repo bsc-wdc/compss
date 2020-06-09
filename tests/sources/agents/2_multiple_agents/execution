@@ -80,8 +80,8 @@
   # ---------------------------------------
   agent1_log_dir="${log_dir}/agent1/"
   mkdir -p "${agent1_log_dir}" 
-  agent1_output_log="${agent1_log_dir}agent1.outputlog"
-  agent1_error_log="${agent1_log_dir}agent1.errorlog"
+  agent1_output_log="${log_dir}/agent1.outputlog"
+  agent1_error_log="${log_dir}/agent1.errorlog"
   compss_agent_start \
    "--hostname=COMPSsWorker01" \
    "--classpath=${base_app_dir}/${jar_name}" \
@@ -99,8 +99,8 @@
 
   agent2_log_dir="${log_dir}/agent2/"
   mkdir -p "${agent2_log_dir}" 
-  agent2_output_log="${agent2_log_dir}agent2.outputlog"
-  agent2_error_log="${agent2_log_dir}agent2.errorlog"
+  agent2_output_log="${log_dir}/agent2.outputlog"
+  agent2_error_log="${log_dir}/agent2.errorlog"
   compss_agent_start \
    "--hostname=COMPSsWorker02" \
    "--classpath=${base_app_dir}/${jar_name}" \
@@ -117,8 +117,8 @@
 
   agent3_log_dir="${log_dir}/agent3/"
   mkdir -p "${agent3_log_dir}" 
-  agent3_output_log="${agent3_log_dir}agent3.outputlog"
-  agent3_error_log="${agent3_log_dir}agent3.errorlog"
+  agent3_output_log="${log_dir}/agent3.outputlog"
+  agent3_error_log="${log_dir}/agent3.errorlog"
   compss_agent_start \
    "--hostname=COMPSsWorker03" \
    "--classpath=${base_app_dir}/${jar_name}" \
@@ -134,8 +134,8 @@
 
   agent4_log_dir="${log_dir}/agent4/"
   mkdir -p "${agent4_log_dir}" 
-  agent4_output_log="${agent4_log_dir}agent4.outputlog"
-  agent4_error_log="${agent4_log_dir}agent4.errorlog"
+  agent4_output_log="${log_dir}/agent4.outputlog"
+  agent4_error_log="${log_dir}/agent4.errorlog"
   compss_agent_start \
    "--hostname=COMPSsWorker04" \
    "--classpath=${base_app_dir}/${jar_name}" \

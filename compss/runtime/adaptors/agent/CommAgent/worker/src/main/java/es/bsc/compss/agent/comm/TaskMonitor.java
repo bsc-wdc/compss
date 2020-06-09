@@ -20,6 +20,7 @@ package es.bsc.compss.agent.comm;
 import es.bsc.comm.Connection;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIONode;
+import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
@@ -33,7 +34,7 @@ import java.util.LinkedList;
 /**
  * Monitor to detect changes on a task state and notify the orchestrator that commanded its execution.
  */
-class TaskMonitor extends PrintMonitor {
+class TaskMonitor extends AppMonitor {
 
     private static final TransferManager TM = CommAgentAdaptor.getTransferManager();
     private final CommResource orchestrator;

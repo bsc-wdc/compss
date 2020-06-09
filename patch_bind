@@ -1,0 +1,32 @@
+diff --git a/compss/programming_model/bindings/bindings-common/install_common b/compss/programming_model/bindings/bindings-common/install_common
+index cd5814f64..f66291f53 100755
+--- a/compss/programming_model/bindings/bindings-common/install_common
++++ b/compss/programming_model/bindings/bindings-common/install_common
+@@ -59,7 +59,7 @@
+   # Look for the JVM Library
+   libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+   if [ -z "$libjava" ]; then
+-    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
++    libjava=$(find "${JAVA_HOME}"/lib/server -name libjvm.dylib | head -n 1)
+     if [ -z "$libjava" ]; then
+       echo "${JAVA_JRE_ERROR}"
+       exit 1
+diff --git a/compss/programming_model/bindings/bindings-common/src/Makefile.am b/compss/programming_model/bindings/bindings-common/src/Makefile.am
+index 529340b5b..cb6126ad1 100644
+--- a/compss/programming_model/bindings/bindings-common/src/Makefile.am
++++ b/compss/programming_model/bindings/bindings-common/src/Makefile.am
+@@ -19,7 +19,7 @@ include_HEADERS = BindingDataManager.h BindingExecutor.h JavaNioConnStreamBuffer
+ lib_LTLIBRARIES = libbindings_common.la
+ 
+ libbindings_common_la_SOURCES = BindingDataManager.cc BindingExecutor.cc JavaNioConnStreamBuffer.cc AbstractCache.cc compss_worker.cc common.cc GS_compss.cc
+-libbindings_common_la_CPPFLAGS = -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I. -Wall
++libbindings_common_la_CPPFLAGS = -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(JAVA_HOME)/include/darwin -I. -Wall
+ libbindings_common_la_LDFLAGS = -shared -L$(JAVA_LIB_DIR) -ljvm
+ 
+ ACLOCAL_AMFLAGS =-I m4
+diff --git a/dependencies/extrae b/dependencies/extrae
+--- a/dependencies/extrae
++++ b/dependencies/extrae
+@@ -1 +1 @@
+-Subproject commit 9fdbcd87965c08a055d3d0bbc2db1d1eab3cb4cc
++Subproject commit 9fdbcd87965c08a055d3d0bbc2db1d1eab3cb4cc-dirty

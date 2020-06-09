@@ -38,7 +38,8 @@ import java.util.ArrayList;
 public class BinaryInvoker extends Invoker {
 
     private static final int NUM_BASE_BINARY_ARGS = 1;
-    private static final int NUM_BASE_DOCKER_ARGS = 7;
+    private static final int NUM_BASE_DOCKER_ARGS = 10;
+    // private static final int NUM_BASE_DOCKER_ARGS_STDIN = 10;
     private static final int NUM_BASE_SINGULARITY_ARGS = 6;
     private static final String DOCKER_ENGINE = "DOCKER";
     private static final String SINGULARITY_ENGINE = "SINGULARITY";
@@ -132,16 +133,19 @@ public class BinaryInvoker extends Invoker {
                 cmd = new String[NUM_BASE_DOCKER_ARGS + binaryParams.size()];
                 cmd[0] = "docker";
                 cmd[1] = "run";
-                cmd[2] = "--rm";
-                cmd[3] = "-v";
-                cmd[4] = this.taskSandboxWorkingDir + "/../..";
-                if (cmd[4].contains("sandBox")) {
-                    cmd[4] = this.taskSandboxWorkingDir + "/../.." + ":" + this.taskSandboxWorkingDir + "/../..";
+                cmd[2] = "-i";
+                cmd[3] = "--rm";
+                cmd[4] = "-v";
+                cmd[5] = this.taskSandboxWorkingDir + "/../..";
+                if (cmd[5].contains("sandBox")) {
+                    cmd[5] = this.taskSandboxWorkingDir + "/../.." + ":" + this.taskSandboxWorkingDir + "/../..";
                 } else {
-                    cmd[4] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
+                    cmd[5] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
                 }
-                cmd[5] = container.getImage();
-                cmd[6] = this.binary;
+                cmd[6] = "-w";
+                cmd[7] = this.taskSandboxWorkingDir + "/";
+                cmd[8] = container.getImage();
+                cmd[9] = this.binary;
                 for (int i = 0; i < binaryParams.size(); ++i) {
                     cmd[NUM_BASE_DOCKER_ARGS + i] = binaryParams.get(i);
                 }

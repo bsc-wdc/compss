@@ -26,7 +26,6 @@ PyCOMPSs Persistent Worker
 import sys
 import signal
 from os import kill
-from pycompss.worker.commons.constants import *
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -36,7 +35,7 @@ from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
-from pycompss.worker.piper.commons.constants import HEADER
+from pycompss.worker.piper.commons.constants import *
 from mpi4py import MPI
 
 # Persistent worker global variables

@@ -508,6 +508,9 @@ def process_task(current_line, process_name, pipe, queue, tracing,
         if queue:
             queue.put("EXCEPTION")
 
+        # Stop the worker process
+        return False
+
     # Clean environment variables
     if __debug__:
         logger.debug("Cleaning environment.")
@@ -530,8 +533,6 @@ def process_task(current_line, process_name, pipe, queue, tracing,
     if __debug__:
         logger.debug(HEADER + "[%s] Finished task with id: %s" %
                      (str(process_name), str(job_id)))
-    if exit_value != 0:
-        return False
     return True
 
 

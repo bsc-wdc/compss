@@ -460,7 +460,7 @@ def process_task(current_line, process_name, pipe, queue, tracing,
         elif exit_value == 2:
             # Task has finished with a COMPSs Exception
             # compssExceptionTask jobId exitValue message
-            except_msg, message = build_COMPSs_exception_message(except_msg, job_id)  # noqa: E501
+            except_msg, message = build_compss_exception_message(except_msg, job_id)  # noqa: E501
             if __debug__:
                 logger.debug(
                     "%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s" %

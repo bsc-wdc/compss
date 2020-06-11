@@ -27,6 +27,7 @@ import sys
 import signal
 from os import kill
 from pycompss.util.tracing.helpers import trace_mpi_worker
+from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
@@ -250,12 +251,13 @@ if __name__ == '__main__':
     # Configure the global tracing variable from the argument
     TRACING = (int(sys.argv[2]) > 0)
 
-    with trace_mpi_worker() if TRACING else dummy_context():
-        # Configure the piper worker with the arguments
-        WORKER_CONF = PiperWorkerConfiguration()
-        WORKER_CONF.update_params(sys.argv)
+    # Configure the piper worker with the arguments
+    WORKER_CONF = PiperWorkerConfiguration()
+    WORKER_CONF.update_params(sys.argv)
 
-        if is_worker():
+    if is_worker():
+        with trace_mpi_worker() if TRACING else dummy_context():
             compss_persistent_worker(WORKER_CONF)
-        else:
+    else:
+        with trace_mpi_executor() if TRACING else dummy_context():
             compss_persistent_executor(WORKER_CONF)

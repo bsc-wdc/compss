@@ -83,6 +83,21 @@ def trace_mpi_worker():
     pyextrae.eventandcounters(SYNC_EVENTS, 0)
 
 
+@contextmanager
+def trace_mpi_executor():
+    """
+    Sets up the tracing for each mpi executor.
+
+    :return: None
+    """
+    global PYEXTRAE
+    global TRACING
+    import pyextrae.mpi as pyextrae  # noqa
+    PYEXTRAE = pyextrae
+    TRACING = True
+    yield  # here the mpi executor runs
+
+
 def emit_event(event_id):
     """
     Simple decorator to emit events

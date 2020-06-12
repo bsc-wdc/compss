@@ -44,7 +44,8 @@ DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
-
+DEFAULT_SHARED_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler"
+DEFAULT_SCRATCH_SCHEDULER="es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler"
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -1107,6 +1108,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+	scheduler=*)
+	  scheduler=${OPTARG//scheduler=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+	  ;;
         prolog=*)
           action=${OPTARG//prolog=/}
           prologActions[numPrologActions]="$action"
@@ -1138,7 +1144,7 @@ get_args() {
           # Remove from runcompss since launcher will add it
           master_port=${OPTARG//master_port=/}
           ;;
-	    worker_port_range=*)
+	worker_port_range=*)
           # Remove from runcompss since launcher will add it
           worker_port_range=${OPTARG//worker_port_range=/}
           ;;
@@ -1429,6 +1435,15 @@ check_args() {
     worker_working_dir=${DEFAULT_WORKER_WORKING_DIR}
   elif [ "${worker_working_dir}" != "scratch" ] && [ "${worker_working_dir}" != "gpfs" ] && [[ ${worker_working_dir} != /* ]]; then
     display_error "${ERROR_WORKER_WD}"
+  fi
+
+  if [ -z "${scheduler}" ]; then
+    if [ "${worker_working_dir}" != "scratch" ]; then	  
+        scheduler=${DEFAULT_SHARED_DISK_SCHEDULER}
+    else
+	scheduler=${DEFAULT_SCRATCH_SCHEDULER}    
+    fi
+    args_pass="--scheduler=${scheduler} ${args_pass}"    
   fi
 
   #

@@ -199,16 +199,20 @@ class TaskParameter(object):
 _param_conversion_dict_ = {
     'IN': {},
     'OUT': {
-        'p_direction': DIRECTION.OUT
+        'p_direction': DIRECTION.OUT,
+        'keep_rename': True
     },
     'INOUT': {
-        'p_direction': DIRECTION.INOUT
+        'p_direction': DIRECTION.INOUT,
+        'keep_rename': True
     },
     'CONCURRENT': {
-        'p_direction': DIRECTION.CONCURRENT
+        'p_direction': DIRECTION.CONCURRENT,
+        'keep_rename': True
     },
     'COMMUTATIVE': {
-        'p_direction': DIRECTION.COMMUTATIVE
+        'p_direction': DIRECTION.COMMUTATIVE,
+        'keep_rename': True
     },
     'FILE': {
         'p_type': TYPE.FILE
@@ -334,19 +338,23 @@ _param_conversion_dict_ = {
         'p_stream': IOSTREAM.STDOUT
     },
     'COLLECTION': {
-        'p_type': TYPE.COLLECTION
+        'p_type': TYPE.COLLECTION,
+        'keep_rename': True
     },
     'COLLECTION_IN': {
         'p_type': TYPE.COLLECTION,
-        'p_direction': DIRECTION.IN
+        'p_direction': DIRECTION.IN,
+        'keep_rename': True
     },
     'COLLECTION_INOUT': {
         'p_type': TYPE.COLLECTION,
-        'p_direction': DIRECTION.INOUT
+        'p_direction': DIRECTION.INOUT,
+        'keep_rename': True
     },
     'COLLECTION_OUT': {
         'p_type': TYPE.COLLECTION,
-        'p_direction': DIRECTION.OUT
+        'p_direction': DIRECTION.OUT,
+        'keep_rename': True
     },
     'STREAM_IN': {
         'p_type': TYPE.EXTERNAL_STREAM,
@@ -358,22 +366,22 @@ _param_conversion_dict_ = {
     },
     'COLLECTION_FILE': {
         'p_type': TYPE.COLLECTION,
-        'is_file_collection': True
+        'is_file_collection': True,
     },
     'COLLECTION_FILE_IN': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.IN,
-        'is_file_collection': True
+        'is_file_collection': True,
     },
     'COLLECTION_FILE_INOUT': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.INOUT,
-        'is_file_collection': True
+        'is_file_collection': True,
     },
     'COLLECTION_FILE_OUT': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.OUT,
-        'is_file_collection': True
+        'is_file_collection': True,
     }
 }
 

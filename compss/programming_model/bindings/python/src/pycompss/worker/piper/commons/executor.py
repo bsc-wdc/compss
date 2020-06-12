@@ -499,7 +499,6 @@ def process_task(current_line, process_name, pipe, queue, tracing,
         # If the task had an object or file as parameter and the worker
         # returns the id, the runtime can change the type (and locations)
         # to a EXTERNAL_OBJ_T.
-        pipe.write(message)
 
     except Exception as e:
         exit_value = -1
@@ -533,6 +532,10 @@ def process_task(current_line, process_name, pipe, queue, tracing,
     if __debug__:
         logger.debug(HEADER + "[%s] Finished task with id: %s" %
                      (str(process_name), str(job_id)))
+
+    # Notify the runtime that the task has finished
+    pipe.write(message)
+
     return True
 
 

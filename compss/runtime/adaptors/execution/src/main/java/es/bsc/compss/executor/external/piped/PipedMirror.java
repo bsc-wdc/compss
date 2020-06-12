@@ -43,6 +43,7 @@ import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -109,6 +110,12 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     protected final void init(InvocationContext context) {
         monitor.start();
         startPipeBuilder(context);
+
+        if (Tracer.extraeEnabled()) {
+            // long tracingHostId = context.getTracingHostID();
+            Tracer.emitEvent(this.size, Tracer.getSyncType());
+        }
+
         startWorker(context);
     }
 
@@ -130,11 +137,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().putAll(env);
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
-
-            if (Tracer.extraeEnabled()) {
-                // long tracingHostId = context.getTracingHostID();
-                Tracer.emitEvent(this.size, Tracer.getSyncType());
-            }
 
             pipeBuilderProcess = pb.start();
             LOGGER.debug("Starting stdout/stderr gobblers ...");
@@ -286,6 +288,12 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         } else {
             // Worker is already closed
         }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            Tracer.emitEvent((long) timestamp.getTime(), Tracer.getSyncType());
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
+        }
         monitor.unregisterWorker(mirrorId);
         pipeWorkerPipe.delete();
     }
@@ -324,9 +332,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         } catch (InterruptedException e) {
             // No need to handle such exception
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
-            }
             if (pipeBuilderProcess != null) {
                 if (pipeBuilderProcess.getInputStream() != null) {
                     try {

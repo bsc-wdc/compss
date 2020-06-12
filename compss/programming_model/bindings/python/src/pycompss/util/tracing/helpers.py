@@ -23,6 +23,7 @@ PyCOMPSs Tracing helpers
     This file contains a set of context managers and decorators to ease the
     tracing events emission.
 """
+import time
 from functools import wraps
 from contextlib import contextmanager
 from pycompss.worker.commons.constants import SYNC_EVENTS
@@ -62,6 +63,8 @@ def trace_multiprocessing_worker():
     yield  # here the worker runs
     pyextrae.eventandcounters(WORKER_EVENTS, 0)
     pyextrae.eventandcounters(SYNC_EVENTS, 0)
+    pyextrae.eventandcounters(SYNC_EVENTS, int(time.time()))
+    pyextrae.eventandcounters(SYNC_EVENTS, 0)
 
 
 @contextmanager
@@ -80,6 +83,8 @@ def trace_mpi_worker():
     pyextrae.eventandcounters(WORKER_EVENTS, WORKER_RUNNING_EVENT)
     yield  # here the worker runs
     pyextrae.eventandcounters(WORKER_EVENTS, 0)
+    pyextrae.eventandcounters(SYNC_EVENTS, 0)
+    pyextrae.eventandcounters(SYNC_EVENTS, int(time.time()))
     pyextrae.eventandcounters(SYNC_EVENTS, 0)
 
 

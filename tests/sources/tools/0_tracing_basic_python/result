@@ -97,9 +97,9 @@
         exit 1
       fi
 
-      if [ "${sync_evts_init}" != "$((2 * number_of_workers))" ] || [ "${sync_evts_end}" != "$((2 * number_of_workers))" ]; then
-        echo "[ERROR] Number of start and end synchronization events are not 4 times the number of workers.
-        Expected events: $((4 * number_of_workers)) != Found Events: [${sync_evts_init} + ${sync_evts_end}]" | tee -a "${output_file}"
+      if [ "${sync_evts_init}" != "$((4 * number_of_workers))" ] || [ "${sync_evts_end}" != "$((4 * number_of_workers))" ]; then
+        echo "[ERROR] Number of start and end synchronization events are not 8 times the number of workers.
+        Expected events: $((8 * number_of_workers)) != Found Events: [${sync_evts_init} + ${sync_evts_end}]" | tee -a "${output_file}"
         exit 1
       fi
   fi

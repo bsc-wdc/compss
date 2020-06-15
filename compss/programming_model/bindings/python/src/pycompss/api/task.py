@@ -1224,12 +1224,14 @@ class Task(object):
         # return False
         return False
 
-    def reveal_objects(self, args):
+    def reveal_objects(self, args, logger):  # noqa
         """
         This function takes the arguments passed from the persistent worker
         and treats them to get the proper parameters for the user function.
 
         :param args: Arguments
+        :param logger: Logger (shadows outer logger since this is only used
+                               in the worker to reveal the parameter objects)
         :return: None
         """
 
@@ -1246,23 +1248,36 @@ class Task(object):
                 return False
 
         def retrieve_content(_arg, name_prefix, depth=0):
+            if __debug__:
+                logger.debug("\t - Revealing: " + str(_arg.name))
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
             if parameter.is_vararg(_arg.name):
                 self.param_varargs = _arg.name
+                if __debug__:
+                    logger.debug("\t\t - It is vararg")
             if _arg.type == parameter.TYPE.FILE:
                 if self.is_parameter_an_object(_arg.name):
                     # The object is stored in some file, load and deserialize
-                    _arg.content = deserialize_from_file(
-                        _arg.file_name.split(':')[-1]
-                    )
+                    f_name = _arg.file_name.split(':')[-1]
+                    if __debug__:
+                        logger.debug("\t\t - It is an OBJECT. Deserializing from file: " + str(f_name))  # noqa: E501
+                    _arg.content = deserialize_from_file(f_name)
+                    if __debug__:
+                        logger.debug("\t\t - Deserialization finished")
                 else:
                     # The object is a FILE, just forward the path of the file
                     # as a string parameter
                     _arg.content = _arg.file_name.split(':')[-1]
+                    if __debug__:
+                        logger.debug("\t\t - It is FILE: " + str(_arg.content))
             elif _arg.type == parameter.TYPE.DIRECTORY:
+                if __debug__:
+                    logger.debug("\t\t - It is a DIRECTORY")
                 _arg.content = _arg.file_name.split(":")[-1]
             elif _arg.type == parameter.TYPE.EXTERNAL_STREAM:
+                if __debug__:
+                    logger.debug("\t\t - It is an EXTERNAL STREAM")
                 _arg.content = deserialize_from_file(_arg.file_name)
             elif _arg.type == parameter.TYPE.COLLECTION:
                 _arg.content = []
@@ -1277,6 +1292,11 @@ class Task(object):
                 _col_dir = _dec_arg.direction if _dec_arg else None
                 _col_dep = _dec_arg.depth if _dec_arg else depth
 
+                if __debug__:
+                    logger.debug("\t\t - It is a COLLECTION: " +
+                                 str(col_f_name))
+                    logger.debug("\t\t\t - Depth: " + str(_col_dep))
+
                 for (i, line) in enumerate(open(col_f_name, 'r')):
                     data_type, content_file, content_type = line.strip().split()  # noqa: E501
                     # Same naming convention as in COMPSsRuntimeImpl.java
@@ -1285,6 +1305,10 @@ class Task(object):
                         sub_name = "%s.%s" % (name_prefix, _arg.name)
                     else:
                         sub_name = "@%s" % sub_name
+
+                    if __debug__:
+                        logger.debug("\t\t\t - Revealing element: " +
+                                     str(sub_name))
 
                     if not self.is_parameter_file_collection(_arg.name):
                         sub_arg, _ = build_task_parameter(int(data_type),
@@ -1327,6 +1351,8 @@ class Task(object):
 
             elif not storage_supports_pipelining() and \
                     _arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                if __debug__:
+                    logger.debug("\t\t - It is a PSCO")
                 # The object is a PSCO and the storage does not support
                 # pipelining, do a single getByID of the PSCO
                 from storage.api import getByID  # noqa
@@ -1336,6 +1362,8 @@ class Task(object):
                 # available and properly casted by the python worker
 
         if storage_supports_pipelining():
+            if __debug__:
+                logger.debug("The storage supports pipelining.")
             # Perform the pipelined getByID operation
             pscos = [x for x in args if x.type == parameter.TYPE.EXTERNAL_PSCO]
             identifiers = [x.key for x in pscos]
@@ -1360,15 +1388,27 @@ class Task(object):
                  parameters and does the proper serializations and updates
                  the affected objects.
         """
+        # Grab logger from kwargs (shadows outer logger since it is set by
+        # the worker).
+        logger = kwargs['logger']  # noqa
+        if __debug__:
+            logger.debug("Starting @task decorator worker call")
         # Self definition (only used when defined in the task)
         self_type = None
         self_value = None
         compss_exception = None
+
+        if __debug__:
+            logger.debug("Revealing objects")
         # All parameters are in the same args list. At the moment we only know
         # the type, the name and the "value" of the parameter. This value may
         # be treated to get the actual object (e.g: deserialize it, query the
         # database in case of persistent objects, etc.)
-        self.reveal_objects(args)
+        self.reveal_objects(args, logger)
+        if __debug__:
+            logger.debug("Finished revealing objects")
+            logger.debug("Building task parameters structures")
+
         # After this line all the objects in arg have a "content" field, now
         # we will segregate them in User positional and variadic args
         user_args = []
@@ -1401,14 +1441,21 @@ class Task(object):
 
         num_returns = len(ret_params)
 
+        if __debug__:
+            logger.debug("Finished building parameters structures.")
+
         # Save the self object type and value before executing the task
         # (it could be persisted inside if its a persistent object)
         has_self = False
         if args and not isinstance(args[0], parameter.TaskParameter):
+            if __debug__:
+                logger.debug("Detected self parameter")
             # Then the first arg is self
             has_self = True
             self_type = parameter.get_compss_type(args[0])
             if self_type == parameter.TYPE.EXTERNAL_PSCO:
+                if __debug__:
+                    logger.debug("\t - Self is a PSCO")
                 self_value = args[0].getID()
             else:
                 # Since we are checking the type of the deserialized self
@@ -1432,18 +1479,30 @@ class Task(object):
             job_out, job_err = None, None
             redirect_std = False
 
+        if __debug__:
+            logger.debug("Redirecting stdout to: " + str(job_out))
+            logger.debug("Redirecting stderr to: " + str(job_err))
+
         with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
+            if __debug__:
+                logger.debug("Invoking user code")
             # Now execute the user code
             result = self.execute_user_code(user_args,
                                             user_kwargs,
                                             kwargs['compss_tracing'])
             user_returns, compss_exception = result
+            if __debug__:
+                logger.debug("Finished user code")
 
         python_mpi = False
         if kwargs["python_MPI"]:
             python_mpi = True
 
         # Deal with INOUTs and COL_OUTs
+        if __debug__:
+            logger.debug("Dealing with INOUTs and OUTS")
+            if python_mpi:
+                logger.debug("\t - Managing with MPI policy")
 
         def get_collection_objects(_content, _arg):
             """ Retrieve collection objects recursively
@@ -1498,24 +1557,36 @@ class Task(object):
             # Now it's 'INOUT' or 'COLLLECTION_OUT' object param, serialize
             # to a file
             if arg.type == parameter.TYPE.COLLECTION:
+                if __debug__:
+                    logger.debug("Serializing collection: " + str(arg.name))
                 # handle collections recursively
                 for (content, elem) in get_collection_objects(arg.content, arg):  # noqa: E501
                     f_name = get_file_name(elem.file_name)
+                    if __debug__:
+                        logger.debug("\t - Serializing element: " +
+                                     str(arg.name) + " to " + str(f_name))
                     if python_mpi:
                         serialize_to_file_mpienv(content, f_name, False)
                     else:
                         serialize_to_file(content, f_name)
             else:
                 f_name = get_file_name(arg.file_name)
+                if __debug__:
+                    logger.debug("Serializing object: " +
+                                 str(arg.name) + " to " + str(f_name))
                 if python_mpi:
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
                     serialize_to_file(arg.content, f_name)
 
         if compss_exception is not None:
+            if __debug__:
+                logger.debug("Detected COMPSs Exception. Raising.")
             raise compss_exception
 
         # Deal with returns (if any)
+        if __debug__:
+            logger.debug("Dealing with returns: " + str(num_returns))
         if num_returns > 0:
             if num_returns == 1:
                 # Generalize the return case to multi-return to simplify the
@@ -1542,6 +1613,8 @@ class Task(object):
                 # and because it also makes it easier for us to deal with
                 # returns in that format
                 f_name = get_file_name(param.file_name)
+                if __debug__:
+                    logger.debug("Serializing return: " + str(f_name))
                 if python_mpi:
                     if num_returns > 1:
                         rank_zero_reduce = False
@@ -1557,6 +1630,9 @@ class Task(object):
         # But the whole types and values list must be returned
         # new_types and new_values correspond to "parameters self returns"
         new_types, new_values = [], []
+
+        if __debug__:
+            logger.debug("Building types update")
 
         # Add parameter types and value
         params_start = 1 if has_self else 0
@@ -1627,6 +1703,9 @@ class Task(object):
                     ret_value = 'null'
                 new_types.append(ret_type)
                 new_values.append(ret_value)
+
+        if __debug__:
+            logger.debug("Finished @task decorator")
 
         return new_types, new_values, self.decorator_arguments[target_label]
 

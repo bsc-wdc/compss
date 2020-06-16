@@ -59,7 +59,7 @@
   # Look for the JVM Library
   libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
   if [ -z "$libjava" ]; then
-    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+    libjava=$(find "${JAVA_HOME}"/jre/lib/server -name libjvm.dylib | head -n 1)
     if [ -z "$libjava" ]; then
       echo "${JAVA_JRE_ERROR}"
       exit 1
@@ -68,6 +68,15 @@
   JAVA_LIB_DIR=$(dirname "$libjava")
   export JAVA_LIB_DIR
 
+  os=$(uname)
+  if [ "$os" == "Linux" ]; then
+	  export CPP_OS="-I\$(JAVA_HOME)/include/linux/"
+  elif [ "$os" == "Darwin" ]; then
+	  export CPP_OS="-stdlib=libc++ -I\$(JAVA_HOME)/include/darwin/"
+  else
+	  echo "Unsupported system $os (supported are: Linux/Darwin)"
+	  exit 1
+  fi
   # Install and deploy on scriptDir (for C binding)
   echo "Install on scriptDir = ${SCRIPT_DIR} for Bindings compilation"
   install "${SCRIPT_DIR}"

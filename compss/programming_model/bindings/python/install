@@ -100,7 +100,7 @@
 
   # Add trap for clean
   trap clean EXIT
-
+  export TARGET_OS=$(uname)
   # Install
   OLD_PYTHONPATH=$PYTHONPATH
 

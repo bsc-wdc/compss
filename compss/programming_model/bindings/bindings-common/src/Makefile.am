@@ -19,7 +19,7 @@ include_HEADERS = BindingDataManager.h BindingExecutor.h JavaNioConnStreamBuffer
 lib_LTLIBRARIES = libbindings_common.la
 
 libbindings_common_la_SOURCES = BindingDataManager.cc BindingExecutor.cc JavaNioConnStreamBuffer.cc AbstractCache.cc compss_worker.cc common.cc GS_compss.cc compss_jni.cc compss_pipes.cc common_jni.cc
-libbindings_common_la_CPPFLAGS = -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I. -Wall
+libbindings_common_la_CPPFLAGS = -I$(JAVA_HOME)/include $(CPP_OS) -I. -Wall
 libbindings_common_la_LDFLAGS = -shared -L$(JAVA_LIB_DIR) -ljvm
 
 ACLOCAL_AMFLAGS =-I m4

@@ -63,7 +63,6 @@ compssmodule = Extension(
     ],
     libraries=['bindings_common'],
     extra_compile_args = os_extra_compile_compss,
-    # extra_compile_args=['-fPIC'],
     sources=['src/ext/compssmodule.cc']
 )
 

@@ -132,19 +132,6 @@ public class Agent {
     public static long runTask(Lang lang, String className, String methodName, String ceiClass,
         ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
         MethodResourceDescription requirements, AppMonitor monitor) throws AgentException {
-        /*
-         * System.out.println(""); System.out.println(""); System.out.println(""); System.out.println("");
-         * System.out.println(""); System.out.println("New request to run as a " + lang + " task " + className + "." +
-         * methodName); System.out.println("Parameters: "); for (ApplicationParameter param : arguments) {
-         * System.out.println("\t* " + param.getDirection() + " " + param.getType() + (param.getDataMgmtId() == null ?
-         * "" : " (" + param.getDataMgmtId() + ")")); } System.out.println("Target: "); if (target != null) {
-         * System.out.println("\t* " + target.getDirection() + " " + target.getType() + (target.getDataMgmtId() == null
-         * ? "" : " (" + target.getDataMgmtId() + ")")); } System.out.println("Results: "); for (ApplicationParameter
-         * param : results) { System.out.println("\t* " + param.getDirection() + " " + param.getType() +
-         * (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")")); } System.out.println("");
-         * System.out.println("");
-         */
-        System.out.println("New task arrived");
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
         LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
@@ -224,6 +211,7 @@ public class Agent {
             );
 
         } catch (Exception e) {
+            LOGGER.error("Error submitting task", e);
             throw new AgentException(e);
         }
         return appId;

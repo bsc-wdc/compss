@@ -143,11 +143,13 @@ public class Application {
         if (appId == null) {
             app = NO_APPLICATION;
         } else {
-            app = APPLICATIONS.get(appId);
-            if (app == null) {
-                app = new Application(appId, parallelismSource);
-                System.out.println("Registering application " + appId);
-                APPLICATIONS.put(appId, app);
+            synchronized (APPLICATIONS) {
+                app = APPLICATIONS.get(appId);
+                if (app == null) {
+                    app = new Application(appId, parallelismSource);
+                    System.out.println("Registering application " + appId);
+                    APPLICATIONS.put(appId, app);
+                }
             }
         }
         return app;
@@ -162,7 +164,11 @@ public class Application {
      */
     public static Application deregisterApplication(Long appId) {
         System.out.println("Deregistered application " + appId);
-        return APPLICATIONS.remove(appId);
+        Application app;
+        synchronized (APPLICATIONS) {
+            app = APPLICATIONS.remove(appId);
+        }
+        return app;
     }
 
     /**
@@ -171,8 +177,10 @@ public class Application {
      * @param dataId Id of the data to be removed
      */
     public static void removeWrittenFileIdFromAllApps(int dataId) {
-        for (Application app : APPLICATIONS.values()) {
-            app.removeWrittenFileId(dataId);
+        synchronized (APPLICATIONS) {
+            for (Application app : APPLICATIONS.values()) {
+                app.removeWrittenFileId(dataId);
+            }
         }
     }
 
@@ -182,8 +190,10 @@ public class Application {
      * @param dataId Id of the data to be removed
      */
     public static void removeWrittenPSCOIdFromAllApps(int dataId) {
-        for (Application app : APPLICATIONS.values()) {
-            app.removeWrittenPSCOId(dataId);
+        synchronized (APPLICATIONS) {
+            for (Application app : APPLICATIONS.values()) {
+                app.removeWrittenPSCOId(dataId);
+            }
         }
     }
 

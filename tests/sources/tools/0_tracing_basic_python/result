@@ -60,11 +60,9 @@
   # Should be equal to Tracer.java definitions
   SYNC_EVENTS=8000666
   TASK_EVENTS=60000100
+  WORKER_EVENTS=60000200
 
-  #WORKER_TASK=1
-  WORKER_RUNNING=102
-  #TASK_EXECUTION=120
-  #SERIALIZATION=121
+  WORKER_RUNNING=1
 
   #----------------------------------------------------------------------------------
   # Check that task-bindings events are present and the # is correct
@@ -72,15 +70,17 @@
   # GAT does not support task tracing
   if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
       evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      evts_tasks_end=$(grep -c "${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      evts_tasks_1=$(grep -c "${TASK_EVENTS}:2\$" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv | cat)
-      evts_tasks_2=$(grep -c "${TASK_EVENTS}:2:" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv | cat)
-      evts_tasks_running=$((evts_tasks_1 + evts_tasks_2))
-      evts_worker_running=$(grep -c ":${TASK_EVENTS}:${WORKER_RUNNING}" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      #evts_worker_running_end=$(grep -c "2:1:1:2:1:.*:${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-
+      echo "evts_tasks: ${evts_tasks}"
+      evts_tasks_end=$(grep -c ":${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      echo "evts_tasks_end: ${evts_tasks_end}"
+      evts_tasks_running=$(grep -c ":${WORKER_EVENTS}:2:" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      echo "evts_tasks_running: ${evts_tasks_runing}"
+      evts_worker_running=$(grep -c ":${WORKER_EVENTS}:${WORKER_RUNNING}" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      echo "evts_worker_running: ${evts_worker_running}"
       sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      echo "sync_evts_init: ${sync_evts_init}"
       sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      echo "sync_evts_end: ${sync_evts_end}"
 
       if [ "${evts_tasks_end}" != "${evts_tasks}" ]; then
          echo "[ERROR] Start and end events counts do not match. [${evts_tasks}/${evts_tasks_end}]" | tee -a "${output_file}"
@@ -97,9 +97,9 @@
         exit 1
       fi
 
-      if [ "${sync_evts_init}" != "$((2 * number_of_workers))" ] || [ "${sync_evts_end}" != "$((2 * number_of_workers))" ]; then
-        echo "[ERROR] Number of start and end synchronization events are not 4 times the number of workers.
-        Expected events: $((4 * number_of_workers)) != Found Events: [${sync_evts_init} + ${sync_evts_end}]" | tee -a "${output_file}"
+      if [ "${sync_evts_init}" != "$((4 * number_of_workers))" ] || [ "${sync_evts_end}" != "$((4 * number_of_workers))" ]; then
+        echo "[ERROR] Number of start and end synchronization events are not 8 times the number of workers.
+        Expected events: $((8 * number_of_workers)) != Found Events: [${sync_evts_init} + ${sync_evts_end}]" | tee -a "${output_file}"
         exit 1
       fi
   fi

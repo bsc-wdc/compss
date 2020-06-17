@@ -29,7 +29,11 @@ import sys
 import signal
 from multiprocessing import Process
 from multiprocessing import Queue
-from pycompss.worker.commons.constants import *
+from pycompss.util.tracing.helpers import trace_multiprocessing_worker
+from pycompss.util.tracing.helpers import dummy_context
+from pycompss.util.tracing.helpers import event
+from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
+from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.piper.commons.constants import *
 from pycompss.worker.piper.commons.executor import Pipe
 from pycompss.worker.piper.commons.executor import ExecutorConf
@@ -76,19 +80,11 @@ def compss_persistent_worker(config):
     # Set the binding in worker mode
     context.set_pycompss_context(context.WORKER)
 
-    if TRACING:
-        try:
-            user_paths = os.environ['PYTHONPATH']
-        except KeyError:
-            user_paths = ""
-        print("PYTHON PATH = " + user_paths)
-        import pyextrae.multiprocessing as pyextrae
-        pyextrae.eventandcounters(SYNC_EVENTS, 1)
-        pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING_EVENT)
-
     persistent_storage = (config.storage_conf != 'null')
 
-    logger, storage_loggers = load_loggers(config.debug, persistent_storage)
+    logger, storage_loggers = load_loggers(config.debug,
+                                           persistent_storage,
+                                           config.tracing)
 
     if __debug__:
         logger.debug(HEADER + "piper_worker.py wake up")
@@ -97,8 +93,9 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Initialize storage
         logger.debug(HEADER + "Starting persistent storage")
-        from storage.api import initWorker as initStorageAtWorker
-        initStorageAtWorker(config_file_path=config.storage_conf)
+        with event(INIT_STORAGE_AT_WORKER_EVENT):
+            from storage.api import initWorker as initStorageAtWorker
+            initStorageAtWorker(config_file_path=config.storage_conf)
 
     # Create new threads
     queues = []
@@ -201,16 +198,14 @@ def compss_persistent_worker(config):
 
     if persistent_storage:
         # Finish storage
-        logger.debug(HEADER + "Stopping persistent storage")
-        from storage.api import finishWorker as finishStorageAtWorker
-        finishStorageAtWorker()
+        if __debug__:
+            logger.debug(HEADER + "Stopping persistent storage")
+        with event(FINISH_STORAGE_AT_WORKER_EVENT):
+            from storage.api import finishWorker as finishStorageAtWorker
+            finishStorageAtWorker()
 
     if __debug__:
         logger.debug(HEADER + "Finished")
-
-    if TRACING:
-        pyextrae.eventandcounters(TASK_EVENTS, 0)
-        pyextrae.eventandcounters(SYNC_EVENTS, 0)
 
     control_pipe.write(QUIT_TAG)
     control_pipe.close()
@@ -223,8 +218,10 @@ def compss_persistent_worker(config):
 if __name__ == '__main__':
     # Configure the global tracing variable from the argument
     TRACING = (int(sys.argv[2]) > 0)
-    # Configure the piper worker with the arguments
-    WORKER_CONF = PiperWorkerConfiguration()
-    WORKER_CONF.update_params(sys.argv)
 
-    compss_persistent_worker(WORKER_CONF)
+    with trace_multiprocessing_worker() if TRACING else dummy_context():
+        # Configure the piper worker with the arguments
+        WORKER_CONF = PiperWorkerConfiguration()
+        WORKER_CONF.update_params(sys.argv)
+
+        compss_persistent_worker(WORKER_CONF)

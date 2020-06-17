@@ -1,0 +1,40 @@
+version: '3.7'
+
+networks:
+  runcompss-docker-net:
+    driver: overlay
+
+services:
+
+  worker1:
+    image: compss/simple-example
+
+    command: /bin/bash -c "/usr/sbin/sshd -D "
+    deploy:
+      restart_policy:
+        condition: none
+        delay: 5s
+        window: 10s
+      resources:
+        limits:
+          memory: 8g
+          cpus: '4'
+
+    networks:
+      - runcompss-docker-net
+
+  master:
+
+    image: compss/simple-example
+
+    command: /bin/bash -c ' /opt/COMPSs/Runtime/scripts/system/docker/generators/generate_docker_resources.sh /home/jorgee/Testing/docker-test/simple/resources.xml 1 4 8 192.168.99.100:2376 compss/simple-example 60 ;  /opt/COMPSs/Runtime/scripts/system/docker/generators/generate_docker_project.sh /home/jorgee/Testing/docker-test/simple/project.xml 1 compss/simple-example 0 4 ;  cd "/home/jorgee/Testing/docker-test/simple"; sleep 5 ; /opt/COMPSs/Runtime/scripts/user/runcompss  --project="/home/jorgee/Testing/docker-test/simple/project.xml"   --resources="/home/jorgee/Testing/docker-test/simple/resources.xml"     -d /home/jorgee/Testing/docker-test/simple/simple.py 2 2>&1;  ssh -o StrictHostKeyChecking=no worker1 "pkill sshd" ; exut 0 '
+
+    deploy:
+      restart_policy:
+        condition: none
+        delay: 5s
+        window: 10s
+
+    networks:
+      - runcompss-docker-net
+

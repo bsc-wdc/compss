@@ -37,6 +37,7 @@ usage() {
 Usage: $0 [OPTION]...
 
 COMPSs options:
+  
   --appdir=<path>                    Path for the application class folder.
                                      Default: ${DEFAULT_APPDIR}
 
@@ -53,18 +54,10 @@ COMPSs options:
 
   --comm_port=<int>                  Port on which the agent sets up a Comm interface. (<=0: Disabled)
 
-  --scheduler=<className>            Class that implements the Scheduler for COMPSs
-                                     Supported schedulers: 
-                                          ├── ${DATA_SCHEDULER}
-                                          ├── ${FIFO_SCHEDULER}
-                                          ├── ${FIFO_DATA_SCHEDULER}
-                                          ├── ${LIFO_SCHEDULER}
-                                          ├── ${BASE_SCHEDULER}
-                                          └── ${LOAD_BALANCING_SCHEDULER}
-                                     Default: ${DEFAULT_SCHEDULER}
-
   -d, --debug                        Enable debug. (Default: disabled)
 
+  --hostname                         Name with which itself and other agents will identify the agent.
+  
   --library_path=<path>              Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                      Default: Working Directory
 
@@ -155,7 +148,7 @@ parse_options() {
       v)
         # Display version
         show_version
-        exit
+        exit 0
         ;;
       -)
 	      # Check more complex arguments

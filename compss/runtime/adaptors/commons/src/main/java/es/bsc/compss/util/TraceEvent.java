@@ -84,20 +84,44 @@ public enum TraceEvent {
     // Task Events
     CREATING_TASK_SANDBOX(54, Tracer.RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
     REMOVING_TASK_SANDBOX(55, Tracer.RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
-    TASK_EXECUTION_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "Task execution"), // Execute python task
-    USER_CODE_PYTHON(2, Tracer.INSIDE_TASKS_TYPE, "User code execution"), // User code
-    IMPORTING_MODULES_PYTHON(3, Tracer.INSIDE_TASKS_TYPE, "Importing modules"), // Import python
-    THREAD_BINDING_PYTHON(4, Tracer.INSIDE_TASKS_TYPE, "Thread binding"), // Thread binding
-    DESERIALIZE_OBJECT_PYTHON1(5, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-    DESERIALIZE_OBJECT_PYTHON2(6, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-    SERIALIZE_OBJECT_PYTHON(7, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize
-    CREATE_THREADS_PYTHON(8, Tracer.INSIDE_TASKS_TYPE, "Create persistent threads"), // Create threads python
-    GET_BY_ID(9, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
-    MAKE_PERSISTENT(10, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
-    DELETE_PERSISTENT(11, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
-    WORKER_RUNNING(102, Tracer.INSIDE_TASKS_TYPE, "Worker running"), // Worker running
 
-    READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count");// Ready count
+    // Python Events Inside Worker
+    WORKER_RUNNING(1, Tracer.INSIDE_WORKER_TYPE, "Worker running"), // Worker running
+
+    PROCESS_TASK_PYTHON(2, Tracer.INSIDE_WORKER_TYPE, "Process task"), // Process python task
+    PROCESS_PING_PYTHON(3, Tracer.INSIDE_WORKER_TYPE, "Process ping"), // Process python ping
+    PROCESS_QUIT_PYTHON(4, Tracer.INSIDE_WORKER_TYPE, "Process quit"), // Process python quit
+
+    INIT_STORAGE(5, Tracer.INSIDE_WORKER_TYPE, "Init storage"), // Init storage
+    STOP_STORAGE(6, Tracer.INSIDE_WORKER_TYPE, "Stop storage"), // Stop storage
+    INIT_STORAGE_WORKER(7, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker"), // Init storage at worker
+    STOP_STORAGE_WORKER(8, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker"), // Stop storage at worker
+    INIT_STORAGE_WORKER_PROCESS(9, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker process"),
+    STOP_STORAGE_WORKER_PROCESS(10, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker process"),
+
+    // Python Events Inside Tasks
+    CPU_BINDING_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "CPU binding"), // CPU binding
+    GPU_BINDING_PYTHON(2, Tracer.INSIDE_TASKS_TYPE, "GPU binding"), // GPU binding
+    SETUP_ENVIRONMENT_PYTHON(3, Tracer.INSIDE_TASKS_TYPE, "Setup environment variables"), // Setup environment
+    GET_TASK_PARAMETERS(4, Tracer.INSIDE_TASKS_TYPE, "Get parameters"), // Get task parameters
+    IMPORT_USER_MODULE(5, Tracer.INSIDE_TASKS_TYPE, "Import user module"), // Import user module
+    EXECUTE_USER_CODE_PYTHON(6, Tracer.INSIDE_TASKS_TYPE, "User code"), // User code execution
+    DESERIALIZE_STRING_PYTHON(7, Tracer.INSIDE_TASKS_TYPE, "Deserializing string"), // Deserialize from string
+    DESERIALIZE_OBJECT_PYTHON(8, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize from file
+    SERIALIZE_OBJECT_PYTHON(9, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize to file
+    SERIALIZE_MPIENV_PYTHON(10, Tracer.INSIDE_TASKS_TYPE, "Serializing object MPI env"), // Serialize to file mpienv
+    BUILD_SUCCESS_MESSAGE(11, Tracer.INSIDE_TASKS_TYPE, "Build success message"), // Build successful message
+    BUILD_COMPSS_EXCEPTION_MESSAGE(12, Tracer.INSIDE_TASKS_TYPE, "Build COMPSs exception message"),
+    BUILD_EXCEPTION_MESSAGE(13, Tracer.INSIDE_TASKS_TYPE, "Build exception message"), // Build exception message
+    CLEAN_ENVIRONMENT_PYTHON(14, Tracer.INSIDE_TASKS_TYPE, "Clean environment"), // Clean environment
+
+    GET_BY_ID(15, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
+    GET_ID(16, Tracer.INSIDE_TASKS_TYPE, "Get object ID"), // GetID
+    MAKE_PERSISTENT(17, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
+    DELETE_PERSISTENT(18, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+
+    // Other
+    READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count"); // Ready count
 
     private final int id;
     private final int type;

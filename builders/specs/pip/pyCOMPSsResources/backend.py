@@ -53,12 +53,12 @@ def install(target_path, venv):
     # ###################################################################### #
     # ######################## INSTALLATION ################################ #
     # ###################################################################### #
+    
+    pref = os.path.join(target_path, 'COMPSs')
 
     # call the SuperComputers install script
-    if subprocess.call(['./COMPSs/install', target_path]) != 0:
+    if subprocess.call(['./COMPSs/install', pref]) != 0:
         raise Exception('COMPSs install script ended with some error. Please check stdout & stderr for more info.')
-
-    pref = os.path.join(target_path, 'COMPSs')
 
     messages.append('*****************************************************')
 

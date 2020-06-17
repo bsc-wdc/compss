@@ -52,8 +52,8 @@ public class FIFODataLocationScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> FIFODataLocationResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-        JSONObject resJSON, JSONObject implJSON) {
+    public <T extends WorkerResourceDescription> FIFODataLocationResourceScheduler<T>
+        generateSchedulerForResource(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
         return new FIFODataLocationResourceScheduler<>(w, resJSON, implJSON);
     }

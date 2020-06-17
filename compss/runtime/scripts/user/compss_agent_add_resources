@@ -135,7 +135,8 @@ get_args() {
     case "$flag" in
       h)
         # Display help
-        usage 0
+        usage
+        exit 0
         ;;
       v)
         # Display version

@@ -10,10 +10,10 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 # DEFAULT VALUES
 #----------------------------------------------
 # Available Schedulers
-DATA_SCHEDULER=es.bsc.compss.scheduler.data.DataScheduler
-FIFO_SCHEDULER=es.bsc.compss.scheduler.fifo.FIFOScheduler
-FIFO_DATA_SCHEDULER=es.bsc.compss.scheduler.fifodata.FIFODataScheduler
-LIFO_SCHEDULER=es.bsc.compss.scheduler.lifo.LIFOScheduler
+DATA_SCHEDULER=es.bsc.compss.scheduler.fifodatalocation.FIFODataLoctionScheduler
+FIFO_SCHEDULER=es.bsc.compss.scheduler.fifonew.FIFOScheduler
+FIFO_DATA_SCHEDULER=es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler
+LIFO_SCHEDULER=es.bsc.compss.scheduler.lifonew.LIFOScheduler
 BASE_SCHEDULER=es.bsc.compss.components.impl.TaskScheduler
 LOAD_BALANCING_SCHEDULER=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
 

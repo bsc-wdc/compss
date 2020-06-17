@@ -17,9 +17,7 @@
     echo " Usage:  install <targetFolder> [<queues_cfg>]"
     echo " "
     echo " Parameters:"
-    echo "   - targetFolder : Base target folder of the COMPSs installation."
-    echo "                    A COMPSs folder will be created inside the targetFolder containing"
-    echo "                    all the COMPSs files"
+    echo "   - targetFolder : Target folder of the COMPSs installation."
     echo "   - queues_cfg :   Queue configuration file to be copied as default into targetFolder/Runtime/scripts/queues/cfgs/"
     echo " "
     echo "ATTENTION: The COMPSs folder inside the target folder will be completely removed to avoid"
@@ -44,7 +42,7 @@
     usage
     exit 1
   fi
-  targetDir=$1/COMPSs/
+  targetDir=$1
   queues_cfg=$2
 
   # WARN MESSAGE and log parameters

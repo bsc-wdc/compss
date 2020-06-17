@@ -1,0 +1,70 @@
+#!/bin/bash -e
+
+if [ -z $1 ]; then
+    echo "[  ERROR  ]: Indicate the CLUSTER_NAME as first parameter."
+    exit -1
+fi
+
+if [ -z $2 ]; then
+    echo "[  ERROR  ]: Indicate the number of nodes to be created as second parameter."
+    exit -1
+fi
+
+CLUSTER_NAME=$1
+NUM_NODES=$2
+
+echo
+
+echo "IF YOU GET DOCKER CONNECTION ERRORS, OR CERTIFICATE WARNINGS, PLEASE REMEMBER TO REMOVE BEFORE EVERYTHING, THE VIRTUALBOX HOST-ONLY NETWORKS"
+echo "                 (File->Preferences->Network->Host only networks->Remove all of them)"
+
+echo
+echo
+echo "Creating Swarm cluster ${CLUSTER_NAME}_manager vm..."
+echo
+docker-machine create -d=virtualbox ${CLUSTER_NAME}-manager
+echo
+echo
+ 
+for i in $( seq 2 $(( ${NUM_NODES} )) )
+do
+    echo
+    echo "Creating '${CLUSTER_NAME}_node$i'"
+    docker-machine create -d virtualbox ${CLUSTER_NAME}-node${i}
+done
+
+echo
+ad_addr=$(docker-machine ls --filter name=${CLUSTER_NAME}-manager -f "{{print .URL}}" | sed s#tcp://## | sed s/:2376//)
+
+echo "Initializing docker swarm in ${CLUSTER_NAME}-manager vm:"
+echo "\$(docker-machine ssh ${CLUSTER_NAME}-manager \"docker swarm init --advertise-addr ${ad_addr}:2377\" | grep \"docker swarm join\")"
+
+tk_command=$(docker-machine ssh ${CLUSTER_NAME}-manager "docker swarm init --advertise-addr ${ad_addr}:2377" | grep "docker swarm join" | head -n 1) 
+
+for i in $( seq 2 $(( ${NUM_NODES} )) )
+do
+    echo
+    echo "Adding 'node$i' as worker: docker-machine ssh ${CLUSTER_NAME}-node${i} \"${tk_command}\" "
+    docker-machine ssh ${CLUSTER_NAME}-node${i} "${tk_command}"
+done
+
+echo "Displaying info of the created Swarm: "
+eval "$(docker-machine env ${CLUSTER_NAME}-manager)"
+docker node ls
+
+echo
+echo
+
+echo "[  Swarm-manager is allocated in '${CLUSTER_NAME}-manager'  ]"
+echo
+echo "To see the 'docker node ls' use:"
+echo "     eval '\$(docker-machine env ${CLUSTER_NAME}-manager)'"
+echo
+
+
+echo "To run something on the cluster use:"
+echo "     eval '\$(docker-machine env ${CLUSTER_NAME}-manager)'"
+echo "     docker run hello-world"
+echo
+echo "Remember that you can connect to a node with: docker-machine ssh '${CLUSTER_NAME}-nodeX'"
+echo

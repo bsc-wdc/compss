@@ -32,6 +32,8 @@ import sys
 from mpi4py import MPI
 
 from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.commons.executor import build_return_params_message
@@ -67,15 +69,20 @@ def executor(process_name, command):
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     debug = command.split()[6] == "true"
+    tracing = command.split()[7] == "true"
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if debug:
         # Debug
-        init_logging_worker(worker_path + '/../../../log/logging_worker_debug.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_worker_debug.json',
+                            tracing)
     else:
         # Default
-        init_logging_worker(worker_path + '/../../../log/logging_worker_off.json')
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_worker_off.json',
+                            tracing)
 
     logger = logging.getLogger('pycompss.worker.external.mpi_worker')
     logger_handlers = copy.copy(logger.handlers)
@@ -102,6 +109,7 @@ def executor(process_name, command):
         sys.exit(sig)
 
 
+@emit_event(PROCESS_TASK_EVENT)
 def process_task(current_line, process_name,
                  logger, logger_handlers, logger_level, logger_formatter):
     """

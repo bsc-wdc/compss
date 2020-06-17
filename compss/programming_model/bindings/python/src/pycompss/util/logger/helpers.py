@@ -44,16 +44,16 @@ def init_logging(log_config_file, log_path):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
         f.close()
-        if "error_file_handler" in conf["handlers"]:
-            handler = "error_file_handler"
+        handler = "error_file_handler"
+        if handler in conf["handlers"]:
             errors_file = conf["handlers"][handler].get("filename")
             conf["handlers"][handler]["filename"] = log_path + errors_file
-        if "info_file_handler" in conf["handlers"]:
-            handler = "info_file_handler"
+        handler = "info_file_handler"
+        if handler in conf["handlers"]:
             info_file = conf["handlers"][handler].get("filename")
             conf["handlers"][handler]["filename"] = log_path + info_file
-        if "debug_file_handler" in conf["handlers"]:
-            handler = "debug_file_handler"
+        handler = "debug_file_handler"
+        if handler in conf["handlers"]:
             debug_file = conf["handlers"][handler].get("filename")
             conf["handlers"][handler]["filename"] = log_path + debug_file
         CONFIG_FUNC(conf)
@@ -61,17 +61,33 @@ def init_logging(log_config_file, log_path):
         logging.basicConfig(level=logging.INFO)
 
 
-def init_logging_worker(log_config_file):
+def init_logging_worker(log_config_file, tracing):
     """
     Worker logging initialization.
 
     :param log_config_file: Log file name.
+    :param tracing: If tracing is enabled (the log dir changes).
     :return: None
     """
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
         f.close()
+        if tracing:
+            # The workspace is within the folder 'workspace/python'
+            # Remove the last folder
+            handler = "error_worker_file_handler"
+            if handler in conf["handlers"]:
+                errors_file = conf["handlers"][handler].get("filename")
+                conf["handlers"][handler]["filename"] = '../' + errors_file
+            handler = "info_worker_file_handler"
+            if handler in conf["handlers"]:
+                info_file = conf["handlers"][handler].get("filename")
+                conf["handlers"][handler]["filename"] = '../' + info_file
+            handler = "debug_worker_file_handler"
+            if handler in conf["handlers"]:
+                debug_file = conf["handlers"][handler].get("filename")
+                conf["handlers"][handler]["filename"] = '../' + debug_file
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)

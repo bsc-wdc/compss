@@ -420,8 +420,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
         List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
         ResourceScheduler<T> resource) {
         if (DEBUG) {
-            LOGGER.debug("[ReadyScheduler] Try to launch free actions on resource " + resource.getName() + " with "
-                + this.unassignedReadyActions.get(resource).size() + " candidates in this worker");
+            LOGGER.debug("[ReadyScheduler] Try to launch free actions on resource " + resource.getName());
         }
 
         // Actions that have been freeded by the action that just finished
@@ -466,43 +465,45 @@ public abstract class ReadyScheduler extends TaskScheduler {
         }
         this.resourceTokens.put(resource, null);
 
-        Iterator<ObjectValue<AllocatableAction>> executableActionsIterator =
-            this.unassignedReadyActions.get(resource).iterator();
-        HashSet<ObjectValue<AllocatableAction>> objectValueToErase = new HashSet<ObjectValue<AllocatableAction>>();
-        while (executableActionsIterator.hasNext() && !this.availableWorkers.isEmpty()) {
-            ObjectValue<AllocatableAction> obj = executableActionsIterator.next();
-            AllocatableAction freeAction = obj.getObject();
-            try {
-                List<ResourceScheduler<?>> uselessWorkers =
-                    freeAction.tryToSchedule(generateActionScore(freeAction), this.availableWorkers);
-                for (ResourceScheduler<?> worker : uselessWorkers) {
-                    this.availableWorkers.remove(worker);
+        if (this.unassignedReadyActions.containsKey(resource)) {
+            Iterator<ObjectValue<AllocatableAction>> executableActionsIterator =
+                this.unassignedReadyActions.get(resource).iterator();
+            HashSet<ObjectValue<AllocatableAction>> objectValueToErase = new HashSet<ObjectValue<AllocatableAction>>();
+            while (executableActionsIterator.hasNext() && !this.availableWorkers.isEmpty()) {
+                ObjectValue<AllocatableAction> obj = executableActionsIterator.next();
+                AllocatableAction freeAction = obj.getObject();
+                try {
+                    List<ResourceScheduler<?>> uselessWorkers =
+                        freeAction.tryToSchedule(generateActionScore(freeAction), this.availableWorkers);
+                    for (ResourceScheduler<?> worker : uselessWorkers) {
+                        this.availableWorkers.remove(worker);
+                    }
+                    ResourceScheduler<? extends WorkerResourceDescription> assignedResource =
+                        freeAction.getAssignedResource();
+                    tryToLaunch(freeAction);
+                    if (assignedResource != null && !assignedResource.canRunSomething()) {
+                        this.availableWorkers.remove(assignedResource);
+                    }
+                    objectValueToErase.add(obj);
+                } catch (BlockedActionException e) {
+                    objectValueToErase.add(obj);
+                    addToBlocked(freeAction);
+                } catch (UnassignedActionException e) {
+                    if (DEBUG) {
+                        LOGGER.debug("[ReadyScheduler] Action " + freeAction
+                            + " could not be assigned to any of the available resources");
+                    }
+                    // Nothing to be done here since the action was already in the scheduler
+                    // structures. If there is an exception, the freeAction will not be added
+                    // to the objectValueToErase list.
+                    // Hence, this is not an ignored Exception but an expected behavior.
                 }
-                ResourceScheduler<? extends WorkerResourceDescription> assignedResource =
-                    freeAction.getAssignedResource();
-                tryToLaunch(freeAction);
-                if (assignedResource != null && !assignedResource.canRunSomething()) {
-                    this.availableWorkers.remove(assignedResource);
-                }
-                objectValueToErase.add(obj);
-            } catch (BlockedActionException e) {
-                objectValueToErase.add(obj);
-                addToBlocked(freeAction);
-            } catch (UnassignedActionException e) {
-                if (DEBUG) {
-                    LOGGER.debug("[ReadyScheduler] Action " + freeAction
-                        + " could not be assigned to any of the available resources");
-                }
-                // Nothing to be done here since the action was already in the scheduler
-                // structures. If there is an exception, the freeAction will not be added
-                // to the objectValueToErase list.
-                // Hence, this is not an ignored Exception but an expected behavior.
             }
-        }
 
-        for (ObjectValue<AllocatableAction> obj : objectValueToErase) {
-            AllocatableAction action = obj.getObject();
-            removeActionFromSchedulerStructures(action);
+            for (ObjectValue<AllocatableAction> obj : objectValueToErase) {
+                AllocatableAction action = obj.getObject();
+                removeActionFromSchedulerStructures(action);
+            }
         }
     }
 

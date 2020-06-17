@@ -80,11 +80,11 @@ public class TraceMerger {
     private class LineInfo {
 
         private final String resourceId;
-        private final int value;
+        private final Long value; // can be a timestamp (e.g. sync event at end).
         private final Long timestamp;
 
 
-        public LineInfo(String resourceID, Long timestamp, int value) {
+        public LineInfo(String resourceID, Long timestamp, long value) {
             this.resourceId = resourceID;
             this.timestamp = timestamp;
             this.value = value;
@@ -98,7 +98,7 @@ public class TraceMerger {
             return this.timestamp;
         }
 
-        public int getValue() {
+        public long getValue() {
             return this.value;
         }
     }
@@ -225,7 +225,7 @@ public class TraceMerger {
                     Integer wID = (workerID == -1) ? Integer.parseInt(m.group(WORKER_ID_INDEX)) : workerID;
                     String resourceID = m.group(R_ID_INDEX);
                     Long timestamp = Long.parseLong(m.group(TIMESTAMP_INDEX));
-                    Integer value = Integer.parseInt(m.group(VALUE_INDEX));
+                    Long value = Long.parseLong(m.group(VALUE_INDEX));
 
                     add(idToSyncInfo, wID, new LineInfo(resourceID, timestamp, value));
                 }
@@ -259,7 +259,7 @@ public class TraceMerger {
     }
 
     private String updateEvent(LineInfo workerHeader, String line, Integer workerID) {
-        int numThreads = workerHeader.getValue();
+        int numThreads = (int) workerHeader.getValue();
         Matcher taskMatcher = WORKER_THREAD_INFO_PATTERN.matcher(line);
         String newLine = "";
         if (taskMatcher.find()) {
@@ -279,23 +279,26 @@ public class TraceMerger {
     }
 
     private LineInfo getWorkerInfo(List<LineInfo> masterSyncEvents, List<LineInfo> workerSyncEvents) throws Exception {
-        if (masterSyncEvents.size() < 2) {
+        if (masterSyncEvents.size() < 3) {
             throw new Exception("ERROR: Malformed master trace. Master sync events not found");
         }
-        LineInfo javaStart = masterSyncEvents.get(0);
-        LineInfo javaEnd = masterSyncEvents.get(1);
-        if (workerSyncEvents.size() < 2) {
+        if (workerSyncEvents.size() < 3) {
             throw new Exception("ERROR: Malformed worker trace. Worker sync events not found");
         }
-        LineInfo workerStart = workerSyncEvents.get(0);
-        LineInfo workerEnd = workerSyncEvents.get(1);
 
-        Long javaTime = Math.abs(javaStart.getTimestamp() - javaEnd.getTimestamp());
-        Long workerTime = Math.abs(workerStart.getTimestamp() - workerEnd.getTimestamp());
+        LineInfo javaStart = masterSyncEvents.get(0);
+        // LineInfo javaEnd = masterSyncEvents.get(1);
+        LineInfo javaSync = masterSyncEvents.get(2);
+        // LineInfo workerStart = workerSyncEvents.get(0);
+        // LineInfo workerEnd = workerSyncEvents.get(1);
+        LineInfo workerSync = workerSyncEvents.get(2);
 
-        Long overhead = (javaTime - workerTime) / 2;
+        // Take the sync event emitted by the runtime and worker and compare their value (timestamp)
+        // The worker events real start is the difference between java and the worker minus the timestamp difference.
+        Long syncDifference = Math.abs((javaSync.getValue() / 1000) - workerSync.getValue());
+        Long realStart = Math.abs(javaSync.getTimestamp() - workerSync.getTimestamp()) - syncDifference;
 
-        return new LineInfo(javaStart.getResourceId(), javaStart.getTimestamp() + overhead, javaStart.getValue());
+        return new LineInfo(javaStart.getResourceId(), realStart, javaStart.getValue());
     }
 
 }

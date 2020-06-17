@@ -285,15 +285,18 @@ class EmptyReturn(object):
 # ############ FUNCTIONS THAT COMMUNICATE WITH THE RUNTIME ################## #
 # ########################################################################### #
 
-def start_runtime():
+def start_runtime(log_level='off'):
     """
     Starts the runtime by calling the external python library that calls
     the bindings-common.
 
+    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ]
     :return: None
     """
     if __debug__:
         logger.info("Starting COMPSs...")
+    if log_level in ['trace', 'debug', True]:
+        compss.set_debug(True)
     compss.start_runtime()
     if __debug__:
         logger.info("COMPSs started")

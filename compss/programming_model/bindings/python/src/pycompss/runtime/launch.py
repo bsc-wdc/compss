@@ -129,11 +129,7 @@ def compss_main():
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
-    # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start, compss_stop
 
-    # Start the runtime, see bindings commons
-    compss_start()
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
     # args from sys.argv
@@ -145,6 +141,11 @@ def compss_main():
 
     # Get log_level
     log_level = args.log_level
+
+    # Then we can import the appropriate start and stop functions from the API
+    from pycompss.api.api import compss_start, compss_stop
+    # Start the runtime
+    compss_start(log_level)
 
     # Get object_conversion boolean
     binding.object_conversion = args.object_conversion == 'true'
@@ -441,7 +442,7 @@ def launch_pycompss_application(app, func,
     ##############################################################
 
     # Runtime start
-    compss_start()
+    compss_start(log_level)
 
     # Configure logging
     log_path = get_log_path()

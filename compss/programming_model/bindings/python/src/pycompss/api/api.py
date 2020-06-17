@@ -79,13 +79,13 @@ if context.in_pycompss():
         listType = types.ListType
         dictType = types.DictType
 
-    def compss_start():
+    def compss_start(log_level='off'):
         """
         Starts the runtime.
 
         :return: None
         """
-        start_runtime()
+        start_runtime(log_level)
 
     def compss_stop(code=0):
         """
@@ -145,7 +145,7 @@ if context.in_pycompss():
         """
         Gets a directory -> Calls runtime.
 
-        :param dir_name: Directory name.
+        :param directory_name: Directory name.
         :return: True if success. False otherwise.
         """
         return get_directory(directory_name)
@@ -272,8 +272,8 @@ else:
     # Hidden TaskGroup context manager
     from pycompss.api.dummy.api import TaskGroup  # noqa
 
-    def compss_start():
-        __dummy_compss_start__()
+    def compss_start(log_level='off'):
+        __dummy_compss_start__(log_level)
 
     def compss_stop():
         __dummy_compss_stop__()

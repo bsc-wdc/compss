@@ -26,10 +26,11 @@ PyCOMPSs Dummy API
 from os import path
 
 
-def compss_start():
+def compss_start(log_level='off'):
     """
     Dummy runtime starter.
 
+    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ]
     :return: None
     """
     pass
@@ -47,6 +48,7 @@ def compss_stop():
 def compss_file_exists(file_name):
     """
     Dummy compss_file_exists.
+
     :param file_name: The file name to check
     :return: True if exists
     """

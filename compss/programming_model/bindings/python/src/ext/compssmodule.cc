@@ -26,16 +26,8 @@
 #include <cassert>
 #include <cstddef>
 
-// Uncomment this line to get debug prints
-//#define DEBUG
-
-// Basically, debug(args) is a macro that, depending on whether debug is
-// defined or not, will translate to printf(args) + flush or to none
-#ifdef DEBUG
-#define debug(args...) printf(args); fflush(stdout);
-#else
-#define debug(args...)
-#endif
+bool DEBUG_MODE = false;
+char* HEADER = "[PY-C EXTENSION]  -  ";
 
 struct module_state {
     PyObject* error;
@@ -91,6 +83,32 @@ struct parameter {
 static struct module_state _state;
 #endif
 
+//////////////////////////////////////////////////////////////
+// Debugging functions
+//////////////////////////////////////////////////////////////
+
+static void debug(const char * format, ...){
+    if (DEBUG_MODE == true) {
+        va_list arg;
+        va_start(arg, format);
+        std::string message = HEADER;
+        message += format;
+        vprintf(message.c_str(), arg);
+        va_end(arg);
+        fflush(stdout);
+    }
+}
+
+/*
+  Set debug mode.
+  Separate function since it can be deactivated and/or activated when
+  necessary.
+*/
+static PyObject* set_debug(PyObject* self, PyObject* args) {
+    bool debug_mode = PyObject_IsTrue(PyTuple_GetItem(args, 0));
+    DEBUG_MODE = debug_mode;
+    Py_RETURN_NONE;
+}
 
 //////////////////////////////////////////////////////////////
 // Internal functions
@@ -146,31 +164,31 @@ static std::string _pystring_to_string(PyObject* c) {
 static int _get_type_size(int type) {
     switch ((enum datatype) type) {
     case file_dt:
-        debug("#### file_dt\n");
+        debug("- Type: file_dt\n");
         return sizeof(char*);
     case external_stream_dt:
-        debug("#### external_stream_dt\n");
+        debug("- Type: external_stream_dt\n");
         return sizeof(char*);
     case external_psco_dt:
-        debug("#### external_psco_dt\n");
+        debug("- Type: external_psco_dt\n");
         return sizeof(char*);
     case string_dt:
-        debug("#### string_dt\n");
+        debug("- Type: string_dt\n");
         return sizeof(char*);
     case int_dt:
-        debug("#### int_dt\n");
+        debug("- Type: int_dt\n");
         return sizeof(int);
     case long_dt:
-        debug("#### long_dt\n");
+        debug("- Type: long_dt\n");
         return sizeof(long);
     case double_dt:
-        debug("#### double_dt\n");
+        debug("- Type: double_dt\n");
         return sizeof(double);
     case boolean_dt:
-        debug("#### boolean_dt\n");
+        debug("- Type: boolean_dt\n");
         return sizeof(int);
     default:
-        debug("#### default\n");
+        debug("- Type: default\n");
         return 0;
     }
     // Here for anti-warning purposes, but this statement will never be reached
@@ -221,7 +239,7 @@ static void* _get_void_pointer_to_content(PyObject* val, int type, int size) {
   Start a COMPSs-Runtime instance.
 */
 static PyObject* start_runtime(PyObject* self, PyObject* args) {
-    debug("####C#### START\n");
+    debug("Start runtime\n");
     GS_On();
     Py_RETURN_NONE;
 }
@@ -230,8 +248,8 @@ static PyObject* start_runtime(PyObject* self, PyObject* args) {
   Stop the current COMPSs-Runtime instance.
 */
 static PyObject* stop_runtime(PyObject* self, PyObject* args) {
-    debug("####C#### STOP\n");
     int code = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("Stop runtime with code: %i\n", (code));
     GS_Off(code);
     Py_RETURN_NONE;
 }
@@ -240,9 +258,8 @@ static PyObject* stop_runtime(PyObject* self, PyObject* args) {
   Cancel all application tasks
 */
 static PyObject* cancel_application_tasks(PyObject* self, PyObject* args){
-    debug("####C#### CANCEL APPLICATION TASKS\n");
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    debug("####C#### COMPSs cancel application tasks for AppId: %ld \n", (app_id));
+    debug("COMPSs cancel application tasks for AppId: %ld\n", (app_id));
     GS_Cancel_Application_Tasks(app_id);
     Py_RETURN_NONE;
 }
@@ -262,7 +279,7 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
       "long, string, integer, integer, integer, integer, integer,
        Object, Object, Object, Object, Object, Object"
     */
-    debug("####C#### PROCESS TASK\n");
+    debug("Process task:\n");
     long app_id;
     char* signature;
     char* on_failure;
@@ -284,22 +301,22 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
         // arguments were passed, we expected an integer instead"-like errors
         return NULL;
     }
-    debug("####C#### App id: %ld\n", app_id);
-    debug("####C#### Signature: %s\n", signature);
-    debug("####C#### On Failure: %s\n", on_failure);
-    debug("####C#### Time Out: %d\n", time_out);
-    debug("####C#### Priority: %d\n", priority);
-    debug("####C#### MPI Num nodes: %d\n", num_nodes);
-    debug("####C#### Replicated: %d\n", replicated);
-    debug("####C#### Distributed: %d\n", distributed);
-    debug("####C#### Has target: %d\n", has_target);
+    debug("- App id: %ld\n", app_id);
+    debug("- Signature: %s\n", signature);
+    debug("- On Failure: %s\n", on_failure);
+    debug("- Time Out: %d\n", time_out);
+    debug("- Priority: %d\n", priority);
+    debug("- MPI Num nodes: %d\n", num_nodes);
+    debug("- Replicated: %d\n", replicated);
+    debug("- Distributed: %d\n", distributed);
+    debug("- Has target: %d\n", has_target);
     /*
       Obtain and set all parameter data, and pack it in a struct vector.
 
       See parameter and its field at the top of this source code file
     */
     Py_ssize_t num_pars = PyList_Size(values);
-    debug("####C#### Num pars: %d\n", int(num_pars));
+    debug("Num pars: %d\n", int(num_pars));
     std::vector< parameter > params(num_pars);
     std::vector< char* > prefix_charp(num_pars);
     std::vector< char* > name_charp(num_pars);
@@ -337,7 +354,7 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
 			int(PyInt_AsLong(k_rename))
         );
 
-        debug("####C#### Adapting C++ data to BC-JNI format...\n");
+        debug("Adapting C++ data to BC-JNI format...\n");
         /*
           Adapt the parsed data to a bindings-common friendly format.
           These pointers do NOT need to be freed, as the pointed contents
@@ -349,7 +366,7 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
 		c_type_charp[i] = (char*) params[i].c_type.c_str();
 		weight_charp[i] = (char*) params[i].weight.c_str();
 
-		debug("####C#### Processing parameter %d\n", i);
+		debug("Processing parameter %d\n", i);
 	    /*
 	      Adapt the parsed data to a bindings-common friendly format.
 	      These pointers do NOT need to be freed, as the pointed contents
@@ -367,19 +384,19 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
 		unrolled_parameters[num_fields * i + 8] = (void*) &params[i].keep_rename;
 
         debug("----> Value is at %p\n", &params[i].value);
-        debug("----> Type is %d\n", params[i].type);
-        debug("----> Direction is %d\n", params[i].direction);
-        debug("----> Stream is %d\n", params[i].stream);
-        debug("----> Prefix is %s\n", prefix_charp[i]);
-        debug("----> Size is %d\n", params[i].size);
-        debug("----> Name is %s\n", name_charp[i]);
-        debug("----> Content is %s\n", c_type_charp[i]);
-        debug("----> Weight is %s\n", weight_charp[i]);
-        debug("----> Keep rename is %d\n", params[i].keep_rename);
+        debug("----> Type: %d\n", params[i].type);
+        debug("----> Direction: %d\n", params[i].direction);
+        debug("----> Stream: %d\n", params[i].stream);
+        debug("----> Prefix: %s\n", prefix_charp[i]);
+        debug("----> Size: %d\n", params[i].size);
+        debug("----> Name: %s\n", name_charp[i]);
+        debug("----> Content: %s\n", c_type_charp[i]);
+        debug("----> Weight: %s\n", weight_charp[i]);
+        debug("----> Keep rename: %d\n", params[i].keep_rename);
 
     }
 
-    debug("####C#### Calling GS_ExecuteTaskNew...\n");
+    debug("Calling GS_ExecuteTaskNew...\n");
     /*
       Finally, call bindings common with all the computed parameters
     */
@@ -397,7 +414,7 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
         num_pars,
         &unrolled_parameters[0] // hide the fact that params is a std::vector
     );
-    debug("####C#### Returning from process_task...\n");
+    debug("Returning from process_task...\n");
     Py_RETURN_NONE;
 }
 
@@ -408,9 +425,12 @@ static PyObject* accessed_file(PyObject* self, PyObject* args) {
     debug("####C#### ACCESSED FILE\n");
     long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("Accessed file? %s\n", (file_name));
     if (GS_Accessed_File(app_id, file_name) == 0) {
+        debug("- False\n");
     	Py_RETURN_FALSE;
     } else {
+        debug("- True\n");
     	Py_RETURN_TRUE;
     }
 }
@@ -422,10 +442,12 @@ static PyObject* open_file(PyObject* self, PyObject* args) {
     debug("####C#### GET FILE\n");
     long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("Open file %s\n", (file_name));
     int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 2)));
+    debug("- mode: %i\n", (mode));
     char* compss_name;
     GS_Open_File(app_id, file_name, mode, &compss_name);
-    debug("####C#### COMPSs file name %s\n", compss_name);
+    debug("COMPSs file to open: %s\n", (compss_name));
     PyObject *ret = Py_BuildValue("s", compss_name);
     // File_name must NOT be freed, as it points to a PyObject
     // The same applies to compss_name
@@ -444,10 +466,11 @@ static PyObject* delete_file(PyObject* self, PyObject* args) {
     debug("####C#### DELETE FILE\n");
     long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("Delete file: %s\n", (file_name));
     bool wait = PyObject_IsTrue(PyTuple_GetItem(args, 2));
-    debug("####C#### Calling Delete File with file %s\n", file_name);
+    debug("- Wait: %s\n", (wait ? "true" : "false"));
     GS_Delete_File(app_id, file_name, wait);
-    debug("####C#### COMPSs delete file name %s with result %d \n", file_name, 0);
+    debug("COMPSs file deleted: %s\n", (file_name));
     Py_RETURN_NONE;
 }
 
@@ -462,8 +485,11 @@ static PyObject* delete_file(PyObject* self, PyObject* args) {
 static PyObject* close_file(PyObject* self, PyObject* args) {
     long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("Close file: %s\n", (file_name));
     int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 2)));
+    debug("- Mode: %i\n", (mode));
     GS_Close_File(app_id, file_name, mode);
+    debug("File closed\n");
     Py_RETURN_NONE;
 }
 
@@ -471,12 +497,12 @@ static PyObject* close_file(PyObject* self, PyObject* args) {
   Given a PyCOMPSs-id file, get its corresponding last version COMPSs-id file
 */
 static PyObject* get_file(PyObject* self, PyObject* args) {
-    debug("####C#### GET FILE\n");
     char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("Get file: %s\n", (file_name));
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("- App id: %ld\n", (app_id));
     GS_Get_File(app_id, file_name);
-    debug("####C#### COMPSs file name %s\n", file_name);
-    debug("####C#### COMPSs getFile for AppId: %ld \n", (app_id));
+    debug("COMPSs file already get: %s\n", (file_name));
     Py_RETURN_NONE;
 }
 
@@ -484,12 +510,12 @@ static PyObject* get_file(PyObject* self, PyObject* args) {
   Given a PyCOMPSs-id directory, get its corresponding last version
 */
 static PyObject* get_directory(PyObject *self, PyObject *args) {
-    debug("####C#### GET DIRECTORY\n");
-    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char* dir_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("Get directory: %s\n", (dir_name));
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("- App id: %ld\n", (app_id));
     GS_Get_Directory(app_id, dir_name);
-    debug("####C#### COMPSs dir name %s\n", dir_name);
-    debug("####C#### COMPSs getDir for AppId: %ld \n", (app_id));
+    debug("COMPSs directory already get: %s\n", (dir_name));
     Py_RETURN_NONE;
 }
 
@@ -499,7 +525,7 @@ static PyObject* get_directory(PyObject *self, PyObject *args) {
   Notifies the 'no more tasks' boolean value.
 */
 static PyObject* barrier(PyObject* self, PyObject* args) {
-    debug("####C#### BARRIER\n");
+    debug("Barrier\n");
     long app_id;
     PyObject* py_no_more_tasks;
     bool no_more_tasks;
@@ -507,9 +533,10 @@ static PyObject* barrier(PyObject* self, PyObject* args) {
         return NULL;
     }
     no_more_tasks = PyObject_IsTrue(py_no_more_tasks);  // Verify that is a bool
-    debug("####C#### COMPSs barrier for AppId: %ld \n", (app_id));
-    debug("####C#### COMPSs barrier no more tasks?: %s \n", (no_more_tasks?"true":"false"));
+    debug("- App id: %ld \n", (app_id));
+    debug("- No more tasks?: %s \n", (no_more_tasks ? "true" : "false"));
     GS_BarrierNew(app_id, no_more_tasks);
+    debug("Barrier end\n");
     Py_RETURN_NONE;
 }
 
@@ -518,15 +545,16 @@ static PyObject* barrier(PyObject* self, PyObject* args) {
   Program will be blocked in GS_BarrierGroup until all running tasks part of the group have ended.
 */
 static PyObject* barrier_group(PyObject* self, PyObject* args) {
-    debug("####C#### BARRIER OF GROUP\n");
-    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char* group_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("Barrier group: %s\n", (group_name));
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("- App id: %ld \n", (app_id));
     char* exception_message = NULL;
-    debug("####C#### COMPSs barrier for group: %s \n", (group_name));
     GS_BarrierGroup(app_id, group_name, &exception_message);
+    debug("Barrier group end: %s\n", (group_name));
     if (exception_message != NULL){
         PyObject* message_object = Py_BuildValue("s", exception_message);
-        debug("####C#### COMPSs exception raised : %s \n", (exception_message));
+        debug("- COMPSs exception raised : %s \n", (exception_message));
         return message_object;
     } else {
         Py_RETURN_NONE;
@@ -537,11 +565,10 @@ static PyObject* barrier_group(PyObject* self, PyObject* args) {
   Notify the runtime that our current application wants to "execute" a barrier for a group.
   Program will be blocked in GS_BarrierGroup until all running tasks part of the group have ended.
 */
-static PyObject*
-emit_event(PyObject *self, PyObject *args) {
-    debug("####C#### Emmit Event\n");
+static PyObject* emit_event(PyObject *self, PyObject *args) {
     int type = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     long value = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
+    debug("Emit Event: (%i, %ld)\n", type, value);
     GS_EmitEvent(type, value);
     Py_RETURN_NONE;
 }
@@ -550,12 +577,14 @@ emit_event(PyObject *self, PyObject *args) {
   Creates a new task group that will include all the subsequent tasks.
 */
 static PyObject* open_task_group(PyObject* self, PyObject* args) {
-    debug("####C#### TASK GROUP CREATION\n");
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-    debug("####C#### COMPSs task group: %s created\n", (group_name));
+    debug("Open task group: %s\n", (group_name));
     bool implicit_barrier = PyObject_IsTrue(PyTuple_GetItem(args, 1));
+    debug("- Implicit barrier?: %s \n", (implicit_barrier ? "true" : "false"));
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 2)));
+    debug("- App id: %ld \n", (app_id));
     GS_OpenTaskGroup(group_name, implicit_barrier, app_id);
+    debug("Task group: %s created\n", (group_name));
     Py_RETURN_NONE;
 }
 
@@ -563,11 +592,12 @@ static PyObject* open_task_group(PyObject* self, PyObject* args) {
   Closes the opened task group.
 */
 static PyObject* close_task_group(PyObject* self, PyObject* args) {
-    debug("####C#### CLOSING TASK GROUP\n");
     char* group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    debug("Close task group: %s\n", (group_name));
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
-    debug("####C#### COMPSs task group: %s closed\n", (group_name));
+    debug("- App id: %ld \n", (app_id));
     GS_CloseTaskGroup(group_name, app_id);
+    debug("Task group: %s closed\n", (group_name));
     Py_RETURN_NONE;
 }
 
@@ -575,10 +605,10 @@ static PyObject* close_task_group(PyObject* self, PyObject* args) {
   Returns the logging path.
 */
 static PyObject* get_logging_path(PyObject* self, PyObject* args) {
-    debug("####C#### GET LOG PATH\n");
+    debug("Get logs path\n");
     char* log_path;
     GS_Get_AppDir(&log_path);
-    debug("####C#### COMPSs log path %s\n", log_path);
+    debug("- COMPSs log path %s\n", (log_path));
     // This makes log_path unallocatable
     PyObject* ret = Py_BuildValue("s", log_path);
     return ret;
@@ -588,14 +618,14 @@ static PyObject* get_logging_path(PyObject* self, PyObject* args) {
   Requests the number of active resources to the runtime.
 */
 static PyObject* get_number_of_resources(PyObject* self, PyObject* args) {
-    debug("####C#### GET NUMBER OF RESOURCES\n");
+    debug("Get number of resources\n");
     long app_id;
     if (!PyArg_ParseTuple(args, "l", &app_id)) {
         return NULL;
     }
-    debug("####C#### COMPSs getNumberOfResources for AppId: %ld \n", (app_id));
+    debug("- App id: %ld\n", (app_id));
     int resources = GS_GetNumberOfResources(app_id);
-    debug("####C#### COMPSs getNumberOfResources returned: %u\n", (resources));
+    debug("Number of resources: %i\n", (resources));
     PyObject* ret = Py_BuildValue("i", resources);
     return ret;
 }
@@ -604,15 +634,14 @@ static PyObject* get_number_of_resources(PyObject* self, PyObject* args) {
   Requests the runtime to increase a given number of resources.
 */
 static PyObject* request_resources(PyObject* self, PyObject* args) {
-    debug("####C#### REQUEST RESOURCES CREATION\n");
-
+    debug("Request resources creation\n");
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     int num_resources = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
     char* group_name = _pystring_to_char(PyTuple_GetItem(args, 2));
 
-    debug("####C#### COMPSs request resources creation for AppId: %ld \n", (app_id));
-    debug("####C#### COMPSs request resources creation num_resources: %u \n", (num_resources));
-    debug("####C#### COMPSs request resources creation group_name: %s \n", (group_name));
+    debug("- App id: %ld\n", (app_id));
+    debug("- Number of resources: %i\n", (num_resources));
+    debug("- Group name: %s\n", (group_name));
 
     GS_RequestResources(app_id, num_resources, group_name);
     Py_RETURN_NONE;
@@ -622,15 +651,15 @@ static PyObject* request_resources(PyObject* self, PyObject* args) {
   Requests the runtime to decrease a given number of resources.
 */
 static PyObject* free_resources(PyObject* self, PyObject* args) {
-    debug("####C#### REQUEST RESOURCES DESTRUCTION\n");
+    debug("Request resources destruction\n");
 
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     int num_resources = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 2));
 
-    debug("####C#### COMPSs request resources destruction for AppId: %ld \n", (app_id));
-    debug("####C#### COMPSs request resources destruction num_resources: %u \n", (num_resources));
-    debug("####C#### COMPSs request resources destruction group_name: %s \n", (group_name));
+    debug("- App id: %ld\n", (app_id));
+    debug("- Number of resources: %i\n", (num_resources));
+    debug("- Group name: %s\n", (group_name));
 
     GS_FreeResources(app_id, num_resources, group_name);
     Py_RETURN_NONE;
@@ -640,7 +669,7 @@ static PyObject* free_resources(PyObject* self, PyObject* args) {
   Registers a new core element
 */
 static PyObject* register_core_element(PyObject* self, PyObject* args) {
-    debug("####C#### REGISTER CORE ELEMENT\n");
+    debug("Register core element\n");
     char* CESignature;
     char* ImplSignature;
     char* ImplConstraints;
@@ -652,17 +681,17 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
         return NULL;
     }
 
-    debug("####C#### Core Element Signature: %s\n", CESignature);
-    debug("####C#### Implementation Signature: %s\n", ImplSignature);
-    debug("####C#### Implementation Constraints: %s\n", ImplConstraints);
-    debug("####C#### Implementation Type: %s\n", ImplType);
-    debug("####C#### Implementation IO: %s\n", ImplIO);
+    debug("- Core Element Signature: %s\n", CESignature);
+    debug("- Implementation Signature: %s\n", ImplSignature);
+    debug("- Implementation Constraints: %s\n", ImplConstraints);
+    debug("- Implementation Type: %s\n", ImplType);
+    debug("- Implementation IO: %s\n", ImplIO);
     int num_params = PyList_Size(typeArgs);
-    debug("####C#### Implementation Type num args: %i\n", num_params);
+    debug("- Implementation Type num args: %i\n", num_params);
     char** ImplTypeArgs = new char*[num_params];
     for(int i = 0; i < num_params; ++i) {
         ImplTypeArgs[i] = _pystring_to_char(PyList_GetItem(typeArgs, i));
-        debug("####C#### Implementation Type Args: %s\n", ImplTypeArgs[i]);
+        debug("- Implementation Type Args: %s\n", ImplTypeArgs[i]);
     }
     // Invoke the C library
     GS_RegisterCE(CESignature,
@@ -672,7 +701,7 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
                   ImplIO,
                   num_params,
                   ImplTypeArgs);
-    debug("####C#### CORE ELEMENT REGISTERED\n");
+    debug("Core element registered\n");
     // Free all allocated memory
     delete ImplTypeArgs;
     Py_RETURN_NONE;
@@ -683,6 +712,7 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
 */
 static PyMethodDef CompssMethods[] = {
     { "error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
+    { "set_debug", set_debug, METH_VARARGS, "Set debug mode." },
     { "start_runtime", start_runtime, METH_VARARGS, "Start the COMPSs runtime." },
     { "stop_runtime", stop_runtime, METH_VARARGS, "Stop the COMPSs runtime." },
     { "cancel_application_tasks", cancel_application_tasks, METH_VARARGS, "Cancel all tasks of an application." },

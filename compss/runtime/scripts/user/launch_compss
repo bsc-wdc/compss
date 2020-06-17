@@ -543,6 +543,9 @@ xml_project_add_elasticity() {
     if [ -n "${automatic_scaling}" ]; then
       props="$props automatic-scaling=${automatic_scaling}"
     fi
+    if [ -n "${ELASTICITY_BATCH}" ]; then
+      props="$props batch_job=${ELASTICITY_BATCH}"
+    fi
 
     add_cloud 0 0 "${elasticity}" "SLURM-Cluster" "${props}" "${container_image}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "${appdir:-NULL}" "${library_path:-NULL}" "${cp:-NULL}" "${pythonpath:-NULL}" "${max_tasks_per_node}" "default"
   fi

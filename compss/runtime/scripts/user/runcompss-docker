@@ -7,7 +7,9 @@ DOCKER_DEFAULT_PORT=2376
 DOCKER_DEFAULT_PROTOCOL="tcp"
 GENERATORS_DIR=$(dirname "$0")/../system/docker/
 GENERATE_COMPOSE_YML=$GENERATORS_DIR/generate-compose-yml
-
+DEFAULT_MEM=4
+DEFAULT_CU=1
+DEFAULT_ELASTIC=0
 
 #
 # HELPER FUNCTIONS
@@ -58,18 +60,17 @@ MANDATORY ARGUMENTS:
 
 OPTIONAL ARGUMENTS:
 
-    --c-cpu-units:             Specify the number of cpu units used by each container (default value is 4).
+    --c-cpu-units:             Specify the number of cpu units used by each container (default value is $DEFAULT_CU).
                                Example: --c-cpu-units=16
 
-    --c-memory:                Specify the physical memory used by each container in GB (default value is 8 GB).
+    --c-memory:                Specify the physical memory used by each container in GB (default value is $DEFAULT_MEM GB).
                                Example: --c-memory=32  # (each container will use 32 GB)
 
-    --vm-creation-time:        Time required to create a docker container on cloud (default: 60 sec)
-                               Example: --vm-creation-time=12
+    --c-creation-time:         Time required to create a docker container on cloud (default: 60 sec)
+                               Example: --c-creation-time=12
 
-    --min-vms:                 Minimum number of docker containers to run on cloud
+    --c-elasticity:            Number of docker containers to run on cloud mode (default: $DEFAULT_ELASTIC)
 
-    --max-vms:                 Maximum number of docker containers to run on cloud
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 "
@@ -126,11 +127,11 @@ retrieveResults() {
 #
 
 ALL_ARGS=( "$@" )
-COMPUTING_UNITS=4
-MEMORY=8
+COMPUTING_UNITS=${DEFAULT_CU}
+MEMORY=${DEFAULT_MEM}
 CREATION_TIME=60
 MIN_VMS=0
-MAX_VMS=0
+MAX_VMS=${DEFAULT_ELASTIC}
 RUNCOMPSS_ARGS=$* # this loop will strip from RUNCOMPSS_ARGS all the runcomps-docker args
 
 # Retrieve parameters
@@ -162,13 +163,10 @@ for ARG in "${ALL_ARGS[@]}"; do
     elif [ "$argName" = "c-memory" ]; then
         MEMORY="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "vm-creation-time" ]; then
+    elif [ "$argName" = "c-creation-time" ]; then
         CREATION_TIME="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "min-vms" ]; then
-        MIN_VMS="$argValue"
-        RD_GOOD_ARG=1
-    elif [ "$argName" = "max-vms" ]; then
+    elif [ "$argName" = "c-elasticity" ]; then
         MAX_VMS="$argValue"
         RD_GOOD_ARG=1
     fi
@@ -187,9 +185,8 @@ ECHO "Image name:           $IMAGE_NAME"
 ECHO "Number of workers:    $NUM_WORKER_CONTAINERS"
 ECHO "Swarm manager ip:     $SWARM_MANAGER_IP"
 ECHO "Context directory:    $ABS_CONTEXT"
-ECHO "VM creation time:     $CREATION_TIME"
-ECHO "Minimum vms to run:   $MIN_VMS"
-ECHO "Maximum vms to run:   $MAX_VMS"
+ECHO "Creation time:        $CREATION_TIME"
+ECHO "Elastic Containers:   $MAX_VMS"
 ECHO "-----------------------------------"
 ECHO ""
 

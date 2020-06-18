@@ -295,7 +295,9 @@ def start_runtime(log_level='off'):
     """
     if __debug__:
         logger.info("Starting COMPSs...")
-    if log_level in ['trace', 'debug', True]:
+    if log_level == 'trace':
+        # Could also be 'debug' or True, but we only show the C extension
+        # debug in the maximum tracing level.
         compss.set_debug(True)
     compss.start_runtime()
     if __debug__:

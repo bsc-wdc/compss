@@ -73,9 +73,6 @@ public class ITAppEditor extends ExprEditor {
     // Inserted method calls
     private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
     private static final String COMPSS_FILE_SYNCH = "COMPSsFile.synchFile(";
-    private static final String GET_INTERNAL_OBJECT = ".getInternalObject(";
-    private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
-    private static final String SERIALIZE_LOCALLY = ".serializeLocally(";
     private static final String NEW_FILTER_STREAM = ".newFilterStream(";
     private static final String STREAM_CLOSED = ".streamClosed(";
     private static final String GET_CANONICAL_PATH = ".getCanonicalPath(";
@@ -172,11 +169,12 @@ public class ITAppEditor extends ExprEditor {
                                     + " is an object, adding access");
                             }
 
-                            String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ")";
-                            modifiedExpr.insert(0, itORVar + NEW_OBJECT_ACCESS + parId + ");");
+                            String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
+                            modifiedExpr.insert(0, CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                             callPars.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                 .append("(" + parType.getName() + ")").append(internalObject);
-                            toSerialize.append(itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
+                            toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
+                                .append(";");
                         }
                     }
                 }
@@ -319,10 +317,10 @@ public class ITAppEditor extends ExprEditor {
 
         // First check the object containing the field
         StringBuilder toInclude = new StringBuilder();
-        toInclude.append(itORVar).append(NEW_OBJECT_ACCESS).append("$0,").append(isWriter).append(");");
+        toInclude.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, "$0", isWriter)).append(";");
 
         // Execute the access on the internal object
-        String internalObject = itORVar + GET_INTERNAL_OBJECT + "$0)";
+        String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$0");
         String objectClass = fa.getClassName();
         toInclude.append("if (").append(internalObject).append(" != null) {");
         if (isWriter) {
@@ -331,7 +329,7 @@ public class ITAppEditor extends ExprEditor {
                 .append(" = $1;");
             toInclude.append("} else { " + PROCEED + "$$); }");
             // Serialize the (internal) object locally after the access
-            toInclude.append(itORVar).append(SERIALIZE_LOCALLY + "$0);");
+            toInclude.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, "$0")).append(";");
         } else {
             // read the field value
             toInclude.append("$_ = ((").append(objectClass).append(')').append(internalObject).append(").")
@@ -369,7 +367,7 @@ public class ITAppEditor extends ExprEditor {
             if (className.equals(File.class.getCanonicalName())) {
                 modifiedExpr = "$_ = " + this.itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
             } else {
-                String internalObject = this.itORVar + GET_INTERNAL_OBJECT + "$1)";
+                String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$1");
                 String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
                 modifiedExpr =
                     PROCEED + callPars + "); " + "if ($_ instanceof " + FilterInputStream.class.getCanonicalName()
@@ -798,9 +796,10 @@ public class ITAppEditor extends ExprEditor {
                  * After execute task, register an access to the wrapper object, get its (remotely) generated value and
                  * assign it to the application's primitive type var
                  */
-                afterExecute.append(this.itORVar).append(NEW_OBJECT_ACCESS).append(tempRetVar).append(");");
-                afterExecute.append("$_ = (").append(cast).append(this.itORVar).append(GET_INTERNAL_OBJECT)
-                    .append(tempRetVar).append(")).").append(converterMethod).append(";");
+                afterExecute.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, tempRetVar)).append(";");
+                afterExecute.append("$_ = (").append(cast)
+                    .append(CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, tempRetVar)).append(").")
+                    .append(converterMethod).append(";");
             } else if (retType.isArray()) {
                 // ARRAY
                 String typeName = retType.getName();
@@ -953,8 +952,8 @@ public class ITAppEditor extends ExprEditor {
         boolean isArrayWatch = method.getDeclaringClass().getName().equals(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
 
         // First check the target object
-        modifiedCall.append(this.itORVar).append(NEW_OBJECT_ACCESS + "$0);");
-        toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY + "$0);");
+        modifiedCall.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, "$0")).append(";");
+        toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, "$0")).append(";");
 
         /*
          * Now add the call. If the target object of the call is a task object, invoke the method on the internal object
@@ -1013,22 +1012,26 @@ public class ITAppEditor extends ExprEditor {
                                 || calledClass.equals(StringBuilder.class.getName())) {
                                 // If the call is inside a PrintStream or StringBuilder, only synchronize objects files
                                 // already has the name
-                                String internalObject = this.itORVar + GET_INTERNAL_OBJECT + parId + ')';
-                                modifiedCall.insert(0, this.itORVar + NEW_OBJECT_ACCESS + parId + ");");
+                                String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
+                                modifiedCall.insert(0,
+                                    CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                                 aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                     .append("(" + parType.getName() + ")").append(internalObject);
-                                toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
+                                toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
+                                    .append(";");
                             } else {
-                                String internalObject = this.itORVar + GET_INTERNAL_OBJECT + parId + ')';
+                                String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
                                 String taskFile = this.itSRVar + IS_TASK_FILE + parId + ")";
                                 String apiOpenFile =
                                     this.itApiVar + OPEN_FILE + parId + ", " + DATA_DIRECTION + ".INOUT)";
-                                modifiedCall.insert(0, this.itORVar + NEW_OBJECT_ACCESS + parId + ");");
+                                modifiedCall.insert(0,
+                                    CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                                 // Adding check of task files
                                 aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ")
                                     .append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                     .append("(" + parType.getName() + ")").append(internalObject);
-                                toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
+                                toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
+                                    .append(";");
                             }
                         }
                     } else { // Object (also array)
@@ -1041,11 +1044,12 @@ public class ITAppEditor extends ExprEditor {
                             // Prevent from synchronizing task return objects to be stored in an array position
                             aux1.append(parId);
                         } else {
-                            String internalObject = this.itORVar + GET_INTERNAL_OBJECT + parId + ')';
-                            modifiedCall.insert(0, this.itORVar + NEW_OBJECT_ACCESS + parId + ");");
+                            String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
+                            modifiedCall.insert(0, CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                             aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                 .append("(" + parType.getName() + ")").append(internalObject);
-                            toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
+                            toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
+                                .append(";");
                         }
                     }
                     i++;
@@ -1056,7 +1060,7 @@ public class ITAppEditor extends ExprEditor {
         } catch (NotFoundException e) {
             throw new CannotCompileException(e);
         }
-        String internalObject = this.itORVar + GET_INTERNAL_OBJECT + "$0)";
+        String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$0");
         modifiedCall.append("if (").append(internalObject).append(" != null) {")
             .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT).append(internalObject).append(",$class,\"").append(methodName)
             .append("\",").append(redirectedCallPars).append(",$sig);")

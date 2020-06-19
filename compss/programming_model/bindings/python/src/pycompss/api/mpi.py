@@ -107,9 +107,6 @@ class MPI(PyCOMPSsDecorator):
         @wraps(func)
         def mpi_f(*args, **kwargs):
             if not self.scope:
-                # from pycompss.api.dummy.mpi import mpi as dummy_mpi
-                # d_m = dummy_mpi(self.args, self.kwargs)
-                # return d_m.__call__(func)
                 raise Exception(not_in_pycompss("mpi"))
 
             if __debug__:

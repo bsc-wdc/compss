@@ -93,9 +93,6 @@ class Decaf(PyCOMPSsDecorator):
         @wraps(func)
         def decaf_f(*args, **kwargs):
             if not self.scope:
-                # from pycompss.api.dummy.decaf import decaf as dummy_decaf
-                # d_d = dummy_decaf(self.args, self.kwargs)
-                # return d_d.__call__(func)
                 raise Exception(not_in_pycompss("decaf"))
 
             if __debug__:

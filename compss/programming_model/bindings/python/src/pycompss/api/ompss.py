@@ -87,9 +87,6 @@ class OmpSs(PyCOMPSsDecorator):
         @wraps(func)
         def ompss_f(*args, **kwargs):
             if not self.scope:
-                # from pycompss.api.dummy.ompss import ompss as dummy_ompss
-                # d_o = dummy_ompss(self.args, self.kwargs)
-                # return d_o.__call__(func)
                 raise Exception(not_in_pycompss("ompss"))
 
             if __debug__:

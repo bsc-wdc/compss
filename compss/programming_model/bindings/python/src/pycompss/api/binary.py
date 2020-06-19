@@ -82,9 +82,6 @@ class Binary(PyCOMPSsDecorator):
         @wraps(func)
         def binary_f(*args, **kwargs):
             if not self.scope:
-                # from pycompss.api.dummy.binary import binary as dummy_binary
-                # d_b = dummy_binary(self.args, self.kwargs)
-                # return d_b.__call__(func)
                 raise Exception(not_in_pycompss("binary"))
 
             if __debug__:

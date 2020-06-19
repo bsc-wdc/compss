@@ -82,9 +82,6 @@ class Implement(PyCOMPSsDecorator):
         def implement_f(*args, **kwargs):
             # This is executed only when called.
             if not self.scope:
-                # from pycompss.api.dummy.implement import implement as dummy_implement  # noqa: E501
-                # d_i = dummy_implement(self.args, self.kwargs)
-                # return d_i.__call__(func)
                 raise Exception(not_in_pycompss("implement"))
 
             if __debug__:

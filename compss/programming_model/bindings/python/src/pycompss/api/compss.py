@@ -91,9 +91,6 @@ class COMPSs(PyCOMPSsDecorator):
         @wraps(func)
         def compss_f(*args, **kwargs):
             if not self.scope:
-                # from pycompss.api.dummy.compss import COMPSs as dummy_compss
-                # d_m = dummy_compss(self.args, self.kwargs)
-                # return d_m.__call__(func)
                 raise Exception(not_in_pycompss("compss"))
 
             if __debug__:

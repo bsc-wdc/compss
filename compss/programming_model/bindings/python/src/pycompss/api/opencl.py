@@ -78,9 +78,6 @@ class OpenCL(PyCOMPSsDecorator):
         @wraps(func)
         def opencl_f(*args, **kwargs):
             if not self.scope:
-                # from pycompss.api.dummy.opencl import opencl as dummy_opencl
-                # d_ocl = dummy_opencl(self.args, self.kwargs)
-                # return d_ocl.__call__(func)
                 raise Exception(not_in_pycompss("opencl"))
 
             if __debug__:

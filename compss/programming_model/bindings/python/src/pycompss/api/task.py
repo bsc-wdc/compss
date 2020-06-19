@@ -32,6 +32,7 @@ import inspect
 from functools import wraps
 
 import pycompss.api.parameter as parameter
+from pycompss.api.parameter import _Parameter
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.core_element import CE
@@ -331,9 +332,6 @@ class Task(PyCOMPSsDecorator):
 
         :param f: Function to check
         """
-        from pycompss.api.parameter import Parameter
-        from pycompss.api.parameter import DIRECTION
-        from pycompss.api.parameter import TYPE
         from pycompss.util.objects.properties import get_wrapped_source
         import ast
 
@@ -351,14 +349,14 @@ class Task(PyCOMPSsDecorator):
                     num_returns = 1
                 if num_returns > 1:
                     for i in range(num_returns):
-                        param = Parameter(p_type=TYPE.FILE,
-                                          p_direction=DIRECTION.OUT)
-                        param.object = object()
+                        param = _Parameter(content_type=parameter.TYPE.FILE,
+                                           direction=parameter.DIRECTION.OUT)
+                        param.content = object()
                         self.returns[parameter.get_return_name(i)] = param
                 else:
-                    param = Parameter(p_type=TYPE.FILE,
-                                      p_direction=DIRECTION.OUT)
-                    param.object = object()
+                    param = _Parameter(content_type=parameter.TYPE.FILE,
+                                       direction=parameter.DIRECTION.OUT)
+                    param.content = object()
                     self.returns[parameter.get_return_name(0)] = param
                 # Found return defined as type-hint
                 return
@@ -431,14 +429,14 @@ class Task(PyCOMPSsDecorator):
                         pass
             if has_multireturn:
                 for i in range(max_num_returns):
-                    param = Parameter(p_type=TYPE.FILE,
-                                      p_direction=DIRECTION.OUT)
-                    param.object = object()
+                    param = _Parameter(content_type=parameter.TYPE.FILE,
+                                       direction=parameter.DIRECTION.OUT)
+                    param.content = object()
                     self.returns[parameter.get_return_name(i)] = param
             else:
-                param = Parameter(p_type=TYPE.FILE,
-                                  p_direction=DIRECTION.OUT)
-                param.object = object()
+                param = _Parameter(content_type=parameter.TYPE.FILE,
+                                   direction=parameter.DIRECTION.OUT)
+                param.content = object()
                 self.returns[parameter.get_return_name(0)] = param
         else:
             # Return not found
@@ -740,10 +738,10 @@ class Task(PyCOMPSsDecorator):
         # defined.
         # This avoids conflicts with task inheritance.
         if self.first_arg_name == 'self':
-            mod = inspect.getmodule(type(self.parameters['self'].object))
+            mod = inspect.getmodule(type(self.parameters['self'].content))
             self.module_name = mod.__name__
         elif self.first_arg_name == 'cls':
-            self.module_name = self.parameters['cls'].object.__module__
+            self.module_name = self.parameters['cls'].content.__module__
         if self.module_name == '__main__' or \
                 self.module_name == 'pycompss.runtime.launch':
             # The module where the function is defined was run as __main__,
@@ -777,10 +775,10 @@ class Task(PyCOMPSsDecorator):
         self.class_name = ''
         if self.first_arg_name == 'self':
             self.function_type = FunctionType.INSTANCE_METHOD
-            self.class_name = type(self.parameters['self'].object).__name__
+            self.class_name = type(self.parameters['self'].content).__name__
         elif self.first_arg_name == 'cls':
             self.function_type = FunctionType.CLASS_METHOD
-            self.class_name = self.parameters['cls'].object.__name__
+            self.class_name = self.parameters['cls'].content.__name__
         # Finally, check if the function type is really a module function or
         # a static method.
         # Static methods are ONLY supported with Python 3 due to __qualname__
@@ -879,9 +877,9 @@ class Task(PyCOMPSsDecorator):
         for (i, elem) in enumerate(to_return):
             ret_type = parameter.get_compss_type(elem)
             self.returns[parameter.get_return_name(i)] = \
-                parameter.Parameter(p_type=ret_type,
-                                    p_object=elem,
-                                    p_direction=parameter.OUT)
+                _Parameter(content=elem,
+                           content_type=ret_type,
+                           direction=parameter.OUT)
             # Hopefully, an exception have been thrown if some invalid
             # stuff has been put in the returns field
 
@@ -1137,9 +1135,9 @@ class Task(PyCOMPSsDecorator):
                                                                          self.get_default_direction(var_name))   # noqa: E501
 
             # If the parameter is a FILE then its type will already be defined,
-            # and get_compss_type will misslabel it as a TYPE.STRING
-            if self.parameters[var_name].type is None:
-                self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])      # noqa: E501
+            # and get_compss_type will misslabel it as a parameter.TYPE.STRING
+            if self.parameters[var_name].content_type is None:
+                self.parameters[var_name].content_type = parameter.get_compss_type(parameter_values[var_name])      # noqa: E501
 
             # TODO: add 'dir_name' to the parameter object
             if parameter.is_file(self.parameters[var_name]) or \
@@ -1148,9 +1146,9 @@ class Task(PyCOMPSsDecorator):
                     self.parameters[var_name].file_name = parameter_values[var_name]                        # noqa: E501
                 else:
                     # is None: Used None for a FILE or DIRECTORY parameter path
-                    self.parameters[var_name].type = parameter.TYPE.NULL
+                    self.parameters[var_name].content_type = parameter.TYPE.NULL
             else:
-                self.parameters[var_name].object = parameter_values[var_name]
+                self.parameters[var_name].content = parameter_values[var_name]
 
         # Check the arguments - Look for mandatory and unexpected arguments
         supported_args = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS + self.param_args                       # noqa: E501
@@ -1197,13 +1195,13 @@ class Task(PyCOMPSsDecorator):
         original_name = parameter.get_original_name(name)
         # Get the args parameter object
         if parameter.is_vararg(original_name):
-            return self.get_varargs_direction().type is None
+            return self.get_varargs_direction().content_type is None
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
             annotated = [parameter.TYPE.COLLECTION,
                          parameter.TYPE.EXTERNAL_STREAM,
                          None]
-            return self.decorator_arguments[original_name].type in annotated
+            return self.decorator_arguments[original_name].content_type in annotated
         # The parameter is not annotated in the decorator, so (by default)
         # return True
         return True
@@ -1259,7 +1257,7 @@ class Task(PyCOMPSsDecorator):
                 self.param_varargs = _arg.name
                 if __debug__:
                     logger.debug("\t\t - It is vararg")
-            if _arg.type == parameter.TYPE.FILE:
+            if _arg.content_type == parameter.TYPE.FILE:
                 if self.is_parameter_an_object(_arg.name):
                     # The object is stored in some file, load and deserialize
                     f_name = _arg.file_name.split(':')[-1]
@@ -1274,15 +1272,15 @@ class Task(PyCOMPSsDecorator):
                     _arg.content = _arg.file_name.split(':')[-1]
                     if __debug__:
                         logger.debug("\t\t - It is FILE: " + str(_arg.content))
-            elif _arg.type == parameter.TYPE.DIRECTORY:
+            elif _arg.content_type == parameter.TYPE.DIRECTORY:
                 if __debug__:
                     logger.debug("\t\t - It is a DIRECTORY")
                 _arg.content = _arg.file_name.split(":")[-1]
-            elif _arg.type == parameter.TYPE.EXTERNAL_STREAM:
+            elif _arg.content_type == parameter.TYPE.EXTERNAL_STREAM:
                 if __debug__:
                     logger.debug("\t\t - It is an EXTERNAL STREAM")
                 _arg.content = deserialize_from_file(_arg.file_name)
-            elif _arg.type == parameter.TYPE.COLLECTION:
+            elif _arg.content_type == parameter.TYPE.COLLECTION:
                 _arg.content = []
                 # This field is exclusive for COLLECTION_T parameters, so make
                 # sure you have checked this parameter is a collection before
@@ -1353,13 +1351,13 @@ class Task(PyCOMPSsDecorator):
                         _arg.collection_content.append(content_file)
 
             elif not storage_supports_pipelining() and \
-                    _arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                    _arg.content_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
                     logger.debug("\t\t - It is a PSCO")
                 # The object is a PSCO and the storage does not support
                 # pipelining, do a single getByID of the PSCO
                 from storage.api import getByID  # noqa
-                _arg.content = getByID(_arg.key)
+                _arg.content = getByID(_arg.content)
                 # If we have not entered in any of these cases we will assume
                 # that the object was a basic type and the content is already
                 # available and properly casted by the python worker
@@ -1368,17 +1366,17 @@ class Task(PyCOMPSsDecorator):
             if __debug__:
                 logger.debug("The storage supports pipelining.")
             # Perform the pipelined getByID operation
-            pscos = [x for x in args if x.type == parameter.TYPE.EXTERNAL_PSCO]
-            identifiers = [x.key for x in pscos]
+            pscos = [x for x in args if x.content_type == parameter.TYPE.EXTERNAL_PSCO]
+            identifiers = [x.content for x in pscos]
             from storage.api import getByID  # noqa
             objects = getByID(*identifiers)
-            # Just update the TaskParameter object with its content
+            # Just update the _Parameter object with its content
             for (obj, value) in zip(objects, pscos):
                 obj.content = value
 
         # Deal with all the parameters that are NOT returns
         for arg in [x for x in args if
-                    isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:  # noqa: E501
+                    isinstance(x, _Parameter) and not parameter.is_return(x.name)]:  # noqa: E501
             retrieve_content(arg, "")
 
     def worker_call(self, *args, **kwargs):
@@ -1426,7 +1424,7 @@ class Task(PyCOMPSsDecorator):
         for arg in args:
             # Just fill the three data structures declared above
             # Deal with the self parameter (if any)
-            if not isinstance(arg, parameter.TaskParameter):
+            if not isinstance(arg, _Parameter):
                 user_args.append(arg)
             # All these other cases are all about regular parameters
             elif parameter.is_return(arg.name):
@@ -1450,7 +1448,7 @@ class Task(PyCOMPSsDecorator):
         # Save the self object type and value before executing the task
         # (it could be persisted inside if its a persistent object)
         has_self = False
-        if args and not isinstance(args[0], parameter.TaskParameter):
+        if args and not isinstance(args[0], _Parameter):
             if __debug__:
                 logger.debug("Detected self parameter")
             # Then the first arg is self
@@ -1510,7 +1508,7 @@ class Task(PyCOMPSsDecorator):
         def get_collection_objects(_content, _arg):
             """ Retrieve collection objects recursively
             """
-            if _arg.type == parameter.TYPE.COLLECTION:
+            if _arg.content_type == parameter.TYPE.COLLECTION:
                 for (new_con, _elem) in zip(_arg.content,
                                             _arg.collection_content):
                     for sub_el in get_collection_objects(new_con, _elem):
@@ -1527,7 +1525,7 @@ class Task(PyCOMPSsDecorator):
             # handle only task parameters that are objects
 
             # skip files and non-task-parameters
-            if not isinstance(arg, parameter.TaskParameter) or \
+            if not isinstance(arg, _Parameter) or \
                     not self.is_parameter_an_object(arg.name):
                 continue
 
@@ -1536,9 +1534,9 @@ class Task(PyCOMPSsDecorator):
                 continue
 
             # skip psco
-            # since param.type has the old type, we can not use:
-            #     param.type != parameter.TYPE.EXTERNAL_PSCO
-            _is_psco_true = (arg.type == parameter.TYPE.EXTERNAL_PSCO or
+            # since param.content_type has the old type, we can not use:
+            #     param.content_type != parameter.TYPE.EXTERNAL_PSCO
+            _is_psco_true = (arg.content_type == parameter.TYPE.EXTERNAL_PSCO or
                              is_psco(arg.content))
             if _is_psco_true:
                 continue
@@ -1548,7 +1546,7 @@ class Task(PyCOMPSsDecorator):
                 original_name, self.get_default_direction(original_name))
 
             # skip non-inouts or non-col_outs
-            _is_col_out = (arg.type == parameter.TYPE.COLLECTION and
+            _is_col_out = (arg.content_type == parameter.TYPE.COLLECTION and
                            param.direction == parameter.DIRECTION.OUT)
 
             _is_inout = (param.direction == parameter.DIRECTION.INOUT or
@@ -1612,7 +1610,7 @@ class Task(PyCOMPSsDecorator):
             # returns matches the number of return parameters
             for (obj, param) in zip(user_returns, ret_params):
                 # If the object is a PSCO, do not serialize to file
-                if param.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
+                if param.content_type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
                     continue
                 # Serialize the object
                 # Note that there is no "command line optimization" in the
@@ -1669,18 +1667,18 @@ class Task(PyCOMPSsDecorator):
         # The results parameter is a boolean to distinguish the error message.
         for arg in args[params_start:params_end - 1]:
             # Loop through the arguments and update new_types and new_values
-            if not isinstance(arg, parameter.TaskParameter):
+            if not isinstance(arg, _Parameter):
                 raise Exception('ERROR: A task parameter arrived as an' +
-                                ' object instead as a TaskParameter' +
+                                ' object instead as a _Parameter' +
                                 ' when building the task result message.')
             else:
                 original_name = parameter.get_original_name(arg.name)
                 param = self.decorator_arguments.get(original_name,
                                                      self.get_default_direction(original_name))  # noqa: E501
-                if arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                if arg.content_type == parameter.TYPE.EXTERNAL_PSCO:
                     # It was originally a persistent object
                     new_types.append(parameter.TYPE.EXTERNAL_PSCO)
-                    new_values.append(arg.key)
+                    new_values.append(arg.content)
                 elif is_psco(arg.content) and \
                         param.direction != parameter.DIRECTION.IN:
                     # It was persisted in the task
@@ -1693,7 +1691,7 @@ class Task(PyCOMPSsDecorator):
                     new_values.append(collection_new_values)
                 else:
                     # Any other return object: same type and null value
-                    new_types.append(arg.type)
+                    new_types.append(arg.content_type)
                     new_values.append('null')
 
         # Check old targetDirection

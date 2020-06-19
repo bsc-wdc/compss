@@ -24,7 +24,7 @@ PyCOMPSs Binding - Binding
 """
 
 import pycompss.api.parameter as parameter
-from pycompss.api.parameter import Parameter
+from pycompss.api.parameter import _Parameter
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
@@ -138,7 +138,7 @@ _runtime_id = str(uuid.uuid1())
 # to their filenames
 _addr2id2obj = {}
 
-content_type_format = "{}:{}"  # <module_path>:<class_name>
+extra_content_type_format = "{}:{}"  # <module_path>:<class_name>
 
 
 def calculate_identifier(obj):
@@ -873,8 +873,8 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
                         (including packages, if any)
     :param class_name: Name of the class (if method)
     :param ftype: Function type
-    :param f_parameters: Function parameters (dictionary {'param1':Parameter()}
-    :param f_returns: Function returns (dictionary {'*return_X':Parameter()}
+    :param f_parameters: Function parameters (dictionary {'param1':_Parameter()}  # noqa
+    :param f_returns: Function returns (dictionary {'*return_X':_Parameter()}
     :param task_kwargs: Decorator arguments
     :param num_nodes: Number of nodes that the task must use
     :param replicated: Boolean indicating if the task must be replicated
@@ -1058,7 +1058,7 @@ def _build_return_objects(f_returns):
         if __debug__:
             logger.debug("Simple object return found.")
         # Build the appropriate future object
-        ret_value = f_returns[parameter.get_return_name(0)].object
+        ret_value = f_returns[parameter.get_return_name(0)].content
         if type(ret_value) in \
                 _python_to_compss or ret_value in _python_to_compss:
             fo = Future()  # primitives,string,dic,list,tuple
@@ -1081,9 +1081,9 @@ def _build_return_objects(f_returns):
         objid_to_filename[obj_id] = ret_filename
         pending_to_synchronize[obj_id] = fo
         f_returns[parameter.get_return_name(0)] = \
-            Parameter(p_type=TYPE.FILE,
-                      p_direction=DIRECTION.OUT,
-                      p_prefix="#")
+            _Parameter(content_type=TYPE.FILE,
+                       direction=DIRECTION.OUT,
+                       prefix="#")
         f_returns[parameter.get_return_name(0)].file_name = ret_filename
     else:
         # Multireturn
@@ -1092,13 +1092,13 @@ def _build_return_objects(f_returns):
             logger.debug("Multiple objects return found.")
         for k, v in f_returns.items():
             # Build the appropriate future object
-            if v.object in _python_to_compss:
+            if v.content in _python_to_compss:
                 foe = Future()  # primitives, string, dic, list, tuple
-            elif inspect.isclass(v.object):
+            elif inspect.isclass(v.content):
                 # For objects:
                 # type of future has to be specified to allow o = func; o.func
                 try:
-                    foe = v.object()
+                    foe = v.content()
                 except TypeError:
                     if __debug__:
                         logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))  # noqa: E501
@@ -1115,9 +1115,9 @@ def _build_return_objects(f_returns):
             pending_to_synchronize[obj_id] = foe
             # Once determined the filename where the returns are going to
             # be stored, create a new Parameter object for each return object
-            f_returns[k] = Parameter(p_type=TYPE.FILE,
-                                     p_direction=DIRECTION.OUT,
-                                     p_prefix="#")
+            f_returns[k] = _Parameter(content_type=TYPE.FILE,
+                                      direction=DIRECTION.OUT,
+                                      prefix="#")
             f_returns[k].file_name = ret_filename
     return fo
 
@@ -1149,7 +1149,7 @@ def _serialize_objects(f_parameters):
         f_parameters[k] = p
 
         if __debug__:
-            logger.debug("Final type for parameter %s: %d" % (k, p.type))
+            logger.debug("Final type for parameter %s: %d" % (k, p.content_type))
 
 
 def _build_values_types_directions(ftype, f_parameters, f_returns,
@@ -1174,7 +1174,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     compss_directions = []
     compss_streams = []
     compss_prefixes = []
-    content_types = list()
+    extra_content_types = list()
     slf_name = None
     weights = []
     keep_renames = []
@@ -1196,7 +1196,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(st)
         compss_prefixes.append(pre)
         names.append(arg_names.pop(0))
-        content_types.append(ct)
+        extra_content_types.append(ct)
         weights.append(wght)
         keep_renames.append(kr)
     # Fill the values, compss_types, compss_directions, compss_streams and
@@ -1211,7 +1211,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(st)
         compss_prefixes.append(pre)
         names.append(slf_name)
-        content_types.append(ct)
+        extra_content_types.append(ct)
         weights.append(wght)
         keep_renames.append(kr)
 
@@ -1220,17 +1220,17 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     for r in f_returns:
         p = f_returns[r]
         values.append(f_returns[r].file_name)
-        compss_types.append(p.type)
+        compss_types.append(p.content_type)
         compss_directions.append(p.direction)
         compss_streams.append(p.stream)
         compss_prefixes.append(p.prefix)
         names.append(result_names.pop(0))
-        content_types.append(p.content_type)
+        extra_content_types.append(p.extra_content_type)
         weights.append(p.weight)
         keep_renames.append(p.keep_rename)
 
     return values, names, compss_types, compss_directions, compss_streams,\
-        compss_prefixes, content_types, weights, keep_renames
+        compss_prefixes, extra_content_types, weights, keep_renames
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
@@ -1239,55 +1239,60 @@ def _extract_parameter(param, code_strings, collection_depth=0):
 
     :param param: Parameter object
     :param code_strings: <Boolean> Encode strings
-    :return: value, type, direction stream prefix and content_type of the given
-    parameter
+    :return: value, type, direction stream prefix and extra_content_type of
+    the given parameter
     """
     con_type = parameter.UNDEFINED_CONTENT_TYPE
-    if param.type == TYPE.STRING and not param.is_future and code_strings:
+    if param.content_type == TYPE.STRING and not param.is_future and code_strings:
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
         # Considers multiple spaces between words
-        param.object = base64.b64encode(param.object.encode()).decode()
-        if len(param.object) == 0:
+        param.content = base64.b64encode(param.content.encode()).decode()
+        if len(param.content) == 0:
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
-            param.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
-        con_type = content_type_format.format(
-            "builtins", str(param.object.__class__.__name__))
+            param.content = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+        con_type = extra_content_type_format.format(
+            "builtins", str(param.content.__class__.__name__))
 
-    if param.type == TYPE.FILE or param.is_future:
+    if param.content_type == TYPE.FILE or param.is_future:
         # If the parameter is a file or is future, the content is in a file
         # and we register it as file
         value = param.file_name
         typ = TYPE.FILE
 
-    elif param.type == TYPE.DIRECTORY:
+    elif param.content_type == TYPE.DIRECTORY:
         value = param.file_name
         typ = TYPE.DIRECTORY
 
-    elif param.type == TYPE.OBJECT:
+    elif param.content_type == TYPE.OBJECT:
         # If the parameter is an object, its value is stored in a file and
         # we register it as file
         value = param.file_name
         typ = TYPE.FILE
 
         try:
-            _mf = sys.modules[param.object.__class__.__module__].__file__
+            _mf = sys.modules[param.content.__class__.__module__].__file__
         except AttributeError:
             # 'builtin' modules do not have __file__ attribute!
             _mf = "builtins"
 
-        _class_name = str(param.object.__class__.__name__)
-        con_type = content_type_format.format(_mf, _class_name)
+        _class_name = str(param.content.__class__.__name__)
+        con_type = extra_content_type_format.format(_mf, _class_name)
 
-    elif param.type == TYPE.EXTERNAL_STREAM:
+    elif param.content_type == TYPE.EXTERNAL_STREAM:
         # If the parameter type is stream, its value is stored in a file but
         # we keep the type
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
+<<<<<<< HEAD
     elif param.type == TYPE.COLLECTION or \
             (collection_depth > 0 and is_basic_iterable(param.object)):
+=======
+    elif param.content_type == TYPE.COLLECTION or \
+            (collection_depth > 0 and is_basic_iterable(param.obj)):
+>>>>>>> Unified Parameter and TaskParameter in _Parameter.
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator
@@ -1301,13 +1306,13 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     type2 Id2 pyType2
         #     ...
         #     typeN IdN pyTypeN
-        _class_name = str(param.object.__class__.__name__)
-        con_type = content_type_format.format("collection", _class_name)
-        value = "{} {} {}".format(get_object_id(param.object),
-                                  len(param.object), con_type)
-        pop_object_id(param.object)
+        _class_name = str(param.content.__class__.__name__)
+        con_type = extra_content_type_format.format("collection", _class_name)
+        value = "{} {} {}".format(get_object_id(param.content),
+                                  len(param.content), con_type)
+        pop_object_id(param.content)
         typ = TYPE.COLLECTION
-        for (i, x) in enumerate(param.object):
+        for (i, x) in enumerate(param.content):
             x_value, x_type, _, _, _, x_con_type, _, _ = _extract_parameter(
                 x,
                 code_strings,
@@ -1316,8 +1321,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
             value += ' %s %s %s' % (x_type, x_value, x_con_type)
     else:
         # Keep the original value and type
-        value = param.object
-        typ = param.type
+        value = param.content
+        typ = param.content_type
 
     # Get direction, stream and prefix
     direction = param.direction
@@ -1354,15 +1359,15 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
         # serializing the object.
         # Warning: calculate the size of a python object can be difficult
         # in terms of time and precision
-        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) \
+        if (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING) \
                 and not is_future and p.direction == DIRECTION.IN:
-            if not isinstance(p.object, base_string) and \
-                    isinstance(p.object,
+            if not isinstance(p.content, base_string) and \
+                    isinstance(p.content,
                                (list, dict, tuple, deque, set, frozenset)):
                 # check object size - The following line does not work
                 # properly with recursive objects
-                # bytes = sys.getsizeof(p.object)
-                num_bytes = total_sizeof(p.object)
+                # bytes = sys.getsizeof(p.content)
+                num_bytes = total_sizeof(p.content)
                 if __debug__:
                     megabytes = num_bytes / 1000000  # truncate
                     logger.debug("Object size %d bytes (%d Mb)." % (num_bytes,
@@ -1374,20 +1379,20 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                     # The arguments list is too long
                     if __debug__:
                         logger.debug("The object size is less than 320 kb.")
-                    real_value = p.object
+                    real_value = p.content
                     try:
-                        v = serialize_to_string(p.object)
-                        p.object = v.encode(STR_ESCAPE)
-                        p.type = TYPE.STRING
+                        v = serialize_to_string(p.content)
+                        p.content = v.encode(STR_ESCAPE)
+                        p.content_type = TYPE.STRING
                         if __debug__:
                             logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
                     except SerializerException:
-                        p.object = real_value
-                        p.type = TYPE.OBJECT
+                        p.content = real_value
+                        p.content_type = TYPE.OBJECT
                         if __debug__:
                             logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
                 else:
-                    p.type = TYPE.OBJECT
+                    p.content_type = TYPE.OBJECT
                     if __debug__:
                         logger.debug("Inferred type reestablished to Object.")
                         # if the parameter converts to an object, release the
@@ -1403,12 +1408,12 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
             from cPickle import PicklingError  # noqa
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size after serializing the parameter
-        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) \
+        if (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING) \
                 and not is_future and p.direction == DIRECTION.IN:
-            if not isinstance(p.object, base_string):
-                real_value = p.object
+            if not isinstance(p.content, base_string):
+                real_value = p.content
                 try:
-                    v = serialize_to_string(p.object)
+                    v = serialize_to_string(p.content)
                     v = v.encode(STR_ESCAPE)
                     # check object size
                     num_bytes = sys.getsizeof(v)
@@ -1422,13 +1427,13 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                         # arguments list too long error.
                         if __debug__:
                             logger.debug("The object size is less than 320 kb")
-                        p.object = v
-                        p.type = TYPE.STRING
+                        p.content = v
+                        p.content_type = TYPE.STRING
                         if __debug__:
                             logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
                     else:
-                        p.object = real_value
-                        p.type = TYPE.OBJECT
+                        p.content = real_value
+                        p.content_type = TYPE.OBJECT
                         if __debug__:
                             logger.debug("Inferred type reestablished to Object.")  # noqa: E501
                             # if the parameter converts to an object, release
@@ -1438,8 +1443,8 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                             # if max_obj_arg_size > 320000:
                             #     max_obj_arg_size = 320000
                 except PicklingError:
-                    p.object = real_value
-                    p.type = TYPE.OBJECT
+                    p.content = real_value
+                    p.content_type = TYPE.OBJECT
                     if __debug__:
                         logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
     else:
@@ -1458,22 +1463,22 @@ def _serialize_object_into_file(name, p):
     :param p: Object wrapper
     :return: p (whose type and value might be modified)
     """
-    if p.type == TYPE.OBJECT or p.type == TYPE.EXTERNAL_STREAM or p.is_future:
+    if p.content_type == TYPE.OBJECT or p.content_type == TYPE.EXTERNAL_STREAM or p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a
         # future (object)
         try:
-            val_type = type(p.object)
+            val_type = type(p.content)
             if isinstance(val_type, list):
                 # Is there a future object within the list?
-                if any(isinstance(v, Future) for v in p.object):
+                if any(isinstance(v, Future) for v in p.content):
                     if __debug__:
                         logger.debug("Found a list that contains future objects - synchronizing...")  # noqa: E501
                     mode = get_compss_mode('in')
-                    p.object = list(map(synchronize,
-                                        p.object,
-                                        [mode] * len(p.object)))
+                    p.content = list(map(synchronize,
+                                         p.content,
+                                         [mode] * len(p.content)))
             _skip_file_creation = (p.direction == DIRECTION.OUT and
-                                   p.type != TYPE.EXTERNAL_STREAM)
+                                   p.content_type != TYPE.EXTERNAL_STREAM)
             _turn_into_file(p, skip_creation=_skip_file_creation)
         except SerializerException:
             import sys
@@ -1484,63 +1489,63 @@ def _serialize_object_into_file(name, p):
             logger.exception("Pickling error exception: non-serializable object found as a parameter.")  # noqa: E501
             logger.exception(''.join(line for line in lines))
             print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")  # noqa: E501
-            print("[ ERROR ]: Object: %s" % p.object)
+            print("[ ERROR ]: Object: %s" % p.content)
             # Raise the exception up tu launch.py in order to point where the
             # error is in the user code.
             raise
-    elif p.type == TYPE.EXTERNAL_PSCO:
+    elif p.content_type == TYPE.EXTERNAL_PSCO:
         _manage_persistent_object(p)
-    elif p.type == TYPE.INT:
-        if p.object > JAVA_MAX_INT or p.object < JAVA_MIN_INT:
+    elif p.content_type == TYPE.INT:
+        if p.content > JAVA_MAX_INT or p.content < JAVA_MIN_INT:
             # This must go through Java as a long to prevent overflow with
             # Java integer
-            p.type = TYPE.LONG
-    elif p.type == TYPE.LONG:
-        if p.object > JAVA_MAX_LONG or p.object < JAVA_MIN_LONG:
+            p.content_type = TYPE.LONG
+    elif p.content_type == TYPE.LONG:
+        if p.content > JAVA_MAX_LONG or p.content < JAVA_MIN_LONG:
             # This must be serialized to prevent overflow with Java long
-            p.type = TYPE.OBJECT
+            p.content_type = TYPE.OBJECT
             _skip_file_creation = (p.direction == DIRECTION.OUT)
             _turn_into_file(p, _skip_file_creation)
-    elif p.type == TYPE.STRING:
+    elif p.content_type == TYPE.STRING:
         from pycompss.api.task import prepend_strings
         if prepend_strings:
             # Strings can be empty. If a string is empty their base64 encoding
             # will be empty.
             # So we add a leading character to it to make it non empty
-            p.object = '#%s' % p.object
-    elif p.type == TYPE.COLLECTION:
+            p.content = '#%s' % p.content
+    elif p.content_type == TYPE.COLLECTION:
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
         # (which will be used to reconstruct the collection in the worker)
         if p.is_file_collection:
             new_object = [
-                Parameter(
-                    p_type=TYPE.FILE,
-                    p_direction=p.direction,
-                    p_object=x,
-                    file_name=x,
-                    depth=p.depth - 1
+                _Parameter(
+                     content=x,
+                     content_type=TYPE.FILE,
+                     direction=p.direction,
+                     file_name=x,
+                     depth=p.depth - 1
                 )
-                for x in p.object
+                for x in p.content
             ]
         else:
             new_object = [
                 _serialize_object_into_file(
                     name,
-                    Parameter(
-                        p_type=get_compss_type(x, p.depth - 1),
-                        p_direction=p.direction,
-                        p_object=x,
+                    _Parameter(
+                        content=x,
+                        content_type=get_compss_type(x, p.depth - 1),
+                        direction=p.direction,
                         depth=p.depth - 1,
-                        content_type=str(type(x).__name__)
+                        extra_content_type=str(type(x).__name__)
                     )
                 )
-                for x in p.object
+                for x in p.content
             ]
 
-        p.object = new_object
+        p.content = new_object
         # Give this object an identifier inside the binding
-        get_object_id(p.object, True, False)
+        get_object_id(p.content, True, False)
     return p
 
 
@@ -1555,10 +1560,10 @@ def _manage_persistent_object(p):
     :param p: wrapper of the object to manage
     :return: None
     """
-    p.type = TYPE.EXTERNAL_PSCO
-    obj_id = get_id(p.object)
-    pending_to_synchronize[obj_id] = p.object  # obj_id
-    p.object = obj_id
+    p.content_type = TYPE.EXTERNAL_PSCO
+    obj_id = get_id(p.content)
+    pending_to_synchronize[obj_id] = p.content  # obj_id
+    p.content = obj_id
     if __debug__:
         logger.debug("Managed persistent object: %s" % obj_id)
 
@@ -1566,7 +1571,7 @@ def _manage_persistent_object(p):
 def _turn_into_file(p, skip_creation=False):
     """
     Write a object into a file if the object has not been already written
-    (p.object).
+    (p.content).
     Consults the objid_to_filename to check if it has already been written
     (reuses it if exists). If not, the object is serialized to file and
     registered in the objid_to_filename dictionary.
@@ -1576,37 +1581,37 @@ def _turn_into_file(p, skip_creation=False):
     :return: None
     """
     # print('p           : ', p)
-    # print('p.object    : ', p.object)
-    # print('p.type      : ', p.type)
+    # print('p.content    : ', p.content)
+    # print('p.content_type      : ', p.content_type)
     # print('p.direction : ', p.direction)
     # if p.direction == DIRECTION.OUT:
     #     # If the parameter is out, infer the type and create an empty
     #     # instance of the same type as the original parameter:
-    #     t = type(p.object)
-    #     p.object = t()
+    #     t = type(p.content)
+    #     p.content = t()
 
-    obj_id = get_object_id(p.object, True)
+    obj_id = get_object_id(p.content, True)
     file_name = objid_to_filename.get(obj_id)
     if file_name is None:
         # This is the first time a task accesses this object
-        pending_to_synchronize[obj_id] = p.object
+        pending_to_synchronize[obj_id] = p.content
         file_name = temp_dir + _temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = file_name
         if __debug__:
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
         if not skip_creation:
-            serialize_to_file(p.object, file_name)
+            serialize_to_file(p.content, file_name)
     elif obj_id in _objs_written_by_mp:
         if p.direction == DIRECTION.INOUT or \
                 p.direction == DIRECTION.COMMUTATIVE:
-            pending_to_synchronize[obj_id] = p.object
+            pending_to_synchronize[obj_id] = p.content
         # Main program generated the last version
         compss_file = _objs_written_by_mp.pop(obj_id)
         if __debug__:
             logger.debug("Serializing object %s to file %s" % (obj_id,
                                                                compss_file))
         if not skip_creation:
-            serialize_to_file(p.object, compss_file)
+            serialize_to_file(p.content, compss_file)
     else:
         pass
     # Set file name in Parameter object

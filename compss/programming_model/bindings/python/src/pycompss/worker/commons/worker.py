@@ -26,7 +26,7 @@ import signal
 import traceback
 import base64
 
-from pycompss.api.parameter import TaskParameter
+from pycompss.api.parameter import _Parameter
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
@@ -58,37 +58,37 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
     num_substrings = 0
     if p_type in [parameter.TYPE.FILE, parameter.TYPE.DIRECTORY,
                   parameter.TYPE.COLLECTION]:
-        # Maybe the file is a object, we dont care about this here
+        # Maybe the file is a object, we do not care about this here
         # We will decide whether to deserialize or to forward the value
         # when processing parameters in the task decorator
-        _param = TaskParameter(
-            p_type=p_type,
+        _param = _Parameter(
+            name=p_name,
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
-            name=p_name,
             file_name=p_value,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         )
         return _param, 0
     elif p_type == parameter.TYPE.EXTERNAL_PSCO:
         # Next position contains R/W but we do not need it. Currently skipped.
-        return TaskParameter(
-            p_type=p_type,
+        return _Parameter(
+            content=p_value,
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            key=p_value,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.EXTERNAL_STREAM:
         # Next position contains R/W but we do not need it. Currently skipped.
-        return TaskParameter(
-            p_type=p_type,
+        return _Parameter(
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
             file_name=p_value,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
@@ -131,13 +131,13 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         if IS_PYTHON3 and isinstance(aux, bytes):
             aux = aux.decode('utf-8')
 
-        return TaskParameter(
-            p_type=p_type,
+        return _Parameter(
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
             content=aux,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), num_substrings
     else:
         # Basic numeric types. These are passed as command line arguments
@@ -156,13 +156,13 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
             val = float(p_value)
         elif p_type == parameter.TYPE.BOOLEAN:
             val = (p_value == 'true')
-        return TaskParameter(
-            p_type=p_type,
+        return _Parameter(
+            content=val,
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            content=val,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), 0
 
 
@@ -515,7 +515,7 @@ def execute_task(process_name, storage_conf, params, tracing,
         logger.debug("Processing parameters:")
         # logger.debug(args)
     values = get_task_params(num_params, logger, args)
-    types = [x.type for x in values]
+    types = [x.content_type for x in values]
 
     if __debug__:
         logger.debug("RUN TASK with arguments:")
@@ -609,12 +609,12 @@ def execute_task(process_name, storage_conf, params, tracing,
             if self_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
                     logger.debug("Last element (self) is a PSCO with id: %s" %
-                                 str(self_elem.key))
-                obj = get_by_id(self_elem.key)
+                                 str(self_elem.content))
+                obj = get_by_id(self_elem.content)
             else:
                 obj = None
                 file_name = None
-                if self_elem.key is None:
+                if self_elem.content is None:
                     file_name = self_elem.file_name.split(':')[-1]
                     if __debug__:
                         logger.debug("Deserialize self from file.")

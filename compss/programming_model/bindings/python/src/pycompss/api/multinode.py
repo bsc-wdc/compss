@@ -24,12 +24,15 @@ PyCOMPSs API - MultiNode
     definition through the decorator.
 """
 
-import inspect
 import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
+from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import process_computing_nodes
+from pycompss.api.commons.decorator import get_module
+from pycompss.api.commons.decorator import keep_arguments
 
 if __debug__:
     import logging
@@ -41,7 +44,7 @@ SUPPORTED_ARGUMENTS = {'computing_nodes'}
 DEPRECATED_ARGUMENTS = {'computingNodes'}
 
 
-class MultiNode(object):
+class MultiNode(PyCOMPSsDecorator):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on MultiNode task creation.
@@ -52,37 +55,23 @@ class MultiNode(object):
         Store arguments passed to the decorator
         # self = itself.
         # args = not used.
-        # kwargs = dictionary with the given MultiNode parameters
+        # kwargs = dictionary with the given constraints.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        self.args = args
-        self.kwargs = kwargs
-        self.registered = False
-        self.scope = context.in_pycompss()
+        decorator_name = '@' + self.__class__.__name__.lower()
+        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
-            if __debug__:
-                logger.debug("Init @multinode decorator...")
-
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
                             DEPRECATED_ARGUMENTS,
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
-                            "@multinode")
+                            decorator_name)
 
-            # Replace the legacy annotation
-            if 'computingNodes' in self.kwargs:
-                self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
-
-            # Set default value if it has not been defined
-            if 'computing_nodes' not in self.kwargs:
-                self.kwargs['computing_nodes'] = 1
-
-            if __debug__:
-                logger.debug(
-                    "This MultiNode task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
+            # Get the computing nodes
+            process_computing_nodes(decorator_name, self.kwargs)
         else:
             pass
 
@@ -102,78 +91,40 @@ class MultiNode(object):
                 # return d_m.__call__(func)
                 raise Exception(not_in_pycompss("MultiNode"))
 
+            if __debug__:
+                logger.debug("Executing multinode_f wrapper.")
+
             if context.in_master():
                 # master code
-                mod = inspect.getmodule(func)
-                self.module = mod.__name__  # not func.__module__
+                self.module = get_module(func)
 
-                if self.module == '__main__' or \
-                        self.module == 'pycompss.runtime.launch':
-                    # The module where the function is defined was run as
-                    # __main__, so we need to find out the real module name.
-
-                    # Get the real module name from our launch.py variable
-                    path = getattr(mod, "APP_PATH")
-                    dirs = path.split(os.path.sep)
-                    file_name = os.path.splitext(os.path.basename(path))[0]
-                    mod_name = file_name
-
-                    i = len(dirs) - 1
-                    while i > 0:
-                        new_l = len(path) - (len(dirs[i]) + 1)
-                        path = path[0:new_l]
-                        if "__init__.py" in os.listdir(path):
-                            # directory is a package
-                            i -= 1
-                            mod_name = dirs[i] + '.' + mod_name
-                        else:
-                            break
-                    self.module = mod_name
-
-                # Include the registering info related to @compss
-
-                # Retrieve the base core_element established at @task decorator
-                from pycompss.api.task import current_core_element as cce
                 if not self.registered:
-                    self.registered = True
-                    # Update the core element information with the
-                    # @MultiNode information
+                    # Register
+
+                    # Retrieve the base core_element established at @task
+                    # decorator and pdate the core element information with
+                    # the @MultiNode information
+                    from pycompss.api.task import current_core_element as cce
                     cce.set_impl_type("MULTI_NODE")
                     # Signature and implementation args are set by the
                     # @task decorator
+
+                    # Set as registered
+                    self.registered = True
             else:
                 # worker code
                 set_slurm_environment()
-
-            # This is executed only when called.
-            if __debug__:
-                logger.debug("Executing multinode_f wrapper.")
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
             kwargs['computing_nodes'] = self.kwargs['computing_nodes']
 
-            if len(args) > 0:
-                # The 'self' for a method function is passed as args[0]
-                slf = args[0]
-
-                # Replace and store the attributes
-                saved = {}
-                for k, v in self.kwargs.items():
-                    if hasattr(slf, k):
-                        saved[k] = getattr(slf, k)
-                        setattr(slf, k, v)
-
-            # Call the method
-            ret = func(*args, **kwargs)
+            with keep_arguments(args, kwargs, prepend_strings=True):
+                # Call the method
+                ret = func(*args, **kwargs)
 
             if context.in_worker():
                 reset_slurm_environment()
-
-            if len(args) > 0:
-                # Put things back
-                for k, v in saved.items():
-                    setattr(slf, k, v)
 
             return ret
 
@@ -182,6 +133,11 @@ class MultiNode(object):
 
 
 def set_slurm_environment():
+    # type: () -> None
+    """ Set SLURM environment.
+
+    :return: None
+    """
     num_nodes = int(os.environ["COMPSS_NUM_NODES"])
     num_threads = int(os.environ["COMPSS_NUM_THREADS"])
     total_processes = num_nodes * num_threads
@@ -211,11 +167,14 @@ def set_slurm_environment():
     if mem_per_cpu is not None:
         os.environ["OCS_MEM_PER_CPU"] = mem_per_cpu
         os.environ.pop("SLURM_MEM_PER_CPU", None)
-        
-    
 
 
 def reset_slurm_environment():
+    # type: () -> None
+    """ Reestablishes SLURM environment.
+
+    :return: None
+    """
     ntasks = os.environ.get("OCS_NTASKS", None)
     if ntasks is not None:
         os.environ["SLURM_NTASKS"] = ntasks
@@ -241,3 +200,4 @@ def reset_slurm_environment():
 # ########################################################################### #
 
 multinode = MultiNode
+MULTINODE = MultiNode

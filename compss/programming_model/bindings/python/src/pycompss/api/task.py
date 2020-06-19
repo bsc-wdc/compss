@@ -47,6 +47,7 @@ from pycompss.util.serialization.serializer import serialize_to_file_mpienv
 from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.worker.commons.worker import build_task_parameter
+from pycompss.api.commons.decorator import PyCOMPSsDecorator
 
 if __debug__:
     import logging
@@ -98,7 +99,7 @@ register_only = False
 current_core_element = CE()
 
 
-class Task(object):
+class Task(PyCOMPSsDecorator):
     """
     This is the Task decorator implementation.
     It is implemented as a class and consequently this implementation can be
@@ -150,7 +151,7 @@ class Task(object):
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
-    def __init__(self, comment=None, **kwargs):
+    def __init__(self, comment=None, **kwargs):  # noqa
         """
         This part is called in the decoration process, not as an
         explicit function call.

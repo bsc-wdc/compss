@@ -803,7 +803,7 @@ STDERR = IOSTREAM.STDERR
 
 # Aliases for parameter definition as dictionary
 Type = 'type'  # parameter type
-Direction = 'direction'  # parameter type
+Direction = 'direction'  # parameter direction
 StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
 Depth = 'depth'  # collection recursive depth

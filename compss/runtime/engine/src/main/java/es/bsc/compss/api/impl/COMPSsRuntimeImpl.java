@@ -661,7 +661,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case OBJECT_T:
             case PSCO_T:
-                int pscoCode = oReg.newObjectParameter(stub);
+                int pscoCode = oReg.newObjectParameter(appId, stub);
                 ap.registerRemoteObject(app, pscoCode, data);
                 break;
             case STREAM_T:
@@ -762,8 +762,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 + (parameterCount > 1 ? "s" : ""));
         }
 
+        Application app = Application.registerApplication(appId);
         // Process the parameters
-        List<Parameter> pars = processParameters(parameterCount, parameters);
+        List<Parameter> pars = processParameters(app, parameterCount, parameters);
         boolean hasReturn = hasReturn(pars);
         int numReturns = hasReturn ? 1 : 0;
 
@@ -771,7 +772,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             monitor = DO_NOTHING_MONITOR;
         }
 
-        Application app = Application.registerApplication(appId);
         // Register the task
         int task = ap.newTask(app, monitor, namespace, service, port, operation, isPrioritary, hasTarget, numReturns,
             pars, onFailure, timeOut);
@@ -828,8 +828,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 + (parameterCount > 1 ? "s" : ""));
         }
 
+        Application app = Application.registerApplication(appId);
         // Process the parameters
-        List<Parameter> pars = processParameters(parameterCount, parameters);
+        List<Parameter> pars = processParameters(app, parameterCount, parameters);
 
         if (numReturns == null) {
             numReturns = hasReturn(pars) ? 1 : 0;
@@ -849,7 +850,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         // Register the task
-        Application app = Application.registerApplication(appId);
         int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
             hasTarget, numReturns, pars, onFailure, timeOut);
 
@@ -1025,7 +1025,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public void deregisterObject(Long appId, Object o) {
-        oReg.delete(o);
+        oReg.delete(appId, o);
     }
 
     @Override
@@ -1528,10 +1528,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return hasReturn;
     }
 
-    private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
-        String name, String pyType, double weight, boolean keepRename, ArrayList<Parameter> pars, int offset,
-        String[] vals) {
-
+    private int addParameter(Application app, Object content, DataType type, Direction direction, StdIOStream stream,
+        String prefix, String name, String pyType, double weight, boolean keepRename, ArrayList<Parameter> pars,
+        int offset, String[] vals) {
+        long appId = app.getId();
         switch (type) {
             case DIRECTORY_T:
                 try {
@@ -1562,11 +1562,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case OBJECT_T:
             case PSCO_T:
-                int code = oReg.newObjectParameter(content);
+                int code = oReg.newObjectParameter(appId, content);
                 pars.add(new ObjectParameter(direction, stream, prefix, name, pyType, weight, content, code));
                 break;
             case STREAM_T:
-                int streamCode = oReg.newObjectParameter(content);
+                int streamCode = oReg.newObjectParameter(appId, content);
                 pars.add(new StreamParameter(direction, stream, prefix, name, content, streamCode));
                 break;
             case EXTERNAL_STREAM_T:
@@ -1648,8 +1648,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     if (!elemName.startsWith("@")) {
                         elemName = "@" + elemName;
                     }
-                    ret += addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName, elemPyType,
-                        weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
+                    ret += addParameter(app, elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
+                        elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
                     prefix, name, colPyType, weight, keepRename);
@@ -1678,7 +1678,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * *********************************** PRIVATE HELPER METHODS **********************************************
      * *********************************************************************************************************
      */
-    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
+    private List<Parameter> processParameters(Application app, int parameterCount, Object[] parameters) {
         ArrayList<Parameter> pars = new ArrayList<>();
         // Parameter parsing needed, object is not serializable
         for (int i = 0; i < parameterCount; ++i) {
@@ -1701,7 +1701,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + i + " has type " + type.name());
             }
-            addParameter(content, type, direction, stream, prefix, name, null, weight, keepRename, pars, 0, null);
+            addParameter(app, content, type, direction, stream, prefix, name, null, weight, keepRename, pars, 0, null);
         }
 
         // Return parameters

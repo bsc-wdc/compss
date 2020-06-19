@@ -34,7 +34,7 @@ public class CallGenerator {
      * @return instruction calling the runtime to return the object internally stored in the OR
      */
     public static String oRegGetInternalObject(String itOR, String itAppId, String val) {
-        return itOR + GET_INTERNAL_OBJECT + val + ")";
+        return itOR + GET_INTERNAL_OBJECT + "(java.lang.Long)" + itAppId + "," + val + ")";
     }
 
     /**
@@ -46,7 +46,7 @@ public class CallGenerator {
      * @return instruction calling the runtime to register a new object access
      */
     public static String oRegNewObjectAccess(String itOR, String itAppId, String val) {
-        return itOR + NEW_OBJECT_ACCESS + val + ")";
+        return itOR + NEW_OBJECT_ACCESS + "(java.lang.Long)" + itAppId + "," + val + ")";
     }
 
     /**
@@ -59,7 +59,8 @@ public class CallGenerator {
      * @return instruction calling the runtime to register a new object access
      */
     public static String oRegNewObjectAccess(String itOR, String itAppId, String val, boolean isWriter) {
-        return itOR + NEW_OBJECT_ACCESS + val + "," + " (boolean)" + isWriter + ")";
+        return itOR + NEW_OBJECT_ACCESS + "(java.lang.Long)" + itAppId + "," + val + "," + " (boolean)" + isWriter
+            + ")";
     }
 
     /**
@@ -71,6 +72,6 @@ public class CallGenerator {
      * @return instruction calling the runtime to serialize the object stored in the OR
      */
     public static String oRegSerializeLocally(String itOR, String itAppId, String val) {
-        return itOR + SERIALIZE_LOCALLY + /* "(java.lang.Long)" + itAppId + "," + " (java.lang.Object)" + */ val + ")";
+        return itOR + SERIALIZE_LOCALLY + "(java.lang.Long)" + itAppId + "," + val + ")";
     }
 }

@@ -25,8 +25,9 @@ class Loggers:
             OBTAINED = "located on"
 
         class ObjectAccess:
-            label = "ainAccessToFile"
-            WAITING = "waiting until"
+            label = "nAccessToObject"
+            WAITING = "Waiting for"
+            OBTAINED = "retrieved"
 
         class WaitEnds:
             label = "waitForTask"
@@ -126,6 +127,11 @@ class Parser:
                     event = FileAccessEvent(timestamp, message)
                 if Loggers.TaskProcessor.FileAccess.OBTAINED in message:
                     event = ObtainedFileEvent(timestamp, message)
+            if method == Loggers.TaskProcessor.ObjectAccess.label:
+                if Loggers.TaskProcessor.ObjectAccess.WAITING in message:
+                    event = ObjectAccessEvent(timestamp, message)
+                if Loggers.TaskProcessor.ObjectAccess.OBTAINED in message:
+                    event = ObtainedObjectEvent(timestamp, message)                    
             if method == Loggers.TaskProcessor.WaitEnds.label:
                 if Loggers.TaskProcessor.WaitEnds.END in message:
                     event = WaitedTaskEndEvent(timestamp, message)
@@ -699,6 +705,41 @@ class FileAccessEvent(Event):
             return "Main accesses file " + self.data_id + " @ " + self.timestamp
 
 
+# Main accesses data
+class ObjectAccessEvent(Event):
+    """
+    Application accesses a file
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new ObjectAccessEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: file access description
+        """
+        super(ObjectAccessEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.data_id = None
+        if "Object not accessed before" not in message:
+            if "Waiting" in message:
+                self.data_id = line_array[5]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        if self.data_id is not None:
+            state.main_accesses_data(self.data_id, self.timestamp)
+
+    def __str__(self):
+        if self.data_id is None:
+            return "Main accesses a data value out of the COMPSs system or is a subsequent access to the value"
+        else:
+            return "Main accesses object " + self.data_id + " @ " + self.timestamp
+
 class WaitedTaskEndEvent(Event):
     """
     The task that the main code waits for has finished
@@ -755,3 +796,31 @@ class ObtainedFileEvent(Event):
 
     def __str__(self):
         return "Obtained data " + self.data_id + " for the access"
+
+
+
+class ObtainedObjectEvent(Event):
+    """
+    The data value that the main code waits for has been obtained
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new ObtainedObjectEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: object retrieval description
+        """
+        super(ObtainedObjectEvent, self).__init__(timestamp)
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        state.main_access.obtained(self.timestamp)
+        state.main_access = None
+
+    def __str__(self):
+        return "Obtained data for the access"

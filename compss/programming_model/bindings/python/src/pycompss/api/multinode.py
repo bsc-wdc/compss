@@ -29,12 +29,11 @@ import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.error_msgs import cast_env_to_int_error
-from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}
@@ -73,48 +72,17 @@ class MultiNode(object):
                             list(kwargs.keys()),
                             "@multinode")
 
-            # Get the computing nodes: This parameter will have to go down
-            # until execution when invoked.
-            if 'computing_nodes' not in self.kwargs and \
-                    'computingNodes' not in self.kwargs:
+            # Replace the legacy annotation
+            if 'computingNodes' in self.kwargs:
+                self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
+
+            # Set default value if it has not been defined
+            if 'computing_nodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
-            else:
-                if 'computingNodes' in self.kwargs:
-                    self.kwargs['computing_nodes'] = \
-                        self.kwargs.pop('computingNodes')
-                computing_nodes = self.kwargs['computing_nodes']
-                if isinstance(computing_nodes, int):
-                    # Nothing to do
-                    pass
-                elif isinstance(computing_nodes, str):
-                    # Check if it is an environment variable to be loaded
-                    if computing_nodes.strip().startswith('$'):
-                        # Computing nodes is an ENV variable, load it
-                        env_var = computing_nodes.strip()[1:]  # Remove $
-                        if env_var.startswith('{'):
-                            env_var = env_var[1:-1]  # remove brackets
-                        try:
-                            self.kwargs['computing_nodes'] = \
-                                int(os.environ[env_var])
-                        except ValueError:
-                            raise Exception(
-                                cast_env_to_int_error('ComputingNodes'))
-                    else:
-                        # ComputingNodes is in string form, cast it
-                        try:
-                            self.kwargs['computing_nodes'] = \
-                                int(computing_nodes)
-                        except ValueError:
-                            raise Exception(
-                                cast_string_to_int_error('ComputingNodes'))
-                else:
-                    raise Exception("ERROR: Wrong Computing Nodes value at" +
-                                    " @MultiNode decorator.")
+
             if __debug__:
                 logger.debug(
-                    "This MultiNode task will have " +
-                    str(self.kwargs['computing_nodes']) +
-                    " computing nodes.")
+                    "This MultiNode task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
         else:
             pass
 
@@ -125,6 +93,7 @@ class MultiNode(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         @wraps(func)
         def multinode_f(*args, **kwargs):
             if not self.scope:

@@ -406,40 +406,26 @@ public class BinaryRunner {
         // Setup SLURM environment (for elasticity with MPI in supercomputers)
         int numNodes = Integer.parseInt(System.getProperty(Invoker.COMPSS_NUM_NODES));
         int procsPerNode = Integer.parseInt(System.getProperty(Invoker.COMPSS_NUM_THREADS));
+        int totalProcs = numNodes * procsPerNode;
+        String tasksPerNode = String.valueOf(procsPerNode) + "(x" + String.valueOf(numNodes) + ")";
         String uniqueHostnames =
             String.join(",", new HashSet<>(Arrays.asList(System.getProperty(Invoker.COMPSS_HOSTNAMES).split(","))));
 
         builder.environment().put("SLURM_NODELIST", uniqueHostnames);
         builder.environment().put("SLURM_JOB_NODELIST", uniqueHostnames);
-        builder.environment().put("SLURM_NNODES", System.getProperty(Invoker.COMPSS_NUM_NODES));
-        builder.environment().put("SLURM_JOB_NUM_NODES", System.getProperty(Invoker.COMPSS_NUM_NODES));
-        builder.environment().put("SLURM_JOB_CPUS_PER_NODE",
-            procsPerNode + "(x" + System.getProperty(Invoker.COMPSS_NUM_NODES) + ")");
-        builder.environment().put("SLURM_TASKS_PER_NODE",
-            procsPerNode + "(x" + System.getProperty(Invoker.COMPSS_NUM_NODES) + ")");
-        builder.environment().put("SLURM_NPROCS", Integer.toString(procsPerNode * numNodes));
-        builder.environment().put("SLURM_NTASKS", Integer.toString(procsPerNode * numNodes));
+        builder.environment().put("SLURM_NNODES", String.valueOf(numNodes));
+        builder.environment().put("SLURM_JOB_NUM_NODES", String.valueOf(numNodes));
+        builder.environment().put("SLURM_JOB_CPUS_PER_NODE", tasksPerNode);
+        builder.environment().put("SLURM_NTASKS", String.valueOf(totalProcs));
+        builder.environment().put("SLURM_NPROCS", String.valueOf(totalProcs));
+        builder.environment().put("SLURM_TASKS_PER_NODE", tasksPerNode);
 
-        builder.environment().remove("SLURM_MEM_PER_CPU");
-        builder.environment().remove("SLURM_STEP_NUM_TASKS");
-        builder.environment().remove("SLURM_STEP_TASKS_PER_NODE");
-        builder.environment().remove("SLURM_STEP_NODELIST");
-        builder.environment().remove("SLURM_STEP_NUM_NODES");
-        builder.environment().remove("SLURM_STEP_LAUNCHER_PORT");
-        builder.environment().remove("SLURM_STEP_RESV_PORTS");
-        builder.environment().remove("SLURM_STEP_ID");
-        builder.environment().remove("SLURM_STEPID");
-        builder.environment().remove("SLURM_NODEID");
-        builder.environment().remove("SLURM_LOCALID");
-        builder.environment().remove("SLURM_GTIDS");
-        builder.environment().remove("SLURM_CPU_BIND");
-        builder.environment().remove("SLURM_CPU_BIND_LIST");
-        builder.environment().remove("SLURM_CPU_BIND_TYPE");
-        builder.environment().remove("SLURM_LAUNCH_NODE_IPADDR");
-        builder.environment().remove("SLURM_SRUN_COMM_HOST");
-        builder.environment().remove("SLURM_TASK_PID");
-        builder.environment().remove("SLURM_DISTRIBUTION");
-        builder.environment().remove("SLURM_PROCID");
+        // Log environment
+        // outLog.println("PB ENVIRONMENT ---------------------------");
+        // for (Entry<String, String> entry : builder.environment().entrySet()) {
+        // outLog.println("-- " + entry.getKey() + " : " + entry.getValue());
+        // }
+        // outLog.println("PB ENVIRONMENT END -----------------------");
 
         // Setup STD redirections
         String fileInPath = stdIOStreamValues.getStdIn();

@@ -41,7 +41,7 @@ public class TransferGroup {
     }
 
     public int getId() {
-        return id;
+        return this.id;
     }
 
     /**
@@ -50,7 +50,7 @@ public class TransferGroup {
      * @param c Copy to include in the transfer group.
      */
     public void addCopy(Copy c) {
-        copies.add(c);
+        this.copies.add(c);
     }
 
     /**
@@ -59,7 +59,7 @@ public class TransferGroup {
      * @return the list of copies for the group.
      */
     public List<Copy> getCopies() {
-        return copies;
+        return this.copies;
     }
 
     /**
@@ -75,9 +75,9 @@ public class TransferGroup {
      * Notifies the end of the operations within the group.
      */
     public void notifyGroupEnd() {
-        JobListener listener = job.getListener();
+        JobListener listener = this.job.getListener();
         if (listener != null) {
-            listener.allInputDataOnWorker(job);
+            listener.allInputDataOnWorker(this.job);
         }
     }
 

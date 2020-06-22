@@ -31,8 +31,8 @@ from pycompss.api.parameter import IOSTREAM
 from pycompss.api.parameter import PREFIX
 from pycompss.api.parameter import Type
 from pycompss.api.parameter import Direction
-from pycompss.api.parameter import StdIOStream
 from pycompss.api.parameter import Prefix
+from pycompss.api.parameter import StdIOStream
 from pycompss.api.parameter import Depth
 from pycompss.api.parameter import Weight
 from pycompss.api.parameter import Keep_rename

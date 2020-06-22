@@ -32,12 +32,29 @@ import inspect
 from functools import wraps
 
 import pycompss.api.parameter as parameter
-from pycompss.api.parameter import _Parameter
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
+from pycompss.runtime.core_element import CE
+from pycompss.runtime.parameter import Parameter
+from pycompss.runtime.parameter import is_parameter
+from pycompss.runtime.parameter import get_parameter_copy
+from pycompss.runtime.parameter import is_dict_specifier
+from pycompss.runtime.parameter import get_parameter_from_dictionary
+from pycompss.runtime.parameter import get_return_name
+from pycompss.runtime.parameter import get_compss_type
+from pycompss.runtime.parameter import get_new_parameter
+from pycompss.runtime.parameter import get_kwarg_name
+from pycompss.runtime.parameter import get_vararg_name
+from pycompss.runtime.parameter import get_varargs_name
+from pycompss.runtime.parameter import is_vararg
+from pycompss.runtime.parameter import is_kwarg
+from pycompss.runtime.parameter import get_name_from_kwarg
+from pycompss.runtime.parameter import is_file
+from pycompss.runtime.parameter import is_directory
+from pycompss.runtime.parameter import is_return
+from pycompss.runtime.parameter import get_original_name
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 from pycompss.util.objects.properties import create_object_by_con_type
@@ -181,8 +198,8 @@ class Task(PyCOMPSsDecorator):
         for (key, value) in self.decorator_arguments.items():
             # Not all decorator arguments are necessarily parameters
             # (see self.get_default_decorator_values)
-            if parameter.is_parameter(value):
-                self.decorator_arguments[key] = parameter.get_parameter_copy(value)  # noqa: E501
+            if is_parameter(value):
+                self.decorator_arguments[key] = get_parameter_copy(value)  # noqa: E501
             # Specific case when value is a dictionary
             # Use case example:
             # @binary(binary="ls")
@@ -191,7 +208,7 @@ class Task(PyCOMPSsDecorator):
             # def myLs(flag, hide, sort):
             #   pass
             # Transform this dictionary to a Parameter object
-            if parameter.is_dict_specifier(value):
+            if is_dict_specifier(value):
                 if key not in ['numba',
                                'numba_flags',
                                'numba_signature',
@@ -200,11 +217,11 @@ class Task(PyCOMPSsDecorator):
                     # param = self.decorator_arguments[key][parameter.Type]
                     # Replace the whole dict by a single parameter object
                     self.decorator_arguments[key] = \
-                        parameter.get_parameter_from_dictionary(
+                        get_parameter_from_dictionary(
                             self.decorator_arguments[key]
                         )
                     # self.decorator_arguments[key].update(
-                    #     {parameter.Type: parameter.get_parameter_copy(param)}
+                    #     {parameter.Type: get_parameter_copy(param)}
                     # )
                 else:
                     # It is a reserved word that we need to keep the user
@@ -349,15 +366,15 @@ class Task(PyCOMPSsDecorator):
                     num_returns = 1
                 if num_returns > 1:
                     for i in range(num_returns):
-                        param = _Parameter(content_type=parameter.TYPE.FILE,
-                                           direction=parameter.DIRECTION.OUT)
+                        param = Parameter(content_type=parameter.TYPE.FILE,
+                                          direction=parameter.DIRECTION.OUT)
                         param.content = object()
-                        self.returns[parameter.get_return_name(i)] = param
+                        self.returns[get_return_name(i)] = param
                 else:
-                    param = _Parameter(content_type=parameter.TYPE.FILE,
-                                       direction=parameter.DIRECTION.OUT)
+                    param = Parameter(content_type=parameter.TYPE.FILE,
+                                      direction=parameter.DIRECTION.OUT)
                     param.content = object()
-                    self.returns[parameter.get_return_name(0)] = param
+                    self.returns[get_return_name(0)] = param
                 # Found return defined as type-hint
                 return
             else:
@@ -429,15 +446,15 @@ class Task(PyCOMPSsDecorator):
                         pass
             if has_multireturn:
                 for i in range(max_num_returns):
-                    param = _Parameter(content_type=parameter.TYPE.FILE,
-                                       direction=parameter.DIRECTION.OUT)
+                    param = Parameter(content_type=parameter.TYPE.FILE,
+                                      direction=parameter.DIRECTION.OUT)
                     param.content = object()
-                    self.returns[parameter.get_return_name(i)] = param
+                    self.returns[get_return_name(i)] = param
             else:
-                param = _Parameter(content_type=parameter.TYPE.FILE,
-                                   direction=parameter.DIRECTION.OUT)
+                param = Parameter(content_type=parameter.TYPE.FILE,
+                                  direction=parameter.DIRECTION.OUT)
                 param.content = object()
-                self.returns[parameter.get_return_name(0)] = param
+                self.returns[get_return_name(0)] = param
         else:
             # Return not found
             pass
@@ -875,11 +892,11 @@ class Task(PyCOMPSsDecorator):
 
         # At this point we have a list of returns
         for (i, elem) in enumerate(to_return):
-            ret_type = parameter.get_compss_type(elem)
-            self.returns[parameter.get_return_name(i)] = \
-                _Parameter(content=elem,
-                           content_type=ret_type,
-                           direction=parameter.OUT)
+            ret_type = get_compss_type(elem)
+            self.returns[get_return_name(i)] = \
+                Parameter(content=elem,
+                          content_type=ret_type,
+                          direction=parameter.OUT)
             # Hopefully, an exception have been thrown if some invalid
             # stuff has been put in the returns field
 
@@ -1057,7 +1074,7 @@ class Task(PyCOMPSsDecorator):
                 self.param_args and \
                 self.param_args[0] == var_name:
             return self.decorator_arguments[target_label]
-        return parameter.get_new_parameter('IN')
+        return get_new_parameter('IN')
 
     def process_master_parameters(self, *args, **kwargs):
         """
@@ -1098,7 +1115,7 @@ class Task(PyCOMPSsDecorator):
         for (var_name, default_value) in reversed(list(zip(list(reversed(self.param_args))[:num_defaults],  # noqa: E501
                                                            list(reversed(self.param_defaults))))):          # noqa: E501
             if var_name not in parameter_values:
-                real_var_name = parameter.get_kwarg_name(var_name)
+                real_var_name = get_kwarg_name(var_name)
                 parameter_values[real_var_name] = default_value
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
@@ -1106,20 +1123,20 @@ class Task(PyCOMPSsDecorator):
         # and their order in the case of the variadic ones
         # Process the variadic arguments
         for (i, var_arg) in enumerate(args[num_positionals:]):
-            parameter_values[parameter.get_vararg_name(self.param_varargs, i)] = var_arg                    # noqa: E501
+            parameter_values[get_vararg_name(self.param_varargs, i)] = var_arg                    # noqa: E501
         # Process keyword arguments
         for (name, value) in kwargs.items():
-            parameter_values[parameter.get_kwarg_name(name)] = value
+            parameter_values[get_kwarg_name(name)] = value
         # Build a dictionary of parameters
         self.parameters = OrderedDict()
         # Assign directions to parameters
         for var_name in parameter_values.keys():
             # Is the argument a vararg? or a kwarg? Then check the direction
             # for varargs or kwargs
-            if parameter.is_vararg(var_name):
-                self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())      # noqa: E501
-            elif parameter.is_kwarg(var_name):
-                real_name = parameter.get_name_from_kwarg(var_name)
+            if is_vararg(var_name):
+                self.parameters[var_name] = get_parameter_copy(self.get_varargs_direction())      # noqa: E501
+            elif is_kwarg(var_name):
+                real_name = get_name_from_kwarg(var_name)
                 self.parameters[var_name] = self.decorator_arguments.get(real_name,  # noqa: E501
                                                                          self.get_default_direction(real_name))  # noqa: E501
             else:
@@ -1137,11 +1154,11 @@ class Task(PyCOMPSsDecorator):
             # If the parameter is a FILE then its type will already be defined,
             # and get_compss_type will misslabel it as a parameter.TYPE.STRING
             if self.parameters[var_name].content_type is None:
-                self.parameters[var_name].content_type = parameter.get_compss_type(parameter_values[var_name])      # noqa: E501
+                self.parameters[var_name].content_type = get_compss_type(parameter_values[var_name])      # noqa: E501
 
             # TODO: add 'dir_name' to the parameter object
-            if parameter.is_file(self.parameters[var_name]) or \
-               parameter.is_directory(self.parameters[var_name]):
+            if is_file(self.parameters[var_name]) or \
+               is_directory(self.parameters[var_name]):
                 if parameter_values[var_name]:
                     self.parameters[var_name].file_name = parameter_values[var_name]                        # noqa: E501
                 else:
@@ -1165,11 +1182,11 @@ class Task(PyCOMPSsDecorator):
         :param name: Name of the parameter
         :return: Its direction inside this task
         """
-        if parameter.is_vararg(name):
+        if is_vararg(name):
             return self.get_varargs_direction()
-        elif parameter.is_return(name):
-            return parameter.get_new_parameter('OUT')
-        orig_name = parameter.get_name_from_kwarg(name)
+        elif is_return(name):
+            return get_new_parameter('OUT')
+        orig_name = get_name_from_kwarg(name)
         if orig_name in self.decorator_arguments:
             return self.decorator_arguments[orig_name]
         return self.get_default_direction(orig_name)
@@ -1192,9 +1209,9 @@ class Task(PyCOMPSsDecorator):
         :param name: Name of the parameter
         :return: True if the parameter is a (serializable) object
         """
-        original_name = parameter.get_original_name(name)
+        original_name = get_original_name(name)
         # Get the args parameter object
-        if parameter.is_vararg(original_name):
+        if is_vararg(original_name):
             return self.get_varargs_direction().content_type is None
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
@@ -1214,9 +1231,9 @@ class Task(PyCOMPSsDecorator):
         :param name: Name of the parameter
         :return: True if the parameter is a file collection
         """
-        original_name = parameter.get_original_name(name)
+        original_name = get_original_name(name)
         # Get the args parameter object
-        if parameter.is_vararg(original_name):
+        if is_vararg(original_name):
             return self.get_varargs_direction().is_file_collection
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
@@ -1253,7 +1270,7 @@ class Task(PyCOMPSsDecorator):
                 logger.debug("\t - Revealing: " + str(_arg.name))
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
-            if parameter.is_vararg(_arg.name):
+            if is_vararg(_arg.name):
                 self.param_varargs = _arg.name
                 if __debug__:
                     logger.debug("\t\t - It is vararg")
@@ -1370,13 +1387,13 @@ class Task(PyCOMPSsDecorator):
             identifiers = [x.content for x in pscos]
             from storage.api import getByID  # noqa
             objects = getByID(*identifiers)
-            # Just update the _Parameter object with its content
+            # Just update the Parameter object with its content
             for (obj, value) in zip(objects, pscos):
                 obj.content = value
 
         # Deal with all the parameters that are NOT returns
         for arg in [x for x in args if
-                    isinstance(x, _Parameter) and not parameter.is_return(x.name)]:  # noqa: E501
+                    isinstance(x, Parameter) and not is_return(x.name)]:  # noqa: E501
             retrieve_content(arg, "")
 
     def worker_call(self, *args, **kwargs):
@@ -1424,17 +1441,17 @@ class Task(PyCOMPSsDecorator):
         for arg in args:
             # Just fill the three data structures declared above
             # Deal with the self parameter (if any)
-            if not isinstance(arg, _Parameter):
+            if not isinstance(arg, Parameter):
                 user_args.append(arg)
             # All these other cases are all about regular parameters
-            elif parameter.is_return(arg.name):
+            elif is_return(arg.name):
                 ret_params.append(arg)
-            elif parameter.is_kwarg(arg.name):
-                user_kwargs[parameter.get_name_from_kwarg(arg.name)] = \
+            elif is_kwarg(arg.name):
+                user_kwargs[get_name_from_kwarg(arg.name)] = \
                     arg.content
             else:
-                if parameter.is_vararg(arg.name):
-                    self.param_varargs = parameter.get_varargs_name(arg.name)
+                if is_vararg(arg.name):
+                    self.param_varargs = get_varargs_name(arg.name)
                 # Apart from the names we preserve the original order, so it
                 # is guaranteed that named positional arguments will never be
                 # swapped with variadic ones or anything similar
@@ -1448,12 +1465,12 @@ class Task(PyCOMPSsDecorator):
         # Save the self object type and value before executing the task
         # (it could be persisted inside if its a persistent object)
         has_self = False
-        if args and not isinstance(args[0], _Parameter):
+        if args and not isinstance(args[0], Parameter):
             if __debug__:
                 logger.debug("Detected self parameter")
             # Then the first arg is self
             has_self = True
-            self_type = parameter.get_compss_type(args[0])
+            self_type = get_compss_type(args[0])
             if self_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
                     logger.debug("\t - Self is a PSCO")
@@ -1525,7 +1542,7 @@ class Task(PyCOMPSsDecorator):
             # handle only task parameters that are objects
 
             # skip files and non-task-parameters
-            if not isinstance(arg, _Parameter) or \
+            if not isinstance(arg, Parameter) or \
                     not self.is_parameter_an_object(arg.name):
                 continue
 
@@ -1541,7 +1558,7 @@ class Task(PyCOMPSsDecorator):
             if _is_psco_true:
                 continue
 
-            original_name = parameter.get_original_name(arg.name)
+            original_name = get_original_name(arg.name)
             param = self.decorator_arguments.get(
                 original_name, self.get_default_direction(original_name))
 
@@ -1667,12 +1684,12 @@ class Task(PyCOMPSsDecorator):
         # The results parameter is a boolean to distinguish the error message.
         for arg in args[params_start:params_end - 1]:
             # Loop through the arguments and update new_types and new_values
-            if not isinstance(arg, _Parameter):
+            if not isinstance(arg, Parameter):
                 raise Exception('ERROR: A task parameter arrived as an' +
-                                ' object instead as a _Parameter' +
+                                ' object instead as a Parameter' +
                                 ' when building the task result message.')
             else:
-                original_name = parameter.get_original_name(arg.name)
+                original_name = get_original_name(arg.name)
                 param = self.decorator_arguments.get(original_name,
                                                      self.get_default_direction(original_name))  # noqa: E501
                 if arg.content_type == parameter.TYPE.EXTERNAL_PSCO:
@@ -1706,7 +1723,7 @@ class Task(PyCOMPSsDecorator):
                 # Check if self is a PSCO that has been persisted inside the
                 # task and target_direction.
                 # Update self type and value
-                self_type = parameter.get_compss_type(args[0])
+                self_type = get_compss_type(args[0])
                 if self_type == parameter.TYPE.EXTERNAL_PSCO:
                     self_value = args[0].getID()
                 else:
@@ -1724,7 +1741,7 @@ class Task(PyCOMPSsDecorator):
         # add_parameter_new_types_and_values(args[params_end - 1:], True)
         if num_returns > 0:
             for ret in user_returns:
-                ret_type = parameter.get_compss_type(ret)
+                ret_type = get_compss_type(ret)
                 if ret_type == parameter.TYPE.EXTERNAL_PSCO:
                     ret_value = ret.getID()
                 elif ret_type == parameter.TYPE.COLLECTION:

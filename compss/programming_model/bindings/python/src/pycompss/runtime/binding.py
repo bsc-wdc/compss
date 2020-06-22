@@ -24,12 +24,16 @@ PyCOMPSs Binding - Binding
 """
 
 import pycompss.api.parameter as parameter
-from pycompss.api.parameter import _Parameter
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
-from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
-from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
-from pycompss.api.parameter import get_compss_type
+from pycompss.runtime.parameter import Parameter
+from pycompss.runtime.parameter import get_compss_type
+from pycompss.runtime.parameter import get_return_name
+from pycompss.runtime.parameter import UNDEFINED_CONTENT_TYPE
+from pycompss.runtime.parameter import JAVA_MIN_INT
+from pycompss.runtime.parameter import JAVA_MAX_INT
+from pycompss.runtime.parameter import JAVA_MIN_LONG
+from pycompss.runtime.parameter import JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serialization.serializer import *
@@ -873,8 +877,8 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
                         (including packages, if any)
     :param class_name: Name of the class (if method)
     :param ftype: Function type
-    :param f_parameters: Function parameters (dictionary {'param1':_Parameter()}  # noqa
-    :param f_returns: Function returns (dictionary {'*return_X':_Parameter()}
+    :param f_parameters: Function parameters (dictionary {'param1':Parameter()}  # noqa
+    :param f_returns: Function returns (dictionary {'*return_X':Parameter()}
     :param task_kwargs: Decorator arguments
     :param num_nodes: Number of nodes that the task must use
     :param replicated: Boolean indicating if the task must be replicated
@@ -1058,7 +1062,7 @@ def _build_return_objects(f_returns):
         if __debug__:
             logger.debug("Simple object return found.")
         # Build the appropriate future object
-        ret_value = f_returns[parameter.get_return_name(0)].content
+        ret_value = f_returns[get_return_name(0)].content
         if type(ret_value) in \
                 _python_to_compss or ret_value in _python_to_compss:
             fo = Future()  # primitives,string,dic,list,tuple
@@ -1080,11 +1084,11 @@ def _build_return_objects(f_returns):
         ret_filename = temp_dir + _temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = ret_filename
         pending_to_synchronize[obj_id] = fo
-        f_returns[parameter.get_return_name(0)] = \
-            _Parameter(content_type=TYPE.FILE,
+        f_returns[get_return_name(0)] = \
+            Parameter(content_type=TYPE.FILE,
                        direction=DIRECTION.OUT,
                        prefix="#")
-        f_returns[parameter.get_return_name(0)].file_name = ret_filename
+        f_returns[get_return_name(0)].file_name = ret_filename
     else:
         # Multireturn
         fo = []
@@ -1115,7 +1119,7 @@ def _build_return_objects(f_returns):
             pending_to_synchronize[obj_id] = foe
             # Once determined the filename where the returns are going to
             # be stored, create a new Parameter object for each return object
-            f_returns[k] = _Parameter(content_type=TYPE.FILE,
+            f_returns[k] = Parameter(content_type=TYPE.FILE,
                                       direction=DIRECTION.OUT,
                                       prefix="#")
             f_returns[k].file_name = ret_filename
@@ -1242,7 +1246,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
     :return: value, type, direction stream prefix and extra_content_type of
     the given parameter
     """
-    con_type = parameter.UNDEFINED_CONTENT_TYPE
+    con_type = UNDEFINED_CONTENT_TYPE
     if param.content_type == TYPE.STRING and not param.is_future and code_strings:
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
@@ -1519,7 +1523,7 @@ def _serialize_object_into_file(name, p):
         # (which will be used to reconstruct the collection in the worker)
         if p.is_file_collection:
             new_object = [
-                _Parameter(
+                Parameter(
                      content=x,
                      content_type=TYPE.FILE,
                      direction=p.direction,
@@ -1532,7 +1536,7 @@ def _serialize_object_into_file(name, p):
             new_object = [
                 _serialize_object_into_file(
                     name,
-                    _Parameter(
+                    Parameter(
                         content=x,
                         content_type=get_compss_type(x, p.depth - 1),
                         direction=p.direction,

@@ -26,10 +26,13 @@ import signal
 import traceback
 import base64
 
-from pycompss.api.parameter import _Parameter
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.parameter import Parameter
+from pycompss.runtime.parameter import PYCOMPSS_LONG
+from pycompss.runtime.parameter import JAVA_MIN_INT
+from pycompss.runtime.parameter import JAVA_MAX_INT
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -61,7 +64,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         # Maybe the file is a object, we do not care about this here
         # We will decide whether to deserialize or to forward the value
         # when processing parameters in the task decorator
-        _param = _Parameter(
+        _param = Parameter(
             name=p_name,
             content_type=p_type,
             stream=p_stream,
@@ -72,7 +75,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         return _param, 0
     elif p_type == parameter.TYPE.EXTERNAL_PSCO:
         # Next position contains R/W but we do not need it. Currently skipped.
-        return _Parameter(
+        return Parameter(
             content=p_value,
             content_type=p_type,
             stream=p_stream,
@@ -82,7 +85,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         ), 1
     elif p_type == parameter.TYPE.EXTERNAL_STREAM:
         # Next position contains R/W but we do not need it. Currently skipped.
-        return _Parameter(
+        return Parameter(
             content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
@@ -131,7 +134,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         if IS_PYTHON3 and isinstance(aux, bytes):
             aux = aux.decode('utf-8')
 
-        return _Parameter(
+        return Parameter(
             content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
@@ -146,8 +149,8 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         if p_type == parameter.TYPE.INT:
             val = int(p_value)
         elif p_type == parameter.TYPE.LONG:
-            val = parameter.PYCOMPSS_LONG(p_value)
-            if val > parameter.JAVA_MAX_INT or val < parameter.JAVA_MIN_INT:
+            val = PYCOMPSS_LONG(p_value)
+            if val > JAVA_MAX_INT or val < JAVA_MIN_INT:
                 # A Python in parameter was converted to a Java long to prevent
                 # overflow. We are sure we will not overflow Python int,
                 # otherwise this would have been passed as a serialized object.
@@ -156,7 +159,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
             val = float(p_value)
         elif p_type == parameter.TYPE.BOOLEAN:
             val = (p_value == 'true')
-        return _Parameter(
+        return Parameter(
             content=val,
             content_type=p_type,
             stream=p_stream,

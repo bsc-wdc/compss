@@ -33,6 +33,7 @@ from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'runner'}
@@ -90,10 +91,8 @@ class MPI(object):
             if 'processes' not in self.kwargs:
                 self.kwargs['processes'] = 1
 
-            # The processes parameter will have to go down until the execution
-            # is invoked.
-            # WARNING: processes can be an int, a env string, a str with
-            # dynamic variable name.
+            # The processes parameter will have to go down until the execution is invoked.
+            # WARNING: processes can be an int, a env string, a str with dynamic variable name.
             if __debug__:
                 logger.debug("This MPI task will have " +
                              str(self.kwargs['processes']) + " processes.")
@@ -187,8 +186,8 @@ class MPI(object):
                         elif isinstance(scale_by_cu, str):
                             scale_by_cu_str = scale_by_cu
                         else:
-                            raise Exception("Incorrect format for scale_by_cu property. " +      # noqa: E501
-                                            "It should be boolean or an environment variable")   # noqa: E501
+                            raise Exception("Incorrect format for scale_by_cu property. " +  # noqa: E501
+                                            "It should be boolean or an environment variable")  # noqa: E501
                     else:
                         scale_by_cu_str = 'false'
 
@@ -203,7 +202,7 @@ class MPI(object):
                             fail_by_ev_str = fail_by_ev
                         else:
                             raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
-                                            "It should be boolean or an environment variable")      # noqa: E501
+                                            "It should be boolean or an environment variable")  # noqa: E501
                     else:
                         fail_by_ev_str = 'false'
 

@@ -33,6 +33,7 @@ public class DecafImplementation extends AbstractMethodImplementation implements
     private static final long serialVersionUID = 1L;
 
     public static final int NUM_PARAMS = 6;
+    public static String SIGNATURE = "decaf.DECAF";
 
     public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
         + "system" + File.separator + "decaf" + File.separator + "run_decaf.sh";

@@ -20,6 +20,7 @@ import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -33,25 +34,40 @@ public class ObjectRegistry {
 
     private static final String EMPTY = "EMPTY";
 
+
+    private static final class AppEntry {
+
+        Long appId;
+        Object object;
+
+
+        public AppEntry(Long appId, Object object) {
+            this.appId = appId;
+            this.object = object;
+        }
+
+    }
+
+
     // Api object used to invoke calls on the Integrated Toolkit
     private final LoaderAPI itApi;
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
     private final String serialDir;
 
     // Map: hash code -> object
-    private final Map<Integer, Object> appTaskObjects;
+    private final Map<Integer, AppEntry> appObjects;
     private final Map<Integer, Object> internalObjects;
 
 
     /**
      * Creates a new ObjectRegistry instance associated to a given LoaderAPI {@code api}.
-     * 
+     *
      * @param api LoaderAPI.
      */
     public ObjectRegistry(LoaderAPI api) {
         this.itApi = api;
         this.serialDir = api.getTempDir();
-        this.appTaskObjects = new TreeMap<>();
+        this.appObjects = new TreeMap<>();
         this.internalObjects = new TreeMap<>();
 
         this.itApi.setObjectRegistry(this);
@@ -59,28 +75,29 @@ public class ObjectRegistry {
 
     /**
      * Registers a new Object access.
-     * 
+     *
+     * @param appId Application Id.
      * @param o Object.
      */
-    public void newObjectAccess(Object o) {
-        newObjectAccess(o, true);
+    public void newObjectAccess(Long appId, Object o) {
+        newObjectAccess(appId, o, true);
     }
 
     /**
      * Registers a new access to the given object {@code o} in mode {@code isWriter}.
-     * 
+     *
+     * @param appId Application Id.
      * @param o Object.
      * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
      */
-    public void newObjectAccess(Object o, boolean isWriter) {
+    public void newObjectAccess(Long appId, Object o, boolean isWriter) {
         if (o == null) {
             return;
         }
-        Integer hashCode = getObjectHashCode(o);
+        Integer hashCode = getObjectHashCode(appId, o);
         if (hashCode == null) {
             return; // Not a task parameter object
         }
-
         /*
          * The object has been accessed by a task before. Check with the API that the application has the last version,
          * blocking if necessary.
@@ -98,17 +115,16 @@ public class ObjectRegistry {
 
     /**
      * Registers a new Object parameter.
-     * 
+     *
+     * @param appId Application Id.
      * @param obj Object parameter.
      * @return Final hashcode of the object.
      */
-    public int newObjectParameter(Object obj) {
+    public int newObjectParameter(Long appId, Object obj) {
         if (obj == null) {
             return Integer.MAX_VALUE;
         }
-
-        int objHashCode = obj.hashCode();
-        int finalHashCode = checkHashCode(obj, objHashCode);
+        int finalHashCode = assignHashCode(appId, obj);
 
         if (DEBUG) {
             LOGGER.debug("Object " + obj + " with hash code " + finalHashCode + " registered");
@@ -117,52 +133,56 @@ public class ObjectRegistry {
         return finalHashCode;
     }
 
-    private int checkHashCode(Object obj, int objHashCode) {
-        Object objStored = this.appTaskObjects.get(objHashCode);
-        while (objStored != obj) {
-            if (objStored == null || objStored == EMPTY) {
-                if (DEBUG) {
-                    LOGGER.debug("Adding " + obj + " with hash code " + objHashCode + " to object registery");
-                }
-                this.appTaskObjects.put(objHashCode, obj);
-                // Store it as an internal one too. Read-only objects will always use this same instance
-                this.internalObjects.put(objHashCode, obj);
-                break;
-            }
+    private int assignHashCode(Long appId, Object obj) {
+        int objHashCode = obj.hashCode();
+        AppEntry objEntry = this.appObjects.get(objHashCode);
+        while (objEntry != null && objEntry.object != EMPTY
+            && (objEntry.object != obj || !Objects.equals(objEntry.appId, appId))) {
 
-            // Coincidence of two equal hash codes for different objects.
+            // Coincidence of two equal hash codes for different objects or for the same object on different apps.
             // Increment the hash code and try again.
             ++objHashCode;
-            objStored = this.appTaskObjects.get(objHashCode);
+            objEntry = this.appObjects.get(objHashCode);
         }
 
+        if (objEntry == null || objEntry.object == EMPTY) {
+            if (DEBUG) {
+                LOGGER.debug("Adding " + obj + " with hash code " + objHashCode + " to object registery");
+            }
+            AppEntry re = new AppEntry(appId, obj);
+            this.appObjects.put(objHashCode, re);
+            // Store it as an internal one too. Read-only objects will always use this same instance
+            this.internalObjects.put(objHashCode, obj);
+        }
         return objHashCode;
     }
 
-    private Integer getObjectHashCode(Object o) {
-        int hashCode = o.hashCode();
-        Object oStored = this.appTaskObjects.get(hashCode);
-        while (oStored != o) {
-            if (oStored == null) {
-                return null; // Not a task parameter object
-            } else {
-                oStored = this.appTaskObjects.get(++hashCode);
+    private Integer getObjectHashCode(Long appId, Object obj) {
+        int hashCode = obj.hashCode();
+        AppEntry oEntry = this.appObjects.get(hashCode);
+        while (oEntry != null) {
+            if (oEntry.object == obj && Objects.equals(oEntry.appId, appId)) {
+                return hashCode;
             }
+            // Coincidence of two equal hash codes for different objects or for the same object on different apps.
+            // Increment the hash code and try again.
+            oEntry = this.appObjects.get(++hashCode);
         }
-        return hashCode;
+        // Not a task parameter object
+        return null;
     }
 
     /**
      * Locally serializes the given object {@code o}.
-     * 
+     *
+     * @param appId Application Id.
      * @param o Object.
      */
-    public void serializeLocally(Object o) {
+    public void serializeLocally(Long appId, Object o) {
         if (o == null) {
             return;
         }
-
-        Integer hashCode = getObjectHashCode(o);
+        Integer hashCode = getObjectHashCode(appId, o);
         if (hashCode == null) {
             return; // Not a task parameter object
         }
@@ -180,15 +200,16 @@ public class ObjectRegistry {
 
     /**
      * Returns the internal object representing the given object {@code o}.
-     * 
+     *
+     * @param appId Application Id.
      * @param o Object.
      * @return Internal object representing the given object {@code o}.
      */
-    public Object getInternalObject(Object o) {
+    public Object getInternalObject(Long appId, Object o) {
         if (o == null) {
             return null;
         }
-        Integer hashCode = getObjectHashCode(o);
+        Integer hashCode = getObjectHashCode(appId, o);
         if (hashCode == null) {
             return null; // Not a task parameter object
         }
@@ -206,15 +227,16 @@ public class ObjectRegistry {
 
     /**
      * Deletes the given object {@code o}.
-     * 
+     *
+     * @param appId Application Id.
      * @param o Object.
      * @return {@code true} if the object has been removed, {@code false} otherwise.
      */
-    public boolean delete(Object o) {
+    public boolean delete(Long appId, Object o) {
         if (o == null) {
             return false;
         }
-        Integer hashCode = getObjectHashCode(o);
+        Integer hashCode = getObjectHashCode(appId, o);
         if (hashCode == null) {
             return false; // Not a task parameter object
         }
@@ -229,7 +251,7 @@ public class ObjectRegistry {
 
     /**
      * Deletes the internal object represented by the given hashcode {@code hashcode}.
-     * 
+     *
      * @param hashcode Internal's object hashcode.
      * @return {@code true} if the object has been deleted, {@code false} otherwise.
      */
@@ -244,14 +266,14 @@ public class ObjectRegistry {
 
     /**
      * Deletes the application object represented by the given hashcode {@code hashcode}.
-     * 
+     *
      * @param hashcode Application's object hashcode.
      * @return {@code true} if the object has been deleted, {@code false} otherwise.
      */
     private boolean deleteFromApps(int hashcode) {
-        Object toDelete = this.appTaskObjects.get(hashcode);
+        AppEntry toDelete = this.appObjects.get(hashcode);
         if (toDelete != null) {
-            this.appTaskObjects.put(hashcode, EMPTY);
+            toDelete.object = EMPTY;
             return true;
         }
         return false;

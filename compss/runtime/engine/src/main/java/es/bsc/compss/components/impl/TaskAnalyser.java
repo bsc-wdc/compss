@@ -20,8 +20,8 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.components.monitor.impl.EdgeType;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.Task;
@@ -52,23 +52,18 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
-import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
@@ -96,20 +91,6 @@ public class TaskAnalyser {
 
     // Map: data Id -> WritersInfo
     private Map<Integer, WritersInfo> writers;
-    // Method information
-    private Map<Integer, Integer> currentTaskCount;
-    // Map: app id -> task count
-    private Map<Long, Integer> appIdToTotalTaskCount;
-    // Map: app id -> task count
-    private Map<Long, Integer> appIdToTaskCount;
-    // Map: app id -> semaphore to notify end of app
-    private Map<Long, Semaphore> appIdToSemaphore;
-    // List of appIds stopped on a barrier synchronization point
-    private Set<Long> appIdBarrierFlags;
-    // Map: app id -> set of written data ids (for result files)
-    private Map<Long, Set<Integer>> appIdToWrittenFiles;
-    // Map: app id -> set of written data ids (for result SCOs)
-    private Map<Long, Set<Integer>> appIdToSCOWrittenIds;
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
     private Hashtable<AbstractTask, List<Semaphore>> waitedTasks;
     // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
@@ -119,10 +100,6 @@ public class TaskAnalyser {
     // Tasks that are accessed commutatively and are pending to be drawn in graph. Map: commutative group identifier ->
     // list of tasks from group
     private Map<String, LinkedList<Task>> pendingToDrawCommutative;
-    // Task groups. Map: group name -> commutative group tasks
-    private Map<Long, TreeMap<String, TaskGroup>> taskGroups;
-    // Registered task groups
-    private Map<Long, Stack<TaskGroup>> currentTaskGroups;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -134,22 +111,12 @@ public class TaskAnalyser {
      * Creates a new Task Analyzer instance.
      */
     public TaskAnalyser() {
-        this.currentTaskCount = new HashMap<>();
         this.writers = new TreeMap<>();
-
-        this.appIdToTaskCount = new HashMap<>();
-        this.appIdToTotalTaskCount = new HashMap<>();
-        this.appIdToSemaphore = new HashMap<>();
-        this.appIdBarrierFlags = new HashSet<>();
-        this.appIdToWrittenFiles = new HashMap<>();
-        this.appIdToSCOWrittenIds = new HashMap<>();
 
         this.waitedTasks = new Hashtable<>();
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
-        this.currentTaskGroups = new HashMap<>();
-        this.taskGroups = new HashMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
 
@@ -193,28 +160,8 @@ public class TaskAnalyser {
             addNewTask(currentTask);
         }
 
-        // Update task count
-        Integer methodId = params.getCoreElement().getCoreId();
-        Integer actualCount = this.currentTaskCount.get(methodId);
-        if (actualCount == null) {
-            actualCount = 0;
-        }
-        this.currentTaskCount.put(methodId, actualCount + 1);
-
-        // Update app id task count
-        Long appId = currentTask.getAppId();
-        Integer taskCount = this.appIdToTaskCount.get(appId);
-        if (taskCount == null) {
-            taskCount = 0;
-        }
-        taskCount++;
-        this.appIdToTaskCount.put(appId, taskCount);
-        Integer totalTaskCount = this.appIdToTotalTaskCount.get(appId);
-        if (totalTaskCount == null) {
-            totalTaskCount = 0;
-        }
-        totalTaskCount++;
-        this.appIdToTotalTaskCount.put(appId, totalTaskCount);
+        Application app = currentTask.getApplication();
+        app.newTask(currentTask);
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
@@ -222,15 +169,10 @@ public class TaskAnalyser {
             constrainingParam = params.getParameters().size() - 1 - params.getNumReturns();
         }
 
-        // Set task group
-        if (!applicationHasGroups(currentTask.getAppId())) {
-            setCurrentTaskGroup("App" + currentTask.getAppId(), true, currentTask.getAppId());
-        }
-        Iterator<TaskGroup> currentGroups = this.currentTaskGroups.get(currentTask.getAppId()).iterator();
-        while (currentGroups.hasNext()) {
-            TaskGroup nextGroup = currentGroups.next();
-            currentTask.setTaskGroup(nextGroup);
-            nextGroup.addTask(currentTask);
+        // Add task to the groups
+        for (TaskGroup group : app.getCurrentGroups()) {
+            currentTask.addTaskGroup(group);
+            group.addTask(currentTask);
         }
 
         // Process parameters
@@ -239,7 +181,7 @@ public class TaskAnalyser {
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             boolean isConstraining = paramIdx == constrainingParam;
             boolean paramHasEdge =
-                registerParameterAccessAndAddDependencies(appId, currentTask, parameters.get(paramIdx), isConstraining);
+                registerParameterAccessAndAddDependencies(app, currentTask, parameters.get(paramIdx), isConstraining);
             taskHasEdge = taskHasEdge || paramHasEdge;
         }
         if (IS_DRAW_GRAPH) {
@@ -351,21 +293,6 @@ public class TaskAnalyser {
             }
 
             // Free dependencies
-            Long appId = task.getAppId();
-            Integer taskCount = this.appIdToTaskCount.get(appId) - 1;
-            this.appIdToTaskCount.put(appId, taskCount);
-            if (taskCount == 0) {
-                // Remove the appId from the barrier flags (if existent, otherwise do nothing)
-                this.appIdBarrierFlags.remove(appId);
-                Semaphore sem = this.appIdToSemaphore.remove(appId);
-                if (sem != null) {
-                    // Application was synchronized on a barrier flag or a no more tasks
-                    // Release the application semaphore
-                    this.appIdToTaskCount.remove(appId);
-                    sem.release();
-                }
-            }
-
             // Free task data dependencies
             if (DEBUG) {
                 LOGGER.debug("Releasing waiting tasks for task " + taskId);
@@ -391,7 +318,9 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Checking result file transfers for task " + taskId);
             }
-            if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
+
+            Application app = task.getApplication();
+            if (app.isEnding()) {
                 checkResultFileTransfer(task);
             }
 
@@ -410,38 +339,11 @@ public class TaskAnalyser {
     }
 
     /**
-     * Returns the tasks state.
-     *
-     * @return A string representation of the tasks state.
-     */
-    public String getTaskStateRequest() {
-        StringBuilder sb = new StringBuilder("\t").append("<TasksInfo>").append("\n");
-        for (Entry<Long, Integer> e : this.appIdToTotalTaskCount.entrySet()) {
-            Long appId = e.getKey();
-            Integer totalTaskCount = e.getValue();
-            Integer taskCount = this.appIdToTaskCount.get(appId);
-            if (taskCount == null) {
-                taskCount = 0;
-            }
-            int completed = totalTaskCount - taskCount;
-            sb.append("\t\t").append("<Application id=\"").append(appId).append("\">").append("\n");
-            sb.append("\t\t\t").append("<TotalCount>").append(totalTaskCount).append("</TotalCount>").append("\n");
-            sb.append("\t\t\t").append("<InProgress>").append(taskCount).append("</InProgress>").append("\n");
-            sb.append("\t\t\t").append("<Completed>").append(completed).append("</Completed>").append("\n");
-            sb.append("\t\t").append("</Application>").append("\n");
-        }
-        sb.append("\t").append("</TasksInfo>").append("\n");
-        return sb.toString();
-    }
-
-    /**
      * Barrier.
      *
      * @param request Barrier request.
      */
     public void barrier(BarrierRequest request) {
-        Long appId = request.getAppId();
-        Integer count = this.appIdToTaskCount.get(appId);
         if (IS_DRAW_GRAPH) {
             // Addition of missing commutative groups to graph
             addMissingCommutativeTasksToGraph();
@@ -451,13 +353,9 @@ public class TaskAnalyser {
             this.gm.commitGraph();
         }
 
-        // Release the semaphore only if all application tasks have finished
-        if (count == null || count == 0) {
-            request.getSemaphore().release();
-        } else {
-            this.appIdBarrierFlags.add(appId);
-            this.appIdToSemaphore.put(appId, request.getSemaphore());
-        }
+        Application app = request.getApp();
+        app.reachesBarrier(request);
+
     }
 
     /**
@@ -466,20 +364,12 @@ public class TaskAnalyser {
      * @param request End of execution request.
      */
     public void noMoreTasks(EndOfAppRequest request) {
-        Long appId = request.getAppId();
-        Integer count = this.appIdToTaskCount.get(appId);
-
         if (IS_DRAW_GRAPH) {
             addMissingCommutativeTasksToGraph();
             this.gm.commitGraph();
         }
-
-        if (count == null || count == 0) {
-            this.appIdToTaskCount.remove(appId);
-            request.getSemaphore().release();
-        } else {
-            this.appIdToSemaphore.put(appId, request.getSemaphore());
-        }
+        Application app = request.getApp();
+        app.endReached(request);
     }
 
     /**
@@ -499,19 +389,11 @@ public class TaskAnalyser {
                     break;
                 case FILE_T:
                     // Remove file data form the list of written files
-                    for (Set<Integer> files : this.appIdToWrittenFiles.values()) {
-                        if (files.remove(dataId)) {
-                            LOGGER.info(" Removed data " + dataId + " from written files");
-                        }
-                    }
+                    Application.removeWrittenFileIdFromAllApps(dataId);
                     break;
                 case PSCO_T:
                     // Remove PSCO data from the list of written PSCO
-                    for (Set<Integer> pscos : this.appIdToSCOWrittenIds.values()) {
-                        if (pscos.remove(dataId)) {
-                            LOGGER.info(" Removed data " + dataId + " from written pscos");
-                        }
-                    }
+                    Application.removeWrittenPSCOIdFromAllApps(dataId);
                     break;
                 default:
                     // Nothing to do for other types
@@ -523,39 +405,25 @@ public class TaskAnalyser {
     }
 
     /**
-     * Returns whether a given applicationhas groups registered or not.
-     *
-     * @param appId Application Id.
-     * @return {@literal true} if the application has registered groups, {@literal false} otherwise.
-     */
-    public boolean applicationHasGroups(Long appId) {
-        return this.currentTaskGroups.containsKey(appId);
-    }
-
-    /**
      * Removes a given group from an application.
      *
-     * @param appId Application to whom the group belongs.
-     * @param groupName group to remove
-     * @return removed group; @literal{null}, if the group was not found
+     * @param app Application to which the group to be cancelled belongs
+     * @param groupName name of the group to be cancelled
+     * @return the group to be cancelled
      */
-    public TaskGroup removeTaskGroup(Long appId, String groupName) {
-        TaskGroup tg = null;
-        if (this.taskGroups.containsKey(appId) && this.taskGroups.get(appId).containsKey(groupName)) {
-            tg = this.taskGroups.get(appId).get(groupName);
-            this.taskGroups.remove(appId);
-        }
+    public TaskGroup removeTaskGroup(Application app, String groupName) {
+        TaskGroup tg = app.removeGroup(groupName);
         return tg;
     }
 
     /**
      * Returns the written files and deletes them.
      *
-     * @param appId Application id.
+     * @param app Application.
      * @return List of written files of the application.
      */
-    public Set<Integer> getAndRemoveWrittenFiles(Long appId) {
-        return this.appIdToWrittenFiles.remove(appId);
+    public Set<Integer> getAndRemoveWrittenFiles(Application app) {
+        return app.getWrittenFileIds();
     }
 
     /**
@@ -638,39 +506,26 @@ public class TaskAnalyser {
     /**
      * Sets the current task group to assign to tasks.
      * 
-     * @param groupName Name of the group to set
+     * @param app application to which the group belongs.
      * @param barrier Flag stating if the group has to perform a barrier.
+     * @param groupName Name of the group to set
      */
-    public void setCurrentTaskGroup(String groupName, boolean barrier, Long appId) {
-        LOGGER.debug("Adding group " + groupName + " to the current groups stack.");
-
-        if (!this.currentTaskGroups.containsKey(appId)) {
-            Stack<TaskGroup> currentTaskGroups = new Stack<>();
-            this.currentTaskGroups.put(appId, currentTaskGroups);
-        }
-
-        TaskGroup tg = new TaskGroup(groupName, appId);
-        this.currentTaskGroups.get(appId).push(tg);
-        if (!this.taskGroups.containsKey(appId)) {
-            TreeMap<String, TaskGroup> taskGroups = new TreeMap<>();
-            this.taskGroups.put(appId, taskGroups);
-        }
-        this.taskGroups.get(appId).put(groupName, tg);
-
+    public void setCurrentTaskGroup(Application app, boolean barrier, String groupName) {
+        TaskGroup tg = app.stackTaskGroup(groupName);
         if (IS_DRAW_GRAPH) {
-            if (!tg.isAppGroup(appId)) {
-                this.gm.addTaskGroupToGraph(tg.getName());
-                LOGGER.debug("Group " + groupName + " added to graph");
-            }
+            this.gm.addTaskGroupToGraph(tg.getName());
+            LOGGER.debug("Group " + groupName + " added to graph");
             tg.setGraphDrawn();
         }
     }
 
     /**
-     * Closes the last task group.
+     * Closes the last task group of an application.
+     * 
+     * @param app Application to which the group belongs to
      */
-    public void closeCurrentTaskGroup(Long appId) {
-        TaskGroup tg = this.currentTaskGroups.get(appId).pop();
+    public void closeCurrentTaskGroup(Application app) {
+        TaskGroup tg = app.popGroup();
         tg.setClosed();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
@@ -681,10 +536,10 @@ public class TaskAnalyser {
         for (TaskGroup group : task.getTaskGroupList()) {
             group.removeTask(task);
             LOGGER.debug("Group " + group.getName() + " released task " + task.getId());
-            if (!group.hasPendingTasks() && group.isClosed() && group.hasBarrier()) {
+            if (!group.hasPendingTasks() && group.hasBarrier()) {
                 group.releaseBarrier();
                 if (group.getBarrierDrawn()) {
-                    this.taskGroups.get(task.getAppId()).remove(group.getName());
+                    task.getApplication().removeGroup(group.getName());
                     LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
                 }
                 LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
@@ -721,51 +576,24 @@ public class TaskAnalyser {
      * @param request Barrier group request
      */
     public void barrierGroup(BarrierGroupRequest request) {
-        Long appId = request.getAppId();
+        Application app = request.getApp();
         String groupName = request.getGroupName();
 
-        if (this.taskGroups.containsKey(appId)) {
-            TaskGroup tg = this.taskGroups.get(appId).get(groupName);
-            if (tg != null) {
-                Integer count = this.appIdToTaskCount.get(appId);
-                // Addition of missing commutative groups to graph
-                if (IS_DRAW_GRAPH) {
-                    addMissingCommutativeTasksToGraph();
-                    addNewGroupBarrier(tg);
-                    // We can draw the graph on a barrier while we wait for tasks
-                    this.gm.commitGraph();
-                }
-
-                if (count == null || count == 0) {
-                    if (tg != null && !tg.hasPendingTasks()) {
-                        if (tg.hasException()) {
-                            request.setException(tg.getException());
-                        }
-                        request.getSemaphore().release();
-                    } else {
-                        // Release the semaphore only if all application tasks have finished
-                        request.getSemaphore().release();
-                    }
-                } else {
-                    if (tg != null && !tg.hasPendingTasks()) {
-                        if (tg.hasException()) {
-                            request.setException(tg.getException());
-                        }
-                        request.getSemaphore().release();
-                    } else {
-                        tg.addBarrier(request);
-                    }
-                }
-            } else {
-                request.getSemaphore().release();
+        TaskGroup tg = app.getGroup(groupName);
+        if (tg != null) {
+            // Addition of missing commutative groups to graph
+            if (IS_DRAW_GRAPH) {
+                addMissingCommutativeTasksToGraph();
+                addNewGroupBarrier(tg);
+                // We can draw the graph on a barrier while we wait for tasks
+                this.gm.commitGraph();
             }
-        } else {
-            request.getSemaphore().release();
         }
+        app.reachesGroupBarrier(tg, request);
     }
 
     private void addMissingCommutativeTasksToGraph() {
-        LinkedList<String> identifiers = new LinkedList<String>();
+        LinkedList<String> identifiers = new LinkedList<>();
         for (String identifier : this.pendingToDrawCommutative.keySet()) {
             addCommutativeGroupTaskToGraph(identifier);
             identifiers.add(identifier);
@@ -780,7 +608,7 @@ public class TaskAnalyser {
      * DATA DEPENDENCY MANAGEMENT PRIVATE METHODS
      ***************************************************************************************************************/
 
-    private boolean registerParameterAccessAndAddDependencies(Long appId, Task currentTask, Parameter p,
+    private boolean registerParameterAccessAndAddDependencies(Application app, Task currentTask, Parameter p,
         boolean isConstraining) {
         // Conversion: direction -> access mode
         AccessMode am = AccessMode.R;
@@ -812,30 +640,29 @@ public class TaskAnalyser {
             case DIRECTORY_T:
                 DirectoryParameter dp = (DirectoryParameter) p;
                 // register file access for now, and directory will be accessed as a file
-                daId = this.dip.registerFileAccess(appId, am, dp.getLocation());
+                daId = this.dip.registerFileAccess(app, am, dp.getLocation());
                 break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                daId = this.dip.registerFileAccess(appId, am, fp.getLocation());
+                daId = this.dip.registerFileAccess(app, am, fp.getLocation());
                 break;
             case PSCO_T:
                 ObjectParameter pscop = (ObjectParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 pscop.setType(DataType.PSCO_T);
-                daId = this.dip.registerObjectAccess(appId, am, pscop.getValue(), pscop.getCode());
+                daId = this.dip.registerObjectAccess(app, am, pscop.getValue(), pscop.getCode());
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                daId =
-                    dip.registerExternalPSCOAccess(appId, am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                daId = dip.registerExternalPSCOAccess(app, am, externalPSCOparam.getId(), externalPSCOparam.getCode());
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
                 // Check if its Binding OBJ and register its access
                 bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
-                daId = dip.registerBindingObjectAccess(appId, am, bindingObjectparam.getBindingObject(),
+                daId = dip.registerBindingObjectAccess(app, am, bindingObjectparam.getBindingObject(),
                     bindingObjectparam.getCode());
                 break;
             case OBJECT_T:
@@ -844,24 +671,24 @@ public class TaskAnalyser {
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.dip.registerObjectAccess(appId, am, op.getValue(), op.getCode());
+                daId = this.dip.registerObjectAccess(app, am, op.getValue(), op.getCode());
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
-                daId = this.dip.registerStreamAccess(appId, am, sp.getValue(), sp.getCode());
+                daId = this.dip.registerStreamAccess(app, am, sp.getValue(), sp.getCode());
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                daId = this.dip.registerExternalStreamAccess(appId, am, esp.getLocation());
+                daId = this.dip.registerExternalStreamAccess(app, am, esp.getLocation());
                 break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter content : cp.getParameters()) {
                     boolean hasCollectionParamEdge =
-                        registerParameterAccessAndAddDependencies(appId, currentTask, content, isConstraining);
+                        registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
-                daId = dip.registerCollectionAccess(appId, am, cp);
+                daId = dip.registerCollectionAccess(app, am, cp);
                 DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
                 deleteData(ci);
                 break;
@@ -898,7 +725,7 @@ public class TaskAnalyser {
             } else {
                 // Register regular access
                 dp.setDataAccessId(daId);
-                hasParamEdge = addDependencies(am, currentTask, isConstraining, dp, firstRegistered);
+                hasParamEdge = addDependencies(am, currentTask, isConstraining, dp);
             }
         } else {
             // Basic types do not produce access dependencies
@@ -908,8 +735,7 @@ public class TaskAnalyser {
         return hasParamEdge;
     }
 
-    private boolean addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp,
-        DataAccessId firstRegistered) {
+    private boolean addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp) {
 
         // Add dependencies to the graph and register output values for future dependencies
         boolean hasParamEdge = false;
@@ -1204,7 +1030,7 @@ public class TaskAnalyser {
         }
         if (com == null) {
             LOGGER.info("Creating a new commutative group " + comId);
-            com = new CommutativeGroupTask(currentTask.getAppId(), comId);
+            com = new CommutativeGroupTask(currentTask.getApplication(), comId);
 
             if (IS_DRAW_GRAPH) {
                 LOGGER.debug("Checking if previous group in graph");
@@ -1341,7 +1167,7 @@ public class TaskAnalyser {
     private void registerOutputValues(AbstractTask currentTask, DependencyParameter dp) {
         int currentTaskId = currentTask.getId();
         int dataId = dp.getDataAccessId().getDataId();
-        Long appId = currentTask.getAppId();
+        Application app = currentTask.getApplication();
 
         if (DEBUG) {
             LOGGER.debug("Checking WRITE dependency for datum " + dataId + " and task " + currentTaskId);
@@ -1375,20 +1201,10 @@ public class TaskAnalyser {
         switch (dp.getType()) {
             case DIRECTORY_T:
             case FILE_T:
-                Set<Integer> fileIdsWritten = this.appIdToWrittenFiles.get(appId);
-                if (fileIdsWritten == null) {
-                    fileIdsWritten = new TreeSet<>();
-                    this.appIdToWrittenFiles.put(appId, fileIdsWritten);
-                }
-                fileIdsWritten.add(dataId);
+                app.addWrittenFileId(dataId);
                 break;
             case PSCO_T:
-                Set<Integer> pscoIdsWritten = this.appIdToSCOWrittenIds.get(appId);
-                if (pscoIdsWritten == null) {
-                    pscoIdsWritten = new TreeSet<>();
-                    this.appIdToSCOWrittenIds.put(appId, pscoIdsWritten);
-                }
-                pscoIdsWritten.add(dataId);
+                app.addWrittenPSCOId(dataId);
                 break;
             default:
                 // Nothing to do with basic types
@@ -1812,7 +1628,8 @@ public class TaskAnalyser {
         String src = String.valueOf(tg.getLastTaskId());
         tg.setBarrierDrawn();
         if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
-            this.taskGroups.get(tg.getAppId()).remove(tg.getName());
+            Application app = tg.getApp();
+            app.removeGroup(tg.getName());
         }
         this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", tg.getName(), "clusterTasks", EdgeType.USER_DEPENDENCY);
     }

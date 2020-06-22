@@ -169,4 +169,9 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         return this.slaveWorkersNodeNames;
     }
 
+    @Override
+    public String getParallelismSource() {
+        return this.taskParams.getParallelismSource();
+    }
+
 }

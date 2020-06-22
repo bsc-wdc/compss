@@ -106,7 +106,15 @@ public class CEIParser {
      */
     private static void loadC(String constraintsFile) {
         LOGGER.debug("Loading C Annotation Interface");
-        IDLParser.parseIDLMethods(constraintsFile);
+        List<CoreElementDefinition> ceds = IDLParser.parseIDLMethods(constraintsFile);
+        for (CoreElementDefinition ced : ceds) {
+            // Create the core Element if it does not exist
+            CoreElement ce = CoreManager.registerNewCoreElement(ced);
+
+            Integer coreId = ce.getCoreId();
+            String ceSignature = ce.getSignature();
+            LOGGER.debug("CoreId for task " + ceSignature + " is " + coreId);
+        }
     }
 
     /*

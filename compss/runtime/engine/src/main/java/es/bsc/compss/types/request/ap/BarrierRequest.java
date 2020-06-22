@@ -20,34 +20,37 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
+import es.bsc.compss.types.Barrier;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.concurrent.Semaphore;
 
 
-public class BarrierRequest extends APRequest {
+public class BarrierRequest extends APRequest implements Barrier {
 
     private final Semaphore sem;
-    private final Long appId;
+    private final Application app;
 
 
     /**
      * Creates a new barrier request.
      * 
-     * @param appId Application Id.
+     * @param app Application.
      * @param sem Waiting semaphore.
      */
-    public BarrierRequest(Long appId, Semaphore sem) {
-        this.appId = appId;
+    public BarrierRequest(Application app, Semaphore sem) {
+        this.app = app;
         this.sem = sem;
     }
 
     /**
-     * Returns the application Id of the request.
+     * Returns the application of the request.
      * 
-     * @return The application Id of the request.
+     * @return The application of the request.
      */
-    public Long getAppId() {
-        return this.appId;
+    public Application getApp() {
+        return this.app;
     }
 
     /**
@@ -67,6 +70,22 @@ public class BarrierRequest extends APRequest {
     @Override
     public APRequestType getRequestType() {
         return APRequestType.WAIT_FOR_ALL_TASKS;
+    }
+
+    @Override
+    public void setException(COMPSsException exception) {
+        // Barrier does not support COMPSsExceptions
+    }
+
+    @Override
+    public COMPSsException getException() {
+        // Barrier does not support COMPSsExceptions
+        return null;
+    }
+
+    @Override
+    public void release() {
+        sem.release();
     }
 
 }

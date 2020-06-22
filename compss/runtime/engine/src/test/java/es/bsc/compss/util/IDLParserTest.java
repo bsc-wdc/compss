@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.util;
 
+import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.CoreElementDefinition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -57,7 +59,15 @@ public class IDLParserTest {
         CoreManager.clear();
 
         String constraintsFile = this.getClass().getResource("test.idl").getPath();
-        IDLParser.parseIDLMethods(constraintsFile);
+        List<CoreElementDefinition> ceds = IDLParser.parseIDLMethods(constraintsFile);
+        for (CoreElementDefinition ced : ceds) {
+            // Create the core Element if it does not exist
+            CoreElement ce = CoreManager.registerNewCoreElement(ced);
+
+            Integer coreId = ce.getCoreId();
+            String ceSignature = ce.getSignature();
+            LOGGER.debug("[IDL-Loader]CoreId for task " + ceSignature + " is " + coreId);
+        }
         assertEquals(CoreManager.getCoreCount(), CORECOUNT_RESULT);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");
@@ -174,9 +184,16 @@ public class IDLParserTest {
     @Test
     public void classIDLTest() {
         CoreManager.clear();
-
         String constraintsFile = this.getClass().getResource("class_test.idl").getPath();
-        IDLParser.parseIDLMethods(constraintsFile);
+        List<CoreElementDefinition> ceds = IDLParser.parseIDLMethods(constraintsFile);
+        for (CoreElementDefinition ced : ceds) {
+            // Create the core Element if it does not exist
+            CoreElement ce = CoreManager.registerNewCoreElement(ced);
+
+            Integer coreId = ce.getCoreId();
+            String ceSignature = ce.getSignature();
+            LOGGER.debug("[IDL-Loader] CoreId for task " + ceSignature + " is " + coreId);
+        }
         assertEquals(CoreManager.getCoreCount(), 3);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");
@@ -195,7 +212,15 @@ public class IDLParserTest {
         CoreManager.clear();
 
         String constraintsFile = this.getClass().getResource("test_2.idl").getPath();
-        IDLParser.parseIDLMethods(constraintsFile);
+        List<CoreElementDefinition> ceds = IDLParser.parseIDLMethods(constraintsFile);
+        for (CoreElementDefinition ced : ceds) {
+            // Create the core Element if it does not exist
+            CoreElement ce = CoreManager.registerNewCoreElement(ced);
+
+            Integer coreId = ce.getCoreId();
+            String ceSignature = ce.getSignature();
+            LOGGER.debug("[IDL-Loader] CoreId for task " + ceSignature + " is " + coreId);
+        }
         assertEquals(CoreManager.getCoreCount(), 1);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");

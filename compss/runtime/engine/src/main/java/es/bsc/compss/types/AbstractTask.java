@@ -33,7 +33,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
     // Task fields
-    private final Long appId;
+    private final Application app;
     private final int taskId;
     private TaskState status;
 
@@ -55,10 +55,10 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     /**
      * Creates a new Abstract Method Task with the given parameters.
      *
-     * @param appId Application id.
+     * @param app Application to which the task belongs.
      */
-    public AbstractTask(Long appId) {
-        this.appId = appId;
+    public AbstractTask(Application app) {
+        this.app = app;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
         this.predecessors = new LinkedList<>();
@@ -164,12 +164,12 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     }
 
     /**
-     * Returns the application Id.
+     * Returns the application to which the task belongs.
      *
-     * @return The application Id.
+     * @return The application to which the task belongs.
      */
-    public long getAppId() {
-        return this.appId;
+    public Application getApplication() {
+        return this.app;
     }
 
     /**

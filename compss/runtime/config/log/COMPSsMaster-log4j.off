@@ -12,6 +12,9 @@
     <File name="COMPSsResourcesLog" fileName="${sys:compss.appLogDir}/resources.log" immediateFlush="false" append="false">
       <PatternLayout pattern="%m%n"/>
     </File>
+    <File name="COMPSsAgentLog" fileName="${sys:compss.appLogDir}/agent.log" immediateFlush="false" append="false">
+      <PatternLayout pattern="%m%n"/>
+    </File>
   </Appenders>
 
   <!-- Configure runtime loggers -->
@@ -54,7 +57,7 @@
     <!-- RUNTIME AGENT -->
     <!-- es.bsc.compss.Agent: DEFAULT = DEBUG -->
     <Logger name="es.bsc.compss.Agent" additivity="FALSE" level="warn">
-      <AppenderRef ref="Console"/>
+      <AppenderRef ref="COMPSsAgentLog"/>
     </Logger>
     
     <!-- RUNTIME API -->

@@ -23,6 +23,7 @@ import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -188,7 +189,7 @@ public class AccessProcessor implements Runnable {
     /**
      * Application: new Method Task.
      *
-     * @param appId Application Id.
+     * @param app Application.
      * @param monitor Task monitor.
      * @param lang Application language.
      * @param signature Task signature.
@@ -203,11 +204,11 @@ public class AccessProcessor implements Runnable {
      * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
-    public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
-        boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
-        OnFailure onFailure, long timeOut) {
+    public int newTask(Application app, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary,
+        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, OnFailure onFailure, long timeOut) {
 
-        Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
+        Task currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
             hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
 
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
@@ -223,7 +224,7 @@ public class AccessProcessor implements Runnable {
     /**
      * Application: new Service task.
      *
-     * @param appId Application Id.
+     * @param app Application.
      * @param monitor Task monitor.
      * @param namespace Service namespace.
      * @param service Service name.
@@ -237,10 +238,10 @@ public class AccessProcessor implements Runnable {
      * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
-    public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
-        boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
-        long timeOut) {
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
+    public int newTask(Application app, TaskMonitor monitor, String namespace, String service, String port,
+        String operation, boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters,
+        OnFailure onFailure, long timeOut) {
+        Task currentTask = new Task(app, namespace, service, port, operation, priority, hasTarget, numReturns,
             parameters, monitor, onFailure, timeOut);
 
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
@@ -467,18 +468,18 @@ public class AccessProcessor implements Runnable {
     /**
      * Notifies a main access to an object {@code obj}.
      *
-     * @param appId Id of the application accessing the object.
+     * @param app application accessing the object.
      * @param obj Object.
      * @param hashCode Object hashcode.
      * @return Synchronized object.
      */
-    public Object mainAccessToObject(Long appId, Object obj, int hashCode) {
+    public Object mainAccessToObject(Application app, Object obj, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to object with hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(appId, AccessMode.RW, obj, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -516,18 +517,18 @@ public class AccessProcessor implements Runnable {
     /**
      * Notifies a main access to an external PSCO {@code id}.
      *
-     * @param appId Id of the application accessing the external PSCO.
+     * @param app application accessing the external PSCO.
      * @param id PSCO Id.
      * @param hashCode Object hashcode.
      * @return Location containing final the PSCO Id.
      */
-    public String mainAccessToExternalPSCO(Long appId, String id, int hashCode) {
+    public String mainAccessToExternalPSCO(Application app, String id, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to external object with hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(appId, AccessMode.RW, id, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -572,12 +573,12 @@ public class AccessProcessor implements Runnable {
     /**
      * Notifies a main access to an external binding object.
      *
-     * @param appId Id of the application accessing the binding object.
+     * @param app application accessing the binding object.
      * @param bo Binding object.
      * @param hashCode Binding object's hashcode.
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(Long appId, BindingObject bo, int hashCode) {
+    public String mainAccessToBindingObject(Application app, BindingObject bo, int hashCode) {
         if (DEBUG) {
             LOGGER.debug(
                 "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
@@ -586,7 +587,7 @@ public class AccessProcessor implements Runnable {
         // Tell the DIP that the application wants to access an object
         // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
         // hashCode);
-        BindingObjectAccessParams oap = new BindingObjectAccessParams(appId, AccessMode.R, bo, hashCode);
+        BindingObjectAccessParams oap = new BindingObjectAccessParams(app, AccessMode.R, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
         // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
@@ -617,11 +618,11 @@ public class AccessProcessor implements Runnable {
     /**
      * Notification for no more tasks.
      *
-     * @param appId Application Id.
+     * @param app Application.
      */
-    public void noMoreTasks(Long appId) {
+    public void noMoreTasks(Application app) {
         Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new EndOfAppRequest(appId, sem))) {
+        if (!this.requestQueue.offer(new EndOfAppRequest(app, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "no more tasks");
         }
 
@@ -653,11 +654,11 @@ public class AccessProcessor implements Runnable {
     /**
      * Barrier.
      *
-     * @param appId Application Id.
+     * @param app Application .
      */
-    public void barrier(Long appId) {
+    public void barrier(Application app) {
         Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new BarrierRequest(appId, sem))) {
+        if (!this.requestQueue.offer(new BarrierRequest(app, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
 
@@ -670,12 +671,13 @@ public class AccessProcessor implements Runnable {
     /**
      * Barrier for group.
      *
+     * @param app Application .
      * @param groupName Name of the task group
      * @throws COMPSsException Exception thrown by user
      */
-    public void barrierGroup(Long appId, String groupName) throws COMPSsException {
+    public void barrierGroup(Application app, String groupName) throws COMPSsException {
         Semaphore sem = new Semaphore(0);
-        BarrierGroupRequest request = new BarrierGroupRequest(appId, groupName, sem);
+        BarrierGroupRequest request = new BarrierGroupRequest(app, groupName, sem);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
@@ -694,13 +696,14 @@ public class AccessProcessor implements Runnable {
     /**
      * Cancellation of all tasks of an application.
      * 
-     * @param appId Application Id.
+     * @param app Application .
      */
-    public void cancelApplicationTasks(Long appId) {
+    public void cancelApplicationTasks(Application app) {
+        Long appId = app.getId();
         LOGGER.info("Cancelled all remaining tasks for application with id " + appId);
 
         Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new CancelApplicationTasksRequest(appId, sem))) {
+        if (!this.requestQueue.offer(new CancelApplicationTasksRequest(app, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
         }
         // Wait for response
@@ -713,14 +716,15 @@ public class AccessProcessor implements Runnable {
     /**
      * Cancellation of the remaining tasks of a group.
      * 
-     * @param appId Application Id.
+     * @param app Application.
      * @param groupName name of the group whose tasks will be cancelled.
      */
-    public void cancelTaskGroup(Long appId, String groupName) {
+    public void cancelTaskGroup(Application app, String groupName) {
+        Long appId = app.getId();
         LOGGER.info("Cancel remaining tasks for application " + appId + " and group " + groupName);
 
         Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new CancelTaskGroupRequest(appId, groupName, sem))) {
+        if (!this.requestQueue.offer(new CancelTaskGroupRequest(app, groupName, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
         }
         // Wait for response
@@ -805,9 +809,10 @@ public class AccessProcessor implements Runnable {
      * Sets the task group to assign to all the following tasks.
      *
      * @param groupName Name of the task group
+     * @param app Application.
      */
-    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
-        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier, appId);
+    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier, Application app) {
+        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier, app);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new task group");
         }
@@ -815,9 +820,11 @@ public class AccessProcessor implements Runnable {
 
     /**
      * Closes the current task group.
+     * 
+     * @param app Application.
      */
-    public void closeCurrentTaskGroup(Long appId) {
-        CloseTaskGroupRequest request = new CloseTaskGroupRequest(appId);
+    public void closeCurrentTaskGroup(Application app) {
+        CloseTaskGroupRequest request = new CloseTaskGroupRequest(app);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "closure of task group");
         }
@@ -1035,11 +1042,11 @@ public class AccessProcessor implements Runnable {
     /**
      * Adds a request to retrieve the result files from the workers to the master.
      *
-     * @param appId Application Id.
+     * @param app Application.
      */
-    public void getResultFiles(Long appId) {
+    public void getResultFiles(Application app) {
         Semaphore sem = new Semaphore(0);
-        GetResultFilesRequest request = new GetResultFilesRequest(appId, sem);
+        GetResultFilesRequest request = new GetResultFilesRequest(app, sem);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "get result files");
         }
@@ -1067,12 +1074,12 @@ public class AccessProcessor implements Runnable {
     /**
      * Registers a data value as available on remote locations.
      *
-     * @param appId Id of the application accessing the object.
+     * @param app application accessing the object.
      * @param code code identifying the object
      * @param dataId name of the data associated to the object
      */
-    public void registerRemoteObject(Long appId, int code, String dataId) {
-        RegisterRemoteObjectDataRequest request = new RegisterRemoteObjectDataRequest(appId, code, dataId);
+    public void registerRemoteObject(Application app, int code, String dataId) {
+        RegisterRemoteObjectDataRequest request = new RegisterRemoteObjectDataRequest(app, code, dataId);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
         }
@@ -1081,10 +1088,11 @@ public class AccessProcessor implements Runnable {
     /**
      * Removes all the information related to data bound to a specific application.
      *
-     * @param appId Id of application whose values are to be removed
+     * @param app application whose values are to be removed
      */
-    public void deleteAllApplicationDataRequest(Long appId) {
-        DeleteAllApplicationDataRequest request = new DeleteAllApplicationDataRequest(appId);
+    public void deleteAllApplicationDataRequest(Application app) {
+        Long appId = app.getId();
+        DeleteAllApplicationDataRequest request = new DeleteAllApplicationDataRequest(app);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "delete all data from application " + appId);
         }

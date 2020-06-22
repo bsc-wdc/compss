@@ -16,24 +16,15 @@
  */
 package es.bsc.compss.types;
 
-/**
- * Class representing an exception raised due to some problem within the Comm layer.
- */
-public class CommException extends Exception {
+import es.bsc.compss.worker.COMPSsException;
 
-    public CommException() {
-        super();
-    }
 
-    public CommException(Exception e) {
-        super(e);
-    }
+public interface Barrier {
 
-    public CommException(String msg) {
-        super(msg);
-    }
+    public void setException(COMPSsException exception);
 
-    public CommException(String msg, Exception e) {
-        super(msg, e);
-    }
+    public COMPSsException getException();
+
+    public void release();
+
 }

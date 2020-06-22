@@ -348,6 +348,11 @@ public abstract class ImplementationDefinition implements Invocation {
         return onFailure;
     }
 
+    @Override
+    public String getParallelismSource() {
+        return null;
+    }
+
 
     private static class Param implements InvocationParam {
 

@@ -18,6 +18,7 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;
@@ -46,11 +47,11 @@ public class FileInfo extends DataInfo {
     /**
      * Creates a new FileInfo instance with the given location {@code loc}.
      * 
-     * @param appId application generating the data
+     * @param app application generating the data
      * @param loc File location.
      */
-    public FileInfo(Long appId, DataLocation loc) {
-        super(appId);
+    public FileInfo(Application app, DataLocation loc) {
+        super(app);
         this.origLocation = loc;
     }
 

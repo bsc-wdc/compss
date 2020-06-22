@@ -60,7 +60,6 @@ class CommAgentJob extends NIOJob {
 
     @Override
     public CommTask prepareJob() {
-        System.out.println("Preparing Job");
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
 
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
@@ -89,10 +88,10 @@ class CommAgentJob extends NIOJob {
         LinkedList<NIOParam> params = addParams();
         int numParams = params.size() - taskParams.getNumReturns();
 
-        CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, null, this.taskParams.hasTargetObject(),
-            this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(), slaveWorkersNodeNames,
-            this.taskId, this.impl.getTaskType(), this.jobId, this.history, this.transferId, this.getOnFailure(),
-            this.getTimeOut(), CommAgentAdaptor.LOCAL_RESOURCE);
+        CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, this.taskParams.getParallelismSource(),
+            this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, numParams,
+            absMethodImpl.getRequirements(), slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(), this.jobId,
+            this.history, this.transferId, this.getOnFailure(), this.getTimeOut(), CommAgentAdaptor.LOCAL_RESOURCE);
 
         return nt;
     }
@@ -120,7 +119,6 @@ class CommAgentJob extends NIOJob {
                     commParam = buildCommParamFromBasicParameter((BasicTypeParameter) param);
                     break;
             }
-            System.out.println("\t " + commParam);
             params.add(commParam);
         }
         return params;

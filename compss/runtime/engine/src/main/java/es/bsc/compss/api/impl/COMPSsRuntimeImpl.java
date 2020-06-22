@@ -30,6 +30,7 @@ import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.DoNothingTaskMonitor;
@@ -77,7 +78,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -398,7 +398,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * CONSTRUCTOR
      * ************************************************************************************************************
      */
-
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -429,6 +428,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         ErrorManager.init(this);
+        ((MasterResourceImpl) Comm.getAppHost()).setupNestedSupport(this, this);
     }
 
     /*
@@ -436,7 +436,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * COMPSsRuntime INTERFACE
      * ************************************************************************************************************
      */
-
     @Override
     public synchronized void startIT() {
         if (Tracer.extraeEnabled()) {
@@ -571,6 +570,33 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
+    public long registerApplication() {
+        Application app = Application.registerApplication();
+        return app.getId();
+    }
+
+    @Override
+    public long registerApplication(String parallelismSource) {
+        Application app = Application.registerApplication(parallelismSource);
+        return app.getId();
+    }
+
+    @Override
+    public void registerApplication(Long appId) {
+        Application.registerApplication(appId);
+    }
+
+    @Override
+    public void registerApplication(Long appId, String parallelismSource) {
+        Application.registerApplication(appId, parallelismSource);
+    }
+
+    @Override
+    public void deregisterApplication(Long appId) {
+        Application.deregisterApplication(appId);
+    }
+
+    @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
         String implType, String implIO, String... implTypeArgs) {
 
@@ -605,11 +631,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         td.registerNewCoreElement(ced);
     }
 
-    /**
-     * Registers a new core element definition into the Runtime.
-     *
-     * @param ced Core Element definition.
-     */
+    @Override
     public void registerCoreElement(CoreElementDefinition ced) {
         LOGGER.info("Registering CoreElement " + ced.getCeSignature());
         if (LOGGER.isDebugEnabled()) {
@@ -625,6 +647,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public void registerData(Long appId, DataType type, Object stub, String data) {
+        Application app = Application.registerApplication(appId);
         switch (type) {
             case DIRECTORY_T:
             case FILE_T:
@@ -638,8 +661,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case OBJECT_T:
             case PSCO_T:
-                int pscoCode = oReg.newObjectParameter(stub);
-                ap.registerRemoteObject(appId, pscoCode, data);
+                int pscoCode = oReg.newObjectParameter(appId, stub);
+                ap.registerRemoteObject(app, pscoCode, data);
                 break;
             case STREAM_T:
                 // int streamCode = oReg.newObjectParameter(stub);
@@ -689,7 +712,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     // C
     @Override
     public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
-
         boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
@@ -740,8 +762,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 + (parameterCount > 1 ? "s" : ""));
         }
 
+        Application app = Application.registerApplication(appId);
         // Process the parameters
-        List<Parameter> pars = processParameters(parameterCount, parameters);
+        List<Parameter> pars = processParameters(app, parameterCount, parameters);
         boolean hasReturn = hasReturn(pars);
         int numReturns = hasReturn ? 1 : 0;
 
@@ -750,7 +773,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         // Register the task
-        int task = ap.newTask(appId, monitor, namespace, service, port, operation, isPrioritary, hasTarget, numReturns,
+        int task = ap.newTask(app, monitor, namespace, service, port, operation, isPrioritary, hasTarget, numReturns,
             pars, onFailure, timeOut);
 
         if (Tracer.extraeEnabled()) {
@@ -805,8 +828,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 + (parameterCount > 1 ? "s" : ""));
         }
 
+        Application app = Application.registerApplication(appId);
         // Process the parameters
-        List<Parameter> pars = processParameters(parameterCount, parameters);
+        List<Parameter> pars = processParameters(app, parameterCount, parameters);
 
         if (numReturns == null) {
             numReturns = hasReturn(pars) ? 1 : 0;
@@ -824,8 +848,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (lang == null) {
             lang = DEFAULT_LANG;
         }
+
         // Register the task
-        int task = ap.newTask(appId, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
+        int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
             hasTarget, numReturns, pars, onFailure, timeOut);
 
         // End tracing event
@@ -843,12 +868,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             Tracer.emitEvent(TraceEvent.NO_MORE_TASKS.getId(), TraceEvent.NO_MORE_TASKS.getType());
         }
 
+        Application app = Application.registerApplication(appId);
         LOGGER.info("No more tasks for app " + appId);
         // Wait until all tasks have finished
-        ap.noMoreTasks(appId);
+        ap.noMoreTasks(app);
         // Retrieve result files
         LOGGER.debug("Getting Result Files " + appId);
-        ap.getResultFiles(appId);
+        ap.getResultFiles(app);
 
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NO_MORE_TASKS.getType());
@@ -866,6 +892,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS.getId(), TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
 
+        Application app = Application.registerApplication(appId);
         // Wait until all tasks have finished
         LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
         if (noMoreTasks) {
@@ -873,7 +900,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             noMoreTasks(appId);
         } else {
             // Regular barrier
-            ap.barrier(appId);
+            ap.barrier(app);
         }
 
         if (Tracer.extraeEnabled()) {
@@ -886,8 +913,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS.getId(), TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
+
+        Application app = Application.registerApplication(appId);
         // Regular barrier
-        ap.barrierGroup(appId, groupName);
+        ap.barrierGroup(app, groupName);
 
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.WAIT_FOR_ALL_TASKS.getType());
@@ -940,12 +969,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
-        ap.setCurrentTaskGroup(groupName, implicitBarrier, appId);
+        Application app = Application.registerApplication(appId);
+        ap.setCurrentTaskGroup(groupName, implicitBarrier, app);
     }
 
     @Override
     public void closeTaskGroup(String groupName, Long appId) {
-        ap.closeCurrentTaskGroup(appId);
+        Application app = Application.registerApplication(appId);
+        ap.closeCurrentTaskGroup(app);
     }
 
     @Override
@@ -988,16 +1019,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public void cancelApplicationTasks(Long appId) {
-        ap.cancelApplicationTasks(appId);
+        Application app = Application.registerApplication(appId);
+        ap.cancelApplicationTasks(app);
     }
 
     @Override
     public void deregisterObject(Long appId, Object o) {
-        oReg.delete(o);
+        oReg.delete(appId, o);
     }
 
     @Override
-    public void removeObject(Object o, int hashcode) { // private?
+    public void removeObject(Object o, int hashcode) {
         // This will remove the object from the Object Registry and the Data Info Provider
         // eventually allowing the garbage collector to free it (better use of memory)
         ap.deregisterObject(o);
@@ -1013,8 +1045,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     public void requestResources(Long appId, int numResources, String groupName) {
         LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
             + " for application " + appId);
+
+        Application app = Application.registerApplication(appId);
         // Create listener to cancel the associated task group
-        CancelTaskGroupOnResourceCreation rcl = new CancelTaskGroupOnResourceCreation(ap, appId, groupName);
+        CancelTaskGroupOnResourceCreation rcl = new CancelTaskGroupOnResourceCreation(ap, app, groupName);
 
         // Create resources
         ResourceManager.requestResources(numResources, rcl);
@@ -1024,9 +1058,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     public void freeResources(Long appId, int numResources, String groupName) {
         LOGGER.info("Received request to destroy " + numResources + " resources and notify " + groupName
             + " for application " + appId);
+
+        Application app = Application.registerApplication(appId);
         // Cancel associated task group (if provided)
         if (groupName != null && !groupName.isEmpty()) {
-            ap.cancelTaskGroup(appId, groupName);
+            ap.cancelTaskGroup(app, groupName);
         }
 
         // Destroy resources
@@ -1265,7 +1301,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * COMMON IN BOTH APIs
      * ************************************************************************************************************
      */
-
     @Override
     public boolean isFileAccessed(String fileName) {
         DataLocation loc;
@@ -1481,7 +1516,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * PRIVATE HELPER METHODS
      * ************************************************************************************************************
      */
-
     private boolean hasReturn(List<Parameter> parameters) {
         boolean hasReturn = false;
         if (parameters.size() != 0) {
@@ -1494,10 +1528,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return hasReturn;
     }
 
-    private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
-        String name, String pyType, double weight, boolean keepRename, ArrayList<Parameter> pars, int offset,
-        String[] vals) {
-
+    private int addParameter(Application app, Object content, DataType type, Direction direction, StdIOStream stream,
+        String prefix, String name, String pyType, double weight, boolean keepRename, ArrayList<Parameter> pars,
+        int offset, String[] vals) {
+        long appId = app.getId();
         switch (type) {
             case DIRECTORY_T:
                 try {
@@ -1528,11 +1562,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case OBJECT_T:
             case PSCO_T:
-                int code = oReg.newObjectParameter(content);
+                int code = oReg.newObjectParameter(appId, content);
                 pars.add(new ObjectParameter(direction, stream, prefix, name, pyType, weight, content, code));
                 break;
             case STREAM_T:
-                int streamCode = oReg.newObjectParameter(content);
+                int streamCode = oReg.newObjectParameter(appId, content);
                 pars.add(new StreamParameter(direction, stream, prefix, name, content, streamCode));
                 break;
             case EXTERNAL_STREAM_T:
@@ -1614,8 +1648,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     if (!elemName.startsWith("@")) {
                         elemName = "@" + elemName;
                     }
-                    ret += addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName, elemPyType,
-                        weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
+                    ret += addParameter(app, elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
+                        elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
                     prefix, name, colPyType, weight, keepRename);
@@ -1644,7 +1678,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * *********************************** PRIVATE HELPER METHODS **********************************************
      * *********************************************************************************************************
      */
-    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
+    private List<Parameter> processParameters(Application app, int parameterCount, Object[] parameters) {
         ArrayList<Parameter> pars = new ArrayList<>();
         // Parameter parsing needed, object is not serializable
         for (int i = 0; i < parameterCount; ++i) {
@@ -1667,7 +1701,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + i + " has type " + type.name());
             }
-            addParameter(content, type, direction, stream, prefix, name, null, weight, keepRename, pars, 0, null);
+            addParameter(app, content, type, direction, stream, prefix, name, null, weight, keepRename, pars, 0, null);
         }
 
         // Return parameters
@@ -1684,14 +1718,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     private void finishAccessToFile(Long appId, String fileName, DataLocation loc, AccessMode am, String destDir) {
-        FileAccessParams fap = new FileAccessParams(appId, am, loc);
+        Application app = Application.registerApplication(appId);
+        FileAccessParams fap = new FileAccessParams(app, am, loc);
         ap.finishAccessToFile(loc, fap, destDir);
     }
 
     private String mainAccessToFile(Long appId, String fileName, DataLocation loc, AccessMode am, String destDir,
         boolean isDirectory) {
+        Application app = Application.registerApplication(appId);
         // Tell the AP that the application wants to access a file.
-        FileAccessParams fap = new FileAccessParams(appId, am, loc);
+        FileAccessParams fap = new FileAccessParams(app, am, loc);
         DataLocation targetLocation;
         if (isDirectory) {
             targetLocation = ap.mainAccessToDirectory(loc, fap, destDir);
@@ -1727,8 +1763,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             return null;
         }
 
+        Application app = Application.registerApplication(appId);
         // Otherwise we request it from a task
-        return ap.mainAccessToObject(appId, obj, hashCode);
+        return ap.mainAccessToObject(app, obj, hashCode);
     }
 
     private String mainAccessToExternalPSCO(Long appId, String fileName, DataLocation loc) {
@@ -1741,8 +1778,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             return fileName;
         }
 
+        Application app = Application.registerApplication(appId);
         // Otherwise we request it from a task
-        return ap.mainAccessToExternalPSCO(appId, id, hashCode);
+        return ap.mainAccessToExternalPSCO(app, id, hashCode);
     }
 
     private String mainAccessToBindingObject(Long appId, String fileName, BindingObjectLocation loc) {
@@ -1755,8 +1793,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             return fileName;
         }
 
+        Application app = Application.registerApplication(appId);
         // Otherwise we request it from a task
-        return ap.mainAccessToBindingObject(appId, loc.getBindingObject(), hashCode);
+        return ap.mainAccessToBindingObject(app, loc.getBindingObject(), hashCode);
     }
 
     private DataLocation createLocation(String fileName) throws IOException {
@@ -1784,7 +1823,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public void removeApplicationData(Long appId) {
-        ap.deleteAllApplicationDataRequest(appId);
+        Application app = Application.registerApplication(appId);
+        ap.deleteAllApplicationDataRequest(app);
     }
 
 }

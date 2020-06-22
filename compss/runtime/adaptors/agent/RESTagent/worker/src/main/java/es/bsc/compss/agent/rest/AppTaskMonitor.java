@@ -18,6 +18,7 @@ package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -44,6 +45,7 @@ public class AppTaskMonitor extends AppMonitor {
     private final Orchestrator orchestrator;
 
     private boolean successful;
+    private final TaskProfile profile;
 
 
     /**
@@ -59,6 +61,36 @@ public class AppTaskMonitor extends AppMonitor {
         super(args, target, results);
         this.orchestrator = orchestrator;
         this.successful = false;
+        this.profile = new TaskProfile();
+    }
+
+    @Override
+    public void onCreation() {
+        super.onCreation();
+        profile.created();
+    }
+
+    @Override
+    public void onAccessesProcessed() {
+        super.onAccessesProcessed();
+        profile.processedAccesses();
+    }
+
+    @Override
+    public void onSchedule() {
+        super.onSchedule();
+        profile.scheduled();
+    }
+
+    @Override
+    public void onSubmission() {
+        super.onSubmission();
+        profile.submitted();
+    }
+
+    @Override
+    public void onDataReception() {
+        super.onDataReception();
     }
 
     @Override
@@ -76,20 +108,48 @@ public class AppTaskMonitor extends AppMonitor {
     }
 
     @Override
+    public void onAbortedExecution() {
+        super.onAbortedExecution();
+        profile.finished();
+    }
+
+    @Override
+    public void onErrorExecution() {
+        super.onAbortedExecution();
+        profile.finished();
+    }
+
+    @Override
     public void onFailedExecution() {
         super.onFailedExecution();
+        profile.finished();
         this.successful = false;
+    }
+
+    @Override
+    public void onException() {
+        super.onException();
+        profile.finished();
     }
 
     @Override
     public void onSuccesfulExecution() {
         super.onSuccesfulExecution();
+        profile.finished();
         this.successful = true;
+    }
+
+    @Override
+    public void onCancellation() {
+        super.onCancellation();
+        profile.end();
+        System.out.println("Job cancelled after " + profile.getTotalTime());
     }
 
     @Override
     public void onCompletion() {
         super.onCompletion();
+        profile.end();
         if (this.orchestrator != null) {
             String masterId = this.orchestrator.getHost();
             String operation = this.orchestrator.getOperation();
@@ -104,6 +164,13 @@ public class AppTaskMonitor extends AppMonitor {
                 ErrorManager.warn("AGENT Could not notify Application " + getAppId() + " end to " + wt);
             }
         }
+        System.out.println("Job completed after " + profile.getTotalTime());
     }
 
+    @Override
+    public void onFailure() {
+        super.onFailure();
+        profile.end();
+        System.out.println("Job failed after " + profile.getTotalTime());
+    }
 }

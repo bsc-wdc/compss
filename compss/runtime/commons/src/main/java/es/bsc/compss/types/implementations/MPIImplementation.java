@@ -32,6 +32,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
     private static final long serialVersionUID = 1L;
 
     public static final int NUM_PARAMS = 6;
+    public static final String SIGNATURE = "mpi.MPI";
 
     private String mpiRunner;
     private String mpiFlags;

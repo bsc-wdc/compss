@@ -43,6 +43,19 @@
 			<artifactId>compss-adaptors-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        
+        <!-- Nested tasks -->
+        <!-- Runtime API-->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-api</artifactId>
+		</dependency>
+        <!-- Instrumenter-->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-loader</artifactId>
+		</dependency>        
+        
 		<!-- Storage -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>

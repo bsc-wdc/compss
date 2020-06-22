@@ -20,13 +20,14 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 
 
 public class OpenTaskGroupRequest extends APRequest {
 
     private String groupName;
     private boolean barrier;
-    private Long appId;
+    private Application app;
 
 
     /**
@@ -34,20 +35,17 @@ public class OpenTaskGroupRequest extends APRequest {
      * 
      * @param groupName Name of the group.
      * @param implicitBarrier Barrier for all tasks before closure.
-     * @param appId Application id.
+     * @param app Application.
      */
-    public OpenTaskGroupRequest(String groupName, boolean implicitBarrier, Long appId) {
+    public OpenTaskGroupRequest(String groupName, boolean implicitBarrier, Application app) {
         this.barrier = implicitBarrier;
         this.groupName = groupName;
-        this.appId = appId;
+        this.app = app;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        if (!ta.applicationHasGroups(this.appId)) {
-            ta.setCurrentTaskGroup("App" + this.appId, true, this.appId);
-        }
-        ta.setCurrentTaskGroup(this.groupName, barrier, this.appId);
+        ta.setCurrentTaskGroup(app, barrier, this.groupName);
     }
 
     @Override

@@ -19,6 +19,7 @@ package es.bsc.compss.types;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
+import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.data.BindingDataManager;
@@ -30,6 +31,7 @@ import es.bsc.compss.executor.utils.ThreadedPrintStream;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
+import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -101,6 +103,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
+
+    private COMPSsRuntime runtimeApi;
+    private LoaderAPI loaderApi;
 
     private final String storageConf;
     private final TaskExecution executionType;
@@ -287,6 +292,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             System.err.println(ERROR_WORKERS_DIR);
             System.exit(1);
         }
+
+        // Nested Management variables
+        this.runtimeApi = null;
+        this.loaderApi = null;
 
         // Configure worker debug level
         // Configure storage
@@ -1473,5 +1482,23 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     public void removeObsoletes(List<MultiURI> obsoletes) {
         // Nothing to do
 
+    }
+
+    @Override
+    public COMPSsRuntime getRuntimeAPI() {
+        return this.runtimeApi;
+    }
+
+    public void setRuntimeApi(COMPSsRuntime runtimeApi) {
+        this.runtimeApi = runtimeApi;
+    }
+
+    @Override
+    public LoaderAPI getLoaderAPI() {
+        return this.loaderApi;
+    }
+
+    public void setLoaderApi(LoaderAPI loaderApi) {
+        this.loaderApi = loaderApi;
     }
 }

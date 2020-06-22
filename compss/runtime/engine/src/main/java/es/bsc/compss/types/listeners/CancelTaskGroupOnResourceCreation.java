@@ -17,6 +17,7 @@
 package es.bsc.compss.types.listeners;
 
 import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.resources.ResourceDescription;
 
 
@@ -26,7 +27,7 @@ import es.bsc.compss.types.resources.ResourceDescription;
 public class CancelTaskGroupOnResourceCreation implements ResourceCreationListener {
 
     private final AccessProcessor taskProducer;
-    private final Long appId;
+    private final Application app;
     private final String groupName;
 
 
@@ -34,21 +35,21 @@ public class CancelTaskGroupOnResourceCreation implements ResourceCreationListen
      * Creates a new ResourceCreationListener.
      * 
      * @param taskProducer Associated task producer.
-     * @param appId Application Id.
+     * @param app Application.
      * @param groupName Task group to be notified.
      */
-    public CancelTaskGroupOnResourceCreation(AccessProcessor taskProducer, Long appId, String groupName) {
+    public CancelTaskGroupOnResourceCreation(AccessProcessor taskProducer, Application app, String groupName) {
         this.taskProducer = taskProducer;
-        this.appId = appId;
+        this.app = app;
         this.groupName = groupName;
     }
 
     @Override
     public void notifyResourceCreation(ResourceDescription desc) {
         // Cancel associated task group (if provided)
-        if (this.taskProducer != null && this.appId != null && this.groupName != null && !this.groupName.isEmpty()
+        if (this.taskProducer != null && this.app != null && this.groupName != null && !this.groupName.isEmpty()
             && !this.groupName.equals("NULL")) {
-            this.taskProducer.cancelTaskGroup(this.appId, this.groupName);
+            this.taskProducer.cancelTaskGroup(this.app, this.groupName);
         }
 
     }

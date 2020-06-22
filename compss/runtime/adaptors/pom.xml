@@ -49,6 +49,19 @@
                 <artifactId>compss-project-schema</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            
+             <!-- COMPSs Nested detection classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-loader</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
              <!-- COMPSs storage classes -->
             <dependency>
                 <groupId>es.bsc.compss</groupId>

@@ -27,18 +27,53 @@ import java.util.List;
 
 public interface Invocation {
 
+    /**
+     * Returns the job Id.
+     *
+     * @return The job Id.
+     */
     public int getJobId();
 
+    /**
+     * Returns the job history.
+     *
+     * @return The job history.
+     */
     public JobHistory getHistory();
 
+    /**
+     * Returns the task Id.
+     *
+     * @return The task Id.
+     */
     public int getTaskId();
 
+    /**
+     * Returns the task type.
+     *
+     * @return The task type.
+     */
     public TaskType getTaskType();
 
+    /**
+     * Returns the task language.
+     *
+     * @return The task language.
+     */
     public Lang getLang();
 
+    /**
+     * Returns the method implementation type.
+     *
+     * @return The method implementation type.
+     */
     public AbstractMethodImplementation getMethodImplementation();
 
+    /**
+     * Returns whether the worker debug is enabled or not.
+     *
+     * @return {@literal true} if the worker debug is enabled, {@literal false} otherwise.
+     */
     public boolean isDebugEnabled();
 
     public List<? extends InvocationParam> getParams();
@@ -47,12 +82,29 @@ public interface Invocation {
 
     public List<? extends InvocationParam> getResults();
 
+    /**
+     * Returns the resource description needed for the task execution.
+     *
+     * @return The resource description needed for the task execution.
+     */
     public ResourceDescription getRequirements();
 
+    /**
+     * Returns the slave workers node names.
+     *
+     * @return The slave workers node names.
+     */
     public List<String> getSlaveNodesNames();
 
     public OnFailure getOnFailure();
 
     public long getTimeOut();
+
+    /**
+     * Returns a string identifying the interface to use for detecting parallelism within the invocation.
+     *
+     * @return interface id
+     */
+    public String getParallelismSource();
 
 }

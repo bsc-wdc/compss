@@ -14,25 +14,42 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.exceptions;
 
-public class JobExecutionException extends Exception {
+/**
+ * Exception to creation/deletion announce errors.
+ */
+public class CommException extends Exception {
 
     /**
-     * Exception Version UID are 2L in all Runtime.
+     * Exceptions Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
 
-    public JobExecutionException(String message) {
-        super(message);
+    /**
+     * New empty Announce Exception.
+     */
+    public CommException() {
+        super();
     }
 
-    public JobExecutionException(Throwable e) {
+    /**
+     * New nested {@code e} Announce Exception.
+     * 
+     * @param e Exception.
+     */
+    public CommException(Exception e) {
         super(e);
     }
 
-    public JobExecutionException(String message, Throwable e) {
-        super(message, e);
+    /**
+     * New Announce Exception with message {@code msg}.
+     * 
+     * @param msg Exception message.
+     */
+    public CommException(String msg) {
+        super(msg);
     }
+
 }

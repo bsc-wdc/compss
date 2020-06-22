@@ -70,10 +70,10 @@
 
   # Starting agent
   agent1_log_dir="${log_dir}/agent1/"
-  mkdir -p "${agent1_log_dir}" 
-  agent1_output_log="${agent1_log_dir}agent1.outputlog"
-  agent1_error_log="${agent1_log_dir}agent1.errorlog"
-  compss_agent_start \
+  agent1_output_log="${log_dir}/agent1.outputlog"
+  agent1_error_log="${log_dir}/agent1.errorlog"
+
+compss_agent_start \
    "--hostname=COMPSsWorker01" \
    "--classpath=${base_app_dir}/${jar_name}" \
    "--log_dir=${agent1_log_dir}" \

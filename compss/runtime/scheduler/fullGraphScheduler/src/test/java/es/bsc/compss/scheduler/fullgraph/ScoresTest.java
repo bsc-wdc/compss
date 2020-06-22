@@ -236,15 +236,16 @@ public class ScoresTest {
         Comm.registerData(d2v2.getRenaming());
 
         DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
-            Constants.PREFIX_EMPTY, "dp1", null);
+            Constants.PREFIX_EMPTY, "dp1", null, 1.0, false);
         dpD1V1.setDataAccessId(new RAccessId(1, 1));
 
         DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
-            Constants.PREFIX_EMPTY, "dp2", null);
+            Constants.PREFIX_EMPTY, "dp2", null, 1.0, false);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
-        TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""),
-            false, Constants.SINGLE_NODE, false, false, false, 0, OnFailure.RETRY, 0, Arrays.asList(dpD1V1, dpD2V2));
+        TaskDescription params =
+            new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""), "null", false,
+                Constants.SINGLE_NODE, false, false, false, 0, OnFailure.RETRY, 0, Arrays.asList(dpD1V1, dpD2V2));
 
         FullGraphScore actionScore = (FullGraphScore) ds.generateActionScore(action1);
 
@@ -277,8 +278,8 @@ public class ScoresTest {
 
         // No resources and no dependencies
         FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, ce4Impls);
-        TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""), false,
-            Constants.SINGLE_NODE, false, false, false, 0, OnFailure.RETRY, 0, new LinkedList<>());
+        TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""), "null",
+            false, Constants.SINGLE_NODE, false, false, false, 0, OnFailure.RETRY, 0, new LinkedList<>());
         FullGraphScore score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
 

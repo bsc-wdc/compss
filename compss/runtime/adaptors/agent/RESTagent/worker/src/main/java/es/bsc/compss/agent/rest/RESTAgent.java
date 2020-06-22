@@ -29,7 +29,6 @@ import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.ReduceNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
-import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.log.Loggers;
@@ -304,41 +303,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         System.out.println("Received REST call to run a " + request.getLang() + " method");
         Response response;
         try {
-            String ceiClass = request.getCeiClass();
-            if (ceiClass != null) {
-                response = runMain(request);
-            } else {
-                response = runTask(request);
-            }
+            // String ceiClass = request.getCeiClass();
+            response = runTask(request);
         } catch (Exception e) {
             response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return response;
-    }
-
-    private static Response runMain(StartApplicationRequest request) {
-        // String serviceInstanceId = request.getServiceInstanceId();
-        Lang lang;
-        try {
-            lang = Lang.valueOf(request.getLang().toUpperCase());
-        } catch (java.lang.IllegalArgumentException iae) {
-            return Response.status(Response.Status.NOT_ACCEPTABLE).entity(UNSUPPORTED_LANGUAGE_MSG).build();
-        }
-        String ceiClass = request.getCeiClass();
-
-        String className = request.getClassName();
-        String methodName = request.getMethodName();
-        ApplicationParameter[] params = request.getParams();
-        AppMainMonitor monitor = new AppMainMonitor(params);
-        long appId;
-        try {
-            appId = Agent.runMain(lang, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
-                monitor);
-        } catch (AgentException e) {
-            LOGGER.error("ERROR IN runMain : ", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        }
-        return Response.ok(appId, MediaType.TEXT_PLAIN).build();
     }
 
     private static Response runTask(StartApplicationRequest request) {
@@ -350,6 +320,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         }
         String className = request.getClassName();
         String methodName = request.getMethodName();
+        String ceiClass = request.getCeiClass();
         ApplicationParameterImpl[] arguments = request.getParams();
         ApplicationParameterImpl target = request.getTarget();
         ApplicationParameterImpl[] results;
@@ -373,7 +344,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         AppTaskMonitor monitor = new AppTaskMonitor(arguments, target, results, orchestrator);
 
         try {
-            appId = Agent.runTask(lang, className, methodName, arguments, target, results,
+            appId = Agent.runTask(lang, className, methodName, ceiClass, arguments, target, results,
                 MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runTask : ", e);

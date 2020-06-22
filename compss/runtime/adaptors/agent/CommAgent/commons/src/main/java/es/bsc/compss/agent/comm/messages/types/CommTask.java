@@ -38,7 +38,6 @@ import java.util.List;
 public class CommTask extends NIOTask {
 
     private CommResource orchestrator;
-    private String cei;
 
 
     public CommTask() {
@@ -51,7 +50,7 @@ public class CommTask extends NIOTask {
      * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param impl Implementation to execute.
-     * @param cei Interface class to parallelize the code
+     * @param parallelismSource Interface class to parallelize the code
      * @param hasTarget Whether the task has a target object or not.
      * @param params List of task parameters.
      * @param numReturns Number of returns.
@@ -66,15 +65,13 @@ public class CommTask extends NIOTask {
      * @param timeOut Task Deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
-    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei, boolean hasTarget,
-        int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
+    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
+        boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
         List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
         int transferGroupId, OnFailure onFailure, long timeOut, CommResource orchestrator) {
+        super(lang, workerDebug, impl, parallelismSource, hasTarget, numReturns, params, numParams, reqs,
+            slaveWorkersNodeNames, taskId, taskType, jobId, hist, transferGroupId, onFailure, timeOut);
 
-        super(lang, workerDebug, impl, hasTarget, numReturns, params, numParams, reqs, slaveWorkersNodeNames, taskId,
-            taskType, jobId, hist, transferGroupId, onFailure, timeOut);
-
-        this.cei = cei;
         this.orchestrator = orchestrator;
     }
 
@@ -84,7 +81,7 @@ public class CommTask extends NIOTask {
      * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param impl Implementation to execute.
-     * @param cei Interface class to parallelize the code
+     * @param parallelismSource Interface class to parallelize the code
      * @param arguments List of task's method arguments.
      * @param target Task's method callee
      * @param results List of task's method results.
@@ -96,20 +93,15 @@ public class CommTask extends NIOTask {
      * @param timeOut Task deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
-    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei,
+    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
         LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
         OnFailure onFailure, long timeOut, CommResource orchestrator) {
 
-        super(lang, workerDebug, impl, arguments, target, results, slaveWorkersNodeNames, taskId, jobId, hist,
-            transferGroupId, onFailure, timeOut);
+        super(lang, workerDebug, impl, parallelismSource, arguments, target, results, slaveWorkersNodeNames, taskId,
+            jobId, hist, transferGroupId, onFailure, timeOut);
 
-        this.cei = cei;
         this.orchestrator = orchestrator;
-    }
-
-    public String getCei() {
-        return this.cei;
     }
 
     public CommResource getOrchestrator() {
@@ -121,10 +113,6 @@ public class CommTask extends NIOTask {
         super.readExternal(in);
 
         this.orchestrator = (CommResource) in.readObject();
-        boolean ceiDefined = in.readBoolean();
-        if (ceiDefined) {
-            cei = in.readUTF();
-        }
     }
 
     @Override
@@ -132,11 +120,6 @@ public class CommTask extends NIOTask {
         super.writeExternal(out);
 
         out.writeObject(this.orchestrator);
-        boolean ceiDefined = this.cei != null && !this.cei.isEmpty();
-        out.writeBoolean(ceiDefined);
-        if (ceiDefined) {
-            out.writeUTF(this.cei);
-        }
     }
 
 }

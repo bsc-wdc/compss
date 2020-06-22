@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
@@ -29,12 +30,12 @@ public class CancelApplicationTasksRequest extends CancelTaskGroupRequest {
 
     /**
      * Creates a request to cancel all tasks of an application.
-     *
-     * @param appId Application Id.
+     * 
+     * @param app Application.
      * @param sem Synchronising semaphore.
      */
-    public CancelApplicationTasksRequest(Long appId, Semaphore sem) {
-        super(appId, "App" + appId, sem);
+    public CancelApplicationTasksRequest(Application app, Semaphore sem) {
+        super(app, "App" + app.getId(), sem);
     }
 
     @Override
@@ -45,8 +46,7 @@ public class CancelApplicationTasksRequest extends CancelTaskGroupRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException, COMPSsException {
-        LOGGER.debug("Cancelling tasks of application " + getAppId());
+        LOGGER.debug("Cancelling tasks of application " + getApp().getId());
         super.cancelGroup(ta, td);
     }
-
 }

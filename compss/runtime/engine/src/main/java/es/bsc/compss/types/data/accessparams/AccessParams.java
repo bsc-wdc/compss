@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.components.impl.DataInfoProvider;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 
 import java.io.Serializable;
@@ -41,18 +42,18 @@ public abstract class AccessParams implements Serializable {
      */
     private static final long serialVersionUID = 1L;
 
-    protected final Long appId;
+    protected final Application app;
     protected final AccessMode mode;
 
 
     /**
      * Creates a new AccessParams instance.
      *
-     * @param appId Id of the application accessing the value
+     * @param app Id of the application accessing the value
      * @param mode Access Mode.
      */
-    public AccessParams(Long appId, AccessMode mode) {
-        this.appId = appId;
+    public AccessParams(Application app, AccessMode mode) {
+        this.app = app;
         this.mode = mode;
     }
 
@@ -61,8 +62,8 @@ public abstract class AccessParams implements Serializable {
      * 
      * @return the Id of the application accessing the value
      */
-    public Long getAppId() {
-        return appId;
+    public Application getApp() {
+        return app;
     }
 
     /**

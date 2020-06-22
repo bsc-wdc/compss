@@ -27,6 +27,7 @@ import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
+import es.bsc.compss.invokers.JavaNestedInvoker;
 import es.bsc.compss.invokers.OpenCLInvoker;
 import es.bsc.compss.invokers.StorageInvoker;
 import es.bsc.compss.invokers.binary.BinaryInvoker;
@@ -673,34 +674,36 @@ public class Executor implements Runnable {
             for (InvocationParam p : cp.getCollectionParameters()) {
                 bindOriginalFilenameToRenames(p, sandbox);
             }
-        } else if (param.getType().equals(DataType.FILE_T)) {
-            String renamedFilePath = (String) param.getValue();
-            File renamedFile = new File(renamedFilePath);
-            param.setRenamedName(renamedFilePath);
-            if (renamedFile.getName().equals(param.getOriginalName())) {
-                param.setOriginalName(renamedFilePath);
-            } else {
-                String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
-                LOGGER.debug("Setting Original Name to " + inSandboxPath);
-                LOGGER.debug("Renamed File Path is " + renamedFilePath);
-                param.setOriginalName(inSandboxPath);
-                param.setValue(inSandboxPath);
-                File inSandboxFile = new File(inSandboxPath);
-                if (renamedFile.exists()) {
-                    LOGGER.debug("File exists");
-                    // IN or INOUT File creating a symbolic link
-                    if (!inSandboxFile.exists()) {
-                        LOGGER.debug(
-                            "Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
-                        Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
-                    } else {
-                        if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                            Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
-                            LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to "
-                                + oldRenamed.getFileName().toString());
-                            if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
-                                Files.delete(inSandboxFile.toPath());
-                                Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+        } else {
+            if (param.getType().equals(DataType.FILE_T)) {
+                String renamedFilePath = (String) param.getValue();
+                File renamedFile = new File(renamedFilePath);
+                param.setRenamedName(renamedFilePath);
+                if (renamedFile.getName().equals(param.getOriginalName())) {
+                    param.setOriginalName(renamedFilePath);
+                } else {
+                    String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
+                    LOGGER.debug("Setting Original Name to " + inSandboxPath);
+                    LOGGER.debug("Renamed File Path is " + renamedFilePath);
+                    param.setOriginalName(inSandboxPath);
+                    param.setValue(inSandboxPath);
+                    File inSandboxFile = new File(inSandboxPath);
+                    if (renamedFile.exists()) {
+                        LOGGER.debug("File exists");
+                        // IN or INOUT File creating a symbolic link
+                        if (!inSandboxFile.exists()) {
+                            LOGGER.debug(
+                                "Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
+                            Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+                        } else {
+                            if (Files.isSymbolicLink(inSandboxFile.toPath())) {
+                                Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
+                                LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to "
+                                    + oldRenamed.getFileName().toString());
+                                if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
+                                    Files.delete(inSandboxFile.toPath());
+                                    Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+                                }
                             }
                         }
                     }
@@ -775,60 +778,62 @@ public class Executor implements Runnable {
             for (InvocationParam p : cp.getCollectionParameters()) {
                 unbindOriginalFilenameToRename(p, invocation);
             }
-        } else if (param.getType().equals(DataType.FILE_T)) {
-            String inSandboxPath = param.getOriginalName();
-            String renamedFilePath = param.getRenamedName();
+        } else {
+            if (param.getType().equals(DataType.FILE_T)) {
+                String inSandboxPath = param.getOriginalName();
+                String renamedFilePath = param.getRenamedName();
 
-            LOGGER.debug("Treating file " + inSandboxPath);
-            File inSandboxFile = new File(inSandboxPath);
-            String originalFileName = inSandboxFile.getName();
-            if (!inSandboxPath.equals(renamedFilePath)) {
-                File renamedFile = new File(renamedFilePath);
-                if (renamedFile.exists()) {
-                    // IN, INOUT
-                    if (inSandboxFile.exists()) {
-                        if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                            // If a symbolic link is created remove it
-                            LOGGER.debug("Deleting symlink " + inSandboxFile.toPath());
-                            Files.delete(inSandboxFile.toPath());
+                LOGGER.debug("Treating file " + inSandboxPath);
+                File inSandboxFile = new File(inSandboxPath);
+                String originalFileName = inSandboxFile.getName();
+                if (!inSandboxPath.equals(renamedFilePath)) {
+                    File renamedFile = new File(renamedFilePath);
+                    if (renamedFile.exists()) {
+                        // IN, INOUT
+                        if (inSandboxFile.exists()) {
+                            if (Files.isSymbolicLink(inSandboxFile.toPath())) {
+                                // If a symbolic link is created remove it
+                                LOGGER.debug("Deleting symlink " + inSandboxFile.toPath());
+                                Files.delete(inSandboxFile.toPath());
+                            } else {
+                                // Rewrite inout param by moving the new file to the renaming
+                                LOGGER.debug("Moving from " + inSandboxFile.toPath() + " to " + renamedFile.toPath());
+                                move(inSandboxFile.toPath(), renamedFile.toPath());
+                            }
                         } else {
-                            // Rewrite inout param by moving the new file to the renaming
-                            LOGGER.debug("Moving from " + inSandboxFile.toPath() + " to " + renamedFile.toPath());
-                            move(inSandboxFile.toPath(), renamedFile.toPath());
+                            // Both files exist and are updated
+                            LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
                         }
-                    } else {
-                        // Both files exist and are updated
-                        LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
-                    }
-                } else { // OUT
-                    if (inSandboxFile.exists()) {
-                        if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                            // Unexpected case
-                            String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
-                                + ". Either this file or the original name " + renamedFilePath + " do not exist.";
-                            LOGGER.error(msg);
-                            System.err.println(msg);
+                    } else { // OUT
+                        if (inSandboxFile.exists()) {
+                            if (Files.isSymbolicLink(inSandboxFile.toPath())) {
+                                // Unexpected case
+                                String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
+                                    + ". Either this file or the original name " + renamedFilePath + " do not exist.";
+                                LOGGER.error(msg);
+                                System.err.println(msg);
+                                throw new JobExecutionException(msg);
+                            } else {
+                                // If an output file is created move to the renamed path (OUT Case)
+                                move(inSandboxFile.toPath(), renamedFile.toPath());
+                            }
+                        } else {
+                            // Error output file does not exist
+                            String msg = "WARN: Output file " + inSandboxFile.toPath() + " does not exist";
+                            // Unexpected case (except for C binding when not serializing outputs)
+                            if (invocation.getOnFailure() != OnFailure.RETRY) {
+                                LOGGER.debug("Generating empty renamed file (" + renamedFilePath
+                                    + ") for on_failure management");
+                                renamedFile.createNewFile();
+                            }
                             throw new JobExecutionException(msg);
-                        } else {
-                            // If an output file is created move to the renamed path (OUT Case)
-                            move(inSandboxFile.toPath(), renamedFile.toPath());
-                        }
-                    } else {
-                        // Error output file does not exist
-                        String msg = "WARN: Output file " + inSandboxFile.toPath() + " does not exist";
-                        // Unexpected case (except for C binding when not serializing outputs)
-                        if (invocation.getOnFailure() != OnFailure.RETRY) {
-                            LOGGER.debug(
-                                "Generating empty renamed file (" + renamedFilePath + ") for on_failure management");
-                            renamedFile.createNewFile();
-                        }
-                        throw new JobExecutionException(msg);
 
+                        }
                     }
                 }
+                param.setValue(renamedFilePath);
+                param.setOriginalName(originalFileName);
             }
-            param.setValue(renamedFilePath);
-            param.setOriginalName(originalFileName);
         }
     }
 
@@ -900,12 +905,22 @@ public class Executor implements Runnable {
 
     private Invoker selectNativeMethodInvoker(Invocation invocation, File taskSandboxWorkingDir,
         InvocationResources assignedResources) throws JobExecutionException {
+        System.out.println("Context: " + context);
+        System.out.println("Context Runtime: " + context.getRuntimeAPI());
+        System.out.println("Context Loader: " + context.getLoaderAPI());
         switch (invocation.getLang()) {
             case JAVA:
                 Invoker javaInvoker = null;
                 switch (context.getExecutionType()) {
                     case COMPSS:
-                        javaInvoker = new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        if (context.getRuntimeAPI() != null && context.getLoaderAPI() != null) {
+                            System.out.println("Nested Support enabled on the Invocation Context!");
+                            javaInvoker =
+                                new JavaNestedInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        } else {
+                            javaInvoker =
+                                new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        }
                         break;
                     case STORAGE:
                         javaInvoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);

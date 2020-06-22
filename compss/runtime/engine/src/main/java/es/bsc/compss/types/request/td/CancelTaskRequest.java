@@ -62,7 +62,7 @@ public class CancelTaskRequest extends TDRequest {
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
         for (AllocatableAction aa : task.getExecutions()) {
-            aa.cancel();
+            ts.cancelAllocatableAction(aa);
         }
         if (listener != null) {
             listener.performed();

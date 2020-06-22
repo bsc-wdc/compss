@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.util.parsers;
 
-import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.annotations.Constants;
@@ -44,7 +43,13 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
+import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.DecafImplementation;
+import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.OmpSsImplementation;
+import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -520,8 +525,7 @@ public class ITFParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            String binarySignature = calleeMethodSignature.toString() + LoaderUtils.BINARY_SIGNATURE;
-
+            String binarySignature = calleeMethodSignature.toString() + BinaryImplementation.SIGNATURE;
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
             if (binaryAnnot.constraints() != null) {
@@ -565,7 +569,7 @@ public class ITFParser {
                 LOGGER.debug("mpiRunner: " + mpiRunner);
             }
 
-            String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.MPI_SIGNATURE;
+            String mpiSignature = calleeMethodSignature.toString() + MPIImplementation.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -612,7 +616,7 @@ public class ITFParser {
                 LOGGER.debug("mpiRunner: " + mpiRunner);
             }
 
-            String decafSignature = calleeMethodSignature.toString() + LoaderUtils.DECAF_SIGNATURE;
+            String decafSignature = calleeMethodSignature.toString() + DecafImplementation.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -656,7 +660,7 @@ public class ITFParser {
                 LOGGER.debug("appName: " + appName);
             }
 
-            String compssSignature = calleeMethodSignature.toString() + LoaderUtils.COMPSs_SIGNATURE;
+            String compssSignature = calleeMethodSignature.toString() + COMPSsImplementation.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -729,7 +733,7 @@ public class ITFParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            String ompssSignature = calleeMethodSignature.toString() + LoaderUtils.OMPSS_SIGNATURE;
+            String ompssSignature = calleeMethodSignature.toString() + OmpSsImplementation.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -761,7 +765,7 @@ public class ITFParser {
                 ErrorManager.error("Empty kernel annotation for method " + m.getName());
             }
 
-            String openclSignature = calleeMethodSignature.toString() + LoaderUtils.OPENCL_SIGNATURE;
+            String openclSignature = calleeMethodSignature.toString() + OpenCLImplementation.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;

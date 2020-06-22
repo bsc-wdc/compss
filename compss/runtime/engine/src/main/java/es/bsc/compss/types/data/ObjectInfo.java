@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.types.Application;
 import java.util.concurrent.Semaphore;
 
 
@@ -28,11 +29,11 @@ public class ObjectInfo extends DataInfo {
     /**
      * Creates a new ObjectInfo instance with the given hashcode.
      *
-     * @param appId application generating the data
+     * @param app application generating the data
      * @param code Object hashcode.
      */
-    public ObjectInfo(Long appId, int code) {
-        super(appId);
+    public ObjectInfo(Application app, int code) {
+        super(app);
         this.code = code;
     }
 

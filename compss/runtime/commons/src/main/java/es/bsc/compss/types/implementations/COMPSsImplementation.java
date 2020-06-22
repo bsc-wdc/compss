@@ -35,6 +35,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
     private static final long serialVersionUID = 1L;
 
     public static final int NUM_PARAMS = 6;
+    public static String SIGNATURE = "compss.NESTED";
 
     private static final String DEFAULT_RUNCOMPSS = "runcompss";
     private static final String DEFAULT_FLAGS = "";

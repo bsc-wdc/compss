@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import java.util.concurrent.Semaphore;
 
 
@@ -61,7 +62,7 @@ public class TasksStateRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        this.response = ta.getTaskStateRequest();
+        this.response = Application.getTaskStateRequest();
         this.sem.release();
     }
 

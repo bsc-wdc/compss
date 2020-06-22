@@ -18,6 +18,8 @@ package es.bsc.compss.types.execution;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
+import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
@@ -162,7 +164,23 @@ public interface InvocationContext {
      * Stores the given parameter.
      * 
      * @param np Parameter to store.
+     * @throws UnwritableValueException value could not be written into the Persistent Object Storage
      */
     public void storeParam(InvocationParam np) throws UnwritableValueException;
+
+    // Nested execution handling
+    /**
+     * Returns an object that will handle the execution of detected tasks.
+     * 
+     * @return COMPSsRuntime implementation to handle the execution of nested tasks
+     */
+    public COMPSsRuntime getRuntimeAPI();
+
+    /**
+     * Returns an object the handles the data accesses to find nested tasks.
+     * 
+     * @return LoaderAPI implementation to handle the data accesses for nested tasks
+     */
+    public LoaderAPI getLoaderAPI();
 
 }

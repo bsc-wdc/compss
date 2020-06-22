@@ -20,21 +20,22 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 
 public class DeleteAllApplicationDataRequest extends APRequest {
 
-    private final Long appId;
+    private final Application app;
 
 
     /**
      * Contructs a new Request to remove all the data bound to an application.
      *
-     * @param appId Id of application whose values are to be removed
+     * @param app application whose values are to be removed
      */
-    public DeleteAllApplicationDataRequest(Long appId) {
-        this.appId = appId;
+    public DeleteAllApplicationDataRequest(Application app) {
+        this.app = app;
     }
 
     @Override
@@ -45,7 +46,7 @@ public class DeleteAllApplicationDataRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        dip.removeAllApplicationData(appId);
+        dip.removeAllApplicationData(app);
     }
 
 }

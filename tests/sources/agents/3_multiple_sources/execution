@@ -117,8 +117,8 @@
   # ---------------------------------------
   agent1_log_dir="${log_dir}/agent1/"
   mkdir -p "${agent1_log_dir}" 
-  agent1_output_log="${agent1_log_dir}agent1.outputlog"
-  agent1_error_log="${agent1_log_dir}agent1.errorlog"
+  agent1_output_log="${log_dir}/agent1.outputlog"
+  agent1_error_log="${log_dir}/agent1.errorlog"
   compss_agent_start \
    "--hostname=COMPSsWorker01" \
    "--classpath=${base_app_dir}/${jar_name}" \
@@ -126,6 +126,7 @@
    "--rest_port=46101" \
    "--comm_port=46102" \
    "-d" \
+   "--input_profile=profiles1.json" \
    "--project=${base_app_dir}/project_source.xml" \
    "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
@@ -135,8 +136,8 @@
 
   agent2_log_dir="${log_dir}/agent2/"
   mkdir -p "${agent2_log_dir}" 
-  agent2_output_log="${agent2_log_dir}agent2.outputlog"
-  agent2_error_log="${agent2_log_dir}agent2.errorlog"
+  agent2_output_log="${log_dir}/agent2.outputlog"
+  agent2_error_log="${log_dir}/agent2.errorlog"
   compss_agent_start \
    "--hostname=COMPSsWorker02" \
    "--classpath=${base_app_dir}/${jar_name}" \
@@ -144,6 +145,7 @@
    "--rest_port=46201" \
    "--comm_port=46202" \
    "-d" \
+   "--input_profile=profiles2.json" \
    "--project=${base_app_dir}/project_source.xml" \
    "--resources=${base_app_dir}/resources.xml" 1>"${agent2_output_log}" 2>"${agent2_error_log}" &
 
@@ -153,8 +155,8 @@
 
   agent3_log_dir="${log_dir}/agent3/"
   mkdir -p "${agent3_log_dir}" 
-  agent3_output_log="${agent3_log_dir}agent3.outputlog"
-  agent3_error_log="${agent3_log_dir}agent3.errorlog"
+  agent3_output_log="${log_dir}/agent3.outputlog"
+  agent3_error_log="${log_dir}/agent3.errorlog"
   compss_agent_start \
    "--hostname=COMPSsWorker03" \
    "--classpath=${base_app_dir}/${jar_name}" \
@@ -361,21 +363,21 @@
     --cei="es.bsc.compss.test.DemoClassItf" \
     es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
-      "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
     --master_node="127.0.0.1" \
     --master_port="46101" \
     --method_name="demoFunction" \
     --cei="es.bsc.compss.test.DemoClassItf" \
     es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
-      "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
     --master_node="127.0.0.1" \
     --master_port="46201" \
     --method_name="demoFunction" \
     --cei="es.bsc.compss.test.DemoClassItf" \
     es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
-      "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
     --master_node="127.0.0.1" \
     --master_port="46201" \
     --method_name="demoFunction" \
@@ -392,7 +394,7 @@ echo "Checking application execution" > >(tee -a "${output_log}")
     echo "Wrong number of jobs executed on the platform. Found ${NUM_JOBS}; 24 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  NUM_MAIN=$(grep -R "METHOD NAME=load" ${log_dir}*/jobs/*_NEW.out | wc -l)
+  NUM_MAIN=$(grep -R "METHOD NAME=demoFunction" ${log_dir}*/jobs/*_NEW.out | wc -l)
   if [ ! "${NUM_MAIN}" == "4" ]; then
     echo "Wrong number of Main operations executed on the platform. Found ${NUM_MAIN}; 4 expected." > >(tee -a "${error_log}")
     exit 1

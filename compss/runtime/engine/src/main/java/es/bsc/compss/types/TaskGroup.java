@@ -17,12 +17,10 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,73 +28,66 @@ import org.apache.logging.log4j.Logger;
 
 public class TaskGroup implements AutoCloseable {
 
+    // Component logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
+
+    // Group name
+    private final String name;
+
+    // Application to whom the group belongs.
+    private Application app;
+
     // Tasks that access the data
     private final List<Task> tasks;
 
-    private String name;
-
-    private boolean graphDrawn;
-
-    private COMPSsException exception;
-
-    private LinkedList<Semaphore> barrierSemaphores;
-
+    // Has group been closed (true) or is it still open (false) and new tasks can be added
     private boolean closed;
 
-    private BarrierGroupRequest request;
+    private boolean barrierSet;
+    // Barrier pending to be resolved or the information that has to be forwarded upon its arrival.
+    private Barrier barrier;
+
+    private boolean graphDrawn;
 
     private boolean barrierDrawn;
 
     private int lastTaskId; // For being the source of the edge with the barrier.
 
-    private long appId;
-
-    // Component logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
-
 
     /**
      * Creates a task group.
-     * 
+     *
      * @param groupName Name of the group.
+     * @param app application to which the group belongs.
      */
-    public TaskGroup(String groupName, Long appId) {
-        this.tasks = new LinkedList<Task>();
-        this.appId = appId;
-        this.graphDrawn = false;
+    public TaskGroup(String groupName, Application app) {
         this.name = groupName;
-        this.barrierSemaphores = new LinkedList<>();
+        this.app = app;
+        this.tasks = new LinkedList<>();
         this.closed = false;
-        this.request = null;
+        this.barrierSet = false;
+        this.barrier = new PendingBarrier();
+        this.graphDrawn = false;
         this.barrierDrawn = false;
         this.lastTaskId = 0;
     }
 
     /**
-     * Returns tasks of group.
-     * 
-     * @return
-     */
-    public List<Task> getTasks() {
-        return tasks;
-    }
-
-    /**
      * Returns the name of group.
-     * 
-     * @return
+     *
+     * @return name of the group
      */
     public String getName() {
         return this.name;
     }
 
     /**
-     * Gets the group AppId.
-     * 
-     * @return
+     * Gets the application to whom the group belongs.
+     *
+     * @return the application to whom the group belongs.
      */
-    public long getAppId() {
-        return appId;
+    public Application getApp() {
+        return app;
     }
 
     /**
@@ -110,12 +101,59 @@ public class TaskGroup implements AutoCloseable {
     }
 
     /**
+     * Returns tasks of group.
+     *
+     * @return list of tasks belonging to the group
+     */
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    /**
      * Returns the ID of the last inserted task.
-     * 
-     * @return id Id of the task.
+     *
+     * @return Id of the last task registered added to the group.
      */
     public int getLastTaskId() {
         return this.lastTaskId;
+    }
+
+    /**
+     * Returns a boolean stating if the group has pending tasks to execute.
+     *
+     * @return @literal{true}, if the group has pending tasks to execute; @literal{false} otherwise.
+     */
+    public boolean hasPendingTasks() {
+        return !this.tasks.isEmpty();
+    }
+
+    /**
+     * Removes a task from the group.
+     *
+     * @param t Task to remove.
+     */
+    public void removeTask(Task t) {
+        this.tasks.remove(t);
+    }
+
+    /**
+     * Registers a barrier request on the group. When all tasks are completed, the barrier will be released and any
+     * possible COMPSsException raised due to the tasks of the group notified.
+     *
+     * @param request object to notify the end of the group
+     */
+    public void registerBarrier(Barrier request) {
+        LOGGER.debug("Added barrier for group " + this.name);
+        COMPSsException currentException = this.barrier.getException();
+        request.setException(currentException);
+        if (hasPendingTasks()) {
+            this.barrierSet = true;
+            this.barrier = request;
+        } else {
+            this.barrierSet = false;
+            this.barrier = new PendingBarrier();
+            request.release();
+        }
     }
 
     /**
@@ -150,24 +188,6 @@ public class TaskGroup implements AutoCloseable {
         return this.barrierDrawn;
     }
 
-    /**
-     * Removes a task from the group.
-     * 
-     * @param t Task to remove.
-     */
-    public void removeTask(Task t) {
-        this.tasks.remove(t);
-    }
-
-    /**
-     * Returns a boolean stating if the group has pending tasks to execute.
-     * 
-     * @return
-     */
-    public boolean hasPendingTasks() {
-        return !this.tasks.isEmpty();
-    }
-
     @Override
     public void close() throws Exception {
 
@@ -175,58 +195,38 @@ public class TaskGroup implements AutoCloseable {
 
     /**
      * Returns if there has been any task throwing a COMPSs Exception.
-     * 
+     *
      * @return
      */
     public boolean hasException() {
-        return exception != null;
+        return this.barrier.getException() != null;
     }
 
     /**
      * Returns the COMPSs Exception.
-     * 
+     *
      * @return
      */
     public COMPSsException getException() {
-        return exception;
+        return this.barrier.getException();
     }
 
     /**
      * A task of the group has raised a COMPSsException.
+     * 
+     * @param e Exception raised due to the execution of the tasks of the group
      */
     public void setException(COMPSsException e) {
         LOGGER.debug("Exception set for group " + this.name);
-        this.exception = e;
-        if (this.request != null) {
-            this.request.setException(e);
-        }
+        this.barrier.setException(e);
     }
 
-    /**
-     * Returns if the group has a barrier.
-     */
     public boolean hasBarrier() {
-        return !barrierSemaphores.isEmpty();
+        return this.barrierSet;
     }
 
-    /**
-     * Adds a barrier to the group.
-     * 
-     * @param request BarrierGroupRequest to be released when all task finish.
-     */
-    public void addBarrier(BarrierGroupRequest request) {
-        LOGGER.debug("Added barrier for group " + this.name);
-        barrierSemaphores.push(request.getSemaphore());
-        this.request = request;
-    }
-
-    /**
-     * Releases all the semaphores of the barrier.
-     */
     public void releaseBarrier() {
-        for (Semaphore s : barrierSemaphores) {
-            s.release();
-        }
+        this.barrier.release();
     }
 
     /**
@@ -238,19 +238,32 @@ public class TaskGroup implements AutoCloseable {
 
     /**
      * Returns if the task group is closed or not.
+     *
+     * @return @literal{true}, if the group is closed
      */
     public boolean isClosed() {
         return this.closed;
     }
 
-    /**
-     * Returns if it is the main application group.
-     * 
-     * @param appId Application Id.
-     * @return
-     */
-    public boolean isAppGroup(Long appId) {
-        return this.name.equals("App" + appId);
-    }
 
+    private class PendingBarrier implements Barrier {
+
+        private COMPSsException exception;
+
+
+        @Override
+        public void setException(COMPSsException exception) {
+            this.exception = exception;
+        }
+
+        @Override
+        public COMPSsException getException() {
+            return this.exception;
+        }
+
+        @Override
+        public void release() {
+            // Do nothign
+        }
+    }
 }

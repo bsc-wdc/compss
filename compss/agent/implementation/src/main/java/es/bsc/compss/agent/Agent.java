@@ -17,29 +17,24 @@
 package es.bsc.compss.agent;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.agent.loader.Loader;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
-import es.bsc.compss.types.CommException;
-
 import es.bsc.compss.types.CoreElementDefinition;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -56,7 +51,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -68,21 +62,14 @@ import storage.StorageItf;
 public class Agent {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
-    private static final String LOADER_CLASS_NAME = Loader.class.getCanonicalName();
-    private static final String LOADER_METHOD_NAME = "load";
-    private static final String LOADER_PARAMS = "(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,INT_T,OBJECT_T)";
-    private static final String LOADER_SIGNATURE = LOADER_METHOD_NAME + LOADER_PARAMS;
 
     private static final String AGENT_NAME;
 
     private static final COMPSsRuntimeImpl RUNTIME;
 
-    private static final Random APP_ID_GENERATOR = new Random();
     private static final List<AgentInterface<?>> INTERFACES;
 
     private static final int PARAM_LENGTH = COMPSsRuntimeImpl.NUM_FIELDS_PER_PARAM;
-
-    private static final int LOAD_PARAMS_COUNT = 7;
 
     static {
         AGENT_NAME = COMPSsNode.getMasterName();
@@ -124,182 +111,6 @@ public class Agent {
     public static void start() {
 
         RUNTIME.startIT();
-
-        LogicalData ld = Comm.registerData("runtime");
-        ld.setValue(RUNTIME);
-        String targetPath = ProtocolType.OBJECT_URI.getSchema() + "runtime";
-        SimpleURI uri = new SimpleURI(targetPath);
-        try {
-            DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), uri);
-            ld.addLocation(loc);
-        } catch (Exception e) {
-            ErrorManager.fatal("Could not create the location for the runtime object.", e);
-        }
-        RUNTIME.registerData(null, DataType.OBJECT_T, RUNTIME, "runtime");
-
-        CoreElementDefinition ced = new CoreElementDefinition();
-        ced.setCeSignature(LOADER_SIGNATURE);
-        MethodResourceDescription mrd = new MethodResourceDescription("");
-        ImplementationDefinition<?> implDef;
-        implDef = ImplementationDefinition.defineImplementation("METHOD", LOADER_SIGNATURE + LOADER_CLASS_NAME, mrd,
-            LOADER_CLASS_NAME, LOADER_METHOD_NAME);
-        ced.addImplementation(implDef);
-        RUNTIME.registerCoreElement(ced);
-
-    }
-
-    /**
-     * Request the execution of a method tasks and detect possible nested tasks.
-     *
-     * @param lang Programming language of the method.
-     * @param ceiClass Core Element interface to detect nested tasks in the code.
-     * @param className Name of the class containing the method to execute.
-     * @param methodName Name of the method to execute.
-     * @param arguments Task arguments.
-     * @param target Target object of the task.
-     * @param results Results of the task.
-     * @param monitor Monitor to notify changes on the method execution.
-     * @return Identifier of the application associated to the main task
-     * @throws AgentException error parsing the CEI
-     */
-    public static long runMain(Lang lang, String ceiClass, String className, String methodName,
-        ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
-        AppMonitor monitor) throws AgentException {
-
-        long appId = Math.abs(APP_ID_GENERATOR.nextLong());
-        monitor.setAppId(appId);
-
-        long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
-
-        try {
-            int taskParamsCount = arguments.length;
-            if (target != null) {
-                taskParamsCount++;
-            }
-            taskParamsCount += results.length;
-            int totalParamsCount = taskParamsCount + LOAD_PARAMS_COUNT;
-            Object[] params = new Object[PARAM_LENGTH * totalParamsCount];
-
-            Object[] loadParams = new Object[] {
-                // Runtime API
-                RUNTIME,
-                DataType.OBJECT_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "runtime",
-                "",
-                "1.0",
-                new Boolean(false),
-                // Loader API
-                RUNTIME,
-                DataType.OBJECT_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "api",
-                "",
-                "1.0",
-                new Boolean(false),
-                // CEI
-                ceiClass,
-                DataType.STRING_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "ceiClass",
-                "",
-                "1.0",
-                new Boolean(false),
-                // Nested tasks App ID
-                appId,
-                DataType.LONG_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "appId",
-                "",
-                "1.0",
-                new Boolean(false),
-                // Class name
-                className,
-                DataType.STRING_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "className",
-                "",
-                "1.0",
-                new Boolean(false),
-                // Method name
-                methodName,
-                DataType.STRING_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "methodName",
-                "",
-                "1.0",
-                new Boolean(false),
-                /*
-                 * When passing a single parameter with array type to the loaded method, the Object... parameter of the
-                 * load method assumes that each element of the array is a different parameter ( any array matches
-                 * Object...). To avoid it, we add a phantom basic-type parameter that avoids any data transfer and
-                 * ensures that the array is detected as the second parameter -- Object... is resolved as [ Integer,
-                 * array].
-                 */
-                // Fake param
-                3,
-                DataType.INT_T,
-                Direction.IN,
-                StdIOStream.UNSPECIFIED,
-                "",
-                "fakeParam",
-                "",
-                "1.0",
-                new Boolean(false) };
-
-            System.arraycopy(loadParams, 0, params, 0, loadParams.length);
-            int position = loadParams.length;
-            for (ApplicationParameter param : arguments) {
-                LOGGER.debug("\t Parameter:" + param.getParamName());
-                addParameterToTaskArguments(mainAppId, param, position, params);
-                position += PARAM_LENGTH;
-            }
-
-            if (target != null) {
-                LOGGER.debug("\t Target:" + target.getParamName());
-                addParameterToTaskArguments(mainAppId, target, position, params);
-                position += PARAM_LENGTH;
-            }
-
-            for (ApplicationParameter param : results) {
-                params[position] = new Object();
-                params[position + 1] = param.getType();
-                params[position + 2] = param.getDirection();
-                params[position + 3] = param.getStdIOStream();
-                params[position + 4] = param.getPrefix();
-                params[position + 5] = param.getParamName();
-                params[position + 6] = param.getContentType();
-                params[position + 7] = Double.toString(param.getWeight());
-                params[position + 8] = new Boolean(param.isKeepRename());
-                position += PARAM_LENGTH;
-            }
-            LoaderMonitor mainMonitor = new LoaderMonitor(mainAppId, monitor);
-            RUNTIME.executeTask(mainAppId, // Task application ID
-                mainMonitor, // Corresponding task monitor
-                lang, // language of the task
-                true, LOADER_CLASS_NAME, LOADER_METHOD_NAME, LOADER_SIGNATURE + LOADER_CLASS_NAME, // Method to run
-                OnFailure.RETRY, // On failure behavior
-                0, // Time out of the task
-                false, 1, false, false, // Scheduler hints
-                false, null, totalParamsCount, // Parameters information
-                params // Argument values
-            );
-        } catch (Exception e) {
-            throw new AgentException(e);
-        }
-        return mainAppId;
     }
 
     /**
@@ -308,7 +119,9 @@ public class Agent {
      * @param lang programming language of the method
      * @param className name of the class containing the method to execute
      * @param methodName name of the method to execute
-     * @param arguments paramter description of the task's arguments
+     * @param ceiClass Core Element interface to detect nested tasks in the code. If null, no nested parallelism will be
+     *            detected
+     * @param arguments parameter description of the task's arguments
      * @param target paramter description of the task's callee
      * @param results paramter description of the task's results
      * @param requirements requirements to run the task
@@ -316,42 +129,20 @@ public class Agent {
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
-    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] arguments,
-        ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
-        AppMonitor monitor) throws AgentException {
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        System.out.println("New request to run as a " + lang + " task " + className + "." + methodName);
-        System.out.println("Parameters: ");
-        for (ApplicationParameter param : arguments) {
-            System.out.println("\t* " + param.getDirection() + " " + param.getType()
-                + (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")"));
-        }
-        System.out.println("Target: ");
-        if (target != null) {
-            System.out.println("\t* " + target.getDirection() + " " + target.getType()
-                + (target.getDataMgmtId() == null ? "" : " (" + target.getDataMgmtId() + ")"));
-        }
-        System.out.println("Results: ");
-        for (ApplicationParameter param : results) {
-            System.out.println("\t* " + param.getDirection() + " " + param.getType()
-                + (param.getDataMgmtId() == null ? "" : " (" + param.getDataMgmtId() + ")"));
-        }
-        System.out.println("");
-        System.out.println("");
-
+    public static long runTask(Lang lang, String className, String methodName, String ceiClass,
+        ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
+        MethodResourceDescription requirements, AppMonitor monitor) throws AgentException {
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
+        LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {
             LOGGER.debug("\t* " + param);
         }
         LOGGER.debug("The task requires " + requirements);
-        long appId = Math.abs(APP_ID_GENERATOR.nextLong());
 
+        Long appId = RUNTIME.registerApplication(ceiClass);
         monitor.setAppId(appId);
+
         try {
             // PREPARING PARAMETERS
             StringBuilder typesSB = new StringBuilder();
@@ -420,6 +211,7 @@ public class Agent {
             );
 
         } catch (Exception e) {
+            LOGGER.error("Error submitting task", e);
             throw new AgentException(e);
         }
         return appId;
@@ -439,7 +231,6 @@ public class Agent {
             addRemoteData(remote);
             RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
         }
-        System.out.println("Loading argument " + arguments[position]);
         arguments[position + 1] = param.getType();
         arguments[position + 2] = param.getDirection();
         arguments[position + 3] = param.getStdIOStream();
@@ -452,10 +243,8 @@ public class Agent {
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
-        System.out.println("ADDING REMOTE DATA " + remote);
         int addedSources = 0;
         LogicalData ld = Comm.getData(remote.getRenaming());
-        System.out.println(ld);
         LogicalData otherNamedLocalData = null;
 
         LinkedList<DataLocation> locations = new LinkedList<>();
@@ -509,7 +298,6 @@ public class Agent {
             ld.addLocation(loc);
             addedSources++;
         }
-        System.out.println(ld);
         if (addedSources == 0) {
             throw new AgentException("Could not add any source for data " + remote.getRenaming());
         }
@@ -540,7 +328,6 @@ public class Agent {
 
     private static DynamicMethodWorker registerWorker(String workerName, MethodResourceDescription description,
         String adaptor, Map<String, Object> projectConf, Map<String, Object> resourcesConf) throws AgentException {
-        System.out.println("REGISTERING NEW WORKER with adaptor " + adaptor);
         if (description == null) {
             description = new MethodResourceDescription();
         }
@@ -712,5 +499,6 @@ public class Agent {
     public static void finishedApplication(long appId) {
         // Remove all data bound to the application
         RUNTIME.removeApplicationData(appId);
+        RUNTIME.deregisterApplication(appId);
     }
 }

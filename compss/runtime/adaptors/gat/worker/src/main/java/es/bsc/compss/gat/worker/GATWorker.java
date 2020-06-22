@@ -19,6 +19,7 @@ package es.bsc.compss.gat.worker;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
+import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.ExecutionListener;
@@ -31,6 +32,7 @@ import es.bsc.compss.gat.worker.implementations.MPIDefinition;
 import es.bsc.compss.gat.worker.implementations.MultiNodeDefinition;
 import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
 import es.bsc.compss.gat.worker.implementations.OpenCLDefinition;
+import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -432,6 +434,16 @@ public class GATWorker implements InvocationContext {
         // Stop and log execution result
         this.executionManager.stop();
         return status.getSuccess();
+    }
+
+    @Override
+    public COMPSsRuntime getRuntimeAPI() {
+        return null;
+    }
+
+    @Override
+    public LoaderAPI getLoaderAPI() {
+        return null;
     }
 
 }

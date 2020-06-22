@@ -38,6 +38,12 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
+import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.DecafImplementation;
+import es.bsc.compss.types.implementations.MPIImplementation;
+import es.bsc.compss.types.implementations.OmpSsImplementation;
+import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.ErrorManager;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Random;
@@ -54,12 +60,12 @@ public class LoaderUtils {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
 
-    public static final String BINARY_SIGNATURE = "binary.BINARY";
-    public static final String MPI_SIGNATURE = "mpi.MPI";
-    public static final String DECAF_SIGNATURE = "decaf.DECAF";
-    public static final String COMPSs_SIGNATURE = "compss.NESTED";
-    public static final String OMPSS_SIGNATURE = "ompss.OMPSS";
-    public static final String OPENCL_SIGNATURE = "opencl.OPENCL";
+    public static final String BINARY_SIGNATURE = BinaryImplementation.SIGNATURE;
+    public static final String MPI_SIGNATURE = MPIImplementation.SIGNATURE;
+    public static final String DECAF_SIGNATURE = DecafImplementation.SIGNATURE;
+    public static final String COMPSs_SIGNATURE = COMPSsImplementation.SIGNATURE;
+    public static final String OMPSS_SIGNATURE = OmpSsImplementation.SIGNATURE;
+    public static final String OPENCL_SIGNATURE = OpenCLImplementation.SIGNATURE;
 
 
     /**

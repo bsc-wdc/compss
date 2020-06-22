@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.types.Application;
 import java.util.concurrent.Semaphore;
 
 
@@ -33,21 +34,21 @@ public class CollectionInfo extends DataInfo {
     /**
      * Default constructor.
      * 
-     * @param appId application generating the data
+     * @param app application generating the data
      * @see DataInfo empty constructor.
      */
-    public CollectionInfo(Long appId) {
-        super(appId);
+    public CollectionInfo(Application app) {
+        super(app);
     }
 
     /**
      * Constructor with a String representing the collection Id.
      * 
-     * @param appId application generating the data
+     * @param app application generating the data
      * @param collectionId String representing the collection Id.
      */
-    public CollectionInfo(Long appId, String collectionId) {
-        super(appId);
+    public CollectionInfo(Application app, String collectionId) {
+        super(app);
         this.collectionId = collectionId;
     }
 

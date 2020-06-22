@@ -43,6 +43,8 @@ public class TaskDescription {
     private final OnFailure onFailure;
     private final long timeOut;
 
+    private final String parallelismSource;
+
 
     /**
      * Task description constructor.
@@ -51,6 +53,7 @@ public class TaskDescription {
      * @param lang Method language.
      * @param signature Method signature.
      * @param coreElement Core Element to execute.
+     * @param parallelismSource Identifier of the interface to use for detecting parallelism within the invocation.
      * @param isPrioritary Whether the method is prioritary or not.
      * @param numNodes Number of nodes required for the method execution.
      * @param isReplicated Whether the method is replicated or not.
@@ -61,14 +64,15 @@ public class TaskDescription {
      * @param onFailure On failure mechanisms.
      * @param parameters Number of parameters.
      */
-    public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement, boolean isPrioritary,
-        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
-        OnFailure onFailure, long timeOut, List<Parameter> parameters) {
+    public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement,
+        String parallelismSource, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, int numReturns, OnFailure onFailure, long timeOut, List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;
         this.signature = signature;
         this.coreElement = coreElement;
+        this.parallelismSource = parallelismSource;
 
         this.priority = isPrioritary;
         this.numNodes = numNodes;
@@ -119,6 +123,15 @@ public class TaskDescription {
         }
 
         return methodName;
+    }
+
+    /**
+     * Returns a string identifying the interface to use for detecting parallelism within the invocation.
+     *
+     * @return interface id
+     */
+    public String getParallelismSource() {
+        return this.parallelismSource;
     }
 
     /**

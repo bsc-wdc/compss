@@ -20,12 +20,13 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 
 public class RegisterRemoteObjectDataRequest extends APRequest {
 
-    private final Long appId;
+    private final Application app;
     private final int code;
     private final String data;
 
@@ -33,12 +34,12 @@ public class RegisterRemoteObjectDataRequest extends APRequest {
     /**
      * Contructs a new Request to register an external object and bind it to an existing LogicalData.
      *
-     * @param appId Id of application accessing the value
+     * @param app application accessing the value
      * @param code Object Id.
      * @param data Existing LogicalData to bind the value access.
      */
-    public RegisterRemoteObjectDataRequest(Long appId, int code, String data) {
-        this.appId = appId;
+    public RegisterRemoteObjectDataRequest(Application app, int code, String data) {
+        this.app = app;
         this.code = code;
         this.data = data;
     }
@@ -51,7 +52,7 @@ public class RegisterRemoteObjectDataRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        dip.registerRemoteObjectSources(appId, code, data);
+        dip.registerRemoteObjectSources(app, code, data);
     }
 
 }

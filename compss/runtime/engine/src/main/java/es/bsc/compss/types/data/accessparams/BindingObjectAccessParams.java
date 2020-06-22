@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.components.impl.DataInfoProvider;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.DataAccessId;
 
@@ -32,13 +33,13 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
     /**
      * Creates a new BindingObjectAccessParams instance.
      * 
-     * @param appId Id of the application accessing the BindingObject.
+     * @param app Id of the application accessing the BindingObject.
      * @param mode Access mode.
      * @param bo Associated BindingObject.
      * @param hashCode Hashcode of the associated BindingObject.
      */
-    public BindingObjectAccessParams(Long appId, AccessMode mode, BindingObject bo, int hashCode) {
-        super(appId, mode, bo, hashCode);
+    public BindingObjectAccessParams(Application app, AccessMode mode, BindingObject bo, int hashCode) {
+        super(app, mode, bo, hashCode);
     }
 
     /**
@@ -52,7 +53,7 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerBindingObjectAccess(this.appId, this.mode, this.getBindingObject(), this.getCode());
+        return dip.registerBindingObjectAccess(this.app, this.mode, this.getBindingObject(), this.getCode());
     }
 
 }

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.scheduler.loadbalancing;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.scheduler.loadbalancing.types.LoadBalancingScore;
 import es.bsc.compss.scheduler.ready.ReadyResourceScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
@@ -95,10 +96,13 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         long resourceScore = 0;
         if (params != null) {
             List<Parameter> parameters = params.getParameters();
-            if (parameters.size() == 0) {
+            if (parameters.isEmpty()) {
                 return 1;
             }
-            resourceScore = 2 * Score.calculateDataLocalityScore(params, myWorker);
+            resourceScore = 200 * Score.calculateDataLocalityScore(params, myWorker);
+        }
+        if (this.myWorker == Comm.getAppHost()) {
+            resourceScore++;
         }
         return resourceScore;
     }

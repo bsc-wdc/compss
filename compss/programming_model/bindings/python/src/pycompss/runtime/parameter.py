@@ -480,7 +480,7 @@ def get_vararg_name(varargs_name, i):
     Given some integer i, return the name of the ith vararg.
 
     :param varargs_name: Vararg names
-    :param i: A nonnegative integer
+    :param i: A non negative integer
     :return: The name of the ith vararg according to our internal naming
              convention
     """

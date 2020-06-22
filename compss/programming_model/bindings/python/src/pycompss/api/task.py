@@ -30,6 +30,7 @@ import sys
 import threading
 import inspect
 from functools import wraps
+from collections import OrderedDict
 
 import pycompss.api.parameter as parameter
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
@@ -38,7 +39,7 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
 from pycompss.runtime.core_element import CE
 from pycompss.runtime.parameter import Parameter
-from pycompss.runtime.parameter import is_parameter
+from pycompss.runtime.parameter import is_param
 from pycompss.runtime.parameter import get_parameter_copy
 from pycompss.runtime.parameter import is_dict_specifier
 from pycompss.runtime.parameter import get_parameter_from_dictionary
@@ -48,9 +49,9 @@ from pycompss.runtime.parameter import get_new_parameter
 from pycompss.runtime.parameter import get_kwarg_name
 from pycompss.runtime.parameter import get_vararg_name
 from pycompss.runtime.parameter import get_varargs_name
+from pycompss.runtime.parameter import get_name_from_kwarg
 from pycompss.runtime.parameter import is_vararg
 from pycompss.runtime.parameter import is_kwarg
-from pycompss.runtime.parameter import get_name_from_kwarg
 from pycompss.runtime.parameter import is_file
 from pycompss.runtime.parameter import is_directory
 from pycompss.runtime.parameter import is_return
@@ -95,7 +96,6 @@ DEPRECATED_ARGUMENTS = ['isReplicated',
                         'isDistributed',
                         'varargsType',
                         'targetDirection']
-
 # Some attributes causes memory leaks, we must delete them from memory after
 # master call
 ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
@@ -112,8 +112,9 @@ ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
 master_lock = threading.Lock()
 # Determine if strings should have a sharp symbol prepended or not
 prepend_strings = True
+# Only register the task
 register_only = False
-
+# Current core element for the registration (if necessary)
 current_core_element = CE()
 
 
@@ -198,8 +199,8 @@ class Task(PyCOMPSsDecorator):
         for (key, value) in self.decorator_arguments.items():
             # Not all decorator arguments are necessarily parameters
             # (see self.get_default_decorator_values)
-            if is_parameter(value):
-                self.decorator_arguments[key] = get_parameter_copy(value)  # noqa: E501
+            if is_param(value):
+                self.decorator_arguments[key] = get_parameter_copy(value)
             # Specific case when value is a dictionary
             # Use case example:
             # @binary(binary="ls")
@@ -220,9 +221,6 @@ class Task(PyCOMPSsDecorator):
                         get_parameter_from_dictionary(
                             self.decorator_arguments[key]
                         )
-                    # self.decorator_arguments[key].update(
-                    #     {parameter.Type: get_parameter_copy(param)}
-                    # )
                 else:
                     # It is a reserved word that we need to keep the user
                     # defined value (not a Parameter object)
@@ -247,7 +245,6 @@ class Task(PyCOMPSsDecorator):
         # Add returns related attributes that will be useful later
         self.returns = None
         self.multi_return = False
-
         # Task wont be registered until called from the master for the first
         # time or have a different signature
         self.signature = None
@@ -1085,8 +1082,6 @@ class Task(PyCOMPSsDecorator):
 
         :return: None, it only modifies self.parameters
         """
-        from collections import OrderedDict
-        parameter_values = OrderedDict()
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
@@ -1095,7 +1090,9 @@ class Task(PyCOMPSsDecorator):
         # if we are dealing with a class or instance method (i.e: first
         # argument is named self)
         self.first_arg_name = None
+
         # Process the positional arguments
+        parameter_values = OrderedDict()
         # Some of these positional arguments may have been not
         # explicitly defined
         num_positionals = min(len(self.param_args), len(args))
@@ -1112,8 +1109,9 @@ class Task(PyCOMPSsDecorator):
         # defaults[-2] goes with positionals[-2]
         # ...
         # Also, |defaults| <= |positionals|
-        for (var_name, default_value) in reversed(list(zip(list(reversed(self.param_args))[:num_defaults],  # noqa: E501
-                                                           list(reversed(self.param_defaults))))):          # noqa: E501
+        for (var_name, default_value) in reversed(
+                list(zip(list(reversed(self.param_args))[:num_defaults],
+                         list(reversed(self.param_defaults))))):
             if var_name not in parameter_values:
                 real_var_name = get_kwarg_name(var_name)
                 parameter_values[real_var_name] = default_value
@@ -1123,10 +1121,11 @@ class Task(PyCOMPSsDecorator):
         # and their order in the case of the variadic ones
         # Process the variadic arguments
         for (i, var_arg) in enumerate(args[num_positionals:]):
-            parameter_values[get_vararg_name(self.param_varargs, i)] = var_arg                    # noqa: E501
+            parameter_values[get_vararg_name(self.param_varargs, i)] = var_arg
         # Process keyword arguments
         for (name, value) in kwargs.items():
             parameter_values[get_kwarg_name(name)] = value
+
         # Build a dictionary of parameters
         self.parameters = OrderedDict()
         # Assign directions to parameters

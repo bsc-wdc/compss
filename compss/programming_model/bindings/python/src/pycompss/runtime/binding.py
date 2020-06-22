@@ -1086,8 +1086,8 @@ def _build_return_objects(f_returns):
         pending_to_synchronize[obj_id] = fo
         f_returns[get_return_name(0)] = \
             Parameter(content_type=TYPE.FILE,
-                       direction=DIRECTION.OUT,
-                       prefix="#")
+                      direction=DIRECTION.OUT,
+                      prefix="#")
         f_returns[get_return_name(0)].file_name = ret_filename
     else:
         # Multireturn
@@ -1120,8 +1120,8 @@ def _build_return_objects(f_returns):
             # Once determined the filename where the returns are going to
             # be stored, create a new Parameter object for each return object
             f_returns[k] = Parameter(content_type=TYPE.FILE,
-                                      direction=DIRECTION.OUT,
-                                      prefix="#")
+                                     direction=DIRECTION.OUT,
+                                     prefix="#")
             f_returns[k].file_name = ret_filename
     return fo
 

@@ -1133,10 +1133,10 @@ class Task(PyCOMPSsDecorator):
             # Is the argument a vararg? or a kwarg? Then check the direction
             # for varargs or kwargs
             if is_vararg(var_name):
-                self.parameters[var_name] = get_parameter_copy(self.get_varargs_direction())      # noqa: E501
+                self.parameters[var_name] = get_parameter_copy(self.get_varargs_direction())                     # noqa: E501
             elif is_kwarg(var_name):
                 real_name = get_name_from_kwarg(var_name)
-                self.parameters[var_name] = self.decorator_arguments.get(real_name,  # noqa: E501
+                self.parameters[var_name] = self.decorator_arguments.get(real_name,                              # noqa: E501
                                                                          self.get_default_direction(real_name))  # noqa: E501
             else:
                 # The argument is named, check its direction
@@ -1153,7 +1153,7 @@ class Task(PyCOMPSsDecorator):
             # If the parameter is a FILE then its type will already be defined,
             # and get_compss_type will misslabel it as a parameter.TYPE.STRING
             if self.parameters[var_name].content_type is None:
-                self.parameters[var_name].content_type = get_compss_type(parameter_values[var_name])      # noqa: E501
+                self.parameters[var_name].content_type = get_compss_type(parameter_values[var_name])        # noqa: E501
 
             # TODO: add 'dir_name' to the parameter object
             if is_file(self.parameters[var_name]) or \

@@ -325,14 +325,24 @@ _param_conversion_dict_ = {
 }
 
 
-def is_parameter(x):
+def is_param(obj):
     """
     Check if given object is a parameter.
     Avoids internal _param_ import.
 
-    :param x: Object to check
+    :param obj: Object to check
     """
-    return isinstance(x, Param)
+    return isinstance(obj, Param)
+
+
+def is_parameter(obj):
+    """
+    Check if given object is a parameter.
+    Avoids internal Parameter import.
+
+    :param obj: Object to check
+    """
+    return isinstance(obj, Parameter)
 
 
 def get_new_parameter(key):
@@ -352,9 +362,9 @@ def get_parameter_copy(param):
     :return: An equivalent Parameter copy of this object (note that it will
              be equivalent, but not equal)
     """
-    if is_parameter(param):
+    if is_param(param):
         return Parameter(**_param_conversion_dict_[param.key])
-    assert isinstance(param, Parameter), \
+    assert is_parameter(param), \
         'Input parameter is neither a _param_ nor a Parameter (is %s)' % \
         param.__class__.__name__
     import copy

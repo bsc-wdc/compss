@@ -23,7 +23,9 @@ PyCOMPSs runtime - Parameter
     This file contains the classes needed for the parameter definition.
 """
 
-# Python3 has no ints and longs, only ints that are longs
+import re
+import copy
+
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
@@ -47,6 +49,7 @@ try:
 except ImportError:
     np = None
 
+# Python3 has no ints and longs, only ints that are longs
 PYCOMPSS_LONG = int if IS_PYTHON3 else long  # noqa
 
 # Content type format is <module_path>:<class_name>, separated by colon (':')
@@ -109,6 +112,30 @@ class Parameter(object):
                                               str(self.extra_content_type),
                                               str(self.weight),
                                               str(self.keep_rename))
+
+    def is_object(self):
+        """
+        Determine if parameter is an object (not a FILE).
+
+        :return: True if param represents an object (IN, INOUT, OUT)
+        """
+        return self.content_type is None
+
+    def is_file(self):
+        """
+        Determine if parameter is a FILE.
+
+        :return: True if param represents an FILE (IN, INOUT, OUT)
+        """
+        return self.content_type is TYPE.FILE
+
+    def is_directory(self):
+        """
+        Determine if parameter is a DIRECTORY.
+
+        :return: True if param represents an DIRECTORY
+        """
+        return self.content_type is TYPE.DIRECTORY
 
 
 # Parameter conversion dictionary.
@@ -365,9 +392,8 @@ def get_parameter_copy(param):
     if is_param(param):
         return Parameter(**_param_conversion_dict_[param.key])
     assert is_parameter(param), \
-        'Input parameter is neither a _param_ nor a Parameter (is %s)' % \
+        'Input parameter is neither a _Param nor a Parameter (is %s)' % \
         param.__class__.__name__
-    import copy
     return copy.deepcopy(param)
 
 
@@ -452,42 +478,13 @@ def is_return(param_name):
     return param_name.startswith('$return')
 
 
-def is_object(param):
-    """
-    Determine if a parameter is an object (not a FILE).
-
-    :param param: Parameter to determine
-    :return: True if param represents an object (IN, INOUT, OUT)
-    """
-    return param.content_type is None
-
-
-def is_file(param):
-    """
-    Determine if a parameter is a FILE.
-
-    :param param: Parameter to determine
-    :return: True if param represents an FILE (IN, INOUT, OUT)
-    """
-    return param.content_type is TYPE.FILE
-
-
-def is_directory(param):
-    """
-    Determine if a parameter is a DIRECTORY.
-
-    :param param: Parameter to determine
-    :return: True if param represents an DIRECTORY
-    """
-    return param.content_type is TYPE.DIRECTORY
-
-
-# Note that the given internal names to these parameters are
-# impossible to be assigned by the user because they are invalid
-# Python variable names, as they start with a star
 def get_vararg_name(varargs_name, i):
     """
     Given some integer i, return the name of the ith vararg.
+
+    Note that the given internal names to these parameters are
+    impossible to be assigned by the user because they are invalid
+    Python variable names, as they start with a star
 
     :param varargs_name: Vararg names
     :param i: A non negative integer
@@ -521,7 +518,7 @@ def get_return_name(i):
     """
     Given some integer i, return the name of the ith return.
 
-    :param i: A nonnegative integer
+    :param i: A non negative integer
     :return: The name of the return identifier according to our internal naming
     """
     return '$return_%d' % i
@@ -570,7 +567,6 @@ def is_command_line_parameter(cla):
     :param cla: Command line argument
     :return: Boolean
     """
-    import re
     return bool(re.match(r'\*PARAM_.+_.+', cla))
 
 

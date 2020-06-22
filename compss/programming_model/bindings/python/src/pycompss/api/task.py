@@ -52,8 +52,6 @@ from pycompss.runtime.parameter import get_varargs_name
 from pycompss.runtime.parameter import get_name_from_kwarg
 from pycompss.runtime.parameter import is_vararg
 from pycompss.runtime.parameter import is_kwarg
-from pycompss.runtime.parameter import is_file
-from pycompss.runtime.parameter import is_directory
 from pycompss.runtime.parameter import is_return
 from pycompss.runtime.parameter import get_original_name
 import pycompss.util.context as context
@@ -1091,16 +1089,18 @@ class Task(PyCOMPSsDecorator):
         # argument is named self)
         self.first_arg_name = None
 
-        # Process the positional arguments
-        parameter_values = OrderedDict()
+        # Process the positional arguments and fill self.parameters with
+        # their corresponding Parameter object
+        self.parameters = OrderedDict()
         # Some of these positional arguments may have been not
         # explicitly defined
         num_positionals = min(len(self.param_args), len(args))
-        for (var_name, var_value) in zip(self.param_args[:num_positionals],
-                                         args[:num_positionals]):
+        for (arg_name, arg_object) in zip(self.param_args[:num_positionals],
+                                          args[:num_positionals]):
             if self.first_arg_name is None:
-                self.first_arg_name = var_name
-            parameter_values[var_name] = var_value
+                self.first_arg_name = arg_name
+            self.parameters[arg_name] = self.build_parameter_object(arg_name,
+                                                                    arg_object)
         num_defaults = len(self.param_defaults)
         # Give default values to all the parameters that have a
         # default value and are not already set
@@ -1109,70 +1109,86 @@ class Task(PyCOMPSsDecorator):
         # defaults[-2] goes with positionals[-2]
         # ...
         # Also, |defaults| <= |positionals|
-        for (var_name, default_value) in reversed(
+        for (arg_name, default_value) in reversed(
                 list(zip(list(reversed(self.param_args))[:num_defaults],
                          list(reversed(self.param_defaults))))):
-            if var_name not in parameter_values:
-                real_var_name = get_kwarg_name(var_name)
-                parameter_values[real_var_name] = default_value
+            if arg_name not in self.parameters.keys():
+                real_arg_name = get_kwarg_name(arg_name)
+                self.parameters[real_arg_name] = \
+                    self.build_parameter_object(real_arg_name,
+                                                default_value)
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
         # This will allow us to determine the class of each parameter
         # and their order in the case of the variadic ones
         # Process the variadic arguments
         for (i, var_arg) in enumerate(args[num_positionals:]):
-            parameter_values[get_vararg_name(self.param_varargs, i)] = var_arg
+            arg_name = get_vararg_name(self.param_varargs, i)
+            self.parameters[arg_name] = self.build_parameter_object(arg_name,
+                                                                    var_arg)
         # Process keyword arguments
         for (name, value) in kwargs.items():
-            parameter_values[get_kwarg_name(name)] = value
-
-        # Build a dictionary of parameters
-        self.parameters = OrderedDict()
-        # Assign directions to parameters
-        for var_name in parameter_values.keys():
-            # Is the argument a vararg? or a kwarg? Then check the direction
-            # for varargs or kwargs
-            if is_vararg(var_name):
-                self.parameters[var_name] = get_parameter_copy(self.get_varargs_direction())                     # noqa: E501
-            elif is_kwarg(var_name):
-                real_name = get_name_from_kwarg(var_name)
-                self.parameters[var_name] = self.decorator_arguments.get(real_name,                              # noqa: E501
-                                                                         self.get_default_direction(real_name))  # noqa: E501
-            else:
-                # The argument is named, check its direction
-                # Default value = IN if not class or instance method and
-                #                 isModifier, INOUT otherwise
-                # see self.get_default_direction
-                # Note that if we have something like @task(self = IN) it
-                # will have priority over the default
-                # direction resolution, even if this implies a contradiction
-                # with the target_direction flag
-                self.parameters[var_name] = self.decorator_arguments.get(var_name,  # noqa: E501
-                                                                         self.get_default_direction(var_name))   # noqa: E501
-
-            # If the parameter is a FILE then its type will already be defined,
-            # and get_compss_type will misslabel it as a parameter.TYPE.STRING
-            if self.parameters[var_name].content_type is None:
-                self.parameters[var_name].content_type = get_compss_type(parameter_values[var_name])        # noqa: E501
-
-            # TODO: add 'dir_name' to the parameter object
-            if is_file(self.parameters[var_name]) or \
-               is_directory(self.parameters[var_name]):
-                if parameter_values[var_name]:
-                    self.parameters[var_name].file_name = parameter_values[var_name]                        # noqa: E501
-                else:
-                    # is None: Used None for a FILE or DIRECTORY parameter path
-                    self.parameters[var_name].content_type = parameter.TYPE.NULL
-            else:
-                self.parameters[var_name].content = parameter_values[var_name]
+            arg_name = get_kwarg_name(name)
+            self.parameters[arg_name] = self.build_parameter_object(arg_name,
+                                                                    value)
 
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_args = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS + self.param_args                       # noqa: E501
+        supported_arguments = (SUPPORTED_ARGUMENTS +
+                               DEPRECATED_ARGUMENTS +
+                               self.param_args)
         check_arguments(MANDATORY_ARGUMENTS,
                         DEPRECATED_ARGUMENTS,
-                        supported_args,
+                        supported_arguments,
                         list(self.decorator_arguments.keys()),
                         "@task")
+
+    def build_parameter_object(self, arg_name, arg_object):
+        """
+        Creates the Parameter object from an argument name and object.
+
+        :param arg_name: Argument name
+        :param arg_object: Argument object
+        :return: Parameter object
+        """
+        # Is the argument a vararg? or a kwarg? Then check the direction
+        # for varargs or kwargs
+        param = None
+        if is_vararg(arg_name):
+            param = get_parameter_copy(self.get_varargs_direction())
+        elif is_kwarg(arg_name):
+            real_name = get_name_from_kwarg(arg_name)
+            default_direction = self.get_default_direction(real_name)
+            param = self.decorator_arguments.get(real_name,
+                                                 default_direction)
+        else:
+            # The argument is named, check its direction
+            # Default value = IN if not class or instance method and
+            #                 isModifier, INOUT otherwise
+            # see self.get_default_direction
+            # Note that if we have something like @task(self = IN) it
+            # will have priority over the default
+            # direction resolution, even if this implies a contradiction
+            # with the target_direction flag
+            default_direction = self.get_default_direction(arg_name)
+            param = self.decorator_arguments.get(arg_name,
+                                                 default_direction)
+
+        # If the parameter is a FILE then its type will already be defined,
+        # and get_compss_type will misslabel it as a parameter.TYPE.STRING
+        if param.is_object():
+            param.content_type = get_compss_type(arg_object)
+
+        # TODO: add 'dir_name' to the parameter object
+        if param.is_file() or param.is_directory():
+            if arg_object:
+                param.file_name = arg_object
+            else:
+                # is None: Used None for a FILE or DIRECTORY parameter path
+                param.content_type = parameter.TYPE.NULL
+        else:
+            param.content = arg_object
+
+        return param
 
     def get_parameter_direction(self, name):
         """

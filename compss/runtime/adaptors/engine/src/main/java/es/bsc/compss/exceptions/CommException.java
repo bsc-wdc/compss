@@ -17,7 +17,7 @@
 package es.bsc.compss.exceptions;
 
 /**
- * Exception to creation/deletion announce errors.
+ * Class representing an exception raised due to some problem within the Comm layer.
  */
 public class CommException extends Exception {
 
@@ -28,28 +28,35 @@ public class CommException extends Exception {
 
 
     /**
-     * New empty Announce Exception.
+     * Creates a new CommException.
      */
     public CommException() {
         super();
     }
 
     /**
-     * New nested {@code e} Announce Exception.
+     * Creates a new CommException with a nested exception.
      * 
-     * @param e Exception.
+     * @param e Nested exception.
      */
     public CommException(Exception e) {
         super(e);
     }
 
     /**
-     * New Announce Exception with message {@code msg}.
-     * 
-     * @param msg Exception message.
+     * Creates a new CommException with a custom message.
      */
     public CommException(String msg) {
         super(msg);
     }
 
+    /**
+     * Creates a new CommException with a custom message and a nested exception.
+     * 
+     * @param msg Custom message.
+     * @param e Nested exception.
+     */
+    public CommException(String msg, Exception e) {
+        super(msg, e);
+    }
 }

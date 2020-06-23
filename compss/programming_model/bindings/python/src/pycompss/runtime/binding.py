@@ -36,7 +36,6 @@ from shutil import rmtree
 
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
-from pycompss.api.task import PREPEND_STRINGS
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.parameter import get_return_name
@@ -1510,6 +1509,8 @@ def _serialize_object_into_file(name, p):
             _skip_file_creation = (p.direction == DIRECTION.OUT)
             _turn_into_file(p, _skip_file_creation)
     elif p.content_type == TYPE.STRING:
+        # Do not move this import to the top
+        from pycompss.api.task import PREPEND_STRINGS
         if PREPEND_STRINGS:
             # Strings can be empty. If a string is empty their base64 encoding
             # will be empty.

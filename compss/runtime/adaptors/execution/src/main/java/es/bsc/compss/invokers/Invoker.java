@@ -372,9 +372,11 @@ public abstract class Invoker {
         System.setProperty(OMP_NUM_THREADS, String.valueOf(this.computingUnits));
 
         // LOG ENV VARS
-        System.out.println("[INVOKER] COMPSS_HOSTNAMES: " + this.workers);
-        System.out.println("[INVOKER] COMPSS_NUM_NODES: " + this.numWorkers);
-        System.out.println("[INVOKER] COMPSS_NUM_THREADS: " + this.computingUnits);
+        if (LOGGER.isDebugEnabled()) {
+            System.out.println("[INVOKER] COMPSS_HOSTNAMES: " + this.workers);
+            System.out.println("[INVOKER] COMPSS_NUM_NODES: " + this.numWorkers);
+            System.out.println("[INVOKER] COMPSS_NUM_THREADS: " + this.computingUnits);
+        }
     }
 
     private void emitStartTask() {

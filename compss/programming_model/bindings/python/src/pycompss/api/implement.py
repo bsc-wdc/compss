@@ -104,7 +104,7 @@ class Implement(PyCOMPSsDecorator):
                     # Retrieve the base core_element established at @task
                     # decorator and update the core element information with
                     # the @implement information
-                    from pycompss.api.task import current_core_element as cce
+                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
                     ce_signature = '.'.join((another_class, another_method))
                     cce.set_ce_signature(ce_signature)
                     # This is not needed since the arguments are already set
@@ -130,9 +130,9 @@ class Implement(PyCOMPSsDecorator):
         if context.in_master() and not self.first_register:
             import pycompss.api.task as t
             self.first_register = True
-            t.register_only = True
+            t.REGISTER_ONLY = True
             self.__call__(func)(self)
-            t.register_only = False
+            t.REGISTER_ONLY = False
 
         return implement_f
 

@@ -105,7 +105,7 @@ class PyCOMPSsDecorator(object):
 def keep_arguments(args, kwargs, prepend_strings=True):
     """
     Context which saves and restores the function arguments.
-    It also enables or disables the prepend_strings property from @task.
+    It also enables or disables the PREPEND_STRINGS property from @task.
 
     :return: None
     """
@@ -120,13 +120,13 @@ def keep_arguments(args, kwargs, prepend_strings=True):
             if hasattr(slf, k):
                 saved[k] = getattr(slf, k)
                 setattr(slf, k, v)
-    # Set prepend_strings
+    # Set PREPEND_STRINGS
     import pycompss.api.task as t
     if not prepend_strings:
-        t.prepend_strings = False
+        t.PREPEND_STRINGS = False
     yield
-    # Restore prepend_strings to default: True
-    t.prepend_strings = True
+    # Restore PREPEND_STRINGS to default: True
+    t.PREPEND_STRINGS = True
     # Restore function arguments
     if len(args) > 0:
         # Put things back

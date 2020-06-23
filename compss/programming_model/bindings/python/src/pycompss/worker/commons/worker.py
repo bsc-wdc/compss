@@ -29,10 +29,10 @@ import base64
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.runtime.parameter import Parameter
-from pycompss.runtime.parameter import PYCOMPSS_LONG
-from pycompss.runtime.parameter import JAVA_MIN_INT
-from pycompss.runtime.parameter import JAVA_MAX_INT
+from pycompss.runtime.task.parameter import Parameter
+from pycompss.runtime.task.parameter import PYCOMPSS_LONG
+from pycompss.runtime.task.parameter import JAVA_MIN_INT
+from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -487,7 +487,7 @@ def execute_task(process_name, storage_conf, params, tracing,
     # user code (reason: ignore @task decorator if called from another task).
     compss_kwargs = {
         'compss_key': True,
-        'compss_tracing': tracing,
+        '_compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,

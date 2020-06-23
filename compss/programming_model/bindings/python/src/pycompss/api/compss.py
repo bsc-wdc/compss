@@ -141,7 +141,7 @@ class COMPSs(PyCOMPSsDecorator):
                     # Retrieve the base core_element established at @task
                     # decorator and update the core element information with
                     # the @compss decorator information
-                    from pycompss.api.task import current_core_element as cce
+                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
                     cce.set_impl_type(impl_type)
                     cce.set_impl_signature(impl_signature)
                     cce.set_impl_type_args(impl_args)

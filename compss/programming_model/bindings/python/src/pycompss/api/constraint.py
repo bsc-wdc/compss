@@ -81,7 +81,7 @@ class Constraint(PyCOMPSsDecorator):
                     # Retrieve the base core_element established at @task
                     # decorator and update the core element information with
                     # the constraints
-                    from pycompss.api.task import current_core_element as cce
+                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
                     cce.set_impl_constraints(self.kwargs)
 
                     # Set as registered

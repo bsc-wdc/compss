@@ -101,7 +101,7 @@ class MultiNode(PyCOMPSsDecorator):
                     # Retrieve the base core_element established at @task
                     # decorator and pdate the core element information with
                     # the @MultiNode information
-                    from pycompss.api.task import current_core_element as cce
+                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
                     cce.set_impl_type("MULTI_NODE")
                     # Signature and implementation args are set by the
                     # @task decorator

@@ -23,17 +23,28 @@ PyCOMPSs Binding - Binding
     This file contains the Python binding auxiliary classes and methods.
 """
 
-import pycompss.api.parameter as parameter
+import os
+import sys
+import re
+import uuid
+import inspect
+import logging
+import base64
+
+from collections import *
+from shutil import rmtree
+
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
-from pycompss.runtime.parameter import Parameter
-from pycompss.runtime.parameter import get_compss_type
-from pycompss.runtime.parameter import get_return_name
-from pycompss.runtime.parameter import UNDEFINED_CONTENT_TYPE
-from pycompss.runtime.parameter import JAVA_MIN_INT
-from pycompss.runtime.parameter import JAVA_MAX_INT
-from pycompss.runtime.parameter import JAVA_MIN_LONG
-from pycompss.runtime.parameter import JAVA_MAX_LONG
+from pycompss.api.task import PREPEND_STRINGS
+from pycompss.runtime.task.parameter import Parameter
+from pycompss.runtime.task.parameter import get_compss_type
+from pycompss.runtime.task.parameter import get_return_name
+from pycompss.runtime.task.parameter import UNDEFINED_CONTENT_TYPE
+from pycompss.runtime.task.parameter import JAVA_MIN_INT
+from pycompss.runtime.task.parameter import JAVA_MAX_INT
+from pycompss.runtime.task.parameter import JAVA_MIN_LONG
+from pycompss.runtime.task.parameter import JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serialization.serializer import *
@@ -42,19 +53,6 @@ from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.objects.properties import is_basic_iterable
-
-import types
-import os
-import sys
-import re
-import uuid
-import inspect
-import logging
-import traceback
-import base64
-
-from collections import *
-from shutil import rmtree
 
 # Import main C module extension for the communication with the runtime
 # See ext/compssmodule.cc
@@ -86,6 +84,7 @@ if IS_PYTHON3:
                          object: TYPE.OBJECT
                          }
 else:
+    import types
     listType = types.ListType
     dictType = types.DictType
     _python_to_compss = {types.IntType: TYPE.INT,          # noqa # int
@@ -866,7 +865,7 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
+def process_task(f, module_name, class_name, f_type, f_parameters, f_returns,
                  task_kwargs, num_nodes, replicated, distributed,
                  on_failure, time_out):
     """
@@ -876,7 +875,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
     :param module_name: Name of the module containing the function/method
                         (including packages, if any)
     :param class_name: Name of the class (if method)
-    :param ftype: Function type
+    :param f_type: Function type
     :param f_parameters: Function parameters (dictionary {'param1':Parameter()}  # noqa
     :param f_returns: Function returns (dictionary {'*return_X':Parameter()}
     :param task_kwargs: Decorator arguments
@@ -889,12 +888,12 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
     """
     if __debug__:
         logger.debug("TASK: %s of type %s, in module %s, in class %s" %
-                     (f.__name__, ftype, module_name, class_name))
+                     (f.__name__, f_type, module_name, class_name))
 
     app_id = 0
 
     # Check if the function is an instance method or a class method.
-    has_target = ftype == FunctionType.INSTANCE_METHOD
+    has_target = f_type == FunctionType.INSTANCE_METHOD
     fo = None
     if f_returns:
         fo = _build_return_objects(f_returns)
@@ -911,7 +910,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
     _serialize_objects(f_parameters)
 
     # Build values and COMPSs types and directions
-    vtdsc = _build_values_types_directions(ftype,
+    vtdsc = _build_values_types_directions(f_type,
                                            f_parameters,
                                            f_returns,
                                            f.__code_strings__)
@@ -1156,12 +1155,12 @@ def _serialize_objects(f_parameters):
             logger.debug("Final type for parameter %s: %d" % (k, p.content_type))
 
 
-def _build_values_types_directions(ftype, f_parameters, f_returns,
+def _build_values_types_directions(f_type, f_parameters, f_returns,
                                    code_strings):
     """
     Build the values list, the values types list and the values directions list
 
-    :param ftype: task function type. If it is an instance method, the first
+    :param f_type: task function type. If it is an instance method, the first
                   parameter will be put at the end.
     :param f_parameters: <Dictionary> Function parameters
     :param f_returns: <Dictionary> - Function returns
@@ -1185,8 +1184,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
 
     # Build the range of elements
     ra = list(f_parameters.keys())
-    if ftype == FunctionType.INSTANCE_METHOD or \
-            ftype == FunctionType.CLASS_METHOD:
+    if f_type == FunctionType.INSTANCE_METHOD or \
+            f_type == FunctionType.CLASS_METHOD:
         slf = ra.pop(0)
         slf_name = arg_names.pop(0)
     # Fill the values, compss_types, compss_directions, compss_streams and
@@ -1205,7 +1204,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         keep_renames.append(kr)
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from self (if exist)
-    if ftype == FunctionType.INSTANCE_METHOD:
+    if f_type == FunctionType.INSTANCE_METHOD:
         # self is always an object
         val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(f_parameters[slf],
                                                                     code_strings)
@@ -1485,7 +1484,7 @@ def _serialize_object_into_file(name, p):
                                    p.content_type != TYPE.EXTERNAL_STREAM)
             _turn_into_file(p, skip_creation=_skip_file_creation)
         except SerializerException:
-            import sys
+            import traceback
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type,
                                                exc_value,
@@ -1511,8 +1510,7 @@ def _serialize_object_into_file(name, p):
             _skip_file_creation = (p.direction == DIRECTION.OUT)
             _turn_into_file(p, _skip_file_creation)
     elif p.content_type == TYPE.STRING:
-        from pycompss.api.task import prepend_strings
-        if prepend_strings:
+        if PREPEND_STRINGS:
             # Strings can be empty. If a string is empty their base64 encoding
             # will be empty.
             # So we add a leading character to it to make it non empty

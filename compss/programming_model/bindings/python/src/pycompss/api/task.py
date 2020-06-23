@@ -212,7 +212,7 @@ class Task(PyCOMPSsDecorator):
                     message += " from this task.\n"
                     message += "         It will be executed sequentially "
                     message += "within the caller task."
-                    print(message, file=sys.stderr, flush=True)
+                    print(message, file=sys.stderr)
                     return self.sequential_call(*args, **kwargs)
             # We are neither in master nor in the worker, or the user has
             # stopped the interactive session.

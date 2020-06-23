@@ -186,8 +186,6 @@ class Task(PyCOMPSsDecorator):
         """
         self.user_function = user_function
 
-        self.update_if_interactive()
-
         @wraps(user_function)
         def task_decorator(*args, **kwargs):
             # Determine the context and decide what to do
@@ -221,44 +219,6 @@ class Task(PyCOMPSsDecorator):
             return self.sequential_call(*args, **kwargs)
 
         return task_decorator
-
-    def update_if_interactive(self):
-        """
-        Update the user code if in interactive mode and the session has
-        been started.
-
-        :return: None
-        """
-        mod = inspect.getmodule(self.user_function)
-        module_name = mod.__name__
-        if context.in_pycompss() and \
-                (module_name == '__main__' or
-                 module_name == 'pycompss.runtime.launch'):
-            # 1.- The runtime is running.
-            # 2.- The module where the function is defined was run as __main__,
-            # We need to find out the real module name
-            # Get the real module name from our launch.py APP_PATH global
-            # variable
-            # It is guaranteed that this variable will always exist because
-            # this code is only executed when we know we are in the master
-            path = getattr(mod, 'APP_PATH')
-            # Get the file name
-            file_name = os.path.splitext(os.path.basename(path))[0]
-            # Do any necessary pre processing action before executing any code
-            if file_name.startswith('InteractiveMode') and not self.registered:
-                # If the file_name starts with 'InteractiveMode' means that
-                # the user is using PyCOMPSs from jupyter-notebook.
-                # Convention between this file and interactive.py
-                # In this case it is necessary to do a pre-processing step
-                # that consists of putting all user code that may be executed
-                # in the worker on a file.
-                # This file has to be visible for all workers.
-                from pycompss.util.interactive.helpers import update_tasks_code_file  # noqa: E501
-                update_tasks_code_file(self.user_function, path)
-                print("Found task: " + str(self.user_function.__name__))
-        else:
-            # No need to update anything
-            pass
 
     def sequential_call(self, *args, **kwargs):
         """

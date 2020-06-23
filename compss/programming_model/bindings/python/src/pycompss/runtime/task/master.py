@@ -24,7 +24,6 @@ import threading
 import inspect
 from collections import OrderedDict
 
-from pycompss.api.task import REGISTER_ONLY
 from pycompss.api.task import CURRENT_CORE_ELEMENT
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.runtime.commons import IS_PYTHON3
@@ -167,6 +166,8 @@ class TaskMaster(TaskCommons):
         CURRENT_CORE_ELEMENT.reset()
         # Did we call this function to only register the associated core
         # element? (This can happen when trying)
+        # Do not move this import:
+        from pycompss.api.task import REGISTER_ONLY
         if REGISTER_ONLY:
             MASTER_LOCK.release()
             return

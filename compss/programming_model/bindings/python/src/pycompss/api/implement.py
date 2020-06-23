@@ -89,7 +89,6 @@ class Implement(PyCOMPSsDecorator):
 
             if context.in_master():
                 # master code
-                self.module = get_module(func)
 
                 if not self.registered:
                     # Register

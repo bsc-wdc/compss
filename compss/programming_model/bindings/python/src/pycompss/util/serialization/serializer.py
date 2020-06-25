@@ -57,15 +57,15 @@ from io import BytesIO
 if IS_PYTHON3:
     import pickle as pickle  # Uses _pickle if available
 else:
-    import cPickle as pickle
+    import cPickle as pickle  # noqa
 
 try:
-    import dill
+    import dill  # noqa
 except ImportError:
     if IS_PYTHON3:
         import pickle as dill
     else:
-        import cPickle as dill
+        import cPickle as dill  # noqa
 
 try:
     import numpy
@@ -74,7 +74,7 @@ except ImportError:
     if IS_PYTHON3:
         import pickle as numpy
     else:
-        import cPickle as numpy
+        import cPickle as numpy  # noqa
     NUMPY_AVAILABLE = False
 
 lib2idx = {

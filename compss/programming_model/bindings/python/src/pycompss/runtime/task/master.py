@@ -24,7 +24,8 @@ import threading
 import inspect
 from collections import OrderedDict
 
-from pycompss.api.task import CURRENT_CORE_ELEMENT
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.task.commons import TaskCommons
@@ -143,6 +144,18 @@ class TaskMaster(TaskCommons):
         # IMPORTANT! recover initial decorator arguments
         self.decorator_arguments = copy.deepcopy(self.init_dec_args)
 
+        # IMPORTANT! extract the core element from kwargs if pre-defined
+        #            in decorators defined on top of @task.
+        pre_defined_ce = False
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            core_element = kwargs[CORE_ELEMENT_KEY]
+            kwargs.pop(CORE_ELEMENT_KEY)
+            pre_defined_ce = True
+        else:
+            # No decorators over @task: instantiate an empty core element
+            core_element = CE()
+
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
         # self.param_kwargs, self.param_defaults. And gives non-None default
@@ -155,20 +168,21 @@ class TaskMaster(TaskCommons):
         # Compute the function path, class (if any), and name
         self.compute_user_function_information()
 
+        # Prepare the core element registration information
+        self.set_code_strings(self.user_function,
+                              core_element.get_impl_type())
+        impl_signature, impl_type_args = self.get_signature(self.user_function)
+        self.update_core_element(impl_signature, impl_type_args,
+                                 core_element, pre_defined_ce)
         # Process the decorators to get the core element information
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
-        impl_signature = self.prepare_core_element_information(self.user_function)  # noqa: E501
         if not self.registered or self.signature != impl_signature:
-            self.register_task(self.user_function)
+            self.register_task(self.user_function, core_element)
             self.registered = True
             self.signature = impl_signature
 
-        # Reset the global core element to a full-None status, ready for the
-        # next task! (Note that this region is locked, so no race conditions
-        # will ever happen here).
-        CURRENT_CORE_ELEMENT.reset()
         # Did we call this function to only register the associated core
         # element? (This can happen when trying)
         # Do not move this import:
@@ -563,151 +577,60 @@ class TaskMaster(TaskCommons):
                 self.class_name = qualified_name[:-len(name) - 1]
                 # -1 to remove the last point
 
-    def prepare_core_element_information(self, f):
+    def set_code_strings(self, f, ce_type):
         """
-        This function is used to prepare the core element.
-        The information is needed in order to compare the implementation
-        signature, so that if it has been registered with a different
-        signature, it can be re-registered with the new one (enable
-        inheritance).
+        This function is used to set if the strings must be coded or not.
+        IMPORTANT! modifies f adding __code_strings__ which is used in binding
 
         :param f: Function to be registered
+        :param ce_type: Core element implementation type
+        :return: None
         """
-
-        def _get_top_decorator(code, dec_keys):
-            """
-            Retrieves the decorator which is on top of the current task
-            decorators stack.
-
-            :param code: Tuple which contains the task code to analyse and
-                         the number of lines of the code.
-            :param dec_keys: Typle which contains the available decorator keys
-            :return: the decorator name in the form "pycompss.api.__name__"
-            """
-            # Code has two fields:
-            # code[0] = the entire function code.
-            # code[1] = the number of lines of the function code.
-            dec_func_code = code[0]
-            decorators = [dfline.strip() for dfline in
-                          dec_func_code if dfline.strip().startswith('@')]
-            # Could be improved if it stops when the first line without @ is
-            # found, but we have to be careful if a decorator is commented
-            # (# before @).
-            # The strip is due to the spaces that appear before functions
-            # definitions, such as class methods.
-            for dk in dec_keys:
-                for d in decorators:
-                    if d.startswith('@' + dk):
-                        # check each decorator's __name__ to lower
-                        return "pycompss.api." + dk.lower()
-            # If no decorator is found, then the current decorator is the one
-            # to register
-            return __name__
-
-        def _get_task_type(code, dec_filter, default_values):
-            """
-            Retrieves the type of the task based on the decorators stack.
-
-            :param code: Tuple which contains the task code to analyse and the
-                         number of lines of the code.
-            :param dec_filter: Tuple which contains the filtering decorators.
-                               The one used determines the type of the task.
-                               If none, then it is a normal task.
-            :param default_values: Default values
-            :return: the type of the task
-            """
-            # Code has two fields:
-            # code[0] = the entire function code.
-            # code[1] = the number of lines of the function code.
-            dec_func_code = code[0]
-            full_decorators = [dfline.strip() for dfline in
-                               dec_func_code if dfline.strip().startswith('@')]
-            # Get only the decorators used. Remove @ and parameters.
-            decorators = [fline[1:].split('(')[0] for fline in full_decorators]
-            # Look for the decorator used from the filter list and return it
-            # when found if @mpi and no binary then this is an python_mpi task
-            index = 0
-            for filt in dec_filter:
-                if filt in decorators:
-                    if filt == "mpi":
-                        if "binary" not in full_decorators[index]:
-                            filt = "PYTHON_MPI"
-                    return filt
-                index += 1
-            # The decorator stack did not contain any of the filtering keys,
-            # then return the default key.
-            return default_values
-
-        # Look for the decorator that has to do the registration
-        # Since the __init__ of the decorators is independent, there is no way
-        # to pass information through them.
-        # However, the __call__ method of the decorators can be used.
-        # The way that they are called is from bottom to top. So, the first one
-        # to call its __call__ method will always be @task. Consequently, the
-        # @task decorator __call__ method can detect the top decorator and pass
-        # a hint to order that decorator that has to do the registration (not
-        # the others).
-        func_code = ''
-        got_func_code = False
-        func = f
-        while not got_func_code:
-            try:
-                from pycompss.util.objects.properties import get_wrapped_sourcelines  # noqa: E501
-                func_code = get_wrapped_sourcelines(func)
-                got_func_code = True
-            except IOError:
-                # There is one or more decorators below the @task -> undecorate
-                # until possible to get the func code.
-                # Example of this case: test 19: @timeit decorator below the
-                # @task decorator.
-                func = func.__wrapped__
-
-        decorator_keys = ("implement",
-                          "constraint",
-                          "task",
-                          "binary",
-                          "mpi",
-                          "compss",
-                          "decaf",
-                          "ompss",
-                          "opencl")
-
-        top_decorator = _get_top_decorator(func_code, decorator_keys)
-        if __debug__:
-            logger.debug(
-                "[@TASK] Top decorator of function %s in module %s: %s" %
-                (f.__name__, self.module_name, str(top_decorator))
-            )
-        f.__who_registers__ = top_decorator
-        # not usual tasks - handled by the runtime without invoking the
-        # PyCOMPSs worker. Needed to filter in order not to code the strings
-        # when using them in these type of tasks
-        decorator_filter = ("binary",
-                            "mpi",
-                            "compss",
-                            "decaf",
-                            "ompss",
-                            "opencl")
         default = 'task'
-        task_type = _get_task_type(func_code, decorator_filter, default)
+        if ce_type is None:
+            ce_type = default
 
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" %
-                         (f.__name__, self.module_name, str(task_type)))
-        f.__task_type__ = task_type
-        if task_type == default:
+                         (f.__name__, self.module_name, str(ce_type)))
+
+        if ce_type == default:
             f.__code_strings__ = True
         else:
-            if task_type == "PYTHON_MPI":
+            if ce_type == "PYTHON_MPI":
+                func_code = ''
+                got_func_code = False
+                func = f
+                while not got_func_code:
+                    try:
+                        from pycompss.util.objects.properties import get_wrapped_sourcelines  # noqa: E501
+                        func_code = get_wrapped_sourcelines(func)
+                        got_func_code = True
+                    except IOError:
+                        # There is one or more decorators below the @task -> undecorate
+                        # until possible to get the func code.
+                        # Example of this case: test 19: @timeit decorator below the
+                        # @task decorator.
+                        func = func.__wrapped__
                 for line in func_code[0]:
                     if "@mpi" in line:
                         f.__code_strings__ = "binary" not in line
             else:
                 f.__code_strings__ = False
 
+    def get_signature(self, f):
+        """
+        This function is used to find out the function signature.
+        The information is needed in order to compare the implementation
+        signature, so that if it has been registered with a different
+        signature, it can be re-registered with the new one (enable
+        inheritance).
+
+        :param f: Function to be registered
+        :return: Implementation signature and implementation type arguments
+        """
         # Get the task signature
         # To do this, we will check the frames
-        import inspect
         frames = inspect.getouterframes(inspect.currentframe())
         # Pop the __register_task and __call__ functions from the frame
         frames = frames[2:]
@@ -723,12 +646,12 @@ class TaskMaster(TaskCommons):
             # The task is defined within the main app file.
             # This case is never reached with Python 3 since it includes
             # frames that are not present with Python 2.
-            ce_signature = self.module_name + "." + f.__name__
+            impl_signature = self.module_name + "." + f.__name__
             impl_type_args = [self.module_name, f.__name__]
         else:
             if self.class_name:
                 # Within class or subclass
-                ce_signature = self.module_name + '.' + \
+                impl_signature = self.module_name + '.' + \
                                self.class_name + '.' + \
                                f.__name__
                 impl_type_args = [self.module_name + '.' + self.class_name,
@@ -737,58 +660,83 @@ class TaskMaster(TaskCommons):
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular
                 # frames are included, but not class names found.
-                ce_signature = self.module_name + "." + f.__name__
+                impl_signature = self.module_name + "." + f.__name__
                 impl_type_args = [self.module_name, f.__name__]
+
+        return impl_signature, impl_type_args
+
+    @staticmethod
+    def update_core_element(impl_signature, impl_type_args,
+                            core_element, pre_defined_ce):
+        """
+        Adds the @task decorator information to the core element.
+
+        :param impl_signature: Implementation signature
+        :param impl_type_args: Implementation type arguments
+        :param core_element: Core element
+        :param pre_defined_ce: Boolean if core element contains predefined
+                               fields (done by upper decorators).
+        :return: None
+        """
+
         # Include the registering info related to @task
-        impl_signature = ce_signature
-        impl_constraints = {}
         impl_type = "METHOD"
+        impl_constraints = {}
+        impl_io = False
 
-        # Maybe some top decorator has already added some parameters
-        # These if statements avoid us to overwrite these already
-        # existing attributes
-        # For example, the constraint decorator adds things in the
-        # impl_constraints field, so it would be nice to not overwrite it!
+        if __debug__:
+            logger.debug("Configuring @task core element.")
 
-        if CURRENT_CORE_ELEMENT.get_ce_signature() is None:
-            CURRENT_CORE_ELEMENT.set_ce_signature(ce_signature)
+        if pre_defined_ce:
+            # Core element has already been created in an upper decorator
+            # (e.g. @implements and @compss)
+            if core_element.get_ce_signature() is None:
+                core_element.set_ce_signature(impl_signature)
+                core_element.set_impl_signature(impl_signature)
+            else:
+                # If we are here that means that we come from an implements
+                # decorator, which means that this core element has already
+                # a signature
+                core_element.set_impl_signature(impl_signature)
+            if core_element.get_impl_constraints() is None:
+                core_element.set_impl_constraints(impl_constraints)
+            if core_element.get_impl_type() is None:
+                core_element.set_impl_type(impl_type)
+            elif core_element.get_impl_type() == "PYTHON_MPI":
+                core_element.set_impl_signature("MPI." + impl_signature)
+            if core_element.get_impl_type_args() is None:
+                core_element.set_impl_type_args(impl_type_args)
+            elif core_element.get_impl_type() == "PYTHON_MPI":
+                core_element.set_impl_type_args(
+                    impl_type_args + core_element.get_impl_type_args()[1:])
+            if core_element.get_impl_io() is None:
+                core_element.set_impl_io(impl_io)
         else:
-            # If we are here that means that we come from an implements
-            # decorator, which means that this core element has already
-            # a signature
-            CURRENT_CORE_ELEMENT.set_impl_signature(ce_signature)
-        if CURRENT_CORE_ELEMENT.get_impl_signature() is None:
-            CURRENT_CORE_ELEMENT.set_impl_signature(impl_signature)
-        if CURRENT_CORE_ELEMENT.get_impl_constraints() is None:
-            CURRENT_CORE_ELEMENT.set_impl_constraints(impl_constraints)
-        if CURRENT_CORE_ELEMENT.get_impl_type() is None:
-            CURRENT_CORE_ELEMENT.set_impl_type(impl_type)
-        if CURRENT_CORE_ELEMENT.get_impl_type_args() is None:
-            CURRENT_CORE_ELEMENT.set_impl_type_args(impl_type_args)
+            # @task is in the top of the decorators stack.
+            # Update the empty core_element
+            core_element.set_ce_signature(impl_signature)
+            core_element.set_impl_signature(impl_signature)
+            core_element.set_impl_constraints(impl_constraints)
+            core_element.set_impl_type(impl_type)
+            core_element.set_impl_type_args(impl_type_args)
+            core_element.set_impl_io(impl_io)
 
-        if CURRENT_CORE_ELEMENT.get_impl_type() == "PYTHON_MPI":
-            CURRENT_CORE_ELEMENT.set_impl_signature("MPI." + impl_signature)
-            CURRENT_CORE_ELEMENT.set_impl_type_args(
-                impl_type_args + CURRENT_CORE_ELEMENT.get_impl_type_args()[1:])
-
-        return impl_signature
-
-    def register_task(self, f):  # noqa
+    def register_task(self, f, core_element):  # noqa
         """
         This function is used to register the task in the runtime.
         This registration must be done only once on the task decorator
         initialization
 
         :param f: Function to be registered
+        :return: None
         """
         import pycompss.runtime.binding as binding
         if __debug__:
             logger.debug(
-                "[@TASK] I have to register the function %s in module %s" %
+                "[@TASK] Registering the function %s in module %s" %
                 (f.__name__, self.module_name)
             )
-            logger.debug("[@TASK] %s" % str(f))
-        binding.register_ce(CURRENT_CORE_ELEMENT)
+        binding.register_ce(core_element)
 
     def add_return_parameters(self):
         """

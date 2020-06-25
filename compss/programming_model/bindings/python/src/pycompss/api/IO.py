@@ -29,8 +29,9 @@ import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.api.commons.decorator import get_module
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
@@ -84,18 +85,8 @@ class IO(PyCOMPSsDecorator):
 
             if context.in_master():
                 # master code
-                self.module = get_module(func)
-
-                if not self.registered:
-                    # Register
-
-                    # Retrieve the base core_element established at @task
-                    # decorator and update the core element information with
-                    # the @IO argument information
-                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
-                    cce.set_impl_io(True)
-                    # Set as registered
-                    self.registered = True
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
             else:
                 # worker code
                 pass
@@ -108,6 +99,31 @@ class IO(PyCOMPSsDecorator):
 
         io_f.__doc__ = func.__doc__
         return io_f
+
+    def __configure_core_element__(self, kwargs):
+        """
+        Include the registering info related to @IO
+        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY]
+
+        :param kwargs: Keyword arguments received from call
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Configuring @IO core element.")
+
+        # Resolve @io specific parameters
+
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            # (e.g. @constraint)
+            kwargs[CORE_ELEMENT_KEY].set_impl_io(True)
+        else:
+            # @binary is in the top of the decorators stack.
+            # Instantiate a new core element object, update it and include
+            # it into kwarg
+            core_element = CE()
+            core_element.set_impl_io(True)
+            kwargs[CORE_ELEMENT_KEY] = core_element
 
 
 # ########################################################################### #

@@ -27,8 +27,9 @@ PyCOMPSs API - CONSTRAINT
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.api.commons.decorator import get_module
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
@@ -64,7 +65,8 @@ class Constraint(PyCOMPSsDecorator):
         @wraps(func)
         def constrained_f(*args, **kwargs):
             if not self.scope:
-                from pycompss.api.dummy.constraint import constraint as dummy_constraint  # noqa: E501
+                from pycompss.api.dummy.constraint import constraint \
+                    as dummy_constraint
                 d_c = dummy_constraint(self.args, self.kwargs)
                 return d_c.__call__(func)(*args, **kwargs)
 
@@ -73,19 +75,8 @@ class Constraint(PyCOMPSsDecorator):
 
             if context.in_master():
                 # master code
-                self.module = get_module(func)
-
-                if not self.registered:
-                    # Register
-
-                    # Retrieve the base core_element established at @task
-                    # decorator and update the core element information with
-                    # the constraints
-                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
-                    cce.set_impl_constraints(self.kwargs)
-
-                    # Set as registered
-                    self.registered = True
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
             else:
                 # worker code
                 pass
@@ -99,9 +90,36 @@ class Constraint(PyCOMPSsDecorator):
         constrained_f.__doc__ = func.__doc__
         return constrained_f
 
+    def __configure_core_element__(self, kwargs):
+        """
+        Include the registering info related to @constraint
+
+        :param kwargs: Current keyword arguments to be updated with the core
+                       element information
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Configuring @constraint core element.")
+
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            # (e.g. @implements and @compss)
+            kwargs[CORE_ELEMENT_KEY].set_impl_constraints(self.kwargs)
+        else:
+            # @constraint is in the top of the decorators stack.
+            # Instantiate a new core element object, update it and include
+            # it into kwarg
+            core_element = CE()
+            core_element.set_impl_constraints(self.kwargs)
+            kwargs[CORE_ELEMENT_KEY] = core_element
+
+        # Set as configured
+        self.core_element_configured = True
+
 
 # ########################################################################### #
 # ################### CONSTRAINT DECORATOR ALTERNATIVE NAME ################# #
 # ########################################################################### #
 
 constraint = Constraint
+CONSTRAINT = Constraint

@@ -24,10 +24,10 @@ PyCOMPSs DECORATOR COMMONS
 """
 
 import os
-import inspect
 from contextlib import contextmanager
 
 import pycompss.util.context as context
+from pycompss.util.exceptions import MissingImplementedException
 from pycompss.api.commons.error_msgs import wrong_value
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
@@ -35,6 +35,9 @@ from pycompss.api.commons.error_msgs import cast_string_to_int_error
 if __debug__:
     import logging
     logger = logging.getLogger(__name__)
+
+# Global name to be used within kwargs for the core element.
+CORE_ELEMENT_KEY = 'compss_core_element'
 
 
 class PyCOMPSsDecorator(object):
@@ -47,15 +50,31 @@ class PyCOMPSsDecorator(object):
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
-        self.registered = False
+        self.core_element = None
+        self.core_element_configured = False
         # This enables the decorator to get info from the caller
         # (e.g. self.source_frame_info.filename or
         #       self.source_frame_info.lineno)
+        # import inspect
         # self.source_frame_info = inspect.getframeinfo(inspect.stack()[1][0])
 
         if self.scope:
             if __debug__:
                 logger.debug("Init " + decorator_name + " decorator...")
+
+    def __configure_core_element__(self, kwargs):
+        """
+        Include the registering info related to the decorator which inherits
+
+        :param kwargs: Current keyword arguments to be updated with the core
+                       element information
+        :return: None
+        """
+        raise MissingImplementedException("__configure_core_element__")
+
+    #########################################
+    # VERY USUAL FUNCTIONS THAT MODIFY SELF #
+    #########################################
 
     def __resolve_working_dir__(self):
         """
@@ -96,6 +115,58 @@ class PyCOMPSsDecorator(object):
         else:
             self.kwargs['fail_by_exit_value'] = 'false'
 
+    def __process_computing_nodes__(self, decorator_name):
+        """
+        Process computing nodes from decorator.
+        Modifies the self.kwargs dictionary since it can be used in lower level
+        decorators (until execution when invoked).
+        Used in some decorators:
+            - compss
+            - decaf
+            - multinode
+            - ompss
+
+        :return: the number of computing nodes
+        """
+        if 'computing_nodes' not in self.kwargs and \
+                'computingNodes' not in self.kwargs:
+            self.kwargs['computing_nodes'] = 1
+        else:
+            if 'computingNodes' in self.kwargs:
+                self.kwargs['computing_nodes'] = \
+                    self.kwargs.pop('computingNodes')
+            computing_nodes = self.kwargs['computing_nodes']
+            if isinstance(computing_nodes, int):
+                # Nothing to do
+                pass
+            elif isinstance(computing_nodes, str):
+                # Check if it is an environment variable to be loaded
+                if computing_nodes.strip().startswith('$'):
+                    # Computing nodes is an ENV variable, load it
+                    env_var = computing_nodes.strip()[1:]  # Remove $
+                    if env_var.startswith('{'):
+                        env_var = env_var[1:-1]  # remove brackets
+                    try:
+                        self.kwargs['computing_nodes'] = \
+                            int(os.environ[env_var])
+                    except ValueError:
+                        raise Exception(
+                            cast_env_to_int_error('Computing Nodes'))
+                else:
+                    # ComputingNodes is in string form, cast it
+                    try:
+                        self.kwargs['computing_nodes'] = int(computing_nodes)
+                    except ValueError:
+                        raise Exception(
+                            cast_string_to_int_error('Computing Nodes'))
+            else:
+                raise Exception(wrong_value("Computing Nodes", decorator_name))
+
+        if __debug__:
+            logger.debug("This " + decorator_name + " task will have " +
+                         str(self.kwargs['computing_nodes']) +
+                         " computing nodes.")
+
 
 ###################
 # COMMON CONTEXTS #
@@ -110,6 +181,8 @@ def keep_arguments(args, kwargs, prepend_strings=True):
     :return: None
     """
     # Keep function arguments
+    saved = None
+    slf = None
     if len(args) > 0:
         # The 'self' for a method function is passed as args[0]
         slf = args[0]
@@ -132,97 +205,3 @@ def keep_arguments(args, kwargs, prepend_strings=True):
         # Put things back
         for k, v in saved.items():
             setattr(slf, k, v)
-
-
-##############################
-# COMMON PARAMETER FUNCTIONS #
-##############################
-
-def process_computing_nodes(decorator_name, kwargs):
-    """
-    Process computing nodes from decorator.
-    Modifies the kwargs dictionary since it can be used in lower level
-    decorators (until execution when invoked).
-    Used in some decorators:
-        - compss
-        - decaf
-        - multinode
-        - ompss
-
-    :return: the number of computing nodes
-    """
-    if 'computing_nodes' not in kwargs and 'computingNodes' not in kwargs:
-        kwargs['computing_nodes'] = 1
-    else:
-        if 'computingNodes' in kwargs:
-            kwargs['computing_nodes'] = kwargs.pop('computingNodes')
-        computing_nodes = kwargs['computing_nodes']
-        if isinstance(computing_nodes, int):
-            # Nothing to do
-            pass
-        elif isinstance(computing_nodes, str):
-            # Check if it is an environment variable to be loaded
-            if computing_nodes.strip().startswith('$'):
-                # Computing nodes is an ENV variable, load it
-                env_var = computing_nodes.strip()[1:]  # Remove $
-                if env_var.startswith('{'):
-                    env_var = env_var[1:-1]  # remove brackets
-                try:
-                    kwargs['computing_nodes'] = int(os.environ[env_var])
-                except ValueError:
-                    raise Exception(
-                        cast_env_to_int_error('Computing Nodes'))
-            else:
-                # ComputingNodes is in string form, cast it
-                try:
-                    kwargs['computing_nodes'] = int(computing_nodes)
-                except ValueError:
-                    raise Exception(
-                        cast_string_to_int_error('Computing Nodes'))
-        else:
-            raise Exception(wrong_value("Computing Nodes", decorator_name))
-
-    if __debug__:
-        logger.debug("This " + decorator_name + " task will have " +
-                     str(kwargs['computing_nodes']) +
-                     " computing nodes.")
-
-
-def get_module(function):
-    """
-    Retrieve the module from the given function.
-
-    :param function: Function to analyse.
-    :return: The function's module
-    """
-    module = inspect.getmodule(function)
-    module_name = module.__name__  # not func.__module__
-
-    if module_name == '__main__' or module_name == 'pycompss.runtime.launch':
-        # The module where the function is defined was run as
-        # __main__, so we need to find out the real module name.
-
-        # path = module.__file__
-        # dirs = module.__file__.split(os.sep)
-        # file_name = os.path.splitext(os.path.basename(module.__file__))[0]
-
-        # Get the real module name from our launch.py variable
-        path = getattr(module, "APP_PATH")
-
-        dirs = path.split(os.path.sep)
-        file_name = os.path.splitext(os.path.basename(path))[0]
-        mod_name = file_name
-
-        i = len(dirs) - 1
-        while i > 0:
-            new_l = len(path) - (len(dirs[i]) + 1)
-            path = path[0:new_l]
-            if "__init__.py" in os.listdir(path):
-                # directory is a package
-                i -= 1
-                mod_name = dirs[i] + '.' + mod_name
-            else:
-                break
-        module_name = mod_name
-
-    return module_name

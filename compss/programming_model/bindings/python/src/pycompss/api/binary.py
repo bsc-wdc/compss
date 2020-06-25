@@ -29,8 +29,9 @@ import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.api.commons.decorator import get_module
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 
 
 if __debug__:
@@ -89,47 +90,8 @@ class Binary(PyCOMPSsDecorator):
 
             if context.in_master():
                 # master code
-                self.module = get_module(func)
-
-                if not self.registered:
-                    # Register
-
-                    # Resolve @binary specific parameters
-                    if 'engine' in self.kwargs:
-                        engine = self.kwargs['engine']
-                    else:
-                        engine = '[unassigned]'
-                    if 'image' in self.kwargs:
-                        image = self.kwargs['image']
-                    else:
-                        image = '[unassigned]'
-                    # Set as registered
-                    self.registered = True
-
-                    # Resolve the working directory
-                    self.__resolve_working_dir__()
-                    # Resolve the fail by exit value
-                    self.__resolve_fail_by_exit_value__()
-
-                    impl_type = 'BINARY'
-                    _binary = str(self.kwargs['binary'])
-                    impl_signature = '.'.join((impl_type, _binary))
-                    impl_args = [_binary,
-                                 self.kwargs['working_dir'],
-                                 self.kwargs['fail_by_exit_value'],
-                                 engine,
-                                 image]
-
-                    # Retrieve the base core_element established at @task
-                    # decorator and update the core element information with
-                    # the binary argument information
-                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
-                    cce.set_impl_type(impl_type)
-                    cce.set_impl_signature(impl_signature)
-                    cce.set_impl_type_args(impl_args)
-
-                    # Set as registered
-                    self.registered = True
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
             else:
                 # worker code
                 pass
@@ -143,9 +105,65 @@ class Binary(PyCOMPSsDecorator):
         binary_f.__doc__ = func.__doc__
         return binary_f
 
+    def __configure_core_element__(self, kwargs):
+        """
+        Include the registering info related to @binary
+        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY]
+
+        :param kwargs: Keyword arguments received from call
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Configuring @binary core element.")
+
+        # Resolve @binary specific parameters
+        if 'engine' in self.kwargs:
+            engine = self.kwargs['engine']
+        else:
+            engine = '[unassigned]'
+
+        if 'image' in self.kwargs:
+            image = self.kwargs['image']
+        else:
+            image = '[unassigned]'
+
+        # Resolve the working directory
+        self.__resolve_working_dir__()
+        # Resolve the fail by exit value
+        self.__resolve_fail_by_exit_value__()
+
+        impl_type = 'BINARY'
+        _binary = str(self.kwargs['binary'])
+        impl_signature = '.'.join((impl_type, _binary))
+        impl_args = [_binary,
+                     self.kwargs['working_dir'],
+                     self.kwargs['fail_by_exit_value'],
+                     engine,
+                     image]
+
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            # (e.g. @constraint)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
+            kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+        else:
+            # @binary is in the top of the decorators stack.
+            # Instantiate a new core element object, update it and include
+            # it into kwarg
+            core_element = CE()
+            core_element.set_impl_type(impl_type)
+            core_element.set_impl_signature(impl_signature)
+            core_element.set_impl_type_args(impl_args)
+            kwargs[CORE_ELEMENT_KEY] = core_element
+
+        # Set as configured
+        self.core_element_configured = True
+
 
 # ########################################################################### #
 # ################### BINARY DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
 binary = Binary
+BINARY = Binary

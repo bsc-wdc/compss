@@ -105,11 +105,14 @@ class CE(object):
         _repr = 'CORE ELEMENT: \n'
         _repr += '\t - CE signature     : ' + str(self.__ceSignature) + '\n'
         _repr += '\t - Impl. signature  : ' + str(self.__implSignature) + '\n'
-        impl_constraints = ''
-        for key, value in self.__implConstraints.items():
-            impl_constraints += key + ':' + str(value) + ';'
+        if self.__implConstraints:
+            impl_constraints = ''
+            for key, value in self.__implConstraints.items():
+                impl_constraints += key + ':' + str(value) + ';'
+        else:
+            impl_constraints = str(self.__implConstraints)
         _repr += '\t - Impl. constraints: ' + impl_constraints + '\n'
         _repr += '\t - Impl. type       : ' + str(self.__implType) + '\n'
-        _repr += '\t - Impl. io       : ' + str(self.__implIO) + '\n'
+        _repr += '\t - Impl. io         : ' + str(self.__implIO) + '\n'
         _repr += '\t - Impl. type args  : ' + str(self.__implTypeArgs)
         return _repr

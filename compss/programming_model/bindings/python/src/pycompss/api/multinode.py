@@ -30,9 +30,9 @@ import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.api.commons.decorator import process_computing_nodes
-from pycompss.api.commons.decorator import get_module
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
@@ -71,7 +71,7 @@ class MultiNode(PyCOMPSsDecorator):
                             decorator_name)
 
             # Get the computing nodes
-            process_computing_nodes(decorator_name, self.kwargs)
+            self.__process_computing_nodes__(decorator_name)
         else:
             pass
 
@@ -93,21 +93,8 @@ class MultiNode(PyCOMPSsDecorator):
 
             if context.in_master():
                 # master code
-                self.module = get_module(func)
-
-                if not self.registered:
-                    # Register
-
-                    # Retrieve the base core_element established at @task
-                    # decorator and pdate the core element information with
-                    # the @MultiNode information
-                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
-                    cce.set_impl_type("MULTI_NODE")
-                    # Signature and implementation args are set by the
-                    # @task decorator
-
-                    # Set as registered
-                    self.registered = True
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
             else:
                 # worker code
                 set_slurm_environment()
@@ -127,6 +114,35 @@ class MultiNode(PyCOMPSsDecorator):
 
         multinode_f.__doc__ = func.__doc__
         return multinode_f
+
+    def __configure_core_element__(self, kwargs):
+        """
+        Include the registering info related to @multinode
+        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY]
+
+        :param kwargs: Keyword arguments received from call
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Configuring @multinode core element.")
+
+        # Resolve @multinode specific parameters
+        impl_type = "MULTI_NODE"
+
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            # (e.g. @constraint)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
+        else:
+            # @binary is in the top of the decorators stack.
+            # Instantiate a new core element object, update it and include
+            # it into kwarg
+            core_element = CE()
+            core_element.set_impl_type(impl_type)
+            kwargs[CORE_ELEMENT_KEY] = core_element
+
+        # Set as configured
+        self.core_element_configured = True
 
 
 def set_slurm_environment():

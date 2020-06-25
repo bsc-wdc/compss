@@ -29,8 +29,9 @@ import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.api.commons.decorator import get_module
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
@@ -89,31 +90,8 @@ class Implement(PyCOMPSsDecorator):
 
             if context.in_master():
                 # master code
-
-                if not self.registered:
-                    # Register
-
-                    # Resolve @implement specific parameters
-                    if 'sourceClass' in self.kwargs:
-                        another_class = self.kwargs['sourceClass']
-                    else:
-                        another_class = self.kwargs['source_class']
-                    another_method = self.kwargs['method']
-
-                    # Retrieve the base core_element established at @task
-                    # decorator and update the core element information with
-                    # the @implement information
-                    from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
-                    ce_signature = '.'.join((another_class, another_method))
-                    cce.set_ce_signature(ce_signature)
-                    # This is not needed since the arguments are already set
-                    # by the task decorator.
-                    # implArgs = [another_class, another_method]
-                    # cce.set_implTypeArgs(implArgs)
-                    cce.set_impl_type("METHOD")
-
-                    # Set as registered
-                    self.registered = True
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
             else:
                 # worker code
                 pass
@@ -135,9 +113,65 @@ class Implement(PyCOMPSsDecorator):
 
         return implement_f
 
+    def __configure_core_element__(self, kwargs):
+        """
+        Include the registering info related to @implement
+        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY]
+
+        :param kwargs: Keyword arguments received from call
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Configuring @implement core element.")
+
+        # Resolve @implement specific parameters
+        if 'sourceClass' in self.kwargs:
+            another_class = self.kwargs['sourceClass']
+        else:
+            another_class = self.kwargs['source_class']
+        another_method = self.kwargs['method']
+        ce_signature = '.'.join((another_class, another_method))
+        impl_type = "METHOD"
+        impl_args = [another_class, another_method]
+
+        # # Retrieve the base core_element established at @task
+        # # decorator and update the core element information with
+        # # the @implement information
+        # from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
+        # ce_signature = '.'.join((another_class, another_method))
+        # cce.set_ce_signature(ce_signature)
+        # # This is not needed since the arguments are already set
+        # # by the task decorator.
+        # # implArgs = [another_class, another_method]
+        # # cce.set_implTypeArgs(implArgs)
+        # cce.set_impl_type("METHOD")
+        #
+        # # Set as registered
+        # self.registered = True
+
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            # (e.g. @constraint)
+            kwargs[CORE_ELEMENT_KEY].set_ce_signature(ce_signature)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+        else:
+            # @implement is in the top of the decorators stack.
+            # Instantiate a new core element object, update it and include
+            # it into kwarg
+            core_element = CE()
+            core_element.set_ce_signature(ce_signature)
+            core_element.set_impl_type(impl_type)
+            core_element.set_impl_type_args(impl_args)
+            kwargs[CORE_ELEMENT_KEY] = core_element
+
+        # Set as configured
+        self.core_element_configured = True
+
 
 # ########################################################################### #
 # ################## IMPLEMENT DECORATOR ALTERNATIVE NAME ################### #
 # ########################################################################### #
 
 implement = Implement
+IMPLEMENT = Implement

@@ -18,17 +18,27 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Exceptions
-=========================
-    This file defines the public PyCOMPSs exceptions.
+PyCOMPSs Exceptions
+====================
+    This file defines the internal PyCOMPSs exceptions.
 """
 
 
-class COMPSsException(Exception):
+class NotImplementedException(Exception):
     """
-    Raised by the user code
+    Not implemented exception
     """
 
-    def __init__(self, message):
-        # super().__init__(message)  # show traceback
-        self.message = message
+    def __init__(self, functionality):
+        super().__init__("Functionality " + functionality +
+                         " not implemented yet.")
+
+
+class MissingImplementedException(Exception):
+    """
+    Not implemented exception
+    """
+
+    def __init__(self, functionality):
+        super().__init__("Missing " + functionality +
+                         ". Needs to be overridden.")

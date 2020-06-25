@@ -166,8 +166,9 @@ def serialize_to_handler(obj, handler):
                 #          str(serializer))
         i += 1
 
-    # Enable the garbage collector
+    # Enable the garbage collector and force to clean the memory
     gc.enable()
+    gc.collect()
 
     # if ret_value is None then all the serializers have failed
     if not success:
@@ -294,8 +295,9 @@ def deserialize_from_handler(handler):
                 ret and \
                 isinstance(ret[0], GeneratorIndicator):
             ret = convert_to_generator(ret[1])
-        # Enable the garbage collector
+        # Enable the garbage collector and force to clean the memory
         gc.enable()
+        gc.collect()
         return ret
     except Exception:
         gc.enable()

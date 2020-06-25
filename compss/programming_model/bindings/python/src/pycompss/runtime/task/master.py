@@ -41,6 +41,8 @@ from pycompss.runtime.task.parameter import is_kwarg
 from pycompss.util.arguments import check_arguments
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
+import pycompss.runtime.binding as binding
+from pycompss.runtime.binding import FunctionType
 
 if __debug__:
     import logging
@@ -150,6 +152,8 @@ class TaskMaster(TaskCommons):
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             core_element = kwargs[CORE_ELEMENT_KEY]
+            # Remove the core element from kwargs to avoid issues processing
+            # the parameters (process_master_parameters function).
             kwargs.pop(CORE_ELEMENT_KEY)
             pre_defined_ce = True
         else:
@@ -184,72 +188,22 @@ class TaskMaster(TaskCommons):
             self.signature = impl_signature
 
         # Did we call this function to only register the associated core
-        # element? (This can happen when trying)
+        # element? (This can happen with @implements)
         # Do not move this import:
         from pycompss.api.task import REGISTER_ONLY
         if REGISTER_ONLY:
             MASTER_LOCK.release()
             return
 
-        # Deal with dynamic computing nodes
-        parsed_computing_nodes = None
-        if isinstance(self.computing_nodes, int):
-            # Nothing to do
-            parsed_computing_nodes = self.computing_nodes
-        elif isinstance(self.computing_nodes, str):
-            # Check if computing_nodes can be casted to string
-            # Check if computing_nodes is an environment variable
-            # Check if computing_nodes is a dynamic global variable
-            try:
-                # Cast string to int
-                parsed_computing_nodes = int(self.computing_nodes)
-            except ValueError:
-                # Environment variable
-                if self.computing_nodes.strip().startswith('$'):
-                    # Computing nodes is an ENV variable, load it
-                    env_var = self.computing_nodes.strip()[1:]  # Remove $
-                    if env_var.startswith('{'):
-                        env_var = env_var[1:-1]  # remove brackets
-                    try:
-                        parsed_computing_nodes = int(os.environ[env_var])
-                    except ValueError:
-                        raise Exception(
-                            cast_env_to_int_error('ComputingNodes')
-                        )
-                else:
-                    # Dynamic global variable
-                    try:
-                        # Load from global variables
-                        parsed_computing_nodes = \
-                            self.user_function.__globals__.get(
-                                self.computing_nodes
-                            )
-                    except AttributeError:
-                        # This is a numba jit declared task
-                        try:
-                            parsed_computing_nodes = \
-                                self.user_function.py_func.__globals__.get(
-                                    self.computing_nodes
-                                )
-                        except AttributeError:
-                            # No more chances
-                            # Ignore error and parsed_computing_nodes will
-                            # raise the exception
-                            pass
-        if parsed_computing_nodes is None:
-            raise Exception("ERROR: Wrong Computing Nodes value at @mpi decorator.")  # noqa: E501
-        if parsed_computing_nodes <= 0:
-            logger.warning("Registered computing_nodes is less than 1 (" +
-                           str(parsed_computing_nodes) +
-                           " <= 0). Automatically set it to 1")
-            parsed_computing_nodes = 1
+        # Deal with computing nodes
+        computing_nodes = self.process_computing_nodes()
 
         # Deal with the return part.
         self.add_return_parameters()
         if not self.returns:
             self.update_return_if_no_returns(self.user_function)
-        from pycompss.runtime.binding import process_task
-        # Get deprecated arguments if exist
+
+        # Get other arguments if exist
         if 'isReplicated' in self.decorator_arguments:
             is_replicated = self.decorator_arguments['isReplicated']
         else:
@@ -260,7 +214,7 @@ class TaskMaster(TaskCommons):
             is_distributed = self.decorator_arguments['is_distributed']
 
         # Process the task
-        ret = process_task(
+        ret = binding.process_task(
             self.user_function,
             self.module_name,
             self.class_name,
@@ -268,7 +222,7 @@ class TaskMaster(TaskCommons):
             self.parameters,
             self.returns,
             self.decorator_arguments,
-            parsed_computing_nodes,
+            computing_nodes,
             is_replicated,
             is_distributed,
             self.decorator_arguments['on_failure'],
@@ -278,6 +232,7 @@ class TaskMaster(TaskCommons):
         for at in ATTRIBUTES_TO_BE_REMOVED:
             if hasattr(self, at):
                 delattr(self, at)
+        # Release the lock
         MASTER_LOCK.release()
         return ret
 
@@ -471,7 +426,8 @@ class TaskMaster(TaskCommons):
         if param.is_object():
             param.content_type = get_compss_type(arg_object)
 
-        # TODO: add 'dir_name' to the parameter object
+        # If the parameter is a DIRECTORY or FILE update the file_name
+        # or content type depending if object. Otherwise update content.
         if param.is_file() or param.is_directory():
             if arg_object:
                 param.file_name = arg_object
@@ -546,7 +502,6 @@ class TaskMaster(TaskCommons):
 
         :return: None, just updates self.class_name and self.function_type
         """
-        from pycompss.runtime.binding import FunctionType
         # Check the type of the function called.
         # inspect.ismethod(f) does not work here,
         # for methods python hasn't wrapped the function as a method yet
@@ -603,14 +558,15 @@ class TaskMaster(TaskCommons):
                 func = f
                 while not got_func_code:
                     try:
-                        from pycompss.util.objects.properties import get_wrapped_sourcelines  # noqa: E501
+                        from pycompss.util.objects.properties import \
+                            get_wrapped_sourcelines
                         func_code = get_wrapped_sourcelines(func)
                         got_func_code = True
                     except IOError:
-                        # There is one or more decorators below the @task -> undecorate
-                        # until possible to get the func code.
-                        # Example of this case: test 19: @timeit decorator below the
-                        # @task decorator.
+                        # There is one or more decorators below the @task ->
+                        # undecorate until possible to get the func code.
+                        # Example of this case: test 19: @timeit decorator
+                        # below the @task decorator.
                         func = func.__wrapped__
                 for line in func_code[0]:
                     if "@mpi" in line:
@@ -730,13 +686,72 @@ class TaskMaster(TaskCommons):
         :param f: Function to be registered
         :return: None
         """
-        import pycompss.runtime.binding as binding
         if __debug__:
-            logger.debug(
-                "[@TASK] Registering the function %s in module %s" %
-                (f.__name__, self.module_name)
-            )
+            logger.debug("[@TASK] Registering the function %s in module %s" %
+                         (f.__name__, self.module_name))
         binding.register_ce(core_element)
+
+    def process_computing_nodes(self):
+        """
+        Retrieve the number of computing nodes. This value can be defined
+        by upper decorators.
+        It can also be dynamically defined with a global variable.
+
+        :return: The number of computing nodes.
+        """
+        parsed_computing_nodes = None
+        if isinstance(self.computing_nodes, int):
+            # Nothing to do
+            parsed_computing_nodes = self.computing_nodes
+        elif isinstance(self.computing_nodes, str):
+            # Check if computing_nodes can be casted to string
+            # Check if computing_nodes is an environment variable
+            # Check if computing_nodes is a dynamic global variable
+            try:
+                # Cast string to int
+                parsed_computing_nodes = int(self.computing_nodes)
+            except ValueError:
+                # Environment variable
+                if self.computing_nodes.strip().startswith('$'):
+                    # Computing nodes is an ENV variable, load it
+                    env_var = self.computing_nodes.strip()[1:]  # Remove $
+                    if env_var.startswith('{'):
+                        env_var = env_var[1:-1]  # remove brackets
+                    try:
+                        parsed_computing_nodes = int(os.environ[env_var])
+                    except ValueError:
+                        raise Exception(
+                            cast_env_to_int_error('ComputingNodes')
+                        )
+                else:
+                    # Dynamic global variable
+                    try:
+                        # Load from global variables
+                        parsed_computing_nodes = \
+                            self.user_function.__globals__.get(
+                                self.computing_nodes
+                            )
+                    except AttributeError:
+                        # This is a numba jit declared task
+                        try:
+                            parsed_computing_nodes = \
+                                self.user_function.py_func.__globals__.get(
+                                    self.computing_nodes
+                                )
+                        except AttributeError:
+                            # No more chances
+                            # Ignore error and parsed_computing_nodes will
+                            # raise the exception
+                            pass
+        if parsed_computing_nodes is None:
+            raise Exception("ERROR: Wrong Computing Nodes value at @mpi decorator.")  # noqa: E501
+        if parsed_computing_nodes <= 0:
+            logger.warning("Registered computing_nodes is less than 1 (" +
+                           str(parsed_computing_nodes) +
+                           " <= 0). Automatically set it to 1")
+            parsed_computing_nodes = 1
+
+        return parsed_computing_nodes
 
     def add_return_parameters(self):
         """

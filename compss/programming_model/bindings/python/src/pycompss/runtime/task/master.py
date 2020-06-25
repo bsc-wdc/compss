@@ -195,7 +195,7 @@ class TaskMaster(TaskCommons):
             MASTER_LOCK.release()
             return
 
-        # Deal with computing nodes
+        # Deal with dynamic computing nodes
         computing_nodes = self.process_computing_nodes()
 
         # Deal with the return part.
@@ -693,9 +693,9 @@ class TaskMaster(TaskCommons):
 
     def process_computing_nodes(self):
         """
-        Retrieve the number of computing nodes. This value can be defined
-        by upper decorators.
-        It can also be dynamically defined with a global variable.
+        Retrieve the number of computing nodes.
+        This value can be defined by upper decorators and can also be defined
+        dynamically defined with a global or environment variable.
 
         :return: The number of computing nodes.
         """

@@ -42,6 +42,7 @@ PyCOMPSs Util - Data serializer/deserializer
                                            end of the serialized object
 """
 
+import gc
 import types
 import traceback
 
@@ -122,6 +123,8 @@ def serialize_to_handler(obj, handler):
     :param handler: A handler object. It must implement methods like write,
                     writeline and similar stuff
     """
+    # Disable the garbage collector while serializing -> improve performance
+    gc.disable()
     # Get the serializer priority
     serializer_priority = get_serializer_priority(obj)
     i = 0
@@ -158,10 +161,13 @@ def serialize_to_handler(obj, handler):
             except Exception:  # noqa
                 success = False
                 # if __debug__:
-                #    traceback.print_exc()  # No need to show all stacktraces
+                #    traceback.print_exc()  # No need to show all stack traces
                 #    print('WARNING! Serialization with %s failed.' %
                 #          str(serializer))
         i += 1
+
+    # Enable the garbage collector
+    gc.enable()
 
     # if ret_value is None then all the serializers have failed
     if not success:
@@ -277,18 +283,22 @@ def deserialize_from_handler(handler):
         raise SerializerException(error_message)
 
     try:
+        # Disable the garbage collector while serializing -> improve performance
+        gc.disable()
         if serializer is numpy and NUMPY_AVAILABLE:
             ret = serializer.load(handler, allow_pickle=False)
         else:
             ret = serializer.load(handler)
-
         # Special case: deserialized obj wraps a generator
         if isinstance(ret, tuple) and \
                 ret and \
                 isinstance(ret[0], GeneratorIndicator):
             ret = convert_to_generator(ret[1])
+        # Enable the garbage collector
+        gc.enable()
         return ret
     except Exception:
+        gc.enable()
         if __debug__:
             print('ERROR! Deserialization with %s failed.' % str(serializer))
             try:

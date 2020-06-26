@@ -145,7 +145,7 @@ def compss_main():
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start, compss_stop
     # Start the runtime
-    compss_start(log_level)
+    compss_start(log_level, False)
 
     # Get object_conversion boolean
     binding.object_conversion = args.object_conversion == 'true'
@@ -442,7 +442,7 @@ def launch_pycompss_application(app, func,
     ##############################################################
 
     # Runtime start
-    compss_start(log_level)
+    compss_start(log_level, False)
 
     # Configure logging
     log_path = get_log_path()

@@ -26,11 +26,12 @@ PyCOMPSs Dummy API
 from os import path
 
 
-def compss_start(log_level='off'):
+def compss_start(log_level='off', interactive=False):
     """
     Dummy runtime starter.
 
     :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ]
+    :param interactive: Boolean if interactive (ipython or jupyter)
     :return: None
     """
     pass

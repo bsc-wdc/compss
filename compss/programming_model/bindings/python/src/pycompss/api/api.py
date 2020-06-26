@@ -79,13 +79,13 @@ if context.in_pycompss():
         listType = types.ListType
         dictType = types.DictType
 
-    def compss_start(log_level='off'):
+    def compss_start(log_level='off', interactive=False):
         """
         Starts the runtime.
 
         :return: None
         """
-        start_runtime(log_level)
+        start_runtime(log_level, interactive)
 
     def compss_stop(code=0):
         """
@@ -272,8 +272,8 @@ else:
     # Hidden TaskGroup context manager
     from pycompss.api.dummy.api import TaskGroup  # noqa
 
-    def compss_start(log_level='off'):
-        __dummy_compss_start__(log_level)
+    def compss_start(log_level='off', interactive=False):
+        __dummy_compss_start__(log_level, interactive)
 
     def compss_stop():
         __dummy_compss_stop__()

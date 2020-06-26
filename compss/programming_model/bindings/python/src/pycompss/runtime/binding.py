@@ -52,10 +52,12 @@ from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.objects.properties import is_basic_iterable
+import pycompss.util.context as context
 
 # Import main C module extension for the communication with the runtime
 # See ext/compssmodule.cc
-import compss
+# import compss
+compss = None
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
@@ -287,21 +289,34 @@ class EmptyReturn(object):
 # ############ FUNCTIONS THAT COMMUNICATE WITH THE RUNTIME ################## #
 # ########################################################################### #
 
-def start_runtime(log_level='off'):
+def start_runtime(log_level='off', interactive=False):
     """
     Starts the runtime by calling the external python library that calls
     the bindings-common.
 
     :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ]
+    :param interactive: Boolean if interactive (ipython or jupyter)
     :return: None
     """
+    global compss
+
     if __debug__:
         logger.info("Starting COMPSs...")
+
+    if interactive and context.in_master():
+        from pycompss.runtime.link import establish_interactive_link
+        compss = establish_interactive_link()
+    else:
+        from pycompss.runtime.link import establish_link
+        compss = establish_link()
+
     if log_level == 'trace':
         # Could also be 'debug' or True, but we only show the C extension
         # debug in the maximum tracing level.
         compss.set_debug(True)
+
     compss.start_runtime()
+
     if __debug__:
         logger.info("COMPSs started")
 

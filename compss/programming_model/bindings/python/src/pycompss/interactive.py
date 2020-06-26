@@ -313,7 +313,7 @@ def start(log_level='off',
 
     print("* - Starting COMPSs runtime...                       *")
     sys.stdout.flush()  # Force flush
-    compss_start(log_level)
+    compss_start(log_level, True)
 
     global LOG_PATH
     LOG_PATH = get_log_path()

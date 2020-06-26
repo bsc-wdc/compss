@@ -27,28 +27,34 @@ import random
 from pycompss.api.task import task
 
 
-def chunks(lst, n, balanced=False):
+def generator(size, num_frag, seed=None, distribution='random', wait=False):
     """
-    Generator to chunk data.
+    Data generator.
+    Generates a list of fragments.
 
-    :param lst: List of data to be chunked
-    :param n: length of the fragments
-    :param balanced: True to generate balanced fragments
-    :return: yield fragments of size n from lst
+    :param size: (numElements, dim)
+    :param num_frag: dataset number of fragments
+    :param seed: random seed. Default None, system time is used-
+    :param distribution: random, normal, uniform
+    :param wait: if we want to wait for result. Default False
+    :return: random dataset
     """
 
-    if not balanced or not len(lst) % n:
-        for i in range(0, len(lst), n):
-            yield lst[i:i + n]
-    else:
-        rest = len(lst) % n
-        start = 0
-        while rest:
-            yield lst[start: start + n + 1]
-            rest -= 1
-            start += n + 1
-        for i in range(start, len(lst), n):
-            yield lst[i:i + n]
+    data = None
+    frag_size = int(size[0] / num_frag)
+    if distribution == 'random':
+        data = [_gen_random(size[1], frag_size, seed)
+                for _ in range(num_frag)]
+    elif distribution == 'normal':
+        data = [_gen_normal(size[1], frag_size, seed)
+                for _ in range(num_frag)]
+    elif distribution == 'uniform':
+        data = [_gen_uniform(size[1], frag_size, seed)
+                for _ in range(num_frag)]
+    if wait:
+        from pycompss.api.api import compss_wait_on
+        data = compss_wait_on(data)
+    return data
 
 
 @task(returns=list)
@@ -98,30 +104,27 @@ def _gen_uniform(size, frag_size, seed):
             for _ in range(frag_size)]
 
 
-def generator(size, num_frag, seed=None, distribution='random', wait=False):
+def chunks(lst, n, balanced=False):
     """
-    Data generator.
+    List chunker into fragments.
 
-    :param size: (numElements,dim)
-    :param num_frag: dataset's number of fragments
-    :param seed: random seed. Default None, system time is used-
-    :param distribution: random, normal, uniform
-    :param wait: if we want to wait for result. Default False
-    :return: random dataset
+    WARNING: Not tested!
+
+    :param lst: List of data to be chunked
+    :param n: length of the fragments
+    :param balanced: True to generate balanced fragments
+    :return: yield fragments of size n from lst
     """
 
-    data = None
-    frag_size = size[0] / num_frag
-    if distribution == 'random':
-        data = [_gen_random(size[1], frag_size, seed, frag_size * i)
-                for i in range(num_frag)]
-    elif distribution == 'normal':
-        data = [_gen_normal(size[1], frag_size, seed, frag_size * i)
-                for i in range(num_frag)]
-    elif distribution == 'uniform':
-        data = [_gen_uniform(size[1], frag_size, seed, frag_size * i)
-                for i in range(num_frag)]
-    if wait:
-        from pycompss.api.api import compss_wait_on
-        data = compss_wait_on(data)
-    return data
+    if not balanced or not len(lst) % n:
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+    else:
+        rest = len(lst) % n
+        start = 0
+        while rest:
+            yield lst[start: start + n + 1]
+            rest -= 1
+            start += n + 1
+        for i in range(start, len(lst), n):
+            yield lst[i:i + n]

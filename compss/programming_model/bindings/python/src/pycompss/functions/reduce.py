@@ -20,15 +20,15 @@
 """
 PyCOMPSs Functions: Reduce
 ===================================
-    This file defines the common reduce fs.
+    This file defines the common reduce functions.
 """
 
-from pycompss.runtime.commons import IS_PYTHON3
+from collections import deque
 
 
 def merge_reduce(f, data):
     """
-    Apply f cumulatively to the items of data,
+    Apply function cumulatively to the items of data,
     from left to right in binary tree structure, so as to
     reduce the data to a single value.
 
@@ -36,60 +36,30 @@ def merge_reduce(f, data):
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value
     """
-
-    from collections import deque
     q = deque(range(len(data)))
-    new_data = data[:]
     while len(q):
         x = q.popleft()
         if len(q):
             y = q.popleft()
-            new_data[x] = f(new_data[x], new_data[y])
+            data[x] = f(data[x], data[y])
             q.append(x)
         else:
-            return new_data[x]
+            return data[x]
 
 
-def merge_n_reduce(f, data):
+def merge_n_reduce(f, arity, data):
     """
     Apply f cumulatively to the items of data,
     from left to right in n-tree structure, so as to
     reduce the data.
 
     :param f: function to apply to reduce data
+    :param arity: Number of elements in group
     :param data: List of items to be reduced
     :return: List of results
     """
-
-    from collections import deque
-    q = deque(range(len(data)))
-    num_args = f.func_code.co_argcount
-    while len(q) >= num_args:
-        args = [q.popleft() for _ in range(num_args)]
-        data[args[0]] = f(*[data[i] for i in args])
-        q.append(args[0])
-    else:
-        args = [q.popleft() for _ in range(len(q))]
-        return [data[i] for i in args]
-
-
-def simple_reduce(f, data):
-    """
-    Apply f of two arguments cumulatively to the items
-    of data, from left to right, so as to reduce the iterable
-    to a single value.
-
-    :param f: function to apply to reduce data
-    :param data: List of items to be reduced
-    :return: result of reduce the data to a single value
-    """
-
-    try:
-        if IS_PYTHON3:
-            import functools
-            return functools.reduce(f, data)
-        else:
-            import __builtin__  # noqa
-            return __builtin__.reduce(f, data)
-    except Exception as e:
-        raise e
+    while len(data) > 1:
+        data_chunk = data[:arity]
+        data = data[arity:]
+        data.append(f(*data_chunk))
+    return data[0]

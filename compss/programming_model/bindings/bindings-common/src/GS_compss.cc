@@ -169,7 +169,7 @@ void access_revoke(ThreadStatus* status) {
 void check_exception(ThreadStatus* status, const char* message) {
     if (status->localJniEnv->ExceptionOccurred()) {
         // Log provided exception message
-        printf("\n[BINDING_COMMONS] ERROR: %s. \n", message);
+        printf("\n[BINDING-COMMONS] ERROR: %s. \n", message);
 
         // Log exception
         status->localJniEnv->ExceptionDescribe();
@@ -300,7 +300,7 @@ void init_basic_jni_types(ThreadStatus* status) {
     midDoubleCon = status->localJniEnv->GetMethodID(clsDouble, "<init>", "(D)V");
     check_exception(status, "Cannot find Double Constructor");
 
-    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Types DONE\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Types DONE\n");
 }
 
 
@@ -414,7 +414,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
 
 
     // Parameter directions
-    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Direction Types\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Direction Types\n");
 
     jclass clsParDir; 		    /* es.bsc.compss.types.annotations.parameter.Direction class */
     jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
@@ -449,11 +449,11 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     jobjParDirCOMMUTATIVE = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
     check_exception(status, "Cannot create global reference for Direction.COMMUTATIVE object");
 
-    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Direction Types DONE\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Direction Types DONE\n");
 
 
     // Parameter streams
-    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Stream Types\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Stream Types\n");
 
     jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.StdIOStream class */
     jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
@@ -483,22 +483,22 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     jobjParStreamUNSPECIFIED = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
     check_exception(status, "Cannot create global reference for StdIOStream.UNSPECIFIED object");
 
-    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Stream Types\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Stream Types\n");
 
 
     // Parameter prefix empty
-    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Parameter Prefix\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Parameter Prefix\n");
 
     jstring objStr = status->localJniEnv->NewStringUTF("null");
     check_exception(status, "Error getting null string object");
     jobjParPrefixEMPTY = (jstring)status->localJniEnv->NewGlobalRef(objStr);
     check_exception(status, "Error getting null string object");
 
-    debug_printf ("[BINDING_COMMONS]  -  @Init JNI Parameter Prefix DONE\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init JNI Parameter Prefix DONE\n");
 
 
     // Done
-    debug_printf ("[BINDING_COMMONS]  -  @Init Master DONE\n");
+    debug_printf ("[BINDING-COMMONS]  -  @Init Master DONE\n");
 }
 
 
@@ -506,7 +506,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
  * Processes the given parameter information.
  */
 void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobjOBJArr) {
-    debug_printf("[BINDING_COMMONS]  -  @process_param\n");
+    debug_printf("[BINDING-COMMONS]  -  @process_param\n");
     // params     is of the form: value type direction stream prefix name
     // jobjOBJArr is of the form: value type direction stream prefix name
     // This means that the ith parameters occupies the fields in the interval [NF * k, NK * k + 8]

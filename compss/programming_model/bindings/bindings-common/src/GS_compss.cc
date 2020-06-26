@@ -124,11 +124,11 @@ jmethodID midDoubleCon;   /* ID of the java.lang.Double class constructor method
  */
 ThreadStatus* access_request() {
     ThreadStatus* status = new ThreadStatus();
-    
+
     // Lock mutex
     pthread_mutex_lock(&globalJniAccessMutex);
     status->isLocked = 1;
-    
+
     // Attach thread to JVM
     status->localJniEnv = globalJniEnv;
     status->localJvm = globalJvm;
@@ -1396,12 +1396,12 @@ void GS_Barrier(long appId) {
 
 
 void GS_BarrierNew(long appId, int noMoreTasks) {
-    debug_printf("[   BINDING]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu\n", appId);
+    debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu\n", appId);
 
     // Local variables for JVM call
     bool _noMoreTasks = false;
     if (noMoreTasks != 0) _noMoreTasks = true;
-    debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s\n", _noMoreTasks ? "true":"false");
+    debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  noMoreTasks: %s\n", _noMoreTasks ? "true":"false");
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
@@ -1513,7 +1513,7 @@ void GS_EmitEvent(int type, long id) {
 
 
 int GS_GetNumberOfResources(long appId) {
-    debug_printf("[   BINDING]  -  @GS_GetNumberOfResources  -  Requesting number of resources\n");
+    debug_printf("[BINDING-COMMONS]  -  @GS_GetNumberOfResources  -  Requesting number of resources\n");
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
@@ -1525,14 +1525,14 @@ int GS_GetNumberOfResources(long appId) {
     // Revoke thread access to JVM
     access_revoke(status);
 
-    debug_printf("[   BINDING]  -  @GS_GetNumberOfResources  -  Number of active resources %u\n", (int) resources);
+    debug_printf("[BINDING-COMMONS]  -  @GS_GetNumberOfResources  -  Number of active resources %u\n", (int) resources);
     return (int) resources;
 }
 
 void GS_RequestResources(long appId, int numResources, char* groupName) {
-    debug_printf("[   BINDING]  -  @GS_RequestResources  -  Requesting resources for APP id: %lu\n", appId);
-    debug_printf("[   BINDING]  -  @GS_RequestResources  -  numResources: %u\n", numResources);
-    debug_printf("[   BINDING]  -  @GS_RequestResources  -  groupName: %s\n", groupName);
+    debug_printf("[BINDING-COMMONS]  -  @GS_RequestResources  -  Requesting resources for APP id: %lu\n", appId);
+    debug_printf("[BINDING-COMMONS]  -  @GS_RequestResources  -  numResources: %u\n", numResources);
+    debug_printf("[BINDING-COMMONS]  -  @GS_RequestResources  -  groupName: %s\n", groupName);
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
@@ -1548,13 +1548,13 @@ void GS_RequestResources(long appId, int numResources, char* groupName) {
     // Revoke thread access to JVM
     access_revoke(status);
 
-    debug_printf("[   BINDING]  -  @GS_RequestResources  -  Resources creation requested");
+    debug_printf("[BINDING-COMMONS]  -  @GS_RequestResources  -  Resources creation requested");
 }
 
 void GS_FreeResources(long appId, int numResources, char* groupName) {
-    debug_printf("[   BINDING]  -  @GS_FreeResources  -  Freeing resources for APP id: %lu\n", appId);
-    debug_printf("[   BINDING]  -  @GS_FreeResources  -  numResources: %u\n", numResources);
-    debug_printf("[   BINDING]  -  @GS_FreeResources  -  groupName: %s\n", groupName);
+    debug_printf("[BINDING-COMMONS]  -  @GS_FreeResources  -  Freeing resources for APP id: %lu\n", appId);
+    debug_printf("[BINDING-COMMONS]  -  @GS_FreeResources  -  numResources: %u\n", numResources);
+    debug_printf("[BINDING-COMMONS]  -  @GS_FreeResources  -  groupName: %s\n", groupName);
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
@@ -1570,6 +1570,6 @@ void GS_FreeResources(long appId, int numResources, char* groupName) {
 
     // Revoke thread access to JVM
     access_revoke(status);
-    
-    debug_printf("[   BINDING]  -  @GS_FreeResources  -  Resources destruction requested");
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_FreeResources  -  Resources destruction requested");
 }

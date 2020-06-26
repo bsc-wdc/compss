@@ -54,6 +54,8 @@ from pycompss.util.objects.properties import object_belongs_to_module
 
 from io import BytesIO
 
+DISABLE_GC = True
+
 if IS_PYTHON3:
     import pickle as pickle  # Uses _pickle if available
 else:
@@ -123,8 +125,9 @@ def serialize_to_handler(obj, handler):
     :param handler: A handler object. It must implement methods like write,
                     writeline and similar stuff
     """
-    # Disable the garbage collector while serializing -> improve performance
-    gc.disable()
+    if DISABLE_GC:
+        # Disable the garbage collector while serializing -> improve performance
+        gc.disable()
     # Get the serializer priority
     serializer_priority = get_serializer_priority(obj)
     i = 0
@@ -166,9 +169,10 @@ def serialize_to_handler(obj, handler):
                 #          str(serializer))
         i += 1
 
-    # Enable the garbage collector and force to clean the memory
-    gc.enable()
-    gc.collect()
+    if DISABLE_GC:
+        # Enable the garbage collector and force to clean the memory
+        gc.enable()
+        gc.collect()
 
     # if ret_value is None then all the serializers have failed
     if not success:
@@ -284,8 +288,9 @@ def deserialize_from_handler(handler):
         raise SerializerException(error_message)
 
     try:
-        # Disable the garbage collector while serializing -> improve performance
-        gc.disable()
+        if DISABLE_GC:
+            # Disable the garbage collector while serializing -> improve performance
+            gc.disable()
         if serializer is numpy and NUMPY_AVAILABLE:
             ret = serializer.load(handler, allow_pickle=False)
         else:
@@ -295,12 +300,14 @@ def deserialize_from_handler(handler):
                 ret and \
                 isinstance(ret[0], GeneratorIndicator):
             ret = convert_to_generator(ret[1])
-        # Enable the garbage collector and force to clean the memory
-        gc.enable()
-        gc.collect()
+        if DISABLE_GC:
+            # Enable the garbage collector and force to clean the memory
+            gc.enable()
+            gc.collect()
         return ret
     except Exception:
-        gc.enable()
+        if DISABLE_GC:
+            gc.enable()
         if __debug__:
             print('ERROR! Deserialization with %s failed.' % str(serializer))
             try:

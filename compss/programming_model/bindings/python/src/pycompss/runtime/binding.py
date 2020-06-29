@@ -54,10 +54,9 @@ from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.objects.properties import is_basic_iterable
 import pycompss.util.context as context
 
-# Import main C module extension for the communication with the runtime
+# C module extension for the communication with the runtime
 # See ext/compssmodule.cc
-# import compss
-compss = None
+COMPSs = None
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
@@ -298,24 +297,24 @@ def start_runtime(log_level='off', interactive=False):
     :param interactive: Boolean if interactive (ipython or jupyter)
     :return: None
     """
-    global compss
+    global COMPSs
 
     if __debug__:
         logger.info("Starting COMPSs...")
 
     if interactive and context.in_master():
         from pycompss.runtime.link import establish_interactive_link
-        compss = establish_interactive_link()
+        COMPSs = establish_interactive_link()
     else:
         from pycompss.runtime.link import establish_link
-        compss = establish_link()
+        COMPSs = establish_link()
 
     if log_level == 'trace':
         # Could also be 'debug' or True, but we only show the C extension
         # debug in the maximum tracing level.
-        compss.set_debug(True)
+        COMPSs.set_debug(True)
 
-    compss.start_runtime()
+    COMPSs.start_runtime()
 
     if __debug__:
         logger.info("COMPSs started")
@@ -335,7 +334,7 @@ def stop_runtime(code=0):
     if code != 0:
         if __debug__:
             logger.info("Canceling all application tasks...")
-        compss.cancel_application_tasks(0)
+        COMPSs.cancel_application_tasks(0)
 
     if __debug__:
         logger.info("Cleaning objects...")
@@ -343,7 +342,7 @@ def stop_runtime(code=0):
 
     if __debug__:
         logger.info("Stopping COMPSs...")
-    compss.stop_runtime(code)
+    COMPSs.stop_runtime(code)
 
     if __debug__:
         logger.info("Cleaning temps...")
@@ -364,7 +363,7 @@ def accessed_file(file_name):
     app_id = 0
     if __debug__:
         logger.debug("Checking if file %s has been accessed." % file_name)
-    return compss.accessed_file(app_id, file_name)
+    return COMPSs.accessed_file(app_id, file_name)
 
 
 def open_file(file_name, mode):
@@ -380,7 +379,7 @@ def open_file(file_name, mode):
     app_id = 0
     if __debug__:
         logger.debug("Getting file %s with mode %s" % (file_name, mode))
-    compss_name = compss.open_file(app_id, file_name, mode)
+    compss_name = COMPSs.open_file(app_id, file_name, mode)
     if __debug__:
         logger.debug("COMPSs file name is %s" % compss_name)
     return compss_name
@@ -397,7 +396,7 @@ def delete_file(file_name):
     app_id = 0
     if __debug__:
         logger.debug("Deleting file %s" % file_name)
-    result = compss.delete_file(app_id, file_name, True) == 'true'
+    result = COMPSs.delete_file(app_id, file_name, True) == 'true'
     if __debug__:
         if result:
             logger.debug("File %s successfully deleted." % file_name)
@@ -417,8 +416,7 @@ def get_file(file_name):
     app_id = 0
     if __debug__:
         logger.debug("Getting file %s" % file_name)
-
-    compss.get_file(app_id, file_name)
+    COMPSs.get_file(app_id, file_name)
 
 
 def get_directory(dir_name):
@@ -432,8 +430,7 @@ def get_directory(dir_name):
     app_id = 0
     if __debug__:
         logger.debug("Getting directory %s" % dir_name)
-
-    compss.get_directory(app_id, dir_name)
+    COMPSs.get_directory(app_id, dir_name)
 
 
 def delete_object(obj):
@@ -457,7 +454,7 @@ def delete_object(obj):
         pass
     try:
         file_name = objid_to_filename[obj_id]
-        compss.delete_file(app_id, file_name, False)
+        COMPSs.delete_file(app_id, file_name, False)
     except KeyError:
         pass
     try:
@@ -489,7 +486,7 @@ def barrier(no_more_tasks=False):
 
     app_id = 0
     # Call the Runtime barrier (appId 0, not needed for the signature)
-    compss.barrier(app_id, no_more_tasks)
+    COMPSs.barrier(app_id, no_more_tasks)
 
 
 def barrier_group(group_name):
@@ -503,7 +500,7 @@ def barrier_group(group_name):
     """
     app_id = 0
     # Call the Runtime group barrier
-    return compss.barrier_group(app_id, group_name)
+    return COMPSs.barrier_group(app_id, group_name)
 
 
 def open_task_group(group_name, implicit_barrier):
@@ -516,7 +513,7 @@ def open_task_group(group_name, implicit_barrier):
     :return: None
     """
     app_id = 0
-    compss.open_task_group(group_name, implicit_barrier, app_id)
+    COMPSs.open_task_group(group_name, implicit_barrier, app_id)
 
 
 def close_task_group(group_name):
@@ -528,7 +525,7 @@ def close_task_group(group_name):
     :return: None
     """
     app_id = 0
-    compss.close_task_group(group_name, app_id)
+    COMPSs.close_task_group(group_name, app_id)
 
 
 def get_log_path():
@@ -540,7 +537,7 @@ def get_log_path():
     """
     if __debug__:
         logger.debug("Requesting log path")
-    log_path = compss.get_logging_path()
+    log_path = COMPSs.get_logging_path()
     if __debug__:
         logger.debug("Log path received: %s" % log_path)
     return log_path
@@ -559,7 +556,7 @@ def get_number_of_resources():
         logger.debug("Request the number of active resources")
 
     # Call the Runtime
-    return compss.get_number_of_resources(app_id)
+    return COMPSs.get_number_of_resources(app_id)
 
 
 def request_resources(num_resources, group_name):
@@ -584,7 +581,7 @@ def request_resources(num_resources, group_name):
                      str(group_name))
 
     # Call the Runtime
-    compss.request_resources(app_id, num_resources, group_name)
+    COMPSs.request_resources(app_id, num_resources, group_name)
 
 
 def free_resources(num_resources, group_name):
@@ -610,7 +607,7 @@ def free_resources(num_resources, group_name):
                      str(group_name))
 
     # Call the Runtime
-    compss.free_resources(app_id, num_resources, group_name)
+    COMPSs.free_resources(app_id, num_resources, group_name)
 
 
 def register_ce(core_element):
@@ -727,7 +724,7 @@ def register_ce(core_element):
                      ' '.join(impl_type_args))
 
     # Call runtime with the appropriate parameters
-    compss.register_core_element(ce_signature,
+    COMPSs.register_core_element(ce_signature,
                                  impl_signature,
                                  impl_constraints_str,
                                  impl_type,
@@ -813,7 +810,7 @@ def synchronize(obj, mode):
     :return: The value of the object requested.
     """
     # TODO: Add a boolean to differentiate between files and object on the
-    # compss.open_file call. This change pretends to obtain better traces.
+    # COMPSs.open_file call. This change pretends to obtain better traces.
     # Must be implemented first in the Runtime, then in the bindings common
     # C API and finally add the boolean here
     global _current_id
@@ -826,7 +823,7 @@ def synchronize(obj, mode):
         else:
             # file_path is of the form storage://pscoId or
             # file://sys_path_to_file
-            file_path = compss.open_file(app_id, "storage://" + str(obj_id), mode)
+            file_path = COMPSs.open_file(app_id, "storage://" + str(obj_id), mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
             new_obj = get_by_id(file_name)
@@ -840,7 +837,7 @@ def synchronize(obj, mode):
         logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
-    compss_file = compss.open_file(app_id, file_name, mode)
+    compss_file = COMPSs.open_file(app_id, file_name, mode)
 
     if __debug__:
         logger.debug("Runtime returned compss file: %s" % compss_file)
@@ -858,7 +855,7 @@ def synchronize(obj, mode):
                   " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa: E501
             return None
         new_obj = deserialize_from_file(compss_file)
-        compss.close_file(app_id, file_name, mode)
+        COMPSs.close_file(app_id, file_name, mode)
     else:
         new_obj = get_by_id(compss_file)
 
@@ -871,7 +868,7 @@ def synchronize(obj, mode):
         _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
 
     if mode != 'r':
-        compss.delete_file(app_id, objid_to_filename[obj_id], False)
+        COMPSs.delete_file(app_id, objid_to_filename[obj_id], False)
         objid_to_filename.pop(obj_id)
         pending_to_synchronize.pop(obj_id)
         pop_object_id(obj)
@@ -1005,7 +1002,7 @@ def process_task(f, module_name, class_name, f_type, f_parameters, f_returns,
     #     10 - [<String>] - parameters prefixes (sting corresponding to the
     #                       prefix of each parameter)
 
-    compss.process_task(app_id,
+    COMPSs.process_task(app_id,
                         signature,
                         on_failure,
                         time_out,
@@ -1303,13 +1300,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # we keep the type
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
-<<<<<<< HEAD
     elif param.type == TYPE.COLLECTION or \
             (collection_depth > 0 and is_basic_iterable(param.object)):
-=======
-    elif param.content_type == TYPE.COLLECTION or \
-            (collection_depth > 0 and is_basic_iterable(param.obj)):
->>>>>>> Unified Parameter and TaskParameter in _Parameter.
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator
@@ -1648,7 +1640,7 @@ def _clean_objects():
     """
     app_id = 0
     for filename in objid_to_filename.values():
-        compss.delete_file(app_id, filename, False)
+        COMPSs.delete_file(app_id, filename, False)
     pending_to_synchronize.clear()
     _addr2id2obj.clear()
     objid_to_filename.clear()

@@ -23,7 +23,6 @@ PyCOMPSs Persistent Worker
     This file contains the worker code.
 """
 
-import os
 from os import kill
 import sys
 import signal
@@ -48,7 +47,7 @@ TRACING = False
 WORKER_CONF = None
 
 
-def shutdown_handler(signal, frame):
+def shutdown_handler(signal, frame):  # noqa
     """
     Shutdown handler (do not remove the parameters).
 
@@ -94,7 +93,7 @@ def compss_persistent_worker(config):
         # Initialize storage
         logger.debug(HEADER + "Starting persistent storage")
         with event(INIT_STORAGE_AT_WORKER_EVENT):
-            from storage.api import initWorker as initStorageAtWorker
+            from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     # Create new threads
@@ -201,7 +200,7 @@ def compss_persistent_worker(config):
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
         with event(FINISH_STORAGE_AT_WORKER_EVENT):
-            from storage.api import finishWorker as finishStorageAtWorker
+            from storage.api import finishWorker as finishStorageAtWorker  # noqa
             finishStorageAtWorker()
 
     if __debug__:

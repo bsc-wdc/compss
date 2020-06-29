@@ -29,7 +29,6 @@ import logging
 import os
 import sys
 
-from pycompss.worker.commons.constants import *
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.worker import execute_task
@@ -147,7 +146,7 @@ def main():
         if persistent_storage:
             # Initialize storage
             with event(INIT_STORAGE_AT_WORKER_EVENT):
-                from storage.api import initWorker as initStorageAtWorker
+                from storage.api import initWorker as initStorageAtWorker  # noqa
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
@@ -160,7 +159,7 @@ def main():
         if persistent_storage:
             # Finish storage
             with event(FINISH_STORAGE_AT_WORKER_EVENT):
-                from storage.api import finishWorker as finishStorageAtWorker
+                from storage.api import finishWorker as finishStorageAtWorker  # noqa
                 finishStorageAtWorker()
 
     if exit_code == 1:

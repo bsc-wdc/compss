@@ -32,7 +32,7 @@ import sys
 import time
 try:
     THREAD_AFFINITY = True
-    import thread_affinity
+    import thread_affinity  # noqa
 except ImportError:
     from pycompss.worker.piper.commons.constants import HEADER as MAIN_HEADER
     print(MAIN_HEADER +
@@ -192,14 +192,14 @@ def executor(queue, process_name, pipe, conf):
         # re-establish after each task
         logger_handlers = copy.copy(logger.handlers)
         logger_level = logger.getEffectiveLevel()
-        logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
+        logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)  # noqa
         storage_loggers_handlers = []
         for storage_logger in storage_loggers:
             storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
 
         if storage_conf != 'null':
             try:
-                from storage.api import initWorkerPostFork
+                from storage.api import initWorkerPostFork  # noqa
                 with event(INIT_WORKER_POSTFORK_EVENT):
                     initWorkerPostFork()
             except ImportError:
@@ -254,7 +254,7 @@ def executor(queue, process_name, pipe, conf):
         # Stop storage
         if storage_conf != 'null':
             try:
-                from storage.api import finishWorkerPostFork
+                from storage.api import finishWorkerPostFork  # noqa
                 with event(FINISH_WORKER_POSTFORK_EVENT):
                     finishWorkerPostFork()
             except ImportError:
@@ -421,7 +421,6 @@ def process_task(current_line, process_name, pipe, queue, tracing,
         logger.debug(" - TASK CMD: %s" %
                      str(current_line))
 
-    exit_value = 0
     try:
         # Check thread affinity
         if not affinity_ok and THREAD_AFFINITY:
@@ -501,7 +500,6 @@ def process_task(current_line, process_name, pipe, queue, tracing,
         # to a EXTERNAL_OBJ_T.
 
     except Exception as e:
-        exit_value = -1
         logger.exception("%s - Exception %s" % (str(process_name),
                                                 str(e)))
         if queue:
@@ -572,7 +570,7 @@ def process_quit(logger, process_name):  # noqa
     return False
 
 
-def bind_cpus(cpus, process_name, logger):
+def bind_cpus(cpus, process_name, logger):  # noqa
     """
     Bind the given CPUs for core affinity to this process.
 
@@ -588,7 +586,7 @@ def bind_cpus(cpus, process_name, logger):
     cpus = list(map(int, cpus.split(",")))
     try:
         thread_affinity.setaffinity(cpus)
-    except Exception:
+    except Exception:  # noqa
         if __debug__:
             logger.error(
                 HEADER + "[%s] WARNING: could not assign affinity %s" %
@@ -597,7 +595,7 @@ def bind_cpus(cpus, process_name, logger):
     return True
 
 
-def bind_gpus(gpus, process_name, logger):
+def bind_gpus(gpus, process_name, logger):  # noqa
     """
     Bind the given GPUs to this process.
 

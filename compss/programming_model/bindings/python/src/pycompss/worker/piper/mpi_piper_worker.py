@@ -57,7 +57,7 @@ def is_worker():
     return RANK == 0
 
 
-def shutdown_handler(signal, frame):
+def shutdown_handler(signal, frame):  # noqa
     """
     Shutdown handler (do not remove the parameters).
 
@@ -71,7 +71,7 @@ def shutdown_handler(signal, frame):
         print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
 
-def user_signal_handler(signal, frame):
+def user_signal_handler(signal, frame):  # noqa
     """
     User signal handler (do not remove the parameters).
 
@@ -124,7 +124,7 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Initialize storage
         logger.debug(HEADER + "Starting persistent storage")
-        from storage.api import initWorker
+        from storage.api import initWorker  # noqa
         initWorker(config_file_path=config.storage_conf)
 
     for i in range(0, config.tasks_x_node):
@@ -147,7 +147,7 @@ def compss_persistent_worker(config):
                 in_pipe = line[1]
                 out_pipe = line[2]
 
-                pid = PROCESSES.pop(in_pipe, None)
+                PROCESSES.pop(in_pipe, None)
                 control_pipe.write(REMOVED_EXECUTOR_TAG +
                                    " " + out_pipe +
                                    " " + in_pipe)
@@ -182,7 +182,7 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Finish storage
         logger.debug(HEADER + "Stopping persistent storage")
-        from storage.api import finishWorker
+        from storage.api import finishWorker  # noqa
         finishWorker()
 
     if __debug__:
@@ -221,7 +221,7 @@ def compss_persistent_executor(config):
     if persistent_storage:
         # Initialize storage
         with event(INIT_STORAGE_AT_WORKER_EVENT):
-            from storage.api import initWorker as initStorageAtWorker
+            from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     process_name = 'Rank-' + str(RANK)
@@ -239,7 +239,7 @@ def compss_persistent_executor(config):
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
         with event(FINISH_STORAGE_AT_WORKER_EVENT):
-            from storage.api import finishWorker as finishStorageAtWorker
+            from storage.api import finishWorker as finishStorageAtWorker  # noqa
             finishStorageAtWorker()
 
 

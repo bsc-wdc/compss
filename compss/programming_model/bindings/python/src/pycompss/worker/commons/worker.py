@@ -169,7 +169,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         ), 0
 
 
-def get_task_params(num_params, logger, args):
+def get_task_params(num_params, logger, args):  # noqa
     """
     Get and prepare the input parameters from string to lists.
 
@@ -288,7 +288,8 @@ def task_execution(logger, process_name, module, method_name, time_out,
         return task_returns(2,
                             new_types,
                             new_values,
-                            compss_exception.target_direction, False,
+                            None,
+                            False,
                             return_message,
                             logger)
     except AttributeError:
@@ -350,7 +351,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
 
 
 def task_returns(exit_code, new_types, new_values, target_direction,
-                 timed_out, return_message, logger):
+                 timed_out, return_message, logger):  # noqa
     """
     Unified task return function
     :param exit_code: Exit value (0 ok, 1 error)
@@ -358,7 +359,7 @@ def task_returns(exit_code, new_types, new_values, target_direction,
     :param new_values: New values to be returned
     :param target_direction: Target direction
     :param timed_out: If the task has reached time ot
-    :param return_message: Return exception messsage
+    :param return_message: Return exception message
     :param logger: Logger where to place the messages
     :return: exit code, new types, new values, target direction and time out
     """
@@ -411,6 +412,7 @@ def import_user_module(path, logger):
     Import the user module
 
     :param path: Path to the user module
+    :param logger: Logger
     :return: The module loaded
     """
     module = None
@@ -424,8 +426,8 @@ def import_user_module(path, logger):
             if py_version < (3, 0):
                 reload(module)  # noqa
             elif py_version < (3, 4):
-                import imp
-                imp.reload(module)
+                import imp          # noqa
+                imp.reload(module)  # noqa
             else:
                 importlib.reload(module)
         if __debug__:
@@ -472,10 +474,10 @@ def execute_task(process_name, storage_conf, params, tracing,
     arg_position = 4 + num_slaves
 
     args = params[arg_position:]
-    cus = args[0]
+    # cus = args[0]
     args = args[1:]
     has_target = args[0]
-    return_type = args[1]
+    # return_type = args[1]
     return_length = int(args[2])
     num_params = int(args[3])
 
@@ -535,10 +537,6 @@ def execute_task(process_name, storage_conf, params, tracing,
 
     import_error = False
 
-    new_types = []
-    new_values = []
-    timed_out = False
-
     try:
         # Try to import the module (for functions)
         if __debug__:
@@ -565,7 +563,7 @@ def execute_task(process_name, storage_conf, params, tracing,
         exit_code = result[0]
         new_types = result[1]
         new_values = result[2]
-        target_direction = result[3]
+        # target_direction = result[3]
         timed_out = result[4]
         except_msg = result[5]
 
@@ -576,7 +574,6 @@ def execute_task(process_name, storage_conf, params, tracing,
         # Method declared as task in class
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
-        module_name = '.'.join(path.split('.')[0:-1])
 
         if '.' in path:
             module_name = '.'.join(path.split('.')[0:-1])
@@ -714,7 +711,7 @@ def execute_task(process_name, storage_conf, params, tracing,
             exit_code = result[0]
             new_types = result[1]
             new_values = result[2]
-            target_direction = result[3]
+            # target_direction = result[3]
             timed_out = result[4]
             except_msg = result[5]
 

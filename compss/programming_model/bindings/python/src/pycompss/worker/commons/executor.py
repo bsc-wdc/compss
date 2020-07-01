@@ -17,6 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
+from pycompss.api.parameter import TYPE
+
 
 def build_return_params_message(types, values):
     """
@@ -33,6 +35,10 @@ def build_return_params_message(types, values):
     num_params = len(pairs)
     params = ''
     for pair in pairs:
-        params = params + str(pair[0]) + ' ' + str(pair[1]) + ' '
+        value = str(pair[1])
+        if pair[0] == TYPE.COLLECTION:
+            value = value.replace(" ", "")
+            value = value.replace("'", "")
+        params = params + str(pair[0]) + ' ' + value + ' '
     message = str(num_params) + ' ' + params
     return message

@@ -43,16 +43,19 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-execution</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <!-- COMPSs Runtime Interface for Nested invocations -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <!-- COMPSs Loader Interface for Nested invocations -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-loader</artifactId>
+            <version>${project.version}</version>
         </dependency>   
         
         <!-- JUnit dependencies -->

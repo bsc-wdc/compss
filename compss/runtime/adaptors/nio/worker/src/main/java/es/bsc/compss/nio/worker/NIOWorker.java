@@ -352,7 +352,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                         .debug("- Checking transfers for data " + param.getDataMgmtId() + " for parameter " + paramIdx);
                 }
                 listener.addOperation();
+                if (NIOTracer.extraeEnabled()) {
+                    NIOTracer.emitEvent(TraceEvent.FETCH_PARAM.getId(), TraceEvent.FETCH_PARAM.getType());
+                }
                 dataManager.fetchParam(param, paramIdx, listener);
+                if (NIOTracer.extraeEnabled()) {
+                    NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.FETCH_PARAM.getType());
+                }
+
             }
         }
         WORKER_LOGGER.info("Checking target");
@@ -362,7 +369,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER
                 .debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
             listener.addOperation();
+            if (NIOTracer.extraeEnabled()) {
+                NIOTracer.emitEvent(TraceEvent.FETCH_PARAM.getId(), TraceEvent.FETCH_PARAM.getType());
+            }
             dataManager.fetchParam(targetParam, -1, listener);
+            if (NIOTracer.extraeEnabled()) {
+                NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.FETCH_PARAM.getType());
+            }
+
         }
 
         // Request the transfers

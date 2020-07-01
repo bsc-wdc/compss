@@ -36,6 +36,11 @@ public enum TraceEvent {
 
     TASK_RUNNING(11, Tracer.RUNTIME_EVENTS, "Task Running"), // Task running
     WORKER_RECEIVED_NEW_TASK(13, Tracer.RUNTIME_EVENTS, "Received new task"), // New task at worker
+    FETCH_PARAM(60, Tracer.RUNTIME_EVENTS, "Fetch task parameter"), // Fetching new task param
+    NM_BIND_OFTR(61, Tracer.RUNTIME_EVENTS, "[nm] Bind Original File names To Renames.."), // test trace
+    NM_UNNNBIND_OFTR(62, Tracer.RUNTIME_EVENTS, "[nm] UUNNN_Bind Original File names To Renames.."), // test trace
+    NM_CHECK_OUT_PARAM(63, Tracer.RUNTIME_EVENTS, "[nm] Check OUT parameter files.."), // test trace
+    SEARCH_NM_2(64, Tracer.RUNTIME_EVENTS, "[nm] Looking for the black traces.."), // test trace
 
     // Access Processor Events which are not in the API
     DEBUG(17, Tracer.RUNTIME_EVENTS, "Access Processor: Debug"), // Debug

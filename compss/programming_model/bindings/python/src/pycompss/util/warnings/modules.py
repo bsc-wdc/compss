@@ -26,7 +26,7 @@ PyCOMPSs Utils - Optional Modules
 """
 
 OPTIONAL_MODULES = {
-    "dill": """Dill is a pickle extension which is capable to serialize a wider variety of objects."""  # noqa: E501
+    "dill": "Dill is a pickle extension which is capable to serialize a wider variety of objects."  # noqa: E501
 }
 
 

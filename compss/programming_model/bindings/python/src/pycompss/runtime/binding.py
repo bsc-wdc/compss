@@ -164,7 +164,7 @@ def calculate_identifier(obj):
     #                    tuple, frozenset, bytes]
     # obj_type = type(obj)
     # if obj_type in immutable_types:
-    #     obj_addr = id(obj)  # Only guarantees uniqueness with
+    #     obj_address = id(obj)  # Only guarantees uniqueness with
     #                         # immutable objects
     # else:
     #     # For all the rest, use hash of:
@@ -181,8 +181,8 @@ def calculate_identifier(obj):
     #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
     #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
     #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-    #     obj_addr = str(hash_id.hexdigest())
-    # return obj_addr
+    #     obj_address = str(hash_id.hexdigest())
+    # return obj_address
 
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
@@ -202,10 +202,10 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     # Force_insertion implies assign_new_key
     assert not force_insertion or assign_new_key
 
-    obj_addr = calculate_identifier(obj)
+    obj_address = calculate_identifier(obj)
 
     # Assign an empty dictionary (in case there is nothing there)
-    _id2obj = _addr2id2obj.setdefault(obj_addr, {})
+    _id2obj = _addr2id2obj.setdefault(obj_address, {})
 
     for identifier in _id2obj:
         if _id2obj[identifier] is obj:
@@ -225,7 +225,7 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
         _current_id += 1
         return new_id
     if len(_id2obj) == 0:
-        _addr2id2obj.pop(obj_addr)
+        _addr2id2obj.pop(obj_address)
     return None
 
 
@@ -235,11 +235,11 @@ def pop_object_id(obj):
     :param obj: Object to pop
     :return: Popped object, None if obj was not in _addr2id2obj
     """
-    obj_addr = calculate_identifier(obj)
-    _id2obj = _addr2id2obj.setdefault(obj_addr, {})
+    obj_address = calculate_identifier(obj)
+    _id2obj = _addr2id2obj.setdefault(obj_address, {})
     for (k, v) in list(_id2obj.items()):
         _id2obj.pop(k)
-    _addr2id2obj.pop(obj_addr)
+    _addr2id2obj.pop(obj_address)
 
 
 # Enable or disable the management of *args parameters as a whole tuple built
@@ -260,7 +260,6 @@ class FunctionType(object):
     """
     Used as enum to identify the function type
     """
-
     FUNCTION = 1
     INSTANCE_METHOD = 2
     CLASS_METHOD = 3
@@ -270,17 +269,13 @@ class Future(object):
     """
     Future object class definition.
     """
-
-    def __init__(self):
-        # This UUID1 is for debugging purposes
-        self.__hidden_id = str(uuid.uuid1())
+    pass
 
 
 class EmptyReturn(object):
     """
     For functions with empty return
     """
-
     pass
 
 
@@ -766,7 +761,7 @@ def _compss_wait_on(obj, mode):
     compss_mode = get_compss_mode(mode)
 
     # Private function used below (recursively)
-    def wait_on_iterable(iter_obj):
+    def _wait_on_iterable(iter_obj):
         """
         Wait on an iterable object.
         Currently supports lists and dictionaries (syncs the values).
@@ -774,15 +769,14 @@ def _compss_wait_on(obj, mode):
         :return: synchronized object
         """
         # check if the object is in our pending_to_synchronize dictionary
-        from pycompss.runtime.binding import get_object_id
         obj_id = get_object_id(iter_obj)
         if obj_id in pending_to_synchronize:
             return synchronize(iter_obj, compss_mode)
         else:
             if type(iter_obj) == list:
-                return [wait_on_iterable(x) for x in iter_obj]
+                return [_wait_on_iterable(x) for x in iter_obj]
             elif type(iter_obj) == dict:
-                return {k: wait_on_iterable(v) for k, v in iter_obj.items()}
+                return {k: _wait_on_iterable(v) for k, v in iter_obj.items()}
             else:
                 return synchronize(iter_obj, compss_mode)
 
@@ -794,7 +788,7 @@ def _compss_wait_on(obj, mode):
             return synchronize(obj, compss_mode)
         else:
             # Will be a iterable object
-            res = wait_on_iterable(obj)
+            res = _wait_on_iterable(obj)
             return res
 
 

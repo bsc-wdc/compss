@@ -136,7 +136,7 @@ def _get_raw_code():
     :return: the list of the blocks defined by the user that are currently
              loaded in globals
     """
-    import IPython
+    import IPython  # noqa
     ipython = IPython.get_ipython()
     raw_code = ipython.user_ns['In']
     return raw_code
@@ -510,7 +510,8 @@ def _get_old_code(file_path):
     collapsed = ''.join(file_tasks).strip()
     # Then split by "@" and filter the empty results, then iterate
     # concatenating "@" to all results.
-    tsks = [('@' + deco_line) for deco_line in [deco for deco in collapsed.split('@') if deco]]  # noqa: E501
+    tsks = [('@' + deco_line) for deco_line in
+            [deco for deco in collapsed.split('@') if deco]]
     # Take into account that other decorators my be over @task, so it is
     # necessary to collapse the function stack
     tasks_list = []

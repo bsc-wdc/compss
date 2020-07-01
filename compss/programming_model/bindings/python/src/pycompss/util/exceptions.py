@@ -30,8 +30,8 @@ class NotImplementedException(Exception):
     """
 
     def __init__(self, functionality):
-        super().__init__("Functionality " + functionality +
-                         " not implemented yet.")
+        super(self.__class__, self).__init__("Functionality " + functionality +
+                                             " not implemented yet.")
 
 
 class MissingImplementedException(Exception):
@@ -40,5 +40,5 @@ class MissingImplementedException(Exception):
     """
 
     def __init__(self, functionality):
-        super().__init__("Missing " + functionality +
-                         ". Needs to be overridden.")
+        super(self.__class__, self).__init__("Missing " + functionality +
+                                             ". Needs to be overridden.")

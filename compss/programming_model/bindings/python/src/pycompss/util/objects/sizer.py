@@ -29,7 +29,7 @@ from itertools import chain
 from collections import deque
 
 try:
-    from reprlib import repr
+    from reprlib import repr  # noqa
 except ImportError:
     pass
 

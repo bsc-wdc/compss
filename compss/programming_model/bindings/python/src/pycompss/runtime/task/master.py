@@ -559,8 +559,8 @@ class TaskMaster(TaskCommons):
                 while not got_func_code:
                     try:
                         from pycompss.util.objects.properties import \
-                            get_wrapped_sourcelines
-                        func_code = get_wrapped_sourcelines(func)
+                            get_wrapped_source_lines
+                        func_code = get_wrapped_source_lines(func)
                         got_func_code = True
                     except IOError:
                         # There is one or more decorators below the @task ->

@@ -33,7 +33,7 @@ import sys
 
 from pycompss.runtime.commons import IS_PYTHON3
 
-libc = ctypes.CDLL(None)
+libc = ctypes.CDLL(None)  # noqa
 c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
 c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
 
@@ -59,7 +59,6 @@ def std_redirector(out_filename, err_filename):
     :param err_filename: Error output file filename (where to redirect stderr)
     :return: Generator
     """
-
     stdout_fd = sys.stdout.fileno()
     stderr_fd = sys.stderr.fileno()
 

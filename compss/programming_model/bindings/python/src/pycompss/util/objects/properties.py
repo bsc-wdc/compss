@@ -32,24 +32,24 @@ from pycompss.runtime.commons import IS_PYTHON3
 if IS_PYTHON3:
     import builtins as _builtins
 else:
-    import __builtin__ as _builtins
+    import __builtin__ as _builtins  # noqa
 
 
-def get_defining_class(meth):
+def get_defining_class(method):
     """
     Given a method
 
-    :param meth: Method to check its defining class
-    :return: Class which meth belongs. None if not found.
+    :param method: Method to check its defining class
+    :return: Class which method belongs. None if not found.
     """
-    if inspect.ismethod(meth):
-        for cls in inspect.getmro(meth.__self__.__class__):
-            if cls.__dict__.get(meth.__name__) is meth:
+    if inspect.ismethod(method):
+        for cls in inspect.getmro(method.__self__.__class__):
+            if cls.__dict__.get(method.__name__) is method:
                 return cls
-    if inspect.isfunction(meth):
-        return getattr(inspect.getmodule(meth),
-                       meth.__qualname__.split('.<locals>',
-                                               1)[0].rsplit('.', 1)[0])
+    if inspect.isfunction(method):
+        return getattr(inspect.getmodule(method),
+                       method.__qualname__.split('.<locals>',
+                                                 1)[0].rsplit('.', 1)[0])
     # Return not required since None would have been implicitly returned anyway
     return None
 
@@ -91,7 +91,7 @@ def get_top_decorator(code, decorator_keys):
 
     :param code: Tuple which contains the task code to analyse and the number
                  of lines of the code.
-    :param decorator_keys: Typle which contains the available decorator keys
+    :param decorator_keys: Tuple which contains the available decorator keys
     :return: the decorator name in the form "pycompss.api.__name__"
     """
     # Code has two fields:
@@ -133,7 +133,7 @@ def get_wrapped_source(f):
         return source
 
 
-def get_wrapped_sourcelines(f):
+def get_wrapped_source_lines(f):
     """
     Gets a list of source lines and starting line number for the given function
 
@@ -142,18 +142,18 @@ def get_wrapped_sourcelines(f):
     """
     if hasattr(f, '__wrapped__'):
         # has __wrapped__, apply the same function to the wrapped content
-        return _get_wrapped_sourcelines(f.__wrapped__)
+        return _get_wrapped_source_lines(f.__wrapped__)
     else:
-        # Returning getsourcelines
+        # Returning get_source_lines
         try:
-            sourcelines = inspect.getsourcelines(f)
+            source_lines = inspect.getsourcelines(f)
         except TypeError:
             # This is a numba jit declared task
-            sourcelines = inspect.getsourcelines(f.py_func)
-        return sourcelines
+            source_lines = inspect.getsourcelines(f.py_func)
+        return source_lines
 
 
-def _get_wrapped_sourcelines(f):
+def _get_wrapped_source_lines(f):
     """
     [PRIVATE] Recursive function which gets a list of source lines and starting
     line number for the given function.
@@ -163,15 +163,15 @@ def _get_wrapped_sourcelines(f):
     """
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
-        return _get_wrapped_sourcelines(f.__wrapped__)
+        return _get_wrapped_source_lines(f.__wrapped__)
     else:
-        # Returning getsourcelines
+        # Returning get_source_lines
         try:
-            sourcelines = inspect.getsourcelines(f)
+            source_lines = inspect.getsourcelines(f)
         except TypeError:
             # This is a numba jit declared task
-            sourcelines = inspect.getsourcelines(f.py_func)
-        return sourcelines
+            source_lines = inspect.getsourcelines(f.py_func)
+        return source_lines
 
 
 def is_module_available(module_name):
@@ -186,7 +186,7 @@ def is_module_available(module_name):
         if py_version > (3, 4):
             try:
                 import importlib
-                importlib.util.find_spec(module_name)
+                importlib.util.find_spec(module_name)  # noqa
             except AttributeError:
                 # This can only happen in conda
                 import imp  # noqa # Deprecated in python 3

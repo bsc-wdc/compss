@@ -474,10 +474,10 @@ def execute_task(process_name, storage_conf, params, tracing,
     arg_position = 4 + num_slaves
 
     args = params[arg_position:]
-    # cus = args[0]
+    cus = args[0]          # noqa
     args = args[1:]
     has_target = args[0]
-    # return_type = args[1]
+    return_type = args[1]  # noqa
     return_length = int(args[2])
     num_params = int(args[3])
 

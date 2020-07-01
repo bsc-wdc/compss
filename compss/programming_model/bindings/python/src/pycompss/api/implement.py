@@ -134,21 +134,6 @@ class Implement(PyCOMPSsDecorator):
         impl_type = "METHOD"
         impl_args = [another_class, another_method]
 
-        # # Retrieve the base core_element established at @task
-        # # decorator and update the core element information with
-        # # the @implement information
-        # from pycompss.api.task import CURRENT_CORE_ELEMENT as cce
-        # ce_signature = '.'.join((another_class, another_method))
-        # cce.set_ce_signature(ce_signature)
-        # # This is not needed since the arguments are already set
-        # # by the task decorator.
-        # # implArgs = [another_class, another_method]
-        # # cce.set_implTypeArgs(implArgs)
-        # cce.set_impl_type("METHOD")
-        #
-        # # Set as registered
-        # self.registered = True
-
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             # (e.g. @constraint)

@@ -47,8 +47,6 @@ if __debug__:
 PREPEND_STRINGS = True
 # Only register the task
 REGISTER_ONLY = False
-# Current core element for the registration (if necessary)
-CURRENT_CORE_ELEMENT = CE()
 
 
 class Task(PyCOMPSsDecorator):

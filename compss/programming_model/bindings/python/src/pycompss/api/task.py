@@ -1554,13 +1554,15 @@ class Task(object):
             if not (_is_inout or _is_col_out):
                 continue
 
-            # Now it's 'INOUT' or 'COLLLECTION_OUT' object param, serialize
-            # to a file
+            # Now it's 'INOUT' object param --> serialize to a file
+            # or 'COLLLECTION_INOUT/OUT' object param --> get its new id
             if arg.type == parameter.TYPE.COLLECTION:
                 if __debug__:
                     logger.debug("Serializing collection: " + str(arg.name))
                 # handle collections recursively
-                for (content, elem) in get_collection_objects(arg.content, arg):  # noqa: E501
+                for (content, elem) in get_collection_objects(arg.content, arg):             # noqa: E501
+                    if elem.type == parameter.TYPE.EXTERNAL_PSCO and is_psco(elem.content):  # noqa: E501
+                        continue
                     f_name = get_file_name(elem.file_name)
                     if __debug__:
                         logger.debug("\t - Serializing element: " +
@@ -1634,6 +1636,23 @@ class Task(object):
         if __debug__:
             logger.debug("Building types update")
 
+        def build_collection_types_values(_content, _arg):
+            """ Retrieve collection type-value recursively"""
+            coll = []
+            for (_cont, _elem) in zip(_arg.content,
+                                      _arg.collection_content):
+                if isinstance(_elem, str):
+                    coll.append((parameter.TYPE.FILE, 'null'))
+                else:
+                    if _elem.type == parameter.TYPE.COLLECTION:
+                        coll.append(build_collection_types_values(_cont, _elem))
+                    elif _elem.type == parameter.TYPE.EXTERNAL_PSCO and \
+                            is_psco(_elem.content):
+                        coll.append((_elem.type, elem.key))
+                    else:
+                        coll.append((_elem.type, 'null'))
+            return coll
+
         # Add parameter types and value
         params_start = 1 if has_self else 0
         params_end = len(args) - num_returns + 1
@@ -1658,6 +1677,12 @@ class Task(object):
                     # It was persisted in the task
                     new_types.append(parameter.TYPE.EXTERNAL_PSCO)
                     new_values.append(arg.content.getID())
+                elif arg.type == parameter.TYPE.COLLECTION and \
+                        param.direction != parameter.DIRECTION.IN:
+                    # There is a collection that can contain persistent objects
+                    collection_new_values = build_collection_types_values(arg.content, arg)             # noqa: E501
+                    new_types.append(parameter.TYPE.COLLECTION)
+                    new_values.append(collection_new_values)
                 else:
                     # Any other return object: same type and null value
                     new_types.append(arg.type)
@@ -1696,6 +1721,15 @@ class Task(object):
                 ret_type = parameter.get_compss_type(ret)
                 if ret_type == parameter.TYPE.EXTERNAL_PSCO:
                     ret_value = ret.getID()
+                elif ret_type == parameter.TYPE.COLLECTION:
+                    collection_ret_values = []
+                    for elem in ret:
+                        if elem.type == parameter.TYPE.EXTERNAL_PSCO and is_psco(elem.content):  # noqa: E501
+                            collection_ret_values.append(elem.key)
+                        else:
+                            collection_ret_values.append('null')
+                    new_types.append(parameter.TYPE.COLLECTION)
+                    new_values.append(collection_ret_values)
                 else:
                     # Returns can only be of type FILE, so avoid the last
                     # update of ret_type

@@ -43,8 +43,9 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-execution</artifactId>
+            <version>${project.version}</version>
         </dependency>
-
+        
         <!-- JUnit dependencies -->
         <dependency>
             <groupId>junit</groupId>

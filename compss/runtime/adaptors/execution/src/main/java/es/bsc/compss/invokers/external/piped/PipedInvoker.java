@@ -24,14 +24,18 @@ import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
+import es.bsc.compss.invokers.types.TypeValuePair;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 
 public abstract class PipedInvoker extends ExternalInvoker {
@@ -107,6 +111,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
         }
     }
 
+    @SuppressWarnings({ "rawtypes" })
     private void updateParam(InvocationParam param, ExternalTaskStatus taskStatus, int parIdx) {
         DataType paramType = taskStatus.getParameterType(parIdx);
         Object value;
@@ -117,6 +122,43 @@ public abstract class PipedInvoker extends ExternalInvoker {
             if (value != null) {
                 param.setValueClass(value.getClass());
             }
+        } else if (paramType != null && paramType.equals(DataType.COLLECTION_T)) {
+            param.setType(paramType);
+            InvocationParamCollection ipc = (InvocationParamCollection) param;
+            LinkedList<Object> values = taskStatus.getParameterValues(parIdx);
+            if (ipc.getCollectionParameters().size() == values.size()) {
+                updateParamCollection(ipc, values);
+            }
+            // otherwise the collection contains null - it was in and has not been changed.
+        }
+    }
+
+    @SuppressWarnings({ "unchecked",
+        "rawtypes" })
+    private void updateParamCollection(InvocationParamCollection ipc, LinkedList<Object> values) {
+        List<Object> collectionParameters = ipc.getCollectionParameters();
+        int position = 0;
+        for (Object element : collectionParameters) {
+            InvocationParam param = (InvocationParam) element;
+            DataType elementType = param.getType();
+            if (elementType.equals(DataType.COLLECTION_T)) {
+                // The element is an inner collection. Resolve recursively.
+                param.setType(elementType);
+                updateParamCollection((InvocationParamCollection) param, (LinkedList<Object>) values.get(position));
+            } else if (elementType.equals(DataType.EXTERNAL_PSCO_T)) {
+                param.setType(elementType);
+                TypeValuePair pair = (TypeValuePair) values.get(position);
+                if (pair != null) {
+                    Object value = pair.getUpdatedParameterValue();
+                    param.setValue(value);
+                    if (value != null) {
+                        param.setValueClass(value.getClass());
+                    }
+                } else {
+                    param.setValue(null);
+                }
+            }
+            position += 1;
         }
     }
 

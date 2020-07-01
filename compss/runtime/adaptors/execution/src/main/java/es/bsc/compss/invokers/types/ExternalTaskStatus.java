@@ -19,6 +19,10 @@ package es.bsc.compss.invokers.types;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,8 +37,22 @@ public class ExternalTaskStatus {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private final Integer exitValue;
-    private final List<DataType> updatedParameterTypes;
-    private final List<String> updatedParameterValues;
+    private final List<TypeValuePair> updatedParameters;
+
+
+    private static class CollectionBean {
+
+        // Necessary to parse the collection string representation
+        int token;
+        Object obj;
+
+
+        public CollectionBean(int token, Object o) {
+            super();
+            this.token = token;
+            this.obj = o;
+        }
+    }
 
 
     /**
@@ -44,8 +62,7 @@ public class ExternalTaskStatus {
      */
     public ExternalTaskStatus(Integer exitValue) {
         this.exitValue = exitValue;
-        this.updatedParameterTypes = new LinkedList<>();
-        this.updatedParameterValues = new LinkedList<>();
+        this.updatedParameters = new LinkedList<>();
     }
 
     /**
@@ -54,8 +71,7 @@ public class ExternalTaskStatus {
      * @param line task status content as string array
      */
     public ExternalTaskStatus(String[] line) {
-        this.updatedParameterTypes = new LinkedList<>();
-        this.updatedParameterValues = new LinkedList<>();
+        this.updatedParameters = new LinkedList<>();
 
         // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
         this.exitValue = Integer.parseInt(line[2]);
@@ -99,30 +115,21 @@ public class ExternalTaskStatus {
     }
 
     /**
+     * Returns the updated parameters (for testing purposes).
+     *
+     * @return Updated parameters
+     */
+    public List<TypeValuePair> getUpdatedParameters() {
+        return this.updatedParameters;
+    }
+
+    /**
      * Returns the number of parameters of the task.
      *
      * @return Number of parameters
      */
     public int getNumParameters() {
-        return this.updatedParameterValues.size();
-    }
-
-    /**
-     * Returns all the parameters' types.
-     *
-     * @return List of Parameters' Data types
-     */
-    public List<DataType> getParameterTypes() {
-        return this.updatedParameterTypes;
-    }
-
-    /**
-     * Returns all the parameters' values.
-     *
-     * @return List of Parameters' values
-     */
-    public List<String> getParameterValues() {
-        return this.updatedParameterValues;
+        return this.updatedParameters.size();
     }
 
     /**
@@ -132,8 +139,8 @@ public class ExternalTaskStatus {
      * @return
      */
     public DataType getParameterType(int i) {
-        if (i >= 0 && i < this.updatedParameterTypes.size()) {
-            return this.updatedParameterTypes.get(i);
+        if (i >= 0 && i < this.updatedParameters.size()) {
+            return this.updatedParameters.get(i).getUpdatedParameterType();
         }
         return null;
     }
@@ -145,21 +152,117 @@ public class ExternalTaskStatus {
      * @return
      */
     public String getParameterValue(int i) {
-        if (i >= 0 && i < this.updatedParameterValues.size()) {
-            return this.updatedParameterValues.get(i);
+        if (i >= 0 && i < this.updatedParameters.size()) {
+            return (String) this.updatedParameters.get(i).getUpdatedParameterValue();
         }
         return null;
     }
 
     /**
+     * Returns the i-th parameter collection value. Null if i is out of the parameters range.
+     *
+     * @param i Parameter ordinal
+     * @return
+     */
+    public LinkedList<Object> getParameterValues(int i) {
+        if (i >= 0 && i < this.updatedParameters.size()) {
+            return this.updatedParameters.get(i).getUpdatedParameterValues();
+        }
+        return null;
+    }
+
+    /**
+     * Parses a collection from string representation. (((type, value), (type, value)), ((type, value), (type, value)))
+     * 
+     * @param collection String Collection representation
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public List<Object> buildCollectionList(String collection) {
+        Deque<Object> stack = new ArrayDeque<Object>();
+        char[] chararray = collection.toCharArray();
+        String temp = "";
+        for (int i = 0; i < chararray.length; i++) {
+            if (chararray[i] == ')') {
+                if (!temp.equals("")) {
+                    stack.push(new CollectionBean(0, temp));
+                    temp = "";
+                }
+                List<Object> tmplist = new ArrayList<>();
+                while (true) {
+                    Object object = stack.pop();
+                    if (object instanceof CollectionBean) {
+                        CollectionBean b = (CollectionBean) object;
+                        if (b.token == 1) {
+                            break;
+                        }
+                        tmplist.add(b.obj);
+                    } else {
+                        tmplist.add(object);
+                        if (stack.isEmpty()) {
+                            break;
+                        }
+                    }
+                }
+                Collections.reverse(tmplist);
+                stack.push(tmplist);
+            } else {
+                if (chararray[i] == '(') {
+                    stack.push(new CollectionBean(1, Character.toString(chararray[i])));
+                } else if (chararray[i] == ',') {
+                    if (!temp.equals("")) {
+                        stack.push(new CollectionBean(0, temp));
+                        temp = "";
+                    }
+                } else {
+                    temp = temp + Character.toString(chararray[i]);
+                }
+            }
+        }
+        return (List<Object>) stack.pop();
+    }
+
+    /**
+     * Converts the list representation of a collection into a Type value pair recursively.
+     * 
+     * @param collection String Collection representation
+     */
+    @SuppressWarnings("unchecked")
+    public List<Object> buildCollectionParameter(List<Object> collection) {
+        // Recursive call to add parameter if detected collection (length == 2 is a single element)
+        List<Object> param = new LinkedList<Object>();
+        for (Object element : collection) {
+            List<Object> subParam = (List<Object>) element;
+            if (subParam.size() == 2 && subParam.get(0) instanceof String) {
+                // Simple element within collection
+                DataType subElemType = DataType.values()[Integer.parseInt((String) subParam.get(0))];
+                param.add(new TypeValuePair(subElemType, (String) subParam.get(1)));
+            } else {
+                // It is a collection in the collection
+                param.add(buildCollectionParameter(subParam));
+            }
+        }
+        return param;
+    }
+
+    /**
      * Adds a new parameter.
      *
-     * @param type Parameter Datatype
+     * @param type Parameter Type
      * @param value Parameter Value
      */
     public void addParameter(DataType type, String value) {
-        this.updatedParameterTypes.add(type);
-        this.updatedParameterValues.add(value);
+        if (type == DataType.COLLECTION_T && value != null) {
+            TypeValuePair collectionParameter = new TypeValuePair(type);
+            value = value.replace("[", "(");
+            value = value.replace("]", ")");
+            List<Object> collection = buildCollectionList(value);
+            List<Object> parameterValue = buildCollectionParameter(collection);
+            collectionParameter.setUpdatedParameterValue((LinkedList<Object>) parameterValue);
+            this.updatedParameters.add(collectionParameter);
+        } else {
+            this.updatedParameters.add(new TypeValuePair(type, value));
+        }
     }
 
     @Override
@@ -170,13 +273,13 @@ public class ExternalTaskStatus {
         sb.append("ExitValue = ").append(this.exitValue).append(", ");
         sb.append("NumParameters = ").append(getNumParameters()).append(", ");
         sb.append("ParameterTypes = [");
-        for (DataType type : this.updatedParameterTypes) {
-            sb.append(type.ordinal()).append(" ");
+        for (TypeValuePair tvp : this.updatedParameters) {
+            sb.append(tvp.getUpdatedParameterType().ordinal()).append(" ");
         }
         sb.append("], ");
         sb.append("ParameterValues = [");
-        for (String value : this.updatedParameterValues) {
-            sb.append(value).append(" ");
+        for (TypeValuePair tvp : this.updatedParameters) {
+            sb.append((String) tvp.getUpdatedParameterValue()).append(" ");
         }
         sb.append("]");
 

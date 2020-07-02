@@ -26,7 +26,6 @@ PyCOMPSs Binding - Binding
 import os
 import sys
 import re
-import uuid
 import inspect
 import logging
 import base64
@@ -53,6 +52,21 @@ from pycompss.util.storages.persistent import get_id
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.objects.properties import is_basic_iterable
 import pycompss.util.context as context
+
+from pycompss.runtime.management.object_tracker import get_objid_to_filename_values
+from pycompss.runtime.management.object_tracker import get_objid_to_filename
+from pycompss.runtime.management.object_tracker import set_objid_to_filename
+from pycompss.runtime.management.object_tracker import pop_objid_to_filename
+from pycompss.runtime.management.object_tracker import get_all_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import set_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import pop_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import get_all_objs_written_by_mp
+from pycompss.runtime.management.object_tracker import set_objs_written_by_mp
+from pycompss.runtime.management.object_tracker import pop_objs_written_by_mp
+from pycompss.runtime.management.object_tracker import get_object_id
+from pycompss.runtime.management.object_tracker import pop_object_id
+from pycompss.runtime.management.object_tracker import clean_object_tracker
+
 
 # C module extension for the communication with the runtime
 # See ext/compssmodule.cc
@@ -114,133 +128,12 @@ else:
 temp_dir = '.'
 _temp_obj_prefix = '/compss-serialized-obj_'
 
-# Dictionary to contain the conversion from object id to the
-# filename where it is stored (mapping).
-# The filename will be used for requesting an object to
-# the runtime (its corresponding version).
-objid_to_filename = {}
-
-# Dictionary that contains the objects used within tasks.
-pending_to_synchronize = {}
-
-# Objects that have been accessed by the main program
-_objs_written_by_mp = {}  # obj_id -> compss_file_name
 
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
 
-# Identifier handling
-_current_id = 1
-# Object identifiers will be of the form _runtime_id-_current_id
-# This way we avoid to have two objects from different applications having
-# the same identifier
-_runtime_id = str(uuid.uuid1())
-# All objects are segregated according to their position in memory
-# Given these positions, all objects are then reverse-mapped according
-# to their filenames
-_addr2id2obj = {}
-
 extra_content_type_format = "{}:{}"  # <module_path>:<class_name>
-
-
-def calculate_identifier(obj):
-    """
-    Calculates the identifier for the given object.
-
-    :param obj: Object to get the identifier
-    :return: String (md5 string)
-    """
-    return id(obj)
-    # # If we want to detect automatically IN objects modification we need
-    # # to ensure uniqueness of the identifier. At this point, obj is a
-    # # reference to the object that we want to compute its identifier.
-    # # This means that we do not have the previous object to compare directly.
-    # # So the only way would be to ensure the uniqueness by calculating
-    # # an id which depends on the object.
-    # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the object
-    # #                                   (IN) to be modified explicitly.
-    # immutable_types = [bool, int, float, complex, str,
-    #                    tuple, frozenset, bytes]
-    # obj_type = type(obj)
-    # if obj_type in immutable_types:
-    #     obj_address = id(obj)  # Only guarantees uniqueness with
-    #                         # immutable objects
-    # else:
-    #     # For all the rest, use hash of:
-    #     #  - The object id
-    #     #  - The size of the object (object increase/decrease)
-    #     #  - The object representation (object size is the same but has been
-    #     #                               modified (e.g. list element))
-    #     # WARNING: Caveat:
-    #     #  - IN User defined object with parameter change without __repr__
-    #     # INOUT parameters to be modified require a synchronization, so they
-    #     # are not affected.
-    #     import hashlib
-    #     hash_id = hashlib.md5()
-    #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-    #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-    #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-    #     obj_address = str(hash_id.hexdigest())
-    # return obj_address
-
-
-def get_object_id(obj, assign_new_key=False, force_insertion=False):
-    """
-    Gets the identifier of an object. If not found or we are forced to,
-    we create a new identifier for this object, deleting the old one if
-    necessary. We can also query for some object without adding it in case of
-    failure.
-
-    :param obj: Object to analyse.
-    :param assign_new_key: <Boolean> Assign new key.
-    :param force_insertion: <Boolean> Force insertion.
-    :return: Object id
-    """
-    global _current_id
-    global _runtime_id
-    # Force_insertion implies assign_new_key
-    assert not force_insertion or assign_new_key
-
-    obj_address = calculate_identifier(obj)
-
-    # Assign an empty dictionary (in case there is nothing there)
-    _id2obj = _addr2id2obj.setdefault(obj_address, {})
-
-    for identifier in _id2obj:
-        if _id2obj[identifier] is obj:
-            if force_insertion:
-                _id2obj.pop(identifier)
-                break
-            else:
-                return identifier
-    if assign_new_key:
-        # This object was not in our object database or we were forced to
-        # remove it, lets assign it an identifier and store it.
-        # As mentioned before, identifiers are of the form
-        # _runtime_id-_current_id in order to avoid having two objects from
-        # different applications with the same identifier (and thus file name)
-        new_id = '%s-%d' % (_runtime_id, _current_id)
-        _id2obj[new_id] = obj
-        _current_id += 1
-        return new_id
-    if len(_id2obj) == 0:
-        _addr2id2obj.pop(obj_address)
-    return None
-
-
-def pop_object_id(obj):
-    """
-    Pop an object from the nested identifier hashmap
-    :param obj: Object to pop
-    :return: Popped object, None if obj was not in _addr2id2obj
-    """
-    obj_address = calculate_identifier(obj)
-    _id2obj = _addr2id2obj.setdefault(obj_address, {})
-    for (k, v) in list(_id2obj.items()):
-        _id2obj.pop(k)
-    _addr2id2obj.pop(obj_address)
-
 
 # Enable or disable the management of *args parameters as a whole tuple built
 # (and serialized) on the master and sent to the workers.
@@ -449,16 +342,16 @@ def delete_object(obj):
     except KeyError:
         pass
     try:
-        file_name = objid_to_filename[obj_id]
+        file_name = get_objid_to_filename(obj_id)
         COMPSs.delete_file(app_id, file_name, False)
     except KeyError:
         pass
     try:
-        objid_to_filename.pop(obj_id)
+        pop_objid_to_filename(obj_id)
     except KeyError:
         pass
     try:
-        pending_to_synchronize.pop(obj_id)
+        pop_pending_to_synchronize(obj_id)
     except KeyError:
         pass
     return True
@@ -782,7 +675,7 @@ def _wait_on_iterable(iter_obj, compss_mode):
     """
     # check if the object is in our pending_to_synchronize dictionary
     obj_id = get_object_id(iter_obj)
-    if obj_id in pending_to_synchronize:
+    if obj_id in get_all_pending_to_synchronize():
         return _synchronize(iter_obj, compss_mode)
     else:
         if type(iter_obj) == list:
@@ -810,12 +703,10 @@ def _synchronize(obj, mode):
     # COMPSs.open_file call. This change pretends to obtain better traces.
     # Must be implemented first in the Runtime, then in the bindings common
     # C API and finally add the boolean here
-    global _current_id
-    app_id = 0 
-
+    app_id = 0
     if is_psco(obj):
         obj_id = get_id(obj)
-        if obj_id not in pending_to_synchronize:
+        if obj_id not in get_all_pending_to_synchronize():
             return obj
         else:
             # file_path is of the form storage://pscoId or
@@ -827,13 +718,13 @@ def _synchronize(obj, mode):
             return new_obj
 
     obj_id = get_object_id(obj)
-    if obj_id not in pending_to_synchronize:
+    if obj_id not in get_all_pending_to_synchronize():
         return obj
 
     if __debug__:
         logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
-    file_name = objid_to_filename[obj_id]
+    file_name = get_objid_to_filename(obj_id)
     compss_file = COMPSs.open_file(app_id, file_name, mode)
 
     if __debug__:
@@ -860,14 +751,13 @@ def _synchronize(obj, mode):
         new_obj_id = get_object_id(new_obj, True, True)
         # The main program won't work with the old object anymore, update
         # mapping
-        objid_to_filename[new_obj_id] = \
-            objid_to_filename[obj_id].replace(obj_id, new_obj_id)
-        _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
+        set_objid_to_filename(new_obj_id, get_objid_to_filename(obj_id).replace(obj_id, new_obj_id))
+        set_objs_written_by_mp(new_obj_id, get_objid_to_filename(new_obj_id))
 
     if mode != 'r':
-        COMPSs.delete_file(app_id, objid_to_filename[obj_id], False)
-        objid_to_filename.pop(obj_id)
-        pending_to_synchronize.pop(obj_id)
+        COMPSs.delete_file(app_id, get_objid_to_filename(obj_id), False)
+        pop_objid_to_filename(obj_id)
+        pop_pending_to_synchronize(obj_id)
         pop_object_id(obj)
 
     return new_obj
@@ -1089,8 +979,8 @@ def _build_return_objects(f_returns):
             logger.debug("Setting object %s of %s as a future" % (obj_id,
                                                                   type(fo)))
         ret_filename = temp_dir + _temp_obj_prefix + str(obj_id)
-        objid_to_filename[obj_id] = ret_filename
-        pending_to_synchronize[obj_id] = fo
+        set_objid_to_filename(obj_id, ret_filename)
+        set_pending_to_synchronize(obj_id, fo)
         f_returns[get_return_name(0)] = \
             Parameter(content_type=TYPE.FILE,
                       direction=DIRECTION.OUT,
@@ -1122,8 +1012,8 @@ def _build_return_objects(f_returns):
                 logger.debug("Setting object %s of %s as a future" %
                              (obj_id, type(foe)))
             ret_filename = temp_dir + _temp_obj_prefix + str(obj_id)
-            objid_to_filename[obj_id] = ret_filename
-            pending_to_synchronize[obj_id] = foe
+            set_objid_to_filename(obj_id, ret_filename)
+            set_pending_to_synchronize(obj_id, foe)
             # Once determined the filename where the returns are going to
             # be stored, create a new Parameter object for each return object
             f_returns[k] = Parameter(content_type=TYPE.FILE,
@@ -1569,7 +1459,7 @@ def _manage_persistent_object(p):
     """
     p.content_type = TYPE.EXTERNAL_PSCO
     obj_id = get_id(p.content)
-    pending_to_synchronize[obj_id] = p.content  # obj_id
+    set_pending_to_synchronize(obj_id, p.content)
     p.content = obj_id
     if __debug__:
         logger.debug("Managed persistent object: %s" % obj_id)
@@ -1598,22 +1488,22 @@ def _turn_into_file(p, skip_creation=False):
     #     p.content = t()
 
     obj_id = get_object_id(p.content, True)
-    file_name = objid_to_filename.get(obj_id)
+    file_name = get_objid_to_filename(obj_id)
     if file_name is None:
         # This is the first time a task accesses this object
-        pending_to_synchronize[obj_id] = p.content
+        set_pending_to_synchronize(obj_id, p.content)
         file_name = temp_dir + _temp_obj_prefix + str(obj_id)
-        objid_to_filename[obj_id] = file_name
+        set_objid_to_filename(obj_id, file_name)
         if __debug__:
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
         if not skip_creation:
             serialize_to_file(p.content, file_name)
-    elif obj_id in _objs_written_by_mp:
+    elif obj_id in get_all_objs_written_by_mp():
         if p.direction == DIRECTION.INOUT or \
                 p.direction == DIRECTION.COMMUTATIVE:
-            pending_to_synchronize[obj_id] = p.content
+            set_pending_to_synchronize(obj_id, p.content)
         # Main program generated the last version
-        compss_file = _objs_written_by_mp.pop(obj_id)
+        compss_file = pop_objs_written_by_mp(obj_id)
         if __debug__:
             logger.debug("Serializing object %s to file %s" % (obj_id,
                                                                compss_file))
@@ -1636,12 +1526,9 @@ def _clean_objects():
     :return: None
     """
     app_id = 0
-    for filename in objid_to_filename.values():
+    for filename in get_objid_to_filename_values():
         COMPSs.delete_file(app_id, filename, False)
-    pending_to_synchronize.clear()
-    _addr2id2obj.clear()
-    objid_to_filename.clear()
-    _objs_written_by_mp.clear()
+    clean_object_tracker()
 
 
 def _clean_temps():

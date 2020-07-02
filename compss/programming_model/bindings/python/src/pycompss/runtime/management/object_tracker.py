@@ -258,3 +258,8 @@ class ObjectTracker(object):
         self.addr2id2obj.clear()
         self.obj_id_to_filename.clear()
         self.objs_written_by_mp.clear()
+
+
+# Instantiation of the Object tracker class to be shared among
+# management modules
+OT = ObjectTracker()

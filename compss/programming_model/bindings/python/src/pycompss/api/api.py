@@ -50,27 +50,26 @@ if context.in_pycompss():
     # Any change on this API must be considered within the dummy API.   #
     # ################################################################# #
 
-    from pycompss.runtime.binding import start_runtime
-    from pycompss.runtime.binding import stop_runtime
-    from pycompss.runtime.binding import accessed_file
-    from pycompss.runtime.binding import open_file
-    from pycompss.runtime.binding import delete_file
-    from pycompss.runtime.binding import get_file
-    from pycompss.runtime.binding import get_directory
-    from pycompss.runtime.binding import delete_object
-    from pycompss.runtime.binding import barrier
-    from pycompss.runtime.binding import barrier_group
-    from pycompss.runtime.binding import open_task_group
-    from pycompss.runtime.binding import close_task_group
-    from pycompss.runtime.binding import get_number_of_resources
-    from pycompss.runtime.binding import request_resources
-    from pycompss.runtime.binding import free_resources
-    from pycompss.runtime.binding import wait_on
-    from pycompss.runtime.binding import get_compss_mode
-    from pycompss.runtime.commons import IS_PYTHON3
-    from pycompss.api.exceptions import COMPSsException
+    from pycompss.runtime.binding import start_runtime as __start_runtime__
+    from pycompss.runtime.binding import stop_runtime as __stop_runtime__
+    from pycompss.runtime.binding import accessed_file as __accessed_file__
+    from pycompss.runtime.binding import open_file as __open_file__
+    from pycompss.runtime.binding import delete_file as __delete_file__
+    from pycompss.runtime.binding import get_file as __get_file__
+    from pycompss.runtime.binding import get_directory as __get_directory__
+    from pycompss.runtime.binding import delete_object as __delete_object__
+    from pycompss.runtime.binding import barrier as __barrier__
+    from pycompss.runtime.binding import barrier_group as __barrier_group__
+    from pycompss.runtime.binding import open_task_group as __open_task_group__
+    from pycompss.runtime.binding import close_task_group as __close_task_group__                # noqa: E501
+    from pycompss.runtime.binding import get_number_of_resources as __get_number_of_resources__  # noqa: E501
+    from pycompss.runtime.binding import request_resources as __request_resources__              # noqa: E501
+    from pycompss.runtime.binding import free_resources as __free_resources__
+    from pycompss.runtime.binding import wait_on as __wait_on__
+    from pycompss.runtime.commons import IS_PYTHON3 as __IS_PYTHON3__
+    from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
-    if IS_PYTHON3:
+    if __IS_PYTHON3__:
         listType = list
         dictType = dict
     else:
@@ -85,7 +84,7 @@ if context.in_pycompss():
 
         :return: None
         """
-        start_runtime(log_level, interactive)
+        __start_runtime__(log_level, interactive)
 
     def compss_stop(code=0):
         """
@@ -93,7 +92,7 @@ if context.in_pycompss():
 
         :return: None
         """
-        stop_runtime(code)
+        __stop_runtime__(code)
 
     def compss_file_exists(file_name):
         """
@@ -106,7 +105,7 @@ if context.in_pycompss():
         """
         from os import path
         if not path.exists(file_name):
-            return accessed_file(file_name)
+            return __accessed_file__(file_name)
         else:
             return True
 
@@ -119,8 +118,7 @@ if context.in_pycompss():
         :return: An object of 'file' type.
         :raise IOError: If the file can not be opened.
         """
-        compss_mode = get_compss_mode(mode)
-        compss_name = open_file(file_name, compss_mode)
+        compss_name = __open_file__(file_name, mode)
         return open(compss_name, mode)
 
     def compss_delete_file(file_name):
@@ -130,7 +128,7 @@ if context.in_pycompss():
         :param file_name: File name.
         :return: True if success. False otherwise.
         """
-        return delete_file(file_name)
+        return __delete_file__(file_name)
 
     def compss_wait_on_file(file_name):
         """
@@ -139,7 +137,7 @@ if context.in_pycompss():
         :param file_name: File name.
         :return: True if success. False otherwise.
         """
-        return get_file(file_name)
+        return __get_file__(file_name)
 
     def compss_wait_on_directory(directory_name):
         """
@@ -148,7 +146,7 @@ if context.in_pycompss():
         :param directory_name: Directory name.
         :return: True if success. False otherwise.
         """
-        return get_directory(directory_name)
+        return __get_directory__(directory_name)
 
     def compss_delete_object(obj):
         """
@@ -157,7 +155,7 @@ if context.in_pycompss():
         :param obj: Object to delete.
         :return: True if success. False otherwise.
         """
-        return delete_object(obj)
+        return __delete_object__(obj)
 
     def compss_barrier(no_more_tasks=False):
         """
@@ -166,7 +164,7 @@ if context.in_pycompss():
 
         :param no_more_tasks: No more tasks boolean
         """
-        barrier(no_more_tasks)
+        __barrier__(no_more_tasks)
 
     def compss_barrier_group(group_name):
         """
@@ -176,9 +174,9 @@ if context.in_pycompss():
         :param group_name: Name of the group to wait
         """
 
-        exception_message = barrier_group(group_name)
+        exception_message = __barrier_group__(group_name)
         if exception_message is not None:
-            raise COMPSsException(exception_message)
+            raise __COMPSsException__(exception_message)
 
     def compss_wait_on(*args, **kwargs):
         """
@@ -187,7 +185,7 @@ if context.in_pycompss():
         :param args: Objects to wait on
         :return: List with the final values.
         """
-        return wait_on(*args, **kwargs)
+        return __wait_on__(*args, **kwargs)
 
     def compss_get_number_of_resources():
         """
@@ -196,7 +194,7 @@ if context.in_pycompss():
         :return: The number of active resources
             +type: <int>
         """
-        return get_number_of_resources()
+        return __get_number_of_resources__()
 
     def compss_request_resources(num_resources, group_name):
         """
@@ -208,7 +206,7 @@ if context.in_pycompss():
             +type: <str> or None
         :return: None
         """
-        request_resources(num_resources, group_name)
+        __request_resources__(num_resources, group_name)
 
     def compss_free_resources(num_resources, group_name):
         """
@@ -220,7 +218,7 @@ if context.in_pycompss():
             +type: <str> or None
         :return: None
         """
-        free_resources(num_resources, group_name)
+        __free_resources__(num_resources, group_name)
 
     class TaskGroup(object):
         def __init__(self, group_name, implicit_barrier=True):
@@ -229,11 +227,11 @@ if context.in_pycompss():
 
         def __enter__(self):
             # Group creation
-            open_task_group(self.group_name, self.implicit_barrier)
+            __open_task_group__(self.group_name, self.implicit_barrier)
 
         def __exit__(self, type, value, traceback):
             # Group closing
-            close_task_group(self.group_name)
+            __close_task_group__(self.group_name)
             if self.implicit_barrier:
                 compss_barrier_group(self.group_name)
 

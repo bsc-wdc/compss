@@ -367,14 +367,15 @@ def open_file(file_name, mode):
     in order to request a file.
 
     :param file_name: <String> File name.
-    :param mode: Compss mode.
+    :param mode: Open file mode ('r', 'rw', etc.).
     :return: The current name of the file requested (that may have been
              renamed during runtime)
     """
     app_id = 0
+    compss_mode = _get_compss_mode(mode)
     if __debug__:
-        logger.debug("Getting file %s with mode %s" % (file_name, mode))
-    compss_name = COMPSs.open_file(app_id, file_name, mode)
+        logger.debug("Getting file %s with mode %s" % (file_name, compss_mode))
+    compss_name = COMPSs.open_file(app_id, file_name, compss_mode)
     if __debug__:
         logger.debug("COMPSs file name is %s" % compss_name)
     return compss_name
@@ -738,7 +739,7 @@ def wait_on(*args, **kwargs):
     :param kwargs: Options: Write enable? [True | False] Default = True
     :return: Real value of the objects requested
     """
-    ret = list(map(_compss_wait_on, args,
+    ret = list(map(_wait_on, args,
                    [kwargs.get("mode", "rw")] * len(args)))
     ret = ret[0] if len(ret) == 1 else ret
     # Check if there are empty elements return elements that need to be removed
@@ -750,7 +751,7 @@ def wait_on(*args, **kwargs):
     return ret
 
 
-def _compss_wait_on(obj, mode):
+def _wait_on(obj, mode):
     """
     Waits on an object.
 
@@ -758,41 +759,43 @@ def _compss_wait_on(obj, mode):
     :param mode: Read or write mode
     :return: An object of 'file' type.
     """
-    compss_mode = get_compss_mode(mode)
-
-    # Private function used below (recursively)
-    def _wait_on_iterable(iter_obj):
-        """
-        Wait on an iterable object.
-        Currently supports lists and dictionaries (syncs the values).
-        :param iter_obj: iterable object
-        :return: synchronized object
-        """
-        # check if the object is in our pending_to_synchronize dictionary
-        obj_id = get_object_id(iter_obj)
-        if obj_id in pending_to_synchronize:
-            return synchronize(iter_obj, compss_mode)
-        else:
-            if type(iter_obj) == list:
-                return [_wait_on_iterable(x) for x in iter_obj]
-            elif type(iter_obj) == dict:
-                return {k: _wait_on_iterable(v) for k, v in iter_obj.items()}
-            else:
-                return synchronize(iter_obj, compss_mode)
-
+    compss_mode = _get_compss_mode(mode)
     if isinstance(obj, Future) or not (isinstance(obj, listType) or
                                        isinstance(obj, dictType)):
-        return synchronize(obj, compss_mode)
+        return _synchronize(obj, compss_mode)
     else:
         if len(obj) == 0:  # FUTURE OBJECT
-            return synchronize(obj, compss_mode)
+            return _synchronize(obj, compss_mode)
         else:
             # Will be a iterable object
-            res = _wait_on_iterable(obj)
+            res = _wait_on_iterable(obj, compss_mode)
             return res
 
 
-def synchronize(obj, mode):
+def _wait_on_iterable(iter_obj, compss_mode):
+    """
+    Wait on an iterable object.
+    Currently supports lists and dictionaries (syncs the values).
+
+    :param iter_obj: iterable object
+    :return: synchronized object
+    """
+    # check if the object is in our pending_to_synchronize dictionary
+    obj_id = get_object_id(iter_obj)
+    if obj_id in pending_to_synchronize:
+        return _synchronize(iter_obj, compss_mode)
+    else:
+        if type(iter_obj) == list:
+            return [_wait_on_iterable(x, compss_mode)
+                    for x in iter_obj]
+        elif type(iter_obj) == dict:
+            return {k: _wait_on_iterable(v, compss_mode)
+                    for k, v in iter_obj.items()}
+        else:
+            return _synchronize(iter_obj, compss_mode)
+
+
+def _synchronize(obj, mode):
     """
     Synchronization function.
     This method retrieves the value of a future object.
@@ -1023,7 +1026,11 @@ def process_task(f, module_name, class_name, f_type, f_parameters, f_returns,
     return fo
 
 
-def get_compss_mode(pymode):
+# ########################################################################### #
+# ####################### AUXILIARY FUNCTIONS ############################### #
+# ########################################################################### #
+
+def _get_compss_mode(pymode):
     """
     Get the direction of pymode string.
 
@@ -1041,10 +1048,6 @@ def get_compss_mode(pymode):
     else:
         return DIRECTION.IN
 
-
-# ########################################################################### #
-# ####################### AUXILIARY FUNCTIONS ############################### #
-# ########################################################################### #
 
 def _build_return_objects(f_returns):
     """
@@ -1476,7 +1479,7 @@ def _serialize_object_into_file(name, p):
                 if any(isinstance(v, Future) for v in p.content):
                     if __debug__:
                         logger.debug("Found a list that contains future objects - synchronizing...")  # noqa: E501
-                    mode = get_compss_mode('in')
+                    mode = _get_compss_mode('in')
                     p.content = list(map(synchronize,
                                          p.content,
                                          [mode] * len(p.content)))

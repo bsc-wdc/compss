@@ -45,6 +45,7 @@ from pycompss.runtime.task.parameter import JAVA_MIN_LONG
 from pycompss.runtime.task.parameter import JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.management.object_tracker import ObjectTracker
 from pycompss.util.serialization.serializer import *
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import is_psco
@@ -53,23 +54,9 @@ from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.objects.properties import is_basic_iterable
 import pycompss.util.context as context
 
-from pycompss.runtime.management.object_tracker import ObjectTracker
 
+# Instantiate Object Tracker
 OT = ObjectTracker()
-# from pycompss.runtime.management.object_tracker import OT.get_objid_to_filename_values
-# from pycompss.runtime.management.object_tracker import OT.get_objid_to_filename
-# from pycompss.runtime.management.object_tracker import OT.set_objid_to_filename
-# from pycompss.runtime.management.object_tracker import OT.pop_objid_to_filename
-# from pycompss.runtime.management.object_tracker import OT.get_all_pending_to_synchronize
-# from pycompss.runtime.management.object_tracker import OT.set_pending_to_synchronize
-# from pycompss.runtime.management.object_tracker import OT.pop_pending_to_synchronize
-# from pycompss.runtime.management.object_tracker import OT.get_all_objs_written_by_mp
-# from pycompss.runtime.management.object_tracker import OT.set_objs_written_by_mp
-# from pycompss.runtime.management.object_tracker import OT.pop_objs_written_by_mp
-# from pycompss.runtime.management.object_tracker import OT.get_object_id
-# from pycompss.runtime.management.object_tracker import OT.pop_object_id
-# from pycompss.runtime.management.object_tracker import OT.clean_object_tracker
-
 
 # C module extension for the communication with the runtime
 # See ext/compssmodule.cc
@@ -345,12 +332,17 @@ def delete_object(obj):
     except KeyError:
         pass
     try:
+<<<<<<< HEAD
         file_name = OT.get_objid_to_filename(obj_id)
         COMPSs.delete_file(app_id, file_name, False)
+=======
+        file_name = OT.get_filename(obj_id)
+        COMPSs.delete_file(file_name, False)
+>>>>>>> Improved object tracker function names and added documentation.
     except KeyError:
         pass
     try:
-        OT.pop_objid_to_filename(obj_id)
+        OT.pop_filename(obj_id)
     except KeyError:
         pass
     try:
@@ -678,7 +670,7 @@ def _wait_on_iterable(iter_obj, compss_mode):
     """
     # check if the object is in our pending_to_synchronize dictionary
     obj_id = OT.get_object_id(iter_obj)
-    if obj_id in OT.get_all_pending_to_synchronize():
+    if obj_id in OT.get_pending_to_synchronize_objids():
         return _synchronize(iter_obj, compss_mode)
     else:
         if type(iter_obj) == list:
@@ -709,7 +701,7 @@ def _synchronize(obj, mode):
     app_id = 0
     if is_psco(obj):
         obj_id = get_id(obj)
-        if obj_id not in OT.get_all_pending_to_synchronize():
+        if obj_id not in OT.get_pending_to_synchronize_objids():
             return obj
         else:
             # file_path is of the form storage://pscoId or
@@ -721,14 +713,19 @@ def _synchronize(obj, mode):
             return new_obj
 
     obj_id = OT.get_object_id(obj)
-    if obj_id not in OT.get_all_pending_to_synchronize():
+    if obj_id not in OT.get_pending_to_synchronize_objids():
         return obj
 
     if __debug__:
         logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
+<<<<<<< HEAD
     file_name = OT.get_objid_to_filename(obj_id)
     compss_file = COMPSs.open_file(app_id, file_name, mode)
+=======
+    file_name = OT.get_filename(obj_id)
+    compss_file = COMPSs.open_file(file_name, mode)
+>>>>>>> Improved object tracker function names and added documentation.
 
     if __debug__:
         logger.debug("Runtime returned compss file: %s" % compss_file)
@@ -754,12 +751,12 @@ def _synchronize(obj, mode):
         new_obj_id = OT.get_object_id(new_obj, True, True)
         # The main program won't work with the old object anymore, update
         # mapping
-        OT.set_objid_to_filename(new_obj_id, OT.get_objid_to_filename(obj_id).replace(obj_id, new_obj_id))
-        OT.set_objs_written_by_mp(new_obj_id, OT.get_objid_to_filename(new_obj_id))
+        OT.set_filename(new_obj_id, OT.get_filename(obj_id).replace(obj_id, new_obj_id))
+        OT.set_written_obj(new_obj_id, OT.get_filename(new_obj_id))
 
     if mode != 'r':
-        COMPSs.delete_file(app_id, OT.get_objid_to_filename(obj_id), False)
-        OT.pop_objid_to_filename(obj_id)
+        COMPSs.delete_file(app_id, OT.get_filename(obj_id), False)
+        OT.pop_filename(obj_id)
         OT.pop_pending_to_synchronize(obj_id)
         OT.pop_object_id(obj)
 
@@ -982,7 +979,7 @@ def _build_return_objects(f_returns):
             logger.debug("Setting object %s of %s as a future" % (obj_id,
                                                                   type(fo)))
         ret_filename = temp_dir + _temp_obj_prefix + str(obj_id)
-        OT.set_objid_to_filename(obj_id, ret_filename)
+        OT.set_filename(obj_id, ret_filename)
         OT.set_pending_to_synchronize(obj_id, fo)
         f_returns[get_return_name(0)] = \
             Parameter(content_type=TYPE.FILE,
@@ -1015,7 +1012,7 @@ def _build_return_objects(f_returns):
                 logger.debug("Setting object %s of %s as a future" %
                              (obj_id, type(foe)))
             ret_filename = temp_dir + _temp_obj_prefix + str(obj_id)
-            OT.set_objid_to_filename(obj_id, ret_filename)
+            OT.set_filename(obj_id, ret_filename)
             OT.set_pending_to_synchronize(obj_id, foe)
             # Once determined the filename where the returns are going to
             # be stored, create a new Parameter object for each return object
@@ -1452,7 +1449,7 @@ def _serialize_object_into_file(name, p):
 def _manage_persistent_object(p):
     """
     Does the necessary actions over a persistent object used as task parameter.
-    Check if the object has already been used (indexed in the objid_to_filename
+    Check if the object has already been used (indexed in the obj_id_to_filename
     dictionary).
     In particular, saves the object id provided by the persistent storage
     (getID()) into the pending_to_synchronize dictionary.
@@ -1472,9 +1469,9 @@ def _turn_into_file(p, skip_creation=False):
     """
     Write a object into a file if the object has not been already written
     (p.content).
-    Consults the objid_to_filename to check if it has already been written
+    Consults the obj_id_to_filename to check if it has already been written
     (reuses it if exists). If not, the object is serialized to file and
-    registered in the objid_to_filename dictionary.
+    registered in the obj_id_to_filename dictionary.
     This functions stores the object into pending_to_synchronize
 
     :param p: Wrapper of the object to turn into file
@@ -1491,22 +1488,22 @@ def _turn_into_file(p, skip_creation=False):
     #     p.content = t()
 
     obj_id = OT.get_object_id(p.content, True)
-    file_name = OT.get_objid_to_filename(obj_id)
+    file_name = OT.get_filename(obj_id)
     if file_name is None:
         # This is the first time a task accesses this object
         OT.set_pending_to_synchronize(obj_id, p.content)
         file_name = temp_dir + _temp_obj_prefix + str(obj_id)
-        OT.set_objid_to_filename(obj_id, file_name)
+        OT.set_filename(obj_id, file_name)
         if __debug__:
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
         if not skip_creation:
             serialize_to_file(p.content, file_name)
-    elif obj_id in OT.get_all_objs_written_by_mp():
+    elif obj_id in OT.get_all_written_objids():
         if p.direction == DIRECTION.INOUT or \
                 p.direction == DIRECTION.COMMUTATIVE:
             OT.set_pending_to_synchronize(obj_id, p.content)
         # Main program generated the last version
-        compss_file = OT.pop_objs_written_by_mp(obj_id)
+        compss_file = OT.pop_written_obj(obj_id)
         if __debug__:
             logger.debug("Serializing object %s to file %s" % (obj_id,
                                                                compss_file))
@@ -1523,13 +1520,13 @@ def _clean_objects():
     Clean the objects stored in the global dictionaries:
         * pending_to_synchronize dict
         * _addr2id2obj dict
-        * objid_to_filename dict
+        * obj_id_to_filename dict
         * _objs_written_by_mp dict
 
     :return: None
     """
     app_id = 0
-    for filename in OT.get_objid_to_filename_values():
+    for filename in OT.get_filenames():
         COMPSs.delete_file(app_id, filename, False)
     OT.clean_object_tracker()
 

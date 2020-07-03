@@ -125,7 +125,8 @@ def c_extension_link(in_queue, out_queue):
             log_path = compss.get_logging_path()
             out_queue.put(log_path)
         elif command == GET_NUMBER_OF_RESOURCES:
-            compss.get_number_of_resources(*parameters)
+            num_resources = compss.get_number_of_resources(*parameters)
+            out_queue.put(num_resources)
         elif command == REQUEST_RESOURCES:
             compss.request_resources(*parameters)
         elif command == FREE_RESOURCES:
@@ -292,6 +293,8 @@ class COMPSs(object):
     @staticmethod
     def get_number_of_resources(app_id):
         IN_QUEUE.put((GET_NUMBER_OF_RESOURCES, app_id))
+        num_resources = OUT_QUEUE.get(block=True)
+        return num_resources
 
     @staticmethod
     def request_resources(app_id, num_resources, group_name):

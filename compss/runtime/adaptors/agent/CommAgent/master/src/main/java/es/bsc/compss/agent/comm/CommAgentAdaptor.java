@@ -145,6 +145,6 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     protected void retrieveAdditionalJobFiles(Connection connection, boolean success, int jobId, int taskId,
         JobHistory history) {
-        // Agents to retrieve information of how the job finished.
+        // Agents do not retrieve information of how the job finished.
     }
 }

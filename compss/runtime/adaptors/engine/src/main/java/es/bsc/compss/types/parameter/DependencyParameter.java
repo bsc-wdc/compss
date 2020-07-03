@@ -37,7 +37,7 @@ public class DependencyParameter extends Parameter implements Transferable {
 
     private DataAccessId daId;
     private Object dataSource;
-    private String dataTarget; // Full path with PROTOCOL
+    private String dataTarget; // URI (including PROTOCOL) where to find the data within the executing resource
 
 
     /**

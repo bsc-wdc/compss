@@ -150,6 +150,41 @@ public class DataInfoProvider {
     }
 
     /**
+     * Registers the remote object resources.
+     *
+     * @param app Application accessing the value
+     * @param loc Location of the file being registed.
+     * @param data Existing LogicalData to bind the value access.
+     */
+    public void registerRemoteFileSources(Application app, DataLocation loc, String data) {
+        DataInfo oInfo;
+        String locationKey = loc.getLocationKey();
+        Integer aoId = this.nameToId.get(locationKey);
+        if (aoId == null) {
+            if (DEBUG) {
+                LOGGER.debug("Registering Remote file on DIP at location " + locationKey);
+            }
+            // Update mappings
+            oInfo = new FileInfo(app, loc);
+            app.addData(oInfo);
+            aoId = oInfo.getDataId();
+            this.nameToId.put(locationKey, aoId);
+            this.idToData.put(aoId, oInfo);
+        } else {
+            oInfo = idToData.get(aoId);
+        }
+        if (data != null) {
+            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
+            try {
+                Comm.linkData(data, existingRename);
+            } catch (CommException ce) {
+                ErrorManager.error(
+                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
+            }
+        }
+    }
+
+    /**
      * DataAccess interface: registers a new data access.
      *
      * @param access Access Parameters.

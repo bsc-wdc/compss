@@ -374,8 +374,14 @@ public abstract class NIOAgent {
             case OBJECT_URI:
             case STREAM_URI:
             case PERSISTENT_URI:
-            case ANY_URI:
                 sendObject(c, path, d);
+                break;
+            case ANY_URI:
+                if (path.startsWith(File.separator)) {
+                    sendFile(c, path, d);
+                } else {
+                    sendObject(c, path, d);
+                }
                 break;
         }
 

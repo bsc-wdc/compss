@@ -28,7 +28,6 @@ import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import java.util.LinkedList;
 
 
 /**
@@ -106,8 +105,7 @@ class TaskMonitor extends AppMonitor {
         NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
 
         int jobId = task.getJobId();
-        NIOTaskResult tr = new NIOTaskResult(jobId, new LinkedList<>(), null, new LinkedList<>());
-
+        NIOTaskResult tr = new NIOTaskResult(jobId, super.getParamTypes(), super.getParamLocations());
         Connection c = TM.startConnection(n);
         CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), null);
         c.sendCommand(cmd);

@@ -57,7 +57,9 @@ from pycompss.runtime.task.parameter import JAVA_MAX_LONG
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.util.arguments import check_arguments
-from pycompss.util.serialization.serializer import *
+from pycompss.util.serialization.serializer import serialize_to_string
+from pycompss.util.serialization.serializer import serialize_to_file
+from pycompss.util.serialization.serializer import SerializerException
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.objects.properties import is_basic_iterable
@@ -93,6 +95,7 @@ if IS_PYTHON3:
                          object: TYPE.OBJECT
                          }
 else:
+    import types
     _PYTHON_TO_COMPSS = {types.IntType: TYPE.INT,          # noqa # int
                          types.LongType: TYPE.LONG,        # noqa # long
                          types.FloatType: TYPE.DOUBLE,     # noqa # float
@@ -166,16 +169,17 @@ class TaskMaster(TaskCommons):
     """
 
     def __init__(self,
-                 comment,
                  decorator_arguments,
                  init_dec_args,
                  user_function):
-        self.comment = comment
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments, None, None)
-        self.init_dec_args = init_dec_args
+
         # User function
         self.user_function = user_function
+        # Initial decorator arguments
+        self.init_dec_args = init_dec_args
+
         # Add more argument related attributes that will be useful later
         self.parameters = None
         self.param_kwargs = None

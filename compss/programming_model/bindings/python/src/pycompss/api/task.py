@@ -98,7 +98,7 @@ class Task(PyCOMPSsDecorator):
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
-    def __init__(self, comment=None, **kwargs):  # noqa
+    def __init__(self, **kwargs):  # noqa
         """
         This part is called in the decoration process, not as an
         explicit function call.
@@ -109,11 +109,9 @@ class Task(PyCOMPSsDecorator):
         b) Transform the parameters from user friendly types
            (i.e Parameter.IN, etc) to a more convenient internal representation
 
-        :param comment: Hidden to the user (non-documented).
         :param kwargs: Decorator parameters. A task decorator has no positional
                        arguments.
         """
-        self.comment = comment
         self.decorator_arguments = kwargs
         # Set missing values to their default ones (step a)
         for (key, value) in self._get_default_decorator_values().items():
@@ -186,8 +184,7 @@ class Task(PyCOMPSsDecorator):
             # Determine the context and decide what to do
             if context.in_master():
                 from pycompss.runtime.task.master import TaskMaster
-                master = TaskMaster(self.comment,
-                                    self.decorator_arguments,
+                master = TaskMaster(self.decorator_arguments,
                                     self.init_dec_args,
                                     self.user_function)
                 return master.call(*args, **kwargs)

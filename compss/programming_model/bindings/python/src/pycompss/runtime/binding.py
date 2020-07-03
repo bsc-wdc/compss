@@ -451,7 +451,7 @@ def register_ce(core_element):
     impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')  # noqa: E501
     impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')  # noqa: E501
     impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')  # noqa: E501
-    impl_io: <String> IO Implementation  #noga
+    impl_io: <String> IO Implementation
     impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa: E501
 
     :param core_element: <CE> Core Element to register

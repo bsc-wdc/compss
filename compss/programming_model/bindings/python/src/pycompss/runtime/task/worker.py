@@ -55,11 +55,9 @@ class TaskWorker(TaskCommons):
     """
 
     def __init__(self,
-                 comment,
                  decorator_arguments,
                  init_dec_args,
                  user_function):
-        self.comment = comment
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments, None, None)
         self.init_dec_args = init_dec_args

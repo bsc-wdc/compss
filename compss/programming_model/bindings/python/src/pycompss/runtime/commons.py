@@ -25,6 +25,7 @@ PyCOMPSs Binding - Commons
 
 import sys
 import os
+from tempfile import mkdtemp
 
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
@@ -42,7 +43,7 @@ else:
 ENVIRONMENT = 'terminal'
 IS_INTERACTIVE = False
 try:
-    from IPython import get_ipython
+    from IPython import get_ipython  # noqa
 
     ipy_str = str(type(get_ipython()))
     if 'zmqshell' in ipy_str:
@@ -63,3 +64,63 @@ if 'BSC_MACHINE' in os.environ and os.environ['BSC_MACHINE'] == 'mn4':
 
 # Tracing hook environment variable
 TRACING_HOOK_ENV_VAR = 'COMPSS_TRACING_HOOK'
+
+# Set temporary dir
+TEMP_DIR = '.'
+TEMP_DIR_PREFIX = 'pycompss'
+TEMP_DIR_FOLDER = 'tmpFiles/'
+TEMP_OBJ_PREFIX = '/compss-serialized-obj_'
+
+EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
+
+# Enable or disable small objects conversion to strings
+# cross-module variable (set/modified from launch.py)
+OBJECT_CONVERSION = False
+
+
+##########################################################
+# GETTERS AND SETTERS (see launch.py and interactive.py) #
+##########################################################
+
+def get_temporary_directory():
+    """
+    Temporary directory getter.
+
+    :return: Temporary directory path
+    """
+    return TEMP_DIR
+
+
+def set_temporary_directory(folder):
+    """
+    Creates the temporary directory from the folder parameter and
+    sets the temporary directory variable.
+
+    :param folder: Temporary directory path
+    :return: None
+    """
+    global TEMP_DIR
+    temp_dir = mkdtemp(prefix=TEMP_DIR_PREFIX,
+                       dir=os.path.join(folder,
+                                        TEMP_DIR_FOLDER))
+    TEMP_DIR = temp_dir
+
+
+def get_object_conversion():
+    """
+    Object conversion getter.
+
+    :return: Boolean object conversion
+    """
+    return OBJECT_CONVERSION
+
+
+def set_object_conversion(conversion=False):
+    """
+    Set object conversion to string.
+
+    :param conversion: Boolean. True enable, False disable.
+    :return: None
+    """
+    global OBJECT_CONVERSION
+    OBJECT_CONVERSION = conversion

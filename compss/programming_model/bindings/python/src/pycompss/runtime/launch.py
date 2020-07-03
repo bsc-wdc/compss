@@ -29,13 +29,12 @@ import os
 import sys
 import logging
 import traceback
-from tempfile import mkdtemp
 
 # Project imports
 import pycompss.util.context as context
-import pycompss.runtime.binding as binding
-
 from pycompss.runtime.binding import get_log_path
+from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.commons import set_object_conversion
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.environment.configuration import prepare_environment
@@ -148,7 +147,7 @@ def compss_main():
     compss_start(log_level, False)
 
     # Get object_conversion boolean
-    binding.object_conversion = args.object_conversion == 'true'
+    set_object_conversion(args.object_conversion == 'true')
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration
@@ -162,8 +161,7 @@ def compss_main():
                             'python',
                             str(_py_version),
                             'log')
-    binding.temp_dir = mkdtemp(prefix='pycompss',
-                               dir=os.path.join(binding_log_path, 'tmpFiles/'))
+    set_temporary_directory(binding_log_path)
 
     logging_cfg_file = get_logging_cfg_file(log_level)
 

@@ -26,7 +26,6 @@ PyCOMPSs Binding - Interactive API
 import os
 import sys
 import logging
-from tempfile import mkdtemp
 import time
 
 import pycompss.util.context as context
@@ -35,6 +34,7 @@ import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.runtime.commons import set_temporary_directory
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
 from pycompss.util.environment.configuration import updated_variables_in_sc
@@ -317,7 +317,7 @@ def start(log_level='off',
 
     global LOG_PATH
     LOG_PATH = get_log_path()
-    binding.temp_dir = mkdtemp(prefix='pycompss', dir=LOG_PATH + '/tmpFiles/')
+    set_temporary_directory(LOG_PATH)
     print("* - Log path : " + LOG_PATH)
 
     major_version = all_vars['major_version']

@@ -1262,7 +1262,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
     elif param.type == TYPE.COLLECTION or \
-            (collection_depth > 0 and is_basic_iterable(param.obj)):
+            (collection_depth > 0 and is_basic_iterable(param.object)):
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator

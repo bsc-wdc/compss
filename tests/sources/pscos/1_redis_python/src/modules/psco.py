@@ -9,6 +9,9 @@ PyCOMPSs Testbench
 
 # Imports
 from storage.api import StorageObject
+# Redis connector does not provide INOUT natively
+from storage.api import delete_persistent
+from storage.api import make_persistent
 
 
 class PSCO(StorageObject):
@@ -21,3 +24,10 @@ class PSCO(StorageObject):
 
     def set_content(self, content):
         self.content = content
+
+    def increase_content(self, value):
+        self.content += value
+        # Redis connector does not provide INOUT natively
+        id = str(self.getID())
+        delete_persistent(self)
+        make_persistent(self, id)

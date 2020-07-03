@@ -27,6 +27,10 @@ import sys
 import os
 from tempfile import mkdtemp
 
+########################################
+# Global variables set in this modules #
+########################################
+
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
 
@@ -44,7 +48,6 @@ ENVIRONMENT = 'terminal'
 IS_INTERACTIVE = False
 try:
     from IPython import get_ipython  # noqa
-
     ipy_str = str(type(get_ipython()))
     if 'zmqshell' in ipy_str:
         ENVIRONMENT = 'jupyter'
@@ -65,17 +68,22 @@ if 'BSC_MACHINE' in os.environ and os.environ['BSC_MACHINE'] == 'mn4':
 # Tracing hook environment variable
 TRACING_HOOK_ENV_VAR = 'COMPSS_TRACING_HOOK'
 
-# Set temporary dir
-TEMP_DIR = '.'
-TEMP_DIR_PREFIX = 'pycompss'
-TEMP_DIR_FOLDER = 'tmpFiles/'
-TEMP_OBJ_PREFIX = '/compss-serialized-obj_'
-
+# Extra content type format
 EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
+
+###############################################
+# Global variables set from different modules #
+###############################################
+
+# Set temporary dir
+_TEMP_DIR = '.'
+_TEMP_DIR_PREFIX = 'pycompss'
+_TEMP_DIR_FOLDER = 'tmpFiles/'
+_TEMP_OBJ_PREFIX = '/compss-serialized-obj_'
 
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
-OBJECT_CONVERSION = False
+_OBJECT_CONVERSION = False
 
 
 ##########################################################
@@ -88,7 +96,7 @@ def get_temporary_directory():
 
     :return: Temporary directory path
     """
-    return TEMP_DIR
+    return _TEMP_DIR
 
 
 def set_temporary_directory(folder):
@@ -99,11 +107,11 @@ def set_temporary_directory(folder):
     :param folder: Temporary directory path
     :return: None
     """
-    global TEMP_DIR
-    temp_dir = mkdtemp(prefix=TEMP_DIR_PREFIX,
+    global _TEMP_DIR
+    temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX,
                        dir=os.path.join(folder,
-                                        TEMP_DIR_FOLDER))
-    TEMP_DIR = temp_dir
+                                        _TEMP_DIR_FOLDER))
+    _TEMP_DIR = temp_dir
 
 
 def get_object_conversion():
@@ -112,7 +120,7 @@ def get_object_conversion():
 
     :return: Boolean object conversion
     """
-    return OBJECT_CONVERSION
+    return _OBJECT_CONVERSION
 
 
 def set_object_conversion(conversion=False):
@@ -122,5 +130,5 @@ def set_object_conversion(conversion=False):
     :param conversion: Boolean. True enable, False disable.
     :return: None
     """
-    global OBJECT_CONVERSION
-    OBJECT_CONVERSION = conversion
+    global _OBJECT_CONVERSION
+    _OBJECT_CONVERSION = conversion

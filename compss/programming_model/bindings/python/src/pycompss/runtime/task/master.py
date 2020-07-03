@@ -34,9 +34,8 @@ from pycompss.api.parameter import DIRECTION
 from pycompss.runtime.commons import IS_PYTHON3  # noqa
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.runtime.commons import TEMP_DIR
-from pycompss.runtime.commons import TEMP_OBJ_PREFIX
 from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
+from pycompss.runtime.commons import get_temporary_directory
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.task.commons import TaskCommons
@@ -1099,7 +1098,7 @@ class TaskMaster(TaskCommons):
             if __debug__:
                 logger.debug("Setting object %s of %s as a future" % (obj_id,
                                                                       type(fo)))
-            ret_filename = TEMP_DIR + TEMP_OBJ_PREFIX + str(obj_id)
+            ret_filename = os.path.join(get_temporary_directory(), str(obj_id))
             OT.set_filename(obj_id, ret_filename)
             OT.set_pending_to_synchronize(obj_id, fo)
             self.returns[get_return_name(0)] = \
@@ -1132,7 +1131,8 @@ class TaskMaster(TaskCommons):
                 if __debug__:
                     logger.debug("Setting object %s of %s as a future" %
                                  (obj_id, type(foe)))
-                ret_filename = TEMP_DIR + TEMP_OBJ_PREFIX + str(obj_id)
+                ret_filename = os.path.join(get_temporary_directory(),
+                                            str(obj_id))
                 OT.set_filename(obj_id, ret_filename)
                 OT.set_pending_to_synchronize(obj_id, foe)
                 # Once determined the filename where the returns are going to
@@ -1524,7 +1524,7 @@ def _turn_into_file(p, skip_creation=False):
     if file_name is None:
         # This is the first time a task accesses this object
         OT.set_pending_to_synchronize(obj_id, p.content)
-        file_name = TEMP_DIR + TEMP_OBJ_PREFIX + str(obj_id)
+        file_name = os.path.join(get_temporary_directory(), str(obj_id))
         OT.set_filename(obj_id, file_name)
         if __debug__:
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))

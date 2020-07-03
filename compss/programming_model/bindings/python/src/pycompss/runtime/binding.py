@@ -33,7 +33,7 @@ import base64
 from collections import *
 from shutil import rmtree
 
-from pycompss.runtime.management.compss import load_runtime
+import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.management.direction import get_compss_direction
@@ -58,8 +58,6 @@ from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.objects.properties import is_basic_iterable
 import pycompss.util.context as context
-
-COMPSs = None
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
@@ -146,15 +144,13 @@ def start_runtime(log_level='off', interactive=False):
     :param interactive: Boolean if interactive (ipython or jupyter)
     :return: None
     """
-    global COMPSs
-
     if __debug__:
         logger.info("Starting COMPSs...")
 
     if interactive and context.in_master():
-        COMPSs = load_runtime(external_process=True)
+        COMPSs.load_runtime(external_process=True)
     else:
-        COMPSs = load_runtime(external_process=False)
+        COMPSs.load_runtime(external_process=False)
 
     if log_level == 'trace':
         # Could also be 'debug' or True, but we only show the C extension
@@ -205,7 +201,7 @@ def accessed_file(file_name):
     in order to check if a file has been accessed.
 
     :param file_name: <String> File name.
-    :return: True if accessed otherwise False;
+    :return: True if accessed, False otherwise.
     """
     app_id = 0
     if __debug__:

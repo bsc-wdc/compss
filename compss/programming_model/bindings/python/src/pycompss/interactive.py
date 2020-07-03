@@ -33,7 +33,7 @@ import pycompss.util.context as context
 import pycompss.runtime.binding as binding
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.binding import pending_to_synchronize
+from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
@@ -429,7 +429,7 @@ def stop(sync=False):
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
-                elif obj_k in pending_to_synchronize.values():
+                elif obj_k in OT.get_pending_to_synchronize_objids():
                     print("Found an object to synchronize: %s" % str(k))
                     logger.debug("Found an object to synchronize: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)

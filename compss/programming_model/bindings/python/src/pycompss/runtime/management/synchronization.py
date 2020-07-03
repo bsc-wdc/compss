@@ -25,6 +25,7 @@ PyCOMPSs Binding - Management - Object Synchronization
 
 import logging
 
+import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
@@ -79,8 +80,6 @@ def _synchronize(obj, mode):
     :param mode: Direction of the object to synchronize.
     :return: The value of the object requested.
     """
-    from pycompss.runtime.management.compss import COMPSs
-
     # TODO: Add a boolean to differentiate between files and object on the
     # COMPSs.open_file call. This change pretends to obtain better traces.
     # Must be implemented first in the Runtime, then in the bindings common

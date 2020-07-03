@@ -280,8 +280,6 @@ class TaskMaster(TaskCommons):
         else:
             is_distributed = self.decorator_arguments['is_distributed']
 
-        ###########################################
-
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
         fo = None
@@ -309,8 +307,6 @@ class TaskMaster(TaskCommons):
 
         # Signature and other parameters:
         signature = '.'.join([path, self.user_function.__name__])
-
-        ###########################################
 
         # Process the task
         binding.process_task(

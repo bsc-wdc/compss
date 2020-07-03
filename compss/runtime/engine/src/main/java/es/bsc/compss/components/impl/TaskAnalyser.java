@@ -251,13 +251,13 @@ public class TaskAnalyser {
      */
     public void endTask(AbstractTask aTask) {
         int taskId = aTask.getId();
+        long start = System.currentTimeMillis();
         if (aTask instanceof Task) {
             Task task = (Task) aTask;
             boolean isFree = task.isFree();
             TaskState taskState = task.getStatus();
             OnFailure onFailure = task.getOnFailure();
             LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
-
             // Check status
             if (!isFree) {
                 LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
@@ -289,7 +289,6 @@ public class TaskAnalyser {
             // Free barrier dependencies
             if (DEBUG) {
                 LOGGER.debug("Freeing barriers for task " + taskId);
-                LOGGER.debug("Ending task " + taskId);
             }
 
             // Free dependencies
@@ -334,8 +333,11 @@ public class TaskAnalyser {
         if (DEBUG) {
             LOGGER.debug("Releasing data dependant tasks for task " + taskId);
         }
-        // Release data dependent tasks
         aTask.releaseDataDependents();
+        if (DEBUG) {
+            long time = System.currentTimeMillis() - start;
+            LOGGER.debug("Task " + taskId + " end message processed in " + time + " ms.");
+        }
     }
 
     /**
@@ -1068,12 +1070,11 @@ public class TaskAnalyser {
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
             DependencyParameter dp = (DependencyParameter) p;
             int dataId = dp.getDataAccessId().getDataId();
+            if (DEBUG) {
+                LOGGER.debug("Removing writters info for datum " + dataId + " and task " + currentTaskId);
+            }
             WritersInfo wi = this.writers.get(dataId);
             if (wi != null) {
-                if (DEBUG) {
-                    LOGGER.debug("Removing writters info for datum " + dataId + " and task " + currentTaskId);
-                }
-
                 switch (dp.getDirection()) {
                     case OUT:
                     case INOUT:

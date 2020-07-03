@@ -33,6 +33,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.compss.util.FileDeleter;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -49,6 +50,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -81,6 +84,8 @@ public class DataManagerImpl implements DataManager {
     private final String baseFolder;
     // Data registry
     private final HashMap<String, DataRegister> registry;
+
+    private static final ExecutorService FILE_OPS_EXECUTOR = Executors.newSingleThreadExecutor();
 
     static {
         String streamBackendProperty = System.getProperty(COMPSsConstants.STREAMING_BACKEND);
@@ -191,20 +196,22 @@ public class DataManagerImpl implements DataManager {
                 WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
             }
         }
+        FILE_OPS_EXECUTOR.shutdown();
+        FileDeleter.shutdown();
     }
 
     @Override
     public void removeObsoletes(List<String> obsoletes) {
         try {
             for (String name : obsoletes) {
+                WORKER_LOGGER.debug("Removing obsolete " + name);
+                final File f = new File(name);
                 if (name.startsWith(File.separator)) {
-                    WORKER_LOGGER.debug("Removing file " + name);
-                    File f = new File(name);
-                    if (!f.delete()) {
-                        WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
-                    }
+                    WORKER_LOGGER.debug("Submiting delete");
+                    FileDeleter.deleteAsync(f);
+                    WORKER_LOGGER.debug("Delete submitted.");
                 }
-                String dataName = new File(name).getName();
+                String dataName = f.getName();
                 DataRegister register = null;
                 synchronized (registry) {
                     register = this.registry.remove(dataName);
@@ -220,6 +227,7 @@ public class DataManagerImpl implements DataManager {
         } catch (Exception e) {
             WORKER_LOGGER.error("Exception", e);
         }
+        WORKER_LOGGER.debug("Remove obsoletes finished");
     }
 
     @Override
@@ -266,31 +274,33 @@ public class DataManagerImpl implements DataManager {
         }
 
         WORKER_LOGGER.debug("Checking locations for " + originalRename);
-        synchronized (originalRegister) {
-            for (InvocationParamURI loc : param.getSources()) {
-                switch (loc.getProtocol()) {
-                    case DIR_URI:
-                    case FILE_URI:
-                        if (loc.isHost(this.hostName)) {
+        for (InvocationParamURI loc : param.getSources()) {
+            switch (loc.getProtocol()) {
+                case DIR_URI:
+                case FILE_URI:
+                    if (loc.isHost(this.hostName)) {
+                        synchronized (originalRegister) {
                             originalRegister.addFileLocation(loc.getPath());
                         }
-                        break;
-                    case PERSISTENT_URI:
-                        String pscoId = loc.getPath();
+                    }
+                    break;
+                case PERSISTENT_URI:
+                    String pscoId = loc.getPath();
+                    synchronized (originalRegister) {
                         originalRegister.setStorageId(pscoId);
-                        break;
-                    case OBJECT_URI:
-                    case BINDING_URI:
-                        if (loc.isHost(this.hostName)) {
-                            WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
-                                + (loc.getProtocol() == ProtocolType.OBJECT_URI ? "N OBJECT " : " BINDING OBJECT "));
-                        }
-                        break;
-                    case SHARED_URI:
-                        break;
+                    }
+                    break;
+                case OBJECT_URI:
+                case BINDING_URI:
+                    if (loc.isHost(this.hostName)) {
+                        WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
+                            + (loc.getProtocol() == ProtocolType.OBJECT_URI ? "N OBJECT " : " BINDING OBJECT "));
+                    }
+                    break;
+                case SHARED_URI:
+                    break;
 
-                    default:
-                }
+                default:
             }
         }
 
@@ -324,36 +334,42 @@ public class DataManagerImpl implements DataManager {
 
         // Try if parameter is in cache
         WORKER_LOGGER.debug("   - Checking if " + finalRename + " is in cache.");
-        synchronized (originalRegister) {
-            if (originalRegister.isLocal()) {
-                if (finalRename.equals(originalRename)) {
-                    try {
+        if (originalRegister.isLocal()) {
+            if (finalRename.equals(originalRename)) {
+                try {
+                    synchronized (originalRegister) {
                         originalRegister.loadValue();
-                    } catch (Exception e) {
-                        WORKER_LOGGER.error(e);
-                        listener.errorFetchingValue(param.getDataMgmtId(), e);
                     }
-                } else {
-                    try {
-                        Object o;
-                        if (param.isPreserveSourceData()) {
+                } catch (Exception e) {
+                    WORKER_LOGGER.error(e);
+                    listener.errorFetchingValue(param.getDataMgmtId(), e);
+                }
+            } else {
+                try {
+                    Object o;
+                    if (param.isPreserveSourceData()) {
+                        synchronized (originalRegister) {
                             o = originalRegister.cloneValue();
-                        } else {
+                        }
+                    } else {
+                        synchronized (originalRegister) {
                             o = originalRegister.loadValue();
                             originalRegister.removeValue();
                         }
-                        DataRegister dr = new DataRegister();
-                        dr.setValue(o);
-                        this.registry.put(finalRename, dr);
-                    } catch (Exception e) {
-                        WORKER_LOGGER.error(e);
-                        listener.errorFetchingValue(param.getDataMgmtId(), e);
                     }
+                    DataRegister dr = new DataRegister();
+                    dr.setValue(o);
+                    synchronized (this.registry) {
+                        this.registry.put(finalRename, dr);
+                    }
+                } catch (Exception e) {
+                    WORKER_LOGGER.error(e);
+                    listener.errorFetchingValue(param.getDataMgmtId(), e);
                 }
-                fetchedLocalParameter(param, index, listener);
-            } else {
-                transferParameter(param, index, listener);
             }
+            fetchedLocalParameter(param, index, listener);
+        } else {
+            transferParameter(param, index, listener);
         }
     }
 
@@ -528,7 +544,9 @@ public class DataManagerImpl implements DataManager {
 
         DataRegister dr = new DataRegister();
         dr.setStorageId(pscoId);
-        registry.put(finalRename, dr);
+        synchronized (this.registry) {
+            registry.put(finalRename, dr);
+        }
         tt.fetchedValue(param.getDataMgmtId());
     }
 
@@ -546,17 +564,26 @@ public class DataManagerImpl implements DataManager {
         }
         WORKER_LOGGER.debug("   - Checking if " + expectedFileLocation + " exists in worker");
         DataRegister originalRegister = getOriginalDataRegister(param);
-        synchronized (originalRegister) {
-            if (originalRegister.isLocal()) {
-                WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") found at host.");
+        if (originalRegister.isLocal()) {
+            WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") found at host.");
 
-                Path tgtPath = Paths.get(expectedFileLocation);
-                Set<String> files = originalRegister.getFileLocations();
+            Path tgtPath = Paths.get(expectedFileLocation);
+            Set<String> files;
+            final String[] filesArray;
+            synchronized (originalRegister) {
+                files = originalRegister.getFileLocations();
                 if (files.contains(expectedFileLocation)) {
                     fetchedLocalParameter(param, index, tt);
                     return;
-                } else {
-                    for (String path : files) {
+                }
+                filesArray = files.toArray(new String[files.size()]);
+            }
+
+            FILE_OPS_EXECUTOR.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    for (String path : filesArray) {
                         if (!expectedFileLocation.equals(path)) {
                             Path srcPath = Paths.get(path);
                             try {
@@ -583,11 +610,14 @@ public class DataManagerImpl implements DataManager {
                                             + " File cannot be atomically moved. Trying to move without atomic");
                                         Files.move(srcPath, tgtPath);
                                     }
+
                                     originalRegister.removeFileLocation(path);
                                 }
                                 DataRegister dr = new DataRegister();
                                 dr.addFileLocation(tgtPath.toString());
-                                registry.put(finalName, dr);
+                                synchronized (registry) {
+                                    registry.put(finalName, dr);
+                                }
                                 fetchedLocalParameter(param, index, tt);
                                 return;
                             } catch (FileAlreadyExistsException e) {
@@ -605,14 +635,15 @@ public class DataManagerImpl implements DataManager {
                             }
                         } else {
                             fetchedLocalParameter(param, index, tt);
+                            return;
                         }
                     }
                 }
-            } else {
-                WORKER_LOGGER.info(
-                    "- Parameter " + index + "(" + expectedFileLocation + ") does not exist, requesting data transfer");
-                transferParameter(param, index, tt);
-            }
+            });
+        } else {
+            WORKER_LOGGER.info(
+                "- Parameter " + index + "(" + expectedFileLocation + ") does not exist, requesting data transfer");
+            transferParameter(param, index, tt);
         }
     }
 
@@ -726,18 +757,18 @@ public class DataManagerImpl implements DataManager {
         synchronized (registry) {
             register = this.registry.get(dataMgmtId);
         }
-        synchronized (register) {
-            try {
+        try {
+            synchronized (register) {
                 o = register.loadValue();
-            } catch (IOException ioe) {
-                WORKER_LOGGER.error("Error loading value", ioe);
-            } catch (ClassNotFoundException cnfe) {
-                WORKER_LOGGER.error("Error loading value", cnfe);
-            } catch (NoSourcesException nse) {
-                WORKER_LOGGER.error("Error loading value", nse);
-            } catch (StorageException se) {
-                WORKER_LOGGER.error("Error loading value", se);
             }
+        } catch (IOException ioe) {
+            WORKER_LOGGER.error("Error loading value", ioe);
+        } catch (ClassNotFoundException cnfe) {
+            WORKER_LOGGER.error("Error loading value", cnfe);
+        } catch (NoSourcesException nse) {
+            WORKER_LOGGER.error("Error loading value", nse);
+        } catch (StorageException se) {
+            WORKER_LOGGER.error("Error loading value", se);
         }
         return o;
     }

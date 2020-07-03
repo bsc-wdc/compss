@@ -31,7 +31,7 @@ class ObjectTracker(object):
     Object tracker class
     --------------------
 
-    This class has all needed datastructures and functionalities
+    This class has all needed data structures and functionalities
     to keep track of the objects within the python binding.
     """
 

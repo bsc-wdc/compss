@@ -33,16 +33,8 @@ from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.serialization.serializer import *
-from pycompss.runtime.commons import IS_PYTHON3
-
-
-if IS_PYTHON3:
-    listType = list
-    dictType = dict
-else:
-    import types
-    listType = types.ListType
-    dictType = types.DictType
+from pycompss.runtime.commons import LIST_TYPE
+from pycompss.runtime.commons import DICT_TYPE
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -57,8 +49,8 @@ def wait_on_object(obj, mode):
     :return: An object of 'file' type.
     """
     compss_mode = get_compss_direction(mode)
-    if isinstance(obj, Future) or not (isinstance(obj, listType) or
-                                       isinstance(obj, dictType)):
+    if isinstance(obj, Future) or not (isinstance(obj, LIST_TYPE) or
+                                       isinstance(obj, DICT_TYPE)):
         return _synchronize(obj, compss_mode)
     else:
         if len(obj) == 0:  # FUTURE OBJECT

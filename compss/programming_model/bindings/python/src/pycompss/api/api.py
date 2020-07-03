@@ -66,17 +66,8 @@ if context.in_pycompss():
     from pycompss.runtime.binding import request_resources as __request_resources__              # noqa: E501
     from pycompss.runtime.binding import free_resources as __free_resources__
     from pycompss.runtime.binding import wait_on as __wait_on__
-    from pycompss.runtime.commons import IS_PYTHON3 as __IS_PYTHON3__
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
-    if __IS_PYTHON3__:
-        listType = list
-        dictType = dict
-    else:
-        import types
-
-        listType = types.ListType
-        dictType = types.DictType
 
     def compss_start(log_level='off', interactive=False):
         """

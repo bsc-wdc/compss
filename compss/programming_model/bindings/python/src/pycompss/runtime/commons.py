@@ -39,9 +39,14 @@ EMPTY_STRING_KEY = "3mPtY57r1Ng"
 if sys.version_info >= (3, 0):
     STR_ESCAPE = 'unicode_escape'
     IS_PYTHON3 = True
+    LIST_TYPE = list
+    DICT_TYPE = dict
 else:
+    import types
     STR_ESCAPE = 'string_escape'
     IS_PYTHON3 = False
+    LIST_TYPE = types.ListType
+    DICT_TYPE = types.DictType
 
 # Determine the environment
 ENVIRONMENT = 'terminal'

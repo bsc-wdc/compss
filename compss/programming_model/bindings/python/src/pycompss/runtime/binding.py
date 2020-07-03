@@ -34,17 +34,8 @@ from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import EmptyReturn
-from pycompss.runtime.commons import IS_PYTHON3  # noqa
+from pycompss.runtime.commons import LIST_TYPE
 import pycompss.util.context as context
-
-# Types conversion dictionary from python to COMPSs
-if IS_PYTHON3:
-    listType = list
-    dictType = dict
-else:
-    import types
-    listType = types.ListType
-    dictType = types.DictType
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -510,7 +501,7 @@ def wait_on(*args, **kwargs):
                    [kwargs.get("mode", "rw")] * len(args)))
     ret = ret[0] if len(ret) == 1 else ret
     # Check if there are empty elements return elements that need to be removed
-    if isinstance(ret, listType):
+    if isinstance(ret, LIST_TYPE):
         # Look backwards the list removing the first EmptyReturn elements
         for elem in reversed(ret):
             if isinstance(elem, EmptyReturn):

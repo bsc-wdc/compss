@@ -147,3 +147,4 @@ class OpenCL(PyCOMPSsDecorator):
 # ########################################################################### #
 
 opencl = OpenCL
+OPENCL = OpenCL

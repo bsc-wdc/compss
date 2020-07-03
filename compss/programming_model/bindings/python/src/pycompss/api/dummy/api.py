@@ -26,7 +26,7 @@ PyCOMPSs Dummy API
 from os import path
 
 
-def compss_start(log_level='off', interactive=False):
+def compss_start(log_level='off', interactive=False):  # noqa
     """
     Dummy runtime starter.
 
@@ -68,7 +68,7 @@ def compss_open(file_name, mode='r'):
     return open(file_name, mode)
 
 
-def compss_delete_file(file_name):
+def compss_delete_file(file_name):  # noqa
     """
     Dummy compss_delete.
 
@@ -78,7 +78,7 @@ def compss_delete_file(file_name):
     return True
 
 
-def compss_delete_object(obj):
+def compss_delete_object(obj):  # noqa
     """
     Dummy compss_delete_object.
 
@@ -88,7 +88,7 @@ def compss_delete_object(obj):
     return True
 
 
-def compss_wait_on_file(file_name):
+def compss_wait_on_file(file_name):  # noqa
     """
     Delete a file -> Calls runtime.
 
@@ -98,7 +98,7 @@ def compss_wait_on_file(file_name):
     return True
 
 
-def compss_barrier(no_more_tasks=False):
+def compss_barrier(no_more_tasks=False):  # noqa
     """
     Dummy barrier.
 
@@ -108,7 +108,7 @@ def compss_barrier(no_more_tasks=False):
     pass
 
 
-def compss_barrier_group(group_name):
+def compss_barrier_group(group_name):  # noqa
     """
     Dummy barrier for groups.
 
@@ -140,7 +140,7 @@ def compss_get_number_of_resources():
     return 1
 
 
-def compss_request_resources(num_resources, group_name):
+def compss_request_resources(num_resources, group_name):  # noqa
     """
     Requests the creation of num_resources resources.
 
@@ -153,7 +153,7 @@ def compss_request_resources(num_resources, group_name):
     pass
 
 
-def compss_free_resources(num_resources, group_name):
+def compss_free_resources(num_resources, group_name):  # noqa
     """
     Requests the destruction of num_resources resources.
 

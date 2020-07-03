@@ -163,3 +163,4 @@ class OmpSs(PyCOMPSsDecorator):
 # ########################################################################### #
 
 ompss = OmpSs
+OMPSS = OmpSs

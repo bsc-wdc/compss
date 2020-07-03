@@ -25,15 +25,12 @@ PyCOMPSs API - Task
 
 from __future__ import print_function
 import copy
-import os
 import sys
-import inspect
 from functools import wraps
 
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_parameter_copy
 from pycompss.runtime.task.parameter import is_dict_specifier
@@ -69,11 +66,11 @@ class Task(PyCOMPSsDecorator):
     worker. We must also handle the case when the user just runs the app with
     python and no PyCOMPSs.
     The specific implementations can be found in TaskMaster.call(),
-    TaskWorker.call() and self.sequential_call()
+    TaskWorker.call() and self._sequential_call()
     """
 
     @staticmethod
-    def get_default_decorator_values():
+    def _get_default_decorator_values():
         """
         Default value for decorator arguments.
         By default, do not use jit (if true -> use nopython mode,
@@ -108,7 +105,7 @@ class Task(PyCOMPSsDecorator):
 
         We do two things here:
         a) Assign default values to unspecified fields
-           (see get_default_decorator_values )
+           (see _get_default_decorator_values )
         b) Transform the parameters from user friendly types
            (i.e Parameter.IN, etc) to a more convenient internal representation
 
@@ -119,7 +116,7 @@ class Task(PyCOMPSsDecorator):
         self.comment = comment
         self.decorator_arguments = kwargs
         # Set missing values to their default ones (step a)
-        for (key, value) in self.get_default_decorator_values().items():
+        for (key, value) in self._get_default_decorator_values().items():
             if key not in self.decorator_arguments:
                 self.decorator_arguments[key] = value
         # Give all parameters a unique instance for them (step b)
@@ -129,7 +126,7 @@ class Task(PyCOMPSsDecorator):
         # Giving them a unique instance makes life easier in further steps
         for (key, value) in self.decorator_arguments.items():
             # Not all decorator arguments are necessarily parameters
-            # (see self.get_default_decorator_values)
+            # (see self._get_default_decorator_values)
             if is_param(value):
                 self.decorator_arguments[key] = get_parameter_copy(value)
             # Specific case when value is a dictionary
@@ -172,7 +169,7 @@ class Task(PyCOMPSsDecorator):
         The work to do in the master part is totally different
         from the job to do in the worker part. This is why there are
         some other functions like master_call, worker_call, and
-        sequential_call
+        _sequential_call
 
         There is also a third case that happens when the user runs a PyCOMPSs
         code without PyCOMPSs. This case is straightforward: just call the
@@ -209,16 +206,16 @@ class Task(PyCOMPSsDecorator):
                     message += "         It will be executed sequentially "
                     message += "within the caller task."
                     print(message, file=sys.stderr)
-                    return self.sequential_call(*args, **kwargs)
+                    return self._sequential_call(*args, **kwargs)
             # We are neither in master nor in the worker, or the user has
             # stopped the interactive session.
             # Therefore, the user code is being executed with no
             # launch_compss/enqueue_compss/runcompss/interactive session
-            return self.sequential_call(*args, **kwargs)
+            return self._sequential_call(*args, **kwargs)
 
         return task_decorator
 
-    def sequential_call(self, *args, **kwargs):
+    def _sequential_call(self, *args, **kwargs):
         """
         The easiest case: just call the user function and return whatever it
         returns.
@@ -237,3 +234,4 @@ class Task(PyCOMPSsDecorator):
 
 # task can be also typed as Task
 task = Task
+TASK = Task

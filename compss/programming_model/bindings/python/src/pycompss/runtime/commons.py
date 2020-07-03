@@ -71,6 +71,9 @@ TRACING_HOOK_ENV_VAR = 'COMPSS_TRACING_HOOK'
 # Extra content type format
 EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
 
+# Interactive mode file name
+INTERACTIVE_FILE_NAME = 'InteractiveMode'
+
 ###############################################
 # Global variables set from different modules #
 ###############################################

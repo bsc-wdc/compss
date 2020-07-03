@@ -29,11 +29,12 @@ import logging
 import time
 
 import pycompss.util.context as context
-import pycompss.runtime.binding as binding
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.management.classes import Future
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import set_temporary_directory
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
@@ -53,9 +54,7 @@ from pycompss.streams.environment import stop_streaming
 
 
 # GLOBAL VARIABLES
-APP_PATH = 'InteractiveMode'
-# Warning! The name should start with 'InteractiveMode' due to @task checks
-# it explicitly. If changed, it is necessary to update the task decorator.
+APP_PATH = INTERACTIVE_FILE_NAME
 PERSISTENT_STORAGE = False
 STREAMING = False
 LOG_PATH = '/tmp/'
@@ -78,7 +77,7 @@ def start(log_level='off',
           streaming_master_name=None,
           streaming_master_port=None,
           task_count=50,
-          app_name='Interactive',
+          app_name=INTERACTIVE_FILE_NAME,
           uuid=None,
           base_log_dir=None,
           specific_log_dir=None,
@@ -139,7 +138,7 @@ def start(log_level='off',
     :param task_count: Task count
                        (default: 50)
     :param app_name: Application name
-                     default: Interactive_date)
+                     default: INTERACTIVE_FILE_NAME)
     :param uuid: UUId
                  (default: None)
     :param base_log_dir: Base logging directory
@@ -186,7 +185,6 @@ def start(log_level='off',
                     (default: False)
     :return: None
     """
-
     # Export global variables
     global GRAPHING
     GRAPHING = graph
@@ -425,7 +423,7 @@ def stop(sync=False):
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith('_'):   # not internal objects
-                if type(obj_k) == binding.Future:
+                if type(obj_k) == Future:
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
@@ -456,7 +454,6 @@ def stop(sync=False):
 
     print("****************************************************")
     logger.debug("--- END ---")
-    # os._exit(00)  # Explicit kernel restart # breaks Jupyter-notebook
 
     # --- Execution finished ---
 
@@ -541,7 +538,7 @@ def __export_globals__():
 
     :return: None
     """
-
+    global APP_PATH
     # Super ugly, but I see no other way to define the APP_PATH across the
     # interactive execution without making the user to define it explicitly.
     # It is necessary to define only one APP_PATH because of the two decorators
@@ -555,10 +552,9 @@ def __export_globals__():
     user_globals = ipython.__dict__['ns_table']['user_global']
     # Inject APP_PATH variable to user globals so that task and constraint
     # decorators can get it.
-    temp_app_filename = os.getcwd() + '/' + "InteractiveMode_"
+    temp_app_filename = os.path.join(os.getcwd(), INTERACTIVE_FILE_NAME + '_')
     temp_app_filename += str(time.strftime('%d%m%y_%H%M%S')) + '.py'
     user_globals['APP_PATH'] = temp_app_filename
-    global APP_PATH
     APP_PATH = temp_app_filename
 
 
@@ -570,7 +566,6 @@ def __clean_temp_files__():
 
     :return: None
     """
-
     try:
         if os.path.exists(APP_PATH):
             os.remove(APP_PATH)

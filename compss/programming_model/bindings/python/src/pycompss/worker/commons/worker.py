@@ -29,6 +29,7 @@ import base64
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
@@ -420,7 +421,7 @@ def import_user_module(path, logger):
     if py_version >= (2, 7):
         import importlib
         module = importlib.import_module(path)  # Python 2.7
-        if path.startswith('InteractiveMode_'):
+        if path.startswith(INTERACTIVE_FILE_NAME):
             # Force reload in interactive mode. The user may have
             # overwritten a function or task.
             if py_version < (3, 0):

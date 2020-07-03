@@ -18,9 +18,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import copy
-import sys
 import os
+import sys
+import ast
+import copy
 import threading
 import inspect
 import base64
@@ -35,6 +36,7 @@ from pycompss.runtime.commons import IS_PYTHON3  # noqa
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
+from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import get_temporary_directory
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.management.object_tracker import OT
@@ -60,9 +62,12 @@ from pycompss.util.arguments import check_arguments
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import SerializerException
+from pycompss.util.objects.properties import get_module_name
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.objects.properties import is_basic_iterable
+from pycompss.util.objects.properties import get_wrapped_source
+from pycompss.util.objects.properties import get_wrapped_source_lines
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
@@ -146,12 +151,16 @@ DEPRECATED_ARGUMENTS = ['isReplicated',
 # Some attributes cause memory leaks, we must delete them from memory after
 # master call
 ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
-                            'parameters',
                             'param_args',
                             'param_varargs',
                             'param_kwargs',
                             'param_defaults',
                             'first_arg_name',
+                            'parameters',
+                            'function_name',
+                            'module_name',
+                            'function_type',
+                            'class_name',
                             'returns',
                             'multi_return']
 
@@ -174,23 +183,25 @@ class TaskMaster(TaskCommons):
                  user_function):
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments, None, None)
-
         # User function
         self.user_function = user_function
         # Initial decorator arguments
         self.init_dec_args = init_dec_args
-
+        # Internal copy of decorator arguments
+        self.decorator_arguments = None
         # Add more argument related attributes that will be useful later
-        self.parameters = None
+        self.param_args = None
+        self.param_varargs = None
         self.param_kwargs = None
         self.param_defaults = None
-        self.first_arg_name = None
         # Add function related attributed that will be useful later
-        self.module_name = None
+        self.first_arg_name = None
+        self.computing_nodes = None
+        self.parameters = None
         self.function_name = None
+        self.module_name = None
         self.function_type = None
         self.class_name = None
-        self.computing_nodes = None
         # Add returns related attributes that will be useful later
         self.returns = None
         self.multi_return = False
@@ -217,19 +228,9 @@ class TaskMaster(TaskCommons):
         # IMPORTANT! recover initial decorator arguments
         self.decorator_arguments = copy.deepcopy(self.init_dec_args)
 
-        # IMPORTANT! extract the core element from kwargs if pre-defined
-        #            in decorators defined on top of @task.
-        pre_defined_ce = False
-        if CORE_ELEMENT_KEY in kwargs:
-            # Core element has already been created in a higher level decorator
-            core_element = kwargs[CORE_ELEMENT_KEY]
-            # Remove the core element from kwargs to avoid issues processing
-            # the parameters (process_master_parameters function).
-            kwargs.pop(CORE_ELEMENT_KEY)
-            pre_defined_ce = True
-        else:
-            # No decorators over @task: instantiate an empty core element
-            core_element = CE()
+        # Extract the core element (has to be extracted before processing
+        # the kwargs to avoid issues processing the parameters)
+        core_element, pre_defined_ce = self.extract_core_element(kwargs)
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
@@ -238,7 +239,7 @@ class TaskMaster(TaskCommons):
         self.inspect_user_function_arguments()
 
         # Process the parameters, give them a proper direction
-        self.process_master_parameters(*args, **kwargs)
+        self.process_parameters(*args, **kwargs)
 
         # Compute the function path, class (if any), and name
         self.compute_user_function_information()
@@ -246,15 +247,14 @@ class TaskMaster(TaskCommons):
         # Prepare the core element registration information
         self.set_code_strings(self.user_function,
                               core_element.get_impl_type())
-        impl_signature, impl_type_args = self.get_signature(self.user_function)
+        impl_signature, impl_type_args = self.get_signature()
         self.update_core_element(impl_signature, impl_type_args,
                                  core_element, pre_defined_ce)
-        # Process the decorators to get the core element information
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
         if not self.registered or self.signature != impl_signature:
-            self.register_task(self.user_function, core_element)
+            self.register_task(core_element)
             self.registered = True
             self.signature = impl_signature
 
@@ -310,11 +310,11 @@ class TaskMaster(TaskCommons):
         has_priority = self.decorator_arguments['priority']
 
         # Signature and other parameters:
-        signature = '.'.join([path, self.user_function.__name__])
+        signature = '.'.join([path, self.function_name])
 
         # Process the task
         binding.process_task(
-            self.user_function.__name__,
+            self.function_name,
             path,
             has_target,
             self.module_name,
@@ -376,7 +376,7 @@ class TaskMaster(TaskCommons):
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Do any necessary pre processing action before executing any code
-            if file_name.startswith('InteractiveMode') and not self.registered:
+            if file_name.startswith(INTERACTIVE_FILE_NAME) and not self.registered:
                 # If the file_name starts with 'InteractiveMode' means that
                 # the user is using PyCOMPSs from jupyter-notebook.
                 # Convention between this file and interactive.py
@@ -391,6 +391,29 @@ class TaskMaster(TaskCommons):
             # No need to update anything
             pass
 
+    @staticmethod
+    def extract_core_element(kwargs):
+        """
+        Extract the core element if created in a higher level decorator
+        or creates a new one if does not.
+
+        :return: Core element, boolean if previously created
+        """
+        # IMPORTANT! extract the core element from kwargs if pre-defined
+        #            in decorators defined on top of @task.
+        pre_defined_ce = False
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            core_element = kwargs[CORE_ELEMENT_KEY]
+            # Remove the core element from kwargs to avoid issues processing
+            # the parameters (process_parameters function).
+            kwargs.pop(CORE_ELEMENT_KEY)
+            pre_defined_ce = True
+        else:
+            # No decorators over @task: instantiate an empty core element
+            core_element = CE()
+        return core_element, pre_defined_ce
+
     def inspect_user_function_arguments(self):
         """
         Inspect the arguments of the user function and store them.
@@ -399,6 +422,7 @@ class TaskMaster(TaskCommons):
         variadic arguments, named arguments and so on.
         This will be useful when pairing arguments with the direction
         the user has specified for them in the decorator
+
         :return: None, it just adds attributes
         """
         try:
@@ -410,8 +434,7 @@ class TaskMaster(TaskCommons):
             self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa: E501
         # It will be easier to deal with functions if we pretend that all have
         # the signature f(positionals, *variadic, **named). This is why we are
-        # substituting
-        # Nones with default stuff
+        # substituting Nones with default stuff.
         # As long as we remember what was the users original intention with
         # the parameters we can internally mess with his signature as much as
         # we want. There is no need to add self-imposed constraints here.
@@ -437,7 +460,7 @@ class TaskMaster(TaskCommons):
             # of getfullargspec).
             return inspect.getargspec(function)  # noqa
 
-    def process_master_parameters(self, *args, **kwargs):
+    def process_parameters(self, *args, **kwargs):
         """
         Process all the input parameters.
         Basically, processing means "build a dictionary of <name, parameter>,
@@ -583,8 +606,6 @@ class TaskMaster(TaskCommons):
 
         :return: None, it just modifies self.module_name
         """
-        import inspect
-        import os
         mod = inspect.getmodule(self.user_function)
         self.module_name = mod.__name__
         # If it is a task within a class, the module it will be where the one
@@ -608,7 +629,6 @@ class TaskMaster(TaskCommons):
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module
-            from pycompss.util.objects.properties import get_module_name
             self.module_name = get_module_name(path, file_name)
 
     def compute_function_type(self):
@@ -664,7 +684,7 @@ class TaskMaster(TaskCommons):
 
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" %
-                         (f.__name__, self.module_name, str(ce_type)))
+                         (self.function_name, self.module_name, str(ce_type)))
 
         if ce_type == default:
             f.__code_strings__ = True
@@ -675,8 +695,6 @@ class TaskMaster(TaskCommons):
                 func = f
                 while not got_func_code:
                     try:
-                        from pycompss.util.objects.properties import \
-                            get_wrapped_source_lines
                         func_code = get_wrapped_source_lines(func)
                         got_func_code = True
                     except IOError:
@@ -691,7 +709,7 @@ class TaskMaster(TaskCommons):
             else:
                 f.__code_strings__ = False
 
-    def get_signature(self, f):
+    def get_signature(self):
         """
         This function is used to find out the function signature.
         The information is needed in order to compare the implementation
@@ -699,7 +717,6 @@ class TaskMaster(TaskCommons):
         signature, it can be re-registered with the new one (enable
         inheritance).
 
-        :param f: Function to be registered
         :return: Implementation signature and implementation type arguments
         """
         # Get the task signature
@@ -719,22 +736,22 @@ class TaskMaster(TaskCommons):
             # The task is defined within the main app file.
             # This case is never reached with Python 3 since it includes
             # frames that are not present with Python 2.
-            impl_signature = self.module_name + "." + f.__name__
-            impl_type_args = [self.module_name, f.__name__]
+            impl_signature = self.module_name + "." + self.function_name
+            impl_type_args = [self.module_name, self.function_name]
         else:
             if self.class_name:
                 # Within class or subclass
                 impl_signature = self.module_name + '.' + \
-                               self.class_name + '.' + \
-                               f.__name__
+                                 self.class_name + '.' + \
+                                 self.function_name
                 impl_type_args = [self.module_name + '.' + self.class_name,
-                                  f.__name__]
+                                  self.function_name]
             else:
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular
                 # frames are included, but not class names found.
-                impl_signature = self.module_name + "." + f.__name__
-                impl_type_args = [self.module_name, f.__name__]
+                impl_signature = self.module_name + "." + self.function_name
+                impl_type_args = [self.module_name, self.function_name]
 
         return impl_signature, impl_type_args
 
@@ -743,6 +760,7 @@ class TaskMaster(TaskCommons):
                             core_element, pre_defined_ce):
         """
         Adds the @task decorator information to the core element.
+        CAUTION: Modifies the core_element parameter.
 
         :param impl_signature: Implementation signature
         :param impl_type_args: Implementation type arguments
@@ -794,18 +812,17 @@ class TaskMaster(TaskCommons):
             core_element.set_impl_type_args(impl_type_args)
             core_element.set_impl_io(impl_io)
 
-    def register_task(self, f, core_element):  # noqa
+    def register_task(self, core_element):
         """
         This function is used to register the task in the runtime.
         This registration must be done only once on the task decorator
         initialization
 
-        :param f: Function to be registered
         :return: None
         """
         if __debug__:
             logger.debug("[@TASK] Registering the function %s in module %s" %
-                         (f.__name__, self.module_name))
+                         (self.function_name, self.module_name))
         binding.register_ce(core_element)
 
     def process_computing_nodes(self):
@@ -876,7 +893,6 @@ class TaskMaster(TaskCommons):
 
         :return: Nothing, it just creates and modifies self.returns
         """
-        from collections import OrderedDict
         self.returns = OrderedDict()
 
         _returns = self.decorator_arguments['returns']
@@ -889,12 +905,9 @@ class TaskMaster(TaskCommons):
         # 2) An integer N. This means 'this task returns N objects'
         # 3) A basic iterable (tuple, list...). This means 'this task
         #    returns an iterable with the indicated elements inside
-
         # We are returning multiple objects until otherwise proven
         # It is important to know because this will determine if we will
         # return a single object or [a single object] in some cases
-
-        from pycompss.util.objects.properties import is_basic_iterable
         self.multi_return = True
         if isinstance(_returns, str):
             # Check if the returns statement contains an string with an
@@ -951,9 +964,6 @@ class TaskMaster(TaskCommons):
 
         :param f: Function to check
         """
-        from pycompss.util.objects.properties import get_wrapped_source
-        import ast
-
         # Check type-hinting in python3
         if IS_PYTHON3:
             from typing import get_type_hints
@@ -1163,8 +1173,9 @@ class TaskMaster(TaskCommons):
                                                              max_obj_arg_size,
                                                              policy='objectSize')  # noqa: E501
                 max_obj_arg_size -= written_bytes
-            # Serialize objects into files
-            p = _serialize_object_into_file(k, p)
+            else:
+                # Serialize objects into files
+                p = _serialize_object_into_file(k, p)
             # Update k parameter's Parameter object
             self.parameters[k] = p
 
@@ -1557,7 +1568,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
     the given parameter
     """
     con_type = UNDEFINED_CONTENT_TYPE
-    if param.content_type == TYPE.STRING and not param.is_future and code_strings:
+    if param.content_type == TYPE.STRING and not param.is_future and code_strings:  # noqa: E501
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
         # Considers multiple spaces between words
@@ -1566,7 +1577,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
-            param.content = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+            param.content = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()    # noqa: E501
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
             "builtins", str(param.content.__class__.__name__))
 

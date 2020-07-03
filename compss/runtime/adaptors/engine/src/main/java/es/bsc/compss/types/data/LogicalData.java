@@ -32,6 +32,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileDeleter;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.TraceEvent;
@@ -235,7 +236,7 @@ public class LogicalData {
      *
      * @param alias Alias to remove from the list of known aliases.
      */
-    public synchronized void removeKnownAlias(String alias) {
+    public synchronized void removeKnownAlias(String alias, boolean asynch) {
         if (this.knownAlias.remove(alias)) {
             if (this.knownAlias.isEmpty()) {
                 for (Resource res : this.getAllHosts()) {
@@ -245,36 +246,10 @@ public class LogicalData {
                     MultiURI uri = dl.getURIInHost(Comm.getAppHost());
                     if (uri != null) {
                         File f = new File(uri.getPath());
-                        if (f.exists()) {
-                            LOGGER.info("Deleting file " + f.getAbsolutePath());
-                            if (!f.delete()) {
-                                LOGGER.error("Cannot delete file " + f.getAbsolutePath());
-                            } else {
-                                if (f.isDirectory()) {
-                                    // directories must be removed recursively
-                                    Path directory = Paths.get(uri.getPath());
-                                    try {
-                                        Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-
-                                            @Override
-                                            public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
-                                                throws IOException {
-                                                Files.delete(file);
-                                                return FileVisitResult.CONTINUE;
-                                            }
-
-                                            @Override
-                                            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                                                throws IOException {
-                                                Files.delete(dir);
-                                                return FileVisitResult.CONTINUE;
-                                            }
-                                        });
-                                    } catch (IOException e) {
-                                        LOGGER.error("Cannot delete directory " + f.getAbsolutePath());
-                                    }
-                                }
-                            }
+                        if (asynch) {
+                            FileDeleter.deleteAsync(f);
+                        } else {
+                            FileDeleter.deleteSync(f);
                         }
                     }
                 }

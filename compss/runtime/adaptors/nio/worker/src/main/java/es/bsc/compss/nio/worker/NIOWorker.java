@@ -299,6 +299,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         WORKER_LOGGER.info("Received Job " + task);
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("ARGUMENTS:");

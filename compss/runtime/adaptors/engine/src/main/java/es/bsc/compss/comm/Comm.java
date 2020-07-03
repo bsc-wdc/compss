@@ -34,6 +34,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileDeleter;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
@@ -346,6 +347,8 @@ public class Comm {
             }
         }
 
+        FileDeleter.shutdown();
+
         if (Tracer.extraeEnabled()) {
             // Emit last EVENT_END event for STOP
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
@@ -628,11 +631,11 @@ public class Comm {
      * @param renaming Data Id.
      * @return return removed logical data
      */
-    public static synchronized LogicalData removeData(String renaming) {
+    public static synchronized LogicalData removeData(String renaming, boolean asynch) {
         LOGGER.debug("Removing data " + renaming);
         LogicalData ld = DATA.remove(renaming);
         if (ld != null) {
-            ld.removeKnownAlias(renaming);
+            ld.removeKnownAlias(renaming, asynch);
             for (Resource res : ld.getAllHosts()) {
                 res.removeLogicalData(ld);
             }

@@ -151,7 +151,7 @@ public abstract class DataInfo {
     public final boolean versionHasBeenRead(int versionId) {
         DataVersion readVersion = this.versions.get(versionId);
         if (readVersion.hasBeenRead()) {
-            Comm.removeData(readVersion.getDataInstanceId().getRenaming());
+            Comm.removeData(readVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
             // return (this.toDelete && versions.size() == 0);
             return this.versions.isEmpty();
@@ -181,7 +181,7 @@ public abstract class DataInfo {
     public final boolean versionHasBeenWritten(int versionId) {
         DataVersion writtenVersion = versions.get(versionId);
         if (writtenVersion.hasBeenWritten()) {
-            Comm.removeData(writtenVersion.getDataInstanceId().getRenaming());
+            Comm.removeData(writtenVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
             // return (this.toDelete && versions.size() == 0);
             return this.versions.isEmpty();
@@ -206,7 +206,7 @@ public abstract class DataInfo {
         if (this.deletionBlocks == 0) {
             for (DataVersion version : this.pendingDeletions) {
                 if (version.markToDelete()) {
-                    Comm.removeData(version.getDataInstanceId().getRenaming());
+                    Comm.removeData(version.getDataInstanceId().getRenaming(), true);
                     this.versions.remove(version.getDataInstanceId().getVersionId());
                 }
             }
@@ -231,7 +231,7 @@ public abstract class DataInfo {
             for (DataVersion version : this.versions.values()) {
                 String sourceName = version.getDataInstanceId().getRenaming();
                 if (version.markToDelete()) {
-                    Comm.removeData(sourceName);
+                    Comm.removeData(sourceName, noReuse);
                     removedVersions.add(version.getDataInstanceId().getVersionId());
                 }
             }
@@ -280,7 +280,7 @@ public abstract class DataInfo {
         DataVersion readVersion = this.versions.get(versionId);
 
         if (readVersion != null && readVersion.markToDelete()) {
-            Comm.removeData(readVersion.getDataInstanceId().getRenaming());
+            Comm.removeData(readVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
         }
 
@@ -297,7 +297,7 @@ public abstract class DataInfo {
             readVersion.unmarkToDelete();
         }
         if (readVersion.hasBeenRead()) {
-            Comm.removeData(readVersion.getDataInstanceId().getRenaming());
+            Comm.removeData(readVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
             // return (this.toDelete && versions.size() == 0);
             return this.versions.isEmpty();

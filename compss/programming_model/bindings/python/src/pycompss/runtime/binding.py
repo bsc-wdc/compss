@@ -228,7 +228,7 @@ def barrier(no_more_tasks=False):
     in order to request a barrier.
     Wait for all tasks.
 
-    :param no_more_tasks:
+    :param no_more_tasks: No more tasks
     :return: None
     """
     if __debug__:

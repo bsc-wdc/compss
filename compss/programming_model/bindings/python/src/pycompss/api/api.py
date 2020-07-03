@@ -68,7 +68,6 @@ if context.in_pycompss():
     from pycompss.runtime.binding import wait_on as __wait_on__
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
-
     def compss_start(log_level='off', interactive=False):
         """
         Starts the runtime.
@@ -103,6 +102,7 @@ if context.in_pycompss():
     def compss_open(file_name, mode='r'):
         """
         Open a file -> Calls runtime.
+        Remember to close the file after using it with builtin close function.
 
         :param file_name: File name.
         :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r

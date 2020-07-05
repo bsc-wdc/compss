@@ -143,7 +143,7 @@ class Action(object):
 class ExecutionAction(Action):
     def __init__(self, timestamp, description, tasks):
         super(ExecutionAction, self).__init__(ActionType.EXECUTION_ACTION, timestamp)
-        task_id = description.split()[2][:-1]
+        task_id = description.split()[1][:-1]
         self.task = tasks.get_task(task_id)
         self.task.add_action(self)
         self.jobs = []
@@ -151,13 +151,13 @@ class ExecutionAction(Action):
 
     @staticmethod
     def obtain_previous_task_action(description, tasks):
-        task_id = description.split()[2][:-1]
+        task_id = description.split()[1][:-1]
         task = tasks.get_task(task_id)
         return task.action[-1]
 
     def _meets(self, type, description):
         if type == self.get_type():
-            task_id = description.split()[2][:-1]
+            task_id = description.split()[1][:-1]
             return self.task.task_id == task_id
         else:
             return False

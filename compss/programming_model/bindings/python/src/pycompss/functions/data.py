@@ -28,6 +28,7 @@ from pycompss.api.task import task
 
 
 def generator(size, num_frag, seed=None, distribution='random', wait=False):
+    # type: (tuple, int, int, str, bool) -> object
     """
     Data generator.
     Generates a list of fragments.
@@ -59,6 +60,7 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
 
 @task(returns=list)
 def _gen_random(size, frag_size, seed):
+    # type: (int, int, int) -> list
     """
     Random generator.
 
@@ -74,6 +76,7 @@ def _gen_random(size, frag_size, seed):
 
 @task(returns=list)
 def _gen_normal(size, frag_size, seed):
+    # type: (int, int, int) -> list
     """
     Normal generator.
 
@@ -82,7 +85,6 @@ def _gen_normal(size, frag_size, seed):
     :param seed: Random seed
     :return: a fragment of elements
     """
-
     random.seed(seed)
     return [[random.gauss(mu=0.0, sigma=1.0) for _ in range(size)]
             for _ in range(frag_size)]
@@ -90,6 +92,7 @@ def _gen_normal(size, frag_size, seed):
 
 @task(returns=list)
 def _gen_uniform(size, frag_size, seed):
+    # type: (int, int, int) -> list
     """
     Uniform generator.
 
@@ -98,15 +101,15 @@ def _gen_uniform(size, frag_size, seed):
     :param seed: Random seed
     :return: a fragment of elements
     """
-
     random.seed(seed)
     return [[random.uniform(-1.0, 1.0) for _ in range(size)]
             for _ in range(frag_size)]
 
 
 def chunks(lst, n, balanced=False):
+    # type: (list, int, bool) -> list
     """
-    List chunker into fragments.
+    List splitter into fragments.
 
     WARNING: Not tested!
 
@@ -115,7 +118,6 @@ def chunks(lst, n, balanced=False):
     :param balanced: True to generate balanced fragments
     :return: yield fragments of size n from lst
     """
-
     if not balanced or not len(lst) % n:
         for i in range(0, len(lst), n):
             yield lst[i:i + n]

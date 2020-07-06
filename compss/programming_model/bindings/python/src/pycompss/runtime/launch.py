@@ -29,6 +29,7 @@ import os
 import sys
 import logging
 import traceback
+import argparse
 
 # Project imports
 import pycompss.util.context as context
@@ -67,6 +68,7 @@ else:
 
 
 def get_logging_cfg_file(log_level):
+    # type: (str) -> str
     """
     Retrieves the logging configuration file.
 
@@ -94,7 +96,6 @@ def parse_arguments():
 
     :return: Parser arguments.
     """
-    import argparse
     parser = argparse.ArgumentParser(
         description='PyCOMPSs application launcher')
     parser.add_argument('log_level',
@@ -115,6 +116,7 @@ def parse_arguments():
 
 
 def compss_main():
+    # type: () -> None
     """
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level

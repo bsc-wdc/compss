@@ -24,7 +24,7 @@ PyCOMPSs Dummy API
     It implements a dummy compss_open and compss_wait_on functions.
 """
 
-from os import path
+import os
 
 
 def compss_start(log_level='off', interactive=False):  # noqa
@@ -61,7 +61,7 @@ def compss_file_exists(file_name):
     :param file_name: The file name to check.
     :return: True if exists. False otherwise.
     """
-    return path.exists(file_name)
+    return os.path.exists(file_name)
 
 
 def compss_open(file_name, mode='r'):
@@ -190,6 +190,7 @@ def compss_request_resources(num_resources, group_name):  # noqa
 
 
 def compss_free_resources(num_resources, group_name):  # noqa
+    # type: (int, str) -> None
     """ Requests the destruction of num_resources resources.
 
     Does nothing.

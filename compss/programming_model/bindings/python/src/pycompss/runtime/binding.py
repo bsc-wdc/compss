@@ -34,11 +34,13 @@ from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import EmptyReturn
+from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.commons import LIST_TYPE
 import pycompss.util.context as context
 
-# Setup logger
-logger = logging.getLogger(__name__)
+if __debug__:
+    # Setup logger
+    logger = logging.getLogger(__name__)
 
 
 # ########################################################################### #
@@ -46,6 +48,7 @@ logger = logging.getLogger(__name__)
 # ########################################################################### #
 
 def start_runtime(log_level='off', interactive=False):
+    # type: (str, bool) -> None
     """
     Starts the runtime by calling the external python library that calls
     the bindings-common.
@@ -68,17 +71,20 @@ def start_runtime(log_level='off', interactive=False):
         COMPSs.set_debug(True)
 
     COMPSs.start_runtime()
-
     if __debug__:
         logger.info("COMPSs started")
 
 
 def stop_runtime(code=0):
+    # type: (bool) -> None
     """
     Stops the runtime by calling the external python library that calls
     the bindings-common.
     Also cleans objects and temporary files created during runtime.
+    If the code is different from 0, all running or waiting tasks will be
+    cancelled.
 
+    :parameter code: Stop code (if code != 0 ==> cancel application tasks)
     :return: None
     """
     if __debug__:
@@ -106,6 +112,7 @@ def stop_runtime(code=0):
 
 
 def accessed_file(file_name):
+    # type: (str) -> bool
     """
     Calls the external python library (that calls the bindings-common)
     in order to check if a file has been accessed.
@@ -120,6 +127,7 @@ def accessed_file(file_name):
 
 
 def open_file(file_name, mode):
+    # type: (str, str) -> str
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
@@ -140,6 +148,7 @@ def open_file(file_name, mode):
 
 
 def delete_file(file_name):
+    # type: (str) -> bool
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a file removal.
@@ -160,6 +169,7 @@ def delete_file(file_name):
 
 
 def get_file(file_name):
+    # type: (str) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to request last version of file.
@@ -174,6 +184,7 @@ def get_file(file_name):
 
 
 def get_directory(dir_name):
+    # type: (str) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to request last version of file.
@@ -188,6 +199,7 @@ def get_directory(dir_name):
 
 
 def delete_object(obj):
+    # type: (object) -> bool
     """
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
@@ -201,7 +213,6 @@ def delete_object(obj):
     if obj_id is None:
         OT.pop_object_id(obj)
         return False
-
     try:
         OT.pop_object_id(obj)
     except KeyError:
@@ -223,6 +234,7 @@ def delete_object(obj):
 
 
 def barrier(no_more_tasks=False):
+    # type: (bool) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier.
@@ -233,7 +245,6 @@ def barrier(no_more_tasks=False):
     """
     if __debug__:
         logger.debug("Barrier. No more tasks? %s" % str(no_more_tasks))
-
     # If noMoreFlags is set, clean up the objects
     if no_more_tasks:
         _clean_objects()
@@ -244,13 +255,14 @@ def barrier(no_more_tasks=False):
 
 
 def barrier_group(group_name):
+    # type: (str) -> str
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier of a group.
     Wait for all tasks of the group.
 
     :param group_name: Group name
-    :return: None
+    :return: None or string with exception message
     """
     app_id = 0
     # Call the Runtime group barrier
@@ -258,6 +270,7 @@ def barrier_group(group_name):
 
 
 def open_task_group(group_name, implicit_barrier):
+    # type: (str, bool) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to request an opening of a group.
@@ -271,6 +284,7 @@ def open_task_group(group_name, implicit_barrier):
 
 
 def close_task_group(group_name):
+    # type: (str) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a group closure.
@@ -283,6 +297,7 @@ def close_task_group(group_name):
 
 
 def get_log_path():
+    # type: () -> str
     """
     Requests the logging path to the external python library (that calls
     the bindings-common).
@@ -298,12 +313,12 @@ def get_log_path():
 
 
 def get_number_of_resources():
+    # type: () -> int
     """
     Calls the external python library (that calls the bindings-common)
     in order to request for the number of active resources.
 
     :return: Number of active resources
-        +type: <int>
     """
     app_id = 0
     if __debug__:
@@ -314,20 +329,18 @@ def get_number_of_resources():
 
 
 def request_resources(num_resources, group_name):
+    # type: (int, str) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to request for the creation of the given resources.
 
     :param num_resources: Number of resources to create.
-        +type: <int>
     :param group_name: Task group to notify upon resource creation
-        +type: <str> or None
     :return: None
     """
     app_id = 0
     if group_name is None:
         group_name = "NULL"
-
     if __debug__:
         logger.debug("Request the creation of " +
                      str(num_resources) +
@@ -339,21 +352,19 @@ def request_resources(num_resources, group_name):
 
 
 def free_resources(num_resources, group_name):
+    # type: (int, str) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to request for the destruction of the given resources.
 
     :param num_resources: Number of resources to destroy.
-        +type: <int>
     :param group_name: Task group to notify upon resource creation
-        +type: <str> or None
     :return: None
     """
     app_id = 0
 
     if group_name is None:
         group_name = "NULL"
-
     if __debug__:
         logger.debug("Request the destruction of " +
                      str(num_resources) +
@@ -365,6 +376,7 @@ def free_resources(num_resources, group_name):
 
 
 def register_ce(core_element):
+    # type: (CE) -> None
     """
     Calls the external python library (that calls the bindings-common)
     in order to notify the runtime about a core element that needs to be
@@ -509,29 +521,31 @@ def wait_on(*args, **kwargs):
     return ret
 
 
-def process_task(function_name,  # noqa
-                 path,           # noqa
-                 has_target,
-                 module_name,    # noqa
-                 class_name,     # noqa
-                 f_type,         # noqa
-                 values,
-                 names,
-                 num_returns,
-                 compss_types,
-                 compss_directions,
-                 compss_streams,
-                 compss_prefixes,
-                 content_types,
-                 weights,
-                 keep_renames,
-                 has_priority,
-                 signature,
-                 num_nodes,
-                 replicated,
-                 distributed,
-                 on_failure,
-                 time_out):
+def process_task(function_name,         # type: str
+                 path,                  # type: str
+                 has_target,            # type: bool
+                 module_name,           # type: str
+                 class_name,            # type: str
+                 f_type,                # type: int
+                 values,                # type: list
+                 names,                 # type: list
+                 num_returns,           # type: int
+                 compss_types,          # type: list
+                 compss_directions,     # type: list
+                 compss_streams,        # type: list
+                 compss_prefixes,       # type: list
+                 content_types,         # type: list
+                 weights,               # type: list
+                 keep_renames,          # type: list
+                 has_priority,          # type: list
+                 signature,             # type: list
+                 num_nodes,             # type: list
+                 replicated,            # type: list
+                 distributed,           # type: list
+                 on_failure,            # type: list
+                 time_out,              # type: int
+                 ):
+    # type: (...) -> None
     """
     Function that submits a task to the runtime.
 
@@ -664,6 +678,7 @@ def process_task(function_name,  # noqa
 # ########################################################################### #
 
 def _clean_objects():
+    # type: () -> None
     """
     Clean the objects stored in the global dictionaries:
         * pending_to_synchronize dict
@@ -680,6 +695,7 @@ def _clean_objects():
 
 
 def _clean_temps():
+    # type: () -> None
     """
     Clean temporary files.
     The temporary files end with the IT extension

@@ -63,6 +63,7 @@ class PyCOMPSsDecorator(object):
                 logger.debug("Init " + decorator_name + " decorator...")
 
     def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """
         Include the registering info related to the decorator which inherits
 
@@ -77,6 +78,7 @@ class PyCOMPSsDecorator(object):
     #########################################
 
     def __resolve_working_dir__(self):
+        # type: () -> None
         """
         Resolve the working directory considering deprecated naming.
         Updates self.kwargs:
@@ -94,6 +96,7 @@ class PyCOMPSsDecorator(object):
             self.kwargs['working_dir'] = '[unassigned]'  # Empty or '[unassigned]'
 
     def __resolve_fail_by_exit_value__(self):
+        # type: () -> None
         """
         Resolve the fail by exit value.
         Updates self.kwargs:
@@ -116,6 +119,7 @@ class PyCOMPSsDecorator(object):
             self.kwargs['fail_by_exit_value'] = 'false'
 
     def __process_computing_nodes__(self, decorator_name):
+        # type: (str) -> int
         """
         Process computing nodes from decorator.
         Modifies the self.kwargs dictionary since it can be used in lower level
@@ -174,10 +178,14 @@ class PyCOMPSsDecorator(object):
 
 @contextmanager
 def keep_arguments(args, kwargs, prepend_strings=True):
+    # type: (list, dict, bool) -> None
     """
     Context which saves and restores the function arguments.
     It also enables or disables the PREPEND_STRINGS property from @task.
 
+    :param args: Arguments.
+    :param kwargs: Key word arguments.
+    :param: Prepend strings in the task.
     :return: None
     """
     # Keep function arguments

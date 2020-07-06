@@ -114,6 +114,7 @@ class OmpSs(PyCOMPSsDecorator):
         return ompss_f
 
     def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """
         Include the registering info related to @ompss
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY]

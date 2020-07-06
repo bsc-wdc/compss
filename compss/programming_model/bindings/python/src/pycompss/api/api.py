@@ -197,7 +197,7 @@ if context.in_pycompss():
             raise __COMPSsException__(exception_message)
 
     def compss_wait_on(*args, **kwargs):
-        # type: (*object, dict) -> None
+        # type: (*object, dict) -> object
         """ Wait for objects.
 
         Waits on a set of objects defined in args with the options defined in
@@ -356,7 +356,7 @@ else:
         __dummy_compss_barrier_group__(group_name)
 
     def compss_wait_on(*args):
-        # type: (str) -> None
+        # type: (str) -> object
         return __dummy_compss_wait_on__(*args)
 
     def compss_get_number_of_resources():

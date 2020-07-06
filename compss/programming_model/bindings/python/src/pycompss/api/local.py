@@ -51,9 +51,11 @@ def local(input_function):
     else:
 
         def must_sync(obj):
+            # type: (object) -> bool
             return OT.get_object_id(obj) in OT.get_pending_to_synchronize_objids()  # noqa: E501
 
         def sync_if_needed(obj):
+            # type: (object) -> None
             if must_sync(obj):
                 new_val = compss_wait_on(obj)
                 replace(obj, new_val)
@@ -68,7 +70,6 @@ def local(input_function):
             for (key, value) in kwargs.items():
                 sync_if_needed(value)
                 _kwargs[key] = value
-
             return input_function(*_args, **_kwargs)
 
         return wrapped_function

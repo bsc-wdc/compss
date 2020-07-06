@@ -99,6 +99,7 @@ _OBJECT_CONVERSION = False
 ##########################################################
 
 def get_temporary_directory():
+    # type: () -> str
     """
     Temporary directory getter.
 
@@ -108,6 +109,7 @@ def get_temporary_directory():
 
 
 def set_temporary_directory(folder):
+    # type: (str) -> None
     """
     Creates the temporary directory from the folder parameter and
     sets the temporary directory variable.
@@ -123,6 +125,7 @@ def set_temporary_directory(folder):
 
 
 def get_object_conversion():
+    # type: () -> bool
     """
     Object conversion getter.
 
@@ -132,6 +135,7 @@ def get_object_conversion():
 
 
 def set_object_conversion(conversion=False):
+    # type: (bool) -> None
     """
     Set object conversion to string.
 

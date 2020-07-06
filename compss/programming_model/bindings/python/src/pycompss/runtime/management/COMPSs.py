@@ -97,7 +97,7 @@ def accessed_file(file_name):
     :param file_name: File name
     :return: None
     """
-    _COMPSs.accessed_file(file_name)  # noqa
+    return _COMPSs.accessed_file(file_name)  # noqa
 
 
 def open_file(file_name, mode):
@@ -174,7 +174,7 @@ def barrier_group(app_id, group_name):
     :param group_name: Group name
     :return: None
     """
-    _COMPSs.barrier_group(app_id, group_name)  # noqa
+    return _COMPSs.barrier_group(app_id, group_name)  # noqa
 
 
 def open_task_group(group_name, implicit_barrier, mode):

@@ -180,7 +180,9 @@ class TaskMaster(TaskCommons):
     def __init__(self,
                  decorator_arguments,
                  init_dec_args,
-                 user_function):
+                 user_function,
+                 registered,
+                 signature):
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments, None, None)
         # User function
@@ -207,8 +209,8 @@ class TaskMaster(TaskCommons):
         self.multi_return = False
         # Task wont be registered until called from the master for the first
         # time or have a different signature
-        self.signature = None
-        self.registered = False
+        self.registered = registered
+        self.signature = signature
 
     def call(self, *args, **kwargs):
         """
@@ -264,7 +266,7 @@ class TaskMaster(TaskCommons):
         from pycompss.api.task import REGISTER_ONLY
         if REGISTER_ONLY:
             MASTER_LOCK.release()
-            return
+            return None, self.registered, self.signature
 
         # Deal with dynamic computing nodes
         computing_nodes = self.process_computing_nodes()
@@ -351,7 +353,7 @@ class TaskMaster(TaskCommons):
         # This object will substitute the user expected return from the task
         # and will be used later for synchronization or as a task parameter
         # (then the runtime will take care of the dependency).
-        return fo
+        return fo, self.registered, self.signature
 
     def update_if_interactive(self):
         """

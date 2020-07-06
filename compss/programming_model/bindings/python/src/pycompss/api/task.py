@@ -157,6 +157,9 @@ class Task(PyCOMPSsDecorator):
         self.init_dec_args = copy.deepcopy(self.decorator_arguments)
         # Function to execute as task
         self.user_function = None
+        # Global variables common for all tasks of this kind
+        self.registered = None
+        self.signature = None
 
     def __call__(self, user_function):
         """
@@ -184,16 +187,25 @@ class Task(PyCOMPSsDecorator):
             # Determine the context and decide what to do
             if context.in_master():
                 from pycompss.runtime.task.master import TaskMaster
+                # Each task will have a TaskMaster, so its content will
+                # not be shared.
                 master = TaskMaster(self.decorator_arguments,
                                     self.init_dec_args,
-                                    self.user_function)
-                return master.call(*args, **kwargs)
+                                    self.user_function,
+                                    self.registered,
+                                    self.signature)
+                fo, self.registered, self.signature = master.call(*args,
+                                                                  **kwargs)
+                del master
+                return fo
             elif context.in_worker():
                 if 'compss_key' in kwargs.keys():
                     from pycompss.runtime.task.worker import TaskWorker
                     worker = TaskWorker(self.decorator_arguments,
                                         self.user_function)
-                    return worker.call(*args, **kwargs)
+                    result = worker.call(*args, **kwargs)
+                    del worker
+                    return result
                 else:
                     # Called from another task within the worker
                     # Ignore the @task decorator and run it sequentially

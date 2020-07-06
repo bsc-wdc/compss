@@ -192,7 +192,6 @@ if context.in_pycompss():
         :param group_name: Name of the group to wait.
         :return: None.
         """
-
         exception_message = __barrier_group__(group_name)
         if exception_message is not None:
             raise __COMPSsException__(exception_message)

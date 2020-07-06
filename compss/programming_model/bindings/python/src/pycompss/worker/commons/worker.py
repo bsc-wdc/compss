@@ -241,9 +241,6 @@ def task_execution(logger, process_name, module, method_name, time_out,
         logger.debug("P. storage : %s " % str(persistent_storage))
         logger.debug("Storage cfg: %s " % str(storage_conf))
 
-    new_types = []
-    new_values = []
-
     try:
         # WARNING: the following call will not work if a user decorator
         # overrides the return of the task decorator.
@@ -274,9 +271,10 @@ def task_execution(logger, process_name, module, method_name, time_out,
         logger.exception("TIMEOUT ERROR IN %s - Time Out Exception" %
                          process_name)
         logger.exception("Task has taken too much time to process")
+        new_values = _get_return_values_for_exception(types, values)
         return task_returns(3,
                             types,
-                            values,
+                            new_values,
                             None,
                             True,
                             "",
@@ -286,8 +284,9 @@ def task_execution(logger, process_name, module, method_name, time_out,
         return_message = "No message"
         if compss_exception.message is not None:
             return_message = compss_exception.message
+        new_values = _get_return_values_for_exception(types, values)
         return task_returns(2,
-                            new_types,
+                            types,
                             new_values,
                             None,
                             False,
@@ -305,8 +304,8 @@ def task_execution(logger, process_name, module, method_name, time_out,
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
         return task_returns(1,
-                            new_types,
-                            new_values,
+                            [],
+                            [],
                             None,
                             False,
                             "",
@@ -320,8 +319,8 @@ def task_execution(logger, process_name, module, method_name, time_out,
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
         return task_returns(1,
-                            new_types,
-                            new_values,
+                            [],
+                            [],
                             None,
                             False,
                             "",
@@ -349,6 +348,25 @@ def task_execution(logger, process_name, module, method_name, time_out,
 
     return task_returns(0, new_types, new_values, target_direction,
                         False, "", logger)
+
+
+def _get_return_values_for_exception(types, values):
+    """
+    Builds the values list to retrieve on an exception.
+    It takes the input types and returns a list of 'null' for each type
+    unless it is a PSCO, where it puts the psco identifier.
+
+    :param types: List of input types.
+    :param values: List of input values.
+    :return: List of values to return
+    """
+    new_values = []
+    for i in range(len(types)):
+        if types[i] == parameter.TYPE.EXTERNAL_PSCO:
+            new_values.append(values[i])
+        else:
+            new_values.append('null')
+    return new_values
 
 
 def task_returns(exit_code, new_types, new_values, target_direction,

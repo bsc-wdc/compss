@@ -100,7 +100,8 @@ def c_extension_link(in_queue, out_queue):
         elif command == CANCEL_TASKS:
             compss.cancel_application_tasks(*parameters)
         elif command == ACCESSED_FILE:
-            compss.accessed_file(*parameters)
+            accessed = compss.accessed_file(*parameters)
+            out_queue.put(accessed)
         elif command == OPEN_FILE:
             compss_name = compss.open_file(*parameters)
             out_queue.put(compss_name)
@@ -116,7 +117,8 @@ def c_extension_link(in_queue, out_queue):
         elif command == BARRIER:
             compss.barrier(*parameters)
         elif command == BARRIER_GROUP:
-            compss.barrier_group(*parameters)
+            exception_message = compss.barrier_group(*parameters)
+            out_queue.put(exception_message)
         elif command == OPEN_TASK_GROUP:
             compss.open_task_group(*parameters)
         elif command == CLOSE_TASK_GROUP:
@@ -243,6 +245,8 @@ class COMPSs(object):
     @staticmethod
     def accessed_file(file_name):
         IN_QUEUE.put((ACCESSED_FILE, file_name))
+        accessed = OUT_QUEUE.get(block=True)
+        return accessed
 
     @staticmethod
     def open_file(file_name, mode):
@@ -275,6 +279,8 @@ class COMPSs(object):
     @staticmethod
     def barrier_group(app_id, group_name):
         IN_QUEUE.put((BARRIER_GROUP, app_id, group_name))
+        exception_message = OUT_QUEUE.get(block=True)
+        return exception_message
 
     @staticmethod
     def open_task_group(group_name, implicit_barrier, mode):

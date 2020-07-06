@@ -14,7 +14,7 @@ from pycompss.api.task import task
 from pycompss.api.binary import binary
 from pycompss.api.mpi import mpi
 from pycompss.api.api import TaskGroup
-from pycompss.api.api import COMPSsException
+from pycompss.api.exceptions import COMPSsException
 
 
 # Tasks definition

@@ -31,7 +31,7 @@ import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.runtime.task.parameter import is_param
-from pycompss.runtime.task.parameter import get_parameter_copy
+from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import is_dict_specifier
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
 
@@ -125,7 +125,7 @@ class Task(PyCOMPSsDecorator):
             # Not all decorator arguments are necessarily parameters
             # (see self._get_default_decorator_values)
             if is_param(value):
-                self.decorator_arguments[key] = get_parameter_copy(value)
+                self.decorator_arguments[key] = get_new_parameter(value.key)
             # Specific case when value is a dictionary
             # Use case example:
             # @binary(binary="ls")

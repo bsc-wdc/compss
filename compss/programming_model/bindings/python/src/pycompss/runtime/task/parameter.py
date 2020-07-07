@@ -91,6 +91,7 @@ class Parameter(object):
         self.keep_rename = keep_rename
 
     def __repr__(self):
+        # type: () -> str
         return 'Parameter(name=%s\n' \
                '          content=%s\n' \
                '          type=%s, direction=%s, stream=%s, prefix=%s\n' \
@@ -114,309 +115,306 @@ class Parameter(object):
                                               str(self.keep_rename))
 
     def is_object(self):
-        """
-        Determine if parameter is an object (not a FILE).
+        # type: () -> bool
+        """ Determine if parameter is an object (not a FILE).
 
-        :return: True if param represents an object (IN, INOUT, OUT)
+        :return: True if param represents an object (IN, INOUT, OUT).
         """
         return self.content_type is None
 
     def is_file(self):
-        """
-        Determine if parameter is a FILE.
+        # type: () -> bool
+        """ Determine if parameter is a FILE.
 
-        :return: True if param represents an FILE (IN, INOUT, OUT)
+        :return: True if param represents an FILE (IN, INOUT, OUT).
         """
         return self.content_type is TYPE.FILE
 
     def is_directory(self):
-        """
-        Determine if parameter is a DIRECTORY.
+        # type: () -> bool
+        """ Determine if parameter is a DIRECTORY.
 
-        :return: True if param represents an DIRECTORY
+        :return: True if param represents an DIRECTORY.
         """
         return self.content_type is TYPE.DIRECTORY
 
 
+_DIRECTION = 'direction'
+_KEEP_RENAME = 'keep_rename'
+_CONTENT_TYPE = 'content_type'
+_STREAM = 'stream'
+_IS_FILE_COLLECTION = 'is_file_collection'
 # Parameter conversion dictionary.
 _param_conversion_dict_ = {
     'IN': {},
     'OUT': {
-        'direction': DIRECTION.OUT,
+        _DIRECTION: DIRECTION.OUT,
     },
     'INOUT': {
-        'direction': DIRECTION.INOUT,
+        _DIRECTION: DIRECTION.INOUT,
     },
     'CONCURRENT': {
-        'direction': DIRECTION.CONCURRENT,
+        _DIRECTION: DIRECTION.CONCURRENT,
     },
     'COMMUTATIVE': {
-        'direction': DIRECTION.COMMUTATIVE,
+        _DIRECTION: DIRECTION.COMMUTATIVE,
     },
     'FILE': {
-        'content_type': TYPE.FILE,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _KEEP_RENAME: False
     },
     'FILE_IN': {
-        'content_type': TYPE.FILE,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _KEEP_RENAME: False
     },
     'FILE_OUT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.OUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.OUT,
+        _KEEP_RENAME: False
     },
     'FILE_INOUT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.INOUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.INOUT,
+        _KEEP_RENAME: False
     },
     'DIRECTORY': {
-        'content_type': TYPE.DIRECTORY,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.DIRECTORY,
+        _KEEP_RENAME: False
     },
     'DIRECTORY_IN': {
-        'content_type': TYPE.DIRECTORY,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.DIRECTORY,
+        _KEEP_RENAME: False
     },
     'DIRECTORY_OUT': {
-        'content_type': TYPE.DIRECTORY,
-        'direction': DIRECTION.OUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.DIRECTORY,
+        _DIRECTION: DIRECTION.OUT,
+        _KEEP_RENAME: False
     },
     'DIRECTORY_INOUT': {
-        'content_type': TYPE.DIRECTORY,
-        'direction': DIRECTION.INOUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.DIRECTORY,
+        _DIRECTION: DIRECTION.INOUT,
+        _KEEP_RENAME: False
     },
     'FILE_CONCURRENT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.CONCURRENT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.CONCURRENT,
+        _KEEP_RENAME: False
     },
     'FILE_COMMUTATIVE': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.COMMUTATIVE,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.COMMUTATIVE,
+        _KEEP_RENAME: False
     },
     'FILE_STDIN': {
-        'content_type': TYPE.FILE,
-        'stream': IOSTREAM.STDIN,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _STREAM: IOSTREAM.STDIN,
+        _KEEP_RENAME: False
     },
     'FILE_STDERR': {
-        'content_type': TYPE.FILE,
-        'stream': IOSTREAM.STDERR,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _STREAM: IOSTREAM.STDERR,
+        _KEEP_RENAME: False
     },
     'FILE_STDOUT': {
-        'content_type': TYPE.FILE,
-        'stream': IOSTREAM.STDOUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _STREAM: IOSTREAM.STDOUT,
+        _KEEP_RENAME: False
     },
     'FILE_IN_STDIN': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.IN,
-        'stream': IOSTREAM.STDIN,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.IN,
+        _STREAM: IOSTREAM.STDIN,
+        _KEEP_RENAME: False
     },
     'FILE_IN_STDERR': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.IN,
-        'stream': IOSTREAM.STDERR,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.IN,
+        _STREAM: IOSTREAM.STDERR,
+        _KEEP_RENAME: False
     },
     'FILE_IN_STDOUT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.IN,
-        'stream': IOSTREAM.STDOUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.IN,
+        _STREAM: IOSTREAM.STDOUT,
+        _KEEP_RENAME: False
     },
     'FILE_OUT_STDIN': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.OUT,
-        'stream': IOSTREAM.STDIN,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.OUT,
+        _STREAM: IOSTREAM.STDIN,
+        _KEEP_RENAME: False
     },
     'FILE_OUT_STDERR': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.OUT,
-        'stream': IOSTREAM.STDERR,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.OUT,
+        _STREAM: IOSTREAM.STDERR,
+        _KEEP_RENAME: False
     },
     'FILE_OUT_STDOUT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.OUT,
-        'stream': IOSTREAM.STDOUT
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.OUT,
+        _STREAM: IOSTREAM.STDOUT,
+        _KEEP_RENAME: False
     },
     'FILE_INOUT_STDIN': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.INOUT,
-        'stream': IOSTREAM.STDIN,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.INOUT,
+        _STREAM: IOSTREAM.STDIN,
+        _KEEP_RENAME: False
     },
     'FILE_INOUT_STDERR': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.INOUT,
-        'stream': IOSTREAM.STDERR,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.INOUT,
+        _STREAM: IOSTREAM.STDERR,
+        _KEEP_RENAME: False
     },
     'FILE_INOUT_STDOUT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.INOUT,
-        'stream': IOSTREAM.STDOUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.INOUT,
+        _STREAM: IOSTREAM.STDOUT,
+        _KEEP_RENAME: False
     },
     'FILE_CONCURRENT_STDIN': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.CONCURRENT,
-        'stream': IOSTREAM.STDIN,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.CONCURRENT,
+        _STREAM: IOSTREAM.STDIN,
+        _KEEP_RENAME: False
     },
     'FILE_CONCURRENT_STDERR': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.CONCURRENT,
-        'stream': IOSTREAM.STDERR,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.CONCURRENT,
+        _STREAM: IOSTREAM.STDERR,
+        _KEEP_RENAME: False
     },
     'FILE_CONCURRENT_STDOUT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.CONCURRENT,
-        'stream': IOSTREAM.STDOUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.CONCURRENT,
+        _STREAM: IOSTREAM.STDOUT,
+        _KEEP_RENAME: False
     },
     'FILE_COMMUTATIVE_STDIN': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.COMMUTATIVE,
-        'stream': IOSTREAM.STDIN,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.COMMUTATIVE,
+        _STREAM: IOSTREAM.STDIN,
+        _KEEP_RENAME: False
     },
     'FILE_COMMUTATIVE_STDERR': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.COMMUTATIVE,
-        'stream': IOSTREAM.STDERR,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.COMMUTATIVE,
+        _STREAM: IOSTREAM.STDERR,
+        _KEEP_RENAME: False
     },
     'FILE_COMMUTATIVE_STDOUT': {
-        'content_type': TYPE.FILE,
-        'direction': DIRECTION.COMMUTATIVE,
-        'stream': IOSTREAM.STDOUT,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.FILE,
+        _DIRECTION: DIRECTION.COMMUTATIVE,
+        _STREAM: IOSTREAM.STDOUT,
+        _KEEP_RENAME: False
     },
     'COLLECTION': {
-        'content_type': TYPE.COLLECTION,
+        _CONTENT_TYPE: TYPE.COLLECTION,
     },
     'COLLECTION_IN': {
-        'content_type': TYPE.COLLECTION,
-        'direction': DIRECTION.IN,
+        _CONTENT_TYPE: TYPE.COLLECTION,
+        _DIRECTION: DIRECTION.IN,
     },
     'COLLECTION_INOUT': {
-        'content_type': TYPE.COLLECTION,
-        'direction': DIRECTION.INOUT,
+        _CONTENT_TYPE: TYPE.COLLECTION,
+        _DIRECTION: DIRECTION.INOUT,
     },
     'COLLECTION_OUT': {
-        'content_type': TYPE.COLLECTION,
-        'direction': DIRECTION.OUT,
-    },
-    'STREAM_IN': {
-        'content_type': TYPE.EXTERNAL_STREAM,
-        'direction': DIRECTION.IN
-    },
-    'STREAM_OUT': {
-        'content_type': TYPE.EXTERNAL_STREAM,
-        'direction': DIRECTION.OUT
-    },
-    'COLLECTION_FILE': {
-        'content_type': TYPE.COLLECTION,
-        'is_file_collection': True,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.COLLECTION,
+        _DIRECTION: DIRECTION.OUT,
+        _IS_FILE_COLLECTION: True,
+        _KEEP_RENAME: False
     },
     'COLLECTION_FILE_IN': {
-        'content_type': TYPE.COLLECTION,
-        'direction': DIRECTION.IN,
-        'is_file_collection': True,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.COLLECTION,
+        _DIRECTION: DIRECTION.IN,
+        _IS_FILE_COLLECTION: True,
+        _KEEP_RENAME: False
     },
     'COLLECTION_FILE_INOUT': {
-        'content_type': TYPE.COLLECTION,
-        'direction': DIRECTION.INOUT,
-        'is_file_collection': True,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.COLLECTION,
+        _DIRECTION: DIRECTION.INOUT,
+        _IS_FILE_COLLECTION: True,
+        _KEEP_RENAME: False
     },
     'COLLECTION_FILE_OUT': {
-        'content_type': TYPE.COLLECTION,
-        'direction': DIRECTION.OUT,
-        'is_file_collection': True,
-        'keep_rename': False
+        _CONTENT_TYPE: TYPE.COLLECTION,
+        _DIRECTION: DIRECTION.OUT,
+        _IS_FILE_COLLECTION: True,
+        _KEEP_RENAME: False
     }
 }
 
 
 def is_param(obj):
-    """
-    Check if given object is a parameter.
+    # type: (object) -> bool
+    """ Check if given object is a parameter.
     Avoids internal _param_ import.
 
-    :param obj: Object to check
+    :param obj: Object to check.
+    :return: True if obj is instance of _Param.
     """
     return isinstance(obj, Param)
 
 
 def is_parameter(obj):
-    """
-    Check if given object is a parameter.
+    # type: (object) -> bool
+    """ Check if given object is a parameter.
     Avoids internal Parameter import.
 
-    :param obj: Object to check
+    :param obj: Object to check.
+    :return: True if obj is instance of Parameter.
     """
     return isinstance(obj, Parameter)
 
 
 def get_new_parameter(key):
-    """
-    Returns a brand new parameter (no copies!)
+    # type: (str) -> Parameter
+    """ Returns a brand new parameter (no copies!)
 
-    :param key: A string that is a key of a valid Parameter template
+    :param key: A string that is a key of a valid Parameter template.
+    :return: A new Parameter from the given key.
     """
     return Parameter(**_param_conversion_dict_[key])
 
 
-def get_parameter_copy(param):
-    """
-    Same as get_new_parameter but with param objects.
+def get_parameter_copy(parameter):
+    # type: (Parameter) -> Parameter
+    """ Copies the given parameter into a new one.
 
-    :param param: Parameter object
+    :param parameter: Parameter object.
     :return: An equivalent Parameter copy of this object (note that it will
-             be equivalent, but not equal)
+             be equivalent, but not equal).
     """
-    if is_param(param):
-        return Parameter(**_param_conversion_dict_[param.key])
-    assert is_parameter(param), \
-        'Input parameter is neither a _Param nor a Parameter (is %s)' % \
-        param.__class__.__name__
-    return copy.deepcopy(param)
+    assert is_parameter(parameter), \
+        'Input parameter is not Parameter (is %s)' % parameter.__class__.__name__  # noqa: E501
+    return copy.deepcopy(parameter)
 
 
 def is_dict_specifier(value):
-    """
+    # type: (object) -> bool
+    """ Check if value is a supported dictionary.
     Check if a parameter of the task decorator is a dictionary that specifies
     at least Type (and therefore can include things like Prefix, see binary
     decorator test for some examples).
 
-    :param value: Decorator value to check
+    :param value: Decorator value to check.
     :return: True if value is a dictionary that specifies at least the Type of
-             the key
+             the key.
     """
-    return isinstance(value, dict)
+    return isinstance(value, dict) and Type in value
 
 
 def get_parameter_from_dictionary(d):
-    """
+    # type: (dict) -> Parameter
+    """ Convert a dictionary to Parameter
     Given a dictionary with fields like Type, Direction, etc.
     returns an actual Parameter object.
 
-    :param d: Parameter description as dictionary
-    :return: an actual Parameter object
+    :param d: Parameter description as dictionary.
+    :return: an actual Parameter object.
     """
     if Type not in d:  # If no Type specified => IN
         d[Type] = Parameter()
@@ -438,12 +436,12 @@ def get_parameter_from_dictionary(d):
 
 
 def get_compss_type(value, depth=0):
-    """
-    Retrieve the value type mapped to COMPSs types.
+    # type: (object, int) -> int
+    """ Retrieve the value type mapped to COMPSs types.
 
-    :param value: Value to analyse
+    :param value: Value to analyse.
     :param depth: Collections depth.
-    :return: The Type of the value
+    :return: The Type of the value.
     """
     # First check if it is a PSCO since a StorageNumpy can be detected
     # as a numpy object.

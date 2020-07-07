@@ -293,11 +293,13 @@ class TaskMaster(TaskCommons):
 
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
+
+        # Build return objects
         fo = None
+        num_returns = 0
         if self.returns:
             fo = self._build_return_objects()
-
-        num_returns = len(self.returns)
+            num_returns = len(self.returns)
 
         # Get path
         if self.class_name == '':
@@ -1385,6 +1387,7 @@ class TaskMaster(TaskCommons):
 
 
 def _manage_persistent_object(p):
+    # type: (Parameter) -> None
     """
     Does the necessary actions over a persistent object used as task parameter.
     Check if the object has already been used (indexed in the obj_id_to_filename
@@ -1404,6 +1407,7 @@ def _manage_persistent_object(p):
 
 
 def _serialize_object_into_file(name, p):
+    # type: (str, Parameter) -> Parameter
     """
     Serialize an object into a file if necessary.
 

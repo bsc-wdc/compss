@@ -25,7 +25,6 @@ PyCOMPSs Binding - Binding
 
 import os
 import re
-import logging
 from shutil import rmtree
 
 import pycompss.runtime.management.COMPSs as COMPSs
@@ -40,6 +39,7 @@ import pycompss.util.context as context
 
 if __debug__:
     # Setup logger
+    import logging
     logger = logging.getLogger(__name__)
 
 

@@ -692,26 +692,12 @@ class TaskMaster(TaskCommons):
 
         if ce_type == default:
             f.__code_strings__ = True
+        elif ce_type == "PYTHON_MPI":
+            f.__code_strings__ = True
+        elif ce_type == "MPI":
+            f.__code_strings__ = False
         else:
-            if ce_type == "PYTHON_MPI":
-                func_code = ''
-                got_func_code = False
-                func = f
-                while not got_func_code:
-                    try:
-                        func_code = get_wrapped_source_lines(func)
-                        got_func_code = True
-                    except IOError:
-                        # There is one or more decorators below the @task ->
-                        # undecorate until possible to get the func code.
-                        # Example of this case: test 19: @timeit decorator
-                        # below the @task decorator.
-                        func = func.__wrapped__
-                for line in func_code[0]:
-                    if "@mpi" in line:
-                        f.__code_strings__ = "binary" not in line
-            else:
-                f.__code_strings__ = False
+            f.__code_strings__ = False
 
     def get_signature(self):
         """

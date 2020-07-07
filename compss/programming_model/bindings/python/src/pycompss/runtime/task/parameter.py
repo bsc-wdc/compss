@@ -445,6 +445,23 @@ def get_compss_type(value, depth=0):
     :param depth: Collections depth.
     :return: The Type of the value
     """
+    # First check if it is a PSCO since a StorageNumpy can be detected
+    # as a numpy object.
+    if has_id(value):
+        # If has method getID maybe is a PSCO
+        try:
+            if get_id(value) not in [None, 'None']:
+                # the 'getID' + id == criteria for persistent object
+                return TYPE.EXTERNAL_PSCO
+            else:
+                return TYPE.OBJECT
+        except TypeError:
+            # A PSCO class has been used to check its type (when checking
+            # the return). Since we still don't know if it is going to be
+            # persistent inside, we assume that it is not. It will be checked
+            # later on the worker side when the task finishes.
+            return TYPE.OBJECT
+
     # If it is a numpy scalar, we manage it as all objects to avoid to
     # infer its type wrong. For instance isinstance(np.float64 object, float)
     # returns true
@@ -471,20 +488,6 @@ def get_compss_type(value, depth=0):
         return TYPE.LONG
     elif isinstance(value, float):
         return TYPE.DOUBLE
-    elif has_id(value):
-        # If has method getID maybe is a PSCO
-        try:
-            if get_id(value) not in [None, 'None']:
-                # the 'getID' + id == criteria for persistent object
-                return TYPE.EXTERNAL_PSCO
-            else:
-                return TYPE.OBJECT
-        except TypeError:
-            # A PSCO class has been used to check its type (when checking
-            # the return). Since we still don't know if it is going to be
-            # persistent inside, we assume that it is not. It will be checked
-            # later on the worker side when the task finishes.
-            return TYPE.OBJECT
     elif depth > 0 and is_basic_iterable(value):
         return TYPE.COLLECTION
     else:

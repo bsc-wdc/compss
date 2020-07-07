@@ -27,12 +27,11 @@ from pycompss.runtime.task.commons import TaskCommons
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
-from pycompss.runtime.task.parameter import get_varargs_name
-from pycompss.runtime.task.parameter import get_name_from_kwarg
-from pycompss.runtime.task.parameter import is_vararg
-from pycompss.runtime.task.parameter import is_kwarg
-from pycompss.runtime.task.parameter import is_return
-from pycompss.runtime.task.parameter import get_original_name
+from pycompss.runtime.task.arguments import get_varargs_name
+from pycompss.runtime.task.arguments import get_name_from_kwarg
+from pycompss.runtime.task.arguments import is_vararg
+from pycompss.runtime.task.arguments import is_kwarg
+from pycompss.runtime.task.arguments import is_return
 from pycompss.util.objects.properties import create_object_by_con_type
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
@@ -540,7 +539,7 @@ class TaskWorker(TaskCommons):
             if _is_psco_true:
                 continue
 
-            original_name = get_original_name(arg.name)
+            original_name = get_name_from_kwarg(arg.name)
             param = self.decorator_arguments.get(
                 original_name, self.get_default_direction(original_name))
 
@@ -637,7 +636,7 @@ class TaskWorker(TaskCommons):
         :param name: Name of the parameter
         :return: True if the parameter is a (serializable) object
         """
-        original_name = get_original_name(name)
+        original_name = get_name_from_kwarg(name)
         # Get the args parameter object
         if is_vararg(original_name):
             return self.get_varargs_direction().content_type is None
@@ -659,7 +658,7 @@ class TaskWorker(TaskCommons):
         :param name: Name of the parameter
         :return: True if the parameter is a file collection
         """
-        original_name = get_original_name(name)
+        original_name = get_name_from_kwarg(name)
         # Get the args parameter object
         if is_vararg(original_name):
             return self.get_varargs_direction().is_file_collection
@@ -704,7 +703,7 @@ class TaskWorker(TaskCommons):
                                 ' object instead as a Parameter' +
                                 ' when building the task result message.')
             else:
-                original_name = get_original_name(arg.name)
+                original_name = get_name_from_kwarg(arg.name)
                 param = self.decorator_arguments.get(original_name,
                                                      self.get_default_direction(original_name))  # noqa: E501
                 if arg.content_type == parameter.TYPE.EXTERNAL_PSCO:

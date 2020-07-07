@@ -27,6 +27,7 @@ import sys
 import copy
 
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.runtime.task.keys import Keys
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import IOSTREAM
@@ -146,200 +147,211 @@ _STREAM = 'stream'
 _IS_FILE_COLLECTION = 'is_file_collection'
 # Parameter conversion dictionary.
 _param_conversion_dict_ = {
-    'IN': {},
-    'OUT': {
+    Keys.IN: {},
+    Keys.OUT: {
         _DIRECTION: DIRECTION.OUT,
     },
-    'INOUT': {
+    Keys.INOUT: {
         _DIRECTION: DIRECTION.INOUT,
     },
-    'CONCURRENT': {
+    Keys.CONCURRENT: {
         _DIRECTION: DIRECTION.CONCURRENT,
     },
-    'COMMUTATIVE': {
+    Keys.COMMUTATIVE: {
         _DIRECTION: DIRECTION.COMMUTATIVE,
     },
-    'FILE': {
+    Keys.FILE: {
         _CONTENT_TYPE: TYPE.FILE,
         _KEEP_RENAME: False
     },
-    'FILE_IN': {
+    Keys.FILE_IN: {
         _CONTENT_TYPE: TYPE.FILE,
         _KEEP_RENAME: False
     },
-    'FILE_OUT': {
+    Keys.FILE_OUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.OUT,
         _KEEP_RENAME: False
     },
-    'FILE_INOUT': {
+    Keys.FILE_INOUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.INOUT,
         _KEEP_RENAME: False
     },
-    'DIRECTORY': {
+    Keys.DIRECTORY: {
         _CONTENT_TYPE: TYPE.DIRECTORY,
         _KEEP_RENAME: False
     },
-    'DIRECTORY_IN': {
+    Keys.DIRECTORY_IN: {
         _CONTENT_TYPE: TYPE.DIRECTORY,
         _KEEP_RENAME: False
     },
-    'DIRECTORY_OUT': {
+    Keys.DIRECTORY_OUT: {
         _CONTENT_TYPE: TYPE.DIRECTORY,
         _DIRECTION: DIRECTION.OUT,
         _KEEP_RENAME: False
     },
-    'DIRECTORY_INOUT': {
+    Keys.DIRECTORY_INOUT: {
         _CONTENT_TYPE: TYPE.DIRECTORY,
         _DIRECTION: DIRECTION.INOUT,
         _KEEP_RENAME: False
     },
-    'FILE_CONCURRENT': {
+    Keys.FILE_CONCURRENT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.CONCURRENT,
         _KEEP_RENAME: False
     },
-    'FILE_COMMUTATIVE': {
+    Keys.FILE_COMMUTATIVE: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.COMMUTATIVE,
         _KEEP_RENAME: False
     },
-    'FILE_STDIN': {
+    Keys.FILE_STDIN: {
         _CONTENT_TYPE: TYPE.FILE,
         _STREAM: IOSTREAM.STDIN,
         _KEEP_RENAME: False
     },
-    'FILE_STDERR': {
+    Keys.FILE_STDERR: {
         _CONTENT_TYPE: TYPE.FILE,
         _STREAM: IOSTREAM.STDERR,
         _KEEP_RENAME: False
     },
-    'FILE_STDOUT': {
+    Keys.FILE_STDOUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _STREAM: IOSTREAM.STDOUT,
         _KEEP_RENAME: False
     },
-    'FILE_IN_STDIN': {
+    Keys.FILE_IN_STDIN: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.IN,
         _STREAM: IOSTREAM.STDIN,
         _KEEP_RENAME: False
     },
-    'FILE_IN_STDERR': {
+    Keys.FILE_IN_STDERR: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.IN,
         _STREAM: IOSTREAM.STDERR,
         _KEEP_RENAME: False
     },
-    'FILE_IN_STDOUT': {
+    Keys.FILE_IN_STDOUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.IN,
         _STREAM: IOSTREAM.STDOUT,
         _KEEP_RENAME: False
     },
-    'FILE_OUT_STDIN': {
+    Keys.FILE_OUT_STDIN: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.OUT,
         _STREAM: IOSTREAM.STDIN,
         _KEEP_RENAME: False
     },
-    'FILE_OUT_STDERR': {
+    Keys.FILE_OUT_STDERR: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.OUT,
         _STREAM: IOSTREAM.STDERR,
         _KEEP_RENAME: False
     },
-    'FILE_OUT_STDOUT': {
+    Keys.FILE_OUT_STDOUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.OUT,
         _STREAM: IOSTREAM.STDOUT,
         _KEEP_RENAME: False
     },
-    'FILE_INOUT_STDIN': {
+    Keys.FILE_INOUT_STDIN: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.INOUT,
         _STREAM: IOSTREAM.STDIN,
         _KEEP_RENAME: False
     },
-    'FILE_INOUT_STDERR': {
+    Keys.FILE_INOUT_STDERR: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.INOUT,
         _STREAM: IOSTREAM.STDERR,
         _KEEP_RENAME: False
     },
-    'FILE_INOUT_STDOUT': {
+    Keys.FILE_INOUT_STDOUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.INOUT,
         _STREAM: IOSTREAM.STDOUT,
         _KEEP_RENAME: False
     },
-    'FILE_CONCURRENT_STDIN': {
+    Keys.FILE_CONCURRENT_STDIN: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.CONCURRENT,
         _STREAM: IOSTREAM.STDIN,
         _KEEP_RENAME: False
     },
-    'FILE_CONCURRENT_STDERR': {
+    Keys.FILE_CONCURRENT_STDERR: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.CONCURRENT,
         _STREAM: IOSTREAM.STDERR,
         _KEEP_RENAME: False
     },
-    'FILE_CONCURRENT_STDOUT': {
+    Keys.FILE_CONCURRENT_STDOUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.CONCURRENT,
         _STREAM: IOSTREAM.STDOUT,
         _KEEP_RENAME: False
     },
-    'FILE_COMMUTATIVE_STDIN': {
+    Keys.FILE_COMMUTATIVE_STDIN: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.COMMUTATIVE,
         _STREAM: IOSTREAM.STDIN,
         _KEEP_RENAME: False
     },
-    'FILE_COMMUTATIVE_STDERR': {
+    Keys.FILE_COMMUTATIVE_STDERR: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.COMMUTATIVE,
         _STREAM: IOSTREAM.STDERR,
         _KEEP_RENAME: False
     },
-    'FILE_COMMUTATIVE_STDOUT': {
+    Keys.FILE_COMMUTATIVE_STDOUT: {
         _CONTENT_TYPE: TYPE.FILE,
         _DIRECTION: DIRECTION.COMMUTATIVE,
         _STREAM: IOSTREAM.STDOUT,
         _KEEP_RENAME: False
     },
-    'COLLECTION': {
+    Keys.COLLECTION: {
         _CONTENT_TYPE: TYPE.COLLECTION,
     },
-    'COLLECTION_IN': {
+    Keys.COLLECTION_IN: {
         _CONTENT_TYPE: TYPE.COLLECTION,
         _DIRECTION: DIRECTION.IN,
     },
-    'COLLECTION_INOUT': {
+    Keys.COLLECTION_INOUT: {
         _CONTENT_TYPE: TYPE.COLLECTION,
         _DIRECTION: DIRECTION.INOUT,
     },
-    'COLLECTION_OUT': {
+    Keys.COLLECTION_OUT: {
         _CONTENT_TYPE: TYPE.COLLECTION,
         _DIRECTION: DIRECTION.OUT,
+    },
+    Keys.STREAM_IN: {
+        _CONTENT_TYPE: TYPE.EXTERNAL_STREAM,
+        _DIRECTION: DIRECTION.IN
+    },
+    Keys.STREAM_OUT: {
+        _CONTENT_TYPE: TYPE.EXTERNAL_STREAM,
+        _DIRECTION: DIRECTION.OUT
+    },
+    Keys.COLLECTION_FILE: {
+        _CONTENT_TYPE: TYPE.COLLECTION,
         _IS_FILE_COLLECTION: True,
         _KEEP_RENAME: False
     },
-    'COLLECTION_FILE_IN': {
+    Keys.COLLECTION_FILE_IN: {
         _CONTENT_TYPE: TYPE.COLLECTION,
         _DIRECTION: DIRECTION.IN,
         _IS_FILE_COLLECTION: True,
         _KEEP_RENAME: False
     },
-    'COLLECTION_FILE_INOUT': {
+    Keys.COLLECTION_FILE_INOUT: {
         _CONTENT_TYPE: TYPE.COLLECTION,
         _DIRECTION: DIRECTION.INOUT,
         _IS_FILE_COLLECTION: True,
         _KEEP_RENAME: False
     },
-    'COLLECTION_FILE_OUT': {
+    Keys.COLLECTION_FILE_OUT: {
         _CONTENT_TYPE: TYPE.COLLECTION,
         _DIRECTION: DIRECTION.OUT,
         _IS_FILE_COLLECTION: True,

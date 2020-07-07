@@ -400,11 +400,11 @@ class TaskMaster(TaskCommons):
         """
         Extract the core element if created in a higher level decorator
         or creates a new one if does not.
+        IMPORTANT! extract the core element from kwargs if pre-defined
+                   in decorators defined on top of @task.
 
         :return: Core element, boolean if previously created
         """
-        # IMPORTANT! extract the core element from kwargs if pre-defined
-        #            in decorators defined on top of @task.
         pre_defined_ce = False
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

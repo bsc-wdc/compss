@@ -437,63 +437,6 @@ def get_parameter_from_dictionary(d):
     return parameter
 
 
-def build_command_line_parameter(name, value):
-    """
-    Some parameters are passed as command line arguments. In order to be able
-    to recognize them they are passed following the expression below.
-    Note that strings are always encoded to base64, so it is guaranteed that
-    we will always have exactly two underscores on the parameter.
-
-    :param name: Name of the parameter
-    :param value: Value of the parameter
-    :return: *PARAM_name_value. Example, variable y equals 3 => *PARAM_y_3
-    """
-    return '*INLINE_%s_%s' % (name, str(value))
-
-
-def retrieve_command_line_parameter(cla):
-    """
-    Given a command line parameter, retrieve its name and its value.
-
-    :param cla: Command line argument
-    :return: name and value of the command line argument
-    """
-    _, name, value = cla.split('_')
-    return name, value
-
-
-def is_command_line_parameter(cla):
-    """
-    Check if a string is a command line parameter.
-
-    :param cla: Command line argument
-    :return: Boolean
-    """
-    return bool(re.match(r'\*PARAM_.+_.+', cla))
-
-
-def stringify(object_name, object_type, object_content):
-    """
-    Given a stringifiable object, stringify it.
-
-    :param object_name: Name of the object
-    :param object_type: Type of the object
-    :param object_content: The object itself
-    :return: The stringified object
-    """
-    return '%s#%s#%s' % (object_name, object_type, str(object_content))
-
-
-def destringify(stringified_object):
-    """
-    Given a stringified object, destringify it.
-
-    :param stringified_object: Stringified object
-    :return: actual object from the given stringified object
-    """
-    return stringified_object.split('#', 2)
-
-
 def get_compss_type(value, depth=0):
     """
     Retrieve the value type mapped to COMPSs types.

@@ -154,8 +154,8 @@ public class MPIInvoker extends Invoker {
         // MPI Flags
         int numMPIFlags = 0;
         String[] mpiflagsArray = null;
-        if (this.mpiFlags == null || this.mpiFlags.isEmpty()) {
-            mpiflagsArray = mpiFlags.split(" ");
+        if (this.mpiFlags != null && !this.mpiFlags.isEmpty() && !this.mpiFlags.equals("[unassigned]")) {
+            mpiflagsArray = this.mpiFlags.split(" ");
             numMPIFlags = mpiflagsArray.length;
         }
 

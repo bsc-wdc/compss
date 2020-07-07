@@ -268,14 +268,28 @@ class TaskMaster(TaskCommons):
             self.update_return_if_no_returns(self.user_function)
 
         # Get other arguments if exist
+        # Get is replicated
         if 'isReplicated' in self.decorator_arguments:
             is_replicated = self.decorator_arguments['isReplicated']
         else:
             is_replicated = self.decorator_arguments['is_replicated']
+        # Get is distributed
         if 'isDistributed' in self.decorator_arguments:
             is_distributed = self.decorator_arguments['isDistributed']
         else:
             is_distributed = self.decorator_arguments['is_distributed']
+        # Get on failure
+        if 'onFailure' in self.decorator_arguments:
+            on_failure = self.decorator_arguments['onFailure']
+        else:
+            on_failure = self.decorator_arguments['on_failure']
+        # Get time out
+        if 'timeOut' in self.decorator_arguments:
+            time_out = self.decorator_arguments['timeOut']
+        else:
+            time_out = self.decorator_arguments['time_out']
+        # Get priority
+        has_priority = self.decorator_arguments['priority']
 
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
@@ -299,22 +313,20 @@ class TaskMaster(TaskCommons):
         values, names, compss_types, compss_directions, compss_streams, \
         compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
-        # Get priority
-        has_priority = self.decorator_arguments['priority']
-
         # Signature and other parameters:
         signature = '.'.join([path, self.function_name])
 
+        if __debug__:
+            logger.debug("TASK: %s of type %s, in module %s, in class %s" %
+                         (self.function_name, self.function_type,
+                          self.module_name, self.class_name))
+
         # Process the task
         binding.process_task(
-            self.function_name,
-            path,
+            signature,
             has_target,
-            self.module_name,
-            self.class_name,
-            self.function_type,
-            values,
             names,
+            values,
             num_returns,
             compss_types,
             compss_directions,
@@ -324,12 +336,11 @@ class TaskMaster(TaskCommons):
             weights,
             keep_renames,
             has_priority,
-            signature,
             computing_nodes,
             is_replicated,
             is_distributed,
-            self.decorator_arguments['on_failure'],
-            self.decorator_arguments['time_out']
+            on_failure,
+            time_out
         )
 
         # remove unused attributes from the memory

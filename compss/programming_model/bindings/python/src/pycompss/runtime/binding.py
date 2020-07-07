@@ -521,14 +521,10 @@ def wait_on(*args, **kwargs):
     return ret
 
 
-def process_task(function_name,         # type: str
-                 path,                  # type: str
+def process_task(signature,             # type: str
                  has_target,            # type: bool
-                 module_name,           # type: str
-                 class_name,            # type: str
-                 f_type,                # type: int
-                 values,                # type: list
                  names,                 # type: list
+                 values,                # type: list
                  num_returns,           # type: int
                  compss_types,          # type: list
                  compss_directions,     # type: list
@@ -538,26 +534,20 @@ def process_task(function_name,         # type: str
                  weights,               # type: list
                  keep_renames,          # type: list
                  has_priority,          # type: list
-                 signature,             # type: list
-                 num_nodes,             # type: list
+                 num_nodes,             # type: int
                  replicated,            # type: list
                  distributed,           # type: list
-                 on_failure,            # type: list
+                 on_failure,            # type: str
                  time_out,              # type: int
                  ):
     # type: (...) -> None
     """
     Function that submits a task to the runtime.
 
-    :param function_name: Function name
-    :param path: Module path
+    :param signature: Task signature
     :param has_target: Boolean if the task has self
-    :param module_name: Name of the module containing the function/method
-                        (including packages, if any)
-    :param class_name: Name of the class (if method)
-    :param f_type: Function type
-    :param values: Task parameter values
     :param names: Task parameter names
+    :param values: Task parameter values
     :param num_returns: Number of returns
     :param compss_types: List of parameter types
     :param compss_directions: List of parameter directions
@@ -567,7 +557,6 @@ def process_task(function_name,         # type: str
     :param weights: List of parameter weights
     :param keep_renames: Boolean keep renaming
     :param has_priority: Boolean has priority
-    :param signature: Task signature
     :param num_nodes: Number of nodes that the task must use
     :param replicated: Boolean indicating if the task must be replicated
     :param distributed: Boolean indicating if the task must be distributed
@@ -575,45 +564,38 @@ def process_task(function_name,         # type: str
     :param time_out: Time for a task time out
     :return: The future object related to the task return
     """
-    if __debug__:
-        logger.debug("TASK: %s of type %s, in module %s, in class %s" %
-                     (function_name, f_type, module_name, class_name))
-
     app_id = 0
 
     if __debug__:
         # Log the task submission values for debugging purposes.
-        if logger.isEnabledFor(logging.DEBUG):
-            values_str = ' '.join(str(v) for v in values)
-            types_str = ' '.join(str(t) for t in compss_types)
-            direct_str = ' '.join(str(d) for d in compss_directions)
-            streams_str = ' '.join(str(s) for s in compss_streams)
-            prefixes_str = ' '.join(str(p) for p in compss_prefixes)
-            names_str = ' '.join(x for x in names)
-            ct_str = ' '.join(str(x) for x in content_types)
-            weights_str = ' '.join(str(x) for x in weights)
-            keep_renames_str = ' '.join(str(x) for x in keep_renames)
-            logger.debug("Processing task:")
-            logger.debug("\t- App id: " + str(app_id))
-            logger.debug("\t- Path: " + path)
-            logger.debug("\t- Function name: " + function_name)
-            logger.debug("\t- On failure behavior: " + on_failure)
-            logger.debug("\t- Task time out: " + str(time_out))
-            logger.debug("\t- Signature: " + signature)
-            logger.debug("\t- Priority: " + str(has_priority))
-            logger.debug("\t- Has target: " + str(has_target))
-            logger.debug("\t- Num nodes: " + str(num_nodes))
-            logger.debug("\t- Replicated: " + str(replicated))
-            logger.debug("\t- Distributed: " + str(distributed))
-            logger.debug("\t- Values: " + values_str)
-            logger.debug("\t- Names: " + names_str)
-            logger.debug("\t- COMPSs types: " + types_str)
-            logger.debug("\t- COMPSs directions: " + direct_str)
-            logger.debug("\t- COMPSs streams: " + streams_str)
-            logger.debug("\t- COMPSs prefixes: " + prefixes_str)
-            logger.debug("\t- Content Types: " + ct_str)
-            logger.debug("\t- Weights: " + weights_str)
-            logger.debug("\t- Keep_renames: " + keep_renames_str)
+        values_str = ' '.join(str(v) for v in values)
+        types_str = ' '.join(str(t) for t in compss_types)
+        direct_str = ' '.join(str(d) for d in compss_directions)
+        streams_str = ' '.join(str(s) for s in compss_streams)
+        prefixes_str = ' '.join(str(p) for p in compss_prefixes)
+        names_str = ' '.join(x for x in names)
+        ct_str = ' '.join(str(x) for x in content_types)
+        weights_str = ' '.join(str(x) for x in weights)
+        keep_renames_str = ' '.join(str(x) for x in keep_renames)
+        logger.debug("Processing task:")
+        logger.debug("\t- App id: " + str(app_id))
+        logger.debug("\t- Signature: " + signature)
+        logger.debug("\t- Has target: " + str(has_target))
+        logger.debug("\t- Names: " + names_str)
+        logger.debug("\t- Values: " + values_str)
+        logger.debug("\t- COMPSs types: " + types_str)
+        logger.debug("\t- COMPSs directions: " + direct_str)
+        logger.debug("\t- COMPSs streams: " + streams_str)
+        logger.debug("\t- COMPSs prefixes: " + prefixes_str)
+        logger.debug("\t- Content Types: " + ct_str)
+        logger.debug("\t- Weights: " + weights_str)
+        logger.debug("\t- Keep_renames: " + keep_renames_str)
+        logger.debug("\t- Priority: " + str(has_priority))
+        logger.debug("\t- Num nodes: " + str(num_nodes))
+        logger.debug("\t- Replicated: " + str(replicated))
+        logger.debug("\t- Distributed: " + str(distributed))
+        logger.debug("\t- On failure behavior: " + on_failure)
+        logger.debug("\t- Task time out: " + str(time_out))
 
     # Check that there is the same amount of values as their types, as well
     # as their directions, streams and prefixes.

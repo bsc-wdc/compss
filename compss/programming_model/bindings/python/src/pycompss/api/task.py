@@ -24,7 +24,6 @@ PyCOMPSs API - Task
 """
 
 from __future__ import print_function
-import copy
 import sys
 from functools import wraps
 
@@ -152,9 +151,6 @@ class Task(PyCOMPSsDecorator):
                     # defined value (not a Parameter object)
                     self.decorator_arguments[key] = value
 
-        # initial decorator arguments must be saved and passed to the following
-        # 'calls' of the 'task'
-        self.init_dec_args = copy.deepcopy(self.decorator_arguments)
         # Function to execute as task
         self.user_function = None
         # Global variables common for all tasks of this kind
@@ -190,7 +186,6 @@ class Task(PyCOMPSsDecorator):
                 # Each task will have a TaskMaster, so its content will
                 # not be shared.
                 master = TaskMaster(self.decorator_arguments,
-                                    self.init_dec_args,
                                     self.user_function,
                                     self.registered,
                                     self.signature)

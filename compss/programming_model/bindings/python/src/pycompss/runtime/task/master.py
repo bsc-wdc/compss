@@ -21,7 +21,6 @@ from __future__ import print_function
 import os
 import sys
 import ast
-import copy
 import threading
 import inspect
 import base64
@@ -179,7 +178,6 @@ class TaskMaster(TaskCommons):
 
     def __init__(self,
                  decorator_arguments,
-                 init_dec_args,
                  user_function,
                  registered,
                  signature):
@@ -187,10 +185,6 @@ class TaskMaster(TaskCommons):
         super(self.__class__, self).__init__(decorator_arguments, None, None)
         # User function
         self.user_function = user_function
-        # Initial decorator arguments
-        self.init_dec_args = init_dec_args
-        # Internal copy of decorator arguments
-        self.decorator_arguments = None
         # Add more argument related attributes that will be useful later
         self.param_args = None
         self.param_varargs = None
@@ -226,9 +220,6 @@ class TaskMaster(TaskCommons):
 
         # Check if we are in interactive mode and update if needed
         self.update_if_interactive()
-
-        # IMPORTANT! recover initial decorator arguments
-        self.decorator_arguments = copy.deepcopy(self.init_dec_args)
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)

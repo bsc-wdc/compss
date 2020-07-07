@@ -23,7 +23,7 @@ PyCOMPSs runtime - Parameter
     This file contains the classes needed for the parameter definition.
 """
 
-import re
+import sys
 import copy
 
 from pycompss.runtime.commons import IS_PYTHON3
@@ -495,8 +495,15 @@ def get_compss_type(value, depth=0):
         return TYPE.OBJECT
 
 
+# Python max and min integer values
+if IS_PYTHON3:
+    PYTHON_MAX_INT = sys.maxsize
+    PYTHON_MIN_INT = -sys.maxsize - 1
+else:
+    PYTHON_MAX_INT = sys.maxint       # noqa
+    PYTHON_MIN_INT = -sys.maxint - 1  # noqa
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647
 JAVA_MIN_INT = -2147483648
-JAVA_MAX_LONG = PYTHON_MAX_INT = 9223372036854775807
-JAVA_MIN_LONG = PYTHON_MIN_INT = -9223372036854775808
+JAVA_MAX_LONG = PYTHON_MAX_INT
+JAVA_MIN_LONG = PYTHON_MIN_INT

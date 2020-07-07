@@ -57,14 +57,15 @@ def parse(log_file):
 
 def print_commands(file=None):
     print("Available Commands:\n" +
-          " * c, current   -> print current status of the execution\n" +
-          " * d, data      -> print information related to data values\n" +
-          " * h, help      -> print available commands\n" +
-          " * j, job       -> print information related to jobs\n" +
-          " * q, quit      -> stop the script\n"
-          " * r, resources -> print information related to resources\n" +
-          " * t, tasks     -> print information related to tasks\n" +
-          " * u, update    -> re-parses the runtime.log file\n"
+          " * c, current     -> print current status of the execution\n" +
+          " * cn, connection -> print information related to a connection\n" +
+          " * d, data        -> print information related to data values\n" +
+          " * h, help        -> print available commands\n" +
+          " * j, job         -> print information related to jobs\n" +
+          " * q, quit        -> stop the script\n"
+          " * r, resources   -> print information related to resources\n" +
+          " * t, tasks       -> print information related to tasks\n" +
+          " * u, update     -> re-parses the runtime.log file\n"
           , file=file)
 
 
@@ -86,6 +87,8 @@ def handle_queries(runtime_log_file):
 
                 for r in state.resources.get_resources():
                     print(str(r))
+            elif input_array[0] == "cn" or input_array[0] == "connection":
+                state.query_connection(input_array[1:])
             elif input_array[0] == "d" or input_array[0] == "data":
                 state.query_data(input_array[1:])
             elif input_array[0] == "j" or input_array[0] == "job":

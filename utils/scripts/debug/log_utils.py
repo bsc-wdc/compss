@@ -102,6 +102,40 @@ class Loggers:
             label = "completedJob"
             COMPLETED = "Received a notification for job"
 
+        class FailedJob:
+            label = "failedJob"
+            FAILED = "Received a notification for job"
+
+    class Connection:
+        label = "Connection"
+
+        class RegisterChannel:
+            label = "registerChannel"
+            ASSOCIATING = "Associating Socket"
+            UNREGISTERING = "Unregistering Socket"
+
+        class EstablishedChannel:
+            label = "established"
+            ESTABLISHED = "established."
+
+        class RequestStage:
+            label = "requestStage"
+            REQUESTING = "Requesting"
+
+        class HandleNextTransfer:
+            label = "dleNextTransfer"
+            TAKES = "takes"
+
+        class StartCurrentTransfer:
+            label = "CurrentTransfer"
+            STARTING = "Starting"
+
+    class Stage:
+        label = "Stage"
+
+        class CompletedStage:
+            label = "otifyCompletion"
+            COMPLETED = "completed in connection"
 
 class Parser:
     """
@@ -131,7 +165,7 @@ class Parser:
                 if Loggers.TaskProcessor.ObjectAccess.WAITING in message:
                     event = ObjectAccessEvent(timestamp, message)
                 if Loggers.TaskProcessor.ObjectAccess.OBTAINED in message:
-                    event = ObtainedObjectEvent(timestamp, message)                    
+                    event = ObtainedObjectEvent(timestamp, message)
             if method == Loggers.TaskProcessor.WaitEnds.label:
                 if Loggers.TaskProcessor.WaitEnds.END in message:
                     event = WaitedTaskEndEvent(timestamp, message)
@@ -184,6 +218,33 @@ class Parser:
             if method == Loggers.JobManager.CompletedJob.label:
                 if Loggers.JobManager.CompletedJob.COMPLETED in message:
                     event = CompletedJobEvent(timestamp, message)
+            if method == Loggers.JobManager.FailedJob.label:
+                if Loggers.JobManager.FailedJob.FAILED in message:
+                    event = CompletedJobEvent(timestamp, message)
+
+        if logger == Loggers.Connection.label:
+            if method == Loggers.Connection.RegisterChannel.label:
+                if Loggers.Connection.RegisterChannel.ASSOCIATING in message:
+                    event = AssociateSocketEvent(timestamp, message)
+                if Loggers.Connection.RegisterChannel.UNREGISTERING in message:
+                    event = ClosedSocketEvent(timestamp, message)
+            if method == Loggers.Connection.EstablishedChannel.label:
+                if Loggers.Connection.EstablishedChannel.ESTABLISHED in message:
+                    event = EstablishedSocketEvent(timestamp, message)
+            if method == Loggers.Connection.RequestStage.label:
+                if Loggers.Connection.RequestStage.REQUESTING in message:
+                    event = RequestStageEvent(timestamp, message)
+            if method == Loggers.Connection.HandleNextTransfer.label:
+                if Loggers.Connection.HandleNextTransfer.TAKES in message:
+                    event = HandleNextStageEvent(timestamp, message)
+            if method == Loggers.Connection.StartCurrentTransfer.label:
+                if Loggers.Connection.StartCurrentTransfer.STARTING in message:
+                    event = StartCurrentStageEvent(timestamp, message)
+
+        if logger == Loggers.Stage.label:
+            if method == Loggers.Stage.CompletedStage.label:
+                if Loggers.Stage.CompletedStage.COMPLETED in message:
+                    event = CompletedStageEvent(timestamp, message)
         return event
 
 
@@ -798,7 +859,6 @@ class ObtainedFileEvent(Event):
         return "Obtained data " + self.data_id + " for the access"
 
 
-
 class ObtainedObjectEvent(Event):
     """
     The data value that the main code waits for has been obtained
@@ -824,3 +884,215 @@ class ObtainedObjectEvent(Event):
 
     def __str__(self):
         return "Obtained data for the access"
+
+# Connection Management
+class AssociateSocketEvent(Event):
+    """
+    The runtime starts a new Connection based on a socket
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new AssociateSocketEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: connection-socket relationship
+        """
+        super(AssociateSocketEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.socket_id = line_array[2]
+        self.connection_id = line_array[5]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        connection = state.connections.register_connection(self.connection_id, self.timestamp)
+        connection.set_socket(self.socket_id, self.timestamp)
+
+    def __str__(self):
+        return "Associating Connection "+str(self.connection_id)+" to socket "+str(self.socket_id)
+
+class EstablishedSocketEvent(Event):
+    """
+    The socket connection has been established
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new EstablishedSocketEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: socket establishment notification
+        """
+        super(EstablishedSocketEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.connection_id = line_array[1]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        connection = state.connections.get_connection(self.connection_id)
+        connection.established(self.timestamp)
+
+    def __str__(self):
+        return "Socket for connection "+str(self.connection_id)+" established"
+
+
+class RequestStageEvent(Event):
+    """
+    A new stage has been requested to the connection
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new RequestStageEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: requested stage description
+        """
+        super(RequestStageEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.connection_id = line_array[-1]
+        self.stage = line_array[2]
+        self.stage = self.stage[18:]
+        self.stage = self.stage.split('[')[0]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        connection = state.connections.get_connection(self.connection_id)
+        connection.requesting_stage(self.stage, self.timestamp)
+
+    def __str__(self):
+        return "Requesting stage " + self.stage + " to connection "+str(self.connection_id)
+
+class HandleNextStageEvent(Event):
+    """
+    The connection takes the following stage
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new HandleNextStageEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: requested stage description
+        """
+        super(HandleNextStageEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.connection_id = line_array[1]
+        self.stage = line_array[3]
+        self.stage = self.stage[18:]
+        self.stage = self.stage.split('[')[0]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        connection = state.connections.get_connection(self.connection_id)
+        connection.handling_stage(self.stage, self.timestamp)
+
+    def __str__(self):
+        return "Connection "+str(self.connection_id)+" handles "+str(self.stage)
+
+class StartCurrentStageEvent(Event):
+    """
+    The connection takes the following stage
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new StartCurrentStageEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: requested stage description
+        """
+        super(StartCurrentStageEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.connection_id = line_array[-1]
+        self.connection_id = self.connection_id[:-1]
+        self.stage = line_array[4]
+        self.stage = self.stage[18:]
+        self.stage = self.stage.split('[')[0]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        connection = state.connections.get_connection(self.connection_id)
+        connection.starting_stage(self.stage, self.timestamp)
+
+    def __str__(self):
+        return "Connection "+str(self.connection_id)+" starts "+str(self.stage)
+
+class CompletedStageEvent(Event):
+    """
+    A stage being handled by a connection finishes
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new CompletedStageEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: completed stage description
+        """
+        super(CompletedStageEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.connection_id = line_array[-1]
+        self.stage = line_array[2]
+        self.stage = self.stage[18:]
+        self.stage = self.stage.split('[')[0]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        connection = state.connections.get_connection(self.connection_id)
+        connection.completed_stage(self.stage, self.timestamp)
+
+    def __str__(self):
+        return "Connection "+str(self.connection_id)+" finishes "+str(self.stage)
+
+class ClosedSocketEvent(Event):
+    """
+    Socket closed
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new ClosedSocketEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: completed stage description
+        """
+        super(ClosedSocketEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.connection_id = line_array[-1]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        connection = state.connections.get_connection(self.connection_id)
+        connection.closed_socket(self.timestamp)
+
+    def __str__(self):
+        return "Connection "+str(self.connection_id)+" closed its socket "

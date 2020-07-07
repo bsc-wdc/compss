@@ -805,6 +805,11 @@ def synchronize(obj, mode):
     file_name = objid_to_filename[obj_id]
     compss_file = compss.open_file(file_name, mode)
 
+    if __debug__:
+        logger.debug("Runtime returned compss file: %s" % compss_file)
+
+    # TODO: CHECK RUNTIME IDENTIFICADOR
+
     # Runtime can return a path or a PSCOId
     if compss_file.startswith('/'):
         # If the real filename is null, then return None. The task that

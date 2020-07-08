@@ -41,6 +41,7 @@ import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
@@ -510,19 +511,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void sendTaskDone(Invocation invocation, boolean successful, Exception e) {
         NIOTask nt = (NIOTask) invocation;
         for (NIOParam param : nt.getParams()) {
-            String path = getParamValueURI(param);
-            param.setTargetPath(path);
+            updateParamTargetPaths(param);
         }
 
         NIOParam targetParam = nt.getTarget();
         if (targetParam != null) {
-            String path = getParamValueURI(targetParam);
-            targetParam.setTargetPath(path);
+            updateParamTargetPaths(targetParam);
         }
 
         for (NIOParam param : nt.getResults()) {
-            String path = getParamValueURI(param);
-            param.setTargetPath(path);
+            updateParamTargetPaths(param);
         }
 
         int jobId = nt.getJobId();
@@ -549,7 +547,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     }
 
-    private String getParamValueURI(NIOParam param) {
+    private void updateParamTargetPaths(NIOParam param) {
+        if (param instanceof NIOParamCollection) {
+            for (NIOParam p : ((NIOParamCollection) param).getCollectionParameters()) {
+                updateParamTargetPaths(p);
+            }
+        }
         DataType type = param.getType();
         String path;
         switch (type) {
@@ -563,7 +566,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 path = ProtocolType.OBJECT_URI.getSchema() + param.getDataMgmtId();
                 break;
             case COLLECTION_T:
-                path = ProtocolType.OBJECT_URI.getSchema() + param.getValue();
+                path = ProtocolType.FILE_URI.getSchema() + param.getValue();
                 break;
             case STREAM_T:
                 path = ProtocolType.STREAM_URI.getSchema() + param.getDataMgmtId();
@@ -586,7 +589,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             default:
                 path = null;
         }
-        return path;
+        param.setTargetPath(path);
     }
 
     private void sendNIOTaskDoneCommandSequence(CommandNIOTaskDone cmd) {

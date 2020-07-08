@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Extension of the NIOParam class to handle collection types. Basically, a NIOParam plus a list of NIOParams
  * representing the contents of the collection.
- * 
+ *
  * @see NIOParam
  */
 public class NIOParamCollection extends NIOParam implements InvocationParamCollection<NIOParam> {
@@ -46,7 +46,7 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
 
     /**
      * Create a new NIOParamCollection copying the given NIOParam values.
-     * 
+     *
      * @param p NIOParam to copy.
      */
     public NIOParamCollection(NIOParam p) {
@@ -58,7 +58,7 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
 
     /**
      * Returns the number of internal parameters of the collection.
-     * 
+     *
      * @return The number of internal parameters of the collection.
      */
     public int getSize() {
@@ -67,7 +67,7 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
 
     /**
      * Returns a list of objects containing the collection parameters.
-     * 
+     *
      * @return A list of objects containing the collection parameters.
      */
     public List<NIOParam> getCollectionParameters() {
@@ -76,7 +76,7 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
 
     /**
      * Adds a new parameter to the collection.
-     * 
+     *
      * @param p Parameter to add.
      */
     public void addParameter(NIOParam p) {
@@ -112,5 +112,20 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
         sb.append("]");
 
         return sb.toString();
+    }
+
+    /**
+     * Creates a NIOResult instance describing how the task modifies the parameter value.
+     * 
+     * @return description of how the task modifies the parameter value.
+     */
+    @Override
+    public NIOResult getResult() {
+        List<NIOResult> elements = new LinkedList<>();
+
+        for (NIOParam element : collectionParameters) {
+            elements.add(element.getResult());
+        }
+        return new NIOResultCollection(getType(), this.getTargetPath(), elements);
     }
 }

@@ -843,20 +843,29 @@ public class Executor implements Runnable {
                                     + ". Either this file or the original name " + renamedFilePath + " do not exist.";
                                 LOGGER.error(msg);
                                 System.err.println(msg);
+
+                                param.setValue(renamedFilePath);
+                                param.setOriginalName(originalFileName);
+
                                 throw new JobExecutionException(msg);
                             } else {
                                 // If an output file is created move to the renamed path (OUT Case)
                                 move(inSandboxFile.toPath(), renamedFile.toPath());
                             }
                         } else {
-                            // Error output file does not exist
-                            String msg = "WARN: Output file " + inSandboxFile.toPath() + " does not exist";
                             // Unexpected case (except for C binding when not serializing outputs)
                             if (invocation.getOnFailure() != OnFailure.RETRY) {
                                 LOGGER.debug("Generating empty renamed file (" + renamedFilePath
                                     + ") for on_failure management");
                                 renamedFile.createNewFile();
+
                             }
+
+                            param.setValue(renamedFilePath);
+                            param.setOriginalName(originalFileName);
+
+                            // Error output file does not exist
+                            String msg = "WARN: Output file " + inSandboxFile.toPath() + " does not exist";
                             throw new JobExecutionException(msg);
 
                         }
@@ -947,9 +956,6 @@ public class Executor implements Runnable {
 
     private Invoker selectNativeMethodInvoker(Invocation invocation, File taskSandboxWorkingDir,
         InvocationResources assignedResources) throws JobExecutionException {
-        System.out.println("Context: " + context);
-        System.out.println("Context Runtime: " + context.getRuntimeAPI());
-        System.out.println("Context Loader: " + context.getLoaderAPI());
         switch (invocation.getLang()) {
             case JAVA:
                 Invoker javaInvoker = null;

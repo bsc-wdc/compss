@@ -45,7 +45,6 @@ from pycompss.util.environment.configuration import updated_variables_in_sc
 from pycompss.util.environment.configuration import prepare_tracing_environment
 from pycompss.util.environment.configuration import check_infrastructure_variables         # noqa
 from pycompss.util.environment.configuration import create_init_config_file
-from pycompss.util.environment.configuration import setup_logger
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
 from pycompss.util.serialization.serializer import SerializerException
@@ -424,15 +423,17 @@ def launch_pycompss_application(app, func,
     # Runtime start
     compss_start(log_level, False)
 
-    # Configure logging
-    log_path = get_log_path()
-    major_version = all_vars['major_version']
-    compss_home = all_vars['compss_home']
-    logger = setup_logger(debug,
-                          log_level,
-                          major_version,
-                          compss_home,
-                          log_path)
+    # Setup logging
+    binding_log_path = get_log_path()
+    log_path = os.path.join(all_vars['compss_home'],
+                            'Bindings',
+                            'python',
+                            str(all_vars['major_version']),
+                            'log')
+    set_temporary_directory(binding_log_path)
+    logging_cfg_file = get_logging_cfg_file(log_level)
+    init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
+    logger = logging.getLogger("pycompss.runtime.launch")
 
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)

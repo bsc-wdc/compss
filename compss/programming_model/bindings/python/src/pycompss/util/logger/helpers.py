@@ -36,7 +36,7 @@ def get_logging_cfg_file(log_level):
     # type: (str) -> str
     """ Retrieves the logging configuration file.
 
-    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ].
+    :param log_level: Log level [ 'trace'|'debug'|'info'|'api'|'off' ].
     :return: Logging configuration file.
     :raise Exception: Unsupported log level.
     """

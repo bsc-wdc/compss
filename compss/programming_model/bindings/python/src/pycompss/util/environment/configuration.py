@@ -48,8 +48,8 @@ DEFAULT_TRACING_PATH = '/Runtime/configuration/xml/tracing/'
 
 def prepare_environment(interactive, o_c, storage_impl,
                         app, debug, trace, mpi_worker):
-    """
-    Setup the environment variable and retrieve their content.
+    # type: (bool, bool, str, str, bool, bool, bool) -> dict
+    """ Setup the environment variable and retrieve their content.
 
     :param interactive: True | False If the environment is interactive or not.
     :param o_c: Object conversion to string
@@ -58,7 +58,7 @@ def prepare_environment(interactive, o_c, storage_impl,
     :param debug: True | False If debug is enabled
     :param trace: Trace mode (True | False | 'scorep' | 'arm-map' | 'arm-ddt')
     :param mpi_worker: True | False if mpi worker is enabled
-    :return: Dictionary contanining the compss_home, pythonpath, classpath,
+    :return: Dictionary which contains the compss_home, pythonpath, classpath,
              ld_library_path, cp, extrae_home, extrae_lib and file_name values.
     """
     launch_path = os.path.dirname(os.path.realpath(__file__))
@@ -136,9 +136,9 @@ def prepare_environment(interactive, o_c, storage_impl,
 
 
 def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
-    """
-    Checks if monitor is enabled and updates graph and log level accordingly.
-    If debug is True, then the log_level is set to debug.
+    # type: (bool, bool, bool, str) -> dict
+    """ Checks if monitor is enabled and updates graph and log level.
+    If monitor is True, then the log_level and graph are set to debug.
 
     :param monitor: Monitor refresh frequency. None if disabled.
     :param graph: True | False If graph is enabled or disabled.
@@ -164,8 +164,8 @@ def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
 
 
 def updated_variables_in_sc():
-    """
-    Retrieve the updated variable values whithin SCs.
+    # type: () -> dict
+    """ Retrieve the updated variable values within SCs.
 
     :return: Dictionary containing the updated variables (project_xml,
              resources_xml, master_name, master_port, uuid, base_log_dir,
@@ -207,9 +207,10 @@ def updated_variables_in_sc():
 
 
 def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
-    """
-    Prepare the environment for tracing. Also retrieves the appropriate trace
-    value for the initial configuration file (which is an integer)
+    # type: (bool, str, str) -> (str, str)
+    """ Prepare the environment for tracing.
+    Also retrieves the appropriate trace value for the initial configuration
+    file (which is an integer).
 
     :param trace: [ True | basic ] | advanced | False Tracing mode.
     :param extrae_lib: Extrae lib path.
@@ -235,8 +236,9 @@ def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
 
 def check_infrastructure_variables(project_xml, resources_xml, compss_home,
                                    app_name, file_name, external_adaptation):
-    """
-    Checks the infrastructure variables and updates them if None.
+    # type: (str, str, str, str, str, bool) -> dict
+    """ Checks the infrastructure variables and updates them if None.
+
     :param project_xml: Project xml file path (None if not defined)
     :param resources_xml: Resources xml file path (None if not defined)
     :param compss_home: Compss home path
@@ -277,50 +279,52 @@ def check_infrastructure_variables(project_xml, resources_xml, compss_home,
     return inf_vars
 
 
-def create_init_config_file(compss_home,
-                            debug,
-                            log_level,
-                            project_xml,
-                            resources_xml,
-                            summary,
-                            task_execution,
-                            storage_conf,
-                            streaming_backend,
-                            streaming_master_name,
-                            streaming_master_port,
-                            task_count,
-                            app_name,
-                            uuid,
-                            base_log_dir,
-                            specific_log_dir,
-                            graph,
-                            monitor,
-                            trace,
-                            extrae_cfg,
-                            comm,
-                            conn,
-                            master_name,
-                            master_port,
-                            scheduler,
-                            cp,
-                            classpath,
-                            ld_library_path,
-                            pythonpath,
-                            jvm_workers,
-                            cpu_affinity,
-                            gpu_affinity,
-                            fpga_affinity,
-                            fpga_reprogram,
-                            profile_input,
-                            profile_output,
-                            scheduler_config,
-                            external_adaptation,
-                            python_interpreter,
-                            python_version,
-                            python_virtual_environment,
-                            propagate_virtual_environment,
-                            mpi_worker,
-                            **kwargs):
+def create_init_config_file(compss_home,                    # type: str
+                            debug,                          # type: bool
+                            log_level,                      # type: str
+                            project_xml,                    # type: str
+                            resources_xml,                  # type: str
+                            summary,                        # type: bool
+                            task_execution,                 # type: str
+                            storage_conf,                   # type: str
+                            streaming_backend,              # type: str
+                            streaming_master_name,          # type: str
+                            streaming_master_port,          # type: str
+                            task_count,                     # type: int
+                            app_name,                       # type: str
+                            uuid,                           # type: str
+                            base_log_dir,                   # type: str
+                            specific_log_dir,               # type: str
+                            graph,                          # type: bool
+                            monitor,                        # type: int
+                            trace,                          # type: bool
+                            extrae_cfg,                     # type: str
+                            comm,                           # type: str
+                            conn,                           # type: str
+                            master_name,                    # type: str
+                            master_port,                    # type: str
+                            scheduler,                      # type: str
+                            cp,                             # type: str
+                            classpath,                      # type: str
+                            ld_library_path,                # type: str
+                            pythonpath,                     # type: str
+                            jvm_workers,                    # type: str
+                            cpu_affinity,                   # type: str
+                            gpu_affinity,                   # type: str
+                            fpga_affinity,                  # type: str
+                            fpga_reprogram,                 # type: str
+                            profile_input,                  # type: str
+                            profile_output,                 # type: str
+                            scheduler_config,               # type: str
+                            external_adaptation,            # type: str
+                            python_interpreter,             # type: str
+                            python_version,                 # type: str
+                            python_virtual_environment,     # type: str
+                            propagate_virtual_environment,  # type: bool
+                            mpi_worker,                     # type: bool
+                            **kwargs        # noqa          # type: dict
+                            ):
+    # type: (...) -> None
     """
     Creates the initialization files for the runtime start (java options file).
 
@@ -589,39 +593,3 @@ def create_init_config_file(compss_home,
 
     # print("Uncomment if you want to check the configuration file path.")
     # print("JVM_OPTIONS_FILE: %s" % temp_path)
-
-
-def setup_logger(debug, log_level, major_version, compss_home, log_path):
-    """
-    Initialize the logging facility.
-
-    :param debug: Debug boolean
-    :param log_level: Log level
-    :param major_version: Python version
-    :param compss_home: COMPSs installation folder
-    :param log_path: Log destination path
-    :return: Initialized logger
-    """
-    # Logging setup
-    if debug or log_level == "debug":
-        json_path = '/Bindings/python/' + \
-                    major_version + \
-                    '/log/logging_debug.json'
-        init_logging(compss_home + json_path, log_path)
-    elif log_level == "info":
-        json_path = '/Bindings/python/' + \
-                    major_version + \
-                    '/log/logging_off.json'
-        init_logging(compss_home + json_path, log_path)
-    elif log_level == "off":
-        json_path = '/Bindings/python/' + \
-                    major_version + \
-                    '/log/logging_off.json'
-        init_logging(compss_home + json_path, log_path)
-    else:
-        # Default
-        json_path = '/Bindings/python/' + \
-                    str(major_version) + \
-                    '/log/logging.json'
-        init_logging(compss_home + json_path, log_path)
-    return logging.getLogger("pycompss.runtime.launch")

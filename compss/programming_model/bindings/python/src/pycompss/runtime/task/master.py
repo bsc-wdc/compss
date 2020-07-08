@@ -66,7 +66,6 @@ from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.objects.properties import is_basic_iterable
 from pycompss.util.objects.properties import get_wrapped_source
-from pycompss.util.objects.properties import get_wrapped_source_lines
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding

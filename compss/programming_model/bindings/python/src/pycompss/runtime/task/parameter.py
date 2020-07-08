@@ -51,6 +51,19 @@ try:
 except ImportError:
     np = None
 
+# Python max and min integer values
+if IS_PYTHON3:
+    PYTHON_MAX_INT = sys.maxsize
+    PYTHON_MIN_INT = -sys.maxsize - 1
+else:
+    PYTHON_MAX_INT = sys.maxint  # noqa
+    PYTHON_MIN_INT = -sys.maxint - 1  # noqa
+# Java max and min integer and long values
+JAVA_MAX_INT = 2147483647
+JAVA_MIN_INT = -2147483648
+JAVA_MAX_LONG = PYTHON_MAX_INT
+JAVA_MIN_LONG = PYTHON_MIN_INT
+
 # Python3 has no ints and longs, only ints that are longs
 PYCOMPSS_LONG = int if IS_PYTHON3 else long  # noqa
 
@@ -499,17 +512,3 @@ def get_compss_type(value, depth=0):
     else:
         # Default type
         return TYPE.OBJECT
-
-
-# Python max and min integer values
-if IS_PYTHON3:
-    PYTHON_MAX_INT = sys.maxsize
-    PYTHON_MIN_INT = -sys.maxsize - 1
-else:
-    PYTHON_MAX_INT = sys.maxint       # noqa
-    PYTHON_MIN_INT = -sys.maxint - 1  # noqa
-# Java max and min integer and long values
-JAVA_MAX_INT = 2147483647
-JAVA_MIN_INT = -2147483648
-JAVA_MAX_LONG = PYTHON_MAX_INT
-JAVA_MIN_LONG = PYTHON_MIN_INT

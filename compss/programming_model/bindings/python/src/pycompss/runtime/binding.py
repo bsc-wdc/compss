@@ -38,7 +38,6 @@ from pycompss.runtime.commons import LIST_TYPE
 import pycompss.util.context as context
 
 if __debug__:
-    # Setup logger
     import logging
     logger = logging.getLogger(__name__)
 

@@ -94,4 +94,3 @@ class ParamDictKeys(object):
     # Private (see task/parameter.py)
     Content_type = 'content_type'
     Is_file_collection = 'is_file_collection'
-

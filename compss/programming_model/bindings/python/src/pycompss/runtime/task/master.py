@@ -205,6 +205,7 @@ class TaskMaster(TaskCommons):
         self.signature = signature
 
     def call(self, *args, **kwargs):
+        # type: (tuple, dict) -> (object, bool, str)
         """ Main task code at master side.
         This part deals with task calls in the master's side
         Also, this function must return an appropriate number of

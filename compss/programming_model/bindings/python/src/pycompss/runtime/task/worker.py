@@ -62,7 +62,8 @@ class TaskWorker(TaskCommons):
         self.user_function = user_function
 
     def call(self, *args, **kwargs):
-        """
+        # type: (tuple, dict) -> (list, list, list)
+        """ Main task code at worker side.
         This function deals with task calls in the worker's side
         Note that the call to the user function is made by the worker,
         not by the user code.
@@ -187,13 +188,14 @@ class TaskWorker(TaskCommons):
         return new_types, new_values, self.decorator_arguments[target_label]
 
     def reveal_objects(self, args, logger):  # noqa
-        """
+        # type: (tuple, logger) -> None
+        """ Get the objects from the args message.
         This function takes the arguments passed from the persistent worker
         and treats them to get the proper parameters for the user function.
 
-        :param args: Arguments
+        :param args: Arguments.
         :param logger: Logger (shadows outer logger since this is only used
-                               in the worker to reveal the parameter objects)
+                               in the worker to reveal the parameter objects).
         :return: None
         """
         if self.storage_supports_pipelining():
@@ -216,12 +218,13 @@ class TaskWorker(TaskCommons):
 
     @staticmethod
     def storage_supports_pipelining():
-        """
+        # type: () -> bool
+        """ Check if storage supports pipelining.
         Some storage implementations use pipelining
         Pipelining means "accumulate the getByID queries and perform them
         in a single megaquery".
         If this feature is not available (storage does not support it)
-        getByID operations will be performed one after the other
+        getByID operations will be performed one after the other.
 
         :return: True if pipelining is supported. False otherwise.
         """
@@ -232,13 +235,13 @@ class TaskWorker(TaskCommons):
             return False
 
     def retrieve_content(self, argument, name_prefix, depth=0):
-        """
-        Retrieve the content of a particular argument
+        # type: (Parameter, str, int) -> None
+        """ Retrieve the content of a particular argument.
 
-        :param argument: Argument
-        :param name_prefix: Name prefix
-        :param depth: Collection depth (0 if not a collection)
-        :return: The object associated to the argument
+        :param argument: Argument.
+        :param name_prefix: Name prefix.
+        :param depth: Collection depth (0 if not a collection).
+        :return: None
         """
         if __debug__:
             logger.debug("\t - Revealing: " + str(argument.name))
@@ -354,12 +357,13 @@ class TaskWorker(TaskCommons):
             # available and properly casted by the python worker
 
     def segregate_objects(self, args):
-        """
+        # type: (tuple) -> (list, dict, list)
+        """ Split a list of arguments.
         Segregates a list of arguments in user positional, variadic and
         return arguments.
 
         :return: list of user arguments, dictionary of user kwargs and a list
-                 of return parameters
+                 of return parameters.
         """
         # User args
         user_args = []
@@ -391,14 +395,14 @@ class TaskWorker(TaskCommons):
         return user_args, user_kwargs, ret_params
 
     def execute_user_code(self, user_args, user_kwargs, tracing):
-        """
-        Executes the user code.
+        # type: (list, dict, bool) -> (object, COMPSsException)
+        """ Executes the user code.
         Disables the tracing hook if tracing is enabled. Restores it
         at the end of the user code execution.
 
-        :param user_args: Function args
-        :param user_kwargs: Function kwargs
-        :param tracing: If tracing enabled
+        :param user_args: Function args.
+        :param user_kwargs: Function kwargs.
+        :param tracing: If tracing enabled.
         :return: The user function returns and the compss exception (if any).
         """
         # Tracing hook is disabled by default during the user code of the task.
@@ -504,14 +508,13 @@ class TaskWorker(TaskCommons):
         return user_returns, compss_exception
 
     def manage_inouts(self, args, python_mpi):
-        """
-        Deal with INOUTS. Serializes the result of INOUT parameters.
+        # type: (tuple, bool) -> None
+        """ Deal with INOUTS. Serializes the result of INOUT parameters.
 
-        :param args: Argument list
-        :param python_mpi: Boolean if python mpi
+        :param args: Argument list.
+        :param python_mpi: Boolean if python mpi.
         :return: None
         """
-
         if __debug__:
             logger.debug("Dealing with INOUTs and OUTS")
             if python_mpi:
@@ -584,14 +587,14 @@ class TaskWorker(TaskCommons):
 
     @staticmethod
     def manage_returns(num_returns, user_returns, ret_params, python_mpi):
-        """
-        Manage task returns.
+        # type: (int, list, list, bool) -> list
+        """ Manage task returns.
 
-        :param num_returns: Number of returns
-        :param user_returns: User returns
-        :param ret_params: Return parameters
-        :param python_mpi: Boolean if is python mpi code
-        :return: user returns
+        :param num_returns: Number of returns.
+        :param user_returns: User returns.
+        :param ret_params: Return parameters.
+        :param python_mpi: Boolean if is python mpi code.
+        :return: User returns.
         """
         if __debug__:
             logger.debug("Dealing with returns: " + str(num_returns))
@@ -630,11 +633,11 @@ class TaskWorker(TaskCommons):
         return user_returns
 
     def is_parameter_an_object(self, name):
-        """
-        Given the name of a parameter, determine if it is an object or not
+        # type: (str) -> bool
+        """ Given the name of a parameter, determine if it is an object or not.
 
-        :param name: Name of the parameter
-        :return: True if the parameter is a (serializable) object
+        :param name: Name of the parameter.
+        :return: True if the parameter is a (serializable) object.
         """
         original_name = get_name_from_kwarg(name)
         # Get the args parameter object
@@ -651,12 +654,12 @@ class TaskWorker(TaskCommons):
         return True
 
     def is_parameter_file_collection(self, name):
-        """
-        Given the name of a parameter, determine if it is an file collection
-        or not
+        # type: (str) -> bool
+        """ Given the name of a parameter, determine if it is a file
+        collection or not.
 
-        :param name: Name of the parameter
-        :return: True if the parameter is a file collection
+        :param name: Name of the parameter.
+        :return: True if the parameter is a file collection.
         """
         original_name = get_name_from_kwarg(name)
         # Get the args parameter object
@@ -671,20 +674,21 @@ class TaskWorker(TaskCommons):
 
     def manage_new_types_values(self, num_returns, user_returns, args,
                                 has_self, target_label, self_type, self_value):
-        """
+        # type: (int, list, tuple, bool, str, str, object) -> (list, list)
+        """ Manage new types and values.
         We must notify COMPSs when types are updated
         Potential update candidates are returns and INOUTs
         But the whole types and values list must be returned
         new_types and new_values correspond to "parameters self returns"
 
-        :param num_returns: Number of returns
-        :param user_returns: User returns
-        :param args: Arguments
-        :param has_self: If has self
-        :param target_label: Target label (self, cls, etc.)
-        :param self_type: Self type
-        :param self_value: Self value
-        :return: List new types, List new values
+        :param num_returns: Number of returns.
+        :param user_returns: User returns.
+        :param args: Arguments.
+        :param has_self: If has self.
+        :param target_label: Target label (self, cls, etc.).
+        :param self_type: Self type.
+        :param self_value: Self value.
+        :return: List new types, List new values.
         """
         new_types, new_values = [], []
 
@@ -763,9 +767,7 @@ class TaskWorker(TaskCommons):
 #######################
 
 def __get_collection_objects__(content, argument):
-    """
-    Retrieve collection objects recursively
-    """
+    """ Retrieve collection objects recursively. """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for (new_con, _elem) in zip(argument.content,
                                     argument.collection_content):
@@ -776,21 +778,21 @@ def __get_collection_objects__(content, argument):
 
 
 def __get_file_name__(file_path):
-    """
-    Retrieve the file name from an absolute file path
+    # type: (str) -> str
+    """ Retrieve the file name from an absolute file path.
 
-    :param file_path: Absolute file path
-    :return: File name
+    :param file_path: Absolute file path.
+    :return: File name.
     """
     return file_path.split(':')[-1]
 
 
 def __get_ret_rank__(_ret_params):
-    """
-    Retrieve the rank id within MPI
+    # type: (list) -> list
+    """ Retrieve the rank id within MPI.
 
-    :param _ret_params: Return parameters
-    :return: Integer return rank
+    :param _ret_params: Return parameters.
+    :return: Integer return rank.
     """
     from mpi4py import MPI
     return [_ret_params[MPI.COMM_WORLD.rank]]

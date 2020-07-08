@@ -24,7 +24,7 @@ PyCOMPSs runtime - Task - Keys
 """
 
 
-class Keys(object):
+class ParamAliasKeys(object):
     """
     Strings used in Tasks definition
     """
@@ -77,3 +77,21 @@ class Keys(object):
 
     STREAM_IN = 'STREAM_IN'
     STREAM_OUT = 'STREAM_OUT'
+
+
+class ParamDictKeys(object):
+    """
+    Strings used in Parameter definition as dictionary
+    """
+    # Exposed to the user (see api/parameter.py)
+    Type = 'type'
+    Direction = 'direction'
+    StdIOStream = 'stream'
+    Prefix = 'prefix'
+    Depth = 'depth'
+    Weight = 'weight'
+    Keep_rename = 'keep_rename'
+    # Private (see task/parameter.py)
+    Content_type = 'content_type'
+    Is_file_collection = 'is_file_collection'
+

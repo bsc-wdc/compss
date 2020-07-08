@@ -27,7 +27,8 @@ import sys
 import copy
 
 from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.runtime.task.keys import Keys
+from pycompss.runtime.task.keys import ParamAliasKeys
+from pycompss.runtime.task.keys import ParamDictKeys
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import IOSTREAM
@@ -140,222 +141,217 @@ class Parameter(object):
         return self.content_type is TYPE.DIRECTORY
 
 
-_DIRECTION = 'direction'
-_KEEP_RENAME = 'keep_rename'
-_CONTENT_TYPE = 'content_type'
-_STREAM = 'stream'
-_IS_FILE_COLLECTION = 'is_file_collection'
 # Parameter conversion dictionary.
 _param_conversion_dict_ = {
-    Keys.IN: {},
-    Keys.OUT: {
-        _DIRECTION: DIRECTION.OUT,
+    ParamAliasKeys.IN: {},
+    ParamAliasKeys.OUT: {
+        ParamDictKeys.Direction: DIRECTION.OUT,
     },
-    Keys.INOUT: {
-        _DIRECTION: DIRECTION.INOUT,
+    ParamAliasKeys.INOUT: {
+        ParamDictKeys.Direction: DIRECTION.INOUT,
     },
-    Keys.CONCURRENT: {
-        _DIRECTION: DIRECTION.CONCURRENT,
+    ParamAliasKeys.CONCURRENT: {
+        ParamDictKeys.Direction: DIRECTION.CONCURRENT,
     },
-    Keys.COMMUTATIVE: {
-        _DIRECTION: DIRECTION.COMMUTATIVE,
+    ParamAliasKeys.COMMUTATIVE: {
+        ParamDictKeys.Direction: DIRECTION.COMMUTATIVE,
     },
-    Keys.FILE: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_IN: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_IN: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_OUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.OUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_OUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.OUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_INOUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.INOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_INOUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.DIRECTORY: {
-        _CONTENT_TYPE: TYPE.DIRECTORY,
-        _KEEP_RENAME: False
+    ParamAliasKeys.DIRECTORY: {
+        ParamDictKeys.Content_type: TYPE.DIRECTORY,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.DIRECTORY_IN: {
-        _CONTENT_TYPE: TYPE.DIRECTORY,
-        _KEEP_RENAME: False
+    ParamAliasKeys.DIRECTORY_IN: {
+        ParamDictKeys.Content_type: TYPE.DIRECTORY,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.DIRECTORY_OUT: {
-        _CONTENT_TYPE: TYPE.DIRECTORY,
-        _DIRECTION: DIRECTION.OUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.DIRECTORY_OUT: {
+        ParamDictKeys.Content_type: TYPE.DIRECTORY,
+        ParamDictKeys.Direction: DIRECTION.OUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.DIRECTORY_INOUT: {
-        _CONTENT_TYPE: TYPE.DIRECTORY,
-        _DIRECTION: DIRECTION.INOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.DIRECTORY_INOUT: {
+        ParamDictKeys.Content_type: TYPE.DIRECTORY,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_CONCURRENT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.CONCURRENT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_CONCURRENT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.CONCURRENT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_COMMUTATIVE: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.COMMUTATIVE,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_COMMUTATIVE: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.COMMUTATIVE,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_STDIN: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _STREAM: IOSTREAM.STDIN,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_STDIN: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDIN,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_STDERR: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _STREAM: IOSTREAM.STDERR,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_STDERR: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDERR,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_STDOUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _STREAM: IOSTREAM.STDOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_STDOUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_IN_STDIN: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.IN,
-        _STREAM: IOSTREAM.STDIN,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_IN_STDIN: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.IN,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDIN,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_IN_STDERR: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.IN,
-        _STREAM: IOSTREAM.STDERR,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_IN_STDERR: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.IN,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDERR,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_IN_STDOUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.IN,
-        _STREAM: IOSTREAM.STDOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_IN_STDOUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.IN,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_OUT_STDIN: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.OUT,
-        _STREAM: IOSTREAM.STDIN,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_OUT_STDIN: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.OUT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDIN,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_OUT_STDERR: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.OUT,
-        _STREAM: IOSTREAM.STDERR,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_OUT_STDERR: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.OUT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDERR,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_OUT_STDOUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.OUT,
-        _STREAM: IOSTREAM.STDOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_OUT_STDOUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.OUT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_INOUT_STDIN: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.INOUT,
-        _STREAM: IOSTREAM.STDIN,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_INOUT_STDIN: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDIN,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_INOUT_STDERR: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.INOUT,
-        _STREAM: IOSTREAM.STDERR,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_INOUT_STDERR: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDERR,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_INOUT_STDOUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.INOUT,
-        _STREAM: IOSTREAM.STDOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_INOUT_STDOUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_CONCURRENT_STDIN: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.CONCURRENT,
-        _STREAM: IOSTREAM.STDIN,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_CONCURRENT_STDIN: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.CONCURRENT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDIN,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_CONCURRENT_STDERR: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.CONCURRENT,
-        _STREAM: IOSTREAM.STDERR,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_CONCURRENT_STDERR: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.CONCURRENT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDERR,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_CONCURRENT_STDOUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.CONCURRENT,
-        _STREAM: IOSTREAM.STDOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_CONCURRENT_STDOUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.CONCURRENT,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_COMMUTATIVE_STDIN: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.COMMUTATIVE,
-        _STREAM: IOSTREAM.STDIN,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_COMMUTATIVE_STDIN: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.COMMUTATIVE,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDIN,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_COMMUTATIVE_STDERR: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.COMMUTATIVE,
-        _STREAM: IOSTREAM.STDERR,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_COMMUTATIVE_STDERR: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.COMMUTATIVE,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDERR,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.FILE_COMMUTATIVE_STDOUT: {
-        _CONTENT_TYPE: TYPE.FILE,
-        _DIRECTION: DIRECTION.COMMUTATIVE,
-        _STREAM: IOSTREAM.STDOUT,
-        _KEEP_RENAME: False
+    ParamAliasKeys.FILE_COMMUTATIVE_STDOUT: {
+        ParamDictKeys.Content_type: TYPE.FILE,
+        ParamDictKeys.Direction: DIRECTION.COMMUTATIVE,
+        ParamDictKeys.StdIOStream: IOSTREAM.STDOUT,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.COLLECTION: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
+    ParamAliasKeys.COLLECTION: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
     },
-    Keys.COLLECTION_IN: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
-        _DIRECTION: DIRECTION.IN,
+    ParamAliasKeys.COLLECTION_IN: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.IN,
     },
-    Keys.COLLECTION_INOUT: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
-        _DIRECTION: DIRECTION.INOUT,
+    ParamAliasKeys.COLLECTION_INOUT: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
     },
-    Keys.COLLECTION_OUT: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
-        _DIRECTION: DIRECTION.OUT,
+    ParamAliasKeys.COLLECTION_OUT: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.OUT,
     },
-    Keys.STREAM_IN: {
-        _CONTENT_TYPE: TYPE.EXTERNAL_STREAM,
-        _DIRECTION: DIRECTION.IN
+    ParamAliasKeys.STREAM_IN: {
+        ParamDictKeys.Content_type: TYPE.EXTERNALParamDictKeys.StdIOStream,
+        ParamDictKeys.Direction: DIRECTION.IN
     },
-    Keys.STREAM_OUT: {
-        _CONTENT_TYPE: TYPE.EXTERNAL_STREAM,
-        _DIRECTION: DIRECTION.OUT
+    ParamAliasKeys.STREAM_OUT: {
+        ParamDictKeys.Content_type: TYPE.EXTERNALParamDictKeys.StdIOStream,
+        ParamDictKeys.Direction: DIRECTION.OUT
     },
-    Keys.COLLECTION_FILE: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
-        _IS_FILE_COLLECTION: True,
-        _KEEP_RENAME: False
+    ParamAliasKeys.COLLECTION_FILE: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
+        ParamDictKeys.Is_file_collection: True,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.COLLECTION_FILE_IN: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
-        _DIRECTION: DIRECTION.IN,
-        _IS_FILE_COLLECTION: True,
-        _KEEP_RENAME: False
+    ParamAliasKeys.COLLECTION_FILE_IN: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.IN,
+        ParamDictKeys.Is_file_collection: True,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.COLLECTION_FILE_INOUT: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
-        _DIRECTION: DIRECTION.INOUT,
-        _IS_FILE_COLLECTION: True,
-        _KEEP_RENAME: False
+    ParamAliasKeys.COLLECTION_FILE_INOUT: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
+        ParamDictKeys.Is_file_collection: True,
+        ParamDictKeys.Keep_rename: False
     },
-    Keys.COLLECTION_FILE_OUT: {
-        _CONTENT_TYPE: TYPE.COLLECTION,
-        _DIRECTION: DIRECTION.OUT,
-        _IS_FILE_COLLECTION: True,
-        _KEEP_RENAME: False
+    ParamAliasKeys.COLLECTION_FILE_OUT: {
+        ParamDictKeys.Content_type: TYPE.COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.OUT,
+        ParamDictKeys.Is_file_collection: True,
+        ParamDictKeys.Keep_rename: False
     }
 }
 
@@ -433,7 +429,7 @@ def get_parameter_from_dictionary(d):
     d[Type] = get_parameter_copy(d[Type])
     parameter = d[Type]
     if Direction in d:
-        parameter.direction = d.get[Direction]
+        parameter.direction = d[Direction]
     if StdIOStream in d:
         parameter.stream = d[StdIOStream]
     if Prefix in d:

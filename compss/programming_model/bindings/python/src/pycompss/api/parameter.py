@@ -46,11 +46,12 @@ PyCOMPSs API - Parameter
     5. ALIASES.
 """
 
-# Numbers match both C and Java enums
 from pycompss.api.commons.data_type import DataType as _DataType
-from pycompss.runtime.task.keys import Keys
+from pycompss.runtime.task.keys import ParamAliasKeys as _ParamAliasKeys
+from pycompss.runtime.task.keys import ParamDictKeys as _ParamDictKeys
 
-# Type definitions
+# Type definitions -> Numbers match both C and Java enums and are generated
+#                     during the installation.
 TYPE = _DataType
 
 
@@ -89,67 +90,66 @@ class _Param(object):
     """
     Private class which hides the parameter key to be used.
     """
-
     def __init__(self, key):
         self.key = key
 
 
 # Aliases for objects (just direction)
-IN = _Param(Keys.IN)
-OUT = _Param(Keys.OUT)
-INOUT = _Param(Keys.INOUT)
-CONCURRENT = _Param(Keys.CONCURRENT)
-COMMUTATIVE = _Param(Keys.COMMUTATIVE)
+IN = _Param(_ParamAliasKeys.IN)
+OUT = _Param(_ParamAliasKeys.OUT)
+INOUT = _Param(_ParamAliasKeys.INOUT)
+CONCURRENT = _Param(_ParamAliasKeys.CONCURRENT)
+COMMUTATIVE = _Param(_ParamAliasKeys.COMMUTATIVE)
 
 # Aliases for files with direction
-FILE = _Param(Keys.FILE)
-FILE_IN = _Param(Keys.FILE_IN)
-FILE_OUT = _Param(Keys.FILE_OUT)
-FILE_INOUT = _Param(Keys.FILE_INOUT)
-FILE_CONCURRENT = _Param(Keys.FILE_CONCURRENT)
-FILE_COMMUTATIVE = _Param(Keys.FILE_COMMUTATIVE)
+FILE = _Param(_ParamAliasKeys.FILE)
+FILE_IN = _Param(_ParamAliasKeys.FILE_IN)
+FILE_OUT = _Param(_ParamAliasKeys.FILE_OUT)
+FILE_INOUT = _Param(_ParamAliasKeys.FILE_INOUT)
+FILE_CONCURRENT = _Param(_ParamAliasKeys.FILE_CONCURRENT)
+FILE_COMMUTATIVE = _Param(_ParamAliasKeys.FILE_COMMUTATIVE)
 
 # Aliases for files with stream
-FILE_STDIN = _Param(Keys.FILE_STDIN)
-FILE_STDERR = _Param(Keys.FILE_STDERR)
-FILE_STDOUT = _Param(Keys.FILE_STDOUT)
+FILE_STDIN = _Param(_ParamAliasKeys.FILE_STDIN)
+FILE_STDERR = _Param(_ParamAliasKeys.FILE_STDERR)
+FILE_STDOUT = _Param(_ParamAliasKeys.FILE_STDOUT)
 
 # Aliases for files with direction and stream
-FILE_IN_STDIN = _Param(Keys.FILE_IN_STDIN)
-FILE_IN_STDERR = _Param(Keys.FILE_IN_STDERR)
-FILE_IN_STDOUT = _Param(Keys.FILE_IN_STDOUT)
-FILE_OUT_STDIN = _Param(Keys.FILE_OUT_STDIN)
-FILE_OUT_STDERR = _Param(Keys.FILE_OUT_STDERR)
-FILE_OUT_STDOUT = _Param(Keys.FILE_OUT_STDOUT)
-FILE_INOUT_STDIN = _Param(Keys.FILE_INOUT_STDIN)
-FILE_INOUT_STDERR = _Param(Keys.FILE_INOUT_STDERR)
-FILE_INOUT_STDOUT = _Param(Keys.FILE_INOUT_STDOUT)
-FILE_CONCURRENT_STDIN = _Param(Keys.FILE_CONCURRENT_STDIN)
-FILE_CONCURRENT_STDERR = _Param(Keys.FILE_CONCURRENT_STDERR)
-FILE_CONCURRENT_STDOUT = _Param(Keys.FILE_CONCURRENT_STDOUT)
-FILE_COMMUTATIVE_STDIN = _Param(Keys.FILE_COMMUTATIVE_STDIN)
-FILE_COMMUTATIVE_STDERR = _Param(Keys.FILE_COMMUTATIVE_STDERR)
-FILE_COMMUTATIVE_STDOUT = _Param(Keys.FILE_COMMUTATIVE_STDOUT)
+FILE_IN_STDIN = _Param(_ParamAliasKeys.FILE_IN_STDIN)
+FILE_IN_STDERR = _Param(_ParamAliasKeys.FILE_IN_STDERR)
+FILE_IN_STDOUT = _Param(_ParamAliasKeys.FILE_IN_STDOUT)
+FILE_OUT_STDIN = _Param(_ParamAliasKeys.FILE_OUT_STDIN)
+FILE_OUT_STDERR = _Param(_ParamAliasKeys.FILE_OUT_STDERR)
+FILE_OUT_STDOUT = _Param(_ParamAliasKeys.FILE_OUT_STDOUT)
+FILE_INOUT_STDIN = _Param(_ParamAliasKeys.FILE_INOUT_STDIN)
+FILE_INOUT_STDERR = _Param(_ParamAliasKeys.FILE_INOUT_STDERR)
+FILE_INOUT_STDOUT = _Param(_ParamAliasKeys.FILE_INOUT_STDOUT)
+FILE_CONCURRENT_STDIN = _Param(_ParamAliasKeys.FILE_CONCURRENT_STDIN)
+FILE_CONCURRENT_STDERR = _Param(_ParamAliasKeys.FILE_CONCURRENT_STDERR)
+FILE_CONCURRENT_STDOUT = _Param(_ParamAliasKeys.FILE_CONCURRENT_STDOUT)
+FILE_COMMUTATIVE_STDIN = _Param(_ParamAliasKeys.FILE_COMMUTATIVE_STDIN)
+FILE_COMMUTATIVE_STDERR = _Param(_ParamAliasKeys.FILE_COMMUTATIVE_STDERR)
+FILE_COMMUTATIVE_STDOUT = _Param(_ParamAliasKeys.FILE_COMMUTATIVE_STDOUT)
 
 # Aliases for dirs
-DIRECTORY = _Param(Keys.DIRECTORY)
-DIRECTORY_IN = _Param(Keys.DIRECTORY_IN)
-DIRECTORY_OUT = _Param(Keys.DIRECTORY_OUT)
-DIRECTORY_INOUT = _Param(Keys.DIRECTORY_INOUT)
+DIRECTORY = _Param(_ParamAliasKeys.DIRECTORY)
+DIRECTORY_IN = _Param(_ParamAliasKeys.DIRECTORY_IN)
+DIRECTORY_OUT = _Param(_ParamAliasKeys.DIRECTORY_OUT)
+DIRECTORY_INOUT = _Param(_ParamAliasKeys.DIRECTORY_INOUT)
 
 # Aliases for collections
-COLLECTION = _Param(Keys.COLLECTION)
-COLLECTION_IN = _Param(Keys.COLLECTION_IN)
-COLLECTION_INOUT = _Param(Keys.COLLECTION_INOUT)
-COLLECTION_OUT = _Param(Keys.COLLECTION_OUT)
-COLLECTION_FILE = _Param(Keys.COLLECTION_FILE)
-COLLECTION_FILE_IN = _Param(Keys.COLLECTION_FILE_IN)
-COLLECTION_FILE_INOUT = _Param(Keys.COLLECTION_FILE_INOUT)
-COLLECTION_FILE_OUT = _Param(Keys.COLLECTION_FILE_OUT)
+COLLECTION = _Param(_ParamAliasKeys.COLLECTION)
+COLLECTION_IN = _Param(_ParamAliasKeys.COLLECTION_IN)
+COLLECTION_INOUT = _Param(_ParamAliasKeys.COLLECTION_INOUT)
+COLLECTION_OUT = _Param(_ParamAliasKeys.COLLECTION_OUT)
+COLLECTION_FILE = _Param(_ParamAliasKeys.COLLECTION_FILE)
+COLLECTION_FILE_IN = _Param(_ParamAliasKeys.COLLECTION_FILE_IN)
+COLLECTION_FILE_INOUT = _Param(_ParamAliasKeys.COLLECTION_FILE_INOUT)
+COLLECTION_FILE_OUT = _Param(_ParamAliasKeys.COLLECTION_FILE_OUT)
 
 # Aliases for streams
-STREAM_IN = _Param(Keys.STREAM_IN)
-STREAM_OUT = _Param(Keys.STREAM_OUT)
+STREAM_IN = _Param(_ParamAliasKeys.STREAM_IN)
+STREAM_OUT = _Param(_ParamAliasKeys.STREAM_OUT)
 
 # Aliases for std IO streams (just stream direction)
 STDIN = IOSTREAM.STDIN
@@ -157,10 +157,10 @@ STDOUT = IOSTREAM.STDOUT
 STDERR = IOSTREAM.STDERR
 
 # Aliases for parameter definition as dictionary
-Type = 'type'                # parameter type
-Direction = 'direction'      # parameter direction
-StdIOStream = 'stream'       # parameter stream
-Prefix = 'prefix'            # parameter prefix
-Depth = 'depth'              # collection recursive depth
-Weight = 'weight'            # parameter weight
-Keep_rename = 'keep_rename'  # parameter keep rename property
+Type = _ParamDictKeys.Type                # parameter type
+Direction = _ParamDictKeys.Direction      # parameter direction
+StdIOStream = _ParamDictKeys.StdIOStream  # parameter stream
+Prefix = _ParamDictKeys.Prefix            # parameter prefix
+Depth = _ParamDictKeys.Depth              # collection recursive depth
+Weight = _ParamDictKeys.Weight            # parameter weight
+Keep_rename = _ParamDictKeys.Keep_rename  # parameter keep rename property

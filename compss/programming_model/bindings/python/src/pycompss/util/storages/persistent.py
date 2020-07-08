@@ -40,17 +40,23 @@ except ImportError as e:
     ERROR_MSG = e
 
     def init(config_file_path=None):  # noqa
+        # type: (str) -> None
         raise Exception('Unexpected call to init from storage. Reason: %s' %
                         ERROR_MSG)
 
     def finish():
+        # type: () -> None
         raise Exception('Unexpected call to finish from storage. Reason: %s' %
                         ERROR_MSG)
 
     def getByID(id):  # noqa
+        # type: (str) -> None
         raise Exception('Unexpected call to getByID. Reason: %s' % ERROR_MSG)
 
     class TaskContext(object):
+        """
+        Dummy task context to be used with storage frameworks.
+        """
         def __init__(self, logger, values, config_file_path=None):
             self.logger = logger
             err_msg = 'Unexpected call to dummy storage task context. ' \
@@ -76,11 +82,11 @@ storage_task_context = TaskContext  # Renamed for importing it from the worker
 
 
 def is_psco(obj):
-    """
-    Checks if obj is a persistent object (external storage).
+    # type: (object) -> bool
+    """ Checks if obj is a persistent object (external storage).
 
-    :param obj: Object to check
-    :return: <Boolean>
+    :param obj: Object to check.
+    :return: True if is persistent object. False otherwise.
     """
     # Check from storage object requires a dummy storage object class
     # from storage.storage_object import storage_object
@@ -90,11 +96,11 @@ def is_psco(obj):
 
 
 def has_id(obj):
-    """
-    Checks if the object has a getID method.
+    # type: (object) -> bool
+    """ Checks if the object has a getID method.
 
-    :param obj: Object to check
-    :return: <Boolean>
+    :param obj: Object to check.
+    :return: True if is persistent object. False otherwise.
     """
     if 'getID' in dir(obj):
         return True
@@ -103,28 +109,30 @@ def has_id(obj):
 
 
 def get_id(psco):
-    """
-    Retrieve the persistent object identifier.
+    # type: (...) -> str
+    """ Retrieve the persistent object identifier.
 
-    :param psco: Persistent object
-    :return: <String> Id
+    :param psco: Persistent object.
+    :return: Persistent object identifier.
     """
     return psco.getID()
 
 
 def get_by_id(identifier):
-    """
-    Retrieve the actual object from a persistent object identifier.
+    # type: (str) -> object
+    """ Retrieve the actual object from a persistent object identifier.
 
-    :param identifier: Persistent object identifier
-    :return: The object that corresponds to the id
+    :param identifier: Persistent object identifier.
+    :return: The object that corresponds to the id.
     """
     return getByID(identifier)
 
 
 @emit_event(INIT_STORAGE_EVENT)
-def init_storage(storage_conf, logger):
-    """
+def init_storage(storage_conf, logger):  # noqa
+    # type: (str, ...) -> bool
+    """ Call to init storage.
+
     Initializes the persistent storage with the given storage_conf file.
     The storage will be initialized if storage_conf is not None nor 'null'.
 
@@ -143,8 +151,8 @@ def init_storage(storage_conf, logger):
 
 @emit_event(STOP_STORAGE_EVENT)
 def stop_storage():
-    """
-    Stops the persistent storage.
+    # type: () -> None
+    """ Stops the persistent storage.
 
     :return: None
     """

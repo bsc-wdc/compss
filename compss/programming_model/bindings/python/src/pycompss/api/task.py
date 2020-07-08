@@ -1562,7 +1562,7 @@ class Task(object):
                 # handle collections recursively
                 for (content, elem) in get_collection_objects(arg.content, arg):             # noqa: E501
                     if elem.type == parameter.TYPE.FILE and is_psco(content):  # noqa: E501
-                        elem.type = paramter.TYPE.EXTERNAL_PSCO
+                        elem.type = parameter.TYPE.EXTERNAL_PSCO
                         continue
                     if elem.type == parameter.TYPE.EXTERNAL_PSCO and is_psco(content):  # noqa: E501
                         continue

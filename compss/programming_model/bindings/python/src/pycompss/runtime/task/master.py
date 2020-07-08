@@ -126,8 +126,7 @@ MANDATORY_ARGUMENTS = {}
 # List since the parameter names are included before checking for unexpected
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
-SUPPORTED_ARGUMENTS = ['_compss_tracing',  # private
-                       'returns',
+SUPPORTED_ARGUMENTS = ['returns',
                        'priority',
                        'on_failure',
                        'time_out',
@@ -206,12 +205,12 @@ class TaskMaster(TaskCommons):
         self.signature = signature
 
     def call(self, *args, **kwargs):
-        """
+        """ Main task code at master side.
         This part deals with task calls in the master's side
         Also, this function must return an appropriate number of
         future objects that point to the appropriate objects/files.
 
-        :return: A function that does "nothing" and returns futures if needed
+        :return: A function that does "nothing" and returns futures if needed.
         """
         # This lock makes this decorator able to handle various threads
         # calling the same task concurrently
@@ -356,10 +355,13 @@ class TaskMaster(TaskCommons):
         # This object will substitute the user expected return from the task
         # and will be used later for synchronization or as a task parameter
         # (then the runtime will take care of the dependency).
+        # Also return if the task has been registered and its signature,
+        # so that future tasks of the same function register if necessary.
         return fo, self.registered, self.signature
 
     def update_if_interactive(self):
-        """
+        # type: () -> None
+        """ Update the code for jupyter notebook.
         Update the user code if in interactive mode and the session has
         been started.
 
@@ -398,13 +400,14 @@ class TaskMaster(TaskCommons):
 
     @staticmethod
     def extract_core_element(kwargs):
-        """
+        # type: (dict) -> (CE, bool)
+        """ Get or instantiate the Task's core element.
         Extract the core element if created in a higher level decorator
         or creates a new one if does not.
         IMPORTANT! extract the core element from kwargs if pre-defined
                    in decorators defined on top of @task.
 
-        :return: Core element, boolean if previously created
+        :return: Core element, boolean if previously created.
         """
         pre_defined_ce = False
         if CORE_ELEMENT_KEY in kwargs:
@@ -420,15 +423,16 @@ class TaskMaster(TaskCommons):
         return core_element, pre_defined_ce
 
     def inspect_user_function_arguments(self):
-        """
+        # type: () -> None
+        """ Get user function arguments.
         Inspect the arguments of the user function and store them.
         Read the names of the arguments and remember their order.
         We will also learn things like if the user function contained
         variadic arguments, named arguments and so on.
         This will be useful when pairing arguments with the direction
-        the user has specified for them in the decorator
+        the user has specified for them in the decorator.
 
-        :return: None, it just adds attributes
+        :return: None, it just adds attributes.
         """
         try:
             arguments = self._getargspec(self.user_function)
@@ -453,6 +457,11 @@ class TaskMaster(TaskCommons):
 
     @staticmethod
     def _getargspec(function):
+        """ Private method that retrieves the function argspec.
+
+        :param function: Function to analyse.
+        :return: args, varargs, keywords and defaults dictionaries.
+        """
         if IS_PYTHON3:
             full_argspec = inspect.getfullargspec(function)
             as_args = full_argspec.args
@@ -466,13 +475,12 @@ class TaskMaster(TaskCommons):
             return inspect.getargspec(function)  # noqa
 
     def process_parameters(self, *args, **kwargs):
-        """
-        Process all the input parameters.
+        """ Process all the input parameters.
         Basically, processing means "build a dictionary of <name, parameter>,
         where each parameter has an associated Parameter object".
         This function also assigns default directions to parameters.
 
-        :return: None, it only modifies self.parameters
+        :return: None, it only modifies self.parameters.
         """
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
@@ -537,12 +545,12 @@ class TaskMaster(TaskCommons):
                         "@task")
 
     def build_parameter_object(self, arg_name, arg_object):
-        """
-        Creates the Parameter object from an argument name and object.
+        # type: (str, object) -> Parameter
+        """ Creates the Parameter object from an argument name and object.
 
-        :param arg_name: Argument name
-        :param arg_object: Argument object
-        :return: Parameter object
+        :param arg_name: Argument name.
+        :param arg_object: Argument object.
+        :return: Parameter object.
         """
         # Is the argument a vararg? or a kwarg? Then check the direction
         # for varargs or kwargs
@@ -585,12 +593,13 @@ class TaskMaster(TaskCommons):
         return param
 
     def compute_user_function_information(self):
-        """
+        # type: () -> None
+        """ Get the user function path and name.
         Compute the function path p and the name n such that
-        "from p import n" imports self.user_function
+        "from p import n" imports self.user_function.
 
         :return: None, it just sets self.user_function_path and
-                 self.user_function_name
+                 self.user_function_name.
         """
         self.function_name = self.user_function.__name__
         # Get the module name (the x part "from x import y"), except for the
@@ -600,16 +609,16 @@ class TaskMaster(TaskCommons):
         self.compute_function_type()
 
     def compute_module_name(self):
-        """
-        Compute the user's function module name.
+        # type: () -> None
+        """ Compute the user's function module name.
         There are various cases:
-        1) The user function is defined in some file. This is easy, just get
-           the module returned by inspect.getmodule
-        2) The user function is in the main module. Retrieve the file and
-           build the import name from it
-        3) We are in interactive mode
+            1) The user function is defined in some file. This is easy, just
+               get the module returned by inspect.getmodule.
+            2) The user function is in the main module. Retrieve the file and
+               build the import name from it.
+            3) We are in interactive mode.
 
-        :return: None, it just modifies self.module_name
+        :return: None, it just modifies self.module_name.
         """
         mod = inspect.getmodule(self.user_function)
         self.module_name = mod.__name__
@@ -637,12 +646,13 @@ class TaskMaster(TaskCommons):
             self.module_name = get_module_name(path, file_name)
 
     def compute_function_type(self):
-        """
+        # type: () -> None
+        """ Compute user function type.
         Compute some properties of the user function, as its name,
         its import path, and its type (module function, instance method,
          class method), etc.
 
-        :return: None, just updates self.class_name and self.function_type
+        :return: None, just updates self.class_name and self.function_type.
         """
         # Check the type of the function called.
         # inspect.ismethod(f) does not work here,
@@ -675,12 +685,11 @@ class TaskMaster(TaskCommons):
                 # -1 to remove the last point
 
     def set_code_strings(self, f, ce_type):
-        """
-        This function is used to set if the strings must be coded or not.
-        IMPORTANT! modifies f adding __code_strings__ which is used in binding
+        """ This function is used to set if the strings must be coded or not.
+        IMPORTANT! modifies f adding __code_strings__ which is used in binding.
 
-        :param f: Function to be registered
-        :param ce_type: Core element implementation type
+        :param f: Function to be registered.
+        :param ce_type: Core element implementation type.
         :return: None
         """
         default = 'task'
@@ -701,14 +710,14 @@ class TaskMaster(TaskCommons):
             f.__code_strings__ = False
 
     def get_signature(self):
-        """
-        This function is used to find out the function signature.
+        # type: () -> (str, list)
+        """ This function is used to find out the function signature.
         The information is needed in order to compare the implementation
         signature, so that if it has been registered with a different
         signature, it can be re-registered with the new one (enable
         inheritance).
 
-        :return: Implementation signature and implementation type arguments
+        :return: Implementation signature and implementation type arguments.
         """
         # Get the task signature
         # To do this, we will check the frames
@@ -749,18 +758,17 @@ class TaskMaster(TaskCommons):
     @staticmethod
     def update_core_element(impl_signature, impl_type_args,
                             core_element, pre_defined_ce):
-        """
-        Adds the @task decorator information to the core element.
+        # type: (str, list, CE, bool) -> None
+        """ Adds the @task decorator information to the core element.
         CAUTION: Modifies the core_element parameter.
 
-        :param impl_signature: Implementation signature
-        :param impl_type_args: Implementation type arguments
-        :param core_element: Core element
+        :param impl_signature: Implementation signature.
+        :param impl_type_args: Implementation type arguments.
+        :param core_element: Core element.
         :param pre_defined_ce: Boolean if core element contains predefined
                                fields (done by upper decorators).
         :return: None
         """
-
         # Include the registering info related to @task
         impl_type = "METHOD"
         impl_constraints = {}
@@ -804,10 +812,11 @@ class TaskMaster(TaskCommons):
             core_element.set_impl_io(impl_io)
 
     def register_task(self, core_element):
-        """
-        This function is used to register the task in the runtime.
+        # type: (CE) -> None
+        """ This function is used to register the task in the runtime.
         This registration must be done only once on the task decorator
-        initialization
+        initialization, unless there is a signature change (this will mean
+        that the user has changed the implementation interactively).
 
         :return: None
         """
@@ -817,8 +826,8 @@ class TaskMaster(TaskCommons):
         binding.register_ce(core_element)
 
     def process_computing_nodes(self):
-        """
-        Retrieve the number of computing nodes.
+        # type: () -> int
+        """ Retrieve the number of computing nodes.
         This value can be defined by upper decorators and can also be defined
         dynamically defined with a global or environment variable.
 
@@ -879,17 +888,17 @@ class TaskMaster(TaskCommons):
         return parsed_computing_nodes
 
     def add_return_parameters(self):
-        """
-        Modify the return parameters accordingly to the return statement
+        # type: () -> None
+        """ Modify the return parameters accordingly to the return statement.
 
-        :return: Nothing, it just creates and modifies self.returns
+        :return: Nothing, it just creates and modifies self.returns.
         """
         self.returns = OrderedDict()
 
         _returns = self.decorator_arguments['returns']
         # Note that 'returns' is by default False
         if not _returns:
-            return False
+            return None
 
         # A return statement can be the following:
         # 1) A type. This means 'this task returns an object of this type'
@@ -947,13 +956,12 @@ class TaskMaster(TaskCommons):
             # stuff has been put in the returns field
 
     def update_return_if_no_returns(self, f):
-        """
+        """ Look for returns if no returns is specified.
         Checks the code looking for return statements if no returns is
-         specified in @task decorator.
-
+        specified in @task decorator.
         WARNING: Updates self.return if returns are found.
 
-        :param f: Function to check
+        :param f: Function to check.
         """
         # Check type-hinting in python3
         if IS_PYTHON3:
@@ -1063,13 +1071,17 @@ class TaskMaster(TaskCommons):
             pass
 
     def _build_return_objects(self):
-        """
+        # type: () -> object
+        """ Build the return objects.
         Build the return object from the self.return dictionary and include
         their filename in self.returns.
+        Normally they are future objects, unless the user has defined a user
+        defined class where an empty instance (needs an empty constructor)
+        will be returned. This case will enable users to call tasks within
+        user defined classes from future objects.
+        WARNING: Updates self.returns dictionary.
 
-        WARNING: Updates self.returns dictionary
-
-        :return: Future object/s
+        :return: Future object/s.
         """
         fo = None
         if len(self.returns) == 0:
@@ -1145,10 +1157,9 @@ class TaskMaster(TaskCommons):
         return fo
 
     def _serialize_objects(self):
-        """
-        Infer COMPSs types for the task parameters and serialize them.
-
-        WARNING: Updates self.parameters dictionary
+        # type: () -> None
+        """ Infer COMPSs types for the task parameters and serialize them.
+        WARNING: Updates self.parameters dictionary.
 
         :return: Tuple of task_kwargs updated and a dictionary containing if the
                  objects are future elements.
@@ -1160,7 +1171,7 @@ class TaskMaster(TaskCommons):
             # Convert small objects to string if OBJECT_CONVERSION enabled
             # Check if the object is small in order not to serialize it.
             if get_object_conversion():
-                p, written_bytes = _convert_object_to_string(p,
+                p, written_bytes = _convert_parameter_obj_to_string(p,
                                                              max_obj_arg_size,
                                                              policy='objectSize')  # noqa: E501
                 max_obj_arg_size -= written_bytes
@@ -1174,20 +1185,20 @@ class TaskMaster(TaskCommons):
                 logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
 
     def _build_values_types_directions(self):
+        # type: () -> (list, list, list, list, list)
         """
         Build the values list, the values types list and the values directions
         list.
-
         Uses:
             - self.function_type: task function type. If it is an instance
                                   method, the first parameter will be put at
                                   the end.
-            - self.parameters: <Dictionary> Function parameters
-            - self.returns: <Dictionary> - Function returns
+            - self.parameters: <Dictionary> Function parameters.
+            - self.returns: <Dictionary> - Function returns.
             - self.user_function.__code_strings__: <Boolean> Code strings
-                                                   (or not)
-        :return: <List,List,List,List,List> List of values, their types, their
-                 directions, their streams and their prefixes
+                                                   (or not).
+        :return: List of values, their types, their directions, their streams
+                 and their prefixes.
         """
         slf = None
         values = []
@@ -1263,18 +1274,20 @@ class TaskMaster(TaskCommons):
                weights, keep_renames  # noqa
 
     @staticmethod
-    def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
-        """
+    def _convert_parameter_obj_to_string(p, max_obj_arg_size,
+                                         policy='objectSize'):
+        # type: (Parameter, int, str) -> (Parameter, int)
+        """ Convert object to string.
         Convert small objects into strings that can fit into the task
         parameters call.
 
-        :param p: Object wrapper
-        :param max_obj_arg_size: max size of the object to be converted
+        :param p: Parameter.
+        :param max_obj_arg_size: max size of the object to be converted.
         :param policy: policy to use:
-                       - 'objectSize' for considering the size of the object
+                       - 'objectSize' for considering the size of the object.
                        - 'serializedSize' for considering the size of the
-                        object serialized
-        :return: the object possibly converted to string
+                        object serialized.
+        :return: the object possibly converted to string and it size in bytes.
         """
         is_future = p.is_future
 
@@ -1387,14 +1400,14 @@ class TaskMaster(TaskCommons):
 
 def _manage_persistent_object(p):
     # type: (Parameter) -> None
-    """
+    """ Manage a persistent object within a Parameter
     Does the necessary actions over a persistent object used as task parameter.
     Check if the object has already been used (indexed in the obj_id_to_filename
     dictionary).
     In particular, saves the object id provided by the persistent storage
     (getID()) into the pending_to_synchronize dictionary.
 
-    :param p: wrapper of the object to manage
+    :param p: Parameter.
     :return: None
     """
     p.content_type = TYPE.EXTERNAL_PSCO
@@ -1407,12 +1420,11 @@ def _manage_persistent_object(p):
 
 def _serialize_object_into_file(name, p):
     # type: (str, Parameter) -> Parameter
-    """
-    Serialize an object into a file if necessary.
+    """ Serialize an object into a file if necessary.
 
-    :param name: Name of the object
-    :param p: Object wrapper
-    :return: p (whose type and value might be modified)
+    :param name: Name of the object.
+    :param p: Parameter.
+    :return: Parameter (whose type and value might be modified).
     """
     if p.content_type == TYPE.OBJECT or p.content_type == TYPE.EXTERNAL_STREAM or p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a
@@ -1502,15 +1514,14 @@ def _serialize_object_into_file(name, p):
 
 
 def _turn_into_file(p, skip_creation=False):
-    """
-    Write a object into a file if the object has not been already written
-    (p.content).
+    # type: (Parameter, bool) -> None
+    """ Write a object into a file if the object has not been already written.
     Consults the obj_id_to_filename to check if it has already been written
     (reuses it if exists). If not, the object is serialized to file and
     registered in the obj_id_to_filename dictionary.
-    This functions stores the object into pending_to_synchronize
+    This functions stores the object into pending_to_synchronize.
 
-    :param p: Wrapper of the object to turn into file
+    :param p: Wrapper of the object to turn into file.
     :return: None
     """
     # print('p           : ', p)
@@ -1552,13 +1563,13 @@ def _turn_into_file(p, skip_creation=False):
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
-    """
-    Extract the information of a single parameter
+    # type: (Parameter, bool, int) -> (int, int, int, int, str, str, float, bool)  # noqa: E501
+    """ Extract the information of a single parameter.
 
-    :param param: Parameter object
-    :param code_strings: <Boolean> Encode strings
-    :return: value, type, direction stream prefix and extra_content_type of
-    the given parameter
+    :param param: Parameter object.
+    :param code_strings: <Boolean> Encode strings.
+    :return: value, typ, direction, stream, prefix, extra_content_type, weight,
+            keep_rename of the given parameter.
     """
     con_type = UNDEFINED_CONTENT_TYPE
     if param.content_type == TYPE.STRING and not param.is_future and code_strings:  # noqa: E501
@@ -1605,7 +1616,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
     elif param.content_type == TYPE.COLLECTION or \
-            (collection_depth > 0 and is_basic_iterable(param.obj)):
+            (collection_depth > 0 and is_basic_iterable(param.content)):
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator

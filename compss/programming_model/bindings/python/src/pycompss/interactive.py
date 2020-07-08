@@ -43,6 +43,8 @@ from pycompss.util.environment.configuration import prepare_tracing_environment
 from pycompss.util.environment.configuration import check_infrastructure_variables  # noqa: E501
 from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.environment.configuration import setup_logger
+from pycompss.util.interactive.flags import check_flags
+from pycompss.util.interactive.flags import print_flag_issues
 
 # Storage imports
 from pycompss.util.storages.persistent import init_storage
@@ -86,8 +88,7 @@ def start(log_level='off',
           conn='es.bsc.compss.connectors.DefaultSSHConnector',
           master_name='',
           master_port='',
-          scheduler='es.bsc.compss.scheduler.' +
-                    'loadbalancing.LoadBalancingScheduler',
+          scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # noqa
           jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
           cpu_affinity='automatic',
           gpu_affinity='automatic',
@@ -101,19 +102,17 @@ def start(log_level='off',
           mpi_worker=False,
           verbose=False
           ):
-    """
-    Start the runtime in interactive mode.
+    """ Start the runtime in interactive mode.
 
-    :param log_level: Logging level [ 'off' | 'info' | 'debug' ]
+    :param log_level: Logging level [ 'trace'|'debug'|'info'|'api'|'off' ]
                       (default: 'off')
     :param debug: Debug mode [ True | False ]
                   (default: False) (overrides log-level)
-    :param o_c: Objects to string conversion [ True | False ]
+    :param o_c: Objects to string conversion [ True|False ]
                 (default: False)
-    :param graph: Generate graph [ True | False ]
+    :param graph: Generate graph [ True|False ]
                   (default: False)
-    :param trace: Generate trace
-                  [ True | False | 'scorep' | 'arm-map' | 'arm-ddt' ]
+    :param trace: Generate trace [ True|False|'scorep'|'arm-map'|'arm-ddt' ]
                   (default: False)
     :param monitor: Monitor refresh rate
                     (default: None)
@@ -155,9 +154,8 @@ def start(log_level='off',
                         (default: '')
     :param master_port: Master port
                         (default: '')
-    :param scheduler: Scheduler
-                      (default: es.bsc.compss.scheduler.
-                      loadbalancing.LoadBalancingScheduler)
+    :param scheduler: Scheduler (see runcompss)
+                      (default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)  # noqa
     :param jvm_workers: Java VM parameters
                         (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
     :param cpu_affinity: CPU Core affinity
@@ -174,14 +172,13 @@ def start(log_level='off',
                            (default: '')
     :param scheduler_config: Scheduler configuration
                              (default: '')
-    :param external_adaptation: External adaptation [ True | False ]
+    :param external_adaptation: External adaptation [ True|False ]
                                 (default: False)
-    :param propagate_virtual_environment: Propagate virtual environment
-                                          [ True | False ]
+    :param propagate_virtual_environment: Propagate virtual environment [ True|False ]  # noqa
                                           (default: False)
-    :param mpi_worker: Use the MPI worker [ True | False ]
+    :param mpi_worker: Use the MPI worker [ True|False ]
                        (default: False)
-    :param verbose: Verbose mode [ True | False ]
+    :param verbose: Verbose mode [ True|False ]
                     (default: False)
     :return: None
     """
@@ -202,8 +199,6 @@ def start(log_level='off',
     ##############################################################
     # INITIALIZATION
     ##############################################################
-
-    # TODO: Check that input values are valid
 
     # Initial dictionary with the user defined parameters
     all_vars = {'log_level': log_level,
@@ -243,6 +238,12 @@ def start(log_level='off',
                 'external_adaptation': external_adaptation,
                 'propagate_virtual_environment': propagate_virtual_environment,
                 'mpi_worker': mpi_worker}
+
+    # Check the provided flags
+    flags, issues = check_flags(all_vars)
+    if not flags:
+        print_flag_issues(issues)
+        return None
 
     # Prepare the environment
     env_vars = prepare_environment(True, o_c, storage_impl,

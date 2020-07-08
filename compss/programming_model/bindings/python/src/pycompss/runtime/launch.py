@@ -20,8 +20,9 @@
 """
 PyCOMPSs Binding - Launch
 =========================
-This file contains the __main__ method.
-It is called from pycompssext script with the user and environment parameters.
+    This file contains the __main__ method.
+    It is called from the runcompss/enqueue_compss script with the user and
+    environment parameters.
 """
 
 # Imports
@@ -42,12 +43,15 @@ from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa
 from pycompss.util.environment.configuration import updated_variables_in_sc
 from pycompss.util.environment.configuration import prepare_tracing_environment
-from pycompss.util.environment.configuration import check_infrastructure_variables  # noqa
+from pycompss.util.environment.configuration import check_infrastructure_variables         # noqa
 from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.environment.configuration import setup_logger
+from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
 from pycompss.util.serialization.serializer import SerializerException
 from pycompss.util.warnings.modules import show_optional_module_warnings
+from pycompss.util.interactive.flags import check_flags
+from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.api.exceptions import COMPSsException
 
 # Storage imports
@@ -58,43 +62,20 @@ from pycompss.util.storages.persistent import stop_storage
 from pycompss.streams.environment import init_streaming
 from pycompss.streams.environment import stop_streaming
 
-# Global variable also used within decorators
+# Global variable also task-master decorator
 APP_PATH = None
 
+# Python version: to choose the appropriate log folder
 if IS_PYTHON3:
-    _py_version = 3
+    _PYTHON_VERSION = 3
 else:
-    _py_version = 2
-
-
-def get_logging_cfg_file(log_level):
-    # type: (str) -> str
-    """
-    Retrieves the logging configuration file.
-
-    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ]
-    :return: Logging configuration file
-    :raise Exception: Unsupported log level
-    """
-    cfg_files = {
-        'trace': 'logging_debug.json',  # trace level == debug level
-        'debug': 'logging_debug.json',
-        'info': 'logging_info.json',
-        'api': 'logging_off.json',      # api level == off level
-        'off': 'logging_off.json'
-    }
-    if log_level in cfg_files:
-        logging_cfg_file = cfg_files[log_level]
-        return logging_cfg_file
-    else:
-        raise Exception("Unsupported logging level.")
+    _PYTHON_VERSION = 2
 
 
 def parse_arguments():
-    """
-    Parse PyCOMPSs arguments.
+    """ Parse PyCOMPSs arguments.
 
-    :return: Parser arguments.
+    :return: Argument's parser.
     """
     parser = argparse.ArgumentParser(
         description='PyCOMPSs application launcher')
@@ -117,7 +98,8 @@ def parse_arguments():
 
 def compss_main():
     # type: () -> None
-    """
+    """ PyCOMPSs main function.
+
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level
            $PyObject_serialize $storage_conf $streaming_backend
@@ -157,20 +139,17 @@ def compss_main():
     # Get application execution path
     APP_PATH = args.app_path
 
+    # Setup logging
     binding_log_path = get_log_path()
     log_path = os.path.join(os.getenv('COMPSS_HOME'),
                             'Bindings',
                             'python',
-                            str(_py_version),
+                            str(_PYTHON_VERSION),
                             'log')
     set_temporary_directory(binding_log_path)
-
     logging_cfg_file = get_logging_cfg_file(log_level)
-
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
-    logger = None
-    if __debug__:
-        logger = logging.getLogger("pycompss.runtime.launch")
+    logger = logging.getLogger("pycompss.runtime.launch")
 
     # Get JVM options
     # jvm_opts = os.environ['JVM_OPTIONS_FILE']
@@ -186,12 +165,12 @@ def compss_main():
 
         # Start persistent storage
         if __debug__:
-            logger.debug("[LOG] Starting storage")
+            logger.debug("Starting storage")
         persistent_storage = init_storage(storage_conf, logger)
 
         # Start streaming
         if __debug__:
-            logger.debug("[LOG] Starting streaming")
+            logger.debug("Starting streaming")
         streaming = init_streaming(args.streaming_backend,
                                    args.streaming_master_name,
                                    args.streaming_master_port,
@@ -210,13 +189,13 @@ def compss_main():
 
         # Stop streaming
         if __debug__:
-            logger.debug("[LOG] Stopping streaming")
+            logger.debug("Stopping streaming")
         if streaming:
             stop_streaming(logger)
 
         # Stop persistent storage
         if __debug__:
-            logger.debug("[LOG] Stopping storage")
+            logger.debug("Stopping storage")
         if persistent_storage:
             stop_storage()
 
@@ -301,14 +280,11 @@ def launch_pycompss_application(app, func,
                                 mpi_worker=False,
                                 *args, **kwargs
                                 ):
-    """
-    Launch PyCOMPSs application from function.
+    """ Launch PyCOMPSs application from function.
 
     :param app: Application path
     :param func: Function
-    :param args: Arguments
-    :param kwargs: Keyword arguments
-    :param log_level: Logging level [ 'off' | 'info'  | 'debug' ]
+    :param log_level: Logging level [ 'trace'|'debug'|'info'|'api'|'off' ]
                       (default: 'off')
     :param o_c: Objects to string conversion [ True | False ] (default: False)
     :param debug: Debug mode [ True | False ] (default: False)
@@ -366,8 +342,6 @@ def launch_pycompss_application(app, func,
     # INITIALIZATION
     ##############################################################
 
-    # TODO: Check that input values are valid
-
     # Initial dictionary with the user defined parameters
     all_vars = {'log_level': log_level,
                 'debug': debug,
@@ -406,6 +380,12 @@ def launch_pycompss_application(app, func,
                 'external_adaptation': external_adaptation,
                 'propagate_virtual_environment': propagate_virtual_environment,
                 'mpi_worker': mpi_worker}
+
+    # Check the provided flags
+    flags, issues = check_flags(all_vars)
+    if not flags:
+        print_flag_issues(issues)
+        return None
 
     # Prepare the environment
     env_vars = prepare_environment(True, o_c, storage_impl, app,
@@ -457,10 +437,10 @@ def launch_pycompss_application(app, func,
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)
 
-    logger.debug("[LOG] Starting storage")
+    logger.debug("Starting storage")
     persistent_storage = init_storage(all_vars['storage_conf'], logger)
 
-    logger.debug("[LOG] Starting streaming")
+    logger.debug("Starting streaming")
     streaming = init_streaming(all_vars['streaming_backend'],
                                all_vars['streaming_master_name'],
                                all_vars['streaming_master_port'],
@@ -490,11 +470,11 @@ def launch_pycompss_application(app, func,
     sys.argv = saved_argv
 
     if persistent_storage:
-        logger.debug("[LOG] Stopping persistent storage")
+        logger.debug("Stopping persistent storage")
         stop_storage()
 
     if streaming:
-        logger.debug("[LOG] Stopping streaming")
+        logger.debug("Stopping streaming")
         stop_streaming(logger)
 
     logger.debug('--- END ---')
@@ -510,6 +490,6 @@ def launch_pycompss_application(app, func,
 
 if __name__ == '__main__':
     """
-    This is the PyCOMPSs entry point
+    This is the PyCOMPSs entry point.
     """
     compss_main()

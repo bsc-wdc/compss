@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs Util - Interactive Mode Helpers
-===========================================
+========================================
     Provides auxiliary methods for the interactive mode.
 """
 

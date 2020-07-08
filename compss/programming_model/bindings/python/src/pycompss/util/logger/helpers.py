@@ -32,9 +32,31 @@ from logging import config
 CONFIG_FUNC = config.dictConfig
 
 
-def init_logging(log_config_file, log_path):
+def get_logging_cfg_file(log_level):
+    # type: (str) -> str
+    """ Retrieves the logging configuration file.
+
+    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ].
+    :return: Logging configuration file.
+    :raise Exception: Unsupported log level.
     """
-    Logging initialization.
+    cfg_files = {
+        'trace': 'logging_debug.json',  # trace level == debug level
+        'debug': 'logging_debug.json',
+        'info': 'logging_info.json',
+        'api': 'logging_off.json',      # api level == off level
+        'off': 'logging_off.json'
+    }
+    if log_level in cfg_files:
+        logging_cfg_file = cfg_files[log_level]
+        return logging_cfg_file
+    else:
+        raise Exception("Unsupported logging level.")
+
+
+def init_logging(log_config_file, log_path):
+    # type: (str, str) -> None
+    """ Master logging initialization.
 
     :param log_config_file: Log file name.
     :param log_path: Json log files path.
@@ -62,8 +84,8 @@ def init_logging(log_config_file, log_path):
 
 
 def init_logging_worker(log_config_file, tracing):
-    """
-    Worker logging initialization.
+    # type: (str, bool) -> None
+    """ Worker logging initialization.
 
     :param log_config_file: Log file name.
     :param tracing: If tracing is enabled (the log dir changes).

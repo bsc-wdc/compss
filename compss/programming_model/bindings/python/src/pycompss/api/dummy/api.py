@@ -91,27 +91,27 @@ def compss_delete_file(file_name):  # noqa
 
 
 def compss_wait_on_file(file_name):  # noqa
-    # type: (str) -> bool
+    # type: (str) -> None
     """ Dummy compss_wait_on_file.
 
-    Does nothing and always return True.
+    Does nothing.
 
     :param file_name: File name.
-    :return: Always True.
+    :return: None
     """
-    return True
+    return None
 
 
 def compss_wait_on_directory(directory_name):  # noqa
-    # type: (str) -> bool
+    # type: (str) -> None
     """ Dummy compss_wait_on_directory.
 
-    Does nothing and always return True.
+    Does nothing.
 
     :param directory_name: Directory name.
-    :return: Always True.
+    :return: None
     """
-    return True
+    return None
 
 
 def compss_delete_object(obj):  # noqa

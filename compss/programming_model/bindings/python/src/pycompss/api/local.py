@@ -35,11 +35,10 @@ import pycompss.util.context as context
 
 
 def local(input_function):
-    """
-    Local decorator
+    """ Local decorator.
 
-    :param input_function: Input function
-    :return: Wrapped function
+    :param input_function: Input function.
+    :return: Wrapped function.
     """
     if not context.in_pycompss():
         # Return dummy local decorator

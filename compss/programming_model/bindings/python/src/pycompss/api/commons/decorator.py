@@ -119,7 +119,7 @@ class PyCOMPSsDecorator(object):
             self.kwargs['fail_by_exit_value'] = 'false'
 
     def __process_computing_nodes__(self, decorator_name):
-        # type: (str) -> int
+        # type: (str) -> None
         """
         Process computing nodes from decorator.
         Modifies the self.kwargs dictionary since it can be used in lower level
@@ -178,14 +178,14 @@ class PyCOMPSsDecorator(object):
 
 @contextmanager
 def keep_arguments(args, kwargs, prepend_strings=True):
-    # type: (list, dict, bool) -> None
+    # type: (tuple, dict, bool) -> None
     """
     Context which saves and restores the function arguments.
     It also enables or disables the PREPEND_STRINGS property from @task.
 
     :param args: Arguments.
     :param kwargs: Key word arguments.
-    :param: Prepend strings in the task.
+    :param prepend_strings: Prepend strings in the task.
     :return: None
     """
     # Keep function arguments

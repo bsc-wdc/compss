@@ -70,15 +70,15 @@ class Task(PyCOMPSsDecorator):
 
     @staticmethod
     def _get_default_decorator_values():
-        """
-        Default value for decorator arguments.
+        """ Default value for decorator arguments.
+
         By default, do not use jit (if true -> use nopython mode,
         alternatively, the user can define a dictionary with the specific
         flags - using a dictionary will be considered as the user wants to use
         compile with jit).
 
         :return: A dictionary with the default values of the non-parameter
-                 decorator fields
+                 decorator fields.
         """
         return {
             'target_direction': parameter.INOUT,
@@ -98,15 +98,17 @@ class Task(PyCOMPSsDecorator):
         }
 
     def __init__(self, **kwargs):  # noqa
-        """
+        """ Task constructor.
+
         This part is called in the decoration process, not as an
         explicit function call.
 
         We do two things here:
-        a) Assign default values to unspecified fields
-           (see _get_default_decorator_values )
-        b) Transform the parameters from user friendly types
-           (i.e Parameter.IN, etc) to a more convenient internal representation
+            a) Assign default values to unspecified fields
+               (see _get_default_decorator_values).
+            b) Transform the parameters from user friendly types
+               (i.e Parameter.IN, etc) to a more convenient internal
+               representation.
 
         :param kwargs: Decorator parameters. A task decorator has no positional
                        arguments.
@@ -158,23 +160,23 @@ class Task(PyCOMPSsDecorator):
         self.signature = None
 
     def __call__(self, user_function):
-        """
-        This part is called in all explicit function calls.
+        """ This function is called in all explicit function calls.
+
         Note that in PyCOMPSs a single function call will be transformed into
         two calls, as both master and worker need to call the function.
 
         The work to do in the master part is totally different
         from the job to do in the worker part. This is why there are
         some other functions like master_call, worker_call, and
-        _sequential_call
+        _sequential_call.
 
         There is also a third case that happens when the user runs a PyCOMPSs
         code without PyCOMPSs. This case is straightforward: just call the
         user function with the user parameters and return whatever the user
         code returned. Therefore, we can just return the user function.
 
-        :param user_function: Function to decorate
-        :return: The function to be executed
+        :param user_function: Function to decorate.
+        :return: The function to be executed.
         """
         self.user_function = user_function
 
@@ -220,11 +222,12 @@ class Task(PyCOMPSsDecorator):
         return task_decorator
 
     def _sequential_call(self, *args, **kwargs):
-        """
+        """ Sequential task execution.
+
         The easiest case: just call the user function and return whatever it
         returns.
 
-        :return: The user function return
+        :return: The user function return.
         """
         # Inspect the user function, get information about the arguments and
         # their names

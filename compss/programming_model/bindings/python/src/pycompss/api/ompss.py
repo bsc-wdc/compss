@@ -53,14 +53,14 @@ class OmpSs(PyCOMPSsDecorator):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        Store arguments passed to the decorator
-        # self = itself.
-        # args = not used.
-        # kwargs = dictionary with the given constraints.
+        """ Store arguments passed to the decorator.
 
-        :param args: Arguments
-        :param kwargs: Keyword arguments
+        self = itself.
+        args = not used.
+        kwargs = dictionary with the given constraints.
+
+        :param args: Arguments.
+        :param kwargs: Keyword arguments.
         """
         decorator_name = '@' + self.__class__.__name__.lower()
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
@@ -78,10 +78,9 @@ class OmpSs(PyCOMPSsDecorator):
             pass
 
     def __call__(self, func):
-        """
-        Parse and set the ompss parameters within the task core element.
+        """ Parse and set the ompss parameters within the task core element.
 
-        :param func: Function to decorate
+        :param func: Function to decorate.
         :return: Decorated function.
         """
         @wraps(func)
@@ -115,11 +114,11 @@ class OmpSs(PyCOMPSsDecorator):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """
-        Include the registering info related to @ompss
-        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY]
+        """ Include the registering info related to @ompss.
 
-        :param kwargs: Keyword arguments received from call
+        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
+
+        :param kwargs: Keyword arguments received from call.
         :return: None
         """
         if __debug__:

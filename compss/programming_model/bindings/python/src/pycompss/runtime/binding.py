@@ -48,12 +48,13 @@ if __debug__:
 
 def start_runtime(log_level='off', interactive=False):
     # type: (str, bool) -> None
-    """
+    """ Starts the COMPSs runtime.
+
     Starts the runtime by calling the external python library that calls
     the bindings-common.
 
-    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ]
-    :param interactive: Boolean if interactive (ipython or jupyter)
+    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ].
+    :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
     if __debug__:
@@ -75,15 +76,16 @@ def start_runtime(log_level='off', interactive=False):
 
 
 def stop_runtime(code=0):
-    # type: (bool) -> None
-    """
+    # type: (int) -> None
+    """ Stops the COMPSs runtime.
+
     Stops the runtime by calling the external python library that calls
     the bindings-common.
     Also cleans objects and temporary files created during runtime.
     If the code is different from 0, all running or waiting tasks will be
     cancelled.
 
-    :parameter code: Stop code (if code != 0 ==> cancel application tasks)
+    :parameter code: Stop code (if code != 0 ==> cancel application tasks).
     :return: None
     """
     if __debug__:
@@ -112,7 +114,8 @@ def stop_runtime(code=0):
 
 def accessed_file(file_name):
     # type: (str) -> bool
-    """
+    """ Check if the file has been accessed.
+
     Calls the external python library (that calls the bindings-common)
     in order to check if a file has been accessed.
 
@@ -127,14 +130,15 @@ def accessed_file(file_name):
 
 def open_file(file_name, mode):
     # type: (str, str) -> str
-    """
+    """ Opens a file (retrieves if necessary).
+
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
 
     :param file_name: <String> File name.
     :param mode: Open file mode ('r', 'rw', etc.).
     :return: The current name of the file requested (that may have been
-             renamed during runtime)
+             renamed during runtime).
     """
     app_id = 0
     compss_mode = get_compss_direction(mode)
@@ -148,12 +152,13 @@ def open_file(file_name, mode):
 
 def delete_file(file_name):
     # type: (str) -> bool
-    """
+    """ Remove a file.
+
     Calls the external python library (that calls the bindings-common)
     in order to request a file removal.
 
-    :param file_name: File name to remove
-    :return: True if success. False otherwise
+    :param file_name: File name to remove.
+    :return: True if success. False otherwise.
     """
     app_id = 0
     if __debug__:
@@ -169,11 +174,12 @@ def delete_file(file_name):
 
 def get_file(file_name):
     # type: (str) -> None
-    """
+    """ Retrieve a file.
+
     Calls the external python library (that calls the bindings-common)
     in order to request last version of file.
 
-    :param file_name: File name to remove
+    :param file_name: File name to remove.
     :return: None
     """
     app_id = 0
@@ -184,11 +190,12 @@ def get_file(file_name):
 
 def get_directory(dir_name):
     # type: (str) -> None
-    """
+    """ Retrieve a directory.
+
     Calls the external python library (that calls the bindings-common)
     in order to request last version of file.
 
-    :param dir_name: dir name to retrieve
+    :param dir_name: dir name to retrieve.
     :return: None
     """
     app_id = 0
@@ -199,13 +206,14 @@ def get_directory(dir_name):
 
 def delete_object(obj):
     # type: (object) -> bool
-    """
+    """ Remove object.
+
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
     in order to request a its corresponding file removal.
 
-    :param obj: Object to remove
-    :return: True if success. False otherwise
+    :param obj: Object to remove.
+    :return: True if success. False otherwise.
     """
     app_id = 0
     obj_id = OT.get_object_id(obj, False, False)
@@ -234,12 +242,13 @@ def delete_object(obj):
 
 def barrier(no_more_tasks=False):
     # type: (bool) -> None
-    """
+    """ Wait for all submitted tasks.
+
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier.
-    Wait for all tasks.
 
-    :param no_more_tasks: No more tasks
+    :param no_more_tasks: If no more tasks are going to be submitted, remove
+                          all objects.
     :return: None
     """
     if __debug__:
@@ -255,13 +264,13 @@ def barrier(no_more_tasks=False):
 
 def barrier_group(group_name):
     # type: (str) -> str
-    """
+    """ Wait for all tasks of the given group.
+
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier of a group.
-    Wait for all tasks of the group.
 
-    :param group_name: Group name
-    :return: None or string with exception message
+    :param group_name: Group name.
+    :return: None or string with exception message.
     """
     app_id = 0
     # Call the Runtime group barrier
@@ -270,12 +279,13 @@ def barrier_group(group_name):
 
 def open_task_group(group_name, implicit_barrier):
     # type: (str, bool) -> None
-    """
+    """ Open task group.
+
     Calls the external python library (that calls the bindings-common)
     in order to request an opening of a group.
 
-    :param group_name: Group name
-    :param implicit_barrier: <Boolean> Implicit barrier
+    :param group_name: Group name.
+    :param implicit_barrier: Perform a wait on all group tasks before closing.
     :return: None
     """
     app_id = 0
@@ -284,11 +294,12 @@ def open_task_group(group_name, implicit_barrier):
 
 def close_task_group(group_name):
     # type: (str) -> None
-    """
+    """ Close task group.
+
     Calls the external python library (that calls the bindings-common)
     in order to request a group closure.
 
-    :param group_name: Group name
+    :param group_name: Group name.
     :return: None
     """
     app_id = 0
@@ -297,7 +308,8 @@ def close_task_group(group_name):
 
 def get_log_path():
     # type: () -> str
-    """
+    """ Get logging path.
+
     Requests the logging path to the external python library (that calls
     the bindings-common).
 
@@ -313,11 +325,12 @@ def get_log_path():
 
 def get_number_of_resources():
     # type: () -> int
-    """
+    """ Get the number of resources.
+
     Calls the external python library (that calls the bindings-common)
     in order to request for the number of active resources.
 
-    :return: Number of active resources
+    :return: Number of active resources.
     """
     app_id = 0
     if __debug__:
@@ -329,12 +342,13 @@ def get_number_of_resources():
 
 def request_resources(num_resources, group_name):
     # type: (int, str) -> None
-    """
+    """ Request new resources.
+
     Calls the external python library (that calls the bindings-common)
     in order to request for the creation of the given resources.
 
     :param num_resources: Number of resources to create.
-    :param group_name: Task group to notify upon resource creation
+    :param group_name: Task group to notify upon resource creation.
     :return: None
     """
     app_id = 0
@@ -352,12 +366,13 @@ def request_resources(num_resources, group_name):
 
 def free_resources(num_resources, group_name):
     # type: (int, str) -> None
-    """
+    """ Liberate resources.
+
     Calls the external python library (that calls the bindings-common)
     in order to request for the destruction of the given resources.
 
     :param num_resources: Number of resources to destroy.
-    :param group_name: Task group to notify upon resource creation
+    :param group_name: Task group to notify upon resource creation.
     :return: None
     """
     app_id = 0
@@ -376,10 +391,12 @@ def free_resources(num_resources, group_name):
 
 def register_ce(core_element):
     # type: (CE) -> None
-    """
+    """ Register a core element.
+
     Calls the external python library (that calls the bindings-common)
     in order to notify the runtime about a core element that needs to be
     registered.
+
     Java Examples:
 
         // METHOD
@@ -456,7 +473,7 @@ def register_ce(core_element):
     impl_io: <String> IO Implementation
     impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa: E501
 
-    :param core_element: <CE> Core Element to register
+    :param core_element: <CE> Core Element to register.
     :return: None
     """
     # Retrieve Core element fields
@@ -500,13 +517,15 @@ def register_ce(core_element):
 
 
 def wait_on(*args, **kwargs):
-    """
+    # type: (tuple, dict) -> object
+    """ Wait on a set of objects.
+
     Waits on a set of objects defined in args with the options defined in
     kwargs.
 
     :param args: Objects to wait on.
-    :param kwargs: Options: Write enable? [True | False] Default = True
-    :return: Real value of the objects requested
+    :param kwargs: Options: Write enable? [True | False] Default = True.
+    :return: Real value of the objects requested.
     """
     ret = list(map(wait_on_object, args,
                    [kwargs.get("mode", "rw")] * len(args)))
@@ -540,8 +559,7 @@ def process_task(signature,             # type: str
                  time_out,              # type: int
                  ):
     # type: (...) -> None
-    """
-    Function that submits a task to the runtime.
+    """ Submit a task to the runtime.
 
     :param signature: Task signature
     :param has_target: Boolean if the task has self
@@ -660,12 +678,13 @@ def process_task(signature,             # type: str
 
 def _clean_objects():
     # type: () -> None
-    """
+    """ Clean all objects.
+
     Clean the objects stored in the global dictionaries:
-        * pending_to_synchronize dict
-        * _addr2id2obj dict
-        * obj_id_to_filename dict
-        * _objs_written_by_mp dict
+        - pending_to_synchronize dict.
+        - _addr2id2obj dict.
+        - obj_id_to_filename dict.
+        - _objs_written_by_mp dict.
 
     :return: None
     """
@@ -677,9 +696,9 @@ def _clean_objects():
 
 def _clean_temps():
     # type: () -> None
-    """
-    Clean temporary files.
-    The temporary files end with the IT extension
+    """ Clean temporary files.
+
+    The temporary files end with the IT extension.
 
     :return: None
     """

@@ -136,28 +136,28 @@ if context.in_pycompss():
         return __delete_file__(file_name)
 
     def compss_wait_on_file(file_name):
-        # type: (str) -> bool
+        # type: (str) -> None
         """ Wait and get a file.
 
         Calls the runtime to bring the file to the master when possible
         and waits until produced.
 
         :param file_name: File name.
-        :return: True if success. False otherwise.
+        :return: None
         """
-        return __get_file__(file_name)
+        __get_file__(file_name)
 
     def compss_wait_on_directory(directory_name):
-        # type: (str) -> bool
+        # type: (str) -> None
         """ Wait and get a directory.
 
         Calls the runtime to bring the directory to the master when possible
         and waits until produced.
 
         :param directory_name: Directory name.
-        :return: True if success. False otherwise.
+        :return: None
         """
-        return __get_directory__(directory_name)
+        __get_directory__(directory_name)
 
     def compss_delete_object(obj):
         # type: (str) -> bool
@@ -235,9 +235,7 @@ if context.in_pycompss():
         """ Requests the destruction of num_resources resources.
 
         :param num_resources: Number of resources to destroy.
-            +type: <int>
         :param group_name: Task group to notify upon resource creation
-            +type: <str> or None
         :return: None
         """
         __free_resources__(num_resources, group_name)
@@ -336,23 +334,23 @@ else:
         return __dummy_compss_delete_file__(file_name)
 
     def compss_wait_on_file(file_name):
-        # type: (str) -> bool
-        return __dummy_compss_wait_on_file__(file_name)
+        # type: (str) -> None
+        __dummy_compss_wait_on_file__(file_name)
 
     def compss_wait_on_directory(directory_name):
-        # type: (str) -> bool
-        return __dummy_compss_wait_on_directory__(directory_name)
+        # type: (str) -> None
+        __dummy_compss_wait_on_directory__(directory_name)
 
     def compss_delete_object(obj):
         # type: (str) -> bool
         return __dummy_compss_delete_object__(obj)
 
     def compss_barrier(no_more_tasks=False):
-        # type: (str) -> None
+        # type: (bool) -> None
         __dummy_compss_barrier__(no_more_tasks)
 
     def compss_barrier_group(group_name):
-        # type: (bool) -> None
+        # type: (str) -> None
         __dummy_compss_barrier_group__(group_name)
 
     def compss_wait_on(*args):

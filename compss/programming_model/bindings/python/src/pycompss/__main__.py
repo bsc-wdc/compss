@@ -36,14 +36,14 @@ TAGS = [RUN_TAG, ENQUEUE_TAG]
 
 
 def setup_parser():
-    """
-    Argument parser.
-        * Argument defining run for runcompss or enqueue for enqueue_compss.
-        * The rest of the arguments as a list.
+    # type: () -> ...
+    """ Argument parser.
+
+    - Argument defining run for runcompss or enqueue for enqueue_compss.
+    - The rest of the arguments as a list.
 
     :return: the parser
     """
-
     parser = argparse.ArgumentParser(prog='python -m pycompss')
     parser.add_argument('action', choices=TAGS, nargs='?',
                         help="Execution mode: \'run\' for launching an" +
@@ -58,24 +58,22 @@ def setup_parser():
 
 
 def run(cmd):
-    """
-    Execute a command line in a subprocess.
+    # type: (list) -> None
+    """ Execute a command line in a subprocess.
 
     :param cmd: Command to execute <String>
     :return: None
     """
-
     p = Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
     p.communicate()
 
 
 def main():
-    """
-    Main method.
+    # type () -> None
+    """ Main method.
 
     :return: None
     """
-
     _help = ['-h', '--help']
     parser = None
 

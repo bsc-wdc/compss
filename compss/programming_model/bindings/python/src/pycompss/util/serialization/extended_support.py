@@ -17,6 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
+from collections import Generator
+
 
 class GeneratorIndicator(object):
     """
@@ -26,8 +28,8 @@ class GeneratorIndicator(object):
 
 
 def pickle_generator(f_gen, f, serializer):
-    """
-    Pickle a generator and store the serialization result in a file.
+    # type: (object, ..., ...) -> None
+    """ Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.
     :param f: Destination file for pickling generator.
@@ -43,21 +45,10 @@ def pickle_generator(f_gen, f, serializer):
 
 
 def convert_to_generator(lst):
-    """
-    Converts a list into a generator.
+    # type: (list) -> Generator
+    """ Converts a list into a generator.
 
     :param lst: List to be converted.
     :return: the generator from the list.
     """
-    gen = __list2gen__(lst)
-    return gen
-
-
-def __list2gen__(x):
-    """
-    Converts a list into a generator
-
-    :param x: Input list
-    :return: Generator from list x
-    """
-    return (n for n in x)
+    return (n for n in lst)

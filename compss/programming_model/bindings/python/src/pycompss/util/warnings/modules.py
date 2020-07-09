@@ -25,18 +25,20 @@ PyCOMPSs Utils - Optional Modules
     PyCOMPSs features.
 """
 
+from pycompss.util.objects.properties import is_module_available
+
 OPTIONAL_MODULES = {
     "dill": "Dill is a pickle extension which is capable to serialize a wider variety of objects."  # noqa: E501
 }
 
 
 def get_optional_module_warning(module_name, module_description):
-    """
-    Get optional modules warning message.
+    # type: (str, str) -> str
+    """ Get optional modules warning message.
 
     :param module_name: Module name.
     :param module_description: Module description.
-    :return: String with the optional warning message
+    :return: String with the optional warning message.
     """
     ret = [
         "\n[ WARNING ]:\t%s module is not installed." % module_name,
@@ -48,12 +50,11 @@ def get_optional_module_warning(module_name, module_description):
 
 
 def show_optional_module_warnings():
-    """
-    Display the optional modules warnings if not available.
+    # type: () -> None
+    """ Display the optional modules warnings if not available.
 
     :return: None
     """
-    from pycompss.util.objects.properties import is_module_available
     for (name, description) in OPTIONAL_MODULES.items():
         if not is_module_available(name):
             print(get_optional_module_warning(name, description))

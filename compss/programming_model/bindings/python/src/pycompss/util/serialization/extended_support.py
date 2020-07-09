@@ -17,8 +17,6 @@
 
 # -*- coding: utf-8 -*-
 
-from collections import Generator
-
 
 class GeneratorIndicator(object):
     """
@@ -45,7 +43,7 @@ def pickle_generator(f_gen, f, serializer):
 
 
 def convert_to_generator(lst):
-    # type: (list) -> Generator
+    # type: (list) -> ...
     """ Converts a list into a generator.
 
     :param lst: List to be converted.

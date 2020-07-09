@@ -64,45 +64,46 @@ LOG_PATH = '/tmp/'
 GRAPHING = False
 
 
-def start(log_level='off',
-          debug=False,
-          o_c=False,
-          graph=False,
-          trace=False,
-          monitor=None,
-          project_xml=None,
-          resources_xml=None,
-          summary=False,
-          task_execution='compss',
-          storage_impl=None,
-          storage_conf=None,
-          streaming_backend=None,
-          streaming_master_name=None,
-          streaming_master_port=None,
-          task_count=50,
-          app_name=INTERACTIVE_FILE_NAME,
-          uuid=None,
-          base_log_dir=None,
-          specific_log_dir=None,
-          extrae_cfg=None,
-          comm='NIO',
-          conn='es.bsc.compss.connectors.DefaultSSHConnector',
-          master_name='',
-          master_port='',
-          scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # noqa
-          jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
-          cpu_affinity='automatic',
-          gpu_affinity='automatic',
-          fpga_affinity='automatic',
-          fpga_reprogram='',
-          profile_input='',
-          profile_output='',
-          scheduler_config='',
-          external_adaptation=False,
-          propagate_virtual_environment=True,
-          mpi_worker=False,
-          verbose=False
+def start(log_level='off',                     # type: str
+          debug=False,                         # type: bool
+          o_c=False,                           # type: bool
+          graph=False,                         # type: bool
+          trace=False,                         # type: bool
+          monitor=None,                        # type: int
+          project_xml=None,                    # type: str
+          resources_xml=None,                  # type: str
+          summary=False,                       # type: bool
+          task_execution='compss',             # type: str
+          storage_impl=None,                   # type: str
+          storage_conf=None,                   # type: str
+          streaming_backend=None,              # type: str
+          streaming_master_name=None,          # type: str
+          streaming_master_port=None,          # type: str
+          task_count=50,                       # type: int
+          app_name=INTERACTIVE_FILE_NAME,      # type: str
+          uuid=None,                           # type: str
+          base_log_dir=None,                   # type: str
+          specific_log_dir=None,               # type: str
+          extrae_cfg=None,                     # type: str
+          comm='NIO',                          # type: str
+          conn='es.bsc.compss.connectors.DefaultSSHConnector',  # type: str
+          master_name='',                      # type: str
+          master_port='',                      # type: str
+          scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # type: str  # noqa: E501
+          jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',  # type: str
+          cpu_affinity='automatic',            # type: str
+          gpu_affinity='automatic',            # type: str
+          fpga_affinity='automatic',           # type: str
+          fpga_reprogram='',                   # type: str
+          profile_input='',                    # type: str
+          profile_output='',                   # type: str
+          scheduler_config='',                 # type: str
+          external_adaptation=False,           # type: bool
+          propagate_virtual_environment=True,  # type: bool
+          mpi_worker=False,                    # type: bool
+          verbose=False                        # type: bool
           ):
+    # type: (...) -> None
     """ Start the runtime in interactive mode.
 
     :param log_level: Logging level [ 'trace'|'debug'|'info'|'api'|'off' ]
@@ -248,7 +249,7 @@ def start(log_level='off',
 
     # Prepare the environment
     env_vars = prepare_environment(True, o_c, storage_impl,
-                                   None, debug, trace, mpi_worker)
+                                   'undefined', debug, trace, mpi_worker)
     all_vars.update(env_vars)
 
     # Update the log level and graph values if monitoring is enabled
@@ -355,8 +356,8 @@ def start(log_level='off',
 
 
 def __show_flower__():
-    """
-    Shows the flower and version through stdout.
+    # type: () -> None
+    """ Shows the flower and version through stdout.
 
     :return: None
     """
@@ -383,9 +384,8 @@ def __show_flower__():
 
 
 def __print_setup__(verbose, all_vars):
-    """
-    Print the setup variables through stdout (only if verbose is True).
-    However, it shows them through the logger.
+    # type: (bool, dict) -> None
+    """ Print the setup variables through stdout (only if verbose is True).
 
     :param verbose: Verbose mode [True | False]
     :param all_vars: Dictionary containing all variables.
@@ -404,8 +404,8 @@ def __print_setup__(verbose, all_vars):
 
 
 def stop(sync=False):
-    """
-    Runtime stop.
+    # type: (bool) -> None
+    """ Runtime stop.
 
     :param sync: Scope variables synchronization [ True | False ]
                  (default: False)
@@ -468,13 +468,12 @@ def stop(sync=False):
 
 
 def __show_current_graph__(fit=False):
-    """
-    Show current graph.
+    # type: (bool) -> ...
+    """ Show current graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
-
     if GRAPHING:
         return __show_graph__(name='current_graph', fit=fit)
     else:
@@ -484,35 +483,34 @@ def __show_current_graph__(fit=False):
 
 
 def __show_complete_graph__(fit=False):
-    """
-    Show complete graph.
+    # type: (bool) -> ...
+    """ Show complete graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
-
     if GRAPHING:
         return __show_graph__(name='complete_graph', fit=fit)
     else:
         print('Oops! Graph is not enabled in this execution.')
         print('      Please, enable it by setting the graph flag when' +
               ' starting PyCOMPSs.')
+        return None
 
 
 def __show_graph__(name='complete_graph', fit=False):
-    """
-    Show graph.
+    # type: (str, bool) -> ...
+    """ Show graph.
 
     :param name: Graph to show (default: 'complete_graph')
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
-
     try:
         from graphviz import Source  # noqa
     except ImportError:
         print('Oops! graphviz is not available.')
-        raise
+        return None
     monitor_file = open(LOG_PATH + '/monitor/' + name + '.dot', 'r')
     text = monitor_file.read()
     monitor_file.close()
@@ -542,8 +540,8 @@ def __show_graph__(name='complete_graph', fit=False):
 
 
 def __export_globals__():
-    """
-    Export globals into interactive environment.
+    # type: () -> None
+    """ Export globals into interactive environment.
 
     :return: None
     """
@@ -568,8 +566,9 @@ def __export_globals__():
 
 
 def __clean_temp_files__():
-    """
-    Remove any temporary files that may exist.
+    # type: () -> None
+    """ Remove any temporary files that may exist.
+
     Currently: APP_PATH, which contains the file path where all interactive
                code required by the worker is.
 

@@ -26,7 +26,6 @@ PyCOMPSs Util - configurators
 
 import os
 import sys
-import logging
 from tempfile import mkstemp
 import pycompss.runtime.binding as binding
 from pycompss.util.supercomputer.scs import get_master_node
@@ -38,7 +37,6 @@ from pycompss.util.supercomputer.scs import get_specific_log_dir
 from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_tracing
 from pycompss.util.supercomputer.scs import get_storage_conf
-from pycompss.util.logger.helpers import init_logging
 
 DEFAULT_PROJECT_PATH = '/Runtime/configuration/xml/projects/'
 DEFAULT_RESOURCES_PATH = '/Runtime/configuration/xml/resources/'
@@ -136,7 +134,7 @@ def prepare_environment(interactive, o_c, storage_impl,
 
 
 def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
-    # type: (bool, bool, bool, str) -> dict
+    # type: (int, bool, bool, str) -> dict
     """ Checks if monitor is enabled and updates graph and log level.
     If monitor is True, then the log_level and graph are set to debug.
 

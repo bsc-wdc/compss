@@ -101,7 +101,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     @Override
     public void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteData) {
         for (String obsolete : obsoleteData) {
-            Comm.removeData(obsolete);
+            Comm.removeData(obsolete, true);
         }
         receivedNewTask(master, (CommTask) t);
     }
@@ -134,7 +134,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     @Override
     public void receivedRemoveObsoletes(NIONode node, List<String> obsolete) {
         for (String obsoleteData : obsolete) {
-            Comm.removeData(obsoleteData);
+            Comm.removeData(obsoleteData, true);
         }
     }
 

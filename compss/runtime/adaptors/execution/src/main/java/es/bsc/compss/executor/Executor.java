@@ -281,6 +281,7 @@ public class Executor implements Runnable {
             if (IS_TIMER_COMPSS_ENABLED) {
                 timeBindOriginalFilesStart = System.nanoTime();
             }
+            // todo: first trace
             bindOriginalFilenamesToRenames(invocation, twd.getWorkingDir());
             if (IS_TIMER_COMPSS_ENABLED) {
                 final long timeBindOriginalFilesEnd = System.nanoTime();
@@ -334,6 +335,7 @@ public class Executor implements Runnable {
             if (IS_TIMER_COMPSS_ENABLED) {
                 timeUnbindOriginalFilesStart = System.nanoTime();
             }
+            // todo: second trace
             unbindOriginalFileNamesToRenames(invocation, false);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
@@ -370,6 +372,7 @@ public class Executor implements Runnable {
                 timeCheckOutputFilesStart = System.nanoTime();
             }
             try {
+                // todo: third trace here
                 checkJobFiles(invocation);
             } catch (JobExecutionException e) {
                 LOGGER.error(e.getMessage(), e);
@@ -550,7 +553,9 @@ public class Executor implements Runnable {
                 specificWD = null;
                 break;
         }
-
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX.getId(), TraceEvent.CREATING_TASK_SANDBOX.getType());
+        }
         TaskWorkingDir taskWD;
         if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
             // Binary has an specific working dir, set it
@@ -577,6 +582,9 @@ public class Executor implements Runnable {
             // Create structures
             Files.createDirectories(workingDir.toPath());
         }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CREATING_TASK_SANDBOX.getType());
+        }
         return taskWD;
     }
 
@@ -585,13 +593,21 @@ public class Executor implements Runnable {
             // Only clean task sandbox if it is not specific
             File workingDir = twd.getWorkingDir();
             if (workingDir != null && workingDir.exists() && workingDir.isDirectory()) {
+                if (Tracer.extraeEnabled()) {
+                    Tracer.emitEvent(TraceEvent.REMOVING_TASK_SANDBOX.getId(),
+                        TraceEvent.REMOVING_TASK_SANDBOX.getType());
+                }
                 try {
                     LOGGER.debug("Deleting sandbox " + workingDir.toPath());
                     deleteDirectory(workingDir);
                 } catch (IOException e) {
                     LOGGER.warn("Error deleting sandbox " + e.getMessage(), e);
                 }
+                if (Tracer.extraeEnabled()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.REMOVING_TASK_SANDBOX.getType());
+                }
             }
+
         }
     }
 
@@ -636,6 +652,7 @@ public class Executor implements Runnable {
             if (!param.isKeepRename()) {
                 bindOriginalFilenameToRenames(param, sandbox);
             } else {
+                // collection should enter here
                 String renamedFilePath = (String) param.getValue();
                 LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
                 param.setRenamedName(renamedFilePath);
@@ -667,7 +684,13 @@ public class Executor implements Runnable {
     }
 
     private void bindOriginalFilenameToRenames(InvocationParam param, File sandbox) throws IOException {
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.BIND_ORIG_NAME.getId(), TraceEvent.BIND_ORIG_NAME.getType());
+        }
+
         if (param.getType().equals(DataType.COLLECTION_T)) {
+            // do not enter here
             @SuppressWarnings("unchecked")
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
             for (InvocationParam p : cp.getCollectionParameters()) {
@@ -707,6 +730,9 @@ public class Executor implements Runnable {
                 }
             }
         }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.BIND_ORIG_NAME.getType());
+        }
     }
 
     /**
@@ -723,6 +749,7 @@ public class Executor implements Runnable {
         for (InvocationParam param : invocation.getParams()) {
             if (!param.isKeepRename()) {
                 try {
+                    // todo: second one is actually here
                     unbindOriginalFilenameToRename(param, invocation);
                 } catch (JobExecutionException e) {
                     if (!failure) {
@@ -769,6 +796,10 @@ public class Executor implements Runnable {
 
     private void unbindOriginalFilenameToRename(InvocationParam param, Invocation invocation)
         throws IOException, JobExecutionException {
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME.getId(), TraceEvent.UNBIND_ORIG_NAME.getType());
+        }
         if (param.getType().equals(DataType.COLLECTION_T)) {
             @SuppressWarnings("unchecked")
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
@@ -830,6 +861,9 @@ public class Executor implements Runnable {
             param.setValue(renamedFilePath);
             param.setOriginalName(originalFileName);
         }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.UNBIND_ORIG_NAME.getType());
+        }
     }
 
     private void move(Path origFilePath, Path renamedFilePath) throws IOException {
@@ -856,11 +890,16 @@ public class Executor implements Runnable {
             throw new JobExecutionException(
                 ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
         }
-
     }
 
     private boolean checkOutParam(InvocationParam param, Invocation invocation) {
         if (param.getType().equals(DataType.FILE_T)) {
+            // check if collection enter here
+            // why enters here
+            // todo: third can be here as well
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM.getId(), TraceEvent.CHECK_OUT_PARAM.getType());
+            }
             String filepath = (String) param.getValue();
             File f = new File(filepath);
             // If using C binding we ignore potential errors
@@ -872,6 +911,9 @@ public class Executor implements Runnable {
                 System.out.println(errMsg.toString());
                 System.err.println(errMsg.toString());
                 return false;
+            }
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CHECK_OUT_PARAM.getType());
             }
         }
         return true;

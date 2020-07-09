@@ -299,6 +299,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         WORKER_LOGGER.info("Received Job " + task);
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("ARGUMENTS:");
@@ -341,6 +342,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.info("Checking parameters");
         TaskFetchOperationsListener listener = new TaskFetchOperationsListener(task, this);
         int paramIdx = 0;
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(TraceEvent.FETCH_PARAM.getId(), TraceEvent.FETCH_PARAM.getType());
+        }
         for (NIOParam param : task.getParams()) {
             WORKER_LOGGER.info("Checking parameter " + param);
             paramIdx++;
@@ -362,8 +366,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 .debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
             listener.addOperation();
             dataManager.fetchParam(targetParam, -1, listener);
-        }
 
+        }
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.FETCH_PARAM.getType());
+        }
         // Request the transfers
         if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(listener.getTask().getTaskId(), NIOTracer.getTaskTransfersType());
@@ -615,7 +622,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param obsolete List of obsolete objects.
      */
     public void removeObsolete(List<String> obsolete) {
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(TraceEvent.REMOVE_OBSOLETES.getId(), TraceEvent.REMOVE_OBSOLETES.getType());
+        }
         this.dataManager.removeObsoletes(obsolete);
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.REMOVE_OBSOLETES.getType());
+        }
     }
 
     @Override

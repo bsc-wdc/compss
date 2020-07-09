@@ -97,14 +97,21 @@ EOT
    if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
     cat <<EOT
     --cluster=<cluster>                     Cluster to pass to queue system.
-                                            
+                              		    Default: Empty.
 EOT
    fi
-   if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
+   if [ -n "${ENABLE_PROJECT_NAME}" ] && [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     cat <<EOT
 
     --project_name=<name>                   Project name to pass to queue system.
-                                            Mandatory for systems that charge hours by project name.
+                                            Default: Empty.
+EOT
+  fi
+  if [ -n "${ENABLE_FILE_SYSTEMS}" ] && [ "${ENABLE_FILE_SYSTEMS}" == "true" ]; then
+    cat <<EOT
+
+    --file_systems=<name>                   File systems name to pass to queue system.
+                                            Default: Empty
 EOT
   fi
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
@@ -230,9 +237,14 @@ log_args() {
     echo "Cluster:                   ${cluster}"
   fi
 
-  if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
+  if [ -n "${ENABLE_PROJECT_NAME}" ] && [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     echo "Project name:              ${project_name}"
   fi
+  
+  if [ -n "${ENABLE_FILE_SYSTEMS}" ] && [ "${ENABLE_FILE_SYSTEMS}" == "true" ]; then
+    echo "File Systems:              ${file_systems}"
+  fi
+
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     echo "Constraints:               ${constraints}"
   fi
@@ -380,6 +392,9 @@ get_args() {
             ;;
           project_name=*)
             project_name=${OPTARG//project_name=/}
+            ;;
+	  file_systems=*)
+            file_systems=${OPTARG//file_systems=/}
             ;;
           job_dependency=*)
             dependencyJob=${OPTARG//job_dependency=/}
@@ -810,13 +825,24 @@ EOT
   fi
 
   # Add project name defined in queue system
-  if [ -n "${QARG_PROJECT_NAME}" ]; then
-    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+  if [ -n "${ENABLE_PROJECT_NAME}" ] && [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
+    if [ -n "${QARG_PROJECT_NAME}" ] && [ -n "${project_name}" ]; then
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_PROJECT_NAME}${QUEUE_SEPARATOR}${project_name}
 EOT
+    fi
+  fi
+  
+  # Add file systems in queue system
+  if [ -n "${ENABLE_FILE_SYSTEMS}" ] && [ "${ENABLE_FILE_SYSTEMS}" == "true" ]; then
+    if [ -n "${QARG_FILE_SYSTEMS}" ] && [ -n "${file_systems}" ]; then
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_FILE_SYSTEMS}${QUEUE_SEPARATOR}${file_systems}
+EOT
+    fi
   fi
 
-    # Add cluster name defined in queue system
+  # Add cluster name defined in queue system
   if [ -n "${QARG_CLUSTER}" ]; then
     if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
        cat >> "${TMP_SUBMIT_SCRIPT}" << EOT

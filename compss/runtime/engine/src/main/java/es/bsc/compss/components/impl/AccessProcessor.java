@@ -893,9 +893,10 @@ public class AccessProcessor implements Runnable {
     public void markForDeletion(DataLocation loc, boolean enableReuse) {
         LOGGER.debug("Marking data " + loc + " for deletion");
         Semaphore sem = new Semaphore(0);
-        Semaphore semWait = new Semaphore(0);
+
         // No need to wait if data is noReuse
         if (enableReuse) {
+            Semaphore semWait = new Semaphore(0);
             WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc, sem, semWait);
             // Wait for data to be ready for deletion
             if (!this.requestQueue.offer(request)) {
@@ -918,10 +919,14 @@ public class AccessProcessor implements Runnable {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 
-        LOGGER.debug("Waiting for delete request response...");
-        // Wait for response
-        sem.acquireUninterruptibly();
-        LOGGER.debug("Data " + loc + " deleted.");
+        // No need to wait if no reuse
+        if (enableReuse) {
+            // Wait for response
+            LOGGER.debug("Waiting for delete request response...");
+            sem.acquireUninterruptibly();
+            LOGGER.debug("Data " + loc + " deleted.");
+        }
+
     }
 
     /**

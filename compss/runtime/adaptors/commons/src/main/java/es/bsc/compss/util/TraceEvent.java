@@ -34,8 +34,22 @@ public enum TraceEvent {
     DELETE(12, Tracer.API_EVENTS, "Delete File"), // Delete file
     WAIT_FOR_CONCURRENT(59, Tracer.API_EVENTS, "Wait on concurrent"),
 
+    // Worker runtime events
     TASK_RUNNING(11, Tracer.RUNTIME_EVENTS, "Task Running"), // Task running
     WORKER_RECEIVED_NEW_TASK(13, Tracer.RUNTIME_EVENTS, "Received new task"), // New task at worker
+
+    // Runtime Task Events
+    CREATING_TASK_SANDBOX(54, Tracer.RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
+    REMOVING_TASK_SANDBOX(55, Tracer.RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
+    FETCH_PARAM(60, Tracer.RUNTIME_EVENTS, "Fetch task parameter"), // Fetching new task param
+    REMOVE_OBSOLETES(61, Tracer.RUNTIME_EVENTS, "Remove Obsoletes"),
+    BIND_ORIG_NAME(62, Tracer.RUNTIME_EVENTS, "Bind Original File names To Renames.."), // Link to original name
+    UNBIND_ORIG_NAME(63, Tracer.RUNTIME_EVENTS, "Unbind Original File names To Renames.."),
+    CHECK_OUT_PARAM(64, Tracer.RUNTIME_EVENTS, "Check OUT parameters."),
+
+    // Runtime FS Events
+    INIT_FS(65, Tracer.RUNTIME_EVENTS, "Init Thread for synch file system operations"),
+    LOCAL_COPY(66, Tracer.RUNTIME_EVENTS, "Local copy"), LOCAL_MOVE(67, Tracer.RUNTIME_EVENTS, "Local move"),
 
     // Access Processor Events which are not in the API
     DEBUG(17, Tracer.RUNTIME_EVENTS, "Access Processor: Debug"), // Debug
@@ -80,10 +94,6 @@ public enum TraceEvent {
     TD_SHUTDOWN(51, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), // Shutdown
     UPDATE_CEI_LOCAL(52, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), // Update CEI
     WORKER_UPDATE_REQUEST(53, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Worker update request"), // Update worker
-
-    // Task Events
-    CREATING_TASK_SANDBOX(54, Tracer.RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
-    REMOVING_TASK_SANDBOX(55, Tracer.RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
 
     // Python Events Inside Worker
     WORKER_RUNNING(1, Tracer.INSIDE_WORKER_TYPE, "Worker running"), // Worker running

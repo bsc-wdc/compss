@@ -301,13 +301,13 @@ def deserialize_from_file(file_name):
 
 
 def deserialize_from_string(serialized_content):
-    # type: (bytes) -> object
+    # type: (str) -> object
     """ Deserialize the contents in a given string.
 
     :param serialized_content: A string with serialized contents
     :return: A deserialized object
     """
-    handler = BytesIO(serialized_content)
+    handler = BytesIO(serialized_content)  # noqa
     ret = deserialize_from_handler(handler)
     handler.close()
     return ret

@@ -38,26 +38,37 @@ from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import SerializerException
+from pycompss.util.exceptions import TimeOutError
+from pycompss.util.exceptions import task_timed_out
+from pycompss.util.exceptions import task_cancel
 from pycompss.util.storages.persistent import storage_task_context
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
 import pycompss.api.parameter as parameter
 
 
-def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
-                         args=None, pos=None):
+def build_task_parameter(p_type,     # type: int
+                         p_stream,   # type: int
+                         p_prefix,   # type: str
+                         p_name,     # type: str
+                         p_value,    # type: object
+                         p_c_type,   # type: str
+                         args=None,  # type: list
+                         pos=None    # type: int
+                         ):
+    # type: (...) -> (Parameter, int)
     """
     Build task parameter object from the given parameters.
 
-    :param p_type: Parameter type
-    :param p_stream: Parameter stream
-    :param p_prefix: Parameter prefix
-    :param p_name: Parameter name
-    :param p_value: Parameter value
-    :param p_c_type: Parameter Python Type
-    :param args: Arguments (Default: None)
-    :param pos: Position (Default: None)
-    :return: Parameter object
+    :param p_type: Parameter type.
+    :param p_stream: Parameter stream.
+    :param p_prefix: Parameter prefix.
+    :param p_name: Parameter name.
+    :param p_value: Parameter value.
+    :param p_c_type: Parameter Python Type.
+    :param args: Arguments (Default: None).
+    :param pos: Position (Default: None).
+    :return: Parameter object and the number fo substrings.
     """
     num_substrings = 0
     if p_type in [parameter.TYPE.FILE, parameter.TYPE.DIRECTORY,
@@ -96,7 +107,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         ), 1
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
-            num_substrings = int(p_value)
+            num_substrings = int(p_value)  # noqa
             aux = ''
             first_substring = True
             for j in range(6, num_substrings + 6):
@@ -148,7 +159,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         # and only a cast is needed
         val = None
         if p_type == parameter.TYPE.INT:
-            val = int(p_value)
+            val = int(p_value)  # noqa
         elif p_type == parameter.TYPE.LONG:
             val = PYCOMPSS_LONG(p_value)
             if val > JAVA_MAX_INT or val < JAVA_MIN_INT:
@@ -157,7 +168,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
                 # otherwise this would have been passed as a serialized object.
                 val = int(val)
         elif p_type == parameter.TYPE.DOUBLE:
-            val = float(p_value)
+            val = float(p_value)  # noqa
         elif p_type == parameter.TYPE.BOOLEAN:
             val = (p_value == 'true')
         return Parameter(
@@ -171,8 +182,8 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
 
 
 def get_task_params(num_params, logger, args):  # noqa
-    """
-    Get and prepare the input parameters from string to lists.
+    # type: (int, ..., list) -> list
+    """ Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters
     :param logger: Logger
@@ -213,11 +224,19 @@ def get_task_params(num_params, logger, args):  # noqa
     return ret
 
 
-def task_execution(logger, process_name, module, method_name, time_out,
-                   types, values, compss_kwargs,
-                   persistent_storage, storage_conf):
-    """
-    Task execution function.
+def task_execution(logger,
+                   process_name,
+                   module,
+                   method_name,
+                   time_out,
+                   types,
+                   values,
+                   compss_kwargs,
+                   persistent_storage,
+                   storage_conf
+                   ):
+    # type: (...) -> (int, list, list, str, bool, str)
+    """ Task execution function.
 
     :param logger: Logger
     :param process_name: Process name
@@ -229,7 +248,8 @@ def task_execution(logger, process_name, module, method_name, time_out,
     :param compss_kwargs: PyCOMPSs keywords
     :param persistent_storage: If persistent storage is enabled
     :param storage_conf: Persistent storage configuration file
-    :return: exit_code, new types, new_values, and target_direction
+    :return: exit_code, new_types, new_values, target_direction, timed_out
+             and return_message
     """
     if __debug__:
         logger.debug("Starting task execution")
@@ -351,8 +371,9 @@ def task_execution(logger, process_name, module, method_name, time_out,
 
 
 def _get_return_values_for_exception(types, values):
-    """
-    Builds the values list to retrieve on an exception.
+    # type: (list, list) -> list
+    """ Builds the values list to retrieve on an exception.
+
     It takes the input types and returns a list of 'null' for each type
     unless it is a PSCO, where it puts the psco identifier.
 
@@ -369,18 +390,26 @@ def _get_return_values_for_exception(types, values):
     return new_values
 
 
-def task_returns(exit_code, new_types, new_values, target_direction,
-                 timed_out, return_message, logger):  # noqa
-    """
-    Unified task return function
-    :param exit_code: Exit value (0 ok, 1 error)
-    :param new_types: New types to be returned
-    :param new_values: New values to be returned
-    :param target_direction: Target direction
-    :param timed_out: If the task has reached time ot
-    :param return_message: Return exception message
-    :param logger: Logger where to place the messages
-    :return: exit code, new types, new values, target direction and time out
+def task_returns(exit_code,         # type: int
+                 new_types,         # type: list
+                 new_values,        # type: list
+                 target_direction,
+                 timed_out,         # type: bool
+                 return_message,    # type: str
+                 logger             # noqa
+                 ):
+    # type: (...) -> (int, list, list, str, bool, str)
+    """ Unified task return function.
+
+    :param exit_code: Exit value (0 ok, 1 error).
+    :param new_types: New types to be returned.
+    :param new_values: New values to be returned.
+    :param target_direction: Target direction.
+    :param timed_out: If the task has reached time out.
+    :param return_message: Return exception message.
+    :param logger: Logger where to place the messages.
+    :return: exit code, new types, new values, target direction, time out
+             and return message.
     """
     if __debug__:
         # The types may change
@@ -400,41 +429,14 @@ def task_returns(exit_code, new_types, new_values, target_direction,
             return_message)
 
 
-class TimeOutError(BaseException):
-    """
-    Time out error exception
-    """
-    pass
-
-
-def task_timed_out(signum, frame):  # noqa
-    """
-    Task time out signal handler
-
-    :param signum: Signal number
-    :param frame: Frame
-    :raise: TimeOutError exception
-    """
-    raise TimeOutError
-
-
-class CancelError(BaseException):
-    pass
-
-
-def task_cancel(signum, frame):  # noqa
-    raise CancelError
-
-
 def import_user_module(path, logger):
-    """
-    Import the user module
+    # type: (str, ...) -> ...
+    """ Import the user module.
 
-    :param path: Path to the user module
-    :param logger: Logger
-    :return: The module loaded
+    :param path: Path to the user module.
+    :param logger: Logger.
+    :return: The loaded module.
     """
-    module = None
     py_version = sys.version_info
     if py_version >= (2, 7):
         import importlib
@@ -460,20 +462,26 @@ def import_user_module(path, logger):
     return module
 
 
-def execute_task(process_name, storage_conf, params, tracing,
-                 logger, log_files, python_mpi=False):
-    """
-    ExecuteTask main method.
+def execute_task(process_name,     # type: str
+                 storage_conf,     # type: str
+                 params,           # type: list
+                 tracing,          # type: bool
+                 logger,           # type: ...
+                 log_files,        # type: bool
+                 python_mpi=False  # type: bool
+                 ):
+    # type: (...) -> (str, list, list, bool, str)
+    """ ExecuteTask main method.
 
-    :param process_name: Process name
-    :param storage_conf: Storage configuration file path
-    :param params: List of parameters
-    :param tracing: Tracing flag
-    :param logger: Logger to use
+    :param process_name: Process name.
+    :param storage_conf: Storage configuration file path.
+    :param params: List of parameters.
+    :param tracing: Tracing flag.
+    :param logger: Logger to use.
     :param log_files: Tuple with (out filename, err filename). None to avoid
                       stdout and sdterr fd redirection.
-    :param python_mpi: If it is a MPI task
-    :return: exit code, new types and new values
+    :param python_mpi: If it is a MPI task.
+    :return: exit_code, new_types, new_values, timed_out and except_msg
     """
     if __debug__:
         logger.debug("Begin task execution in %s" % process_name)
@@ -652,7 +660,7 @@ def execute_task(process_name, storage_conf, params, tracing,
                                      self_elem.content)
                         logger.debug("Processing callee, a hidden object of %s in file %s" %  # noqa: E501
                                      (file_name, type(self_elem.content)))
-            values.insert(0, obj)
+            values.insert(0, obj)  # noqa
 
             if not self_type == parameter.TYPE.EXTERNAL_PSCO:
                 types.insert(0, parameter.TYPE.OBJECT)

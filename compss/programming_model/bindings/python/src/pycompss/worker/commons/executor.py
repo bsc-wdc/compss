@@ -21,12 +21,12 @@ from pycompss.api.parameter import TYPE
 
 
 def build_return_params_message(types, values):
-    """
-    Build the return message with the parameters output.
+    # type: (list, list) -> str
+    """ Build the return message with the parameters output.
 
-    :param types: List of the parameter's types
-    :param values: List of the parameter's values
-    :return: Message as string
+    :param types: List of the parameter's types.
+    :param values: List of the parameter's values.
+    :return: Message as string.
     """
     err_msg = "return type-value length mismatch for return message."
     assert len(types) == len(values), "Inconsistent state: " + err_msg

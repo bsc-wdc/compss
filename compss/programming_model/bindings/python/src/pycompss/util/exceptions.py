@@ -42,3 +42,37 @@ class MissingImplementedException(Exception):
     def __init__(self, functionality):
         super(self.__class__, self).__init__("Missing " + functionality +
                                              ". Needs to be overridden.")
+
+
+class TimeOutError(BaseException):
+    """
+    Time out error exception
+    """
+    pass
+
+
+class CancelError(BaseException):
+    """
+    Cancel error exception
+    """
+    pass
+
+
+def task_timed_out(signum, frame):  # noqa
+    """ Task time out signal handler.
+
+    :param signum: Signal number.
+    :param frame: Frame.
+    :raises: TimeOutError exception.
+    """
+    raise TimeOutError
+
+
+def task_cancel(signum, frame):  # noqa
+    """ Task cancel signal handler.
+
+    :param signum: Signal number.
+    :param frame: Frame.
+    :raises: CancelError exception.
+    """
+    raise CancelError

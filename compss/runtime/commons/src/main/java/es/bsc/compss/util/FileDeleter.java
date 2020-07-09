@@ -30,7 +30,7 @@ public class FileDeleter {
      */
     public static void deleteAsync(final File file) {
         if (file != null) {
-            DELETE_SERVICE.submit(new Runnable() {
+            DELETE_SERVICE.execute(new Runnable() {
 
                 @Override
                 public void run() {

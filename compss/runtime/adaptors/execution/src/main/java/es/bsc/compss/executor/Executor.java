@@ -554,7 +554,9 @@ public class Executor implements Runnable {
                 specificWD = null;
                 break;
         }
-
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX.getId(), TraceEvent.CREATING_TASK_SANDBOX.getType());
+        }
         TaskWorkingDir taskWD;
         if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
             // Binary has an specific working dir, set it
@@ -581,6 +583,9 @@ public class Executor implements Runnable {
             // Create structures
             Files.createDirectories(workingDir.toPath());
         }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CREATING_TASK_SANDBOX.getType());
+        }
         return taskWD;
     }
 
@@ -589,13 +594,21 @@ public class Executor implements Runnable {
             // Only clean task sandbox if it is not specific
             File workingDir = twd.getWorkingDir();
             if (workingDir != null && workingDir.exists() && workingDir.isDirectory()) {
+                if (Tracer.extraeEnabled()) {
+                    Tracer.emitEvent(TraceEvent.REMOVING_TASK_SANDBOX.getId(),
+                        TraceEvent.REMOVING_TASK_SANDBOX.getType());
+                }
                 try {
                     LOGGER.debug("Deleting sandbox " + workingDir.toPath());
                     deleteDirectory(workingDir);
                 } catch (IOException e) {
                     LOGGER.warn("Error deleting sandbox " + e.getMessage(), e);
                 }
+                if (Tracer.extraeEnabled()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.REMOVING_TASK_SANDBOX.getType());
+                }
             }
+
         }
     }
 
@@ -674,7 +687,7 @@ public class Executor implements Runnable {
     private void bindOriginalFilenameToRenames(InvocationParam param, File sandbox) throws IOException {
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.NM_BIND_OFTR.getId(), TraceEvent.NM_BIND_OFTR.getType());
+            Tracer.emitEvent(TraceEvent.BIND_ORIG_NAME.getId(), TraceEvent.BIND_ORIG_NAME.getType());
         }
 
         if (param.getType().equals(DataType.COLLECTION_T)) {
@@ -721,7 +734,7 @@ public class Executor implements Runnable {
             }
         }
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NM_BIND_OFTR.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.BIND_ORIG_NAME.getType());
         }
     }
 
@@ -788,7 +801,7 @@ public class Executor implements Runnable {
         throws IOException, JobExecutionException {
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.NM_UNNNBIND_OFTR.getId(), TraceEvent.NM_UNNNBIND_OFTR.getType());
+            Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME.getId(), TraceEvent.UNBIND_ORIG_NAME.getType());
         }
         if (param.getType().equals(DataType.COLLECTION_T)) {
             @SuppressWarnings("unchecked")
@@ -854,7 +867,7 @@ public class Executor implements Runnable {
             }
         }
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NM_UNNNBIND_OFTR.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.UNBIND_ORIG_NAME.getType());
         }
     }
 
@@ -890,7 +903,7 @@ public class Executor implements Runnable {
             // why enters here
             // todo: third can be here as well
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.NM_CHECK_OUT_PARAM.getId(), TraceEvent.NM_CHECK_OUT_PARAM.getType());
+                Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM.getId(), TraceEvent.CHECK_OUT_PARAM.getType());
             }
             String filepath = (String) param.getValue();
             File f = new File(filepath);
@@ -905,7 +918,7 @@ public class Executor implements Runnable {
                 return false;
             }
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NM_CHECK_OUT_PARAM.getType());
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CHECK_OUT_PARAM.getType());
             }
         }
         return true;

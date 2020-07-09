@@ -40,8 +40,9 @@ c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
 
 @contextmanager
 def not_std_redirector():
-    """
-    Context which does nothing.
+    # type: () -> None
+    """ Context which does nothing.
+
     Use this context instead of the std_redirector context to avoid
     stdout and stderr redirection.
 
@@ -52,8 +53,8 @@ def not_std_redirector():
 
 @contextmanager
 def std_redirector(out_filename, err_filename):
-    """
-    Stdout and stderr redirector to the given out and err filenames.
+    # type: (str, str) -> None
+    """ Stdout and stderr redirector to the given out and err filenames.
 
     :param out_filename: Output file filename (where to redirect stdout)
     :param err_filename: Error output file filename (where to redirect stderr)
@@ -63,8 +64,8 @@ def std_redirector(out_filename, err_filename):
     stderr_fd = sys.stderr.fileno()
 
     def _redirect_stdout(to_fd):
-        """
-        Redirect stdout to the given file descriptor.
+        # type: (int) -> None
+        """ Redirect stdout to the given file descriptor.
 
         :param to_fd: Destination file descriptor
         :return: None
@@ -82,8 +83,8 @@ def std_redirector(out_filename, err_filename):
             sys.stdout = os.fdopen(stdout_fd, 'w')
 
     def _redirect_stderr(to_fd):
-        """
-        Redirect stderr to the given file descriptor.
+        # type: (int) -> None
+        """ Redirect stderr to the given file descriptor.
 
         :param to_fd: Destination file descriptor
         :return: None

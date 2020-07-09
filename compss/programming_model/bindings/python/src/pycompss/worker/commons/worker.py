@@ -467,7 +467,7 @@ def execute_task(process_name,     # type: str
                  params,           # type: list
                  tracing,          # type: bool
                  logger,           # type: ...
-                 log_files,        # type: bool
+                 log_files,        # type: tuple
                  python_mpi=False  # type: bool
                  ):
     # type: (...) -> (str, list, list, bool, str)

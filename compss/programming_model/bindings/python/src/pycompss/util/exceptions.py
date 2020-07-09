@@ -59,7 +59,9 @@ class CancelError(BaseException):
 
 
 def task_timed_out(signum, frame):  # noqa
-    """ Task time out signal handler.
+    """ Task time out signal handler
+
+    Do not remove the parameters.
 
     :param signum: Signal number.
     :param frame: Frame.
@@ -70,6 +72,8 @@ def task_timed_out(signum, frame):  # noqa
 
 def task_cancel(signum, frame):  # noqa
     """ Task cancel signal handler.
+
+    Do not remove the parameters.
 
     :param signum: Signal number.
     :param frame: Frame.

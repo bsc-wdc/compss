@@ -51,8 +51,8 @@ else:
 
 
 def compss_worker(tracing, task_id, storage_conf, params):
-    """
-    Worker main method (invocated from __main__).
+    # type: (bool, str, str, list) -> str
+    """ Worker main method (invoked from __main__).
 
     :param tracing: Tracing boolean
     :param task_id: Task identifier
@@ -74,7 +74,8 @@ def compss_worker(tracing, task_id, storage_conf, params):
                           params,
                           tracing,
                           logger,
-                          None)
+                          (),
+                          False)
     exit_code, new_types, new_values, timed_out, except_msg = result
 
     if __debug__:
@@ -84,6 +85,13 @@ def compss_worker(tracing, task_id, storage_conf, params):
 
 
 def main():
+    # type: () -> None
+    """ GAT worker main code.
+
+    Executes the task provided by parameters.
+
+    :return: None
+    """
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
     task_id = int(sys.argv[2])

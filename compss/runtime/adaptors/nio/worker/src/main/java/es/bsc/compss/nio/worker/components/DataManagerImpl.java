@@ -24,6 +24,7 @@ import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
+import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
 import es.bsc.compss.types.BindingObject;
@@ -34,6 +35,7 @@ import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.util.FileDeleter;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -50,8 +52,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -85,7 +90,7 @@ public class DataManagerImpl implements DataManager {
     // Data registry
     private final HashMap<String, DataRegister> registry;
 
-    private static final ExecutorService FILE_OPS_EXECUTOR = Executors.newSingleThreadExecutor();
+    private ExecutorService fileOpsExecutor;
 
     static {
         String streamBackendProperty = System.getProperty(COMPSsConstants.STREAMING_BACKEND);
@@ -149,6 +154,36 @@ public class DataManagerImpl implements DataManager {
                 throw new InitializationException("Error loading storage configuration file: " + STORAGE_CONF, se);
             }
         }
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.enablePThreads();
+        }
+        WORKER_LOGGER.debug("Init executor for file ops in thread " + Thread.currentThread().getId() + "( "
+            + Thread.currentThread().getName() + " )");
+        fileOpsExecutor = Executors.newFixedThreadPool(1);
+
+        if (NIOTracer.extraeEnabled()) {
+
+            Future<Object> f = fileOpsExecutor.submit(new Callable() {
+
+                public Object call() {
+                    if (NIOTracer.extraeEnabled()) {
+                        NIOTracer.emitEvent(TraceEvent.INIT_FS.getId(), TraceEvent.INIT_FS.getType());
+                    }
+                    WORKER_LOGGER.debug("Init executor for file ops in thread " + Thread.currentThread().getId() + "( "
+                        + Thread.currentThread().getName() + " )");
+                    if (NIOTracer.extraeEnabled()) {
+                        NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.INIT_FS.getType());
+                    }
+                    return new Object();
+                }
+            });
+            try {
+                f.get();
+            } catch (Exception e) {
+                // Nothing to do
+            }
+            NIOTracer.disablePThreads();
+        }
     }
 
     @Override
@@ -196,7 +231,7 @@ public class DataManagerImpl implements DataManager {
                 WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
             }
         }
-        FILE_OPS_EXECUTOR.shutdown();
+        fileOpsExecutor.shutdown();
         FileDeleter.shutdown();
     }
 
@@ -204,25 +239,26 @@ public class DataManagerImpl implements DataManager {
     public void removeObsoletes(List<String> obsoletes) {
         try {
             for (String name : obsoletes) {
-                WORKER_LOGGER.debug("Removing obsolete " + name);
-                final File f = new File(name);
-                if (name.startsWith(File.separator)) {
-                    WORKER_LOGGER.debug("Submiting delete");
-                    FileDeleter.deleteAsync(f);
-                    WORKER_LOGGER.debug("Delete submitted.");
+                if (WORKER_LOGGER_DEBUG) {
+                    WORKER_LOGGER.debug("Removing obsolete " + name);
                 }
+                final File f = new File(name);
+                /*
+                 * if (name.startsWith(File.separator)) { FileDeleter.deleteAsync(f); }
+                 */
                 String dataName = f.getName();
                 DataRegister register = null;
                 synchronized (registry) {
                     register = this.registry.remove(dataName);
-                    WORKER_LOGGER.debug(dataName + " removed from cache.");
                 }
                 if (register != null) {
                     synchronized (register) {
                         register.clear();
                     }
                 }
-                WORKER_LOGGER.debug(name + " removed from cache.");
+                if (WORKER_LOGGER_DEBUG) {
+                    WORKER_LOGGER.debug(name + " removed from cache.");
+                }
             }
         } catch (Exception e) {
             WORKER_LOGGER.error("Exception", e);
@@ -579,7 +615,7 @@ public class DataManagerImpl implements DataManager {
                 filesArray = files.toArray(new String[files.size()]);
             }
 
-            FILE_OPS_EXECUTOR.submit(new Runnable() {
+            fileOpsExecutor.execute(new Runnable() {
 
                 @Override
                 public void run() {
@@ -596,12 +632,25 @@ public class DataManagerImpl implements DataManager {
                                 }
 
                                 if (param.isPreserveSourceData()) {
+
+                                    if (NIOTracer.extraeEnabled()) {
+                                        NIOTracer.emitEvent(TraceEvent.LOCAL_COPY.getId(),
+                                            TraceEvent.LOCAL_COPY.getType());
+                                    }
+
                                     if (param.getType() == DataType.DIRECTORY_T) {
                                         FileUtils.copyDirectory(srcPath.toFile(), tgtPath.toFile());
                                     } else {
                                         Files.copy(srcPath, tgtPath);
                                     }
+                                    if (NIOTracer.extraeEnabled()) {
+                                        NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.LOCAL_COPY.getType());
+                                    }
                                 } else {
+                                    if (NIOTracer.extraeEnabled()) {
+                                        NIOTracer.emitEvent(TraceEvent.LOCAL_MOVE.getId(),
+                                            TraceEvent.LOCAL_MOVE.getType());
+                                    }
                                     try {
                                         // todo: recursive needed for directories?
                                         Files.move(srcPath, tgtPath, StandardCopyOption.ATOMIC_MOVE);
@@ -610,7 +659,9 @@ public class DataManagerImpl implements DataManager {
                                             + " File cannot be atomically moved. Trying to move without atomic");
                                         Files.move(srcPath, tgtPath);
                                     }
-
+                                    if (NIOTracer.extraeEnabled()) {
+                                        NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.LOCAL_MOVE.getType());
+                                    }
                                     originalRegister.removeFileLocation(path);
                                 }
                                 DataRegister dr = new DataRegister();

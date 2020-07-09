@@ -36,8 +36,8 @@ TRACING = False
 
 @contextmanager
 def dummy_context():
-    """
-    Context which deactivates and nothing else.
+    # type: () -> None
+    """ Context which deactivates the tracing flag and nothing else.
 
     :return: None
     """
@@ -48,8 +48,8 @@ def dummy_context():
 
 @contextmanager
 def trace_multiprocessing_worker():
-    """
-    Sets up the tracing for the multiprocessing worker.
+    # type: () -> None
+    """ Sets up the tracing for the multiprocessing worker.
 
     :return: None
     """
@@ -69,8 +69,8 @@ def trace_multiprocessing_worker():
 
 @contextmanager
 def trace_mpi_worker():
-    """
-    Sets up the tracing for the mpi worker.
+    # type: () -> None
+    """ Sets up the tracing for the mpi worker.
 
     :return: None
     """
@@ -90,8 +90,8 @@ def trace_mpi_worker():
 
 @contextmanager
 def trace_mpi_executor():
-    """
-    Sets up the tracing for each mpi executor.
+    # type: () -> None
+    """ Sets up the tracing for each mpi executor.
 
     :return: None
     """
@@ -113,11 +113,10 @@ def emit_event(event_id):
     def actual_decorator(function):
         @wraps(function)
         def wrapped(*args, **kwargs):
-            result = None
             if TRACING:
-                PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)
+                PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)  # noqa
                 result = function(*args, **kwargs)
-                PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)
+                PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)         # noqa
             else:
                 result = function(*args, **kwargs)
             return result
@@ -127,14 +126,16 @@ def emit_event(event_id):
 
 @contextmanager
 def event(event_id):
-    """
-    Emits an event wrapping the desired code.
+    # type: (str) -> None
+    """ Emits an event wrapping the desired code.
+
     Does nothing if tracing is disabled
 
+    :param event_id: Event identifier to emit.
     :return: None
     """
     if TRACING:
-        PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)
+        PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)  # noqa
     yield  # here the code runs
     if TRACING:
-        PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)
+        PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)         # noqa

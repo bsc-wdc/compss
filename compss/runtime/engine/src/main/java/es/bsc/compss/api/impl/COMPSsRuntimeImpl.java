@@ -930,7 +930,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             return false;
         }
 
-        LOGGER.info("Deleting File " + fileName);
+        LOGGER.info("Deleting File " + fileName + " with wait for data " + waitForData);
 
         // Emit event
         if (Tracer.extraeEnabled()) {
@@ -952,7 +952,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.DELETE.getType());
             }
         }
-
+        LOGGER.info("File " + fileName + " Deleted.");
         // Return deletion was successful
         return true;
     }

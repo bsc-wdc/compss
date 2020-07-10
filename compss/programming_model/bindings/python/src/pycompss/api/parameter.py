@@ -118,7 +118,7 @@ class Parameter(object):
                  is_file_collection=False,
                  content_type=UNDEFINED_CONTENT_TYPE,
                  weight="1.0",
-                 keep_rename=False):
+                 keep_rename=True):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -169,7 +169,7 @@ class TaskParameter(object):
                  prefix=None,
                  content_type=UNDEFINED_CONTENT_TYPE,
                  weight="1.0",
-                 keep_rename=False):
+                 keep_rename=True):
         self.name = name
         self.type = p_type
         self.file_name = file_name
@@ -199,162 +199,182 @@ class TaskParameter(object):
 _param_conversion_dict_ = {
     'IN': {},
     'OUT': {
-        'p_direction': DIRECTION.OUT,
-        'keep_rename': True
+        'p_direction': DIRECTION.OUT
     },
     'INOUT': {
-        'p_direction': DIRECTION.INOUT,
-        'keep_rename': True
+        'p_direction': DIRECTION.INOUT
     },
     'CONCURRENT': {
-        'p_direction': DIRECTION.CONCURRENT,
-        'keep_rename': True
+        'p_direction': DIRECTION.CONCURRENT
     },
     'COMMUTATIVE': {
-        'p_direction': DIRECTION.COMMUTATIVE,
-        'keep_rename': True
+        'p_direction': DIRECTION.COMMUTATIVE
     },
     'FILE': {
-        'p_type': TYPE.FILE
+        'p_type': TYPE.FILE,
+        'keep_rename': False
     },
     'FILE_IN': {
-        'p_type': TYPE.FILE
+        'p_type': TYPE.FILE,
+        'keep_rename': False
     },
     'FILE_OUT': {
         'p_type': TYPE.FILE,
-        'p_direction': DIRECTION.OUT
+        'p_direction': DIRECTION.OUT,
+        'keep_rename': False
     },
     'FILE_INOUT': {
         'p_type': TYPE.FILE,
-        'p_direction': DIRECTION.INOUT
+        'p_direction': DIRECTION.INOUT,
+        'keep_rename': False
     },
     'DIRECTORY': {
-        'p_type': TYPE.DIRECTORY
+        'p_type': TYPE.DIRECTORY,
+        'keep_rename': False
     },
     'DIRECTORY_IN': {
-        'p_type': TYPE.DIRECTORY
+        'p_type': TYPE.DIRECTORY,
+        'keep_rename': False
     },
     'DIRECTORY_OUT': {
         'p_type': TYPE.DIRECTORY,
-        'p_direction': DIRECTION.OUT
+        'p_direction': DIRECTION.OUT,
+        'keep_rename': False
     },
     'DIRECTORY_INOUT': {
         'p_type': TYPE.DIRECTORY,
-        'p_direction': DIRECTION.INOUT
+        'p_direction': DIRECTION.INOUT,
+        'keep_rename': False
     },
     'FILE_CONCURRENT': {
         'p_type': TYPE.FILE,
-        'p_direction': DIRECTION.CONCURRENT
+        'p_direction': DIRECTION.CONCURRENT,
+        'keep_rename': False
     },
     'FILE_COMMUTATIVE': {
         'p_type': TYPE.FILE,
-        'p_direction': DIRECTION.COMMUTATIVE
+        'p_direction': DIRECTION.COMMUTATIVE,
+        'keep_rename': False
     },
     'FILE_STDIN': {
         'p_type': TYPE.FILE,
-        'p_stream': IOSTREAM.STDIN
+        'p_stream': IOSTREAM.STDIN,
+        'keep_rename': False
     },
     'FILE_STDERR': {
         'p_type': TYPE.FILE,
-        'p_stream': IOSTREAM.STDERR
+        'p_stream': IOSTREAM.STDERR,
+        'keep_rename': False
     },
     'FILE_STDOUT': {
         'p_type': TYPE.FILE,
-        'p_stream': IOSTREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT,
+        'keep_rename': False
     },
     'FILE_IN_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.IN,
-        'p_stream': IOSTREAM.STDIN
+        'p_stream': IOSTREAM.STDIN,
+        'keep_rename': False
     },
     'FILE_IN_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.IN,
-        'p_stream': IOSTREAM.STDERR
+        'p_stream': IOSTREAM.STDERR,
+        'keep_rename': False
     },
     'FILE_IN_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.IN,
-        'p_stream': IOSTREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT,
+        'keep_rename': False
     },
     'FILE_OUT_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.OUT,
-        'p_stream': IOSTREAM.STDIN
+        'p_stream': IOSTREAM.STDIN,
+        'keep_rename': False
     },
     'FILE_OUT_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.OUT,
-        'p_stream': IOSTREAM.STDERR
+        'p_stream': IOSTREAM.STDERR,
+        'keep_rename': False
     },
     'FILE_OUT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.OUT,
-        'p_stream': IOSTREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT,
+        'keep_rename': False
     },
     'FILE_INOUT_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
-        'p_stream': IOSTREAM.STDIN
+        'p_stream': IOSTREAM.STDIN,
+        'keep_rename': False
     },
     'FILE_INOUT_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
-        'p_stream': IOSTREAM.STDERR
+        'p_stream': IOSTREAM.STDERR,
+        'keep_rename': False
     },
     'FILE_INOUT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
-        'p_stream': IOSTREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT,
+        'keep_rename': False
     },
     'FILE_CONCURRENT_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT,
-        'p_stream': IOSTREAM.STDIN
+        'p_stream': IOSTREAM.STDIN,
+        'keep_rename': False
     },
     'FILE_CONCURRENT_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT,
-        'p_stream': IOSTREAM.STDERR
+        'p_stream': IOSTREAM.STDERR,
+        'keep_rename': False
     },
     'FILE_CONCURRENT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT,
-        'p_stream': IOSTREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT,
+        'keep_rename': False
     },
     'FILE_COMMUTATIVE_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.COMMUTATIVE,
-        'p_stream': IOSTREAM.STDIN
+        'p_stream': IOSTREAM.STDIN,
+        'keep_rename': False
     },
     'FILE_COMMUTATIVE_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.COMMUTATIVE,
-        'p_stream': IOSTREAM.STDERR
+        'p_stream': IOSTREAM.STDERR,
+        'keep_rename': False
     },
     'FILE_COMMUTATIVE_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.COMMUTATIVE,
-        'p_stream': IOSTREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT,
+        'keep_rename': False
     },
     'COLLECTION': {
-        'p_type': TYPE.COLLECTION,
-        'keep_rename': True
+        'p_type': TYPE.COLLECTION
     },
     'COLLECTION_IN': {
         'p_type': TYPE.COLLECTION,
-        'p_direction': DIRECTION.IN,
-        'keep_rename': True
+        'p_direction': DIRECTION.IN
     },
     'COLLECTION_INOUT': {
         'p_type': TYPE.COLLECTION,
-        'p_direction': DIRECTION.INOUT,
-        'keep_rename': True
+        'p_direction': DIRECTION.INOUT
     },
     'COLLECTION_OUT': {
         'p_type': TYPE.COLLECTION,
-        'p_direction': DIRECTION.OUT,
-        'keep_rename': True
+        'p_direction': DIRECTION.OUT
     },
     'STREAM_IN': {
         'p_type': TYPE.EXTERNAL_STREAM,
@@ -367,21 +387,25 @@ _param_conversion_dict_ = {
     'COLLECTION_FILE': {
         'p_type': TYPE.COLLECTION,
         'is_file_collection': True,
+        'keep_rename': False
     },
     'COLLECTION_FILE_IN': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.IN,
         'is_file_collection': True,
+        'keep_rename': False
     },
     'COLLECTION_FILE_INOUT': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.INOUT,
         'is_file_collection': True,
+        'keep_rename': False
     },
     'COLLECTION_FILE_OUT': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.OUT,
         'is_file_collection': True,
+        'keep_rename': False
     }
 }
 

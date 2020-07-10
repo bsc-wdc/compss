@@ -41,7 +41,7 @@ Improvements:
 	 - Several Bug fixes
 
 Known Limitations:
-         - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
+         - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP.
          - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
          - Master as worker is not working for executions with persistent worker in C++.
 	 - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.

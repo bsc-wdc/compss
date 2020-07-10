@@ -265,8 +265,8 @@ public class ScoresTest {
         Verifiers.verifyScore(score1, 0, 0 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY, 0, 0,
             0 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
 
-        Comm.removeData(d1v1.getRenaming());
-        Comm.removeData(d2v2.getRenaming());
+        Comm.removeData(d1v1.getRenaming(), false);
+        Comm.removeData(d2v2.getRenaming(), false);
     }
 
     @Test

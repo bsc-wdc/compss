@@ -102,7 +102,6 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import storage.StubItf;
 
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
@@ -597,8 +596,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             if (previousType == DataType.PSCO_T || previousType == DataType.EXTERNAL_PSCO_T) {
                 if (!previousType.equals(newType)) {
                     // The parameter types do not match, log exception
-                    LOGGER.warn(
-                        "WARN: Cannot update parameter " + dp.getDataTarget() + " because types are not compatible");
+                    LOGGER.warn("WARN: Cannot update parameter " + tgtName + " because types are not compatible");
                 }
             } else {
                 String pscoId = resultUri.getPath();

@@ -45,7 +45,6 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.JobTransfersListener;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;

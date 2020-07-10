@@ -58,10 +58,11 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
         oo.writeObject(elements);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
         super.readExternal(oi);
-        elements = (List<NIOResult>) oi.readObject();
+        this.elements = (List<NIOResult>) oi.readObject();
     }
 
     @Override

@@ -225,8 +225,7 @@ public class Agent {
             LOGGER.debug("\t\tUsing value passed in as parameter");
             arguments[position] = param.getValueContent();
         } else {
-            Object stub = new Object();
-            LOGGER.debug("\t\tRegistering manually " + stub + "as" + param.getRemoteData());
+            Object stub = "app_" + appId + "_param" + position;
             arguments[position] = stub;
             addRemoteData(remote);
             RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());

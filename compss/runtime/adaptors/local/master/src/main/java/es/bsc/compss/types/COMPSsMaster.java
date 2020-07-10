@@ -1220,39 +1220,47 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case EXTERNAL_PSCO_T:
                 pscoId = (String) lp.getValue();
                 break;
+            case BOOLEAN_T:
+            case CHAR_T:
+            case BYTE_T:
+            case SHORT_T:
+            case INT_T:
+            case LONG_T:
+            case FLOAT_T:
+            case DOUBLE_T:
+            case STRING_T:
+                // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
+                return;
             default:
                 pscoId = null;
         }
 
+        String tgtName = lp.getDataMgmtId();
+        SimpleURI resultUri = getCompletePath(lp.getType(), tgtName);
+
+        // If the parameter has been persisted and it was not a PSCO, the PSCO location needs to be registered.
+        // If it is an IN parameter, the runtime won't add any new location
         if (pscoId != null) {
             DataType previousType = lp.getOriginalType();
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Updating parameter " + lp.getDataMgmtId() + " from type " + previousType + " to type "
-                    + newType + " with id " + pscoId);
-            }
-
-            switch (previousType) {
-                case PSCO_T:
-                case EXTERNAL_PSCO_T:
-                    if (previousType.equals(newType)) {
-                        // The parameter was already a PSCO, we only update the information just in case
-                        DependencyParameter dp = (DependencyParameter) lp.getParam();
-                        dp.setDataTarget(pscoId);
-                    } else {
-                        // The parameter types do not match, log exception
-                        LOGGER.warn("WARN: Cannot update parameter " + lp.getDataMgmtId()
-                            + " because types are not compatible");
-                    }
-                    break;
-                default:
-                    // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
-                    registerUpdatedParameter(newType, pscoId, lp);
-                    break;
+            if (previousType == DataType.PSCO_T || previousType == DataType.EXTERNAL_PSCO_T) {
+                if (!previousType.equals(newType)) {
+                    // The parameter types do not match, log exception
+                    LOGGER.warn(
+                        "WARN: Cannot update parameter " + lp.getDataMgmtId() + " because types are not compatible");
+                }
+            } else {
+                // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
+                registerPersistedParameter(newType, pscoId, lp);
             }
         }
+
+        // Update Task information
+        DependencyParameter dp = (DependencyParameter) lp.getParam();
+        dp.setType(newType);
+        dp.setDataTarget(resultUri.toString());
     }
 
-    private void registerUpdatedParameter(DataType newType, String pscoId, LocalParameter lp) {
+    private void registerPersistedParameter(DataType newType, String pscoId, LocalParameter lp) {
         // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
         String renaming = lp.getDataMgmtId();
         // Update COMM information
@@ -1271,10 +1279,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 break;
         }
 
-        // Update Task information
-        DependencyParameter dp = (DependencyParameter) lp.getParam();
-        dp.setType(newType);
-        dp.setDataTarget(pscoId);
     }
 
     @Override

@@ -60,6 +60,7 @@ import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
+import es.bsc.compss.types.request.ap.RegisterRemoteFileDataRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteObjectDataRequest;
 import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
 import es.bsc.compss.types.request.ap.ShutdownRequest;
@@ -1085,6 +1086,20 @@ public class AccessProcessor implements Runnable {
      */
     public void registerRemoteObject(Application app, int code, String dataId) {
         RegisterRemoteObjectDataRequest request = new RegisterRemoteObjectDataRequest(app, code, dataId);
+        if (!this.requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
+        }
+    }
+
+    /**
+     * Registers a data value as available on remote locations.
+     *
+     * @param app application accessing the file.
+     * @param loc location of the file being accessed
+     * @param dataId name of the data associated to the file
+     */
+    public void registerRemoteFile(Application app, DataLocation loc, String dataId) {
+        RegisterRemoteFileDataRequest request = new RegisterRemoteFileDataRequest(app, loc, dataId);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
         }

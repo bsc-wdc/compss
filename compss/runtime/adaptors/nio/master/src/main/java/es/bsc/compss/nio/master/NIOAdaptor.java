@@ -31,6 +31,8 @@ import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOResult;
+import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
@@ -65,7 +67,9 @@ import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobHistory;
+import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
 import es.bsc.compss.types.project.jaxb.PropertyAdaptorType;
@@ -77,6 +81,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.conn.types.StarterCommand;
 
@@ -85,6 +90,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +102,7 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import storage.StubItf;
 
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
@@ -430,8 +437,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public final void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful, Exception e) {
-        int jobId = tr.getJobId();
+    public final void receivedNIOTaskDone(Connection c, NIOTaskResult ntr, boolean successful, Exception e) {
+        int jobId = ntr.getJobId();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Received Task done message for Job " + jobId);
@@ -443,19 +450,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             int taskId = nj.getTaskId();
 
             // Update information
-            List<DataType> taskResultTypes = tr.getParamTypes();
-            for (int i = 0; i < taskResultTypes.size(); ++i) {
-                DataType newType = taskResultTypes.get(i);
-                switch (newType) {
-                    case PSCO_T:
-                    case EXTERNAL_PSCO_T:
-                        String pscoId = (String) tr.getParamValue(i);
-                        DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters().get(i);
-                        updateParameter(newType, pscoId, dp);
-                        break;
-                    default:
-                        // We only update information about PSCOs or EXTERNAL_PSCO
-                        break;
+            List<NIOResult> taskResults = ntr.getParamResults();
+            List<Parameter> taskParams = nj.getTaskParams().getParameters();
+            Iterator<Parameter> taskParamsItr = taskParams.iterator();
+            Iterator<NIOResult> taskResultItr = taskResults.iterator();
+
+            while (taskParamsItr.hasNext()) {
+                Parameter param = taskParamsItr.next();
+                NIOResult result = taskResultItr.next();
+                if (result.getLocation() != null) {
+                    updateParameter(param, result);
                 }
             }
 
@@ -540,36 +544,75 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
     }
 
-    private void updateParameter(DataType newType, String pscoId, DependencyParameter dp) {
-        DataType previousType = dp.getType();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Updating parameter " + dp.getDataTarget() + " from type " + previousType + " to type "
-                + newType + " with id " + pscoId);
+    private void updateParameter(Parameter param, NIOResult result) {
+
+        DataType oldType = param.getType();
+
+        switch (oldType) {
+            case BOOLEAN_T:
+            case CHAR_T:
+            case BYTE_T:
+            case SHORT_T:
+            case INT_T:
+            case LONG_T:
+            case FLOAT_T:
+            case DOUBLE_T:
+            case STRING_T:
+                // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
+                return;
+            case COLLECTION_T:
+                CollectionParameter colParam = (CollectionParameter) param;
+                NIOResultCollection colResult = (NIOResultCollection) result;
+
+                List<NIOResult> taskResults = colResult.getElements();
+                List<Parameter> taskParams = colParam.getParameters();
+                Iterator<Parameter> taskParamsItr = taskParams.iterator();
+                Iterator<NIOResult> taskResultItr = taskResults.iterator();
+
+                while (taskParamsItr.hasNext()) {
+                    Parameter elemParam = taskParamsItr.next();
+                    NIOResult elemResult = taskResultItr.next();
+                    if (elemResult.getLocation() != null) {
+                        updateParameter(elemParam, elemResult);
+                    }
+                }
+                updateParameter(result.getType(), result.getLocation(), colParam);
+                break;
+            default:
+                updateParameter(result.getType(), result.getLocation(), (DependencyParameter) param);
         }
 
-        switch (previousType) {
-            case PSCO_T:
-            case EXTERNAL_PSCO_T:
-                if (previousType.equals(newType)) {
-                    // The parameter was already a PSCO, we only update the information just in case
-                    dp.setDataTarget(pscoId);
-                } else {
+    }
+
+    private void updateParameter(DataType newType, String location, DependencyParameter dp) {
+
+        // Parameter needs to be updated
+        String tgtName = dp.getDataTarget();
+        SimpleURI resultUri = new SimpleURI(location);
+        // If the parameter has been persisted and it was not a PSCO, the PSCO location needs to be registered.
+        // If it is an IN parameter, the runtime won't add any new location
+        boolean hasPSCOId = (newType == DataType.PSCO_T) || (newType == DataType.EXTERNAL_PSCO_T);
+        if (hasPSCOId) {
+            DataType previousType = dp.getType();
+            if (previousType == DataType.PSCO_T || previousType == DataType.EXTERNAL_PSCO_T) {
+                if (!previousType.equals(newType)) {
                     // The parameter types do not match, log exception
                     LOGGER.warn(
                         "WARN: Cannot update parameter " + dp.getDataTarget() + " because types are not compatible");
                 }
-                break;
-            default:
-                // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
-                registerUpdatedParameter(newType, pscoId, dp);
-                break;
+            } else {
+                String pscoId = resultUri.getPath();
+                registerPersistedParameter(newType, pscoId, dp);
+            }
         }
+        // Update Task information
+        dp.setType(newType);
+        dp.setDataTarget(resultUri.toString());
     }
 
-    private void registerUpdatedParameter(DataType newType, String pscoId, DependencyParameter dp) {
+    private void registerPersistedParameter(DataType newType, String pscoId, DependencyParameter dp) {
         // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
         String renaming = dp.getDataTarget();
-
         // Update COMM information
         switch (newType) {
             case PSCO_T:
@@ -586,9 +629,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 break;
         }
 
-        // Update Task information
-        dp.setType(newType);
-        dp.setDataTarget(pscoId);
     }
 
     /**

@@ -653,7 +653,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             case FILE_T:
                 try {
                     String fileName = (String) stub;
-                    new File(fileName).getName();
+                    // Parse arguments to internal structures
+                    DataLocation loc;
+                    try {
+                        loc = createLocation(fileName);
+                    } catch (IOException ioe) {
+                        ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+                        return;
+                    }
+                    ap.registerRemoteFile(app, loc, data);
                 } catch (NullPointerException npe) {
                     LOGGER.error(ERROR_FILE_NAME, npe);
                     ErrorManager.fatal(ERROR_FILE_NAME, npe);
@@ -661,8 +669,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case OBJECT_T:
             case PSCO_T:
-                int pscoCode = oReg.newObjectParameter(appId, stub);
-                ap.registerRemoteObject(app, pscoCode, data);
+                int hashcode = oReg.newObjectParameter(appId, stub);
+                ap.registerRemoteObject(app, hashcode, data);
                 break;
             case STREAM_T:
                 // int streamCode = oReg.newObjectParameter(stub);

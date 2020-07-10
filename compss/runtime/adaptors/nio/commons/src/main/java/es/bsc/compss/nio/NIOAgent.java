@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.nio;
 
-import static java.lang.Math.abs;
-
 import es.bsc.comm.Connection;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIOConnection;
@@ -346,7 +344,7 @@ public abstract class NIOAgent {
      */
     public void sendData(Connection c, NIOData d, int receiverID) {
         if (NIOTracer.extraeEnabled()) {
-            int tag = abs(d.getDataMgmtId().hashCode());
+            int tag = Math.abs(d.getDataMgmtId().hashCode());
             CommandTracingID cmd = new CommandTracingID(this.tracingId, tag);
             c.sendCommand(cmd);
             NIOTracer.emitDataTransferEvent(d.getDataMgmtId());
@@ -374,8 +372,14 @@ public abstract class NIOAgent {
             case OBJECT_URI:
             case STREAM_URI:
             case PERSISTENT_URI:
-            case ANY_URI:
                 sendObject(c, path, d);
+                break;
+            case ANY_URI:
+                if (path.startsWith(File.separator)) {
+                    sendFile(c, path, d);
+                } else {
+                    sendObject(c, path, d);
+                }
                 break;
         }
 
@@ -598,7 +602,7 @@ public abstract class NIOAgent {
 
         // Add tracing event
         if (NIOTracer.extraeEnabled()) {
-            int tag = abs(dataId.hashCode());
+            int tag = Math.abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId);
             NIOTracer.emitCommEvent(false, this.connection2partner.get(c), tag, t.getSize());
             this.connection2partner.remove(c);

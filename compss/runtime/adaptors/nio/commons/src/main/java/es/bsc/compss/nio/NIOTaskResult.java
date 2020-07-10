@@ -24,16 +24,13 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
-import storage.StubItf;
 
 
 public class NIOTaskResult implements Externalizable {
 
     private int jobId;
 
-    private List<DataType> paramTypes = new LinkedList<>();
-    // ATTENTION: Parameter Values will be empty if it doesn't contain a PSCO Id
-    private List<Object> paramValues = new LinkedList<>();
+    private List<NIOResult> results = new LinkedList<>();
 
 
     /**
@@ -45,75 +42,39 @@ public class NIOTaskResult implements Externalizable {
 
     /**
      * New task result with the given information.
+     * 
+     * @param jobId Job Id.
+     * @param paramTypes Job parameters' final types
+     * @param paramLocations Job parameters' values locations
+     */
+    public NIOTaskResult(int jobId, DataType[] paramTypes, String[] paramLocations) {
+        this.jobId = jobId;
+        for (int i = 0; i < paramTypes.length; i++) {
+            this.results.add(new NIOResult(paramTypes[i], paramLocations[i]));
+        }
+    }
+
+    /**
+     * New task result with the given information.
      *
      * @param jobId Job Id.
      * @param arguments Job arguments.
-     * @param target Job target.
+     * @param targetParam Job target.
      * @param results Job results.
      */
-    public NIOTaskResult(int jobId, List<NIOParam> arguments, NIOParam target, List<NIOParam> results) {
+    public NIOTaskResult(int jobId, List<NIOParam> arguments, NIOParam targetParam, List<NIOParam> results) {
         this.jobId = jobId;
 
         for (NIOParam np : arguments) {
-            this.paramTypes.add(np.getType());
-
-            if (np.isWriteFinalValue()) {
-                // Object has direction INOUT or OUT
-                switch (np.getType()) {
-                    case PSCO_T:
-                        this.paramValues.add(((StubItf) np.getValue()).getID());
-                        break;
-                    case EXTERNAL_PSCO_T:
-                        this.paramValues.add(np.getValue());
-                        break;
-                    default:
-                        // We add a NULL for any other type
-                        this.paramValues.add(null);
-                        break;
-                }
-            } else {
-                // Object has direction IN
-                this.paramValues.add(null);
-            }
+            this.results.add(np.getResult());
         }
-        if (target != null) {
-            this.paramTypes.add(target.getType());
 
-            if (target.isWriteFinalValue()) {
-                // Target is marked with isModifier = true
-                switch (target.getType()) {
-                    case PSCO_T:
-                        this.paramValues.add(((StubItf) target.getValue()).getID());
-                        break;
-                    case EXTERNAL_PSCO_T:
-                        this.paramValues.add(target.getValue());
-                        break;
-                    default:
-                        // We add a NULL for any other type
-                        this.paramValues.add(null);
-                        break;
-                }
-            } else {
-                // Target is marked with isModifier = false
-                this.paramValues.add(null);
-            }
+        if (targetParam != null) {
+            this.results.add(targetParam.getResult());
         }
 
         for (NIOParam np : results) {
-            this.paramTypes.add(np.getType());
-
-            switch (np.getType()) {
-                case PSCO_T:
-                    this.paramValues.add(((StubItf) np.getValue()).getID());
-                    break;
-                case EXTERNAL_PSCO_T:
-                    this.paramValues.add(np.getValue());
-                    break;
-                default:
-                    // We add a NULL for any other type
-                    this.paramValues.add(null);
-                    break;
-            }
+            this.results.add(np.getResult());
         }
     }
 
@@ -127,50 +88,33 @@ public class NIOTaskResult implements Externalizable {
     }
 
     /**
-     * Returns the parameter types.
+     * Returns the list of res.
      *
      * @return The parameter types
      */
-    public List<DataType> getParamTypes() {
-        return this.paramTypes;
-    }
-
-    /**
-     * Returns the value of the parameter {@code i}.
-     *
-     * @param i Parameter index.
-     * @return The value of the parameter {@code i}.
-     */
-    public Object getParamValue(int i) {
-        return this.paramValues.get(i);
+    public List<NIOResult> getParamResults() {
+        return this.results;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.jobId = in.readInt();
-        this.paramTypes = (LinkedList<DataType>) in.readObject();
-        this.paramValues = (LinkedList<Object>) in.readObject();
+        this.results = (List<NIOResult>) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeInt(this.jobId);
-        out.writeObject(this.paramTypes);
-        out.writeObject(this.paramValues);
+        out.writeObject(this.results);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[JOB_RESULT ");
         sb.append("[JOB ID= ").append(this.jobId).append("]");
-        sb.append("[PARAM_TYPES");
-        for (DataType param : this.paramTypes) {
-            sb.append(" ").append(param);
-        }
-        sb.append("]");
-        sb.append("[PARAM_VALUES");
-        for (Object param : this.paramValues) {
+        sb.append("[PARAM_RESULTS");
+        for (NIOResult param : this.results) {
             sb.append(" ").append(param);
         }
         sb.append("]");

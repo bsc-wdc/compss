@@ -41,6 +41,7 @@ import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
@@ -64,6 +65,8 @@ import es.bsc.compss.nio.listeners.TaskExecutionListener;
 import es.bsc.compss.nio.listeners.TaskFetchOperationsListener;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -87,6 +90,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import storage.StubItf;
 
 
 public class NIOWorker extends NIOAgent implements InvocationContext, DataProvider {
@@ -506,9 +510,21 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      */
     public void sendTaskDone(Invocation invocation, boolean successful, Exception e) {
         NIOTask nt = (NIOTask) invocation;
+        for (NIOParam param : nt.getParams()) {
+            updateParamTargetPaths(param);
+        }
+
+        NIOParam targetParam = nt.getTarget();
+        if (targetParam != null) {
+            updateParamTargetPaths(targetParam);
+        }
+
+        for (NIOParam param : nt.getResults()) {
+            updateParamTargetPaths(param);
+        }
+
         int jobId = nt.getJobId();
         int taskId = nt.getTaskId();
-
         NIOTaskResult tr = new NIOTaskResult(jobId, nt.getParams(), nt.getTarget(), nt.getResults());
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
@@ -529,6 +545,51 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("Job " + jobId + "(Task " + taskId + ") send job done");
         }
 
+    }
+
+    private void updateParamTargetPaths(NIOParam param) {
+        if (param instanceof NIOParamCollection) {
+            for (NIOParam p : ((NIOParamCollection) param).getCollectionParameters()) {
+                updateParamTargetPaths(p);
+            }
+        }
+        DataType type = param.getType();
+        String path;
+        switch (type) {
+            case DIRECTORY_T:
+                path = ProtocolType.DIR_URI.getSchema() + param.getValue();
+                break;
+            case FILE_T:
+                path = ProtocolType.FILE_URI.getSchema() + param.getValue();
+                break;
+            case OBJECT_T:
+                path = ProtocolType.OBJECT_URI.getSchema() + param.getDataMgmtId();
+                break;
+            case COLLECTION_T:
+                path = ProtocolType.FILE_URI.getSchema() + param.getValue();
+                break;
+            case STREAM_T:
+                path = ProtocolType.STREAM_URI.getSchema() + param.getDataMgmtId();
+                break;
+            case EXTERNAL_STREAM_T:
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + param.getValue();
+                break;
+            case PSCO_T:
+                // Search for the PSCO id
+                String id = ((StubItf) param.getValue()).getID();
+                path = ProtocolType.PERSISTENT_URI.getSchema() + id;
+                break;
+            case EXTERNAL_PSCO_T:
+                // The value of the registered object in the runtime is the PSCO Id
+                path = ProtocolType.PERSISTENT_URI.getSchema() + param.getValue();
+                break;
+            case BINDING_OBJECT_T:
+                path = ProtocolType.BINDING_URI.getSchema() + param.getValue();
+                break;
+            default:
+                path = null;
+        }
+        param.setTargetPath(path);
     }
 
     private void sendNIOTaskDoneCommandSequence(CommandNIOTaskDone cmd) {

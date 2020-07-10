@@ -49,6 +49,8 @@ public class NIOParam implements Externalizable, InvocationParam {
     private String originalName;
     private String renamedName;
 
+    private String targetPath;
+
     private Class<?> valueClass;
 
 
@@ -61,7 +63,7 @@ public class NIOParam implements Externalizable, InvocationParam {
 
     /**
      * Creates a new NIOParam instance with the given information.
-     * 
+     *
      * @param dataMgmtId Renaming Id.
      * @param type Data Type.
      * @param stream Std IO stream type.
@@ -98,7 +100,7 @@ public class NIOParam implements Externalizable, InvocationParam {
 
     /**
      * Creates a new NIOParam instance copying the given NIOParam internal fields.
-     * 
+     *
      * @param p NIOParam to copy.
      */
     public NIOParam(NIOParam p) {
@@ -209,7 +211,7 @@ public class NIOParam implements Externalizable, InvocationParam {
 
     /**
      * Returns the source data.
-     * 
+     *
      * @return The source data.
      */
     public NIOData getData() {
@@ -229,6 +231,14 @@ public class NIOParam implements Externalizable, InvocationParam {
     @Override
     public void setValueClass(Class<?> valueClass) {
         this.valueClass = valueClass;
+    }
+
+    public String getTargetPath() {
+        return targetPath;
+    }
+
+    public void setTargetPath(String targetPath) {
+        this.targetPath = targetPath;
     }
 
     @Override
@@ -273,7 +283,7 @@ public class NIOParam implements Externalizable, InvocationParam {
 
     /**
      * Dumps the internal information into the given StringBuilder.
-     * 
+     *
      * @param sb StringBuilder where to dump the internal information.
      */
     public void dumpInternalInfo(StringBuilder sb) {
@@ -289,6 +299,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         sb.append("[ORIGINAL NAME = ").append(this.originalName).append("]");
         sb.append("[VALUE = ").append(this.value).append("]");
         sb.append("[DATA ").append(this.source).append("]");
+        sb.append("[STORED PATH = ").append(this.targetPath).append("]");
     }
 
     @Override
@@ -300,4 +311,12 @@ public class NIOParam implements Externalizable, InvocationParam {
         return sb.toString();
     }
 
+    /**
+     * Creates a NIOResult instance describing how the task modifies the parameter value.
+     *
+     * @return description of how the task modifies the parameter value.
+     */
+    public NIOResult getResult() {
+        return new NIOResult(getType(), this.getTargetPath());
+    }
 }

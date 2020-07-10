@@ -593,14 +593,14 @@ public class ExecutionAction extends AllocatableAction {
     private final void doMethodOutputTransfers(Job<?> job) {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         TaskMonitor monitor = this.task.getTaskMonitor();
-
         List<Parameter> params = job.getTaskParams().getParameters();
         for (int i = 0; i < params.size(); ++i) {
             Parameter p = params.get(i);
             String dataName = getOuputRename(p);
             if (dataName != null) {
-                DataLocation outLoc = storeOutputParameter(job, w, dataName, (DependencyParameter) p);
-                monitor.valueGenerated(i, p.getName(), p.getType(), dataName, outLoc);
+                DependencyParameter dp = (DependencyParameter) p;
+                storeOutputParameter(job, w, dataName, dp);
+                monitor.valueGenerated(i, p.getName(), p.getType(), dataName, dp.getDataTarget());
             }
         }
     }
@@ -641,70 +641,25 @@ public class ExecutionAction extends AllocatableAction {
     private final DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
         String dataName, DependencyParameter p) {
         DependencyParameter dp = (DependencyParameter) p;
-        String targetProtocol;
-        switch (dp.getType()) {
-            case DIRECTORY_T:
-                targetProtocol = ProtocolType.DIR_URI.getSchema();
-                break;
-            case FILE_T:
-                targetProtocol = ProtocolType.FILE_URI.getSchema();
-                break;
-            case OBJECT_T:
-                targetProtocol = ProtocolType.OBJECT_URI.getSchema();
-                break;
-            case STREAM_T:
-            case EXTERNAL_STREAM_T:
-                // FTM already knows about this datum
-                return null;
-            case COLLECTION_T:
-                targetProtocol = ProtocolType.OBJECT_URI.getSchema();
-                CollectionParameter cp = (CollectionParameter) p;
-                for (Parameter elem : cp.getParameters()) {
-                    String elemOutRename = getOuputRename(elem);
-                    if (elemOutRename != null) {
-                        storeOutputParameter(job, w, elemOutRename, (DependencyParameter) elem);
-                    }
-                }
-                break;
-            case PSCO_T:
-                targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
-                break;
-            case EXTERNAL_PSCO_T:
-                // Its value is the PSCO Id
-                targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
-                break;
-            case BINDING_OBJECT_T:
-                // Its value is the PSCO Id
-                targetProtocol = ProtocolType.BINDING_URI.getSchema();
-                break;
-            default:
-                // Should never reach this point because only DependencyParameter types are treated
-                // Ask for any_uri just in case
-                targetProtocol = ProtocolType.ANY_URI.getSchema();
-                break;
-        }
 
+        if (dp.getType() == DataType.COLLECTION_T) {
+            CollectionParameter cp = (CollectionParameter) p;
+            for (Parameter elem : cp.getParameters()) {
+                String elemOutRename = getOuputRename(elem);
+                if (elemOutRename != null) {
+                    storeOutputParameter(job, w, elemOutRename, (DependencyParameter) elem);
+                }
+            }
+        }
         // Request transfer
         DataLocation outLoc = null;
         try {
-            String dataTarget;
-            if (dp.getType().equals(DataType.PSCO_T) || dp.getType().equals(DataType.EXTERNAL_PSCO_T)) {
-                /*
-                 * For some reason for PSCO, we can no reconstruct the output data target, but it is not important
-                 * because error in OUT/INOUT data for isReplicated do not affect PSCO_T data
-                 */
-                dataTarget = dp.getDataTarget();
-            } else {
-                /*
-                 * Change to reconstruct output data target path to support OUT and INOUT in isReplicated tasks
-                 */
-                dataTarget = w.getOutputDataTargetPath(dataName, dp);
-            }
+            String dataTarget = dp.getDataTarget();
             if (DEBUG) {
-                JOB_LOGGER.debug("Proposed URI for storing output param: " + targetProtocol + dataTarget);
+                JOB_LOGGER.debug("Proposed URI for storing output param: " + dataTarget);
             }
-            // SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
-            SimpleURI targetURI = new SimpleURI(targetProtocol + dataTarget);
+            SimpleURI resultURI = new SimpleURI(dataTarget);
+            SimpleURI targetURI = new SimpleURI(resultURI.getSchema() + resultURI.getPath());
             outLoc = DataLocation.createLocation(w, targetURI);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
@@ -998,28 +953,31 @@ public class ExecutionAction extends AllocatableAction {
         if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
             candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
-        } else if (this.isSchedulingConstrained()) {
-            // The scheduling is constrained by dependencies
-            for (AllocatableAction a : this.getConstrainingPredecessors()) {
-                candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
-            }
         } else {
-            // Free scheduling
-            List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleCandidates = getCompatibleWorkers();
-            if (compatibleCandidates.size() == 0) {
-                throw new BlockedActionException();
-            }
-            for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : availableResources) {
-                if (currentWorker.getResource().canRunSomething()) {
-                    if (compatibleCandidates.contains(currentWorker)) {
-                        candidates.add(currentWorker);
-                    }
-                } else {
-                    uselessWorkers.add(currentWorker);
+            if (this.isSchedulingConstrained()) {
+                // The scheduling is constrained by dependencies
+                for (AllocatableAction a : this.getConstrainingPredecessors()) {
+                    candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
                 }
-            }
-            if (candidates.size() == 0) {
-                throw new UnassignedActionException();
+            } else {
+                // Free scheduling
+                List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleCandidates =
+                    getCompatibleWorkers();
+                if (compatibleCandidates.size() == 0) {
+                    throw new BlockedActionException();
+                }
+                for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : availableResources) {
+                    if (currentWorker.getResource().canRunSomething()) {
+                        if (compatibleCandidates.contains(currentWorker)) {
+                            candidates.add(currentWorker);
+                        }
+                    } else {
+                        uselessWorkers.add(currentWorker);
+                    }
+                }
+                if (candidates.size() == 0) {
+                    throw new UnassignedActionException();
+                }
             }
         }
         Collections.shuffle(candidates);

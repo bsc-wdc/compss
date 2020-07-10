@@ -23,11 +23,12 @@ PyCOMPSs Persistent Worker
     This file contains the worker code.
 """
 
-from os import kill
+import os
 import sys
 import signal
 from multiprocessing import Process
 from multiprocessing import Queue
+
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -48,11 +49,12 @@ WORKER_CONF = None
 
 
 def shutdown_handler(signal, frame):  # noqa
-    """
-    Shutdown handler (do not remove the parameters).
+    """ Shutdown handler.
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
     """
     for proc in PROCESSES.values():
@@ -65,12 +67,12 @@ def shutdown_handler(signal, frame):  # noqa
 ######################
 
 def compss_persistent_worker(config):
-    """
-    Persistent worker main function.
+    # type: (PiperWorkerConfiguration) -> None
+    """ Persistent worker main function.
+
     Retrieves the initial configuration and spawns the worker processes.
 
-    :param config: Piper Worker Configuration description
-
+    :param config: Piper Worker Configuration description.
     :return: None
     """
     # Catch SIGTERM sent by bindings_piper
@@ -156,7 +158,7 @@ def compss_persistent_worker(config):
                 pid = proc.pid
                 logger.debug("[PYTHON WORKER] Signaling process with PID " +
                              str(pid) + " to cancel a task")
-                kill(pid, signal.SIGUSR2)
+                os.kill(pid, signal.SIGUSR2)
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
 

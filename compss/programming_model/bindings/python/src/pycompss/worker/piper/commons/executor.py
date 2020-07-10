@@ -56,18 +56,21 @@ from pycompss.worker.commons.constants import PROCESS_QUIT_EVENT
 from pycompss.worker.commons.constants import INIT_WORKER_POSTFORK_EVENT
 from pycompss.worker.commons.constants import FINISH_WORKER_POSTFORK_EVENT
 
+# Streaming imports
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
 HEADER = "*[PYTHON EXECUTOR] "
 
 
 def shutdown_handler(signal, frame):  # noqa
-    """
-    Shutdown handler (do not remove the parameters).
+    """ Shutdown handler
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
+    :raises Exception: Received signal.
     """
     raise Exception("Received SIGTERM")
 
@@ -78,8 +81,7 @@ class Pipe(object):
     """
 
     def __init__(self, input_pipe, output_pipe):
-        """
-        Constructs a new Pipe
+        """ Constructs a new Pipe.
 
         :param input_pipe: Input pipe for the thread. To receive messages from
                            the runtime.
@@ -90,13 +92,13 @@ class Pipe(object):
         self.input_pipe_open = None
         self.output_pipe = output_pipe
 
-    def read_command(self, retry_period=0):
-        """
-        Returns the first command on the pipe
+    def read_command(self, retry_period=0.5):
+        # type: (float) -> str
+        """ Returns the first command on the pipe.
 
         :param retry_period: time (ms) that the thread sleeps if EOF is read
-                             from pipe
-        :return: the first command available on the pipe
+                             from pipe.
+        :return: the first command available on the pipe.
         """
         if self.input_pipe_open is None:
             self.input_pipe_open = open(self.input_pipe, 'r')
@@ -112,17 +114,20 @@ class Pipe(object):
         return line
 
     def write(self, message):
-        """
-        Writes a message through the pipe
+        # type: (str) -> None
+        """ Writes a message through the pipe.
 
         :param message: message sent through the pipe
+        :return: None
         """
         with open(self.output_pipe, 'w') as out_pipe:
             out_pipe.write(message + "\n")
 
     def close(self):
-        """
-        Closes the pipe, if open
+        # type: () -> None
+        """ Closes the pipe, if open.
+
+        :return: None
         """
         if self.input_pipe_open:
             self.input_pipe_open.close()
@@ -165,18 +170,19 @@ class ExecutorConf(object):
 ######################
 
 def executor(queue, process_name, pipe, conf):
-    """
-    Thread main body - Overrides Threading run method.
+    # type: (..., str, Pipe, ...) -> None
+    """Thread main body - Overrides Threading run method.
+
     Iterates over the input pipe in order to receive tasks (with their
     parameters) and process them.
     Notifies the runtime when each task  has finished with the
     corresponding output value.
     Finishes when the "quit" message is received.
 
-    :param queue: Queue where to put exception messages
+    :param queue: Queue where to put exception messages.
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param pipe: Pipe to receive and send messages from/to the runtime.
-    :param conf: configuration of the executor
+    :param conf: configuration of the executor.
     :return: None
     """
     logger = conf.logger
@@ -281,11 +287,21 @@ def executor(queue, process_name, pipe, conf):
         raise e
 
 
-def process_message(current_line, process_name, pipe, queue, tracing,
-                    logger, logger_handlers, logger_level, logger_formatter,
-                    storage_conf, storage_loggers, storage_loggers_handlers):
-    """
-    Process command received from the runtime through a pipe.
+def process_message(current_line,             # type: str
+                    process_name,             # type: str
+                    pipe,                     # type: Pipe
+                    queue,                    # type: ...
+                    tracing,                  # type: bool
+                    logger,                   # type: ...
+                    logger_handlers,          # type: list
+                    logger_level,             # type: int
+                    logger_formatter,         # type: ...
+                    storage_conf,             # type: str
+                    storage_loggers,          # type: list
+                    storage_loggers_handlers  # type: list
+                    ):
+    # type: (...) -> bool
+    """ Process command received from the runtime through a pipe.
 
     :param current_line: Current command (line) to process
     :param process_name: Process name for logger messages
@@ -304,6 +320,7 @@ def process_message(current_line, process_name, pipe, queue, tracing,
     if __debug__:
         logger.debug(HEADER + "[%s] Received message: %s" %
                      (str(process_name), str(current_line)))
+
     current_line = current_line.split()
     if current_line[0] == EXECUTE_TASK_TAG:
         # Process task
@@ -330,29 +347,40 @@ def process_message(current_line, process_name, pipe, queue, tracing,
             logger.debug(HEADER + "[%s] Unexpected message: %s" %
                          (str(process_name), str(current_line)))
         raise Exception("Unexpected message: %s" % str(current_line))
+
     return True
 
 
 @emit_event(PROCESS_TASK_EVENT)
-def process_task(current_line, process_name, pipe, queue, tracing,
-                 logger, logger_handlers, logger_level, logger_formatter,
-                 storage_conf, storage_loggers, storage_loggers_handlers):
-    """
-    Process command received from the runtime through a pipe.
+def process_task(current_line,             # type: list
+                 process_name,             # type: str
+                 pipe,                     # type: Pipe
+                 queue,                    # type: ...
+                 tracing,                  # type: bool
+                 logger,                   # type: ...
+                 logger_handlers,          # type: list
+                 logger_level,             # type: int
+                 logger_formatter,         # type: ...
+                 storage_conf,             # type: str
+                 storage_loggers,          # type: list
+                 storage_loggers_handlers  # type: list
+                 ):
+    # type: (...) -> bool
+    """ Process command received from the runtime through a pipe.
 
-    :param current_line: Current command (line) to process
-    :param process_name: Process name for logger messages
-    :param pipe: Pipe where to write the result
-    :param queue: Queue where to drop the process exceptions
-    :param tracing: Tracing
-    :param logger: Logger
-    :param logger_handlers: Logger handlers
-    :param logger_level: Logger level
-    :param logger_formatter: Logger formatter
-    :param storage_conf: Storage configuration
-    :param storage_loggers: Storage loggers
-    :param storage_loggers_handlers: Storage loggers handlers
-    :return: <Boolean> True if processed successfully, False otherwise.
+    :param current_line: Current command (line) to process.
+    :param process_name: Process name for logger messages.
+    :param pipe: Pipe where to write the result.
+    :param queue: Queue where to drop the process exceptions.
+    :param tracing: Tracing.
+    :param logger: Logger.
+    :param logger_handlers: Logger handlers.
+    :param logger_level: Logger level.
+    :param logger_formatter: Logger formatter.
+    :param storage_conf: Storage configuration.
+    :param storage_loggers: Storage loggers.
+    :param storage_loggers_handlers: Storage loggers handlers.
+    :return: True if processed successfully, False otherwise.
     """
     affinity_ok = True
 
@@ -539,12 +567,14 @@ def process_task(current_line, process_name, pipe, queue, tracing,
 
 @emit_event(PROCESS_PING_EVENT)
 def process_ping(pipe, logger, process_name):  # noqa
-    """
-    Process ping message. Response: Pong
+    # type: (Pipe, ..., str) -> bool
+    """ Process ping message.
 
-    :param pipe: Where to write the ping response
-    :param logger: Logger
-    :param process_name: Process name
+    Response: Pong.
+
+    :param pipe: Where to write the ping response.
+    :param logger: Logger.
+    :param process_name: Process name.
     :return: True if success. False otherwise.
     """
     if __debug__:
@@ -558,12 +588,14 @@ def process_ping(pipe, logger, process_name):  # noqa
 
 @emit_event(PROCESS_QUIT_EVENT)
 def process_quit(logger, process_name):  # noqa
-    """
-    Process quit message. Response: False
+    # type: (..., str) -> bool
+    """ Process quit message.
 
-    :param logger: Logger
-    :param process_name: Process name
-    :return: False
+    Response: False.
+
+    :param logger: Logger.
+    :param process_name: Process name.
+    :return: Always false.
     """
     if __debug__:
         logger.debug(HEADER + "[%s] Received quit." % str(process_name))
@@ -571,13 +603,13 @@ def process_quit(logger, process_name):  # noqa
 
 
 def bind_cpus(cpus, process_name, logger):  # noqa
-    """
-    Bind the given CPUs for core affinity to this process.
+    # type: (str, str, ...) -> bool
+    """ Bind the given CPUs for core affinity to this process.
 
     :param cpus: Target CPUs.
-    :param process_name: Process name for logger messages
-    :param logger: Logger
-    :return: <Boolean> True if success, False otherwise
+    :param process_name: Process name for logger messages.
+    :param logger: Logger.
+    :return: True if success, False otherwise.
     """
     os.environ['COMPSS_BINDED_CPUS'] = cpus
     if __debug__:
@@ -596,12 +628,12 @@ def bind_cpus(cpus, process_name, logger):  # noqa
 
 
 def bind_gpus(gpus, process_name, logger):  # noqa
-    """
-    Bind the given GPUs to this process.
+    # type: (str, str, ...) -> None
+    """ Bind the given GPUs to this process.
 
     :param gpus: Target GPUs.
-    :param process_name: Process name for logger messages
-    :param logger: Logger
+    :param process_name: Process name for logger messages.
+    :param logger: Logger.
     :return: None
     """
     os.environ['COMPSS_BINDED_GPUS'] = gpus
@@ -613,12 +645,12 @@ def bind_gpus(gpus, process_name, logger):  # noqa
 
 
 def setup_environment(cn, cn_names, cu):
-    """
-    Sets the environment (mainly environment variables).
+    # type: (int, str, str) -> None
+    """ Sets the environment (mainly environment variables).
 
-    :param cn: Number of COMPSs nodes
-    :param cn_names: COMPSs hostnames
-    :param cu: Number of COMPSs threads
+    :param cn: Number of COMPSs nodes.
+    :param cn_names: COMPSs hostnames.
+    :param cu: Number of COMPSs threads.
     :return: None
     """
     os.environ["COMPSS_NUM_NODES"] = str(cn)
@@ -628,14 +660,14 @@ def setup_environment(cn, cn_names, cu):
 
 
 def build_successful_message(new_types, new_values, job_id, exit_value):
-    """
-    Generate a successful message
+    # type: (list, list, int, int) -> str
+    """ Generate a successful message.
 
-    :param new_types: New types (can change if INOUT)
-    :param new_values: New values (can change if INOUT)
-    :param job_id: Job identifier
-    :param exit_value: Exit value
-    :return: Successful message
+    :param new_types: New types (can change if INOUT).
+    :param new_values: New values (can change if INOUT).
+    :param job_id: Job identifier.
+    :param exit_value: Exit value.
+    :return: Successful message.
     """
     # Task has finished without exceptions
     # endTask jobId exitValue message
@@ -646,12 +678,12 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
 
 
 def build_compss_exception_message(except_msg, job_id):
-    """
-    Generate a COMPSs exception message.
+    # type: (str, int) -> (str, str)
+    """ Generate a COMPSs exception message.
 
-    :param except_msg: Exception stacktrace
-    :param job_id: Job identifier
-    :return: Exception message and message
+    :param except_msg: Exception stacktrace.
+    :param job_id: Job identifier.
+    :return: Exception message and message.
     """
     except_msg = except_msg.replace(" ", "_")
     message = COMPSS_EXCEPTION_TAG + " " + str(job_id)
@@ -660,12 +692,12 @@ def build_compss_exception_message(except_msg, job_id):
 
 
 def build_exception_message(job_id, exit_value):
-    """
-    Generate a exception message.
+    # type: (str, int) -> str
+    """ Generate an exception message.
 
-    :param job_id: Job identifier
-    :param exit_value: Exit value
-    :return: Exception message
+    :param job_id: Job identifier.
+    :param exit_value: Exit value.
+    :return: Exception message.
     """
     message = END_TASK_TAG + " " + str(job_id)
     message += " " + str(exit_value) + "\n"
@@ -673,11 +705,13 @@ def build_exception_message(job_id, exit_value):
 
 
 def clean_environment(cpus, gpus):
-    """
-    Clean the environment (mainly unset environment variables).
+    # type: (str, str) -> None
+    """ Clean the environment
 
-    :param cpus: Binded cpus
-    :param gpus: Binded gpus
+    Mainly unset environment variables).
+
+    :param cpus: Binded cpus.
+    :param gpus: Binded gpus.
     :return: None
     """
     if cpus != "-":

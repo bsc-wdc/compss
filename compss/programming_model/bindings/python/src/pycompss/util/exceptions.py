@@ -65,6 +65,7 @@ def task_timed_out(signum, frame):  # noqa
 
     :param signum: Signal number.
     :param frame: Frame.
+    :return: None
     :raises: TimeOutError exception.
     """
     raise TimeOutError
@@ -77,6 +78,7 @@ def task_cancel(signum, frame):  # noqa
 
     :param signum: Signal number.
     :param frame: Frame.
+    :return: None
     :raises: CancelError exception.
     """
     raise CancelError

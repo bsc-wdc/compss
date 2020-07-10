@@ -23,9 +23,9 @@ PyCOMPSs Persistent Worker
     This file contains the worker code.
 """
 
+import os
 import sys
 import signal
-from os import kill
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
@@ -49,20 +49,21 @@ WORKER_CONF = None
 
 
 def is_worker():
-    """
-    Returns whether the process should act as a worker
+    # type: () -> bool
+    """ Returns whether the process should act as a worker.
 
-    :return: the process should act as a worker
+    :return: the process should act as a worker.
     """
     return RANK == 0
 
 
 def shutdown_handler(signal, frame):  # noqa
-    """
-    Shutdown handler (do not remove the parameters).
+    """ Shutdown handler.
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
     """
     if is_worker():
@@ -72,11 +73,12 @@ def shutdown_handler(signal, frame):  # noqa
 
 
 def user_signal_handler(signal, frame):  # noqa
-    """
-    User signal handler (do not remove the parameters).
+    """ User signal handler.
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
     """
     if is_worker():
@@ -90,14 +92,14 @@ def user_signal_handler(signal, frame):  # noqa
 ######################
 
 def compss_persistent_worker(config):
-    """
-    Persistent worker main function.
+    # type: (PiperWorkerConfiguration) -> None
+    """ Persistent worker main function.
+
     Retrieves the initial configuration and spawns the worker processes.
 
-    :param config: Piper Worker Configuration description
+    :param config: Piper Worker Configuration description.
     :return: None
     """
-    import os
     pids = COMM.gather(str(os.getpid()), root=0)
 
     # Catch SIGTERM sent by bindings_piper
@@ -166,7 +168,7 @@ def compss_persistent_worker(config):
                 pid = PROCESSES.get(in_pipe)
                 logger.debug(HEADER + "Signaling process with PID " +
                              pid + " to cancel a task")
-                kill(int(pid), signal.SIGUSR2)
+                os.kill(int(pid), signal.SIGUSR2)
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
@@ -193,14 +195,14 @@ def compss_persistent_worker(config):
 
 
 def compss_persistent_executor(config):
-    """
-    Persistent worker main function.
+    # type: (PiperWorkerConfiguration) -> None
+    """ Persistent executor main function.
+
     Retrieves the initial configuration and spawns the worker processes.
 
-    :param config: Piper Worker Configuration description
+    :param config: Piper Worker Configuration description.
     :return: None
     """
-    import os
     COMM.gather(str(os.getpid()), root=0)
 
     # Catch SIGTERM sent by bindings_piper

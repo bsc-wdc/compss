@@ -267,7 +267,7 @@ public class TraceMerger {
             Integer stateID = Integer.parseInt(taskMatcher.group(STATE_TYPE));
             int newThreadID = threadID;
             if (threadID > 1) {
-                newThreadID = numThreads + 3 - threadID;
+                newThreadID = numThreads + 4 - threadID;
             }
             String eventHeader = stateID + ":" + newThreadID + ":1:" + workerID + ":" + newThreadID;
             Long timestamp = workerHeader.getTimestamp() + Long.parseLong(taskMatcher.group(WORKER_TIMESTAMP));

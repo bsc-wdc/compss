@@ -1651,7 +1651,7 @@ class Task(object):
                         coll.append(build_collection_types_values(_cont, _elem))
                     elif _elem.type == parameter.TYPE.EXTERNAL_PSCO and \
                             is_psco(_elem.content):
-                        coll.append((_elem.type, _elem.key))
+                        coll.append((_elem.type, _elem.content.getID()))
                     elif _elem.type == parameter.TYPE.FILE and \
                             is_psco(_cont):
                         coll.append((parameter.TYPE.EXTERNAL_PSCO, _cont.getID()))

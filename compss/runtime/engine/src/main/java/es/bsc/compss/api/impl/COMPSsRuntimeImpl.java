@@ -1066,12 +1066,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
             + " for application " + appId);
 
-        Application app = Application.registerApplication(appId);
-        // Create listener to cancel the associated task group
-        CancelTaskGroupOnResourceCreation rcl = new CancelTaskGroupOnResourceCreation(ap, app, groupName);
+        if (numResources > 0) {
+            Application app = Application.registerApplication(appId);
+            // Create listener to cancel the associated task group
+            CancelTaskGroupOnResourceCreation rcl =
+                new CancelTaskGroupOnResourceCreation(ap, app, numResources, groupName);
 
-        // Create resources
-        ResourceManager.requestResources(numResources, rcl);
+            // Request first resource
+            // The rest will be automatically requested by the CancelTaskGroupOnResource listener
+            ResourceManager.requestResources(1, rcl);
+        }
     }
 
     @Override

@@ -50,6 +50,8 @@ class Implement(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
+    __slots__ = ['first_register']
+
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.
 

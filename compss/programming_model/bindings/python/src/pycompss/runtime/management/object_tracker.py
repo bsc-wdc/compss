@@ -35,6 +35,10 @@ class ObjectTracker(object):
     to keep track of the objects within the python binding.
     """
 
+    __slots__ = ['obj_id_to_filename', 'pending_to_synchronize',
+                 'objs_written_by_mp', 'current_id', 'runtime_id',
+                 'addr2id2obj']
+
     def __init__(self):
         # Dictionary to contain the conversion from object id to the
         # filename where it is stored (mapping).

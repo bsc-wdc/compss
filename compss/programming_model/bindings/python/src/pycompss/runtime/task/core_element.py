@@ -27,6 +27,9 @@ PyCOMPSs Core Element
 
 class CE(object):
 
+    __slots__ = ['__ceSignature', '__implSignature', '__implConstraints',
+                 '__implType', '__implIO', '__implTypeArgs']
+
     def __init__(self,
                  ce_signature=None,
                  impl_signature=None,

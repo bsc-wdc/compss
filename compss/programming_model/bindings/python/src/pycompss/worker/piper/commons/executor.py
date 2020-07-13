@@ -80,6 +80,8 @@ class Pipe(object):
     Bi-directional communication channel
     """
 
+    __slots__ = ['input_pipe', 'input_pipe_open', 'output_pipe']
+
     def __init__(self, input_pipe, output_pipe):
         """ Constructs a new Pipe.
 
@@ -141,6 +143,9 @@ class ExecutorConf(object):
     """
     Executor configuration
     """
+
+    __slots__ = ['tracing', 'storage_conf', 'logger', 'storage_loggers',
+                 'stream_backend', 'stream_master_ip', 'stream_master_port']
 
     def __init__(self, tracing, storage_conf, logger, storage_loggers,
                  stream_backend, stream_master_ip, stream_master_port):

@@ -77,6 +77,10 @@ class Parameter(object):
     Used to group all parameter variables.
     """
 
+    __slots__ = ['name', 'content', 'content_type', 'direction', 'stream',
+                 'prefix', 'file_name', 'is_future', 'is_file_collection',
+                 'depth', 'extra_content_type', 'weight', 'keep_rename']
+
     def __init__(self,
                  name=None,
                  content=None,

@@ -224,6 +224,9 @@ class COMPSs(object):
     IMPORTANT: methods must be exactly the same.
     """
 
+    def __init__(self):
+        pass
+
     @staticmethod
     def start_runtime():
         IN_QUEUE.put([START])

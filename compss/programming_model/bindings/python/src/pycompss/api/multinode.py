@@ -36,7 +36,6 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}
@@ -49,6 +48,8 @@ class MultiNode(PyCOMPSsDecorator):
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on MultiNode task creation.
     """
+
+    __slots__ = []
 
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.

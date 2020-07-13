@@ -57,6 +57,8 @@ class COMPSs(PyCOMPSsDecorator):
     __call__ methods, useful on compss task creation.
     """
 
+    __slots__ = []
+
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.
 

@@ -27,6 +27,8 @@ class TaskCommons(object):
     Both classes inherit from TaskCommons.
     """
 
+    __slots__ = ['decorator_arguments', 'param_args', 'param_varargs']
+
     def __init__(self,
                  decorator_arguments,
                  param_args=None,

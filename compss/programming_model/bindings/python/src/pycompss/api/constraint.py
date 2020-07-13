@@ -42,6 +42,8 @@ class Constraint(PyCOMPSsDecorator):
     __call__ methods, useful on task constraint creation.
     """
 
+    __slots__ = []
+
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.
 

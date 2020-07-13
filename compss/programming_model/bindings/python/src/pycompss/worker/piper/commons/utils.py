@@ -35,6 +35,10 @@ class PiperWorkerConfiguration(object):
     Description of the configuration parameters for the Piper Worker.
     """
 
+    __slots__ = ['debug', 'tracing', 'storage_conf', 'stream_backend',
+                 'stream_master_name', 'stream_master_port', 'tasks_x_node',
+                 'pipes', 'control_pipe']
+
     def __init__(self):
         """
         Constructs an empty configuration description for the piper worker.

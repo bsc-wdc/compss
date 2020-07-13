@@ -68,6 +68,9 @@ class Task(PyCOMPSsDecorator):
     TaskWorker.call() and self._sequential_call()
     """
 
+    __slots__ = ['decorator_arguments', 'user_function',
+                 'registered', 'signature']
+
     @staticmethod
     def _get_default_decorator_values():
         """ Default value for decorator arguments.

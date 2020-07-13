@@ -48,6 +48,8 @@ class IO(PyCOMPSsDecorator):
     __call__ methods, useful on IO task creation.
     """
 
+    __slots__ = []
+
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.
 

@@ -25,9 +25,10 @@ class PSCO(StorageObject):
     def set_content(self, content):
         self.content = content
 
-    def increase_content(self, value):
+    def increase_content(self, value, update=True):
         self.content += value
-        # Redis connector does not provide INOUT natively
-        id = str(self.getID())
-        delete_persistent(self)
-        make_persistent(self, id)
+        if update:
+            # Redis connector does not provide INOUT natively
+            id = str(self.getID())
+            delete_persistent(self)
+            make_persistent(self, id)

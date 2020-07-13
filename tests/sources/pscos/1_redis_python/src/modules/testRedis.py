@@ -89,10 +89,34 @@ def generate_object(seed):
     elem.make_persistent()
     return elem
 
+
+def generate_basic_object(seed):
+    np.random.seed(seed)
+    content = np.random.random()
+    elem = PSCO(content)
+    return elem
+
+
+@task(c=COLLECTION_INOUT)
+def increase_elements_persist(c):
+    for elem in c:
+        elem.increase_content(1.0, update=False)
+        elem.make_persistent()
+
+
+@task(c=COLLECTION_OUT)
+def increase_elements_persist_out(c):
+    for i in range(len(c)):
+        c[i] = PSCO(content=i)
+        c[i].increase_content(1.0, update=False)
+        c[i].make_persistent()
+
+
 @task(c=COLLECTION_INOUT)
 def increase_elements(c):
     for elem in c:
         elem.increase_content(1.0)
+
 
 @task(c={"type": COLLECTION_INOUT, "depth": 2})
 def increase_elements_depth(c):
@@ -334,6 +358,26 @@ class TestRedis(unittest.TestCase):
                 np.random.random() + 1.0
             )
         )
+
+    def testWorkerGenerationColInoutBasic(self):
+        # Generate two random non persistent storage objects vector
+        two_random_pscos = [generate_basic_object(i) for i in range(2)]
+        increase_elements_persist(two_random_pscos)
+        result = compss_wait_on(two_random_pscos)
+        self.assertEqual(len(two_random_pscos), len(result))
+        for i in range(len(two_random_pscos)):
+            self.assertEqual(two_random_pscos[i].get_content() + 1,
+                             result[i].get_content())
+
+    def testWorkerGenerationColOutBasic(self):
+        # Generate two random non persistent storage objects vector
+        two_random_pscos = [generate_basic_object(i) for i in range(2)]
+        increase_elements_persist_out(two_random_pscos)
+        result = compss_wait_on(two_random_pscos)
+        self.assertEqual(len(two_random_pscos), len(result))
+        for i in range(len(two_random_pscos)):
+            self.assertEqual( i + 1.0,
+                             result[i].get_content())
 
     def testWorkerGenerationColInout(self):
         # Generate ten random vectors with pre-determined seed

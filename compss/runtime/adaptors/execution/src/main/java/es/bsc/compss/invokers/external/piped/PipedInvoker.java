@@ -157,6 +157,13 @@ public abstract class PipedInvoker extends ExternalInvoker {
                 } else {
                     param.setValue(null);
                 }
+            } else if (elementType.equals(DataType.FILE_T)) {
+                TypeValuePair pair = (TypeValuePair) values.get(position);
+                if (pair != null && pair.getUpdatedParameterValue() != null) {
+                    param.setType(pair.getUpdatedParameterType());
+                    param.setValue(pair.getUpdatedParameterValue());
+                    param.setValueClass(pair.getUpdatedParameterValue().getClass());
+                }
             }
             position += 1;
         }

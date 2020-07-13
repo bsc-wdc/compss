@@ -1561,7 +1561,10 @@ class Task(object):
                     logger.debug("Serializing collection: " + str(arg.name))
                 # handle collections recursively
                 for (content, elem) in get_collection_objects(arg.content, arg):             # noqa: E501
-                    if elem.type == parameter.TYPE.EXTERNAL_PSCO and is_psco(elem.content):  # noqa: E501
+                    if elem.type == parameter.TYPE.FILE and is_psco(content):  # noqa: E501
+                        elem.type = parameter.TYPE.EXTERNAL_PSCO
+                        continue
+                    if elem.type == parameter.TYPE.EXTERNAL_PSCO and is_psco(content):  # noqa: E501
                         continue
                     f_name = get_file_name(elem.file_name)
                     if __debug__:
@@ -1647,8 +1650,11 @@ class Task(object):
                     if _elem.type == parameter.TYPE.COLLECTION:
                         coll.append(build_collection_types_values(_cont, _elem))
                     elif _elem.type == parameter.TYPE.EXTERNAL_PSCO and \
-                            is_psco(_elem.content):
-                        coll.append((_elem.type, _elem.key))
+                            is_psco(_cont):
+                        coll.append((_elem.type, _cont.getID()))
+                    elif _elem.type == parameter.TYPE.FILE and \
+                            is_psco(_cont):
+                        coll.append((parameter.TYPE.EXTERNAL_PSCO, _cont.getID()))
                     else:
                         coll.append((_elem.type, 'null'))
             return coll

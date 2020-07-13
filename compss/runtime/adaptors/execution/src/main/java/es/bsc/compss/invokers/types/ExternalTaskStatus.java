@@ -236,7 +236,12 @@ public class ExternalTaskStatus {
             if (subParam.size() == 2 && subParam.get(0) instanceof String) {
                 // Simple element within collection
                 DataType subElemType = DataType.values()[Integer.parseInt((String) subParam.get(0))];
-                param.add(new TypeValuePair(subElemType, (String) subParam.get(1)));
+                String value = (String) subParam.get(1);
+                if (value.compareTo("null") != 0) {
+                    param.add(new TypeValuePair(subElemType, (String) subParam.get(1)));
+                } else {
+                    param.add(new TypeValuePair(subElemType, null));
+                }
             } else {
                 // It is a collection in the collection
                 param.add(buildCollectionParameter(subParam));

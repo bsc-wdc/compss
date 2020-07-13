@@ -336,11 +336,11 @@ _param_conversion_dict_ = {
         ParamDictKeys.Direction: DIRECTION.OUT,
     },
     ParamAliasKeys.STREAM_IN: {
-        ParamDictKeys.Content_type: TYPE.EXTERNALParamDictKeys.StdIOStream,
+        ParamDictKeys.Content_type: TYPE.EXTERNAL_STREAM,
         ParamDictKeys.Direction: DIRECTION.IN
     },
     ParamAliasKeys.STREAM_OUT: {
-        ParamDictKeys.Content_type: TYPE.EXTERNALParamDictKeys.StdIOStream,
+        ParamDictKeys.Content_type: TYPE.EXTERNAL_STREAM,
         ParamDictKeys.Direction: DIRECTION.OUT
     },
     ParamAliasKeys.COLLECTION_FILE: {

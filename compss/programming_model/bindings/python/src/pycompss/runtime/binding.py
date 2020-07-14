@@ -216,28 +216,18 @@ def delete_object(obj):
     :return: True if success. False otherwise.
     """
     app_id = 0
-    obj_id = OT.get_object_id(obj, False, False)
+    obj_id = OT.is_tracked(obj)
     if obj_id is None:
-        OT.pop_object_id(obj)
+        # Not being tracked
         return False
-    try:
-        OT.pop_object_id(obj)
-    except KeyError:
-        pass
-    try:
-        file_name = OT.get_filename(obj_id)
-        COMPSs.delete_file(app_id, file_name, False)
-    except KeyError:
-        pass
-    try:
-        OT.pop_filename(obj_id)
-    except KeyError:
-        pass
-    try:
-        OT.pop_pending_to_synchronize(obj_id)
-    except KeyError:
-        pass
-    return True
+    else:
+        try:
+            file_name = OT.get_file_name(obj_id)
+            COMPSs.delete_file(app_id, file_name, False)
+            OT.stop_tracking(obj)
+        except KeyError:
+            pass
+        return True
 
 
 def barrier(no_more_tasks=False):
@@ -689,7 +679,7 @@ def _clean_objects():
     :return: None
     """
     app_id = 0
-    for filename in OT.get_filenames():
+    for filename in OT.get_all_file_names():
         COMPSs.delete_file(app_id, filename, False)
     OT.clean_object_tracker()
 

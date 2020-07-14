@@ -79,7 +79,7 @@ def _synchronize(obj, mode):
     app_id = 0
     if is_psco(obj):
         obj_id = get_id(obj)
-        if obj_id not in OT.get_pending_to_synchronize_objids():
+        if not OT.is_pending_to_synchronize(obj_id):
             return obj
         else:
             # file_path is of the form storage://pscoId or
@@ -90,8 +90,10 @@ def _synchronize(obj, mode):
             new_obj = get_by_id(file_name)
             return new_obj
 
-    obj_id = OT.get_object_id(obj)
-    if obj_id not in OT.get_pending_to_synchronize_objids():
+    obj_id = OT.is_tracked(obj)
+    if obj_id is None:  # Not being tracked
+        return obj
+    if not OT.is_pending_to_synchronize(obj_id):
         return obj
 
     if __debug__:
@@ -116,17 +118,11 @@ def _synchronize(obj, mode):
         new_obj = get_by_id(compss_file)
 
     if mode == 'r':
-        new_obj_id = OT.get_object_id(new_obj, True, True)
-        # The main program won't work with the old object anymore, update
-        # mapping
-        OT.set_filename(new_obj_id, OT.get_filename(obj_id).replace(obj_id, new_obj_id))
-        OT.set_written_obj(new_obj_id, OT.get_filename(new_obj_id))
+        OT.update_mapping(obj_id, new_obj)
 
     if mode != 'r':
         COMPSs.delete_file(app_id, OT.get_filename(obj_id), False)
-        OT.pop_filename(obj_id)
-        OT.pop_pending_to_synchronize(obj_id)
-        OT.pop_object_id(obj)
+        OT.stop_tracking(obj)
 
     return new_obj
 
@@ -140,8 +136,8 @@ def _wait_on_iterable(iter_obj, compss_mode):
     :return: synchronized object
     """
     # check if the object is in our pending_to_synchronize dictionary
-    obj_id = OT.get_object_id(iter_obj)
-    if obj_id in OT.get_pending_to_synchronize_objids():
+    obj_id = OT.is_tracked(iter_obj)
+    if OT.is_pending_to_synchronize(obj_id):
         return _synchronize(iter_obj, compss_mode)
     else:
         if type(iter_obj) == list:

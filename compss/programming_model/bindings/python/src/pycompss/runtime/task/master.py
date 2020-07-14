@@ -1108,13 +1108,8 @@ class TaskMaster(TaskCommons):
                     fo = Future()
             else:
                 fo = Future()  # modules, functions, methods
-            obj_id = OT.get_object_id(fo, True)
-            if __debug__:
-                logger.debug("Setting object %s of %s as a future" % (obj_id,
-                                                                      type(fo)))
-            ret_filename = os.path.join(get_temporary_directory(), str(obj_id))
-            OT.set_filename(obj_id, ret_filename)
-            OT.set_pending_to_synchronize(obj_id, fo)
+            obj_id = OT.track(fo)
+            ret_filename = OT.get_file_name(obj_id)
             self.returns[get_return_name(0)] = \
                 Parameter(content_type=TYPE.FILE,
                           direction=DIRECTION.OUT,
@@ -1141,14 +1136,8 @@ class TaskMaster(TaskCommons):
                 else:
                     foe = Future()  # modules, functions, methods
                 fo.append(foe)
-                obj_id = OT.get_object_id(foe, True)
-                if __debug__:
-                    logger.debug("Setting object %s of %s as a future" %
-                                 (obj_id, type(foe)))
-                ret_filename = os.path.join(get_temporary_directory(),
-                                            str(obj_id))
-                OT.set_filename(obj_id, ret_filename)
-                OT.set_pending_to_synchronize(obj_id, foe)
+                obj_id = OT.track(foe)
+                ret_filename = OT.get_file_name(obj_id)
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return object
                 self.returns[k] = Parameter(content_type=TYPE.FILE,
@@ -1413,7 +1402,7 @@ def _manage_persistent_object(p):
     """
     p.content_type = TYPE.EXTERNAL_PSCO
     obj_id = get_id(p.content)
-    OT.set_pending_to_synchronize(obj_id, p.content)
+    OT.set_pending_to_synchronize(obj_id)
     p.content = obj_id
     if __debug__:
         logger.debug("Managed persistent object: %s" % obj_id)
@@ -1510,19 +1499,21 @@ def _serialize_object_into_file(name, p):
 
         p.content = new_object
         # Give this object an identifier inside the binding
-        OT.get_object_id(p.content, True, False)
+        OT.track(p.content, collection=True)
     return p
 
 
 def _turn_into_file(p, skip_creation=False):
     # type: (Parameter, bool) -> None
     """ Write a object into a file if the object has not been already written.
+
     Consults the obj_id_to_filename to check if it has already been written
     (reuses it if exists). If not, the object is serialized to file and
     registered in the obj_id_to_filename dictionary.
     This functions stores the object into pending_to_synchronize.
 
     :param p: Wrapper of the object to turn into file.
+    :param skip_creation: Skips the serialization to file.
     :return: None
     """
     # print('p           : ', p)
@@ -1535,21 +1526,20 @@ def _turn_into_file(p, skip_creation=False):
     #     t = type(p.content)
     #     p.content = t()
 
-    obj_id = OT.get_object_id(p.content, True)
-    file_name = OT.get_filename(obj_id)
-    if file_name is None:
+    obj_id = OT.is_tracked(p.content)
+    if obj_id is None:
         # This is the first time a task accesses this object
-        OT.set_pending_to_synchronize(obj_id, p.content)
-        file_name = os.path.join(get_temporary_directory(), str(obj_id))
-        OT.set_filename(obj_id, file_name)
-        if __debug__:
-            logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
+        obj_id = OT.track(p.content)
+        file_name = OT.get_file_name(obj_id)
         if not skip_creation:
             serialize_to_file(p.content, file_name)
-    elif obj_id in OT.get_all_written_objids():
+    else:
+        file_name = OT.get_file_name(obj_id)
+
+    if OT.has_been_written(obj_id):
         if p.direction == DIRECTION.INOUT or \
                 p.direction == DIRECTION.COMMUTATIVE:
-            OT.set_pending_to_synchronize(obj_id, p.content)
+            OT.set_pending_to_synchronize(obj_id)
         # Main program generated the last version
         compss_file = OT.pop_written_obj(obj_id)
         if __debug__:
@@ -1591,11 +1581,9 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # and we register it as file
         value = param.file_name
         typ = TYPE.FILE
-
     elif param.content_type == TYPE.DIRECTORY:
         value = param.file_name
         typ = TYPE.DIRECTORY
-
     elif param.content_type == TYPE.OBJECT:
         # If the parameter is an object, its value is stored in a file and
         # we register it as file
@@ -1610,7 +1598,6 @@ def _extract_parameter(param, code_strings, collection_depth=0):
 
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(_mf, _class_name)
-
     elif param.content_type == TYPE.EXTERNAL_STREAM:
         # If the parameter type is stream, its value is stored in a file but
         # we keep the type
@@ -1633,9 +1620,9 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN IdN pyTypeN
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format("collection", _class_name)
-        value = "{} {} {}".format(OT.get_object_id(param.content),
+        value = "{} {} {}".format(OT.is_tracked(param.content),
                                   len(param.content), con_type)
-        OT.pop_object_id(param.content)
+        OT.stop_tracking(param.content, collection=True)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.content):
             x_value, x_type, _, _, _, x_con_type, _, _ = _extract_parameter(

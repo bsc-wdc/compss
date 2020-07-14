@@ -79,7 +79,8 @@ class Parameter(object):
 
     __slots__ = ['name', 'content', 'content_type', 'direction', 'stream',
                  'prefix', 'file_name', 'is_future', 'is_file_collection',
-                 'depth', 'extra_content_type', 'weight', 'keep_rename']
+                 'collection_content', 'depth', 'extra_content_type',
+                 'weight', 'keep_rename']
 
     def __init__(self,
                  name=None,
@@ -91,6 +92,7 @@ class Parameter(object):
                  file_name=None,
                  is_future=False,
                  is_file_collection=False,
+                 collection_content=None,
                  depth=1,
                  extra_content_type=UNDEFINED_CONTENT_TYPE,
                  weight="1.0",
@@ -104,6 +106,7 @@ class Parameter(object):
         self.file_name = file_name  # placeholder for object's serialized file
         self.is_future = is_future
         self.is_file_collection = is_file_collection
+        self.collection_content = collection_content
         self.depth = depth  # Recursive depth for collections
         self.extra_content_type = extra_content_type
         self.weight = weight
@@ -441,23 +444,28 @@ def get_parameter_from_dictionary(d):
     :param d: Parameter description as dictionary.
     :return: an actual Parameter object.
     """
-    if Type not in d:  # If no Type specified => IN
-        d[Type] = Parameter()
-    d[Type] = get_parameter_copy(d[Type])
-    parameter = d[Type]
-    if Direction in d:
-        parameter.direction = d[Direction]
-    if StdIOStream in d:
-        parameter.stream = d[StdIOStream]
-    if Prefix in d:
-        parameter.prefix = d[Prefix]
-    if Depth in d:
-        parameter.depth = d[Depth]
-    if Weight in d:
-        parameter.weight = d[Weight]
-    if Keep_rename in d:
-        parameter.keep_rename = d[Keep_rename]
-    return parameter
+    if not isinstance(d, dict):
+        raise Exception("Unexpected type for parameter.")
+    else:
+
+        if Type not in d:  # If no Type specified => IN
+            parameter = Parameter()
+        else:
+            parameter = get_new_parameter(d[Type].key)
+        # Add other modifiers
+        if Direction in d:
+            parameter.direction = d[Direction]
+        if StdIOStream in d:
+            parameter.stream = d[StdIOStream]
+        if Prefix in d:
+            parameter.prefix = d[Prefix]
+        if Depth in d:
+            parameter.depth = d[Depth]
+        if Weight in d:
+            parameter.weight = d[Weight]
+        if Keep_rename in d:
+            parameter.keep_rename = d[Keep_rename]
+        return parameter
 
 
 def get_compss_type(value, depth=0):

@@ -49,13 +49,9 @@ def local(input_function):
         return wrapped_function
     else:
 
-        def must_sync(obj):
-            # type: (object) -> bool
-            return OT.get_object_id(obj) in OT.get_pending_to_synchronize_objids()  # noqa: E501
-
         def sync_if_needed(obj):
             # type: (object) -> None
-            if must_sync(obj):
+            if OT.is_obj_pending_to_synchronize(obj):
                 new_val = compss_wait_on(obj)
                 replace(obj, new_val)
 

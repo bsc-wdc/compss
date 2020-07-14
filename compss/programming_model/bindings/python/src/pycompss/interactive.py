@@ -436,7 +436,7 @@ def stop(sync=False):
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
-                elif obj_k in OT.get_pending_to_synchronize_objids():
+                elif OT.is_pending_to_synchronize(obj_k):
                     print("Found an object to synchronize: %s" % str(k))
                     logger.debug("Found an object to synchronize: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)

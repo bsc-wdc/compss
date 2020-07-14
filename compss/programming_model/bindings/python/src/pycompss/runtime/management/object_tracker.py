@@ -61,110 +61,111 @@ class ObjectTracker(object):
         self.addr2id2obj = {}
 
     def get_filenames(self):
-        """
-        Returns all files used.
-        Useful for cleanup
+        # type: () -> tuple
+        """ Returns all files used.
 
-        :return: List of file name that are currently available
+        Useful for cleanup.
+
+        :return: List of file name that are currently available.
         """
-        return self.obj_id_to_filename.values()
+        return tuple(self.obj_id_to_filename.values())
 
     def get_filename(self, obj_id):
-        """
-        Get the file name associated to the given object identifier.
+        # type: (str) -> str
+        """ Get the file name associated to the given object identifier.
 
-        :param obj_id: Object identifier
-        :return: File name
+        :param obj_id: Object identifier.
+        :return: File name.
         """
         return self.obj_id_to_filename.get(obj_id)
 
     def set_filename(self, obj_id, filename):
-        """
-        Set a filename for the given object identifier.
+        # type: (str, str) -> None
+        """ Set a filename for the given object identifier.
 
-        :param obj_id: Object identifier
-        :param filename: File name
+        :param obj_id: Object identifier.
+        :param filename: File name.
         :return: None
         """
         self.obj_id_to_filename[obj_id] = filename
 
     def pop_filename(self, obj_id):
-        """
-        Pop the file name of the given object identifier.
+        # type: (str) -> str
+        """ Pop the file name of the given object identifier.
 
-        :param obj_id: Object identifier
-        :return: The file name
+        :param obj_id: Object identifier.
+        :return: The file name.
         """
         return self.obj_id_to_filename.pop(obj_id)
 
     def get_pending_to_synchronize_objids(self):
-        """
-        Get all pending to synchronize object identifiers.
+        # type: () -> tuple
+        """ Get all pending to synchronize object identifiers.
 
         :return: List of pending to synchronize object identifiers.
         """
-        return self.pending_to_synchronize.keys()
+        return tuple(self.pending_to_synchronize.keys())
 
     def set_pending_to_synchronize(self, obj_id, filename):
-        """
-        Set the given filename with object identifier as pending to
+        # type: (str, str) -> None
+        """ Set the given filename with object identifier as pending to
         synchronize.
 
-        :param obj_id: Object identifier
-        :param filename: File name
+        :param obj_id: Object identifier.
+        :param filename: File name.
         :return: None
         """
         self.pending_to_synchronize[obj_id] = filename
 
     def pop_pending_to_synchronize(self, obj_id):
-        """
-        Pop the filename of the given object identifier from pending to
+        # type: (str) -> str
+        """ Pop the filename of the given object identifier from pending to
         synchronize.
 
-        :param obj_id: Object identifier
-        :return: The file name
+        :param obj_id: Object identifier.
+        :return: The file name.
         """
         return self.pending_to_synchronize.pop(obj_id)
 
     def get_all_written_objids(self):
-        """
-        Get all written object identifiers.
+        # type: () -> tuple
+        """ Get all written object identifiers.
 
-        :return: List of object identifiers
+        :return: List of object identifiers.
         """
-        return self.objs_written_by_mp.keys()
+        return tuple(self.objs_written_by_mp.keys())
 
     def set_written_obj(self, obj_id, filename):
-        """
-        Set file name with object identifier as written object.
+        # type: (str, str) -> None
+        """ Set file name with object identifier as written object.
 
-        :param obj_id: Object identifier
-        :param filename: File name
+        :param obj_id: Object identifier.
+        :param filename: File name.
         :return: None
         """
         self.objs_written_by_mp[obj_id] = filename
 
     def pop_written_obj(self, obj_id):
-        """
-        Pop a written filename with the given object identifier from written
-        objects.
+        # type: (str) -> str
+        """ Pop a written filename with the given object identifier from
+        written objects.
 
-        :param obj_id: Object identifier
-        :return: The file name
+        :param obj_id: Object identifier.
+        :return: The file name.
         """
         return self.objs_written_by_mp.pop(obj_id)
 
     def get_object_id(self, obj, assign_new_key=False, force_insertion=False):
-        """
-        Gets the identifier of an object. If not found or we are forced to,
+        # type: (object, bool, bool) -> str or None
+        """ Gets the identifier of an object. If not found or we are forced to,
         we create a new identifier for this object, deleting the old one if
-        necessary. We can also query for some object without adding it in case of
-        failure.
+        necessary. We can also query for some object without adding it in case
+        of failure.
 
         :param obj: Object to analyse.
-        :param assign_new_key: <Boolean> Assign new key.
-        :param force_insertion: <Boolean> Force insertion.
-        :return: Object id
+        :param assign_new_key: Assign new key.
+        :param force_insertion: force insertion.
+        :return: Object id.
         """
         # Force_insertion implies assign_new_key
         assert not force_insertion or assign_new_key
@@ -197,26 +198,26 @@ class ObjectTracker(object):
         return None
 
     def pop_object_id(self, obj):
-        """
-        Pop an object from the nested identifier hashmap
-        :param obj: Object to pop
-        :return: Popped object, None if obj was not in _addr2id2obj
+        # type: (object) -> None
+        """ Pop an object from the nested identifier hashmap.
+
+        :param obj: Object to pop.
+        :return: Popped object, None if obj was not in _addr2id2obj.
         """
         obj_address = self.calculate_identifier(obj)
         _id2obj = self.addr2id2obj.setdefault(obj_address, {})
         for (k, v) in list(_id2obj.items()):
             _id2obj.pop(k)
-        self.addr2id2obj.pop(obj_address)
+        return self.addr2id2obj.pop(obj_address)
 
     @staticmethod
     def calculate_identifier(obj):
-        """
-        Calculates the identifier for the given object.
+        """ Calculates the identifier for the given object.
 
-        :param obj: Object to get the identifier
-        :return: String (md5 string)
+        :param obj: Object to get the identifier.
+        :return: Object identifier.
         """
-        return id(obj)
+        return str(id(obj))
         # # If we want to detect automatically IN objects modification we need
         # # to ensure uniqueness of the identifier. At this point, obj is a
         # # reference to the object that we want to compute its identifier.
@@ -253,15 +254,15 @@ class ObjectTracker(object):
         # return obj_address
 
     def clean_object_tracker(self):
-        """
-        Clears all object tracker internal structures.
+        # type: () -> None
+        """ Clears all object tracker internal structures.
 
         :return: None
         """
         self.pending_to_synchronize.clear()
-        self.addr2id2obj.clear()
         self.obj_id_to_filename.clear()
         self.objs_written_by_mp.clear()
+        self.addr2id2obj.clear()
 
 
 # Instantiation of the Object tracker class to be shared among

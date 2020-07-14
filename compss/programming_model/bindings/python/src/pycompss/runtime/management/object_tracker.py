@@ -100,14 +100,25 @@ class ObjectTracker(object):
         :param collection: If the object to stop tracking is a collection.
         :return: None
         """
-        if collection:
-            self._pop_object_id(obj)
-        else:
-            obj_id = self.is_tracked(obj)
-            if obj_id is not None:
+        obj_id = self.is_tracked(obj)
+        if obj_id is not None:
+            if collection:
+                self._pop_object_id(obj_id)
+            else:
                 self._delete_file_name(obj_id)
                 self._remove_from_pending_to_synchronize(obj_id)
-                self._pop_object_id(obj)
+                self._pop_object_id(obj_id)
+
+    def get_object_id(self, obj):
+        # type: (object) -> str or None
+        """ Returns the object identifier.
+
+        This function is a wrapper of is_tracked.
+
+        :param obj: Object to check.
+        :return: Object identifier if under tracking. None otherwise.
+        """
+        return self.is_tracked(obj)
 
     def is_tracked(self, obj):
         # type: (object) -> str or None
@@ -281,50 +292,6 @@ class ObjectTracker(object):
         self.current_id += 1
         return new_id
 
-    @staticmethod
-    def _get_object_address(obj):
-        # type: (object) -> str
-        """ Retrieves the object memory address.
-
-        :param obj: Object to get the memory address.
-        :return: Object identifier.
-        """
-        return str(id(obj))
-        # # If we want to detect automatically IN objects modification we need
-        # # to ensure uniqueness of the identifier. At this point, obj is a
-        # # reference to the object that we want to compute its identifier.
-        # # This means that we do not have the previous object to compare
-        # # directly.
-        # # So the only way would be to ensure the uniqueness by calculating
-        # # an id which depends on the object.
-        # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
-        # #                                   object (IN) to be modified
-        # #                                   explicitly.
-        # immutable_types = [bool, int, float, complex, str,
-        #                    tuple, frozenset, bytes]
-        # obj_type = type(obj)
-        # if obj_type in immutable_types:
-        #     obj_address = id(obj)  # Only guarantees uniqueness with
-        #                            # immutable objects
-        # else:
-        #     # For all the rest, use hash of:
-        #     #  - The object id
-        #     #  - The size of the object (object increase/decrease)
-        #     #  - The object representation (object size is the same but has
-        #     #                               been modified(e.g. list element))
-        #     # WARNING: Caveat:
-        #     #  - IN User defined object with parameter change without
-        #     #    __repr__
-        #     # INOUT parameters to be modified require a synchronization, so
-        #     # they are not affected.
-        #     import hashlib
-        #     hash_id = hashlib.md5()
-        #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-        #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-        #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-        #     obj_address = str(hash_id.hexdigest())
-        # return obj_address
-
     def _set_file_name(self, obj_id, filename, written=False):
         # type: (str, str, bool) -> None
         """ Set a filename for the given object identifier.
@@ -357,16 +324,70 @@ class ObjectTracker(object):
         """
         self.pending_to_synchronize.remove(obj_id)
 
-    def _pop_object_id(self, obj):
+    def _pop_object_id(self, obj_id):
         # type: (object) -> object or None
-        """ Pop an object from the nested identifier hashmap.
+        """ Pop an object from the dictionary.
 
-        :param obj: Object to pop.
-        :return: Popped object. None if obj was not in _addr2id2obj.
+        :param obj_id: Object identifier to pop.
+        :return: Popped object.
         """
-        obj_address = self._get_object_address(obj)
-        if obj_address is not None and obj_address in self.addr2id2obj:
-            return self.addr2id2obj.pop(obj_address)
+        return self.addr2id2obj.pop(obj_id)
+
+    #############################################
+    #           DEPRECATED FUNCTIONS            #
+    #############################################
+
+    # DEPRECATION REASON OF _get_object_address:
+    #    Use the object identifier (memory address) is weak, since they can
+    # be reused. This caused weird behaviour that could not be replicated
+    # in all machines. Consequently, we use private identifiers from
+    # the runtime id and the current id.
+    # However, we need a structure with the objects in use to resolve their
+    # identifier.
+
+    # @staticmethod
+    # def _get_object_address(obj):
+    #     # type: (object) -> str
+    #     """ Retrieves the object memory address.
+    #
+    #     :param obj: Object to get the memory address.
+    #     :return: Object identifier.
+    #     """
+    #     return str(id(obj))
+    #     # # If we want to detect automatically IN objects modification we need
+    #     # # to ensure uniqueness of the identifier. At this point, obj is a
+    #     # # reference to the object that we want to compute its identifier.
+    #     # # This means that we do not have the previous object to compare
+    #     # # directly.
+    #     # # So the only way would be to ensure the uniqueness by calculating
+    #     # # an id which depends on the object.
+    #     # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
+    #     # #                                   object (IN) to be modified
+    #     # #                                   explicitly.
+    #     # immutable_types = [bool, int, float, complex, str,
+    #     #                    tuple, frozenset, bytes]
+    #     # obj_type = type(obj)
+    #     # if obj_type in immutable_types:
+    #     #     obj_address = id(obj)  # Only guarantees uniqueness with
+    #     #                            # immutable objects
+    #     # else:
+    #     #     # For all the rest, use hash of:
+    #     #     #  - The object id
+    #     #     #  - The size of the object (object increase/decrease)
+    #     #     #  - The object representation (object size is the same but has
+    #     #     #                               been modified(e.g. list element))
+    #     #     # WARNING: Caveat:
+    #     #     #  - IN User defined object with parameter change without
+    #     #     #    __repr__
+    #     #     # INOUT parameters to be modified require a synchronization, so
+    #     #     # they are not affected.
+    #     #     import hashlib
+    #     #     hash_id = hashlib.md5()
+    #     #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+    #     #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+    #     #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+    #     #     obj_address = str(hash_id.hexdigest())
+    #     # return obj_address
 
 
 # Instantiation of the Object tracker class to be shared among

@@ -43,7 +43,7 @@ class ObjectTracker(object):
 
     __slots__ = ['file_names', 'pending_to_synchronize',
                  'written_objects', 'current_id', 'runtime_id',
-                 'addr2id2obj']
+                 'id2obj2addr']
 
     def __init__(self):
         # Dictionary to contain the conversion from object id to the
@@ -63,10 +63,10 @@ class ObjectTracker(object):
         # This way we avoid to have two objects from different applications
         # having the same identifier
         self.runtime_id = str(uuid.uuid1())
-        # All objects are segregated according to their position in memory
-        # Given these positions, all objects are then reverse-mapped according
-        # to their file names
-        self.addr2id2obj = {}
+        # Dictionary to contain the conversion from object identifier to
+        # the memory address of the object.
+        # Given these positions, all objects are then reverse-mapped.
+        self.id2obj2addr = {}
 
     def track(self, obj, collection=False):
         # type: (object, bool) -> str
@@ -124,16 +124,17 @@ class ObjectTracker(object):
         # type: (object) -> str or None
         """ Checks if the given object is being tracked.
 
-        Due to the length that the addr2id2obj dictionary can reach, if
+        Due to the length that the id2obj2addr dictionary can reach, if
         is tracked we return the identifier in order to avoid to search again
         into the dictionary.
 
         :param obj: Object to check.
         :return: Object identifier if under tracking. None otherwise.
         """
-        if self.addr2id2obj:
-            for identifier in self.addr2id2obj:
-                if self.addr2id2obj[identifier] is obj:
+        if self.id2obj2addr:
+            for identifier in self.id2obj2addr:
+                obj_address = self._get_object_address(obj)
+                if self.id2obj2addr[identifier] == obj_address:
                     # Found
                     return identifier
             # Not Found
@@ -239,7 +240,7 @@ class ObjectTracker(object):
         self.pending_to_synchronize.clear()
         self.file_names.clear()
         self.written_objects.clear()
-        self.addr2id2obj.clear()
+        self.id2obj2addr.clear()
 
     #############################################
     #            PRIVATE FUNCTIONS              #
@@ -265,7 +266,7 @@ class ObjectTracker(object):
         identifier = self.is_tracked(obj)
         if identifier is not None:
             if force_insertion:
-                self.addr2id2obj.pop(identifier)
+                self.id2obj2addr.pop(identifier)
             else:
                 return identifier
 
@@ -273,7 +274,8 @@ class ObjectTracker(object):
             # This object was not in our object database or we were forced to
             # remove it, lets assign it an identifier and store it.
             new_id = self._calculate_new_identifier()
-            self.addr2id2obj[new_id] = obj
+            obj_address = self._get_object_address(obj)
+            self.id2obj2addr[new_id] = obj_address
             return new_id
 
     def _calculate_new_identifier(self):
@@ -331,63 +333,51 @@ class ObjectTracker(object):
         :param obj_id: Object identifier to pop.
         :return: Popped object.
         """
-        return self.addr2id2obj.pop(obj_id)
+        return self.id2obj2addr.pop(obj_id)
 
-    #############################################
-    #           DEPRECATED FUNCTIONS            #
-    #############################################
+    @staticmethod
+    def _get_object_address(obj):
+        # type: (object) -> int
+        """ Retrieves the object memory address.
 
-    # DEPRECATION REASON OF _get_object_address:
-    #    Use the object identifier (memory address) is weak, since they can
-    # be reused. This caused weird behaviour that could not be replicated
-    # in all machines. Consequently, we use private identifiers from
-    # the runtime id and the current id.
-    # However, we need a structure with the objects in use to resolve their
-    # identifier.
-
-    # @staticmethod
-    # def _get_object_address(obj):
-    #     # type: (object) -> str
-    #     """ Retrieves the object memory address.
-    #
-    #     :param obj: Object to get the memory address.
-    #     :return: Object identifier.
-    #     """
-    #     return str(id(obj))
-    #     # # If we want to detect automatically IN objects modification we need
-    #     # # to ensure uniqueness of the identifier. At this point, obj is a
-    #     # # reference to the object that we want to compute its identifier.
-    #     # # This means that we do not have the previous object to compare
-    #     # # directly.
-    #     # # So the only way would be to ensure the uniqueness by calculating
-    #     # # an id which depends on the object.
-    #     # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
-    #     # #                                   object (IN) to be modified
-    #     # #                                   explicitly.
-    #     # immutable_types = [bool, int, float, complex, str,
-    #     #                    tuple, frozenset, bytes]
-    #     # obj_type = type(obj)
-    #     # if obj_type in immutable_types:
-    #     #     obj_address = id(obj)  # Only guarantees uniqueness with
-    #     #                            # immutable objects
-    #     # else:
-    #     #     # For all the rest, use hash of:
-    #     #     #  - The object id
-    #     #     #  - The size of the object (object increase/decrease)
-    #     #     #  - The object representation (object size is the same but has
-    #     #     #                               been modified(e.g. list element))
-    #     #     # WARNING: Caveat:
-    #     #     #  - IN User defined object with parameter change without
-    #     #     #    __repr__
-    #     #     # INOUT parameters to be modified require a synchronization, so
-    #     #     # they are not affected.
-    #     #     import hashlib
-    #     #     hash_id = hashlib.md5()
-    #     #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-    #     #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-    #     #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-    #     #     obj_address = str(hash_id.hexdigest())
-    #     # return obj_address
+        :param obj: Object to get the memory address.
+        :return: Object identifier.
+        """
+        return id(obj)
+        # # If we want to detect automatically IN objects modification we need
+        # # to ensure uniqueness of the identifier. At this point, obj is a
+        # # reference to the object that we want to compute its identifier.
+        # # This means that we do not have the previous object to compare
+        # # directly.
+        # # So the only way would be to ensure the uniqueness by calculating
+        # # an id which depends on the object.
+        # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
+        # #                                   object (IN) to be modified
+        # #                                   explicitly.
+        # immutable_types = [bool, int, float, complex, str,
+        #                    tuple, frozenset, bytes]
+        # obj_type = type(obj)
+        # if obj_type in immutable_types:
+        #     obj_address = id(obj)  # Only guarantees uniqueness with
+        #                            # immutable objects
+        # else:
+        #     # For all the rest, use hash of:
+        #     #  - The object id
+        #     #  - The size of the object (object increase/decrease)
+        #     #  - The object representation (object size is the same but has
+        #     #                               been modified(e.g. list element))
+        #     # WARNING: Caveat:
+        #     #  - IN User defined object with parameter change without
+        #     #    __repr__
+        #     # INOUT parameters to be modified require a synchronization, so
+        #     # they are not affected.
+        #     import hashlib
+        #     hash_id = hashlib.md5()
+        #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+        #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+        #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+        #     obj_address = str(hash_id.hexdigest())
+        # return obj_address
 
 
 # Instantiation of the Object tracker class to be shared among

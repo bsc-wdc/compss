@@ -306,7 +306,7 @@ class TaskWorker(TaskCommons):
 
                 if not self.is_parameter_file_collection(argument.name):
                     sub_arg, _ = build_task_parameter(int(data_type),
-                                                      None,
+                                                      parameter.IOSTREAM.UNSPECIFIED,  # noqa: E501
                                                       "",
                                                       sub_name,
                                                       content_file,
@@ -671,9 +671,16 @@ class TaskWorker(TaskCommons):
         # return False
         return False
 
-    def manage_new_types_values(self, num_returns, user_returns, args,
-                                has_self, target_label, self_type, self_value):
-        # type: (int, list, tuple, bool, str, str, object) -> (list, list)
+    def manage_new_types_values(self,
+                                num_returns,   # type: int
+                                user_returns,  # type: list
+                                args,          # type: tuple
+                                has_self,      # type: bool
+                                target_label,  # type: str
+                                self_type,     # type: str
+                                self_value     # type: object
+                                ):
+        # type: (...) -> (list, list)
         """ Manage new types and values.
         We must notify COMPSs when types are updated
         Potential update candidates are returns and INOUTs

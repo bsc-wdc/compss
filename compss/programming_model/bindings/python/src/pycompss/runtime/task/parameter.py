@@ -447,7 +447,6 @@ def get_parameter_from_dictionary(d):
     if not isinstance(d, dict):
         raise Exception("Unexpected type for parameter.")
     else:
-
         if Type not in d:  # If no Type specified => IN
             parameter = Parameter()
         else:

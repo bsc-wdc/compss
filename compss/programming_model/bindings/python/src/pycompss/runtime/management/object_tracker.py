@@ -43,7 +43,7 @@ class ObjectTracker(object):
 
     __slots__ = ['file_names', 'pending_to_synchronize',
                  'written_objects', 'current_id', 'runtime_id',
-                 'id2obj2addr']
+                 'obj_id_to_address']
 
     def __init__(self):
         # Dictionary to contain the conversion from object id to the
@@ -66,7 +66,10 @@ class ObjectTracker(object):
         # Dictionary to contain the conversion from object identifier to
         # the memory address of the object.
         # Given these positions, all objects are then reverse-mapped.
-        self.id2obj2addr = {}
+        # NOTE: it can not be done in the other way since the memory addresses
+        #       can be reused, not guaranteeing their uniqueness, and causing
+        #       weird behaviour.
+        self.obj_id_to_address = {}
 
     def track(self, obj, collection=False):
         # type: (object, bool) -> str
@@ -124,17 +127,17 @@ class ObjectTracker(object):
         # type: (object) -> str or None
         """ Checks if the given object is being tracked.
 
-        Due to the length that the id2obj2addr dictionary can reach, if
+        Due to the length that the obj_id_to_address dictionary can reach, if
         is tracked we return the identifier in order to avoid to search again
         into the dictionary.
 
         :param obj: Object to check.
         :return: Object identifier if under tracking. None otherwise.
         """
-        if self.id2obj2addr:
-            for identifier in self.id2obj2addr:
+        if self.obj_id_to_address:
+            for identifier in self.obj_id_to_address:
                 obj_address = self._get_object_address(obj)
-                if self.id2obj2addr[identifier] == obj_address:
+                if self.obj_id_to_address[identifier] == obj_address:
                     # Found
                     return identifier
             # Not Found
@@ -240,7 +243,7 @@ class ObjectTracker(object):
         self.pending_to_synchronize.clear()
         self.file_names.clear()
         self.written_objects.clear()
-        self.id2obj2addr.clear()
+        self.obj_id_to_address.clear()
 
     #############################################
     #            PRIVATE FUNCTIONS              #
@@ -266,7 +269,7 @@ class ObjectTracker(object):
         identifier = self.is_tracked(obj)
         if identifier is not None:
             if force_insertion:
-                self.id2obj2addr.pop(identifier)
+                self.obj_id_to_address.pop(identifier)
             else:
                 return identifier
 
@@ -275,7 +278,7 @@ class ObjectTracker(object):
             # remove it, lets assign it an identifier and store it.
             new_id = self._calculate_new_identifier()
             obj_address = self._get_object_address(obj)
-            self.id2obj2addr[new_id] = obj_address
+            self.obj_id_to_address[new_id] = obj_address
             return new_id
 
     def _calculate_new_identifier(self):
@@ -333,7 +336,7 @@ class ObjectTracker(object):
         :param obj_id: Object identifier to pop.
         :return: Popped object.
         """
-        return self.id2obj2addr.pop(obj_id)
+        return self.obj_id_to_address.pop(obj_id)
 
     @staticmethod
     def _get_object_address(obj):

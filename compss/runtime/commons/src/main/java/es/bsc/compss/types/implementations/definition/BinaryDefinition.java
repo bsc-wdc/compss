@@ -19,7 +19,7 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.BinaryContainerDescription;
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
@@ -31,11 +31,11 @@ public class BinaryDefinition extends ImplementationDefinition<MethodResourceDes
     private final String binary;
     private final String workingDir;
     private final boolean failByEV;
-    private final BinaryContainerDescription container;
+    private final ContainerDescription container;
 
 
     protected BinaryDefinition(String signature, String binary, String workingDir, boolean failByEV,
-        BinaryContainerDescription container, MethodResourceDescription implConstraints) {
+        ContainerDescription container, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;
         this.workingDir = workingDir;

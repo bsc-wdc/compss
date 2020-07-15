@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.implementations;
 
-import es.bsc.compss.types.resources.BinaryContainerDescription;
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -38,7 +38,7 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
     private String binary;
     private String workingDir;
     private boolean failByEV;
-    private BinaryContainerDescription container;
+    private ContainerDescription container;
 
 
     /**
@@ -61,9 +61,8 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      * @param signature Binary signature.
      * @param annot Binary requirements.
      */
-    public BinaryImplementation(String binary, String workingDir, boolean failByEV,
-        BinaryContainerDescription container, Integer coreId, Integer implementationId, String signature,
-        MethodResourceDescription annot) {
+    public BinaryImplementation(String binary, String workingDir, boolean failByEV, ContainerDescription container,
+        Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 
@@ -105,7 +104,7 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      * 
      * @return The container implementation.
      */
-    public BinaryContainerDescription getContainer() {
+    public ContainerDescription getContainer() {
         return container;
     }
 
@@ -135,7 +134,7 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
-        this.container = (BinaryContainerDescription) in.readObject();
+        this.container = (ContainerDescription) in.readObject();
     }
 
     @Override

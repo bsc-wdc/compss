@@ -28,7 +28,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
-import es.bsc.compss.types.resources.BinaryContainerDescription;
+import es.bsc.compss.types.resources.ContainerDescription;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -47,7 +47,7 @@ public class BinaryInvoker extends Invoker {
 
     private final String binary;
     private final boolean failByEV;
-    private final BinaryContainerDescription container;
+    private final ContainerDescription container;
 
     private BinaryRunner br;
 

@@ -17,15 +17,18 @@
 
 package es.bsc.compss.types.resources;
 
+import java.io.Serializable;
+
+
 /**
  * Container representation.
  */
-public class ContainerDescription {
+public class ContainerDescription implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String engine;
     private String image;
-    private String binary;
-    private String hostDir;
 
 
     public ContainerDescription() {
@@ -36,15 +39,11 @@ public class ContainerDescription {
      * 
      * @param engine Container engine.
      * @param image Container imagen.
-     * @param binary COntainer binary.
-     * @param hostDir Container directory.
      */
-    public ContainerDescription(String engine, String image, String binary, String hostDir) {
+    public ContainerDescription(String engine, String image) {
         super();
         this.engine = engine;
         this.image = image;
-        this.binary = binary;
-        this.hostDir = hostDir;
     }
 
     public String getEngine() {
@@ -59,30 +58,13 @@ public class ContainerDescription {
         return image;
     }
 
-    public String getBinary() {
-        return binary;
-    }
-
-    public void setBinary(String binary) {
-        this.binary = binary;
-    }
-
     public void setImage(String image) {
         this.image = image;
     }
 
-    public String getHostDir() {
-        return hostDir;
-    }
-
-    public void setHostDir(String hostDir) {
-        this.hostDir = hostDir;
-    }
-
     @Override
     public String toString() {
-        return "ContainerDescription [engine=" + engine + ", image=" + image + ", binary=" + binary + ", hostDir="
-            + hostDir + "]";
+        return "ContainerDescription [engine=" + engine + ", image=" + image + "]";
     }
 
 }

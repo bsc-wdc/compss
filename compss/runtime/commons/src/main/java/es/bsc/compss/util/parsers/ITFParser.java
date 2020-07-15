@@ -56,7 +56,7 @@ import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
-import es.bsc.compss.types.resources.BinaryContainerDescription;
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
@@ -583,10 +583,9 @@ public class ITFParser {
             }
 
             // Load specific method container if present
-            BinaryContainerDescription container = null;
+            ContainerDescription container = null;
             if (binaryAnnot.container() != null) {
-                container =
-                    new BinaryContainerDescription(binaryAnnot.container().engine(), binaryAnnot.container().image());
+                container = new ContainerDescription(binaryAnnot.container().engine(), binaryAnnot.container().image());
             }
 
             // Register binary implementation

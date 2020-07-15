@@ -29,7 +29,7 @@ import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.BinaryContainerDescription;
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -94,8 +94,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String binaryc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String binaryWorkingDirc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     boolean binaryfailByEVc = Boolean.parseBoolean(implTypeArgs[2]);
-                    BinaryContainerDescription containerc =
-                        new BinaryContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
+                    ContainerDescription containerc =
+                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
                             EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]));
                     if (binaryc == null || binaryc.isEmpty()) {
                         throw new IllegalArgumentException(
@@ -154,8 +154,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[2]);
-                    BinaryContainerDescription container =
-                        new BinaryContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
+                    ContainerDescription container =
+                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
                             EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]));
                     if (binary == null || binary.isEmpty()) {
                         throw new IllegalArgumentException(

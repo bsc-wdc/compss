@@ -17,6 +17,7 @@
 
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,8 +34,7 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
 
     public static final int NUM_PARAMS = 3;
     public static final String SIGNATURE = "container.CONTAINER";
-    private String engine;
-    private String image;
+    private ContainerDescription container;
     private String binary;
 
 
@@ -49,28 +49,22 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
     /**
      * Creates a new ContainerImplementation from the given parameters.
      * 
-     * @param engine Engine[docker or singularity].
-     * @param image Image from the container.
+     * @param container Engine and image which describes a container
      * @param binary Binary to execute.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature Container signature.
      * @param annot Container requirements.
      */
-    public ContainerImplementation(String engine, String image, String binary, Integer coreId, Integer implementationId,
-        String signature, MethodResourceDescription annot) {
+    public ContainerImplementation(ContainerDescription container, String binary, Integer coreId,
+        Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
-        this.engine = engine;
-        this.image = image;
+        this.container = container;
     }
 
-    public String getEngine() {
-        return engine;
-    }
-
-    public String getImage() {
-        return image;
+    public ContainerDescription getContainer() {
+        return container;
     }
 
     public String getBinary() {
@@ -85,7 +79,7 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[CONTAINER=").append(engine);
+        sb.append("[CONTAINER=").append(container);
         sb.append("]");
 
         return sb.toString();
@@ -93,22 +87,20 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
 
     @Override
     public String toString() {
-        return "ContainerImplementation [engine=" + engine + ", image=" + image + ", binary=" + binary + "]";
+        return "ContainerImplementation [container=" + container + ", binary=" + binary + "]";
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
-        this.engine = (String) in.readObject();
-        this.image = (String) in.readObject();
+        this.container = (ContainerDescription) in.readObject();
         this.binary = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeObject(this.engine);
-        out.writeObject(this.image);
+        out.writeObject(this.container);
         out.writeObject(this.binary);
     }
 

@@ -41,7 +41,6 @@ public class ContainerDescription implements Serializable {
      * @param image Container imagen.
      */
     public ContainerDescription(String engine, String image) {
-        super();
         this.engine = engine;
         this.image = image;
     }

@@ -26,7 +26,7 @@ class GeneratorIndicator(object):
 
 
 def pickle_generator(f_gen, f, serializer):
-    # type: (object, ..., ...) -> None
+    # type: (..., ..., ...) -> None
     """ Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.

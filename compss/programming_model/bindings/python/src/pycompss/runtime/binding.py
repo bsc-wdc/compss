@@ -549,10 +549,10 @@ def process_task(signature,             # type: str
                  content_types,         # type: list
                  weights,               # type: list
                  keep_renames,          # type: list
-                 has_priority,          # type: list
+                 has_priority,          # type: bool
                  num_nodes,             # type: int
-                 replicated,            # type: list
-                 distributed,           # type: list
+                 replicated,            # type: bool
+                 distributed,           # type: bool
                  on_failure,            # type: str
                  time_out,              # type: int
                  ):

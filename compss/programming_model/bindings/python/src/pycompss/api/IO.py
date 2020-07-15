@@ -101,7 +101,7 @@ class IO(PyCOMPSsDecorator):
         io_f.__doc__ = func.__doc__
         return io_f
 
-    def __configure_core_element__(self, kwargs):
+    def __configure_core_element__(self, kwargs):  # noqa
         # type: (dict) -> None
         """ Include the registering info related to @IO.
 

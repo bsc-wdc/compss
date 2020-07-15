@@ -63,6 +63,7 @@ class TaskWorker(TaskCommons):
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (list, list, list)
         """ Main task code at worker side.
+
         This function deals with task calls in the worker's side
         Note that the call to the user function is made by the worker,
         not by the user code.
@@ -189,6 +190,7 @@ class TaskWorker(TaskCommons):
     def reveal_objects(self, args, logger):  # noqa
         # type: (tuple, logger) -> None
         """ Get the objects from the args message.
+
         This function takes the arguments passed from the persistent worker
         and treats them to get the proper parameters for the user function.
 
@@ -219,6 +221,7 @@ class TaskWorker(TaskCommons):
     def storage_supports_pipelining():
         # type: () -> bool
         """ Check if storage supports pipelining.
+
         Some storage implementations use pipelining
         Pipelining means "accumulate the getByID queries and perform them
         in a single megaquery".
@@ -358,6 +361,7 @@ class TaskWorker(TaskCommons):
     def segregate_objects(self, args):
         # type: (tuple) -> (list, dict, list)
         """ Split a list of arguments.
+
         Segregates a list of arguments in user positional, variadic and
         return arguments.
 
@@ -396,6 +400,7 @@ class TaskWorker(TaskCommons):
     def execute_user_code(self, user_args, user_kwargs, tracing):
         # type: (list, dict, bool) -> (object, COMPSsException)
         """ Executes the user code.
+
         Disables the tracing hook if tracing is enabled. Restores it
         at the end of the user code execution.
 
@@ -682,6 +687,7 @@ class TaskWorker(TaskCommons):
                                 ):
         # type: (...) -> (list, list)
         """ Manage new types and values.
+
         We must notify COMPSs when types are updated
         Potential update candidates are returns and INOUTs
         But the whole types and values list must be returned

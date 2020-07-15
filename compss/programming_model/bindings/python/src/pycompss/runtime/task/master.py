@@ -36,7 +36,6 @@ from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.commons import get_temporary_directory
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.task.commons import TaskCommons
@@ -207,6 +206,7 @@ class TaskMaster(TaskCommons):
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (object, bool, str)
         """ Main task code at master side.
+
         This part deals with task calls in the master's side
         Also, this function must return an appropriate number of
         future objects that point to the appropriate objects/files.
@@ -363,6 +363,7 @@ class TaskMaster(TaskCommons):
     def update_if_interactive(self):
         # type: () -> None
         """ Update the code for jupyter notebook.
+
         Update the user code if in interactive mode and the session has
         been started.
 
@@ -403,8 +404,10 @@ class TaskMaster(TaskCommons):
     def extract_core_element(kwargs):
         # type: (dict) -> (CE, bool)
         """ Get or instantiate the Task's core element.
+
         Extract the core element if created in a higher level decorator
         or creates a new one if does not.
+
         IMPORTANT! extract the core element from kwargs if pre-defined
                    in decorators defined on top of @task.
 
@@ -426,6 +429,7 @@ class TaskMaster(TaskCommons):
     def inspect_user_function_arguments(self):
         # type: () -> None
         """ Get user function arguments.
+
         Inspect the arguments of the user function and store them.
         Read the names of the arguments and remember their order.
         We will also learn things like if the user function contained
@@ -477,6 +481,7 @@ class TaskMaster(TaskCommons):
 
     def process_parameters(self, *args, **kwargs):
         """ Process all the input parameters.
+
         Basically, processing means "build a dictionary of <name, parameter>,
         where each parameter has an associated Parameter object".
         This function also assigns default directions to parameters.
@@ -596,6 +601,7 @@ class TaskMaster(TaskCommons):
     def compute_user_function_information(self):
         # type: () -> None
         """ Get the user function path and name.
+
         Compute the function path p and the name n such that
         "from p import n" imports self.user_function.
 
@@ -612,6 +618,7 @@ class TaskMaster(TaskCommons):
     def compute_module_name(self):
         # type: () -> None
         """ Compute the user's function module name.
+
         There are various cases:
             1) The user function is defined in some file. This is easy, just
                get the module returned by inspect.getmodule.
@@ -649,6 +656,7 @@ class TaskMaster(TaskCommons):
     def compute_function_type(self):
         # type: () -> None
         """ Compute user function type.
+
         Compute some properties of the user function, as its name,
         its import path, and its type (module function, instance method,
          class method), etc.
@@ -687,6 +695,7 @@ class TaskMaster(TaskCommons):
 
     def set_code_strings(self, f, ce_type):
         """ This function is used to set if the strings must be coded or not.
+
         IMPORTANT! modifies f adding __code_strings__ which is used in binding.
 
         :param f: Function to be registered.
@@ -713,6 +722,7 @@ class TaskMaster(TaskCommons):
     def get_signature(self):
         # type: () -> (str, list)
         """ This function is used to find out the function signature.
+
         The information is needed in order to compare the implementation
         signature, so that if it has been registered with a different
         signature, it can be re-registered with the new one (enable
@@ -761,6 +771,7 @@ class TaskMaster(TaskCommons):
                             core_element, pre_defined_ce):
         # type: (str, list, CE, bool) -> None
         """ Adds the @task decorator information to the core element.
+
         CAUTION: Modifies the core_element parameter.
 
         :param impl_signature: Implementation signature.
@@ -815,6 +826,7 @@ class TaskMaster(TaskCommons):
     def register_task(self, core_element):
         # type: (CE) -> None
         """ This function is used to register the task in the runtime.
+
         This registration must be done only once on the task decorator
         initialization, unless there is a signature change (this will mean
         that the user has changed the implementation interactively).
@@ -829,6 +841,7 @@ class TaskMaster(TaskCommons):
     def process_computing_nodes(self):
         # type: () -> int
         """ Retrieve the number of computing nodes.
+
         This value can be defined by upper decorators and can also be defined
         dynamically defined with a global or environment variable.
 
@@ -958,8 +971,10 @@ class TaskMaster(TaskCommons):
 
     def update_return_if_no_returns(self, f):
         """ Look for returns if no returns is specified.
+
         Checks the code looking for return statements if no returns is
         specified in @task decorator.
+
         WARNING: Updates self.return if returns are found.
 
         :param f: Function to check.
@@ -1047,9 +1062,9 @@ class TaskMaster(TaskCommons):
                 # Parse code AST (it is not a task defined within a class)
                 for i in lines:
                     try:
-                        if 'elts' in code[i].value.__dict__:
+                        if 'elts' in code[i].value.__dict__:  # noqa
                             has_multireturn = True
-                            num_returns = len(code[i].value.__dict__['elts'])
+                            num_returns = len(code[i].value.__dict__['elts'])  # noqa
                             if num_returns > max_num_returns:
                                 max_num_returns = num_returns
                     except (KeyError, AttributeError):
@@ -1074,12 +1089,14 @@ class TaskMaster(TaskCommons):
     def _build_return_objects(self):
         # type: () -> object
         """ Build the return objects.
+
         Build the return object from the self.return dictionary and include
         their filename in self.returns.
         Normally they are future objects, unless the user has defined a user
         defined class where an empty instance (needs an empty constructor)
         will be returned. This case will enable users to call tasks within
         user defined classes from future objects.
+
         WARNING: Updates self.returns dictionary.
 
         :return: Future object/s.
@@ -1149,6 +1166,7 @@ class TaskMaster(TaskCommons):
     def _serialize_objects(self):
         # type: () -> None
         """ Infer COMPSs types for the task parameters and serialize them.
+
         WARNING: Updates self.parameters dictionary.
 
         :return: Tuple of task_kwargs updated and a dictionary containing if the
@@ -1179,6 +1197,7 @@ class TaskMaster(TaskCommons):
         """
         Build the values list, the values types list and the values directions
         list.
+
         Uses:
             - self.function_type: task function type. If it is an instance
                                   method, the first parameter will be put at
@@ -1264,10 +1283,12 @@ class TaskMaster(TaskCommons):
                weights, keep_renames  # noqa
 
     @staticmethod
-    def _convert_parameter_obj_to_string(p, max_obj_arg_size,
+    def _convert_parameter_obj_to_string(p,
+                                         max_obj_arg_size,
                                          policy='objectSize'):
         # type: (Parameter, int, str) -> (Parameter, int)
         """ Convert object to string.
+
         Convert small objects into strings that can fit into the task
         parameters call.
 
@@ -1276,7 +1297,7 @@ class TaskMaster(TaskCommons):
         :param policy: policy to use:
                        - 'objectSize' for considering the size of the object.
                        - 'serializedSize' for considering the size of the
-                        object serialized.
+                         object serialized.
         :return: the object possibly converted to string and it size in bytes.
         """
         is_future = p.is_future
@@ -1315,7 +1336,7 @@ class TaskMaster(TaskCommons):
                         real_value = p.content
                         try:
                             v = serialize_to_string(p.content)
-                            p.content = v.encode(STR_ESCAPE)
+                            p.content = v.encode(STR_ESCAPE)  # noqa
                             p.content_type = TYPE.STRING
                             if __debug__:
                                 logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
@@ -1347,7 +1368,7 @@ class TaskMaster(TaskCommons):
                     real_value = p.content
                     try:
                         v = serialize_to_string(p.content)
-                        v = v.encode(STR_ESCAPE)
+                        v = v.encode(STR_ESCAPE)  # noqa
                         # check object size
                         num_bytes = sys.getsizeof(v)
                         if __debug__:
@@ -1390,7 +1411,8 @@ class TaskMaster(TaskCommons):
 
 def _manage_persistent_object(p):
     # type: (Parameter) -> None
-    """ Manage a persistent object within a Parameter
+    """ Manage a persistent object within a Parameter.
+
     Does the necessary actions over a persistent object used as task parameter.
     Check if the object has already been used (indexed in the obj_id_to_filename
     dictionary).
@@ -1461,7 +1483,7 @@ def _serialize_object_into_file(name, p):
             _turn_into_file(p, _skip_file_creation)
     elif p.content_type == TYPE.STRING:
         # Do not move this import to the top
-        from pycompss.api.task import PREPEND_STRINGS
+        from pycompss.api.task import PREPEND_STRINGS  # noqa
         if PREPEND_STRINGS:
             # Strings can be empty. If a string is empty their base64 encoding
             # will be empty.

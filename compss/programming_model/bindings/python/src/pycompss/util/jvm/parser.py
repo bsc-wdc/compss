@@ -28,7 +28,7 @@ def convert_to_dict(jvm_opt_file):
     # type: (str) -> dict
     """ JVM parameter file converter to dictionary.
 
-    :param jvm_opt_file: JVM parameters file
+    :param jvm_opt_file: JVM parameters file.
     :return: Dictionary with the parameters specified on the file.
     """
     opts = {}

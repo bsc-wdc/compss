@@ -72,6 +72,7 @@ else:
 
 
 def parse_arguments():
+    # type: () -> ...
     """ Parse PyCOMPSs arguments.
 
     :return: Argument's parser.
@@ -230,46 +231,48 @@ def compss_main():
 # Starts a new COMPSs runtime and calls the application. #
 # ###################################################### #
 
-def launch_pycompss_application(app, func,
-                                log_level='off',
-                                o_c=False,
-                                debug=False,
-                                graph=False,
-                                trace=False,
-                                monitor=None,
-                                project_xml=None,
-                                resources_xml=None,
-                                summary=False,
-                                task_execution='compss',
-                                storage_impl=None,
-                                storage_conf=None,
-                                streaming_backend=None,
-                                streaming_master_name=None,
-                                streaming_master_port=None,
-                                task_count=50,
-                                app_name=None,
-                                uuid=None,
-                                base_log_dir=None,
-                                specific_log_dir=None,
-                                extrae_cfg=None,
-                                comm='NIO',
+def launch_pycompss_application(app,
+                                func,
+                                log_level='off',                 # type: str
+                                o_c=False,                       # type: bool
+                                debug=False,                     # type: bool
+                                graph=False,                     # type: bool
+                                trace=False,                     # type: bool
+                                monitor=None,                    # type: int
+                                project_xml=None,                # type: str
+                                resources_xml=None,              # type: str
+                                summary=False,                   # type: bool
+                                task_execution='compss',         # type: str
+                                storage_impl=None,               # type: str
+                                storage_conf=None,               # type: str
+                                streaming_backend=None,          # type: str
+                                streaming_master_name=None,      # type: str
+                                streaming_master_port=None,      # type: str
+                                task_count=50,                   # type: int
+                                app_name=None,                   # type: str
+                                uuid=None,                       # type: str
+                                base_log_dir=None,               # type: str
+                                specific_log_dir=None,           # type: str
+                                extrae_cfg=None,                 # type: str
+                                comm='NIO',                      # type: str
                                 conn='es.bsc.compss.connectors.DefaultSSHConnector',                        # noqa: E501
-                                master_name='',
-                                master_port='',
+                                master_name='',                  # type: str
+                                master_port='',                  # type: str
                                 scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',   # noqa: E501
                                 jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
-                                cpu_affinity='automatic',
-                                gpu_affinity='automatic',
-                                fpga_affinity='automatic',
-                                fpga_reprogram='',
-                                profile_input='',
-                                profile_output='',
-                                scheduler_config='',
-                                external_adaptation=False,
-                                propagate_virtual_environment=True,
-                                mpi_worker=False,
+                                cpu_affinity='automatic',        # type: str
+                                gpu_affinity='automatic',        # type: str
+                                fpga_affinity='automatic',       # type: str
+                                fpga_reprogram='',               # type: str
+                                profile_input='',                # type: str
+                                profile_output='',               # type: str
+                                scheduler_config='',             # type: str
+                                external_adaptation=False,       # type: bool
+                                propagate_virtual_environment=True,  # type: bool
+                                mpi_worker=False,                # type: bool
                                 *args, **kwargs
                                 ):
+    # type: (...) -> None
     """ Launch PyCOMPSs application from function.
 
     :param app: Application path

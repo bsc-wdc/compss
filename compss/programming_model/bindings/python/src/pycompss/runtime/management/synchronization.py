@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 
 
 def wait_on_object(obj, mode):
-    """
-    Waits on an object.
+    # type: (..., str) -> object
+    """ Waits on an object.
 
     :param obj: Object to wait on.
     :param mode: Read or write mode
@@ -62,8 +62,9 @@ def wait_on_object(obj, mode):
 
 
 def _synchronize(obj, mode):
-    """
-    Synchronization function.
+    # type: (object, int) -> object
+    """ Synchronization function.
+
     This method retrieves the value of a future object.
     Calls the runtime in order to wait for the value and returns it when
     received.
@@ -128,12 +129,13 @@ def _synchronize(obj, mode):
 
 
 def _wait_on_iterable(iter_obj, compss_mode):
-    """
-    Wait on an iterable object.
+    # type: (..., int) -> object
+    """ Wait on an iterable object (Recursive).
+
     Currently supports lists and dictionaries (syncs the values).
 
-    :param iter_obj: iterable object
-    :return: synchronized object
+    :param iter_obj: Iterable object.
+    :return: Synchronized object.
     """
     # check if the object is in our pending_to_synchronize dictionary
     obj_id = OT.is_tracked(iter_obj)

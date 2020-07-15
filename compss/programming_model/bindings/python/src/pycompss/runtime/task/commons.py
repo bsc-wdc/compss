@@ -38,11 +38,12 @@ class TaskCommons(object):
         self.param_varargs = param_varargs
 
     def get_varargs_direction(self):
-        """
-        Returns the direction of the varargs arguments.
+        # type: () -> ... # Parameter
+        """ Returns the direction of the varargs arguments.
+
         Can be defined in the decorator in two ways:
-        args = dir, where args is the name of the variadic args tuple, or
-        varargs_type = dir (for legacy reasons)
+            args = dir, where args is the name of the variadic args tuple.
+            varargs_type = dir (for legacy reasons).
 
         :return: Direction of the varargs arguments.
         """
@@ -55,10 +56,11 @@ class TaskCommons(object):
         return self.decorator_arguments[self.param_varargs]
 
     def get_default_direction(self, var_name):
-        """
-        Returns the default direction for a given parameter
+        # type: (str) -> ...  # Parameter
+        """ Returns the default direction for a given parameter.
 
-        :return: An identifier of the direction
+        :param var_name: Variable name.
+        :return: An identifier of the direction.
         """
         # We are the 'self' or 'cls' in an instance or classmethod that
         # modifies the given class, so we are an INOUT, CONCURRENT or

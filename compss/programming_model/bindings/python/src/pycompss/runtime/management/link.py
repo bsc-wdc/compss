@@ -62,11 +62,12 @@ logger = logging.getLogger(__name__)
 
 
 def shutdown_handler(signal, frame):  # noqa
-    """
-    Shutdown handler (do not remove the parameters).
+    """ Shutdown handler.
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
     """
     if LINK_PROCESS.is_alive():
@@ -74,11 +75,11 @@ def shutdown_handler(signal, frame):  # noqa
 
 
 def c_extension_link(in_queue, out_queue):
-    """
-    Main C extension process
+    # type: (..., ...) -> None
+    """ Main C extension process.
 
-    :param in_queue: Queue to receive messages
-    :param out_queue: Queue to send messages
+    :param in_queue: Queue to receive messages.
+    :param out_queue: Queue to send messages.
     :return: None
     """
     import compss
@@ -142,10 +143,10 @@ def c_extension_link(in_queue, out_queue):
 
 
 def establish_link():
-    """
-    Loads the compss C extension within the same process.
+    # type: () -> ...
+    """ Loads the compss C extension within the same process.
 
-    :return: the COMPSs C extension link
+    :return: The COMPSs C extension link.
     """
     if __debug__:
         logger.debug("Loading compss extension")
@@ -156,11 +157,11 @@ def establish_link():
 
 
 def establish_interactive_link():
-    """
-    Starts a new process which will be in charge of communicating with the
+    # type: () -> ...
+    """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
-    :return: the COMPSs C extension link
+    :return: The COMPSs C extension link.
     """
     global LINK_PROCESS
     global IN_QUEUE
@@ -187,8 +188,8 @@ def establish_interactive_link():
 
 
 def wait_for_interactive_link():
-    """
-    Wait for interactive link finalization
+    # type: () -> None
+    """ Wait for interactive link finalization.
 
     :return: None
     """
@@ -206,8 +207,8 @@ def wait_for_interactive_link():
 
 
 def terminate_interactive_link():
-    """
-    Terminate the compss C extension process
+    # type: () -> None
+    """ Terminate the compss C extension process.
 
     :return: None
     """
@@ -229,125 +230,147 @@ class COMPSs(object):
 
     @staticmethod
     def start_runtime():
+        # type: () -> None
         IN_QUEUE.put([START])
 
     @staticmethod
     def set_debug(mode):
+        # type: (bool) -> None
         IN_QUEUE.put((SET_DEBUG, mode))
 
     @staticmethod
     def stop_runtime(code):
+        # type: (int) -> None
         IN_QUEUE.put([STOP, code])
         wait_for_interactive_link()
         # terminate_interactive_link()
 
     @staticmethod
     def cancel_application_tasks(value):
+        # type: (int) -> None
         IN_QUEUE.put((CANCEL_TASKS, value))
 
     @staticmethod
     def accessed_file(file_name):
+        # type: (str) -> bool
         IN_QUEUE.put((ACCESSED_FILE, file_name))
         accessed = OUT_QUEUE.get(block=True)
         return accessed
 
     @staticmethod
     def open_file(file_name, mode):
+        # type: (str, int) -> str
         IN_QUEUE.put((OPEN_FILE, file_name, mode))
         compss_name = OUT_QUEUE.get(block=True)
         return compss_name
 
     @staticmethod
     def close_file(file_name, mode):
+        # type: (str, int) -> None
         IN_QUEUE.put((CLOSE_FILE, file_name, mode))
 
     @staticmethod
     def delete_file(file_name, mode):
+        # type: (str, bool) -> bool
         IN_QUEUE.put((DELETE_FILE, file_name, mode))
         result = OUT_QUEUE.get(block=True)
         return result
 
     @staticmethod
     def get_file(app_id, file_name):
+        # type: (int, str) -> None
         IN_QUEUE.put((GET_FILE, app_id, file_name))
 
     @staticmethod
     def get_directory(app_id, file_name):
+        # type: (int, str) -> None
         IN_QUEUE.put((GET_DIRECTORY, app_id, file_name))
 
     @staticmethod
     def barrier(app_id, no_more_tasks):
+        # type: (int, bool) -> None
         IN_QUEUE.put((BARRIER, app_id, no_more_tasks))
 
     @staticmethod
     def barrier_group(app_id, group_name):
+        # type: (int, str) -> str
         IN_QUEUE.put((BARRIER_GROUP, app_id, group_name))
         exception_message = OUT_QUEUE.get(block=True)
         return exception_message
 
     @staticmethod
     def open_task_group(group_name, implicit_barrier, mode):
+        # type: (str, bool, int) -> None
         IN_QUEUE.put((OPEN_TASK_GROUP, group_name, implicit_barrier, mode))
 
     @staticmethod
     def close_task_group(group_name, mode):
+        # type: (str, int) -> None
         IN_QUEUE.put((CLOSE_TASK_GROUP, group_name, mode))
 
     @staticmethod
     def get_logging_path():
+        # type: () -> str
         IN_QUEUE.put([GET_LOGGING_PATH])
         log_path = OUT_QUEUE.get(block=True)
         return log_path
 
     @staticmethod
     def get_number_of_resources(app_id):
+        # type: (int) -> int
         IN_QUEUE.put((GET_NUMBER_OF_RESOURCES, app_id))
         num_resources = OUT_QUEUE.get(block=True)
         return num_resources
 
     @staticmethod
     def request_resources(app_id, num_resources, group_name):
+        # type: (int, int, str) -> None
         IN_QUEUE.put((REQUEST_RESOURCES, app_id, num_resources, group_name))
 
     @staticmethod
     def free_resources(app_id, num_resources, group_name):
+        # type: (int, int, str) -> None
         IN_QUEUE.put((FREE_RESOURCES, app_id, num_resources, group_name))
 
     @staticmethod
-    def register_core_element(ce_signature,
-                              impl_signature,
-                              impl_constraints_str,
-                              impl_type,
-                              impl_io,
-                              impl_type_args):
+    def register_core_element(ce_signature,      # type: str
+                              impl_signature,    # type: str
+                              impl_constraints,  # type: str
+                              impl_type,         # type: str
+                              impl_io,           # type: str
+                              impl_type_args     # type: list
+                              ):
+        # type: (...) -> None
         IN_QUEUE.put((REGISTER_CORE_ELEMENT,
                       ce_signature,
                       impl_signature,
-                      impl_constraints_str,
+                      impl_constraints,
                       impl_type,
                       impl_io,
                       impl_type_args))
 
     @staticmethod
-    def process_task(app_id,
-                     signature,
-                     on_failure,
-                     time_out,
-                     has_priority,
-                     num_nodes,
-                     replicated,
-                     distributed,
-                     has_target,
-                     num_returns,
-                     values,
-                     names,
-                     compss_types,
-                     compss_directions,
-                     compss_streams,
-                     compss_prefixes,
-                     content_types,
-                     weights,
-                     keep_renames):
+    def process_task(app_id,             # type: int
+                     signature,          # type: str
+                     on_failure,         # type: str
+                     time_out,           # type: int
+                     has_priority,       # type: bool
+                     num_nodes,          # type: int
+                     replicated,         # type: bool
+                     distributed,        # type: bool
+                     has_target,         # type: bool
+                     num_returns,        # type: int
+                     values,             # type: list
+                     names,              # type: list
+                     compss_types,       # type: list
+                     compss_directions,  # type: list
+                     compss_streams,     # type: list
+                     compss_prefixes,    # type: list
+                     content_types,      # type: list
+                     weights,            # type: list
+                     keep_renames        # type: list
+                     ):
+        # type: (...) -> None
         IN_QUEUE.put((PROCESS_TASK,
                       app_id,
                       signature,

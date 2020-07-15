@@ -224,16 +224,16 @@ def get_task_params(num_params, logger, args):  # noqa
     return ret
 
 
-def task_execution(logger,
-                   process_name,
-                   module,
-                   method_name,
-                   time_out,
-                   types,
-                   values,
-                   compss_kwargs,
-                   persistent_storage,
-                   storage_conf
+def task_execution(logger,              # type: ...
+                   process_name,        # type: str
+                   module,              # type: ...
+                   method_name,         # type: str
+                   time_out,            # type: int
+                   types,               # type: list
+                   values,              # type: list
+                   compss_kwargs,       # type: dict
+                   persistent_storage,  # type: bool
+                   storage_conf         # type: str
                    ):
     # type: (...) -> (int, list, list, str, bool, str)
     """ Task execution function.
@@ -393,7 +393,7 @@ def _get_return_values_for_exception(types, values):
 def task_returns(exit_code,         # type: int
                  new_types,         # type: list
                  new_values,        # type: list
-                 target_direction,
+                 target_direction,  # type: ...
                  timed_out,         # type: bool
                  return_message,    # type: str
                  logger             # noqa

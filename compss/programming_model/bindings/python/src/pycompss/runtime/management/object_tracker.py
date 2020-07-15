@@ -466,7 +466,7 @@ class ObjectTracker(object):
         :return: None
         """
         try:
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot as plt  # noqa
         except ImportError:
             print("WARNING: Could not generate the Object Tracker report")
             print("REASON : matplotlib not available.")

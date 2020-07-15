@@ -152,7 +152,7 @@ def init_storage(storage_conf, logger):  # noqa
 
 @emit_event(STOP_STORAGE_EVENT)
 def stop_storage(logger):
-    # type: () -> None
+    # type: (...) -> None
     """ Stops the persistent storage.
 
     :param logger: Logger where to log the messages.

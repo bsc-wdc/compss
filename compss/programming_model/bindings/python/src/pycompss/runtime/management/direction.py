@@ -27,11 +27,11 @@ from pycompss.api.parameter import DIRECTION
 
 
 def get_compss_direction(pymode):
-    """
-    Get the COMPSs direction of the given pymode string.
+    # type: (str) -> int
+    """ Get the COMPSs direction of the given pymode string.
 
-    :param pymode: String to parse and return the direction
-    :return: Direction object (IN/INOUT/OUT)
+    :param pymode: String to parse and return the direction.
+    :return: Direction object (IN/INOUT/OUT).
     """
     if pymode.startswith('w'):
         return DIRECTION.OUT

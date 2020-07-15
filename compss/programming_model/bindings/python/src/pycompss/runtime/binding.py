@@ -69,6 +69,7 @@ def start_runtime(log_level='off', interactive=False):
         # Could also be 'debug' or True, but we only show the C extension
         # debug in the maximum tracing level.
         COMPSs.set_debug(True)
+        OT.enable_report()
 
     COMPSs.start_runtime()
     if __debug__:
@@ -95,6 +96,13 @@ def stop_runtime(code=0):
         if __debug__:
             logger.info("Canceling all application tasks...")
         COMPSs.cancel_application_tasks(0)
+
+    if __debug__:
+        logger.info("Generating Object tracker report...")
+        reporting = OT.is_report_enabled()
+        if reporting:
+            target_path = get_log_path()
+            OT.generate_report(target_path)
 
     if __debug__:
         logger.info("Cleaning objects...")

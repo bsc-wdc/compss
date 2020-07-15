@@ -24,6 +24,7 @@ PyCOMPSs Binding - Management - Object tracker
 """
 
 import os
+import time
 import uuid
 from pycompss.runtime.commons import get_temporary_directory
 
@@ -43,7 +44,7 @@ class ObjectTracker(object):
 
     __slots__ = ['file_names', 'pending_to_synchronize',
                  'written_objects', 'current_id', 'runtime_id',
-                 'obj_id_to_address']
+                 'obj_id_to_address', 'reporting', 'reporting_info']
 
     def __init__(self):
         # Dictionary to contain the conversion from object id to the
@@ -71,6 +72,14 @@ class ObjectTracker(object):
         #       weird behaviour.
         self.obj_id_to_address = {}
 
+        # Boolean to store tracking information
+        # CAUTION: Enabling reporting increases the memory usage since
+        #          it requires to store internally the object tracker status
+        #          when a new object is tracked or stopped tracking.
+        self.reporting = False
+        # Report info: Contains tuples composed by the values to be reported.
+        self.reporting_info = []
+
     def track(self, obj, collection=False):
         # type: (object, bool) -> str
         """ Start tracking an object.
@@ -95,6 +104,11 @@ class ObjectTracker(object):
             if __debug__:
                 logger.debug("Tracking object %s to file %s" % (obj_id,
                                                                 file_name))
+        if __debug__:
+            # Log the object tracker status
+            self.__log_object_tracker_status__()
+            if self.reporting:
+                self.__update_report__()
         return obj_id
 
     def stop_tracking(self, obj, collection=False):
@@ -117,6 +131,11 @@ class ObjectTracker(object):
                 self._delete_file_name(obj_id)
                 self._remove_from_pending_to_synchronize(obj_id)
                 self._pop_object_id(obj_id)
+        if __debug__:
+            # Log the object tracker status
+            self.__log_object_tracker_status__()
+            if self.reporting:
+                self.__update_report__()
 
     def get_object_id(self, obj):
         # type: (object) -> str or None
@@ -250,6 +269,7 @@ class ObjectTracker(object):
         self.file_names.clear()
         self.written_objects.clear()
         self.obj_id_to_address.clear()
+        del self.reporting_info[:]
 
     #############################################
     #            PRIVATE FUNCTIONS              #
@@ -387,6 +407,88 @@ class ObjectTracker(object):
         #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
         #     obj_address = str(hash_id.hexdigest())
         # return obj_address
+
+    #############################################
+    #           REPORTING FUNCTIONS             #
+    #############################################
+
+    def __log_object_tracker_status__(self):
+        # type: () -> None
+        """ Logs the object tracker status.
+
+        :return: None
+        """
+        logger.debug("Object tracker status:"
+                     + " File_names=" + str(len(self.file_names))
+                     + " Pending_to_synchronize=" + str(len(self.pending_to_synchronize))  # noqa: E501
+                     + " Written_objs=" + str(len(self.written_objects))
+                     + " Obj_id_to_address=" + str(len(self.obj_id_to_address))
+                     + " Current_id=" + str(self.current_id))
+
+    def enable_report(self):
+        # type: () -> None
+        """ Enables to keep the status in internal infrastructure so that
+        the report can be generated afterwards.
+
+        :return: None
+        """
+        self.reporting = True
+
+    def is_report_enabled(self):
+        # type: () -> bool
+        """ Retrieves if the reporting is enabled.
+
+        :return: If the object tracker is keeping track of the status.
+        """
+        return self.reporting
+
+    def __update_report__(self):
+        # type: () -> None
+        """ Updates the internal self.report_info variable with the
+        current object tracker status.
+
+        :return: None
+        """
+        current_status = (time.time(),
+                          (len(self.file_names),
+                          len(self.pending_to_synchronize),
+                          len(self.written_objects),
+                          len(self.obj_id_to_address)))
+        self.reporting_info.append(current_status)
+
+    def generate_report(self, target_path):
+        # type: (str) -> None
+        """ Generates a plot reporting the behaviour of the object tracker.
+
+        Uses the self.report_info internal variable contents.
+
+        :param target_path: Path where to store the report.
+        :return: None
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            print("WARNING: Could not generate the Object Tracker report")
+            print("REASON : matplotlib not available.")
+            return None
+        if __debug__:
+            logger.debug("Generating object tracker report...")
+        x = [status[0] for status in self.reporting_info]
+        y = [status[1] for status in self.reporting_info]
+        plt.xlabel("Timestamp")
+        plt.ylabel("# Elements")
+        plt.title("Object tracker behaviour")
+        labels = ['File names',
+                  'Pending to synchronize',
+                  'Updated mappings',
+                  'Addresses']
+        for i in range(len(y[0])):
+            plt.plot(x, [pt[i] for pt in y], label='%s' % labels[i])
+        plt.legend()
+        target = os.path.join(target_path + "object_tracker.png")
+        plt.savefig(target)
+        if __debug__:
+            logger.debug("Object tracker report stored in " + target)
 
 
 # Instantiation of the Object tracker class to be shared among

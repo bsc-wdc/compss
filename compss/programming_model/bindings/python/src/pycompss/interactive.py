@@ -451,7 +451,7 @@ def stop(sync=False):
 
     # Stop persistent storage
     if PERSISTENT_STORAGE:
-        stop_storage()
+        stop_storage(logger)
 
     compss_stop()
 

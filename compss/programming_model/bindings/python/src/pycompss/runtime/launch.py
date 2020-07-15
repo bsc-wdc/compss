@@ -187,7 +187,7 @@ def compss_main():
 
         # Stop persistent storage
         if persistent_storage:
-            stop_storage()
+            stop_storage(logger)
 
         # End
         if __debug__:
@@ -466,7 +466,7 @@ def launch_pycompss_application(app, func,
 
     # Stop persistent storage
     if persistent_storage:
-        stop_storage()
+        stop_storage(logger)
 
     logger.debug('--- END ---')
 

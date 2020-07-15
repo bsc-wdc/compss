@@ -168,8 +168,7 @@ def compss_main():
         # Start streaming
         streaming = init_streaming(args.streaming_backend,
                                    args.streaming_master_name,
-                                   args.streaming_master_port,
-                                   logger)
+                                   args.streaming_master_port)
 
         # Show module warnings
         if __debug__:
@@ -184,7 +183,7 @@ def compss_main():
 
         # Stop streaming
         if streaming:
-            stop_streaming(logger)
+            stop_streaming()
 
         # Stop persistent storage
         if persistent_storage:
@@ -436,8 +435,7 @@ def launch_pycompss_application(app, func,
     logger.debug("Starting streaming")
     streaming = init_streaming(all_vars['streaming_backend'],
                                all_vars['streaming_master_name'],
-                               all_vars['streaming_master_port'],
-                               logger)
+                               all_vars['streaming_master_port'])
 
     saved_argv = sys.argv
     sys.argv = args
@@ -462,11 +460,13 @@ def launch_pycompss_application(app, func,
     # Recover the system arguments
     sys.argv = saved_argv
 
+    # Stop streaming
+    if streaming:
+        stop_streaming()
+
+    # Stop persistent storage
     if persistent_storage:
         stop_storage()
-
-    if streaming:
-        stop_streaming(logger)
 
     logger.debug('--- END ---')
 

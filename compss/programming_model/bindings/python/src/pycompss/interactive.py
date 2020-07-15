@@ -346,8 +346,7 @@ def start(log_level='off',                     # type: str
     global STREAMING
     STREAMING = init_streaming(all_vars['streaming_backend'],
                                all_vars['streaming_master_name'],
-                               all_vars['streaming_master_port'],
-                               logger)
+                               all_vars['streaming_master_port'])
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -446,12 +445,12 @@ def stop(sync=False):
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
 
+    # Stop streaming
     if STREAMING:
-        logger.debug("Stopping streaming")
-        stop_streaming(logger)
+        stop_streaming()
 
+    # Stop persistent storage
     if PERSISTENT_STORAGE:
-        logger.debug("Stopping persistent storage")
         stop_storage()
 
     compss_stop()

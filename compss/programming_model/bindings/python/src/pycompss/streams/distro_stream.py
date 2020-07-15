@@ -194,7 +194,8 @@ class DistroStreamImpl(DistroStream):
         """
         super(DistroStreamImpl, self).__init__()
 
-        logger.debug("Registering new stream...")
+        if __debug__:
+            logger.debug("Registering new stream...")
 
         self.alias = alias
         self.stream_type = stream_type
@@ -481,7 +482,8 @@ class PscoDistroStream(DistroStreamImpl):
 
     def _psco_publish(self, psco):
         # Persist the psco if its not
-        logger.debug("Persisting user PSCO...")
+        if __debug__:
+            logger.debug("Persisting user PSCO...")
         if psco.getID() is None:
             import uuid
             alias = str(uuid.uuid4())
@@ -489,7 +491,8 @@ class PscoDistroStream(DistroStreamImpl):
         psco_id = psco.getID()
 
         # Register the psco on the server
-        logger.debug("Registering PSCO publish...")
+        if __debug__:
+            logger.debug("Registering PSCO publish...")
         req = PublishRequest(self.id, psco_id)
         DistroStreamClientHandler.request(req)
 
@@ -500,7 +503,7 @@ class PscoDistroStream(DistroStreamImpl):
             raise BackendException(error, req.get_error_msg())
 
         # Parse answer
-        answer = req.get_response_msg()
+        answer = req.get_response_msg()  # noqa
         if __debug__:
             logger.debug("Publish stream answer: " + str(answer))
 

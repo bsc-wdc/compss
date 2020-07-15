@@ -48,6 +48,7 @@ import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodType;
@@ -541,7 +542,7 @@ public class ITFParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            String binarySignature = calleeMethodSignature.toString() + LoaderUtils.CONTAINER_SIGNATURE;
+            String binarySignature = calleeMethodSignature.toString() + ContainerImplementation.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -550,22 +551,11 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Register service implementation
+            // Register container implementation
             ImplementationDefinition<?> implDef = null;
             try {
-                LOGGER.debug("Aqui empieza el try CONTAINER \n");
-                LOGGER.debug("MethodType.BINARY.toString() : " + MethodType.CONTAINER.toString() + "\n");
-                LOGGER.debug("binarySignature : " + binarySignature + "\n");
-                LOGGER.debug("implConstraints : " + implConstraints + "\n");
-                LOGGER.debug("binary : " + binaryC + "\n");
-                LOGGER.debug("workingDir : " + hostDir + "\n");
-                LOGGER.debug("container.getEngine() : " + engine + "\n");
-                LOGGER.debug("container.getImage() : " + image + "\n");
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
                     implConstraints, binaryC, hostDir, failByEVstrC, engine, image);
-                LOGGER.debug("implDef = " + implDef + "\n");
-                LOGGER.debug("Aqui muere el try CONTAINER \n");
-
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -599,21 +589,11 @@ public class ITFParser {
                     new BinaryContainerDescription(binaryAnnot.container().engine(), binaryAnnot.container().image());
             }
 
-            // Register service implementation
+            // Register binary implementation
             ImplementationDefinition<?> implDef = null;
             try {
-                LOGGER.debug("Aqui empieza el try \n");
-                LOGGER.debug("MethodType.BINARY.toString() : " + MethodType.BINARY.toString() + "\n");
-                LOGGER.debug("binarySignature : " + binarySignature + "\n");
-                LOGGER.debug("implConstraints : " + implConstraints + "\n");
-                LOGGER.debug("binary : " + binary + "\n");
-                LOGGER.debug("workingDir : " + workingDir + "\n");
-                LOGGER.debug("container.getEngine() : " + container.getEngine() + "\n");
-                LOGGER.debug("container.getImage() : " + container.getImage() + "\n");
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
                     implConstraints, binary, workingDir, failByEVstr, container.getEngine(), container.getImage());
-                LOGGER.debug("implDef = " + implDef + "\n");
-                LOGGER.debug("Aqui muere el try \n");
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage(), e);
             }

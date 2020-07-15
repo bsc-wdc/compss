@@ -65,7 +65,7 @@ class ObjectTracker(object):
         # having the same identifier
         self.runtime_id = str(uuid.uuid1())
         # Dictionary to contain the conversion from object identifier to
-        # the memory address of the object.
+        # the object (address pointer).
         # Given these positions, all objects are then reverse-mapped.
         # NOTE: it can not be done in the other way since the memory addresses
         #       can be reused, not guaranteeing their uniqueness, and causing
@@ -161,8 +161,7 @@ class ObjectTracker(object):
         """
         if self.obj_id_to_address:
             for identifier in self.obj_id_to_address:
-                obj_address = self._get_object_address(obj)
-                if self.obj_id_to_address[identifier] == obj_address:
+                if self.obj_id_to_address[identifier] is obj:
                     # Found
                     return identifier
             # Not Found
@@ -303,8 +302,7 @@ class ObjectTracker(object):
             # This object was not in our object database or we were forced to
             # remove it, lets assign it an identifier and store it.
             new_id = self._calculate_new_identifier()
-            obj_address = self._get_object_address(obj)
-            self.obj_id_to_address[new_id] = obj_address
+            self.obj_id_to_address[new_id] = obj
             return new_id
 
     def _calculate_new_identifier(self):
@@ -364,49 +362,57 @@ class ObjectTracker(object):
         """
         return self.obj_id_to_address.pop(obj_id)
 
-    @staticmethod
-    def _get_object_address(obj):
-        # type: (object) -> int
-        """ Retrieves the object memory address.
+    #############################################
+    #           DEPRECATED FUNCTIONS            #
+    #############################################
 
-        :param obj: Object to get the memory address.
-        :return: Object identifier.
-        """
-        return id(obj)
-        # # If we want to detect automatically IN objects modification we need
-        # # to ensure uniqueness of the identifier. At this point, obj is a
-        # # reference to the object that we want to compute its identifier.
-        # # This means that we do not have the previous object to compare
-        # # directly.
-        # # So the only way would be to ensure the uniqueness by calculating
-        # # an id which depends on the object.
-        # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
-        # #                                   object (IN) to be modified
-        # #                                   explicitly.
-        # immutable_types = [bool, int, float, complex, str,
-        #                    tuple, frozenset, bytes]
-        # obj_type = type(obj)
-        # if obj_type in immutable_types:
-        #     obj_address = id(obj)  # Only guarantees uniqueness with
-        #                            # immutable objects
-        # else:
-        #     # For all the rest, use hash of:
-        #     #  - The object id
-        #     #  - The size of the object (object increase/decrease)
-        #     #  - The object representation (object size is the same but has
-        #     #                               been modified(e.g. list element))
-        #     # WARNING: Caveat:
-        #     #  - IN User defined object with parameter change without
-        #     #    __repr__
-        #     # INOUT parameters to be modified require a synchronization, so
-        #     # they are not affected.
-        #     import hashlib
-        #     hash_id = hashlib.md5()
-        #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-        #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-        #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-        #     obj_address = str(hash_id.hexdigest())
-        # return obj_address
+    # REASON: Use the object address in the obj_id_to_address instead of the
+    #         object reference causes weird behaviour randomly due to the fact
+    #         the the address is not guarantee to be unique.
+
+    # @staticmethod
+    # def _get_object_address(obj):
+    #     # type: (object) -> int
+    #     """ Retrieves the object memory address.
+    #
+    #     :param obj: Object to get the memory address.
+    #     :return: Object identifier.
+    #     """
+    #     return id(obj)
+    #     # # If we want to detect automatically IN objects modification we need
+    #     # # to ensure uniqueness of the identifier. At this point, obj is a
+    #     # # reference to the object that we want to compute its identifier.
+    #     # # This means that we do not have the previous object to compare
+    #     # # directly.
+    #     # # So the only way would be to ensure the uniqueness by calculating
+    #     # # an id which depends on the object.
+    #     # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
+    #     # #                                   object (IN) to be modified
+    #     # #                                   explicitly.
+    #     # immutable_types = [bool, int, float, complex, str,
+    #     #                    tuple, frozenset, bytes]
+    #     # obj_type = type(obj)
+    #     # if obj_type in immutable_types:
+    #     #     obj_address = id(obj)  # Only guarantees uniqueness with
+    #     #                            # immutable objects
+    #     # else:
+    #     #     # For all the rest, use hash of:
+    #     #     #  - The object id
+    #     #     #  - The size of the object (object increase/decrease)
+    #     #     #  - The object representation (object size is the same but has
+    #     #     #                               been modified(e.g. list element))
+    #     #     # WARNING: Caveat:
+    #     #     #  - IN User defined object with parameter change without
+    #     #     #    __repr__
+    #     #     # INOUT parameters to be modified require a synchronization, so
+    #     #     # they are not affected.
+    #     #     import hashlib
+    #     #     hash_id = hashlib.md5()
+    #     #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+    #     #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+    #     #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+    #     #     obj_address = str(hash_id.hexdigest())
+    #     # return obj_address
 
     #############################################
     #           REPORTING FUNCTIONS             #

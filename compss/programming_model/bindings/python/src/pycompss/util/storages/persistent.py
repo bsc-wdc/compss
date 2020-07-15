@@ -142,6 +142,7 @@ def init_storage(storage_conf, logger):  # noqa
     """
     if storage_conf is not None and not storage_conf == 'null':
         if __debug__:
+            logger.debug("Starting storage")
             logger.debug("Storage configuration file: %s" % storage_conf)
         init(config_file_path=storage_conf)
         return True
@@ -156,4 +157,6 @@ def stop_storage():
 
     :return: None
     """
+    if __debug__:
+        logger.debug("Stopping storage")
     finish()

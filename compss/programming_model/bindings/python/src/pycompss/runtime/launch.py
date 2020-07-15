@@ -163,13 +163,9 @@ def compss_main():
             logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
 
         # Start persistent storage
-        if __debug__:
-            logger.debug("Starting storage")
         persistent_storage = init_storage(storage_conf, logger)
 
         # Start streaming
-        if __debug__:
-            logger.debug("Starting streaming")
         streaming = init_streaming(args.streaming_backend,
                                    args.streaming_master_name,
                                    args.streaming_master_port,
@@ -187,14 +183,10 @@ def compss_main():
             execfile(APP_PATH, globals())  # MAIN EXECUTION
 
         # Stop streaming
-        if __debug__:
-            logger.debug("Stopping streaming")
         if streaming:
             stop_streaming(logger)
 
         # Stop persistent storage
-        if __debug__:
-            logger.debug("Stopping storage")
         if persistent_storage:
             stop_storage()
 
@@ -471,11 +463,9 @@ def launch_pycompss_application(app, func,
     sys.argv = saved_argv
 
     if persistent_storage:
-        logger.debug("Stopping persistent storage")
         stop_storage()
 
     if streaming:
-        logger.debug("Stopping streaming")
         stop_streaming(logger)
 
     logger.debug('--- END ---')

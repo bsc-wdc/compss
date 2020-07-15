@@ -84,16 +84,18 @@ class ObjectTracker(object):
         :return: Object identifier.
         """
         if collection:
-            return self._register_object(obj, True)
+            obj_id = self._register_object(obj, True)
+            if __debug__:
+                logger.debug("Tracking collection %s" % obj_id)
         else:
             obj_id = self._register_object(obj, True)
             file_name = os.path.join(get_temporary_directory(), str(obj_id))
             self._set_file_name(obj_id, file_name)
             self.set_pending_to_synchronize(obj_id)
             if __debug__:
-                logger.debug("Mapping object %s to file %s" % (obj_id,
-                                                               file_name))
-            return obj_id
+                logger.debug("Tracking object %s to file %s" % (obj_id,
+                                                                file_name))
+        return obj_id
 
     def stop_tracking(self, obj, collection=False):
         # type: (object, bool) -> None
@@ -106,8 +108,12 @@ class ObjectTracker(object):
         obj_id = self.is_tracked(obj)
         if obj_id is not None:
             if collection:
+                if __debug__:
+                    logger.debug("Stop tracking collection %s" % obj_id)
                 self._pop_object_id(obj_id)
             else:
+                if __debug__:
+                    logger.debug("Stop tracking object %s" % obj_id)
                 self._delete_file_name(obj_id)
                 self._remove_from_pending_to_synchronize(obj_id)
                 self._pop_object_id(obj_id)

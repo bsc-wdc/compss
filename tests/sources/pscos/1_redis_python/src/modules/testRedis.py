@@ -90,18 +90,26 @@ def generate_object(seed):
     return elem
 
 
-def generate_basic_object(seed):
+def generate_basic_object(seed, persist=False):
     np.random.seed(seed)
     content = np.random.random()
     elem = PSCO(content)
+    if persist:
+        elem.make_persistent()
     return elem
+
+
+@task(c={Type: COLLECTION_IN, Depth: 2})
+def persist_non_persisted_elements(c):
+    for i in c:
+        for j in i:
+            j.make_persistent()
 
 
 @task(c=COLLECTION_INOUT)
 def increase_elements_persist(c):
     for elem in c:
-        elem.increase_content(1.0, update=False)
-        elem.make_persistent()
+        elem.increase_content(1.0)
 
 
 @task(c=COLLECTION_OUT)
@@ -358,6 +366,21 @@ class TestRedis(unittest.TestCase):
                 np.random.random() + 1.0
             )
         )
+
+
+    def testWorkerGenerationColInBasic(self):
+        # Generate two x two random non persistent storage objects vector
+        two_two_random_pscos = [[generate_basic_object(1), generate_basic_object(2)],
+                                 [generate_basic_object(1), generate_basic_object(2)]]
+        persist_non_persisted_elements(two_two_random_pscos)
+        result = compss_wait_on(two_two_random_pscos)
+        self.assertEqual(len(two_two_random_pscos), len(result))
+        self.assertEqual(len(two_two_random_pscos[0]), len(result[0]))
+        self.assertEqual(len(two_two_random_pscos[1]), len(result[1]))
+        for i in range(len(two_two_random_pscos)):
+            for j in range(len(two_two_random_pscos[i])):
+                self.assertEqual(two_two_random_pscos[i][j].get_content(),
+                                 result[i][j].get_content())
 
     def testWorkerGenerationColInoutBasic(self):
         # Generate two random non persistent storage objects vector

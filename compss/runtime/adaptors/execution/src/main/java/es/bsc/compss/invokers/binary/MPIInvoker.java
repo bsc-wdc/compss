@@ -161,27 +161,25 @@ public class MPIInvoker extends Invoker {
 
         // Prepare command
         String[] cmd = new String[numMPIArgs + numMPIFlags + binaryParams.size()];
-        cmd[0] = this.mpiRunner;
-        cmd[1] = "-hostfile";
-        cmd[2] = hostfile;
-        cmd[3] = "-n";
+        int pos = 0;
+        cmd[pos++] = this.mpiRunner;
+        cmd[pos++] = "-hostfile";
+        cmd[pos++] = hostfile;
+        cmd[pos++] = "-n";
         if (scaleByCU) {
-            cmd[4] = String.valueOf(this.numWorkers * this.computingUnits);
-            cmd[5] = this.mpiBinary;
+            cmd[pos++] = String.valueOf(this.numWorkers * this.computingUnits);
         } else {
-            cmd[4] = String.valueOf(this.numWorkers);
-            cmd[5] = this.mpiBinary;
-            // cmd[5] = "-x";
-            // cmd[6] = "OMP_NUM_THREADS";
-            // cmd[7] = this.mpiBinary;
+            cmd[pos++] = String.valueOf(this.numWorkers);
         }
 
         for (int i = 0; i < numMPIFlags; ++i) {
-            cmd[numMPIArgs + i] = mpiflagsArray[i];
+            cmd[pos++] = mpiflagsArray[i];
         }
 
+        cmd[pos++] = this.mpiBinary;
+
         for (int i = 0; i < binaryParams.size(); ++i) {
-            cmd[numMPIArgs + numMPIFlags + i] = binaryParams.get(i);
+            cmd[pos++] = binaryParams.get(i);
         }
 
         // Prepare environment

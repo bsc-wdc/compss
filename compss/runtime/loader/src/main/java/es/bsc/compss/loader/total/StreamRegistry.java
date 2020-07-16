@@ -624,29 +624,29 @@ public class StreamRegistry {
         return pw;
     }
 
-    public File newCOMPSsFile(String filename) {
+    public File newCOMPSsFile(Long appId, String filename) {
         File f = new File(filename);
-        return checkAndGetNewFile(f);
+        return checkAndGetNewFile(appId, f);
     }
 
-    public File newCOMPSsFile(String parent, String child) {
+    public File newCOMPSsFile(Long appId, String parent, String child) {
         File f = new File(parent, child);
-        return checkAndGetNewFile(f);
+        return checkAndGetNewFile(appId, f);
     }
 
-    public File newCOMPSsFile(File parent, String child) {
+    public File newCOMPSsFile(Long appId, File parent, String child) {
         File f = new File(parent, child);
-        return checkAndGetNewFile(f);
+        return checkAndGetNewFile(appId, f);
     }
 
-    public File newCOMPSsFile(URI uri) {
+    public File newCOMPSsFile(Long appId, URI uri) {
         File f = new File(uri);
-        return checkAndGetNewFile(f);
+        return checkAndGetNewFile(appId, f);
     }
 
-    private File checkAndGetNewFile(File f) {
+    private File checkAndGetNewFile(Long appId, File f) {
         if (taskFiles.contains(f.getAbsolutePath())) {
-            return new COMPSsFile(itApi, f);
+            return new COMPSsFile(itApi, appId, f);
         } else {
             return f;
         }

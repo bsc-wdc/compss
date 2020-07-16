@@ -932,7 +932,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public boolean deleteFile(String fileName, boolean waitForData) {
+    public boolean deleteFile(Long appId, String fileName, boolean waitForData) {
         // Check parameters
         if (fileName == null || fileName.isEmpty()) {
             return false;
@@ -966,8 +966,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public boolean deleteFile(String fileName) {
-        return deleteFile(fileName, true);
+    public boolean deleteFile(Long appId, String fileName) {
+        return deleteFile(appId, fileName, true);
     }
 
     @Override

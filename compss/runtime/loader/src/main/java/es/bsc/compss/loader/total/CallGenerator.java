@@ -24,6 +24,11 @@ public class CallGenerator {
     private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
     private static final String SERIALIZE_LOCALLY = ".serializeLocally(";
 
+    private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
+    private static final String DELETE_FILE = ".deleteFile(";
+
+    private static final String GET_CANONICAL_PATH = ".getCanonicalPath(";
+
 
     /**
      * Constructs the instruction to get the internal object registered for a representative.
@@ -74,4 +79,28 @@ public class CallGenerator {
     public static String oRegSerializeLocally(String itOR, String itAppId, String val) {
         return itOR + SERIALIZE_LOCALLY + "(java.lang.Long)" + itAppId + "," + val + ")";
     }
+
+    /**
+     * Constructs the instruction to generate a new COMPSsFile object.
+     * 
+     * @param itSRVar name of the StreamRegistry variable
+     * @param itAppId name of the variable containing the AppId
+     * @param callPars parameters to create
+     * @return instruction creating a new COMPSsFile instance for the given File
+     */
+    public static String newCOMPSsFile(String itSRVar, String itAppId, StringBuilder callPars) {
+        return itSRVar + NEW_COMPSS_FILE + "(java.lang.Long)" + itAppId + "," + callPars + ");";
+    }
+
+    /**
+     * Constructs the instruction to request the runtime the deletion of a file.
+     * 
+     * @param itApiVar name of the variable containing the runtime
+     * @param itAppId name of the variable containing the AppId
+     * @return instruction to request to the runtime the deletion of a file
+     */
+    public static String deleteFile(String itApiVar, String itAppId) {
+        return itApiVar + DELETE_FILE + "(java.lang.Long)" + itAppId + "," + "$0" + GET_CANONICAL_PATH + "));";
+    }
+
 }

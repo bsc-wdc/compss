@@ -25,6 +25,7 @@ public class COMPSsFile extends File {
     private static final long serialVersionUID = 1L;
 
     private final LoaderAPI api;
+    private final Long appId;
     private final String pathname;
 
 
@@ -33,11 +34,13 @@ public class COMPSsFile extends File {
      * {@code api}.
      * 
      * @param api Associated LoaderAPI.
+     * @param appId Id of the application accessing the file
      * @param f Associated file.
      */
-    public COMPSsFile(LoaderAPI api, File f) {
+    public COMPSsFile(LoaderAPI api, Long appId, File f) {
         super(f.getAbsolutePath());
         this.api = api;
+        this.appId = appId;
         this.pathname = f.getAbsolutePath();
     }
 
@@ -78,7 +81,7 @@ public class COMPSsFile extends File {
 
     @Override
     public boolean delete() {
-        return this.api.deleteFile(this.pathname);
+        return this.api.deleteFile(appId, this.pathname);
     }
 
     /**

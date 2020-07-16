@@ -71,15 +71,12 @@ public class ITAppEditor extends ExprEditor {
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
     // Inserted method calls
-    private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
     private static final String COMPSS_FILE_SYNCH = "COMPSsFile.synchFile(";
     private static final String NEW_FILTER_STREAM = ".newFilterStream(";
     private static final String STREAM_CLOSED = ".streamClosed(";
-    private static final String GET_CANONICAL_PATH = ".getCanonicalPath(";
     private static final String ADD_TASK_FILE = ".addTaskFile(";
     private static final String IS_TASK_FILE = ".isTaskFile(";
     private static final String OPEN_FILE = ".openFile(";
-    private static final String DELETE_FILE = ".deleteFile(";
     private static final String EXECUTE_TASK = ".executeTask(";
     private static final String PROCEED = "$_ = $proceed(";
     private static final String COMPSS_LOADER_GROUP = "es.bsc.compss.loader.total.COMPSsGroupLoader(";
@@ -365,7 +362,7 @@ public class ITAppEditor extends ExprEditor {
         }
         if (!found) { // Not a stream
             if (className.equals(File.class.getCanonicalName())) {
-                modifiedExpr = "$_ = " + this.itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
+                modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itSRVar, itAppIdVar, callPars);
             } else {
                 String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$1");
                 String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
@@ -894,7 +891,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceDeleteFile() {
-        String deleteFile = "$_ = " + this.itApiVar + DELETE_FILE + "$0" + GET_CANONICAL_PATH + "));";
+        String deleteFile = "$_ = " + CallGenerator.deleteFile(itApiVar, itAppIdVar);
         return deleteFile;
     }
 

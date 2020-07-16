@@ -24,7 +24,9 @@ public class CallGenerator {
     private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
     private static final String SERIALIZE_LOCALLY = ".serializeLocally(";
 
+    // File access methods
     private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
+    private static final String COMPSS_FILE_SYNCH = "COMPSsFile.synchFile(";
     private static final String DELETE_FILE = ".deleteFile(";
 
     private static final String GET_CANONICAL_PATH = ".getCanonicalPath(";
@@ -101,6 +103,16 @@ public class CallGenerator {
      */
     public static String deleteFile(String itApiVar, String itAppId) {
         return itApiVar + DELETE_FILE + "(java.lang.Long)" + itAppId + "," + "$0" + GET_CANONICAL_PATH + "));";
+    }
+
+    /**
+     * Constructs the instruction to synchronize a file given as a parameter.
+     * 
+     * @param parId file being synchronized
+     * @return instruction to synchronize a file given as a parameter
+     */
+    public static String synchFile(String parId) {
+        return COMPSS_FILE_SYNCH + parId + ')';
     }
 
 }

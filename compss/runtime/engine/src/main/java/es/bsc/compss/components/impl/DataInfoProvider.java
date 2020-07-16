@@ -505,10 +505,11 @@ public class DataInfoProvider {
     /**
      * Marks an access to a file as finished.
      *
+     * @param app Application accessing the file
      * @param mode File Access Mode.
      * @param location File location.
      */
-    public void finishFileAccess(AccessMode mode, DataLocation location) {
+    public void finishFileAccess(Application app, AccessMode mode, DataLocation location) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
         Integer fileId = this.nameToId.get(locationKey);
@@ -720,10 +721,11 @@ public class DataInfoProvider {
     /**
      * Returns whether a given location has been accessed or not.
      *
+     * @param app Application accessing the data
      * @param loc Location.
      * @return {@code true} if the location has been accessed, {@code false} otherwise.
      */
-    public boolean alreadyAccessed(DataLocation loc) {
+    public boolean alreadyAccessed(Application app, DataLocation loc) {
         LOGGER.debug("Check already accessed: " + loc.getLocationKey());
         String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
@@ -818,11 +820,12 @@ public class DataInfoProvider {
     /**
      * Waits until data is ready for its safe deletion.
      *
+     * @param app Application requesting the data deletion
      * @param loc Data location.
      * @param semWait Waiting semaphore.
      * @return Number of permits.
      */
-    public int waitForDataReadyToDelete(DataLocation loc, Semaphore semWait) {
+    public int waitForDataReadyToDelete(Application app, DataLocation loc, Semaphore semWait) {
         LOGGER.debug("Waiting for data to be ready for deletion: " + loc.getPath());
         String locationKey = loc.getLocationKey();
 
@@ -841,10 +844,11 @@ public class DataInfoProvider {
     /**
      * Gets the dataInfo of the location.
      *
+     * @param app application requesting the data information
      * @param loc Location
      * @return DataInfo associated with the given location {@code loc}.
      */
-    public DataInfo getLocationDataInfo(DataLocation loc) {
+    public DataInfo getLocationDataInfo(Application app, DataLocation loc) {
         String locationKey = loc.getLocationKey();
         if (this.nameToId.containsKey(locationKey)) {
             Integer dataId = this.nameToId.get(locationKey);
@@ -857,10 +861,11 @@ public class DataInfoProvider {
     /**
      * Marks a data Id for deletion.
      *
+     * @param app Application requesting the data deletion
      * @param loc Data location.
      * @return DataInfo associated with the given data.
      */
-    public DataInfo deleteData(DataLocation loc, boolean noReuse) {
+    public DataInfo deleteData(Application app, DataLocation loc, boolean noReuse) {
         LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
         Integer dataId = this.nameToId.get(locationKey);

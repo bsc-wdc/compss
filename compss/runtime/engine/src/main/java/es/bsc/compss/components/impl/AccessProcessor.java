@@ -274,7 +274,7 @@ public class AccessProcessor implements Runnable {
      * @param destDir Destination file location.
      */
     public void finishAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(sourceLocation);
+        boolean alreadyAccessed = alreadyAccessed(fap.getApp(), sourceLocation);
 
         if (!alreadyAccessed) {
             LOGGER.debug("File not accessed before. Nothing to do");
@@ -295,13 +295,15 @@ public class AccessProcessor implements Runnable {
     /**
      * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
      *
+     * @param app application accessing the file
      * @param sourceLocation File location.
      * @param fap File Access Parameters.
      * @param destDir Destination file.
      * @return Final location.
      */
-    public DataLocation mainAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(sourceLocation);
+    public DataLocation mainAccessToFile(Application app, DataLocation sourceLocation, FileAccessParams fap,
+        String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
 
         if (!alreadyAccessed) {
             LOGGER.debug("File not accessed before, returning the same location");
@@ -377,13 +379,15 @@ public class AccessProcessor implements Runnable {
     /**
      * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
      *
-     * @param sourceLocation DIrectory location.
+     * @param app application accessing the directory
+     * @param sourceLocation Directory location.
      * @param fap File Access Parameters.
      * @param destDir Destination directory.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(sourceLocation);
+    public DataLocation mainAccessToDirectory(Application app, DataLocation sourceLocation, FileAccessParams fap,
+        String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
 
         if (!alreadyAccessed) {
             LOGGER.debug("Directory not accessed before, returning the same location");
@@ -636,12 +640,13 @@ public class AccessProcessor implements Runnable {
     /**
      * Returns whether the @{code loc} has already been accessed or not.
      *
+     * @param app application querying the data access
      * @param loc Location.
      * @return {@code true} if the location has been accessed, {@code false} otherwise.
      */
-    public boolean alreadyAccessed(DataLocation loc) {
+    public boolean alreadyAccessed(Application app, DataLocation loc) {
         Semaphore sem = new Semaphore(0);
-        AlreadyAccessedRequest request = new AlreadyAccessedRequest(loc, sem);
+        AlreadyAccessedRequest request = new AlreadyAccessedRequest(app, loc, sem);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "already accessed location");
         }
@@ -896,16 +901,17 @@ public class AccessProcessor implements Runnable {
     /**
      * Marks a location for deletion.
      *
+     * @param app Application requesting the file deletion
      * @param loc Location to delete.
      */
-    public void markForDeletion(DataLocation loc, boolean enableReuse) {
+    public void markForDeletion(Application app, DataLocation loc, boolean enableReuse) {
         LOGGER.debug("Marking data " + loc + " for deletion");
         Semaphore sem = new Semaphore(0);
 
         // No need to wait if data is noReuse
         if (enableReuse) {
             Semaphore semWait = new Semaphore(0);
-            WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc, sem, semWait);
+            WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(app, loc, sem, semWait);
             // Wait for data to be ready for deletion
             if (!this.requestQueue.offer(request)) {
                 ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
@@ -923,7 +929,7 @@ public class AccessProcessor implements Runnable {
         }
         // Request to delete data
         LOGGER.debug("Sending delete request response for " + loc);
-        if (!this.requestQueue.offer(new DeleteFileRequest(loc, sem, !enableReuse))) {
+        if (!this.requestQueue.offer(new DeleteFileRequest(app, loc, sem, !enableReuse))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 

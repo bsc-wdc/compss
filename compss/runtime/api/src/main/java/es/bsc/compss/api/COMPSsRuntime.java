@@ -298,10 +298,11 @@ public interface COMPSsRuntime {
     /**
      * Checks if a file has been accessed by the runtime.
      *
+     * @param appId Id of the application checking the file access
      * @param fileName File to check
      * @return True if accessed.
      */
-    public boolean isFileAccessed(String fileName);
+    public boolean isFileAccessed(Long appId, String fileName);
 
     /**
      * Returns the renaming of the file version opened.

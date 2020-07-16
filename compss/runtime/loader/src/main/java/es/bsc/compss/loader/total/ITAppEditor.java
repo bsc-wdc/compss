@@ -71,7 +71,6 @@ public class ITAppEditor extends ExprEditor {
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
     // Inserted method calls
-    private static final String COMPSS_FILE_SYNCH = "COMPSsFile.synchFile(";
     private static final String NEW_FILTER_STREAM = ".newFilterStream(";
     private static final String STREAM_CLOSED = ".streamClosed(";
     private static final String ADD_TASK_FILE = ".addTaskFile(";
@@ -993,7 +992,7 @@ public class ITAppEditor extends ExprEditor {
                             LOGGER.debug("Parameter " + i + " of black-box method " + methodName
                                 + " is an COMPSs File, adding File synch");
                         }
-                        aux1.append(COMPSS_FILE_SYNCH).append(itAppIdVar).append(",").append(parId).append(')');
+                        aux1.append(CallGenerator.synchFile(parId));
 
                     } else if (parType.getName().equals(String.class.getName())) { // This is a string
                         if (DEBUG) {

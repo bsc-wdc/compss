@@ -20,12 +20,14 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.location.DataLocation;
 import java.util.concurrent.Semaphore;
 
 
 public class AlreadyAccessedRequest extends APRequest {
 
+    private final Application app;
     private final DataLocation loc;
     private final Semaphore sem;
     private boolean response;
@@ -34,10 +36,12 @@ public class AlreadyAccessedRequest extends APRequest {
     /**
      * Creates a new request for already accessed data.
      * 
+     * @param app application querying the data access.
      * @param loc Data location
      * @param sem Waiting semaphore.
      */
-    public AlreadyAccessedRequest(DataLocation loc, Semaphore sem) {
+    public AlreadyAccessedRequest(Application app, DataLocation loc, Semaphore sem) {
+        this.app = app;
         this.loc = loc;
         this.sem = sem;
     }
@@ -71,7 +75,7 @@ public class AlreadyAccessedRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        boolean aa = dip.alreadyAccessed(this.loc);
+        boolean aa = dip.alreadyAccessed(this.app, this.loc);
         this.response = aa;
         this.sem.release();
     }

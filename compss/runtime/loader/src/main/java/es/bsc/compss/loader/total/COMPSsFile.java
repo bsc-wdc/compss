@@ -87,10 +87,9 @@ public class COMPSsFile extends File {
     /**
      * Returns the File object after synchronizing its content.
      * 
-     * @param appId Application id.
      * @return File File object after synchronizing its content.
      */
-    public File synchFile(Long appId) {
+    public File synchFile() {
         this.api.getFile(appId, this.pathname);
         return new File(this.pathname);
     }
@@ -98,12 +97,11 @@ public class COMPSsFile extends File {
     /**
      * Synchronizes the given COMPSsFile {@code f}.
      * 
-     * @param appId Application id.
      * @param f COMPSsFile.
      * @return File object after synchronizing its content.
      */
-    public static File synchFile(Long appId, COMPSsFile f) {
-        return f.synchFile(appId);
+    public static File synchFile(COMPSsFile f) {
+        return f.synchFile();
     }
 
 }

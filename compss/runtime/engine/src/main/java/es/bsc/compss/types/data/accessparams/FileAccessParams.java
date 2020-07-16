@@ -61,6 +61,6 @@ public class FileAccessParams extends AccessParams {
 
     @Override
     public void registerAccessCompletion(DataInfoProvider dip) {
-        dip.finishFileAccess(this.mode, this.loc);
+        dip.finishFileAccess(this.app, this.mode, this.loc);
     }
 }

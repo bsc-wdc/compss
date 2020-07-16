@@ -948,7 +948,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         // Parse the file name and translate the access mode
         try {
             DataLocation loc = createLocation(fileName);
-            ap.markForDeletion(loc, waitForData);
+            Application app = Application.registerApplication(appId);
+            ap.markForDeletion(app, loc, waitForData);
             // Java case where task files are stored in the registry
             if (sReg != null) {
                 sReg.deleteTaskFile(fileName);
@@ -1112,7 +1113,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             String intermediateTmpPath = renamedPath + ".tmp";
             rename(renamedPath, intermediateTmpPath);
             closeFile(fileName, Direction.INOUT);
-            ap.markForDeletion(sourceLocation, true);
+            Application app = Application.registerApplication(appId);
+            ap.markForDeletion(app, sourceLocation, true);
             // In the case of Java file can be stored in the Stream Registry
             if (sReg != null) {
                 sReg.deleteTaskFile(fileName);
@@ -1158,7 +1160,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         rename(renamedPath, intermediateTmpPath);
         closeFile(dirName, Direction.IN);
 
-        ap.markForDeletion(sourceLocation, true);
+        Application app = Application.registerApplication(appId);
+        ap.markForDeletion(app, sourceLocation, true);
         // In the case of Java file can be stored in the Stream Registry
         if (sReg != null) {
             sReg.deleteTaskFile(dirName);
@@ -1310,7 +1313,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * ************************************************************************************************************
      */
     @Override
-    public boolean isFileAccessed(String fileName) {
+    public boolean isFileAccessed(Long appId, String fileName) {
         DataLocation loc;
         try {
             loc = createLocation(fileName);
@@ -1319,7 +1322,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             loc = null;
         }
         if (loc != null) {
-            return ap.alreadyAccessed(loc);
+            Application app = Application.registerApplication(appId);
+            return ap.alreadyAccessed(app, loc);
         } else {
             return false;
         }
@@ -1738,9 +1742,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         FileAccessParams fap = new FileAccessParams(app, am, loc);
         DataLocation targetLocation;
         if (isDirectory) {
-            targetLocation = ap.mainAccessToDirectory(loc, fap, destDir);
+            targetLocation = ap.mainAccessToDirectory(app, loc, fap, destDir);
         } else {
-            targetLocation = ap.mainAccessToFile(loc, fap, destDir);
+            targetLocation = ap.mainAccessToFile(app, loc, fap, destDir);
         }
 
         // Checks on target

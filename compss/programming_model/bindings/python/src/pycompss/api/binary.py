@@ -129,15 +129,14 @@ class Binary(object):
                     self.module = mod_name
 
                 # Include the registering info related to @binary
-                #aqui modificar
                 if not self.registered:
                     if 'engine' in self.kwargs:
                         engine = self.kwargs['engine']
-                    else :
+                    else:
                         engine = '[unassigned]'
                     if 'image' in self.kwargs:
                         image = self.kwargs['image']
-                    else :
+                    else:
                         image = '[unassigned]'
                     # Set as registered
                     self.registered = True

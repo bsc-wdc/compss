@@ -36,13 +36,13 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'engine',
-                        'image',
-                        'binary'}
+                       'image',
+                       'binary'}
 SUPPORTED_ARGUMENTS = {'engine',
-                        'image',
-                        'fail_by_exit_value',
-                        'binary',
-                        'working_dir'}
+                       'image',
+                       'fail_by_exit_value',
+                       'binary',
+                       'working_dir'}
 DEPRECATED_ARGUMENTS = {'workingDir'}
 
 
@@ -131,7 +131,6 @@ class Container(object):
                     self.module = mod_name
 
                 # Include the registering info related to @binary
-                #aqui modificar
                 if not self.registered:
                     # Set as registered
                     self.registered = True
@@ -153,7 +152,7 @@ class Container(object):
                     fail_by_ev_str = 'false'
                     impl_signature = 'CONTAINER.' + _binary
                     cce.set_impl_signature(impl_signature)
-                    impl_args = [_binary, working_dir, fail_by_ev_str, engine, image] #inicializar unassigned
+                    impl_args = [_binary, working_dir, fail_by_ev_str, engine, image]
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code

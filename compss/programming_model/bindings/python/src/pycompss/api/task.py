@@ -510,7 +510,7 @@ class Task(object):
             for filt in dec_filter:
                 if filt in decorators:
                     if filt == "mpi":
-                        if "binary" not in full_decorators[index]:
+                        if index < len(full_decorators) and "binary" not in full_decorators[index]:
                             filt = "PYTHON_MPI"
                     return filt
                 index += 1
@@ -546,6 +546,7 @@ class Task(object):
                           "constraint",
                           "task",
                           "binary",
+                          "container",
                           "mpi",
                           "compss",
                           "decaf",
@@ -563,6 +564,7 @@ class Task(object):
         # PyCOMPSs worker. Needed to filter in order not to code the strings
         # when using them in these type of tasks
         decorator_filter = ("binary",
+                            "container",
                             "mpi",
                             "compss",
                             "decaf",

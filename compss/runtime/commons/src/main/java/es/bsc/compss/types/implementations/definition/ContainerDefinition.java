@@ -14,52 +14,45 @@
  *  limitations under the License.
  *
  */
-
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 /**
- * Class containing all the necessary information to generate a Binary implementation of a CE.
+ * Class containing all the necessary information to generate a Container implementation of a CE.
  */
-public class BinaryDefinition extends ImplementationDefinition<MethodResourceDescription> {
+public class ContainerDefinition extends ImplementationDefinition<MethodResourceDescription> {
 
+    private ContainerDescription container;
     private final String binary;
-    private final String workingDir;
-    private final boolean failByEV;
-    private final ContainerDescription container;
 
 
-    protected BinaryDefinition(String signature, String binary, String workingDir, boolean failByEV,
-        ContainerDescription container, MethodResourceDescription implConstraints) {
-        super(signature, implConstraints);
-        this.binary = binary;
-        this.workingDir = workingDir;
-        this.failByEV = failByEV;
+    protected ContainerDefinition(String signature, ContainerDescription container, String binary,
+        MethodResourceDescription constraints) {
+        super(signature, constraints);
         this.container = container;
+        this.binary = binary;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-
-        return new BinaryImplementation(binary, workingDir, failByEV, container, coreId, implId, this.getSignature(),
+        return new ContainerImplementation(container, binary, coreId, implId, this.getSignature(),
             this.getConstraints());
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Binary Implementation \n");
+        sb.append("COntainer Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
-        sb.append("\t Binary: ").append(this.binary).append("\n");
-        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
-        sb.append("\t Working directory: ").append(this.workingDir).append("\n");
-        sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
+        sb.append("\t Container: ").append(container).append("\n");
+        sb.append("\t Binary: ").append(binary).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }
+
 }

@@ -461,6 +461,9 @@ public class Executor implements Runnable {
                 case METHOD:
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
+                case CONTAINER:
+                    invoker = new BinaryInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
                 case BINARY:
                     invoker = new BinaryInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
@@ -517,6 +520,10 @@ public class Executor implements Runnable {
         // Check if an specific working dir is provided
         String specificWD = null;
         switch (invocation.getMethodImplementation().getMethodType()) {
+            case CONTAINER:
+                BinaryImplementation binaryImplC = (BinaryImplementation) invocation.getMethodImplementation();
+                specificWD = binaryImplC.getWorkingDir();
+                break;
             case BINARY:
                 BinaryImplementation binaryImpl = (BinaryImplementation) invocation.getMethodImplementation();
                 specificWD = binaryImpl.getWorkingDir();

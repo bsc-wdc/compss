@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -31,12 +32,13 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 3;
+    public static final int NUM_PARAMS = 5;
     public static final String SIGNATURE = "binary.BINARY";
 
     private String binary;
     private String workingDir;
     private boolean failByEV;
+    private ContainerDescription container;
 
 
     /**
@@ -53,19 +55,21 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      * @param binary Binary path.
      * @param workingDir Working directory.
      * @param failByEV Flag to enable failure with EV.
+     * @param container Container Description.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature Binary signature.
      * @param annot Binary requirements.
      */
-    public BinaryImplementation(String binary, String workingDir, boolean failByEV, Integer coreId,
-        Integer implementationId, String signature, MethodResourceDescription annot) {
+    public BinaryImplementation(String binary, String workingDir, boolean failByEV, ContainerDescription container,
+        Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 
         this.binary = binary;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
+        this.container = container;
     }
 
     /**
@@ -95,6 +99,15 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
         return failByEV;
     }
 
+    /**
+     * Returns the container.
+     * 
+     * @return The container implementation.
+     */
+    public ContainerDescription getContainer() {
+        return container;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.BINARY;
@@ -121,6 +134,7 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
+        this.container = (ContainerDescription) in.readObject();
     }
 
     @Override
@@ -129,6 +143,7 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.failByEV);
+        out.writeObject(this.container);
     }
 
 }

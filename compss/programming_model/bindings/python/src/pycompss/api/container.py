@@ -18,13 +18,14 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - BINARY
+PyCOMPSs API - CONTAINER
 =====================
-    This file contains the class constraint, needed for the binary task
+    This file contains the class constraint, needed for the container task
     definition through the decorator.
 """
 
 import inspect
+import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
@@ -32,19 +33,20 @@ from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
-    import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'binary'}
-SUPPORTED_ARGUMENTS = {'binary',
-                       'working_dir',
+MANDATORY_ARGUMENTS = {'engine',
+                       'image',
+                       'binary'}
+SUPPORTED_ARGUMENTS = {'engine',
+                       'image',
                        'fail_by_exit_value',
-                       'engine',
-                       'image'}
+                       'binary',
+                       'working_dir'}
 DEPRECATED_ARGUMENTS = {'workingDir'}
 
 
-class Binary(object):
+class Container(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -70,29 +72,29 @@ class Binary(object):
         # self.source_frame_info = inspect.getframeinfo(inspect.stack()[1][0])
         if self.scope:
             if __debug__:
-                logger.debug("Init @binary decorator...")
+                logger.debug("Init @container decorator...")
 
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
                             DEPRECATED_ARGUMENTS,
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
-                            "@binary")
+                            "@container")
 
     def __call__(self, func):
         """
-        Parse and set the binary parameters within the task core element.
+        Parse and set the container parameters within the task core element.
 
         :param func: Function to decorate
         :return: Decorated function.
         """
         @wraps(func)
-        def binary_f(*args, **kwargs):
+        def container_f(*args, **kwargs):
             if not self.scope:
-                # from pycompss.api.dummy.binary import binary as dummy_binary
-                # d_b = dummy_binary(self.args, self.kwargs)
+                # from pycompss.api.dummy.container import container as dummy_container
+                # d_b = dummy_container(self.args, self.kwargs)
                 # return d_b.__call__(func)
-                raise Exception(not_in_pycompss("binary"))
+                raise Exception(not_in_pycompss("container"))
 
             if context.in_master():
                 # master code
@@ -130,14 +132,6 @@ class Binary(object):
 
                 # Include the registering info related to @binary
                 if not self.registered:
-                    if 'engine' in self.kwargs:
-                        engine = self.kwargs['engine']
-                    else:
-                        engine = '[unassigned]'
-                    if 'image' in self.kwargs:
-                        image = self.kwargs['image']
-                    else:
-                        image = '[unassigned]'
                     # Set as registered
                     self.registered = True
                     # Retrieve the base core_element established at @task
@@ -145,41 +139,27 @@ class Binary(object):
                     from pycompss.api.task import current_core_element as cce
                     # Update the core element information with the binary
                     # argument information
-                    cce.set_impl_type("BINARY")
+                    cce.set_impl_type("CONTAINER")
                     _binary = self.kwargs['binary']
+                    engine = self.kwargs['engine']
+                    image = self.kwargs['image']
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
                     elif 'workingDir' in self.kwargs:
                         working_dir = self.kwargs['workingDir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
-
-                    if 'fail_by_exit_value' in self.kwargs:
-                        fail_by_ev = self.kwargs['fail_by_exit_value']
-                        if isinstance(fail_by_ev, bool):
-                            if fail_by_ev:
-                                fail_by_ev_str = 'true'
-                            else:
-                                fail_by_ev_str = 'false'
-                        elif isinstance(fail_by_ev, str):
-                            fail_by_ev_str = fail_by_ev
-                        else:
-                            raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
-                                            "It should be boolean or an environment variable")      # noqa: E501
-                    else:
-                        fail_by_ev_str = 'false'
-
-                    impl_signature = 'BINARY.' + _binary
+                    fail_by_ev_str = 'false'
+                    impl_signature = 'CONTAINER.' + _binary
                     cce.set_impl_signature(impl_signature)
                     impl_args = [_binary, working_dir, fail_by_ev_str, engine, image]
-
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code
                 pass
             # This is executed only when called.
             if __debug__:
-                logger.debug("Executing binary_f wrapper.")
+                logger.debug("Executing container_f wrapper.")
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]
@@ -205,12 +185,12 @@ class Binary(object):
 
             return ret
 
-        binary_f.__doc__ = func.__doc__
-        return binary_f
+        container_f.__doc__ = func.__doc__
+        return container_f
 
 
-# ########################################################################### #
-# ################### BINARY DECORATOR ALTERNATIVE NAME ##################### #
-# ########################################################################### #
+# ############################################################################## #
+# ################### CONTAINER DECORATOR ALTERNATIVE NAME ##################### #
+# ############################################################################## #
 
-binary = Binary
+container = Container

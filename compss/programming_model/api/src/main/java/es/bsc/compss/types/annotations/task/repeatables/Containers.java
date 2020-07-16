@@ -14,20 +14,29 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.implementations;
 
+package es.bsc.compss.types.annotations.task.repeatables;
+
+import es.bsc.compss.types.annotations.task.Container;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 /**
- * Enum matching the different method types.
+ * Methods definition.
  */
-public enum MethodType {
-    METHOD, // For native methods
-    BINARY, // For binary methods
-    MPI, // For MPI methods
-    PYTHON_MPI, // For PYTHON MPI methods
-    COMPSs, // For COMPSs nested applications
-    DECAF, // For decaf methods
-    MULTI_NODE, // For native multi-node methods
-    OMPSS, // For OmpSs methods
-    OPENCL, // For OpenCL methods
-    CONTAINER
+public @interface Containers {
+
+    /**
+     * Returns the list of Containers annotations.
+     * 
+     * @return The list of Containers annotations.
+     */
+    Container[] value();
+
 }

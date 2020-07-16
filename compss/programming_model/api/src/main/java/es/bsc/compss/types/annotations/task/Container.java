@@ -14,11 +14,12 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.types.annotations.task;
 
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
-import es.bsc.compss.types.annotations.task.repeatables.Binaries;
+import es.bsc.compss.types.annotations.task.repeatables.Containers;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
@@ -29,16 +30,29 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@Repeatable(Binaries.class)
+@Repeatable(Containers.class)
 /**
  * Methods definition
  */
-public @interface Binary {
+public @interface Container {
 
     /*
-     * Binary DEFINITION
-     * 
+     * Container DEFINITION
      */
+
+    /**
+     * Returns the engine name.
+     * 
+     * @return the engine name.
+     */
+    String engine() default Constants.UNASSIGNED;
+
+    /**
+     * Returns the image name.
+     * 
+     * @return the image name.
+     */
+    String image() default Constants.UNASSIGNED;
 
     /**
      * Returns the binary name.
@@ -48,25 +62,11 @@ public @interface Binary {
     String binary() default Constants.UNASSIGNED;
 
     /**
-     * Returns the working directory of the binary.
+     * Returns the volume path from the host.
      * 
-     * @return the binary working directory.
+     * @return the volume path from the host.
      */
     String workingDir() default Constants.UNASSIGNED;
-
-    /**
-     * Indicates if the task will fail because of an exit value different from 0.
-     * 
-     * @return True if task will fail if exit value different from 0.
-     */
-    boolean failByExitValue() default false;
-
-    /**
-     * Returns the container description.
-     * 
-     * @return container
-     */
-    BinaryContainer container() default @BinaryContainer();
 
     /*
      * COMMON PROPERTIES
@@ -86,5 +86,4 @@ public @interface Binary {
      * @return the method specific constraints.
      */
     Constraints constraints() default @Constraints();
-
 }

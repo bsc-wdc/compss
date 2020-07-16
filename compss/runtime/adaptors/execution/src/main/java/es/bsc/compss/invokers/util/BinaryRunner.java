@@ -422,6 +422,35 @@ public class BinaryRunner {
         builder.environment().put("SLURM_NPROCS", String.valueOf(totalProcs));
         builder.environment().put("SLURM_TASKS_PER_NODE", tasksPerNode);
 
+        builder.environment().remove("SLURM_STEP_NODELIST");
+        builder.environment().remove("SLURM_STEP_CPUS_PER_NODE");
+        builder.environment().remove("SLURM_STEP_NUM_TASKS");
+        builder.environment().remove("SLURM_STEP_TASKS_PER_NODE");
+        builder.environment().remove("SLURM_STEPID");
+        builder.environment().remove("SLURM_STEP_ID");
+        builder.environment().remove("SLURM_STEP_NUM_NODES");
+        builder.environment().remove("SLURM_STEP_LAUNCHER_PORT");
+        builder.environment().remove("SLURM_STEP_RESV_PORTS");
+        builder.environment().remove("SLURM_NODEID");
+        builder.environment().remove("SLURM_LOCALID");
+        builder.environment().remove("SLURM_GTIDS");
+        builder.environment().remove("SLURM_CPU_BIND");
+        builder.environment().remove("SLURM_CPU_BIND_LIST");
+        builder.environment().remove("SLURM_CPU_BIND_TYPE");
+        builder.environment().remove("SLURM_LAUNCH_NODE_IPADDR");
+        builder.environment().remove("SLURM_SRUN_COMM_PORT");
+        builder.environment().remove("SLURM_SRUN_COMM_HOST");
+        builder.environment().remove("SLURM_TASK_PID");
+        builder.environment().remove("SLURM_DISTRIBUTION");
+        builder.environment().remove("SLURM_PROCID");
+        builder.environment().remove("SLURM_TOPOLOGY_ADDR");
+        builder.environment().remove("SLURM_TOPOLOGY_ADDR_PATTERN");
+        builder.environment().remove("SLURM_PRIO_PROCESS");
+        builder.environment().remove("SLURMD_NODENAME");
+        builder.environment().remove("SLURM_MEM_PER_CPU");
+        builder.environment().remove("SLURM_MEM_PER_NODE");
+        builder.environment().remove("SLURM_SUBMIT_HOST");
+
         // Log environment
         // outLog.println("PB ENVIRONMENT ---------------------------");
         // for (Entry<String, String> entry : builder.environment().entrySet()) {

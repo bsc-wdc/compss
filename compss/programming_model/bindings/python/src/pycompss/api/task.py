@@ -1641,7 +1641,7 @@ class Task(object):
         if __debug__:
             logger.debug("Building types update")
 
-        def build_collection_types_values(_content, _arg):
+        def build_collection_types_values(_content, _arg, direction):
             """ Retrieve collection type-value recursively"""
             coll = []
             for (_cont, _elem) in zip(_arg.content,
@@ -1650,13 +1650,13 @@ class Task(object):
                     coll.append((parameter.TYPE.FILE, 'null'))
                 else:
                     if _elem.type == parameter.TYPE.COLLECTION:
-                        coll.append(build_collection_types_values(_cont, _elem))
+                        coll.append(build_collection_types_values(_cont, _elem, direction))  # noqa
                     elif _elem.type == parameter.TYPE.EXTERNAL_PSCO and \
-                            is_psco(_cont):
+                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
                         coll.append((_elem.type, _cont.getID()))
                     elif _elem.type == parameter.TYPE.FILE and \
-                            is_psco(_cont):
-                        coll.append((parameter.TYPE.EXTERNAL_PSCO, _cont.getID()))
+                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
+                        coll.append((parameter.TYPE.EXTERNAL_PSCO, _cont.getID()))  # noqa
                     else:
                         coll.append((_elem.type, 'null'))
             return coll
@@ -1685,10 +1685,9 @@ class Task(object):
                     # It was persisted in the task
                     new_types.append(parameter.TYPE.EXTERNAL_PSCO)
                     new_values.append(arg.content.getID())
-                elif arg.type == parameter.TYPE.COLLECTION and \
-                        param.direction != parameter.DIRECTION.IN:
+                elif arg.type == parameter.TYPE.COLLECTION:
                     # There is a collection that can contain persistent objects
-                    collection_new_values = build_collection_types_values(arg.content, arg)             # noqa: E501
+                    collection_new_values = build_collection_types_values(arg.content, arg, param.direction)  # noqa: E501
                     new_types.append(parameter.TYPE.COLLECTION)
                     new_values.append(collection_new_values)
                 else:

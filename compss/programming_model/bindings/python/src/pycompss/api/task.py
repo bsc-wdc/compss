@@ -139,7 +139,7 @@ class Task(PyCOMPSsDecorator):
             # def myLs(flag, hide, sort):
             #   pass
             # Transform this dictionary to a Parameter object
-            if is_dict_specifier(value):
+            if isinstance(value, dict):
                 if key not in ['numba',
                                'numba_flags',
                                'numba_signature',

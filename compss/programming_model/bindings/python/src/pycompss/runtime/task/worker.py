@@ -702,12 +702,34 @@ class TaskWorker(TaskCommons):
         :param self_value: Self value.
         :return: List new types, List new values.
         """
+
         new_types, new_values = [], []
 
         if __debug__:
             logger.debug("Building types update")
 
+        def build_collection_types_values(_content, _arg, direction):
+            """ Retrieve collection type-value recursively"""
+            coll = []
+            for (_cont, _elem) in zip(_arg.content,
+                                      _arg.collection_content):
+                if isinstance(_elem, str):
+                    coll.append((parameter.TYPE.FILE, 'null'))
+                else:
+                    if _elem.content_type == parameter.TYPE.COLLECTION:
+                        coll.append(build_collection_types_values(_cont, _elem, direction))  # noqa
+                    elif _elem.content_type == parameter.TYPE.EXTERNAL_PSCO and \
+                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
+                        coll.append((_elem.content_type, _cont.getID()))
+                    elif _elem.content_type == parameter.TYPE.FILE and \
+                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
+                        coll.append((parameter.TYPE.EXTERNAL_PSCO, _cont.getID()))   # noqa
+                    else:
+                        coll.append((_elem.content_type, 'null'))
+            return coll
+
         # Add parameter types and value
+
         params_start = 1 if has_self else 0
         params_end = len(args) - num_returns + 1
         # Update new_types and new_values with the args list
@@ -716,21 +738,27 @@ class TaskWorker(TaskCommons):
             # Loop through the arguments and update new_types and new_values
             if not isinstance(arg, Parameter):
                 raise Exception('ERROR: A task parameter arrived as an' +
-                                ' object instead as a Parameter' +
+                                ' object instead as a TaskParameter' +
                                 ' when building the task result message.')
             else:
                 original_name = get_name_from_kwarg(arg.name)
                 param = self.decorator_arguments.get(original_name,
                                                      self.get_default_direction(original_name))  # noqa: E501
-                if arg.content_type == parameter.TYPE.EXTERNAL_PSCO:
+                if arg.content_type == parameter.TYPE.EXTERNAL_PSCO or \
+                        arg.content_type == parameter.TYPE.FILE:
                     # It was originally a persistent object
-                    new_types.append(parameter.TYPE.EXTERNAL_PSCO)
-                    new_values.append(arg.content)
-                elif is_psco(arg.content) and \
-                        param.direction != parameter.DIRECTION.IN:
-                    # It was persisted in the task
-                    new_types.append(parameter.TYPE.EXTERNAL_PSCO)
-                    new_values.append(arg.content.getID())
+                    if is_psco(arg.content):
+                        new_types.append(parameter.TYPE.EXTERNAL_PSCO)
+                        new_values.append(arg.content.getID())
+                    else:
+                        new_types.append(arg.content_type)
+                        new_values.append('null')
+                elif arg.content_type == parameter.TYPE.COLLECTION:
+                    # There is a collection that can contain persistent objects
+                    collection_new_values = build_collection_types_values(arg.content, arg,
+                                                                          param.direction)       # noqa: E501
+                    new_types.append(parameter.TYPE.COLLECTION)
+                    new_values.append(collection_new_values)
                 else:
                     # Any other return object: same type and null value
                     new_types.append(arg.content_type)
@@ -748,8 +776,12 @@ class TaskWorker(TaskCommons):
                 else:
                     # Self can only be of type FILE, so avoid the last update
                     # of self_type
-                    self_type = parameter.TYPE.FILE
-                    self_value = 'null'
+                    if is_psco(args[0]):
+                        self_type = parameter.TYPE.EXTERNAL_PSCO
+                        self_value = args[0].getID()
+                    else:
+                        self_type = parameter.TYPE.FILE
+                        self_value = 'null'
             new_types.append(self_type)
             new_values.append(self_value)
 
@@ -763,6 +795,19 @@ class TaskWorker(TaskCommons):
                 ret_type = get_compss_type(ret)
                 if ret_type == parameter.TYPE.EXTERNAL_PSCO:
                     ret_value = ret.getID()
+                elif ret_type == parameter.TYPE.COLLECTION:
+                    collection_ret_values = []
+                    for elem in ret:
+                        if elem.type == parameter.TYPE.EXTERNAL_PSCO or \
+                                elem.type == parameter.TYPE.FILE:
+                            if is_psco(elem.content):
+                                collection_ret_values.append(elem.key)
+                            else:
+                                collection_ret_values.append('null')
+                        else:
+                            collection_ret_values.append('null')
+                    new_types.append(parameter.TYPE.COLLECTION)
+                    new_values.append(collection_ret_values)
                 else:
                     # Returns can only be of type FILE, so avoid the last
                     # update of ret_type

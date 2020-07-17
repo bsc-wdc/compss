@@ -481,6 +481,7 @@ def main():
         print("- PSCOs TEST FINISHED SUCCESSFULLY.")
     else:
         print("- PSCOs TEST FINISHED WITH ERRORS.")
+        print(results)
 
 
 if __name__ == '__main__':

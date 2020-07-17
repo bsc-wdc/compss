@@ -52,6 +52,7 @@
         <module>1_annotation_ompss</module>
         <module>1_annotation_replicated</module>
 	<module>1_annotation_task_groups</module>
+    <module>1_annotation_container</module>
 	<module>1_commutative_groups</module>
 	<module>1_compss_exception</module>
 	<module>1_constraints_cloud</module>

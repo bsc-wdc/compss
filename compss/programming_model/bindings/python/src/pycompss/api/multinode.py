@@ -174,7 +174,7 @@ class MultiNode(object):
                     # @task decorator
             else:
                 # worker code
-                pass
+                set_slurm_environment()
 
             # This is executed only when called.
             if __debug__:
@@ -198,6 +198,9 @@ class MultiNode(object):
             # Call the method
             ret = func(*args, **kwargs)
 
+            if context.in_worker():
+                reset_slurm_environment()
+
             if len(args) > 0:
                 # Put things back
                 for k, v in saved.items():
@@ -207,6 +210,45 @@ class MultiNode(object):
 
         multinode_f.__doc__ = func.__doc__
         return multinode_f
+
+
+def set_slurm_environment():
+    num_nodes = int(os.environ["COMPSS_NUM_NODES"])
+    num_threads = int(os.environ["COMPSS_NUM_THREADS"])
+    total_processes = num_nodes * num_threads
+    hostnames = os.environ["COMPSS_HOSTNAMES"]
+    nodes = set(hostnames.split(","))
+    ntasks = os.getenv("SLURM_NTASKS", None)
+    if ntasks is not None:
+        os.environ["OCS_NTASKS"] = ntasks
+        os.environ["SLURM_NTASKS"] = str(total_processes)
+    nnodes = os.getenv("SLURM_NNODES", None)
+    if nnodes is not None:
+        os.environ["OCS_NNODES"] = nnodes
+        os.environ["SLURM_NNODES"] = str(num_nodes)
+    nodelist = os.getenv("SLURM_NODELIST", None)
+    if nodelist is not None:
+        os.environ["OCS_NODELIST"] = nodelist
+        os.environ["SLURM_NODELIST"] = ','.join(nodes)
+    tasks_per_node = os.getenv("SLURM_TASKS_PER_NODE", None)
+    if tasks_per_node is not None:
+        os.environ["OCS_TASKS_PER_NODE"] = tasks_per_node
+        os.environ["SLURM_TASKS_PER_NODE"] = str(num_threads)
+
+
+def reset_slurm_environment():
+    ntasks = os.environ.get("OCS_NTASKS", None)
+    if ntasks is not None:
+        os.environ["SLURM_NTASKS"] = ntasks
+    nnodes = os.environ.get("OCS_NNODES", None)
+    if nnodes is not None:
+        os.environ["SLURM_NNODES"] = nnodes
+    nodelist = os.environ.get("OCS_NODELIST", None)
+    if nodelist is not None:
+        os.environ["SLURM_NODELIST"] = nodelist
+    tasks_per_node = os.environ.get("OCS_TASKS_PER_NODE", None)
+    if tasks_per_node is not None:
+        os.environ["SLURM_TASKS_PER_NODE"] = tasks_per_node
 
 
 # ########################################################################### #

@@ -203,6 +203,16 @@ def set_slurm_environment():
     if tasks_per_node is not None:
         os.environ["OCS_TASKS_PER_NODE"] = tasks_per_node
         os.environ["SLURM_TASKS_PER_NODE"] = str(num_threads)
+    mem_per_node = os.getenv("SLURM_MEM_PER_NODE", None)
+    if mem_per_node is not None:
+        os.environ["OCS_MEM_PER_NODE"] = mem_per_node
+        os.environ.pop("SLURM_MEM_PER_NODE", None)
+    mem_per_cpu = os.getenv("SLURM_MEM_PER_CPU", None)
+    if mem_per_cpu is not None:
+        os.environ["OCS_MEM_PER_CPU"] = mem_per_cpu
+        os.environ.pop("SLURM_MEM_PER_CPU", None)
+        
+    
 
 
 def reset_slurm_environment():
@@ -218,6 +228,12 @@ def reset_slurm_environment():
     tasks_per_node = os.environ.get("OCS_TASKS_PER_NODE", None)
     if tasks_per_node is not None:
         os.environ["SLURM_TASKS_PER_NODE"] = tasks_per_node
+    mem_per_node = os.environ.get("OCS_MEM_PER_NODE", None)
+    if mem_per_node is not None:
+        os.environ["SLURM_MEM_PER_NODE"] = mem_per_node
+    mem_per_cpu = os.environ.get("OCS_MEM_PER_CPU", None)
+    if mem_per_cpu is not None:
+        os.environ["SLURM_MEM_PER_CPU"] = mem_per_cpu
 
 
 # ########################################################################### #

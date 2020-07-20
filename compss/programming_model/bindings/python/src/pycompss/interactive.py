@@ -427,6 +427,8 @@ def stop(sync=False):
         ipython = globals()['__builtins__']['get_ipython']()
         # import pprint
         # pprint.pprint(ipython.__dict__, width=1)
+        reserved_names = ('quit', 'exit', 'get_ipython',
+                          'APP_PATH', 'ipycompss', 'In', 'Out')
         raw_code = ipython.__dict__['user_ns']
         for k in raw_code:
             obj_k = raw_code[k]
@@ -435,7 +437,8 @@ def stop(sync=False):
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
-                elif OT.is_pending_to_synchronize(obj_k):
+                elif k not in reserved_names and \
+                        OT.is_pending_to_synchronize(obj_k):
                     print("Found an object to synchronize: %s" % str(k))
                     logger.debug("Found an object to synchronize: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)

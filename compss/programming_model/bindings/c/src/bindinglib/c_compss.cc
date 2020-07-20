@@ -54,10 +54,11 @@ void compss_clean() {
 
 void compss_ifstream(char * filename, ifstream& ifs) {
     char *runtime_filename;
+    long int l_app_id = 0;
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
 
-    GS_Open_File(filename, in_dir, &runtime_filename);
+    GS_Open_File(l_app_id, filename, in_dir, &runtime_filename);
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
@@ -66,10 +67,11 @@ void compss_ifstream(char * filename, ifstream& ifs) {
 
 void compss_ofstream(char * filename, ofstream& ofs) {
     char *runtime_filename;
+    long int l_app_id = 0;
 
     debug_printf("[C-BINDING]  -  @compss_ofstream  -  Entry.filename: %s\n", filename);
 
-    GS_Open_File(filename, out_dir, &runtime_filename);
+    GS_Open_File(l_app_id, filename, out_dir, &runtime_filename);
 
     debug_printf("[C-BINDING]  -  @compss_ofstream  -  Runtime filename: %s\n", runtime_filename);
 
@@ -80,6 +82,7 @@ FILE* compss_fopen(char * filename, char * mode) {
     char *runtime_filename;
     FILE* file;
     enum direction dir;
+    long int l_app_id = 0;
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
 
@@ -101,7 +104,7 @@ FILE* compss_fopen(char * filename, char * mode) {
         dir = commutative_dir;
     }
 
-    GS_Open_File(filename, dir, &runtime_filename);
+    GS_Open_File(l_app_id, filename, dir, &runtime_filename);
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
@@ -111,7 +114,8 @@ FILE* compss_fopen(char * filename, char * mode) {
 }
 
 void compss_delete_file(char *filename) {
-    GS_Delete_File(filename,0);
+    long int l_app_id = 0;
+    GS_Delete_File(l_app_id, filename,0);
     return;
 }
 

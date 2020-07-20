@@ -998,19 +998,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public String getBindingObject(String fileName) {
+    public String getBindingObject(Long appId, String fileName) {
         // Parse the file name
         LOGGER.debug(" Calling get binding object : " + fileName);
+
+        Application app = Application.registerApplication(appId);
         BindingObjectLocation sourceLocation =
             new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
         // Ask the AP to
-        String finalPath = mainAccessToBindingObject(null, fileName, sourceLocation);
+        String finalPath = mainAccessToBindingObject(app, fileName, sourceLocation);
         LOGGER.debug(" Returning binding object as id: " + finalPath);
         return finalPath;
     }
 
     @Override
-    public boolean deleteBindingObject(String fileName) {
+    public boolean deleteBindingObject(Long appId, String fileName) {
         // Check parameters
         if (fileName == null || fileName.isEmpty()) {
             return false;

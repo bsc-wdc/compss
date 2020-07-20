@@ -406,8 +406,9 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
 */
 static PyObject* accessed_file(PyObject* self, PyObject* args) {
     debug("####C#### ACCESSED FILE\n");
-    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-    if (GS_Accessed_File(file_name) == 0) {
+    long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    if (GS_Accessed_File(app_id, file_name) == 0) {
     	Py_RETURN_FALSE;
     } else {
     	Py_RETURN_TRUE;
@@ -419,10 +420,11 @@ static PyObject* accessed_file(PyObject* self, PyObject* args) {
 */
 static PyObject* open_file(PyObject* self, PyObject* args) {
     debug("####C#### GET FILE\n");
-    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-    int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
+    long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 2)));
     char* compss_name;
-    GS_Open_File(file_name, mode, &compss_name);
+    GS_Open_File(app_id, file_name, mode, &compss_name);
     debug("####C#### COMPSs file name %s\n", compss_name);
     PyObject *ret = Py_BuildValue("s", compss_name);
     // File_name must NOT be freed, as it points to a PyObject
@@ -440,10 +442,11 @@ static PyObject* open_file(PyObject* self, PyObject* args) {
 */
 static PyObject* delete_file(PyObject* self, PyObject* args) {
     debug("####C#### DELETE FILE\n");
-    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-    bool wait = PyObject_IsTrue(PyTuple_GetItem(args, 1));
+    long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    bool wait = PyObject_IsTrue(PyTuple_GetItem(args, 2));
     debug("####C#### Calling Delete File with file %s\n", file_name);
-    GS_Delete_File(file_name, wait);
+    GS_Delete_File(app_id, file_name, wait);
     debug("####C#### COMPSs delete file name %s with result %d \n", file_name, 0);
     Py_RETURN_NONE;
 }
@@ -457,9 +460,10 @@ static PyObject* delete_file(PyObject* self, PyObject* args) {
   file is obsolete and it can be safely deleted.
 */
 static PyObject* close_file(PyObject* self, PyObject* args) {
-    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-    int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
-    GS_Close_File(file_name, mode);
+    long app_id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 2)));
+    GS_Close_File(app_id, file_name, mode);
     Py_RETURN_NONE;
 }
 

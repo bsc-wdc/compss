@@ -371,21 +371,25 @@ public interface COMPSsRuntime {
     /**
      * Returns the renaming of the binding object version opened.
      *
+     * @param appId Application id.
      * @param bindingObjectName Name of the binding object.
      * @return id in the cache.
      */
-    public String getBindingObject(String bindingObjectName);
+    public String getBindingObject(Long appId, String bindingObjectName);
 
     /**
      * Removes the binding object from runtime.
      *
+     * @param appId Application id.
      * @param bindingObjectName Name of the binding object.
      * @return true if the {@code bindingObjectName} has been deleted, false otherwise.
      */
-    public boolean deleteBindingObject(String bindingObjectName);
+    public boolean deleteBindingObject(Long appId, String bindingObjectName);
 
     /**
      * Cancels all tasks of the application.
+     * 
+     * @param appId Application id.
      */
     public void cancelApplicationTasks(Long appId);
 

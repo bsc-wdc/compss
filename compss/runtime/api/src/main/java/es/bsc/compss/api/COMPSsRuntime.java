@@ -298,53 +298,59 @@ public interface COMPSsRuntime {
     /**
      * Checks if a file has been accessed by the runtime.
      *
+     * @param appId Id of the application checking the file access
      * @param fileName File to check
      * @return True if accessed.
      */
-    public boolean isFileAccessed(String fileName);
+    public boolean isFileAccessed(Long appId, String fileName);
 
     /**
      * Returns the renaming of the file version opened.
      *
+     * @param appId Id of the application accessing the data.
      * @param fileName File name.
      * @param mode Access mode.
      * @return
      */
-    public String openFile(String fileName, Direction mode);
+    public String openFile(Long appId, String fileName, Direction mode);
 
     /**
      * Returns the renaming of the file version opened.
      *
+     * @param appId Id of the application accessing the data.
      * @param dirName Directory name.
      * @param mode Access mode.
      * @return
      */
-    public String openDirectory(String dirName, Direction mode);
+    public String openDirectory(Long appId, String dirName, Direction mode);
 
     /**
      * Close the opened file version.
      *
+     * @param appId Id of the application accessing the data.
      * @param fileName File name.
      * @param mode Access mode.
      */
-    public void closeFile(String fileName, Direction mode);
+    public void closeFile(Long appId, String fileName, Direction mode);
 
     /**
      * Deletes the specified version of a file.
      *
+     * @param appId Id of the application requesting the file deletion
      * @param fileName File name.
      * @return true if the {@code fileName} has been deleted, false otherwise.
      */
-    public boolean deleteFile(String fileName);
+    public boolean deleteFile(Long appId, String fileName);
 
     /**
      * Deletes the specified version of a file.
      *
+     * @param appId Id of the application requesting the file deletion
      * @param fileName File name.
      * @param waitForData Flag to indicate if we want to wait for the data ready before removing
      * @return true if the {@code fileName} has been deleted, false otherwise.
      */
-    public boolean deleteFile(String fileName, boolean waitForData);
+    public boolean deleteFile(Long appId, String fileName, boolean waitForData);
 
     /**
      * Returns last version of file with its original name.
@@ -365,21 +371,25 @@ public interface COMPSsRuntime {
     /**
      * Returns the renaming of the binding object version opened.
      *
+     * @param appId Application id.
      * @param bindingObjectName Name of the binding object.
      * @return id in the cache.
      */
-    public String getBindingObject(String bindingObjectName);
+    public String getBindingObject(Long appId, String bindingObjectName);
 
     /**
      * Removes the binding object from runtime.
      *
+     * @param appId Application id.
      * @param bindingObjectName Name of the binding object.
      * @return true if the {@code bindingObjectName} has been deleted, false otherwise.
      */
-    public boolean deleteBindingObject(String bindingObjectName);
+    public boolean deleteBindingObject(Long appId, String bindingObjectName);
 
     /**
      * Cancels all tasks of the application.
+     * 
+     * @param appId Application id.
      */
     public void cancelApplicationTasks(Long appId);
 

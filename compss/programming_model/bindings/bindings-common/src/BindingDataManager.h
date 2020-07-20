@@ -33,7 +33,7 @@ int hasGlobalRef(void* pointer);
 
 void cleanGlobalRefs(JNIEnv *env);
 
-void *sync_object_from_runtime(char* name, int type, int elements);
+void *sync_object_from_runtime(long app_id, char* name, int type, int elements);
 
 int delete_object_from_runtime(char* name, int type, int elements);
 

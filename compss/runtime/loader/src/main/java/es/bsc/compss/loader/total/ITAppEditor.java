@@ -71,15 +71,6 @@ public class ITAppEditor extends ExprEditor {
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
     // Inserted method calls
-    private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
-    private static final String COMPSS_FILE_SYNCH = "COMPSsFile.synchFile(";
-    private static final String NEW_FILTER_STREAM = ".newFilterStream(";
-    private static final String STREAM_CLOSED = ".streamClosed(";
-    private static final String GET_CANONICAL_PATH = ".getCanonicalPath(";
-    private static final String ADD_TASK_FILE = ".addTaskFile(";
-    private static final String IS_TASK_FILE = ".isTaskFile(";
-    private static final String OPEN_FILE = ".openFile(";
-    private static final String DELETE_FILE = ".deleteFile(";
     private static final String EXECUTE_TASK = ".executeTask(";
     private static final String PROCEED = "$_ = $proceed(";
     private static final String COMPSS_LOADER_GROUP = "es.bsc.compss.loader.total.COMPSsGroupLoader(";
@@ -358,21 +349,21 @@ public class ITAppEditor extends ExprEditor {
         boolean found = false;
         for (String streamClass : LoaderConstants.SUPPORTED_STREAM_TYPES) {
             if (className.equals(streamClass)) {
-                modifiedExpr = "$_ = " + this.itSRVar + ".new" + streamClass + "(" + callPars + ");";
+                modifiedExpr = "$_ = " + CallGenerator.newStreamClass(itSRVar, itAppIdVar, streamClass, callPars);
                 found = true;
                 break;
             }
         }
         if (!found) { // Not a stream
             if (className.equals(File.class.getCanonicalName())) {
-                modifiedExpr = "$_ = " + this.itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
+                modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itSRVar, itAppIdVar, callPars);
             } else {
                 String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$1");
                 String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
-                modifiedExpr =
-                    PROCEED + callPars + "); " + "if ($_ instanceof " + FilterInputStream.class.getCanonicalName()
-                        + " || $_ instanceof " + FilterOutputStream.class.getCanonicalName() + ") {" + this.itSRVar
-                        + NEW_FILTER_STREAM + par1 + ", (Object)$_); }";
+                modifiedExpr = PROCEED + callPars + "); ";
+                modifiedExpr += "if ($_ instanceof " + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
+                    + FilterOutputStream.class.getCanonicalName() + ") {";
+                modifiedExpr += CallGenerator.newFilterStream(this.itSRVar, this.itAppIdVar, par1);
             }
         }
         if (DEBUG) {
@@ -602,7 +593,7 @@ public class ITAppEditor extends ExprEditor {
                 // The File type needs to be specified explicitly, since its formal type is String
                 type = DATA_TYPES + ".FILE_T";
                 infoToAppend.append('$').append(paramIndex + 1).append(',');
-                infoToPrepend.insert(0, this.itSRVar + ADD_TASK_FILE + "$" + (paramIndex + 1) + ");");
+                infoToPrepend.insert(0, CallGenerator.addTaskFile(this.itSRVar, this.itAppIdVar, paramIndex));
                 break;
             case STRING:
                 // Mechanism to make a String be treated like a list of chars instead of like another object.
@@ -884,7 +875,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceCloseStream() {
-        String streamClose = PROCEED + "$$); " + this.itSRVar + STREAM_CLOSED + "$0);";
+        String streamClose = PROCEED + "$$); " + CallGenerator.closeStream(this.itSRVar, this.itAppIdVar);
         return streamClose;
     }
 
@@ -894,7 +885,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceDeleteFile() {
-        String deleteFile = "$_ = " + this.itApiVar + DELETE_FILE + "$0" + GET_CANONICAL_PATH + "));";
+        String deleteFile = "$_ = " + CallGenerator.deleteFile(itApiVar, itAppIdVar);
         return deleteFile;
     }
 
@@ -996,7 +987,7 @@ public class ITAppEditor extends ExprEditor {
                             LOGGER.debug("Parameter " + i + " of black-box method " + methodName
                                 + " is an COMPSs File, adding File synch");
                         }
-                        aux1.append(COMPSS_FILE_SYNCH).append(itAppIdVar).append(",").append(parId).append(')');
+                        aux1.append(CallGenerator.synchFile(parId));
 
                     } else if (parType.getName().equals(String.class.getName())) { // This is a string
                         if (DEBUG) {
@@ -1021,9 +1012,9 @@ public class ITAppEditor extends ExprEditor {
                                     .append(";");
                             } else {
                                 String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
-                                String taskFile = this.itSRVar + IS_TASK_FILE + parId + ")";
-                                String apiOpenFile =
-                                    this.itApiVar + OPEN_FILE + parId + ", " + DATA_DIRECTION + ".INOUT)";
+                                String taskFile = CallGenerator.isTaskFile(this.itSRVar, this.itAppIdVar, parId);
+                                String apiOpenFile = CallGenerator.openFile(this.itApiVar, this.itAppIdVar, parId,
+                                    DATA_DIRECTION + ".INOUT");
                                 modifiedCall.insert(0,
                                     CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                                 // Adding check of task files

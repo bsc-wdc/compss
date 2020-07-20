@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.location.DataLocation;
 
 import java.util.concurrent.Semaphore;
@@ -27,6 +28,7 @@ import java.util.concurrent.Semaphore;
 
 public class WaitForDataReadyToDeleteRequest extends APRequest {
 
+    private final Application app;
     private final DataLocation loc;
     private final Semaphore sem;
     private final Semaphore semWait;
@@ -37,11 +39,13 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     /**
      * Creates a new request to wait for the data to be ready to be deleted.
      * 
+     * @param app Application requesting to wait for the value to be ready for deletion
      * @param loc Data Location.
      * @param sem Waiting semaphore.
      * @param semWait Tasks semaphore.
      */
-    public WaitForDataReadyToDeleteRequest(DataLocation loc, Semaphore sem, Semaphore semWait) {
+    public WaitForDataReadyToDeleteRequest(Application app, DataLocation loc, Semaphore sem, Semaphore semWait) {
+        this.app = app;
         this.loc = loc;
         this.sem = sem;
         this.semWait = semWait;
@@ -69,7 +73,7 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + this.loc.getPath() + "to DIP...");
-        this.nPermits = dip.waitForDataReadyToDelete(this.loc, this.semWait);
+        this.nPermits = dip.waitForDataReadyToDelete(this.app, this.loc, this.semWait);
         this.sem.release();
     }
 

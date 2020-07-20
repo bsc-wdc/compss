@@ -58,13 +58,13 @@ void cleanGlobalRefs(JNIEnv *env){
 	}
 }
 
-int delete_object_from_runtime(char* name, int type, int elements) {
+int delete_object_from_runtime(long app_id, char* name, int type, int elements) {
     stringstream ss;
     ss << name << "#" << type << "#" << elements << flush;
     char * binding_obj_id = strdup(ss.str().c_str());
     //Deleting object from runtime
     int *res;
-    GS_Delete_Object(binding_obj_id, &res);
+    GS_Delete_Object(app_id, binding_obj_id, &res);
     //Check if original name is in bindings cache. Remove if it is cache
     AbstractCache *cache = get_cache();
     if (cache == NULL) {
@@ -75,13 +75,13 @@ int delete_object_from_runtime(char* name, int type, int elements) {
     return 0;
 }
 
-void *sync_object_from_runtime(char* name, int type, int elements) {
+void *sync_object_from_runtime(long app_id, char* name, int type, int elements) {
     char *runtime_filename;
     stringstream ss;
     ss << name << "#" << type << "#" << elements << flush;
     char * binding_obj_id = strdup(ss.str().c_str());
     debug_printf("[BindingDataManager]  -  Calling runtime to get binding object %s to binding cache.\n",	binding_obj_id);
-    GS_Get_Object(binding_obj_id, &runtime_filename);
+    GS_Get_Object(app_id, binding_obj_id, &runtime_filename);
     compss_pointer cp;
     AbstractCache *cache = get_cache();
     if (cache != NULL) {
@@ -98,7 +98,7 @@ void *sync_object_from_runtime(char* name, int type, int elements) {
         cache->deleteFromCache(runtime_filename, false);
         debug_printf("[BindingDataManager]  -  Calling runtime to delete binding object %s.\n", binding_obj_id);
         int *res;
-        GS_Delete_Object(binding_obj_id, &res);
+        GS_Delete_Object(app_id, binding_obj_id, &res);
         return cp.pointer;
     } else {
         printf("[BindingDataManager] - ERROR - Cache is null when synchronizing object.\n");

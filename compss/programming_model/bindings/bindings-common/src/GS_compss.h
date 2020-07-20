@@ -65,10 +65,10 @@ extern "C" void GS_ExecuteTaskNew(long appId,
                                  );
 
 // File methods
-extern "C" int GS_Accessed_File(char* fileName);
-extern "C" void GS_Open_File(char* fileName, int mode, char** buf);
-extern "C" void GS_Close_File(char* fileName, int mode);
-extern "C" void GS_Delete_File(char* fileName, int waitForData);
+extern "C" int GS_Accessed_File(long appId, char* fileName);
+extern "C" void GS_Open_File(long appId, char* fileName, int mode, char** buf);
+extern "C" void GS_Close_File(long appId, char* fileName, int mode);
+extern "C" void GS_Delete_File(long appId, char* fileName, int waitForData);
 extern "C" void GS_Get_File(long appId, char* fileName);
 
 extern "C" void GS_Get_Directory(long appId, char* dirName);
@@ -86,7 +86,7 @@ extern "C" void GS_FreeResources(long appId, int numResources, char* groupName);
 // Misc functions
 extern "C" void GS_Get_AppDir(char** buf);
 extern "C" void GS_EmitEvent(int type, long id);
-extern "C" void GS_Get_Object(char* objectId, char** buf);
-extern "C" void GS_Delete_Object(char* objectId, int** buf);
+extern "C" void GS_Get_Object(long appId, char* objectId, char** buf);
+extern "C" void GS_Delete_Object(long appId, char* objectId, int** buf);
 
 #endif /* GS_COMPSS_H */

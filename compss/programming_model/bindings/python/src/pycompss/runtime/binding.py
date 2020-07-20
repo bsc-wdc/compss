@@ -339,9 +339,10 @@ def accessed_file(file_name):
     :param file_name: <String> File name.
     :return: True if accessed otherwise False;
     """
+    app_id = 0
     if __debug__:
         logger.debug("Checking if file %s has been accessed." % file_name)
-    return compss.accessed_file(file_name)
+    return compss.accessed_file(app_id, file_name)
 
 
 def open_file(file_name, mode):
@@ -354,9 +355,10 @@ def open_file(file_name, mode):
     :return: The current name of the file requested (that may have been
              renamed during runtime)
     """
+    app_id = 0
     if __debug__:
         logger.debug("Getting file %s with mode %s" % (file_name, mode))
-    compss_name = compss.open_file(file_name, mode)
+    compss_name = compss.open_file(app_id, file_name, mode)
     if __debug__:
         logger.debug("COMPSs file name is %s" % compss_name)
     return compss_name
@@ -370,9 +372,10 @@ def delete_file(file_name):
     :param file_name: File name to remove
     :return: True if success. False otherwise
     """
+    app_id = 0
     if __debug__:
         logger.debug("Deleting file %s" % file_name)
-    result = compss.delete_file(file_name, True) == 'true'
+    result = compss.delete_file(app_id, file_name, True) == 'true'
     if __debug__:
         if result:
             logger.debug("File %s successfully deleted." % file_name)
@@ -389,10 +392,11 @@ def get_file(file_name):
     :param file_name: File name to remove
     :return: None
     """
+    app_id = 0
     if __debug__:
         logger.debug("Getting file %s" % file_name)
 
-    compss.get_file(0, file_name)
+    compss.get_file(app_id, file_name)
 
 
 def get_directory(dir_name):
@@ -403,10 +407,11 @@ def get_directory(dir_name):
     :param dir_name: dir name to retrieve
     :return: None
     """
+    app_id = 0
     if __debug__:
         logger.debug("Getting directory %s" % dir_name)
 
-    compss.get_directory(0, dir_name)
+    compss.get_directory(app_id, dir_name)
 
 
 def delete_object(obj):
@@ -418,6 +423,7 @@ def delete_object(obj):
     :param obj: Object to remove
     :return: True if success. False otherwise
     """
+    app_id = 0
     obj_id = get_object_id(obj, False, False)
     if obj_id is None:
         pop_object_id(obj)
@@ -429,7 +435,7 @@ def delete_object(obj):
         pass
     try:
         file_name = objid_to_filename[obj_id]
-        compss.delete_file(file_name, False)
+        compss.delete_file(app_id, file_name, False)
     except KeyError:
         pass
     try:
@@ -459,8 +465,9 @@ def barrier(no_more_tasks=False):
     if no_more_tasks:
         _clean_objects()
 
+    app_id = 0
     # Call the Runtime barrier (appId 0, not needed for the signature)
-    compss.barrier(0, no_more_tasks)
+    compss.barrier(app_id, no_more_tasks)
 
 
 def barrier_group(group_name):
@@ -472,8 +479,9 @@ def barrier_group(group_name):
     :param group_name: Group name
     :return: None
     """
+    app_id = 0
     # Call the Runtime group barrier
-    return compss.barrier_group(0, group_name)
+    return compss.barrier_group(app_id, group_name)
 
 
 def open_task_group(group_name, implicit_barrier):
@@ -485,7 +493,8 @@ def open_task_group(group_name, implicit_barrier):
     :param implicit_barrier: <Boolean> Implicit barrier
     :return: None
     """
-    compss.open_task_group(group_name, implicit_barrier, 0)
+    app_id = 0
+    compss.open_task_group(group_name, implicit_barrier, app_id)
 
 
 def close_task_group(group_name):
@@ -496,7 +505,8 @@ def close_task_group(group_name):
     :param group_name: Group name
     :return: None
     """
-    compss.close_task_group(group_name, 0)
+    app_id = 0
+    compss.close_task_group(group_name, app_id)
 
 
 def get_log_path():
@@ -522,11 +532,12 @@ def get_number_of_resources():
     :return: Number of active resources
         +type: <int>
     """
+    app_id = 0
     if __debug__:
         logger.debug("Request the number of active resources")
 
-    # Call the Runtime (appId 0)
-    return compss.get_number_of_resources(0)
+    # Call the Runtime
+    return compss.get_number_of_resources(app_id)
 
 
 def request_resources(num_resources, group_name):
@@ -540,6 +551,7 @@ def request_resources(num_resources, group_name):
         +type: <str> or None
     :return: None
     """
+    app_id = 0
     if group_name is None:
         group_name = "NULL"
 
@@ -549,8 +561,8 @@ def request_resources(num_resources, group_name):
                      " resources with notification to task group " +
                      str(group_name))
 
-    # Call the Runtime (appId 0)
-    compss.request_resources(0, num_resources, group_name)
+    # Call the Runtime
+    compss.request_resources(app_id, num_resources, group_name)
 
 
 def free_resources(num_resources, group_name):
@@ -564,6 +576,8 @@ def free_resources(num_resources, group_name):
         +type: <str> or None
     :return: None
     """
+    app_id = 0
+
     if group_name is None:
         group_name = "NULL"
 
@@ -573,8 +587,8 @@ def free_resources(num_resources, group_name):
                      " resources with notification to task group " +
                      str(group_name))
 
-    # Call the Runtime (appId 0)
-    compss.free_resources(0, num_resources, group_name)
+    # Call the Runtime
+    compss.free_resources(app_id, num_resources, group_name)
 
 
 def register_ce(core_element):
@@ -781,6 +795,7 @@ def synchronize(obj, mode):
     # Must be implemented first in the Runtime, then in the bindings common
     # C API and finally add the boolean here
     global _current_id
+    app_id = 0 
 
     if is_psco(obj):
         obj_id = get_id(obj)
@@ -789,7 +804,7 @@ def synchronize(obj, mode):
         else:
             # file_path is of the form storage://pscoId or
             # file://sys_path_to_file
-            file_path = compss.open_file("storage://" + str(obj_id), mode)
+            file_path = compss.open_file(app_id, "storage://" + str(obj_id), mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
             new_obj = get_by_id(file_name)
@@ -803,7 +818,7 @@ def synchronize(obj, mode):
         logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
-    compss_file = compss.open_file(file_name, mode)
+    compss_file = compss.open_file(app_id, file_name, mode)
 
     if __debug__:
         logger.debug("Runtime returned compss file: %s" % compss_file)
@@ -821,7 +836,7 @@ def synchronize(obj, mode):
                   " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa: E501
             return None
         new_obj = deserialize_from_file(compss_file)
-        compss.close_file(file_name, mode)
+        compss.close_file(app_id, file_name, mode)
     else:
         new_obj = get_by_id(compss_file)
 
@@ -834,7 +849,7 @@ def synchronize(obj, mode):
         _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
 
     if mode != 'r':
-        compss.delete_file(objid_to_filename[obj_id], False)
+        compss.delete_file(app_id, objid_to_filename[obj_id], False)
         objid_to_filename.pop(obj_id)
         pending_to_synchronize.pop(obj_id)
         pop_object_id(obj)
@@ -1603,8 +1618,9 @@ def _clean_objects():
 
     :return: None
     """
+    app_id = 0
     for filename in objid_to_filename.values():
-        compss.delete_file(filename, False)
+        compss.delete_file(app_id, filename, False)
     pending_to_synchronize.clear()
     _addr2id2obj.clear()
     objid_to_filename.clear()

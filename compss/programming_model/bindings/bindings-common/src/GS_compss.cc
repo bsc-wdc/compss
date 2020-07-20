@@ -359,19 +359,19 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find registerCoreElement");
 
     // isFileAccessed method
-    midIsFileAccessed = status->localJniEnv->GetMethodID(clsITimpl, "isFileAccessed", "(Ljava/lang/String;)Z");
+    midIsFileAccessed = status->localJniEnv->GetMethodID(clsITimpl, "isFileAccessed", "(Ljava/lang/Long;Ljava/lang/String;)Z");
     check_exception(status, "Cannot find isFileAccessed");
 
     // openFile method
-    midOpenFile = status->localJniEnv->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
+    midOpenFile = status->localJniEnv->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/Long;Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
     check_exception(status, "Cannot find openFile");
 
     // closeFile method
-    midCloseFile = status->localJniEnv->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
+    midCloseFile = status->localJniEnv->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/Long;Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
     check_exception(status, "Cannot find closeFile");
 
     // deleteFile method
-    midDeleteFile = status->localJniEnv->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;Z)Z");
+    midDeleteFile = status->localJniEnv->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/Long;Ljava/lang/String;Z)Z");
     check_exception(status, "Cannot find deleteFile");
 
     // getFile method
@@ -383,11 +383,11 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find getDirectory");
 
     // deleteFile method
-    midDeleteBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "deleteBindingObject", "(Ljava/lang/String;)Z");
+    midDeleteBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "deleteBindingObject", "(Ljava/lang/Long;Ljava/lang/String;)Z");
     check_exception(status, "Cannot find deleteBindingObject");
 
     // openFile method
-    midGetBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
+    midGetBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "getBindingObject", "(Ljava/lang/Long;Ljava/lang/String;)Ljava/lang/String;");
     check_exception(status, "Cannot find getBindingObject");
 
     // getNumberOfResources method
@@ -1108,7 +1108,7 @@ void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints
     debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Task registered: %s\n", ceSignature);
 }
 
-int GS_Accessed_File(char* fileName){
+int GS_Accessed_File(long appId, char* fileName){
     debug_printf("[BINDING-COMMONS]  -  @GS_Accessed_File  -  Calling runtime isFileAccessed method  for %s  ...\n", fileName);
 
     // Request thread access to JVM
@@ -1119,7 +1119,10 @@ int GS_Accessed_File(char* fileName){
 	check_exception(status, "Error getting String UTF");
 
     // Perform operation
-	jboolean is_accessed = (jboolean)status->localJniEnv->CallBooleanMethod(globalRuntime, midIsFileAccessed, filename_str);
+	jboolean is_accessed = (jboolean)status->localJniEnv->CallBooleanMethod(globalRuntime,
+                                                                midIsFileAccessed, 
+                                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                                filename_str);
     check_exception(status, "Error calling runtime isFileAccessed");
     status->localJniEnv->DeleteLocalRef(filename_str);
 
@@ -1136,7 +1139,7 @@ int GS_Accessed_File(char* fileName){
     return ret;
 }
 
-void GS_Open_File(char* fileName, int mode, char** buf) {
+void GS_Open_File(long appId, char* fileName, int mode, char** buf) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Open_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", fileName, mode);
 
     // Request thread access to JVM
@@ -1150,19 +1153,39 @@ void GS_Open_File(char* fileName, int mode, char** buf) {
     jstring jstr = NULL;
     switch ((enum direction) mode) {
         case in_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirIN);
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
+                                                        midOpenFile,
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        filename_str, 
+                                                        jobjParDirIN);
             break;
         case out_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirOUT);
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
+                                                        midOpenFile,
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        filename_str, 
+                                                        jobjParDirOUT);
             break;
         case inout_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirINOUT);
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
+                                                        midOpenFile,
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        filename_str, 
+                                                        jobjParDirINOUT);
             break;
         case concurrent_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirCONCURRENT);
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
+                                                        midOpenFile,
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        filename_str, 
+                                                        jobjParDirCONCURRENT);
             break;
         case commutative_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midOpenFile, filename_str, jobjParDirCOMMUTATIVE);
+            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
+                                                        midOpenFile,
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        filename_str, 
+                                                        jobjParDirCOMMUTATIVE);
             break;
         default:
             break;
@@ -1186,7 +1209,7 @@ void GS_Open_File(char* fileName, int mode, char** buf) {
 }
 
 
-void GS_Close_File(char* fileName, int mode) {
+void GS_Close_File(long appId, char* fileName, int mode) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  Calling runtime closeFile method...\n");
 
     // Request thread access to JVM
@@ -1195,19 +1218,39 @@ void GS_Close_File(char* fileName, int mode) {
     // Perform operation
     switch ((enum direction) mode) {
         case in_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirIN);
+            status->localJniEnv->CallVoidMethod(globalRuntime,
+                                        midCloseFile,
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewStringUTF(fileName),
+                                        jobjParDirIN);
             break;
         case out_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirOUT);
+            status->localJniEnv->CallVoidMethod(globalRuntime,
+                                        midCloseFile,
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewStringUTF(fileName),
+                                        jobjParDirOUT);
             break;
         case inout_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirINOUT);
+            status->localJniEnv->CallVoidMethod(globalRuntime,
+                                        midCloseFile,
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewStringUTF(fileName),
+                                        jobjParDirINOUT);
             break;
         case concurrent_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirCONCURRENT);
+            status->localJniEnv->CallVoidMethod(globalRuntime,
+                                        midCloseFile,
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewStringUTF(fileName),
+                                        jobjParDirCONCURRENT);
             break;
         case commutative_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime, midCloseFile, status->localJniEnv->NewStringUTF(fileName), jobjParDirCOMMUTATIVE);
+            status->localJniEnv->CallVoidMethod(globalRuntime,
+                                        midCloseFile,
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewStringUTF(fileName),
+                                        jobjParDirCOMMUTATIVE);
             break;
         default:
             break;
@@ -1221,7 +1264,7 @@ void GS_Close_File(char* fileName, int mode) {
 }
 
 
-void GS_Delete_File(char* fileName, int wait) {
+void GS_Delete_File(long appId, char* fileName, int wait) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  Calling runtime deleteFile method...\n");
 
     // Local variables for JVM call
@@ -1232,7 +1275,11 @@ void GS_Delete_File(char* fileName, int wait) {
     ThreadStatus* status = access_request();
 
     // Perform operation
-    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime, midDeleteFile, status->localJniEnv->NewStringUTF(fileName), _wait);
+    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime,
+                                            midDeleteFile, 
+                                            status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                            status->localJniEnv->NewStringUTF(fileName),
+                                            _wait);
     check_exception(status, "Exception received when calling deleteFile");
     //*buf = (int*)&res;
 
@@ -1252,9 +1299,9 @@ void GS_Get_File(long appId, char* fileName) {
 
     // Perform operation
     status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midGetFile,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
-                              status->localJniEnv->NewStringUTF(fileName));
+                                midGetFile,
+                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                status->localJniEnv->NewStringUTF(fileName));
     check_exception(status, "Exception received when calling getFile");
 
     // Revoke thread access to JVM
@@ -1270,7 +1317,10 @@ void GS_Get_Directory(long appId, char* dirName) {
     ThreadStatus* status = access_request();
 
     // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime, midGetDirectory, appId, status->localJniEnv->NewStringUTF(dirName));
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                                midGetDirectory,
+                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                status->localJniEnv->NewStringUTF(dirName));
     check_exception(status, "Exception received when calling getDirectory");
 
     // Revoke thread access to JVM
@@ -1279,14 +1329,17 @@ void GS_Get_Directory(long appId, char* dirName) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_Directory  -  COMPSs directory: %s\n", dirName);
 }
 
-void GS_Get_Object(char* fileName, char** buf) {
+void GS_Get_Object(long appId, char* fileName, char** buf) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  Calling runtime getObject method...\n");
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
 
     // Perform operation
-    jstring jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midGetBindingObject, status->localJniEnv->NewStringUTF(fileName));
+    jstring jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
+                                                        midGetBindingObject,
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        status->localJniEnv->NewStringUTF(fileName));
     check_exception(status, "Exception received when calling getObject");
 
     // Parse output
@@ -1302,14 +1355,17 @@ void GS_Get_Object(char* fileName, char** buf) {
 }
 
 
-void GS_Delete_Object(char* fileName, int** buf) {
+void GS_Delete_Object(long appId, char* fileName, int** buf) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Object  -  Calling runtime deleteObject method...\n");
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
 
     // Perform operation
-    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime, midDeleteBindingObject, status->localJniEnv->NewStringUTF(fileName));
+    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime,
+                                                midDeleteBindingObject,
+                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                status->localJniEnv->NewStringUTF(fileName));
     check_exception(status, "Exception received when calling deleteObject");
     *buf = (int*) &res;
 

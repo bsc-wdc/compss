@@ -111,7 +111,8 @@ template <class T> T compss_wait_on(T& obj) {
         return obj;
     } else {
         debug_printf("[C-BINDING]  -  @compss_wait_on  -  sync object %s to runtime\n", entry.filename);
-        T* new_obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements);
+        long int l_app_id = 0;
+        T* new_obj = (T*)sync_object_from_runtime(l_app_id, entry.filename, entry.object_type, entry.elements);
         remove(entry.filename);
         objectMap.erase(&obj);
         debug_printf("[C-BINDING]  -  @compss_wait_on  -  object synchronized\n");
@@ -135,7 +136,8 @@ void compss_wait_on(T* &obj) {
     } else {
         debug_printf("[C-BINDING]  -  @compss_wait_on  -  sync object %s to runtime\n", entry.filename);
         void* old_obj = obj;
-        obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements);
+        long int l_app_id = 0;
+        obj = (T*)sync_object_from_runtime(l_app_id, entry.filename, entry.object_type, entry.elements);
         remove(entry.filename);
         objectMap.erase(old_obj);
         debug_printf("[C-BINDING]  -  @compss_wait_on  -  object synchronized\n");

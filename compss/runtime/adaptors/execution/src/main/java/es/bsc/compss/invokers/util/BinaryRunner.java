@@ -63,7 +63,7 @@ public class BinaryRunner {
     private static final String ERROR_EXT_STREAM_CLOSURE = "ERROR: Cannot close External Stream due to internal error.";
     private static final String ERROR_EXT_STREAM_GET_ID = "ERROR: Cannot close External Stream due to innvalid Id";
 
-    private static final int PB_KILL_SIGNAL = 15;
+    private static final int PB_KILL_SIGNAL = 10;
 
     private Process process;
 

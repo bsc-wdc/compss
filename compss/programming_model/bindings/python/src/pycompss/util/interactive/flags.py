@@ -36,7 +36,7 @@ REQUIRED_FLAGS = {
     'o_c': [[bool]],
     'graph': [[bool]],
     'trace': [[bool, str], [True, False, 'scorep', 'arm-map', 'arm-ddt']],
-    'monitor': [[int]],
+    'monitor': [[int, NONE_TYPE]],
     'project_xml': [[str, NONE_TYPE]],
     'resources_xml': [[str, NONE_TYPE]],
     'summary': [[bool]],

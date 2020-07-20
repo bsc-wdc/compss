@@ -872,16 +872,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public void noMoreTasks(Long appId) {
+        Application app = Application.registerApplication(appId);
+        noMoreTasks(app);
+    }
+
+    /**
+     * Notifies the runtime that an application will not produce more tasks.
+     * 
+     * @param app Application that finished generating tasks
+     */
+    public void noMoreTasks(Application app) {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.NO_MORE_TASKS.getId(), TraceEvent.NO_MORE_TASKS.getType());
         }
 
-        Application app = Application.registerApplication(appId);
-        LOGGER.info("No more tasks for app " + appId);
+        LOGGER.info("No more tasks for app " + app.getId());
         // Wait until all tasks have finished
         ap.noMoreTasks(app);
         // Retrieve result files
-        LOGGER.debug("Getting Result Files " + appId);
+        LOGGER.debug("Getting Result Files for app" + app.getId());
         ap.getResultFiles(app);
 
         if (Tracer.extraeEnabled()) {
@@ -905,7 +914,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
         if (noMoreTasks) {
             // No more tasks expected, we can unregister application
-            noMoreTasks(appId);
+            noMoreTasks(app);
         } else {
             // Regular barrier
             ap.barrier(app);
@@ -952,7 +961,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             ap.markForDeletion(app, loc, waitForData);
             // Java case where task files are stored in the registry
             if (sReg != null) {
-                sReg.deleteTaskFile(fileName);
+                sReg.deleteTaskFile(appId, fileName);
             }
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
@@ -1107,17 +1116,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         LOGGER.debug("Getting file " + fileName);
-        String renamedPath = openFile(fileName, Direction.INOUT);
+        Application app = Application.registerApplication(appId);
+        String renamedPath = openFile(app, fileName, Direction.INOUT);
         // If renamePth is the same as original, file has not accessed. Nothing to do.
         if (!renamedPath.equals(sourceLocation.getPath())) {
             String intermediateTmpPath = renamedPath + ".tmp";
             rename(renamedPath, intermediateTmpPath);
-            closeFile(fileName, Direction.INOUT);
-            Application app = Application.registerApplication(appId);
+            closeFile(app, fileName, Direction.INOUT);
             ap.markForDeletion(app, sourceLocation, true);
             // In the case of Java file can be stored in the Stream Registry
             if (sReg != null) {
-                sReg.deleteTaskFile(fileName);
+                sReg.deleteTaskFile(appId, fileName);
             }
             rename(intermediateTmpPath, fileName);
         }
@@ -1152,19 +1161,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         LOGGER.debug("Getting directory " + dirName);
-
-        String renamedPath = openDirectory(dirName, Direction.IN);
+        Application app = Application.registerApplication(appId);
+        String renamedPath = openDirectory(app, dirName, Direction.IN);
 
         LOGGER.debug("Getting directory renamed path: " + renamedPath);
         String intermediateTmpPath = renamedPath + ".tmp";
         rename(renamedPath, intermediateTmpPath);
-        closeFile(dirName, Direction.IN);
+        closeFile(app, dirName, Direction.IN);
 
-        Application app = Application.registerApplication(appId);
         ap.markForDeletion(app, sourceLocation, true);
         // In the case of Java file can be stored in the Stream Registry
         if (sReg != null) {
-            sReg.deleteTaskFile(dirName);
+            sReg.deleteTaskFile(appId, dirName);
         }
 
         moveDirectory(intermediateTmpPath, dirName);
@@ -1251,7 +1259,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public Object getObject(Object obj, int hashCode, String destDir) {
+    public Object getObject(Long appId, Object obj, int hashCode, String destDir) {
+        Application app = Application.registerApplication(appId);
         /*
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
@@ -1264,7 +1273,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             LOGGER.debug("Getting object with hash code " + hashCode);
         }
 
-        Object oUpdated = mainAccessToObject(null, obj, hashCode);
+        Object oUpdated = mainAccessToObject(app, obj, hashCode);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
@@ -1330,7 +1339,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public String openFile(String fileName, Direction mode) {
+    public String openFile(Long appId, String fileName, Direction mode) {
+        Application app = Application.registerApplication(appId);
+        return openFile(app, fileName, mode);
+    }
+
+    /**
+     * Main code opens a file version that the runtime may need to fetch.
+     * 
+     * @param app Application opening the file
+     * @param fileName location of the file
+     * @param mode access mode
+     * @return the renaming of the file version opened.
+     */
+    public String openFile(Application app, String fileName, Direction mode) {
         LOGGER.info("Opening " + fileName + " in mode " + mode);
 
         if (Tracer.extraeEnabled()) {
@@ -1369,13 +1391,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(null, fileName, loc, am, null, false);
+                finalPath = mainAccessToFile(app, fileName, loc, am, null, false);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("File target Location: " + finalPath);
                 }
                 break;
             case PERSISTENT:
-                finalPath = mainAccessToExternalPSCO(null, fileName, loc);
+                finalPath = mainAccessToExternalPSCO(app, fileName, loc);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("External PSCO target Location: " + finalPath);
                 }
@@ -1393,7 +1415,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public String openDirectory(String dirName, Direction mode) {
+    public String openDirectory(Long appId, String dirName, Direction mode) {
+        Application app = Application.registerApplication(appId);
+        return openDirectory(app, dirName, mode);
+    }
+
+    /**
+     * Main code opens a directory that the runtime may need to fetch.
+     * 
+     * @param app application accessing the data.
+     * @param dirName Directory name.
+     * @param mode Access mode.
+     * @return the renaming of the file version opened.
+     */
+    public String openDirectory(Application app, String dirName, Direction mode) {
         // todo: common in both api's ??
         LOGGER.info("Opening " + dirName + " in mode " + mode);
 
@@ -1433,7 +1468,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(null, dirName, loc, am, null, true);
+                finalPath = mainAccessToFile(app, dirName, loc, am, null, true);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("File (dir) target Location: " + finalPath);
                 }
@@ -1451,7 +1486,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public void closeFile(String fileName, Direction mode) {
+    public void closeFile(Long appId, String fileName, Direction mode) {
+        Application app = Application.registerApplication(appId);
+        closeFile(app, fileName, mode);
+    }
+
+    /**
+     * Closes the opened file version.
+     *
+     * @param app application closing the file.
+     * @param fileName File name.
+     * @param mode Access mode.
+     */
+    public void closeFile(Application app, String fileName, Direction mode) {
+
         // if (Tracer.isActivated()) {
         // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
         // TraceEvent.CLOSE_FILE.getType());
@@ -1491,7 +1539,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finishAccessToFile(null, fileName, loc, am, null);
+                finishAccessToFile(app, fileName, loc, am, null);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Closing file " + loc.getPath());
                 }
@@ -1729,15 +1777,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return hashCode;
     }
 
-    private void finishAccessToFile(Long appId, String fileName, DataLocation loc, AccessMode am, String destDir) {
-        Application app = Application.registerApplication(appId);
+    private void finishAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir) {
         FileAccessParams fap = new FileAccessParams(app, am, loc);
         ap.finishAccessToFile(loc, fap, destDir);
     }
 
-    private String mainAccessToFile(Long appId, String fileName, DataLocation loc, AccessMode am, String destDir,
+    private String mainAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir,
         boolean isDirectory) {
-        Application app = Application.registerApplication(appId);
         // Tell the AP that the application wants to access a file.
         FileAccessParams fap = new FileAccessParams(app, am, loc);
         DataLocation targetLocation;
@@ -1767,7 +1813,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return finalPath;
     }
 
-    private Object mainAccessToObject(Long appId, Object obj, int hashCode) {
+    private Object mainAccessToObject(Application app, Object obj, int hashCode) {
         boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
         if (validValue) {
             // Main code is still performing the same modification.
@@ -1775,12 +1821,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             return null;
         }
 
-        Application app = Application.registerApplication(appId);
         // Otherwise we request it from a task
         return ap.mainAccessToObject(app, obj, hashCode);
     }
 
-    private String mainAccessToExternalPSCO(Long appId, String fileName, DataLocation loc) {
+    private String mainAccessToExternalPSCO(Application app, String fileName, DataLocation loc) {
         String id = ((PersistentLocation) loc).getId();
         int hashCode = externalObjectHashcode(id);
         boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
@@ -1790,12 +1835,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             return fileName;
         }
 
-        Application app = Application.registerApplication(appId);
         // Otherwise we request it from a task
         return ap.mainAccessToExternalPSCO(app, id, hashCode);
     }
 
-    private String mainAccessToBindingObject(Long appId, String fileName, BindingObjectLocation loc) {
+    private String mainAccessToBindingObject(Application app, String fileName, BindingObjectLocation loc) {
         String id = loc.getId();
         int hashCode = externalObjectHashcode(id);
         boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
@@ -1805,7 +1849,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             return fileName;
         }
 
-        Application app = Application.registerApplication(appId);
         // Otherwise we request it from a task
         return ap.mainAccessToBindingObject(app, loc.getBindingObject(), hashCode);
     }

@@ -307,28 +307,31 @@ public interface COMPSsRuntime {
     /**
      * Returns the renaming of the file version opened.
      *
+     * @param appId Id of the application accessing the data.
      * @param fileName File name.
      * @param mode Access mode.
      * @return
      */
-    public String openFile(String fileName, Direction mode);
+    public String openFile(Long appId, String fileName, Direction mode);
 
     /**
      * Returns the renaming of the file version opened.
      *
+     * @param appId Id of the application accessing the data.
      * @param dirName Directory name.
      * @param mode Access mode.
      * @return
      */
-    public String openDirectory(String dirName, Direction mode);
+    public String openDirectory(Long appId, String dirName, Direction mode);
 
     /**
      * Close the opened file version.
      *
+     * @param appId Id of the application accessing the data.
      * @param fileName File name.
      * @param mode Access mode.
      */
-    public void closeFile(String fileName, Direction mode);
+    public void closeFile(Long appId, String fileName, Direction mode);
 
     /**
      * Deletes the specified version of a file.

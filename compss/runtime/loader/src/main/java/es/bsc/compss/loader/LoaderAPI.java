@@ -35,19 +35,21 @@ public interface LoaderAPI {
     /**
      * Returns the renaming of the file version opened.
      * 
+     * @param appId Id of the application openning the file
      * @param fileName File.
      * @param mode Access mode.
      * @return Renaming of the current file version.
      */
-    public String openFile(String fileName, Direction mode);
+    public String openFile(Long appId, String fileName, Direction mode);
 
     /**
      * Closes the given file {@code fileName}.
      * 
+     * @param appId Id of the application closing the file
      * @param fileName File version name.
      * @param mode Access mode.
      */
-    public void closeFile(String fileName, Direction mode);
+    public void closeFile(Long appId, String fileName, Direction mode);
 
     /**
      * Deletes the specified version of a file.
@@ -69,12 +71,13 @@ public interface LoaderAPI {
     /**
      * Returns a copy of the last version of the given object {@code o}.
      * 
+     * @param appId Id of the application accessing the object
      * @param o Object.
      * @param hashCode Object hashcode.
      * @param destDir Destination directory for serialization.
      * @return In-memory copy of the last version of the given object.
      */
-    public Object getObject(Object o, int hashCode, String destDir);
+    public Object getObject(Long appId, Object o, int hashCode, String destDir);
 
     /**
      * Serializes the given object {@code o} to the given path {@code destDir}.
@@ -141,6 +144,7 @@ public interface LoaderAPI {
      * Closes an existing task group.
      *
      * @param groupName Group name.
+     * @param appId Application Id.
      */
     public void closeTaskGroup(String groupName, Long appId);
 

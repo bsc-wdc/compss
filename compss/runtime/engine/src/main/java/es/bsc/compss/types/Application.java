@@ -141,13 +141,13 @@ public class Application {
     public static Application registerApplication(Long appId, String parallelismSource) {
         Application app;
         if (appId == null) {
+            new Exception().printStackTrace();
             app = NO_APPLICATION;
         } else {
             synchronized (APPLICATIONS) {
                 app = APPLICATIONS.get(appId);
                 if (app == null) {
                     app = new Application(appId, parallelismSource);
-                    System.out.println("Registering application " + appId);
                     APPLICATIONS.put(appId, app);
                 }
             }
@@ -163,7 +163,6 @@ public class Application {
      *         registered with that id.
      */
     public static Application deregisterApplication(Long appId) {
-        System.out.println("Deregistered application " + appId);
         Application app;
         synchronized (APPLICATIONS) {
             app = APPLICATIONS.remove(appId);
@@ -210,7 +209,7 @@ public class Application {
         this.writtenPSCODataIds = new HashSet<>();
     }
 
-    public long getId() {
+    public Long getId() {
         return this.id;
     }
 

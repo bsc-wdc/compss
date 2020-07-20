@@ -107,7 +107,7 @@ public class ObjectRegistry {
         }
 
         // Get the updated version of the object
-        Object oUpdated = this.itApi.getObject(o, hashCode, serialDir);
+        Object oUpdated = this.itApi.getObject(appId, o, hashCode, serialDir);
         if (oUpdated != null) {
             this.internalObjects.put(hashCode, oUpdated);
         }

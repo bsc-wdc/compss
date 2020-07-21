@@ -40,11 +40,11 @@ import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -391,32 +391,61 @@ public class BinaryRunner {
     public Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
         PrintStream outLog, PrintStream errLog, String pythonPath, boolean failByEV) throws InvokeExecutionException {
 
-        // Prepare command working dir, environment and STD redirections
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
-        builder.directory(taskSandboxWorkingDir);
+        // Retrieve COMPSs properties
+        final String theoreticalHostnames = System.getProperty(Invoker.COMPSS_HOSTNAMES);
+        // int theoreticalNumNodes = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_NODES));
+        // int theoreticalNumThreads = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_THREADS));
 
+        // Re-compute real task properties
+        final Map<String, Integer> hostnames2numThreads = new HashMap<>();
+        for (String hostname : theoreticalHostnames.split(",")) {
+            int nt;
+            if (hostnames2numThreads.containsKey(hostname)) {
+                nt = hostnames2numThreads.get(hostname) + 1;
+            } else {
+                nt = 1;
+            }
+            hostnames2numThreads.put(hostname, nt);
+        }
+        final int uniqueNumNodes = hostnames2numThreads.size();
+        final int maxNumThreads = hostnames2numThreads.entrySet().stream()
+            .max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getValue();
+
+        // WARN: WE ONLY RESET SLURM ENVIRONMENT BUT NOT COMPSS ENVIRONMENT
+        // HOWEVER, INFORMATION IN COMPSS AND SLURM CAN BE INCONSISTENT
+        // Re-set COMPSs properties
+        // System.setProperty(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));
+        // System.setProperty(Invoker.COMPSS_NUM_THREADS, String.valueOf(maxNumThreads));
+        // System.setProperty(Invoker.OMP_NUM_THREADS, String.valueOf(maxNumThreads));
+
+        // Prepare process builder with command and working directory
+        ProcessBuilder builder = new ProcessBuilder(cmd);
+        builder.directory(taskSandboxWorkingDir);
+        outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
+
+        // Setup process environment -- Regular entries
         builder.environment().remove(Tracer.LD_PRELOAD);
-        builder.environment().put(Invoker.COMPSS_HOSTNAMES, System.getProperty(Invoker.COMPSS_HOSTNAMES));
-        builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
-        builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
-        builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
+
+        // WARN: WE ONLY RESET SLURM ENVIRONMENT BUT NOT COMPSS ENVIRONMENT
+        // HOWEVER, INFORMATION IN COMPSS AND SLURM CAN BE INCONSISTENT
+        // builder.environment().put(Invoker.COMPSS_HOSTNAMES, theoreticalHostnames);
+        // builder.environment().put(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));
+        // builder.environment().put(Invoker.COMPSS_NUM_THREADS, String.valueOf(maxNumThreads));
+        // builder.environment().put(Invoker.OMP_NUM_THREADS, String.valueOf(maxNumThreads));
+
         if (pythonPath != null) {
             builder.environment().put("PYTHONPATH", pythonPath);
         }
 
         // Setup SLURM environment (for elasticity with MPI in supercomputers)
-        int numNodes = Integer.parseInt(System.getProperty(Invoker.COMPSS_NUM_NODES));
-        int procsPerNode = Integer.parseInt(System.getProperty(Invoker.COMPSS_NUM_THREADS));
-        int totalProcs = numNodes * procsPerNode;
-        String tasksPerNode = String.valueOf(procsPerNode) + "(x" + String.valueOf(numNodes) + ")";
-        String uniqueHostnames =
-            String.join(",", new HashSet<>(Arrays.asList(System.getProperty(Invoker.COMPSS_HOSTNAMES).split(","))));
+        final String tasksPerNode = String.valueOf(maxNumThreads) + "(x" + String.valueOf(uniqueNumNodes) + ")";
+        final String hostnamesString = String.join(",", hostnames2numThreads.keySet());
+        final int totalProcs = uniqueNumNodes * maxNumThreads;
 
-        builder.environment().put("SLURM_NODELIST", uniqueHostnames);
-        builder.environment().put("SLURM_JOB_NODELIST", uniqueHostnames);
-        builder.environment().put("SLURM_NNODES", String.valueOf(numNodes));
-        builder.environment().put("SLURM_JOB_NUM_NODES", String.valueOf(numNodes));
+        builder.environment().put("SLURM_NODELIST", hostnamesString);
+        builder.environment().put("SLURM_JOB_NODELIST", hostnamesString);
+        builder.environment().put("SLURM_NNODES", String.valueOf(uniqueNumNodes));
+        builder.environment().put("SLURM_JOB_NUM_NODES", String.valueOf(uniqueNumNodes));
         builder.environment().put("SLURM_JOB_CPUS_PER_NODE", tasksPerNode);
         builder.environment().put("SLURM_NTASKS", String.valueOf(totalProcs));
         builder.environment().put("SLURM_NPROCS", String.valueOf(totalProcs));
@@ -459,15 +488,15 @@ public class BinaryRunner {
         // outLog.println("PB ENVIRONMENT END -----------------------");
 
         // Setup STD redirections
-        String fileInPath = stdIOStreamValues.getStdIn();
+        final String fileInPath = stdIOStreamValues.getStdIn();
         if (fileInPath != null) {
             builder.redirectInput(new File(fileInPath));
         }
-        String fileOutPath = stdIOStreamValues.getStdOut();
+        final String fileOutPath = stdIOStreamValues.getStdOut();
         if (fileOutPath != null) {
             builder.redirectOutput(Redirect.appendTo(new File(fileOutPath)));
         }
-        String fileErrPath = stdIOStreamValues.getStdErr();
+        final String fileErrPath = stdIOStreamValues.getStdErr();
         if (fileErrPath != null) {
             builder.redirectError(Redirect.appendTo(new File(fileErrPath)));
         }

@@ -166,7 +166,7 @@ public class MPIInvoker extends Invoker {
         cmd[pos++] = "-hostfile";
         cmd[pos++] = hostfile;
         cmd[pos++] = "-n";
-        if (scaleByCU) {
+        if (this.scaleByCU) {
             cmd[pos++] = String.valueOf(this.numWorkers * this.computingUnits);
         } else {
             cmd[pos++] = String.valueOf(this.numWorkers);

@@ -80,57 +80,62 @@ def stop_runtime(code):
     _COMPSs.stop_runtime(code)  # noqa
 
 
-def cancel_application_tasks(value):
-    # type: (int) -> None
+def cancel_application_tasks(app_id, value):
+    # type: (int, int) -> None
     """ Call to cancel_application_tasks.
 
+    :param app_id: Application identifier.
     :param value: Value
     :return: None
     """
-    _COMPSs.cancel_application_tasks(value)  # noqa
+    _COMPSs.cancel_application_tasks(app_id, value)  # noqa
 
 
-def accessed_file(file_name):
-    # type: (str) -> bool
+def accessed_file(app_id, file_name):
+    # type: (int, str) -> bool
     """ Call to accessed_file.
 
-    :param file_name: File name
+    :param app_id: Application identifier.
+    :param file_name: File name.
     :return: If the file has been accessed.
     """
-    return _COMPSs.accessed_file(file_name)  # noqa
+    return _COMPSs.accessed_file(app_id, file_name)  # noqa
 
 
-def open_file(file_name, mode):
-    # type: (str, int) -> str
+def open_file(app_id, file_name, mode):
+    # type: (int, str, int) -> str
     """ Call to open_file.
 
+    :param app_id: Application identifier.
     :param file_name: File name reference.
     :param mode: Open mode.
     :return: The real file name.
     """
-    return _COMPSs.open_file(file_name, mode)  # noqa
+    return _COMPSs.open_file(app_id, file_name, mode)  # noqa
 
 
-def close_file(file_name, mode):
-    # type: (str, int) -> None
+def close_file(app_id, file_name, mode):
+    # type: (int, str, int) -> None
     """ Call to close_file.
 
+    :param app_id: Application identifier.
     :param file_name: File name reference.
     :param mode: Close mode.
     :return: None
     """
-    _COMPSs.close_file(file_name, mode)  # noqa
+    _COMPSs.close_file(app_id, file_name, mode)  # noqa
 
 
-def delete_file(file_name, mode):
-    # type: (str, bool) -> bool
+def delete_file(app_id, file_name, mode):
+    # type: (int, str, bool) -> bool
     """ Call to delete_file.
 
+    :param app_id: Application identifier.
     :param file_name: File name reference.
     :param mode: Delete mode.
     :return: The deletion result.
     """
-    return _COMPSs.delete_file(file_name, mode)  # noqa
+    return _COMPSs.delete_file(app_id, file_name, mode)  # noqa
 
 
 def get_file(app_id, file_name):
@@ -177,27 +182,27 @@ def barrier_group(app_id, group_name):
     return _COMPSs.barrier_group(app_id, group_name)  # noqa
 
 
-def open_task_group(group_name, implicit_barrier, mode):
+def open_task_group(group_name, implicit_barrier, app_id):
     # type: (str, bool, int) -> None
     """ Call to open_task_group.
 
     :param group_name: Group name.
     :param implicit_barrier: Implicit barrier boolean.
-    :param mode: Open mode.
+    :param app_id: Application identifier.
     :return: None
     """
-    _COMPSs.open_task_group(group_name, implicit_barrier, mode)  # noqa
+    _COMPSs.open_task_group(group_name, implicit_barrier, app_id)  # noqa
 
 
-def close_task_group(group_name, mode):
+def close_task_group(group_name, app_id):
     # type: (str, int) -> None
     """ Call to close_task_group.
 
     :param group_name: Group name.
-    :param mode: Close mode.
+    :param app_id: Application identifier.
     :return: None
     """
-    _COMPSs.close_task_group(group_name, mode)  # noqa
+    _COMPSs.close_task_group(group_name, app_id)  # noqa
 
 
 def get_logging_path():

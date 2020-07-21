@@ -89,13 +89,14 @@ def stop_runtime(code=0):
     :parameter code: Stop code (if code != 0 ==> cancel application tasks).
     :return: None
     """
+    app_id = 0
     if __debug__:
         logger.info("Stopping runtime...")
 
     if code != 0:
         if __debug__:
             logger.info("Canceling all application tasks...")
-        COMPSs.cancel_application_tasks(0)
+        COMPSs.cancel_application_tasks(app_id, 0)
 
     if __debug__:
         logger.info("Generating Object tracker report...")

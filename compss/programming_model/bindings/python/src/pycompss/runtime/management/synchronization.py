@@ -100,7 +100,7 @@ def _synchronize(obj, mode):
     if __debug__:
         logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
-    file_name = OT.get_filename(obj_id)
+    file_name = OT.get_file_name(obj_id)
     compss_file = COMPSs.open_file(app_id, file_name, mode)
 
     # Runtime can return a path or a PSCOId
@@ -122,7 +122,7 @@ def _synchronize(obj, mode):
         OT.update_mapping(obj_id, new_obj)
 
     if mode != 'r':
-        COMPSs.delete_file(app_id, OT.get_filename(obj_id), False)
+        COMPSs.delete_file(app_id, OT.get_file_name(obj_id), False)
         OT.stop_tracking(obj)
 
     return new_obj

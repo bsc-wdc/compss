@@ -246,33 +246,33 @@ class COMPSs(object):
         # terminate_interactive_link()
 
     @staticmethod
-    def cancel_application_tasks(value):
-        # type: (int) -> None
-        IN_QUEUE.put((CANCEL_TASKS, value))
+    def cancel_application_tasks(app_id, value):
+        # type: (int, int) -> None
+        IN_QUEUE.put((CANCEL_TASKS, app_id, value))
 
     @staticmethod
-    def accessed_file(file_name):
-        # type: (str) -> bool
-        IN_QUEUE.put((ACCESSED_FILE, file_name))
+    def accessed_file(app_id, file_name):
+        # type: (int, str) -> bool
+        IN_QUEUE.put((ACCESSED_FILE, app_id, file_name))
         accessed = OUT_QUEUE.get(block=True)
         return accessed
 
     @staticmethod
-    def open_file(file_name, mode):
-        # type: (str, int) -> str
-        IN_QUEUE.put((OPEN_FILE, file_name, mode))
+    def open_file(app_id, file_name, mode):
+        # type: (int, str, int) -> str
+        IN_QUEUE.put((OPEN_FILE, app_id, file_name, mode))
         compss_name = OUT_QUEUE.get(block=True)
         return compss_name
 
     @staticmethod
-    def close_file(file_name, mode):
-        # type: (str, int) -> None
-        IN_QUEUE.put((CLOSE_FILE, file_name, mode))
+    def close_file(app_id, file_name, mode):
+        # type: (int, str, int) -> None
+        IN_QUEUE.put((CLOSE_FILE, app_id, file_name, mode))
 
     @staticmethod
-    def delete_file(file_name, mode):
-        # type: (str, bool) -> bool
-        IN_QUEUE.put((DELETE_FILE, file_name, mode))
+    def delete_file(app_id, file_name, mode):
+        # type: (int, str, bool) -> bool
+        IN_QUEUE.put((DELETE_FILE, app_id, file_name, mode))
         result = OUT_QUEUE.get(block=True)
         return result
 
@@ -299,14 +299,14 @@ class COMPSs(object):
         return exception_message
 
     @staticmethod
-    def open_task_group(group_name, implicit_barrier, mode):
+    def open_task_group(group_name, implicit_barrier, app_id):
         # type: (str, bool, int) -> None
-        IN_QUEUE.put((OPEN_TASK_GROUP, group_name, implicit_barrier, mode))
+        IN_QUEUE.put((OPEN_TASK_GROUP, group_name, implicit_barrier, app_id))
 
     @staticmethod
-    def close_task_group(group_name, mode):
+    def close_task_group(group_name, app_id):
         # type: (str, int) -> None
-        IN_QUEUE.put((CLOSE_TASK_GROUP, group_name, mode))
+        IN_QUEUE.put((CLOSE_TASK_GROUP, group_name, app_id))
 
     @staticmethod
     def get_logging_path():

@@ -30,15 +30,15 @@ import gc
 
 from pycompss.api.api import compss_wait_on
 from pycompss.util.objects.replace import replace
+from pycompss.runtime.management.object_tracker import OT
 import pycompss.util.context as context
 
 
 def local(input_function):
-    """
-    Local decorator
+    """ Local decorator.
 
-    :param input_function: Input function
-    :return: Wrapped function
+    :param input_function: Input function.
+    :return: Wrapped function.
     """
     if not context.in_pycompss():
         # Return dummy local decorator
@@ -48,14 +48,10 @@ def local(input_function):
 
         return wrapped_function
     else:
-        from pycompss.runtime.binding import get_object_id
-        from pycompss.runtime.binding import pending_to_synchronize
-
-        def must_sync(obj):
-            return get_object_id(obj) in pending_to_synchronize
 
         def sync_if_needed(obj):
-            if must_sync(obj):
+            # type: (object) -> None
+            if OT.is_obj_pending_to_synchronize(obj):
                 new_val = compss_wait_on(obj)
                 replace(obj, new_val)
 
@@ -69,7 +65,6 @@ def local(input_function):
             for (key, value) in kwargs.items():
                 sync_if_needed(value)
                 _kwargs[key] = value
-
             return input_function(*_args, **_kwargs)
 
         return wrapped_function
@@ -80,3 +75,4 @@ def local(input_function):
 # ########################################################################### #
 
 Local = local
+LOCAL = local

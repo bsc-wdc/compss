@@ -26,22 +26,26 @@ PyCOMPSs Binding - Interactive API
 import os
 import sys
 import logging
-from tempfile import mkdtemp
 import time
 
 import pycompss.util.context as context
-import pycompss.runtime.binding as binding
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.binding import pending_to_synchronize
+from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.management.classes import Future
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
+from pycompss.runtime.commons import set_temporary_directory
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
 from pycompss.util.environment.configuration import updated_variables_in_sc
 from pycompss.util.environment.configuration import prepare_tracing_environment
 from pycompss.util.environment.configuration import check_infrastructure_variables  # noqa: E501
 from pycompss.util.environment.configuration import create_init_config_file
-from pycompss.util.environment.configuration import setup_logger
+from pycompss.util.logger.helpers import get_logging_cfg_file
+from pycompss.util.logger.helpers import init_logging
+from pycompss.util.interactive.flags import check_flags
+from pycompss.util.interactive.flags import print_flag_issues
 
 # Storage imports
 from pycompss.util.storages.persistent import init_storage
@@ -53,68 +57,64 @@ from pycompss.streams.environment import stop_streaming
 
 
 # GLOBAL VARIABLES
-APP_PATH = 'InteractiveMode'
-# Warning! The name should start with 'InteractiveMode' due to @task checks
-# it explicitly. If changed, it is necessary to update the task decorator.
+APP_PATH = INTERACTIVE_FILE_NAME
 PERSISTENT_STORAGE = False
 STREAMING = False
 LOG_PATH = '/tmp/'
 GRAPHING = False
 
 
-def start(log_level='off',
-          debug=False,
-          o_c=False,
-          graph=False,
-          trace=False,
-          monitor=None,
-          project_xml=None,
-          resources_xml=None,
-          summary=False,
-          task_execution='compss',
-          storage_impl=None,
-          storage_conf=None,
-          streaming_backend=None,
-          streaming_master_name=None,
-          streaming_master_port=None,
-          task_count=50,
-          app_name='Interactive',
-          uuid=None,
-          base_log_dir=None,
-          specific_log_dir=None,
-          extrae_cfg=None,
-          comm='NIO',
-          conn='es.bsc.compss.connectors.DefaultSSHConnector',
-          master_name='',
-          master_port='',
-          scheduler='es.bsc.compss.scheduler.' +
-                    'loadbalancing.LoadBalancingScheduler',
-          jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
-          cpu_affinity='automatic',
-          gpu_affinity='automatic',
-          fpga_affinity='automatic',
-          fpga_reprogram='',
-          profile_input='',
-          profile_output='',
-          scheduler_config='',
-          external_adaptation=False,
-          propagate_virtual_environment=True,
-          mpi_worker=False,
-          verbose=False
+def start(log_level='off',                     # type: str
+          debug=False,                         # type: bool
+          o_c=False,                           # type: bool
+          graph=False,                         # type: bool
+          trace=False,                         # type: bool
+          monitor=None,                        # type: int
+          project_xml=None,                    # type: str
+          resources_xml=None,                  # type: str
+          summary=False,                       # type: bool
+          task_execution='compss',             # type: str
+          storage_impl=None,                   # type: str
+          storage_conf=None,                   # type: str
+          streaming_backend=None,              # type: str
+          streaming_master_name=None,          # type: str
+          streaming_master_port=None,          # type: str
+          task_count=50,                       # type: int
+          app_name=INTERACTIVE_FILE_NAME,      # type: str
+          uuid=None,                           # type: str
+          base_log_dir=None,                   # type: str
+          specific_log_dir=None,               # type: str
+          extrae_cfg=None,                     # type: str
+          comm='NIO',                          # type: str
+          conn='es.bsc.compss.connectors.DefaultSSHConnector',  # type: str
+          master_name='',                      # type: str
+          master_port='',                      # type: str
+          scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # type: str  # noqa: E501
+          jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',  # type: str
+          cpu_affinity='automatic',            # type: str
+          gpu_affinity='automatic',            # type: str
+          fpga_affinity='automatic',           # type: str
+          fpga_reprogram='',                   # type: str
+          profile_input='',                    # type: str
+          profile_output='',                   # type: str
+          scheduler_config='',                 # type: str
+          external_adaptation=False,           # type: bool
+          propagate_virtual_environment=True,  # type: bool
+          mpi_worker=False,                    # type: bool
+          verbose=False                        # type: bool
           ):
-    """
-    Start the runtime in interactive mode.
+    # type: (...) -> None
+    """ Start the runtime in interactive mode.
 
-    :param log_level: Logging level [ 'off' | 'info' | 'debug' ]
+    :param log_level: Logging level [ 'trace'|'debug'|'info'|'api'|'off' ]
                       (default: 'off')
     :param debug: Debug mode [ True | False ]
                   (default: False) (overrides log-level)
-    :param o_c: Objects to string conversion [ True | False ]
+    :param o_c: Objects to string conversion [ True|False ]
                 (default: False)
-    :param graph: Generate graph [ True | False ]
+    :param graph: Generate graph [ True|False ]
                   (default: False)
-    :param trace: Generate trace
-                  [ True | False | 'scorep' | 'arm-map' | 'arm-ddt' ]
+    :param trace: Generate trace [ True|False|'scorep'|'arm-map'|'arm-ddt' ]
                   (default: False)
     :param monitor: Monitor refresh rate
                     (default: None)
@@ -139,7 +139,7 @@ def start(log_level='off',
     :param task_count: Task count
                        (default: 50)
     :param app_name: Application name
-                     default: Interactive_date)
+                     default: INTERACTIVE_FILE_NAME)
     :param uuid: UUId
                  (default: None)
     :param base_log_dir: Base logging directory
@@ -156,9 +156,8 @@ def start(log_level='off',
                         (default: '')
     :param master_port: Master port
                         (default: '')
-    :param scheduler: Scheduler
-                      (default: es.bsc.compss.scheduler.
-                      loadbalancing.LoadBalancingScheduler)
+    :param scheduler: Scheduler (see runcompss)
+                      (default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)  # noqa
     :param jvm_workers: Java VM parameters
                         (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
     :param cpu_affinity: CPU Core affinity
@@ -175,18 +174,16 @@ def start(log_level='off',
                            (default: '')
     :param scheduler_config: Scheduler configuration
                              (default: '')
-    :param external_adaptation: External adaptation [ True | False ]
+    :param external_adaptation: External adaptation [ True|False ]
                                 (default: False)
-    :param propagate_virtual_environment: Propagate virtual environment
-                                          [ True | False ]
+    :param propagate_virtual_environment: Propagate virtual environment [ True|False ]  # noqa
                                           (default: False)
-    :param mpi_worker: Use the MPI worker [ True | False ]
+    :param mpi_worker: Use the MPI worker [ True|False ]
                        (default: False)
-    :param verbose: Verbose mode [ True | False ]
+    :param verbose: Verbose mode [ True|False ]
                     (default: False)
     :return: None
     """
-
     # Export global variables
     global GRAPHING
     GRAPHING = graph
@@ -204,8 +201,6 @@ def start(log_level='off',
     ##############################################################
     # INITIALIZATION
     ##############################################################
-
-    # TODO: Check that input values are valid
 
     # Initial dictionary with the user defined parameters
     all_vars = {'log_level': log_level,
@@ -246,9 +241,15 @@ def start(log_level='off',
                 'propagate_virtual_environment': propagate_virtual_environment,
                 'mpi_worker': mpi_worker}
 
+    # Check the provided flags
+    flags, issues = check_flags(all_vars)
+    if not flags:
+        print_flag_issues(issues)
+        return None
+
     # Prepare the environment
     env_vars = prepare_environment(True, o_c, storage_impl,
-                                   None, debug, trace, mpi_worker)
+                                   'undefined', debug, trace, mpi_worker)
     all_vars.update(env_vars)
 
     # Update the log level and graph values if monitoring is enabled
@@ -313,17 +314,24 @@ def start(log_level='off',
 
     print("* - Starting COMPSs runtime...                       *")
     sys.stdout.flush()  # Force flush
-    compss_start()
+    compss_start(log_level, True)
 
     global LOG_PATH
     LOG_PATH = get_log_path()
-    binding.temp_dir = mkdtemp(prefix='pycompss', dir=LOG_PATH + '/tmpFiles/')
+    set_temporary_directory(LOG_PATH)
     print("* - Log path : " + LOG_PATH)
 
-    major_version = all_vars['major_version']
-    compss_home = all_vars['compss_home']
-    logger = setup_logger(debug, log_level, major_version,
-                          compss_home, LOG_PATH)
+    # Setup logging
+    binding_log_path = get_log_path()
+    log_path = os.path.join(all_vars['compss_home'],
+                            'Bindings',
+                            'python',
+                            str(all_vars['major_version']),
+                            'log')
+    set_temporary_directory(binding_log_path)
+    logging_cfg_file = get_logging_cfg_file(log_level)
+    init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
+    logger = logging.getLogger("pycompss.runtime.launch")
 
     __print_setup__(verbose, all_vars)
 
@@ -338,8 +346,7 @@ def start(log_level='off',
     global STREAMING
     STREAMING = init_streaming(all_vars['streaming_backend'],
                                all_vars['streaming_master_name'],
-                               all_vars['streaming_master_port'],
-                               logger)
+                               all_vars['streaming_master_port'])
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -348,8 +355,8 @@ def start(log_level='off',
 
 
 def __show_flower__():
-    """
-    Shows the flower and version through stdout.
+    # type: () -> None
+    """ Shows the flower and version through stdout.
 
     :return: None
     """
@@ -376,9 +383,8 @@ def __show_flower__():
 
 
 def __print_setup__(verbose, all_vars):
-    """
-    Print the setup variables through stdout (only if verbose is True).
-    However, it shows them through the logger.
+    # type: (bool, dict) -> None
+    """ Print the setup variables through stdout (only if verbose is True).
 
     :param verbose: Verbose mode [True | False]
     :param all_vars: Dictionary containing all variables.
@@ -397,8 +403,8 @@ def __print_setup__(verbose, all_vars):
 
 
 def stop(sync=False):
-    """
-    Runtime stop.
+    # type: (bool) -> None
+    """ Runtime stop.
 
     :param sync: Scope variables synchronization [ True | False ]
                  (default: False)
@@ -421,15 +427,18 @@ def stop(sync=False):
         ipython = globals()['__builtins__']['get_ipython']()
         # import pprint
         # pprint.pprint(ipython.__dict__, width=1)
+        reserved_names = ('quit', 'exit', 'get_ipython',
+                          'APP_PATH', 'ipycompss', 'In', 'Out')
         raw_code = ipython.__dict__['user_ns']
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith('_'):   # not internal objects
-                if type(obj_k) == binding.Future:
+                if type(obj_k) == Future:
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
-                elif obj_k in pending_to_synchronize.values():
+                elif k not in reserved_names and \
+                        OT.is_pending_to_synchronize(obj_k):
                     print("Found an object to synchronize: %s" % str(k))
                     logger.debug("Found an object to synchronize: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
@@ -439,13 +448,13 @@ def stop(sync=False):
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
 
+    # Stop streaming
     if STREAMING:
-        logger.debug("Stopping streaming")
-        stop_streaming(logger)
+        stop_streaming()
 
+    # Stop persistent storage
     if PERSISTENT_STORAGE:
-        logger.debug("Stopping persistent storage")
-        stop_storage()
+        stop_storage(logger)
 
     compss_stop()
 
@@ -456,19 +465,17 @@ def stop(sync=False):
 
     print("****************************************************")
     logger.debug("--- END ---")
-    # os._exit(00)  # Explicit kernel restart # breaks Jupyter-notebook
 
     # --- Execution finished ---
 
 
 def __show_current_graph__(fit=False):
-    """
-    Show current graph.
+    # type: (bool) -> ...
+    """ Show current graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
-
     if GRAPHING:
         return __show_graph__(name='current_graph', fit=fit)
     else:
@@ -478,35 +485,34 @@ def __show_current_graph__(fit=False):
 
 
 def __show_complete_graph__(fit=False):
-    """
-    Show complete graph.
+    # type: (bool) -> ...
+    """ Show complete graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
-
     if GRAPHING:
         return __show_graph__(name='complete_graph', fit=fit)
     else:
         print('Oops! Graph is not enabled in this execution.')
         print('      Please, enable it by setting the graph flag when' +
               ' starting PyCOMPSs.')
+        return None
 
 
 def __show_graph__(name='complete_graph', fit=False):
-    """
-    Show graph.
+    # type: (str, bool) -> ...
+    """ Show graph.
 
     :param name: Graph to show (default: 'complete_graph')
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
-
     try:
         from graphviz import Source  # noqa
     except ImportError:
         print('Oops! graphviz is not available.')
-        raise
+        return None
     monitor_file = open(LOG_PATH + '/monitor/' + name + '.dot', 'r')
     text = monitor_file.read()
     monitor_file.close()
@@ -536,12 +542,12 @@ def __show_graph__(name='complete_graph', fit=False):
 
 
 def __export_globals__():
-    """
-    Export globals into interactive environment.
+    # type: () -> None
+    """ Export globals into interactive environment.
 
     :return: None
     """
-
+    global APP_PATH
     # Super ugly, but I see no other way to define the APP_PATH across the
     # interactive execution without making the user to define it explicitly.
     # It is necessary to define only one APP_PATH because of the two decorators
@@ -555,22 +561,21 @@ def __export_globals__():
     user_globals = ipython.__dict__['ns_table']['user_global']
     # Inject APP_PATH variable to user globals so that task and constraint
     # decorators can get it.
-    temp_app_filename = os.getcwd() + '/' + "InteractiveMode_"
+    temp_app_filename = os.path.join(os.getcwd(), INTERACTIVE_FILE_NAME + '_')
     temp_app_filename += str(time.strftime('%d%m%y_%H%M%S')) + '.py'
     user_globals['APP_PATH'] = temp_app_filename
-    global APP_PATH
     APP_PATH = temp_app_filename
 
 
 def __clean_temp_files__():
-    """
-    Remove any temporary files that may exist.
+    # type: () -> None
+    """ Remove any temporary files that may exist.
+
     Currently: APP_PATH, which contains the file path where all interactive
                code required by the worker is.
 
     :return: None
     """
-
     try:
         if os.path.exists(APP_PATH):
             os.remove(APP_PATH)

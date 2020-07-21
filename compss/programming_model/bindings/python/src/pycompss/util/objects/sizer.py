@@ -27,35 +27,38 @@ from __future__ import print_function
 from sys import getsizeof, stderr
 from itertools import chain
 from collections import deque
+from collections import Iterator
 
 try:
-    from reprlib import repr
+    from reprlib import repr  # noqa
 except ImportError:
     pass
 
 
 def _dict_handler(d):
-    """
-    Dictionary to dictionary handler converter.
+    # type: (dict) -> Iterator
+    """ Dictionary to dictionary handler converter.
 
-    :param d: Dictionary
-    :return: Dictionary handler
+    :param d: Dictionary.
+    :return: Dictionary handler.
     """
     return chain.from_iterable(d.items())
 
 
 def _user_object_handler(d):
-    """
-    User object to dictionary handler converter.
+    # type: (dict) -> Iterator
+    """ User object to dictionary handler converter.
 
-    :param d: User object
-    :return: Dictionary handler
+    :param d: User object.
+    :return: Dictionary handler.
     """
     return chain.from_iterable(d.__dict__.items())
 
 
 def total_sizeof(o, handlers=None, verbose=False):
-    """
+    # type: (object, Iterator, bool) -> int
+    """ Calculate the size of an object.
+
     Returns the approximate memory footprint an object and all of its contents.
     Automatically finds the contents of the following builtin containers and
     their subclasses:  tuple, list, deque, dict, set and frozenset.
@@ -63,10 +66,10 @@ def total_sizeof(o, handlers=None, verbose=False):
         handlers = {SomeContainerClass: iter,
                     OtherContainerClass: OtherContainerClass.get_elements}
 
-    :param o: Object to get its size
-    :param handlers: Handlers
-    :param verbose: Verbose mode [ True | False ] (default: False)
-    :return: <Integer> Total size of the object
+    :param o: Object to get its size.
+    :param handlers: Handlers.
+    :param verbose: Verbose mode [ True | False ] (default: False).
+    :return: Total size of the object.
     """
     # dict_handler = lambda d: chain.from_iterable(d.items())
     all_handlers = {tuple: iter,

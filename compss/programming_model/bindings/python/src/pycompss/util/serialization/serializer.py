@@ -42,6 +42,7 @@ PyCOMPSs Util - Data serializer/deserializer
                                            end of the serialized object
 """
 
+import gc
 import types
 import traceback
 
@@ -53,18 +54,20 @@ from pycompss.util.objects.properties import object_belongs_to_module
 
 from io import BytesIO
 
+DISABLE_GC = True
+
 if IS_PYTHON3:
     import pickle as pickle  # Uses _pickle if available
 else:
-    import cPickle as pickle
+    import cPickle as pickle  # noqa
 
 try:
-    import dill
+    import dill  # noqa
 except ImportError:
     if IS_PYTHON3:
         import pickle as dill
     else:
-        import cPickle as dill
+        import cPickle as dill  # noqa
 
 try:
     import numpy
@@ -73,7 +76,7 @@ except ImportError:
     if IS_PYTHON3:
         import pickle as numpy
     else:
-        import cPickle as numpy
+        import cPickle as numpy  # noqa
     NUMPY_AVAILABLE = False
 
 lib2idx = {
@@ -93,11 +96,11 @@ class SerializerException(Exception):
 
 
 def get_serializer_priority(obj=()):
-    """
-    Computes the priority of the serializers.
+    # type: (object) -> list
+    """ Computes the priority of the serializers.
 
     :param obj: Object to be analysed.
-    :return: <List> The serializers sorted by priority in descending order
+    :return: <List> The serializers sorted by priority in descending order.
     """
     if object_belongs_to_module(obj, 'numpy'):
         return [numpy, pickle, dill]
@@ -105,23 +108,29 @@ def get_serializer_priority(obj=()):
 
 
 def get_serializers():
-    """
-    Returns a list with the available serializers in the most common order
+    # type: () -> list
+    """ Returns a list with the available serializers in the most common order
     (i.e: the order that will work for almost the 90% of our objects).
 
-    :return: <List> the available serializer modules
+    :return: <List> the available serializer modules.
     """
     return get_serializer_priority()
 
 
 def serialize_to_handler(obj, handler):
-    """
-    Serialize an object to a handler.
+    # type: (object, Iterator) -> None
+    """ Serialize an object to a handler.
 
     :param obj: Object to be serialized.
     :param handler: A handler object. It must implement methods like write,
-                    writeline and similar stuff
+                    writeline and similar stuff.
+    :return: none
+    :raises SerializerException: If something wrong happens during
+                                 serialization.
     """
+    if DISABLE_GC:
+        # Disable the garbage collector while serializing -> improve performance
+        gc.disable()
     # Get the serializer priority
     serializer_priority = get_serializer_priority(obj)
     i = 0
@@ -158,10 +167,15 @@ def serialize_to_handler(obj, handler):
             except Exception:  # noqa
                 success = False
                 # if __debug__:
-                #    traceback.print_exc()  # No need to show all stacktraces
+                #    traceback.print_exc()  # No need to show all stack traces
                 #    print('WARNING! Serialization with %s failed.' %
                 #          str(serializer))
         i += 1
+
+    if DISABLE_GC:
+        # Enable the garbage collector and force to clean the memory
+        gc.enable()
+        gc.collect()
 
     # if ret_value is None then all the serializers have failed
     if not success:
@@ -174,29 +188,28 @@ def serialize_to_handler(obj, handler):
 
 
 def serialize_to_file(obj, file_name):
-    """
-    Serialize an object to a file.
+    # type: (object, str) -> None
+    """ Serialize an object to a file.
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
-    :return: Nothing, it just serializes the object
+    :return: Nothing, it just serializes the object.
     """
     handler = open(file_name, 'wb')
     serialize_to_handler(obj, handler)
     handler.close()
-    return file_name
 
 
 def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
-    """
-    Serialize an object to a file for Python MPI Tasks.
+    # type: (object, str, bool) -> None
+    """ Serialize an object to a file for Python MPI Tasks.
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
     :param rank_zero_reduce: A boolean to indicate whether objects should be
                              reduced to MPI rank zero.
-     False for INOUT objects and True otherwise.
-    :return: Nothing, it just serializes the object
+                             False for INOUT objects and True otherwise.
+    :return: Nothing, it just serializes the object.
     """
     from mpi4py import MPI
 
@@ -209,11 +222,11 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
 
 
 def serialize_to_string(obj):
-    """
-    Serialize an object to a string.
+    # type: (object) -> bytes
+    """ Serialize an object to a string.
 
     :param obj: Object to be serialized.
-    :return: <String> the serialized content
+    :return: The serialized content
     """
     handler = BytesIO()
     serialize_to_handler(obj, handler)
@@ -222,48 +235,14 @@ def serialize_to_string(obj):
     return ret
 
 
-def serialize_named_to_file(name, obj, file_name):
-    """
-    Serialize a named object to a file
-
-    :param name: Name of the object
-    :param obj: Name of the object
-    :param file_name: Name of the file name
-    :return: Nothing, it just serializes the named object
-    """
-    serialize_to_file((name, obj), file_name)
-
-
-def serialize_named_to_string(name, obj):
-    """
-    Serialize a named object to a string
-
-    :param name: Name of the object
-    :param obj: Object to serialize
-    :return: <String> the serialized content
-    """
-    return serialize_to_string((name, obj))
-
-
-def get_numpy_dummy_obj():
-    """
-    Return a numpy object or an empty list if numpy is not available
-
-    :return: numpy zeros list or empty list
-    """
-    try:
-        return numpy.zeros(1)
-    except AttributeError:
-        return []
-
-
 def deserialize_from_handler(handler):
-    """
-    Deserialize an object from a file.
+    # type: (...) -> object
+    """ Deserialize an object from a file.
 
     :param handler: File name from where the object is going to be
                     deserialized.
-    :return: The object deserialized.
+    :return: The object.
+    :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
     original_position = None
@@ -277,18 +256,26 @@ def deserialize_from_handler(handler):
         raise SerializerException(error_message)
 
     try:
+        if DISABLE_GC:
+            # Disable the garbage collector while serializing -> improve performance
+            gc.disable()
         if serializer is numpy and NUMPY_AVAILABLE:
             ret = serializer.load(handler, allow_pickle=False)
         else:
             ret = serializer.load(handler)
-
         # Special case: deserialized obj wraps a generator
         if isinstance(ret, tuple) and \
                 ret and \
                 isinstance(ret[0], GeneratorIndicator):
             ret = convert_to_generator(ret[1])
+        if DISABLE_GC:
+            # Enable the garbage collector and force to clean the memory
+            gc.enable()
+            gc.collect()
         return ret
     except Exception:
+        if DISABLE_GC:
+            gc.enable()
         if __debug__:
             print('ERROR! Deserialization with %s failed.' % str(serializer))
             try:
@@ -300,8 +287,8 @@ def deserialize_from_handler(handler):
 
 
 def deserialize_from_file(file_name):
-    """
-    Deserialize the contents in a given file.
+    # type: (str) -> object
+    """ Deserialize the contents in a given file.
 
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
@@ -313,25 +300,27 @@ def deserialize_from_file(file_name):
 
 
 def deserialize_from_string(serialized_content):
-    """
-    Deserialize the contents in a given string.
+    # type: (str) -> object
+    """ Deserialize the contents in a given string.
 
     :param serialized_content: A string with serialized contents
     :return: A deserialized object
     """
-    handler = BytesIO(serialized_content)
+    handler = BytesIO(serialized_content)  # noqa
     ret = deserialize_from_handler(handler)
     handler.close()
     return ret
 
 
 def serialize_objects(to_serialize):
-    """
-    Serialize a list of objects to file. If a single object fails to be
-    serialized, then an Exception by serialize_to_file will be thrown
-    (and not caught).
+    # type: (list) -> None
+    """ Serialize a list of objects to file.
+
+    If a single object fails to be serialized, then an Exception by
+    serialize_to_file will be thrown (and not caught).
     The structure of the parameter is:
          [(object1, file_name1), ... , (objectN, file_nameN)].
+
     :param to_serialize: List of lists to be serialized. Each sublist is a
                          pair of the form ['object','file name']
     :return: None

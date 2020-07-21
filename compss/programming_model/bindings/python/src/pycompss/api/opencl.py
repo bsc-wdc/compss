@@ -24,11 +24,13 @@ PyCOMPSs API - OPENCL
     definition through the decorator.
 """
 
-import inspect
-import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -41,140 +43,105 @@ SUPPORTED_ARGUMENTS = {'kernel',
 DEPRECATED_ARGUMENTS = {'workingDir'}
 
 
-class OpenCL(object):
+class OpenCL(PyCOMPSsDecorator):
     """
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on opencl task creation.
     """
 
+    __slots__ = []
+
     def __init__(self, *args, **kwargs):
-        """
-        Store arguments passed to the decorator
-        # self = itself.
-        # args = not used.
-        # kwargs = dictionary with the given opencl parameters
+        """ Store arguments passed to the decorator.
 
-        :param args: Arguments
-        :param kwargs: Keyword arguments
+        self = itself.
+        args = not used.
+        kwargs = dictionary with the given constraints.
+
+        :param args: Arguments.
+        :param kwargs: Keyword arguments.
         """
-        self.args = args
-        self.kwargs = kwargs
-        self.registered = False
-        self.scope = context.in_pycompss()
+        decorator_name = '@' + self.__class__.__name__.lower()
+        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
-            if __debug__:
-                logger.debug("Init @opencl decorator...")
-
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
                             DEPRECATED_ARGUMENTS,
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
-                            "@opencl")
+                            decorator_name)
 
     def __call__(self, func):
-        """
-        Parse and set the opencl parameters within the task core element.
+        """ Parse and set the opencl parameters within the task core element.
 
-        :param func: Function to decorate
+        :param func: Function to decorate.
         :return: Decorated function.
         """
-        if not self.scope:
-            # from pycompss.api.dummy.opencl import opencl as dummy_opencl
-            # d_ocl = dummy_opencl(self.args, self.kwargs)
-            # return d_ocl.__call__(func)
-            raise Exception(not_in_pycompss("opencl"))
-
-        if context.in_master():
-            # master code
-            mod = inspect.getmodule(func)
-            self.module = mod.__name__  # not func.__module__
-
-            if (self.module == '__main__' or
-                    self.module == 'pycompss.runtime.launch'):
-                # The module where the function is defined was run as __main__,
-                # we need to find out the real module name.
-
-                # path = mod.__file__
-                # dirs = mod.__file__.split(os.sep)
-                # file_name = os.path.splitext(
-                #                 os.path.basename(mod.__file__))[0]
-
-                # Get the real module name from our launch.py variable
-                path = getattr(mod, "APP_PATH")
-
-                dirs = path.split(os.path.sep)
-                file_name = os.path.splitext(os.path.basename(path))[0]
-                mod_name = file_name
-
-                i = len(dirs) - 1
-                while i > 0:
-                    new_l = len(path) - (len(dirs[i]) + 1)
-                    path = path[0:new_l]
-                    if "__init__.py" in os.listdir(path):
-                        # directory is a package
-                        i -= 1
-                        mod_name = dirs[i] + '.' + mod_name
-                    else:
-                        break
-                self.module = mod_name
-
-            # Include the registering info related to @opencl
-
-            # Retrieve the base core_element established at @task decorator
-            from pycompss.api.task import current_core_element as cce
-            if not self.registered:
-                self.registered = True
-                # Update the core element information with the mpi information
-                cce.set_impl_type("OPENCL")
-                kernel = self.kwargs['kernel']
-                if 'working_dir' in self.kwargs:
-                    working_dir = self.kwargs['working_dir']
-                elif 'workingDir' in self.kwargs:
-                    working_dir = self.kwargs['workingDir']
-                else:
-                    working_dir = '[unassigned]'  # Empty or '[unassigned]'
-                impl_signature = 'OPENCL.' + kernel
-                cce.set_impl_signature(impl_signature)
-                impl_args = [kernel, working_dir]
-                cce.set_impl_type_args(impl_args)
-                func.__to_register__ = cce
-        else:
-            # worker code
-            pass
-
         @wraps(func)
         def opencl_f(*args, **kwargs):
-            # This is executed only when called.
+            if not self.scope:
+                raise Exception(not_in_pycompss("opencl"))
+
             if __debug__:
                 logger.debug("Executing opencl_f wrapper.")
 
-            if len(args) > 0:
-                # The 'self' for a method function is passed as args[0]
-                slf = args[0]
+            if context.in_master():
+                # master code
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
+            else:
+                # worker code
+                pass
 
-                # Replace and store the attributes
-                saved = {}
-                for k, v in self.kwargs.items():
-                    if hasattr(slf, k):
-                        saved[k] = getattr(slf, k)
-                        setattr(slf, k, v)
-
-            # Call the method
-            import pycompss.api.task as t
-            t.prepend_strings = False
-            ret = func(*args, **kwargs)
-            t.prepend_strings = True
-
-            if len(args) > 0:
-                # Put things back
-                for k, v in saved.items():
-                    setattr(slf, k, v)
+            with keep_arguments(args, kwargs, prepend_strings=False):
+                # Call the method
+                ret = func(*args, **kwargs)
 
             return ret
 
         opencl_f.__doc__ = func.__doc__
         return opencl_f
+
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
+        """ Include the registering info related to @opencl.
+
+        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
+
+        :param kwargs: Keyword arguments received from call.
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Configuring @opencl core element.")
+
+        # Resolve @opencl specific parameters
+        kernel = self.kwargs['kernel']
+
+        # Resolve the working directory
+        self.__resolve_working_dir__()
+
+        impl_type = 'OPENCL'
+        impl_signature = '.'.join((impl_type, kernel))
+        impl_args = [kernel, self.kwargs['working_dir']]
+
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            # (e.g. @constraint)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
+            kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+        else:
+            # @binary is in the top of the decorators stack.
+            # Instantiate a new core element object, update it and include
+            # it into kwarg
+            core_element = CE()
+            core_element.set_impl_type(impl_type)
+            core_element.set_impl_signature(impl_signature)
+            core_element.set_impl_type_args(impl_args)
+            kwargs[CORE_ELEMENT_KEY] = core_element
+
+        # Set as configured
+        self.core_element_configured = True
 
 
 # ########################################################################### #
@@ -182,3 +149,4 @@ class OpenCL(object):
 # ########################################################################### #
 
 opencl = OpenCL
+OPENCL = OpenCL

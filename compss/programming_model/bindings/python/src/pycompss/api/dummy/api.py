@@ -23,51 +23,66 @@ PyCOMPSs Dummy API
     This file defines the public PyCOMPSs API functions without functionality.
     It implements a dummy compss_open and compss_wait_on functions.
 """
-from os import path
+
+import os
 
 
-def compss_start():
-    """
-    Dummy runtime starter.
+def compss_start(log_level='off', interactive=False):  # noqa
+    # type: (str, bool) -> None
+    """ Dummy runtime start.
 
+    Does nothing.
+
+    :param log_level: Log level ['trace'|'debug'|'info'|'api'|'off'].
+    :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
     pass
 
 
-def compss_stop():
-    """
-    Dummy runtime stopper.
+def compss_stop(code=0):  # noqa
+    # type: (int) -> None
+    """ Dummy runtime stop.
 
+    Does nothing.
+
+    :param code: Stop code.
     :return: None
     """
     pass
 
 
 def compss_file_exists(file_name):
+    # type: (str) -> bool
+    """ Dummy compss_file_exists.
+
+    Check if the file exists.
+
+    :param file_name: The file name to check.
+    :return: True if exists. False otherwise.
     """
-    Dummy compss_file_exists.
-    :param file_name: The file name to check
-    :return: True if exists
-    """
-    return path.exists(file_name)
+    return os.path.exists(file_name)
 
 
 def compss_open(file_name, mode='r'):
-    """
-    Dummy compss_open.
+    # type: (str, str) -> object
+    """ Dummy compss_open.
 
-    :param file_name: The file name to open
-    :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r
+    Open the given file with the defined mode (see builtin open).
+
+    :param file_name: The file name to open.
+    :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r.
     :return: An object of 'file' type.
     :raise IOError: If the file can not be opened.
     """
     return open(file_name, mode)
 
 
-def compss_delete_file(file_name):
-    """
-    Dummy compss_delete.
+def compss_delete_file(file_name):  # noqa
+    # type: (str) -> bool
+    """ Dummy compss_delete.
+
+    Does nothing and always return True.
 
     :param file_name: File name.
     :return: Always True.
@@ -75,39 +90,59 @@ def compss_delete_file(file_name):
     return True
 
 
-def compss_delete_object(obj):
-    """
-    Dummy compss_delete_object.
+def compss_wait_on_file(file_name):  # noqa
+    # type: (str) -> None
+    """ Dummy compss_wait_on_file.
 
-    :param obj: Object.
+    Does nothing.
+
+    :param file_name: File name.
+    :return: None
+    """
+    return None
+
+
+def compss_wait_on_directory(directory_name):  # noqa
+    # type: (str) -> None
+    """ Dummy compss_wait_on_directory.
+
+    Does nothing.
+
+    :param directory_name: Directory name.
+    :return: None
+    """
+    return None
+
+
+def compss_delete_object(obj):  # noqa
+    # type: (str) -> bool
+    """ Dummy compss_delete_object.
+
+    Does nothing and always return True.
+
+    :param obj: Object to delete.
     :return: Always True.
     """
     return True
 
 
-def compss_wait_on_file(file_name):
-    """
-    Delete a file -> Calls runtime.
+def compss_barrier(no_more_tasks=False):  # noqa
+    # type: (bool) -> None
+    """ Dummy barrier.
 
-    :param file_name: File name.
-    :return: True if success. False otherwise.
-    """
-    return True
+    Does nothing.
 
-
-def compss_barrier(no_more_tasks=False):
-    """
-    Dummy barrier.
-
-    :param no_more_tasks: No more tasks boolean
+    :param no_more_tasks: No more tasks boolean.
     :return: None
     """
     pass
 
 
-def compss_barrier_group(group_name):
-    """
-    Dummy barrier for groups.
+def compss_barrier_group(group_name):  # noqa
+    # type: (str) -> None
+    """ Dummy barrier for groups.
+
+    Does nothing.
 
     :param group_name: Name of the group.
     :return: None
@@ -115,12 +150,15 @@ def compss_barrier_group(group_name):
     pass
 
 
-def compss_wait_on(*args):
-    """
-    Dummy compss_wait_on
+def compss_wait_on(*args, **kwargs):  # noqa
+    # type: (*object, dict) -> None
+    """ Dummy compss_wait_on.
 
-    :param args: Objects to wait on
-    :return: The same objects defined as parameter
+    Does nothing.
+
+    :param args: Objects to wait on.
+    :param kwargs: Options dictionary.
+    :return: The same objects defined as parameter.
     """
     ret = list(map(lambda o: o, args))
     ret = ret[0] if len(ret) == 1 else ret
@@ -128,36 +166,37 @@ def compss_wait_on(*args):
 
 
 def compss_get_number_of_resources():
-    """
-    Request for the number of active resources.
+    # type: () -> int
+    """ Request for the number of active resources.
+
+    Does nothing.
 
     :return: The number of active resources
-        +type: <int>
     """
     return 1
 
 
-def compss_request_resources(num_resources, group_name):
-    """
-    Requests the creation of num_resources resources.
+def compss_request_resources(num_resources, group_name):  # noqa
+    # type: (int, str) -> None
+    """ Requests the creation of num_resources resources.
+
+    Does nothing.
 
     :param num_resources: Number of resources to create.
-        +type: <int>
     :param group_name: Task group to notify upon resource creation
-        +type: <str> or None
     :return: None
     """
     pass
 
 
-def compss_free_resources(num_resources, group_name):
-    """
-    Requests the destruction of num_resources resources.
+def compss_free_resources(num_resources, group_name):  # noqa
+    # type: (int, str) -> None
+    """ Requests the destruction of num_resources resources.
+
+    Does nothing.
 
     :param num_resources: Number of resources to destroy.
-        +type: <int>
     :param group_name: Task group to notify upon resource creation
-        +type: <str> or None
     :return: None
     """
     pass
@@ -168,6 +207,12 @@ class TaskGroup(object):
     Dummy TaskGroup context manager.
     """
     def __init__(self, group_name, implicit_barrier=True):  # noqa
+        # type: (str, bool) -> None
+        """ Define a new group of tasks.
+
+        :param group_name: Group name.
+        :param implicit_barrier: Perform implicit barrier.
+        """
         pass
 
     def __enter__(self):

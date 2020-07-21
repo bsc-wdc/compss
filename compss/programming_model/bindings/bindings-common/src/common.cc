@@ -69,7 +69,7 @@ JNIEnv* create_vm(JavaVM** jvm) {
     vector<JavaVMOption> options;
 
     string line; // buffer for line read
-    debug_printf("[BINDING_COMMONS]  -  @create_vm  -  reading file in JVM_OPTIONS_FILE\n" );
+    debug_printf("[BINDING-COMMONS]  -  @create_vm  -  reading file in JVM_OPTIONS_FILE\n" );
     const char* file = strdup(getenv("JVM_OPTIONS_FILE")); // path to the file with jvm options
     ifstream fin; // input file stream
 
@@ -95,7 +95,7 @@ JNIEnv* create_vm(JavaVM** jvm) {
 
                     char* buffer = getenv(env_varName.data());
                     if (buffer == NULL) {
-                        debug_printf("[BINDING_COMMONS]  -  @create_vm  -  Cannot find environment variable: %s\n", env_varName.data());
+                        debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Cannot find environment variable: %s\n", env_varName.data());
                     }
 
                     string env_varValue(buffer);
@@ -114,20 +114,20 @@ JNIEnv* create_vm(JavaVM** jvm) {
                     option->optionString = strdup(fileOption.data());
                     options.push_back(*option);
                     //Uncomment to debug JVM options errors
-                    //debug_printf("[BINDING_COMMONS]  -  @create_vm  -  option %s\n", option->optionString);
+                    //debug_printf("[BINDING-COMMONS]  -  @create_vm  -  option %s\n", option->optionString);
                 } else {
                     // It is an environment variable
                     //Uncomment to debug JVM options errors
-                    debug_printf("[BINDING_COMMONS]  -  @create_vm  -  Putting environment variable\n");
+                    debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Putting environment variable\n");
                     int ret = putenv(strdup(fileOption.data()));
                     if (ret < 0) {
-                        debug_printf("[BINDING_COMMONS]  -  @create_vm  -  Cannot put environment variable: %s", fileOption.data());
+                        debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Cannot put environment variable: %s", fileOption.data());
                     } else {
                         string::size_type begin = fileOption.find("=");
                         string env_varName = fileOption.substr(0, begin);
                         char *buffer = getenv(env_varName.data());
                         if (buffer == NULL)
-                            debug_printf("[BINDING_COMMONS]  -  @create_vm  -  Cannot find environment variable: %s\n", env_varName.data());
+                            debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Cannot find environment variable: %s\n", env_varName.data());
                     }
                 }
             }
@@ -135,7 +135,7 @@ JNIEnv* create_vm(JavaVM** jvm) {
             fileOption.clear();
         }
     } else {
-        debug_printf("[BINDING_COMMONS]  -  @create_vm  -  JVM option file not good!\n");
+        debug_printf("[BINDING-COMMONS]  -  @create_vm  -  JVM option file not good!\n");
     }
     // close file
     fin.close();
@@ -145,13 +145,13 @@ JNIEnv* create_vm(JavaVM** jvm) {
     vm_args.options = new JavaVMOption[vm_args.nOptions];
     copy(options.begin(), options.end(), vm_args.options);
     vm_args.ignoreUnrecognized = false;
-    debug_printf("[BINDING_COMMONS]  -  @create_vm  -  Launching JVM\n");
+    debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Launching JVM\n");
     int ret = JNI_CreateJavaVM(jvm, (void**) &env, &vm_args);
     if (ret < 0) {
-        debug_printf("[BINDING_COMMONS]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
+        debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
         exit(1);
     } else {
-        debug_printf("[BINDING_COMMONS]  -  @create_vm  -  JVM Ready\n");
+        debug_printf("[BINDING-COMMONS]  -  @create_vm  -  JVM Ready\n");
     }
     return env;
 }
@@ -165,7 +165,7 @@ void destroy_vm(JavaVM* jvm) {
 
 int check_and_attach(JavaVM* jvm, JNIEnv* &env) {
     if (jvm == NULL){
-		debug_printf("[BINDING_COMMONS]  -  @check_an_attach - No JVM provided.\n");
+		debug_printf("[BINDING-COMMONS]  -  @check_an_attach - No JVM provided.\n");
 		exit(1);
 	}
     int res = jvm->GetEnv((void **)&env, (int)JNI_VERSION_1_8);
@@ -175,7 +175,7 @@ int check_and_attach(JavaVM* jvm, JNIEnv* &env) {
             fflush(NULL);
             return 0;
         } else {
-            debug_printf("[BINDING_COMMONS]  -  @check_an_attach - Thread Attached to JVM.\n");
+            debug_printf("[BINDING-COMMONS]  -  @check_an_attach - Thread Attached to JVM.\n");
             return 1;
         }
     } else {
@@ -247,7 +247,7 @@ void check_and_treat_exception(JNIEnv* pEnv, const char* message) {
     jthrowable exception = pEnv->ExceptionOccurred();
     if (exception) {
         // Log provided exception message
-        printf("\n[BINDING_COMMONS] Exception: %s. \n", message);
+        printf("\n[BINDING-COMMONS] Exception: %s. \n", message);
 
         // Log JNI Exception
         pEnv->ExceptionDescribe();
@@ -262,7 +262,7 @@ void check_and_treat_exception(JNIEnv* pEnv, const char* message) {
         std::string error_msg;
         _append_exception_trace_messages(*pEnv, error_msg, exception, mid_throwable_getCause, mid_throwable_getStackTrace,
                                          mid_throwable_toString, mid_frame_toString);
-        printf("\n[BINDING_COMMONS] Exception Occurred during runtime interaction:\n %s", error_msg.c_str());
+        printf("\n[BINDING-COMMONS] Exception Occurred during runtime interaction:\n %s", error_msg.c_str());
 
         // Error exit
         exit(1);

@@ -29,11 +29,12 @@ import subprocess
 
 
 def get_reservation_nodes():
-    """
-    Get the nodes that belong to the current reservation.
+    # type: () -> list
+    """ Get the nodes that belong to the current reservation.
+
     Currently only supports SLURM queuing system
 
-    :return: List of nodes
+    :return: List of nodes.
     """
     nodes = os.environ['SLURM_JOB_NODELIST']
     expander_command = 'scontrol show hostname ' + nodes
@@ -44,44 +45,49 @@ def get_reservation_nodes():
 
 
 def get_master_node():
-    """
-    Get the master node.
+    # type: () -> str
+    """ Get the master node.
+
     TIP: The environment variable COMPSS_MASTER_NODE is defined in the
          launch_compss script.
 
-    :return: Master node
+    :return: Master node name.
     """
     return os.environ['COMPSS_MASTER_NODE']
 
 
 def get_master_port():
-    """
-    Get the master port.
+    # type: () -> str
+    """ Get the master port.
+
     TIP: The environment variable COMPSS_MASTER_PORT is defined in the
          launch_compss script.
 
-    :return: Master port
+    :return: Master port.
     """
     return os.environ['COMPSS_MASTER_PORT']
 
 
 def get_worker_nodes():
-    """
-    Get the worker nodes.
+    # type: () -> str
+    """ Get the worker nodes.
+
     TIP: The environment variable COMPSS_WORKER_NODES is defined in the
          launch_compss script.
 
-    :return: List of worker nodes
+    :return: List of worker nodes.
     """
     return os.environ['COMPSS_WORKER_NODES']
 
 
 def get_xmls():
-    """
-    Get the project and resources from the environment variable exported
-    from the submit_jupyter_job.sh
+    # type: () -> (str, str)
+    """ Get the project and resources.
 
-    :return: the project and resources paths
+    They are taken from the environment variable exported from the
+    submit_jupyter_job.sh.
+
+    :return: the project and resources paths.
     """
     project = os.environ['COMPSS_PROJECT_XML']
     resources = os.environ['COMPSS_RESOURCES_XML']
@@ -89,82 +95,89 @@ def get_xmls():
 
 
 def get_uuid():
-    """
-    Get UUID.
+    # type: () -> str
+    """ Get UUID.
+
     TIP: The environment variable COMPSS_UUID is defined in the
          launch_compss script.
 
-    :return: UUID
+    :return: UUID as string.
     """
     return os.environ['COMPSS_UUID']
 
 
 def get_base_log_dir():
-    """
-    Get base log dir.
+    # type: () -> str
+    """ Get base log dir.
+
     TIP: The environment variable COMPSS_BASE_LOG_DIR is defined in the
          launch_compss script.
 
-    :return: Base log dir
+    :return: Base log directory.
     """
     return os.environ['COMPSS_BASE_LOG_DIR']
 
 
 def get_specific_log_dir():
-    """
-    Get specific log dir.
+    # type: () -> str
+    """ Get specific log directory.
+
     TIP: The environment variable COMPSS_SPECIFIC_LOG_DIR is defined in the
          launch_compss script.
 
-    :return: Specific log dir
+    :return: Specific log directory.
     """
     return os.environ['COMPSS_SPECIFIC_LOG_DIR']
 
 
 def get_log_level():
-    """
-    Get log level.
+    # type: () -> str
+    """ Get log level.
+
     TIP: The environment variable COMPSS_LOG_LEVEL is defined in the
          launch_compss script.
 
-    :return: Log level
+    :return: Log level.
     """
     return os.environ['COMPSS_LOG_LEVEL']
 
 
 def get_tracing():
-    """
-    Get tracing boolean.
+    # type: () -> bool
+    """ Get tracing boolean.
+
     TIP: The environment variable COMPSS_TRACING is defined in the
          launch_compss script.
 
-    :return: Tracing boolean
+    :return: Tracing boolean.
     """
     return 'true' == os.environ['COMPSS_TRACING']
 
 
 def get_storage_conf():
-    """
-    Get storage configuration file.
+    # type: () -> str
+    """ Get storage configuration file.
+
     TIP: The environment variable COMPSS_STORAGE_CONF is defined in the
          launch_compss script.
 
-    :return: Storage configuration file path
+    :return: Storage configuration file path.
     """
     return os.environ['COMPSS_STORAGE_CONF']
 
 
 def generate_xmls(compss_home, nodes, master_port):
-    """
-    Generate project and resources xmls.
-    This function should be used only within supercomputers
+    # type: (str, list, str) -> (str, str)
+    """ Generate project and resources xmls.
+
+    This function must be used only within supercomputers
     WARNING: The configuration assumes that the first node is the master and
              the rest are workers.
 
-    :param compss_home: COMPSs home path
-    :param nodes: List of nodes
-    :param master_port: Master port
-    :return: Project.xml and resources.xml paths
+    :param compss_home: COMPSs home path.
+    :param nodes: List of nodes.
+    :param master_port: Master port.
+    :return: project.xml and resources.xml paths.
     """
     # Create command for calling compss_xmls_generator
     xml_generator_script = 'Runtime/scripts/user/compss_xmls_generator'
@@ -183,10 +196,10 @@ def generate_xmls(compss_home, nodes, master_port):
     project_xml = None
     resources_xml = None
     for line in xml_generator_raw_output:
-        if line.startswith('Project.xml:'):
+        if line.startswith('Project.xml:'):    # noqa
             # Project.xml:   ./project_1532694575.xml
             project_xml = line.split()[1]
-        if line.startswith('Resources.xml:'):
+        if line.startswith('Resources.xml:'):  # noqa
             # Resources.xml: ./resources_1532694575.xml
             resources_xml = line.split()[1]
     return project_xml, resources_xml

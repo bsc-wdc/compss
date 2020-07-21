@@ -32,31 +32,31 @@ from pycompss.runtime.commons import IS_PYTHON3
 if IS_PYTHON3:
     import builtins as _builtins
 else:
-    import __builtin__ as _builtins
+    import __builtin__ as _builtins  # noqa
 
 
-def get_defining_class(meth):
+def get_defining_class(method):
+    # type: (...) -> ...
+    """ Get the class from the given a method.
+
+    :param method: Method to check its defining class.
+    :return: Class which method belongs. None if not found.
     """
-    Given a method
-
-    :param meth: Method to check its defining class
-    :return: Class which meth belongs. None if not found.
-    """
-    if inspect.ismethod(meth):
-        for cls in inspect.getmro(meth.__self__.__class__):
-            if cls.__dict__.get(meth.__name__) is meth:
+    if inspect.ismethod(method):
+        for cls in inspect.getmro(method.__self__.__class__):
+            if cls.__dict__.get(method.__name__) is method:
                 return cls
-    if inspect.isfunction(meth):
-        return getattr(inspect.getmodule(meth),
-                       meth.__qualname__.split('.<locals>',
-                                               1)[0].rsplit('.', 1)[0])
+    if inspect.isfunction(method):
+        return getattr(inspect.getmodule(method),
+                       method.__qualname__.split('.<locals>',
+                                                 1)[0].rsplit('.', 1)[0])
     # Return not required since None would have been implicitly returned anyway
     return None
 
 
 def get_module_name(path, file_name):
-    """
-    Get the module name considering its path and filename.
+    # type: (str, str) -> str
+    """ Get the module name considering its path and filename.
 
     Example: runcompss -d src/kmeans.py
              path = "test/kmeans.py"
@@ -64,9 +64,9 @@ def get_module_name(path, file_name):
              return mod_name = "test.kmeans"
 
     :param path: relative path until the file.py from where the runcompss has
-                 been executed
+                 been executed.
     :param file_name: python file to be executed name
-                      (without the py extension)
+                      (without the py extension).
     :return: the module name
     """
     dirs = path.split(os.path.sep)
@@ -85,13 +85,13 @@ def get_module_name(path, file_name):
 
 
 def get_top_decorator(code, decorator_keys):
-    """
-    Retrieves the decorator which is on top of the current task decorators
+    # type: (list, list) -> str
+    """ Retrieves the decorator which is on top of the current task decorators
     stack.
 
     :param code: Tuple which contains the task code to analyse and the number
                  of lines of the code.
-    :param decorator_keys: Typle which contains the available decorator keys
+    :param decorator_keys: Tuple which contains the available decorator keys
     :return: the decorator name in the form "pycompss.api.__name__"
     """
     # Code has two fields:
@@ -113,13 +113,12 @@ def get_top_decorator(code, decorator_keys):
 
 
 def get_wrapped_source(f):
-    """
-    Gets the text of the source code for the given function.
+    # type: (...) -> str
+    """ Gets the text of the source code for the given function.
 
-    :param f: Input function
-    :return: Source
+    :param f: Input function.
+    :return: Source.
     """
-
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
         return get_wrapped_source(f.__wrapped__)
@@ -133,60 +132,61 @@ def get_wrapped_source(f):
         return source
 
 
-def get_wrapped_sourcelines(f):
-    """
-    Gets a list of source lines and starting line number for the given function
+def get_wrapped_source_lines(f):
+    # type: (...) -> tuple
+    """ Gets a list of source lines and starting line number for the given
+    function.
 
-    :param f: Input function
-    :return: Source lines
+    :param f: Input function.
+    :return: Source lines.
     """
     if hasattr(f, '__wrapped__'):
         # has __wrapped__, apply the same function to the wrapped content
-        return _get_wrapped_sourcelines(f.__wrapped__)
+        return _get_wrapped_source_lines(f.__wrapped__)
     else:
-        # Returning getsourcelines
+        # Returning get_source_lines
         try:
-            sourcelines = inspect.getsourcelines(f)
+            source_lines = inspect.getsourcelines(f)
         except TypeError:
             # This is a numba jit declared task
-            sourcelines = inspect.getsourcelines(f.py_func)
-        return sourcelines
+            source_lines = inspect.getsourcelines(f.py_func)
+        return source_lines
 
 
-def _get_wrapped_sourcelines(f):
-    """
-    [PRIVATE] Recursive function which gets a list of source lines and starting
+def _get_wrapped_source_lines(f):
+    # type: (...) -> tuple
+    """ Recursive function which gets a list of source lines and starting
     line number for the given function.
 
-    :param f: Input function
-    :return: Source lines
+    :param f: Input function.
+    :return: Source lines.
     """
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
-        return _get_wrapped_sourcelines(f.__wrapped__)
+        return _get_wrapped_source_lines(f.__wrapped__)
     else:
-        # Returning getsourcelines
+        # Returning get_source_lines
         try:
-            sourcelines = inspect.getsourcelines(f)
+            source_lines = inspect.getsourcelines(f)
         except TypeError:
             # This is a numba jit declared task
-            sourcelines = inspect.getsourcelines(f.py_func)
-        return sourcelines
+            source_lines = inspect.getsourcelines(f.py_func)
+        return source_lines
 
 
 def is_module_available(module_name):
-    """
-    Checks if a module is available in the current Python installation.
+    # type: (str) -> bool
+    """ Checks if a module is available in the current Python installation.
 
-    :param module_name: Name of the module
-    :return: Boolean -> True if the module is available, False otherwise
+    :param module_name: Name of the module.
+    :return: True if the module is available. False otherwise.
     """
     try:
         py_version = sys.version_info
         if py_version > (3, 4):
             try:
                 import importlib
-                importlib.util.find_spec(module_name)
+                importlib.util.find_spec(module_name)  # noqa
             except AttributeError:
                 # This can only happen in conda
                 import imp  # noqa # Deprecated in python 3
@@ -200,35 +200,35 @@ def is_module_available(module_name):
 
 
 def is_basic_iterable(obj):
-    """
-    Checks if an object is a basic iterable. By basic iterable we want to
-    mean objects that are iterable and from a basic type.
+    # type: (object) -> bool
+    """ Checks if an object is a basic iterable.
 
-    :param obj: Object to be analysed
-    :return: Boolean -> True if obj is a basic iterable (see list below),
-                        False otherwise
+    By basic iterable we want to mean objects that are iterable and from a
+    basic type.
+
+    :param obj: Object to be analysed.
+    :return: True if obj is a basic iterable (see list below). False otherwise.
     """
     return isinstance(obj, (list, tuple, bytearray, set, frozenset, dict))
 
 
 def object_belongs_to_module(obj, module_name):
-    """
-    Checks if a given object belongs to a given module (or some sub-module).
+    # type: (object, str) -> bool
+    """ Checks if a given object belongs to a given module (or some sub-module).
 
     :param obj: Object to be analysed
     :param module_name: Name of the module we want to check
-    :return: Boolean -> True if obj belongs to the given module,
-                        False otherwise
+    :return: True if obj belongs to the given module. False otherwise
     """
     return any(module_name == x for x in type(obj).__module__.split('.'))
 
 
 def create_object_by_con_type(con_type):
-    """
-    Knowing its class name create an 'empty' object.
+    # type: (str) -> object
+    """ Knowing its class name create an 'empty' object.
 
     :param con_type: object type info in <path_to_module>:<class_name> format.
-    :return: 'empty' object of a type
+    :return: 'empty' object of a type.
     """
     path, class_name = con_type.split(":")
     if hasattr(_builtins, class_name):

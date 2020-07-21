@@ -23,9 +23,9 @@ PyCOMPSs Persistent Worker
     This file contains the worker code.
 """
 
+import os
 import sys
 import signal
-from os import kill
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
@@ -49,20 +49,21 @@ WORKER_CONF = None
 
 
 def is_worker():
-    """
-    Returns whether the process should act as a worker
+    # type: () -> bool
+    """ Returns whether the process should act as a worker.
 
-    :return: the process should act as a worker
+    :return: the process should act as a worker.
     """
     return RANK == 0
 
 
-def shutdown_handler(signal, frame):
-    """
-    Shutdown handler (do not remove the parameters).
+def shutdown_handler(signal, frame):  # noqa
+    """ Shutdown handler.
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
     """
     if is_worker():
@@ -71,12 +72,13 @@ def shutdown_handler(signal, frame):
         print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
 
-def user_signal_handler(signal, frame):
-    """
-    User signal handler (do not remove the parameters).
+def user_signal_handler(signal, frame):  # noqa
+    """ User signal handler.
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
     """
     if is_worker():
@@ -90,14 +92,14 @@ def user_signal_handler(signal, frame):
 ######################
 
 def compss_persistent_worker(config):
-    """
-    Persistent worker main function.
+    # type: (PiperWorkerConfiguration) -> None
+    """ Persistent worker main function.
+
     Retrieves the initial configuration and spawns the worker processes.
 
-    :param config: Piper Worker Configuration description
+    :param config: Piper Worker Configuration description.
     :return: None
     """
-    import os
     pids = COMM.gather(str(os.getpid()), root=0)
 
     # Catch SIGTERM sent by bindings_piper
@@ -124,7 +126,7 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Initialize storage
         logger.debug(HEADER + "Starting persistent storage")
-        from storage.api import initWorker
+        from storage.api import initWorker  # noqa
         initWorker(config_file_path=config.storage_conf)
 
     for i in range(0, config.tasks_x_node):
@@ -147,7 +149,7 @@ def compss_persistent_worker(config):
                 in_pipe = line[1]
                 out_pipe = line[2]
 
-                pid = PROCESSES.pop(in_pipe, None)
+                PROCESSES.pop(in_pipe, None)
                 control_pipe.write(REMOVED_EXECUTOR_TAG +
                                    " " + out_pipe +
                                    " " + in_pipe)
@@ -166,7 +168,7 @@ def compss_persistent_worker(config):
                 pid = PROCESSES.get(in_pipe)
                 logger.debug(HEADER + "Signaling process with PID " +
                              pid + " to cancel a task")
-                kill(int(pid), signal.SIGUSR2)
+                os.kill(int(pid), signal.SIGUSR2)
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
@@ -182,7 +184,7 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Finish storage
         logger.debug(HEADER + "Stopping persistent storage")
-        from storage.api import finishWorker
+        from storage.api import finishWorker  # noqa
         finishWorker()
 
     if __debug__:
@@ -193,14 +195,14 @@ def compss_persistent_worker(config):
 
 
 def compss_persistent_executor(config):
-    """
-    Persistent worker main function.
+    # type: (PiperWorkerConfiguration) -> None
+    """ Persistent executor main function.
+
     Retrieves the initial configuration and spawns the worker processes.
 
-    :param config: Piper Worker Configuration description
+    :param config: Piper Worker Configuration description.
     :return: None
     """
-    import os
     COMM.gather(str(os.getpid()), root=0)
 
     # Catch SIGTERM sent by bindings_piper
@@ -221,7 +223,7 @@ def compss_persistent_executor(config):
     if persistent_storage:
         # Initialize storage
         with event(INIT_STORAGE_AT_WORKER_EVENT):
-            from storage.api import initWorker as initStorageAtWorker
+            from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     process_name = 'Rank-' + str(RANK)
@@ -239,7 +241,7 @@ def compss_persistent_executor(config):
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
         with event(FINISH_STORAGE_AT_WORKER_EVENT):
-            from storage.api import finishWorker as finishStorageAtWorker
+            from storage.api import finishWorker as finishStorageAtWorker  # noqa
             finishStorageAtWorker()
 
 

@@ -29,7 +29,6 @@ import logging
 import os
 import sys
 
-from pycompss.worker.commons.constants import *
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.worker import execute_task
@@ -52,8 +51,8 @@ else:
 
 
 def compss_worker(tracing, task_id, storage_conf, params):
-    """
-    Worker main method (invocated from __main__).
+    # type: (bool, str, str, list) -> str
+    """ Worker main method (invoked from __main__).
 
     :param tracing: Tracing boolean
     :param task_id: Task identifier
@@ -75,7 +74,8 @@ def compss_worker(tracing, task_id, storage_conf, params):
                           params,
                           tracing,
                           logger,
-                          None)
+                          (),
+                          False)
     exit_code, new_types, new_values, timed_out, except_msg = result
 
     if __debug__:
@@ -85,6 +85,13 @@ def compss_worker(tracing, task_id, storage_conf, params):
 
 
 def main():
+    # type: () -> None
+    """ GAT worker main code.
+
+    Executes the task provided by parameters.
+
+    :return: None
+    """
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
     task_id = int(sys.argv[2])
@@ -147,7 +154,7 @@ def main():
         if persistent_storage:
             # Initialize storage
             with event(INIT_STORAGE_AT_WORKER_EVENT):
-                from storage.api import initWorker as initStorageAtWorker
+                from storage.api import initWorker as initStorageAtWorker  # noqa
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
@@ -160,7 +167,7 @@ def main():
         if persistent_storage:
             # Finish storage
             with event(FINISH_STORAGE_AT_WORKER_EVENT):
-                from storage.api import finishWorker as finishStorageAtWorker
+                from storage.api import finishWorker as finishStorageAtWorker  # noqa
                 finishStorageAtWorker()
 
     if exit_code == 1:

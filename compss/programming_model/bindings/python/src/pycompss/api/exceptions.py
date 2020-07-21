@@ -29,6 +29,8 @@ class COMPSsException(Exception):
     Raised by the user code
     """
 
+    __slots__ = ['message']
+
     def __init__(self, message):
+        # super().__init__(message)  # show traceback
         self.message = message
-        self.target_direction = None

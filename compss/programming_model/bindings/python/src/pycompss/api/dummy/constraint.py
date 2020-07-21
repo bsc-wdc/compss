@@ -41,3 +41,4 @@ class Constraint(object):
 
 
 constraint = Constraint
+CONSTRAINT = Constraint

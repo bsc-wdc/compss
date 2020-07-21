@@ -31,6 +31,7 @@ import os
 import sys
 from mpi4py import MPI
 
+import pycompss.util.context as context
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import emit_event
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
@@ -41,8 +42,9 @@ from pycompss.worker.commons.worker import execute_task
 
 
 def shutdown_handler(signal, frame):  # noqa
-    """
-    Shutdown handler (do not remove the parameters).
+    """ MPI exception signal handler
+
+    Do not remove the parameters.
 
     :param signal: shutdown signal
     :param frame: Frame
@@ -56,13 +58,14 @@ def shutdown_handler(signal, frame):  # noqa
 ######################
 
 def executor(process_name, command):
-    """
-    Execution main method.
+    # type: (str, str) -> None
+    """ Execution main method.
+
     Iterates over the input pipe in order to receive tasks (with their
     parameters) and process them.
 
     :param process_name: Process name (MPI Process-X, where X is the MPI rank).
-    :param command: Command to execute
+    :param command: Command to execute.
     :return: None
     """
     # Replace Python Worker's SIGTERM handler.
@@ -110,20 +113,24 @@ def executor(process_name, command):
 
 
 @emit_event(PROCESS_TASK_EVENT)
-def process_task(current_line, process_name,
-                 logger, logger_handlers, logger_level, logger_formatter):
-    """
-    Process command received from the current_line.
+def process_task(current_line,     # type: str
+                 process_name,     # type: str
+                 logger,           # type: ...
+                 logger_handlers,  # type: ...
+                 logger_level,     # type: int
+                 logger_formatter  # type: ...
+                 ):
+    # type: (...) -> (str, str)
+    """ Process command received from the current_line.
 
-    :param current_line: Current command (line) to process
-    :param process_name: Process name for logger messages
-    :param logger: Logger
-    :param logger_handlers: Logger handlers
-    :param logger_level: Logger level
-    :param logger_formatter: Logger formatter
-    :return: None
+    :param current_line: Current command (line) to process.
+    :param process_name: Process name for logger messages.
+    :param logger: Logger.
+    :param logger_handlers: Logger handlers.
+    :param logger_level: Logger level.
+    :param logger_formatter: Logger formatter.
+    :return: exit_value and message.
     """
-
     # Process properties
     stdout = sys.stdout
     stderr = sys.stderr
@@ -131,8 +138,8 @@ def process_task(current_line, process_name,
     if __debug__:
         logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
                      % (str(process_name), str(current_line)))
-    current_line = current_line.split()
 
+    current_line = current_line.split()
     if current_line[0] == EXECUTE_TASK_TAG:
         # Remove the last elements: cpu and gpu bindings
         current_line = current_line[0:-3]
@@ -307,7 +314,6 @@ def process_task(current_line, process_name,
 
 if __name__ == '__main__':
     # Set the binding in worker mode
-    import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
     executor("MPI Process-{0}".format(MPI.COMM_WORLD.rank), sys.argv[1])

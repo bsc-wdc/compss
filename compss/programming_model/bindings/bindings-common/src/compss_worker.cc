@@ -76,7 +76,7 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
 
     w_env = create_vm(&w_jvm);
     if (w_env == NULL) {
-        printf ("[BINDING_COMMONS]  -  @GS_On  -  Error creating the JVM\n");
+        printf ("[BINDING-COMMONS]  -  @GS_On  -  Error creating the JVM\n");
         exit(1);
     }
 
@@ -86,7 +86,7 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
     clsNioWorker = w_env->FindClass("es/bsc/compss/nio/worker/NIOWorker");
     if (w_env->ExceptionOccurred()) {
         w_env->ExceptionDescribe();
-        printf("[BINDING_COMMONS]  -  @GS_On  -  Error looking for the COMPSsRuntimeImpl class\n");
+        printf("[BINDING-COMMONS]  -  @GS_On  -  Error looking for the COMPSsRuntimeImpl class\n");
         exit(1);
     }
 
@@ -96,11 +96,11 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
         midNioWorkerMain = w_env->GetStaticMethodID(clsNioWorker, "main", "([Ljava/lang/String;)V");
         if (w_env->ExceptionOccurred()) {
             w_env->ExceptionDescribe();
-            printf("[BINDING_COMMONS]  -  @GS_On  -  Error looking for the init method\n");
+            printf("[BINDING-COMMONS]  -  @GS_On  -  Error looking for the init method\n");
             exit(1);
         }
         jobjectArray args_java = convertToJavaArgs(argc, args);
-        debug_printf ("[BINDING_COMMONS]  -  @Starting NIO Worker\n");
+        debug_printf ("[BINDING-COMMONS]  -  @Starting NIO Worker\n");
         if (midNioWorkerMain != NULL ) {
             w_env->CallStaticVoidMethod(clsNioWorker, midNioWorkerMain, args_java); //Calling the method and passing IT Object as parameter
             if (w_env->ExceptionOccurred()) {
@@ -108,6 +108,6 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
                 exit(1);
             }
         }
-        debug_printf ("[BINDING_COMMONS]  -  @Worker ended\n");
+        debug_printf ("[BINDING-COMMONS]  -  @Worker ended\n");
     }
 }

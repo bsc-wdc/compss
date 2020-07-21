@@ -116,6 +116,7 @@ class testTaskInTask(unittest.TestCase):
 
     def testImplementTaskInTask(self):
         result = slow_task(20)
+        # the runtime must choose the fast_tas (@implement)
         result = compss_wait_on(result)
         self.assertEqual(result, 3 + 60 + 40)
 

@@ -24,11 +24,11 @@ PyCOMPSs Persistent Worker
 """
 
 import os
-from os import kill
 import sys
 import signal
 from multiprocessing import Process
 from multiprocessing import Queue
+
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -48,12 +48,13 @@ TRACING = False
 WORKER_CONF = None
 
 
-def shutdown_handler(signal, frame):
-    """
-    Shutdown handler (do not remove the parameters).
+def shutdown_handler(signal, frame):  # noqa
+    """ Shutdown handler.
 
-    :param signal: shutdown signal
-    :param frame: Frame
+    Do not remove the parameters.
+
+    :param signal: shutdown signal.
+    :param frame: Frame.
     :return: None
     """
     for proc in PROCESSES.values():
@@ -66,12 +67,12 @@ def shutdown_handler(signal, frame):
 ######################
 
 def compss_persistent_worker(config):
-    """
-    Persistent worker main function.
+    # type: (PiperWorkerConfiguration) -> None
+    """ Persistent worker main function.
+
     Retrieves the initial configuration and spawns the worker processes.
 
-    :param config: Piper Worker Configuration description
-
+    :param config: Piper Worker Configuration description.
     :return: None
     """
     # Catch SIGTERM sent by bindings_piper
@@ -94,7 +95,7 @@ def compss_persistent_worker(config):
         # Initialize storage
         logger.debug(HEADER + "Starting persistent storage")
         with event(INIT_STORAGE_AT_WORKER_EVENT):
-            from storage.api import initWorker as initStorageAtWorker
+            from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     # Create new threads
@@ -157,7 +158,7 @@ def compss_persistent_worker(config):
                 pid = proc.pid
                 logger.debug("[PYTHON WORKER] Signaling process with PID " +
                              str(pid) + " to cancel a task")
-                kill(pid, signal.SIGUSR2)
+                os.kill(pid, signal.SIGUSR2)
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
 
@@ -201,7 +202,7 @@ def compss_persistent_worker(config):
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
         with event(FINISH_STORAGE_AT_WORKER_EVENT):
-            from storage.api import finishWorker as finishStorageAtWorker
+            from storage.api import finishWorker as finishStorageAtWorker  # noqa
             finishStorageAtWorker()
 
     if __debug__:

@@ -18,17 +18,30 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Dummy API - local
-==========================
-    Local decorator dummy.
+PyCOMPSs Binding - Management - Classes
+======================================================
+    This file contains the internal classes.
 """
 
 
-def local(input_function):
-    def wrapped_function(*args, **kwargs):
-        return input_function(*args, **kwargs)
+class FunctionType(object):
+    """
+    Used as enum to identify the function type
+    """
+    FUNCTION = 1
+    INSTANCE_METHOD = 2
+    CLASS_METHOD = 3
 
-    return wrapped_function
+
+class Future(object):
+    """
+    Future object class definition.
+    """
+    pass
 
 
-Local = local
+class EmptyReturn(object):
+    """
+    For functions with empty return
+    """
+    pass

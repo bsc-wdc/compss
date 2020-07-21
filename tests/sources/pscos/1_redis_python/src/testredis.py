@@ -16,7 +16,7 @@ from modules.testRedisApp import TestRedisApp
 
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestRedis)
-    # suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestRedisApp))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestRedisApp))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

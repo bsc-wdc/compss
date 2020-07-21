@@ -41,3 +41,4 @@ class Task(object):
 
 
 task = Task
+TASK = Task

@@ -24,12 +24,14 @@ PyCOMPSs API - Implement (Versioning)
     definition through the decorator.
 """
 
-import inspect
-import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
+from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
@@ -42,132 +44,61 @@ SUPPORTED_ARGUMENTS = {'source_class',
 DEPRECATED_ARGUMENTS = {'sourceClass'}
 
 
-class Implement(object):
+class Implement(PyCOMPSsDecorator):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
 
+    __slots__ = ['first_register']
+
     def __init__(self, *args, **kwargs):
-        """
-        Store arguments passed to the decorator
-        # self = itself.
-        # args = not used.
-        # kwargs = dictionary with the given implement parameters.
+        """ Store arguments passed to the decorator.
 
-        :param args: Arguments
-        :param kwargs: Keyword arguments
+        self = itself.
+        args = not used.
+        kwargs = dictionary with the given implement parameters.
+
+        :param args: Arguments.
+        :param kwargs: Keyword arguments.
         """
-        self.args = args
-        self.kwargs = kwargs
-        self.registered = False
         self.first_register = False
-        self.scope = context.in_pycompss()
+        decorator_name = '@' + self.__class__.__name__.lower()
+        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
-            if __debug__:
-                logger.debug("Init @implement decorator...")
-
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
                             DEPRECATED_ARGUMENTS,
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
-                            "@implement")
+                            decorator_name)
 
     def __call__(self, func):
-        """
-        Parse and set the implementation parameters within the task core
-        element.
+        """ Parse and set the implement parameters within the task core element.
 
-        :param func: Function to decorate
+        :param func: Function to decorate.
         :return: Decorated function.
         """
         @wraps(func)
         def implement_f(*args, **kwargs):
             # This is executed only when called.
             if not self.scope:
-                # from pycompss.api.dummy.implement import implement as dummy_implement  # noqa: E501
-                # d_i = dummy_implement(self.args, self.kwargs)
-                # return d_i.__call__(func)
                 raise Exception(not_in_pycompss("implement"))
-
-            if context.in_master():
-                # master code
-                mod = inspect.getmodule(func)
-                self.module = mod.__name__  # not func.__module__
-
-                if (self.module == '__main__' or
-                        self.module == 'pycompss.runtime.launch'):
-                    # The module where the function is defined was run as
-                    # __main__, so we need to find out the real module name.
-
-                    # path = mod.__file__
-                    # dirs = mod.__file__.split(os.sep)
-                    # file_name = os.path.splitext(
-                    #                 os.path.basename(mod.__file__))[0]
-
-                    # Get the real module name from our launch.py variable
-                    path = getattr(mod, "APP_PATH")
-
-                    dirs = path.split(os.path.sep)
-                    file_name = os.path.splitext(os.path.basename(path))[0]
-                    mod_name = file_name
-
-                    i = len(dirs) - 1
-                    while i > 0:
-                        new_l = len(path) - (len(dirs[i]) + 1)
-                        path = path[0:new_l]
-                        if "__init__.py" in os.listdir(path):
-                            # directory is a package
-                            i -= 1
-                            mod_name = dirs[i] + '.' + mod_name
-                        else:
-                            break
-                    self.module = mod_name
-
-                # Include the registering info related to @implement
-
-                # Retrieve the base core_element established at @task decorator
-                if not self.registered:
-                    self.registered = True
-                    from pycompss.api.task import current_core_element as cce
-                    # Update the core element information with the @implement
-                    # information
-                    if 'sourceClass' in self.kwargs:
-                        another_class = self.kwargs['sourceClass']
-                    else:
-                        another_class = self.kwargs['source_class']
-                    another_method = self.kwargs['method']
-                    ce_signature = another_class + '.' + another_method
-                    cce.set_ce_signature(ce_signature)
-                    # This is not needed since the arguments are already set
-                    # by the task decorator.
-                    # implArgs = [another_class, another_method]
-                    # cce.set_implTypeArgs(implArgs)
-                    cce.set_impl_type("METHOD")
-            else:
-                # worker code
-                pass
 
             if __debug__:
                 logger.debug("Executing implement_f wrapper.")
 
-            # The 'self' for a method function is passed as args[0]
-            slf = args[0]
+            if context.in_master():
+                # master code
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
+            else:
+                # worker code
+                pass
 
-            # Replace and store the attributes
-            saved = {}
-            for k, v in self.kwargs.items():
-                if hasattr(slf, k):
-                    saved[k] = getattr(slf, k)
-                    setattr(slf, k, v)
-
-            # Call the method
-            ret = func(*args, **kwargs)
-
-            # Put things back
-            for k, v in saved.items():
-                setattr(slf, k, v)
+            with keep_arguments(args, kwargs, prepend_strings=True):
+                # Call the method
+                ret = func(*args, **kwargs)
 
             return ret
 
@@ -176,11 +107,54 @@ class Implement(object):
         if context.in_master() and not self.first_register:
             import pycompss.api.task as t
             self.first_register = True
-            t.register_only = True
+            t.REGISTER_ONLY = True
             self.__call__(func)(self)
-            t.register_only = False
+            t.REGISTER_ONLY = False
 
         return implement_f
+
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
+        """ Include the registering info related to @implement.
+
+        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
+
+        :param kwargs: Keyword arguments received from call.
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Configuring @implement core element.")
+
+        # Resolve @implement specific parameters
+        if 'sourceClass' in self.kwargs:
+            another_class = self.kwargs['sourceClass']
+        else:
+            another_class = self.kwargs['source_class']
+        another_method = self.kwargs['method']
+        ce_signature = '.'.join((another_class, another_method))
+        impl_type = "METHOD"
+        # impl_args = [another_class, another_method]  # set by @task
+
+        if CORE_ELEMENT_KEY in kwargs:
+            # Core element has already been created in a higher level decorator
+            # (e.g. @constraint)
+            kwargs[CORE_ELEMENT_KEY].set_ce_signature(ce_signature)
+            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
+            # @task sets the implementation type arguments
+            # kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+        else:
+            # @implement is in the top of the decorators stack.
+            # Instantiate a new core element object, update it and include
+            # it into kwarg
+            core_element = CE()
+            core_element.set_ce_signature(ce_signature)
+            core_element.set_impl_type(impl_type)
+            # @task sets the implementation type arguments
+            # core_element.set_impl_type_args(impl_args)
+            kwargs[CORE_ELEMENT_KEY] = core_element
+
+        # Set as configured
+        self.core_element_configured = True
 
 
 # ########################################################################### #
@@ -188,3 +162,4 @@ class Implement(object):
 # ########################################################################### #
 
 implement = Implement
+IMPLEMENT = Implement

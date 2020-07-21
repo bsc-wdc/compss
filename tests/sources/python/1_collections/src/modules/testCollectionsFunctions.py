@@ -9,6 +9,7 @@ PyCOMPSs Testbench Tasks
 
 # Imports
 import unittest
+import numpy as np
 
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import *

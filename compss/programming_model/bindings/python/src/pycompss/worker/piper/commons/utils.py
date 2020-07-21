@@ -32,12 +32,16 @@ from pycompss.worker.piper.commons.executor import Pipe
 
 class PiperWorkerConfiguration(object):
     """
-    Description of the configuration parameters for the Piper Worker
+    Description of the configuration parameters for the Piper Worker.
     """
+
+    __slots__ = ['debug', 'tracing', 'storage_conf', 'stream_backend',
+                 'stream_master_name', 'stream_master_port', 'tasks_x_node',
+                 'pipes', 'control_pipe']
 
     def __init__(self):
         """
-        Constructs an empty configuration description for the piper worker
+        Constructs an empty configuration description for the piper worker.
         """
         self.debug = False
         self.tracing = False
@@ -50,11 +54,12 @@ class PiperWorkerConfiguration(object):
         self.control_pipe = None
 
     def update_params(self, argv):
-        """
-        Constructs a configuration description for the piper worker using the
-        arguments
+        # type: (list) -> None
+        """ Constructs a configuration description for the piper worker using
+        the arguments.
 
-        :param argv: arguments from the command line
+        :param argv: arguments from the command line.
+        :return: None
         """
         self.debug = argv[1] == 'true'
         self.tracing = argv[2] == '1'
@@ -74,10 +79,11 @@ class PiperWorkerConfiguration(object):
         self.control_pipe = Pipe(argv[-2], argv[-1])
 
     def print_on_logger(self, logger):
-        """
-        Prints the configuration through the logger
+        # type: (...) -> None
+        """ Prints the configuration through the given logger.
 
-        :param logger: logger to output the configuration
+        :param logger: logger to output the configuration.
+        :return: None
         """
         logger.debug(HEADER + "-----------------------------")
         logger.debug(HEADER + "Persistent worker parameters:")
@@ -93,14 +99,14 @@ class PiperWorkerConfiguration(object):
 
 
 def load_loggers(debug, persistent_storage, tracing):
-    """
-    Loads all the loggers
+    # type: (bool, str, bool) -> (..., ...)
+    """ Load all loggers.
 
-    :param debug: is Debug enabled
-    :param persistent_storage: is persistent storage enabled
-    :param tracing: if tracing is enabled
-    :return logger: main logger of the application
-    :return storage_loggers: loggers for the persistent data engine
+    :param debug: is Debug enabled.
+    :param persistent_storage: is persistent storage enabled.
+    :param tracing: if tracing is enabled.
+    :return: main logger of the application and a list of loggers for the
+             persistent data framework.
     """
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))

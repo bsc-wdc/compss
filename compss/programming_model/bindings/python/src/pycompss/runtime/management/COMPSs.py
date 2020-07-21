@@ -1,0 +1,339 @@
+#!/usr/bin/python
+#
+#  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Binding - Management - Runtime
+=======================================
+    This file contains the COMPSs runtime connection.
+    Loads the external C module.
+"""
+
+# C module extension for the communication with the runtime
+# See ext/compssmodule.cc
+# Keep the COMPSs runtime link in this module so that any module can access
+# it through the module methods.
+_COMPSs = None
+
+
+def load_runtime(external_process=False):
+    # type: (bool) -> None
+    """ Loads the external C extension module.
+
+    :param external_process: Loads the runtime in an external process if true.
+                             Within this python process if false.
+    :return: None
+    """
+    global _COMPSs
+
+    if external_process:
+        # For interactive python environments
+        from pycompss.runtime.management.link import establish_interactive_link
+        _COMPSs = establish_interactive_link()
+    else:
+        # Normal python environments
+        from pycompss.runtime.management.link import establish_link
+        _COMPSs = establish_link()
+
+
+def start_runtime():
+    # type: () -> None
+    """ Call to start_runtime.
+
+    :return: None
+    """
+    _COMPSs.start_runtime()  # noqa
+
+
+def set_debug(mode):
+    # type: (bool) -> None
+    """ Call to set_debug.
+
+    :param mode: Debug mode
+    :return: None
+    """
+    _COMPSs.set_debug(mode)  # noqa
+
+
+def stop_runtime(code):
+    # type: (int) -> None
+    """ Call to stop_runtime.
+
+    :param code: Code
+    :return: None
+    """
+    _COMPSs.stop_runtime(code)  # noqa
+
+
+def cancel_application_tasks(app_id, value):
+    # type: (int, int) -> None
+    """ Call to cancel_application_tasks.
+
+    :param app_id: Application identifier.
+    :param value: Value
+    :return: None
+    """
+    _COMPSs.cancel_application_tasks(app_id, value)  # noqa
+
+
+def accessed_file(app_id, file_name):
+    # type: (int, str) -> bool
+    """ Call to accessed_file.
+
+    :param app_id: Application identifier.
+    :param file_name: File name.
+    :return: If the file has been accessed.
+    """
+    return _COMPSs.accessed_file(app_id, file_name)  # noqa
+
+
+def open_file(app_id, file_name, mode):
+    # type: (int, str, int) -> str
+    """ Call to open_file.
+
+    :param app_id: Application identifier.
+    :param file_name: File name reference.
+    :param mode: Open mode.
+    :return: The real file name.
+    """
+    return _COMPSs.open_file(app_id, file_name, mode)  # noqa
+
+
+def close_file(app_id, file_name, mode):
+    # type: (int, str, int) -> None
+    """ Call to close_file.
+
+    :param app_id: Application identifier.
+    :param file_name: File name reference.
+    :param mode: Close mode.
+    :return: None
+    """
+    _COMPSs.close_file(app_id, file_name, mode)  # noqa
+
+
+def delete_file(app_id, file_name, mode):
+    # type: (int, str, bool) -> bool
+    """ Call to delete_file.
+
+    :param app_id: Application identifier.
+    :param file_name: File name reference.
+    :param mode: Delete mode.
+    :return: The deletion result.
+    """
+    return _COMPSs.delete_file(app_id, file_name, mode)  # noqa
+
+
+def get_file(app_id, file_name):
+    # type: (int, str) -> None
+    """ Call to get_file.
+
+    :param app_id: Application identifier.
+    :param file_name: File name.
+    :return: None
+    """
+    _COMPSs.get_file(app_id, file_name)  # noqa
+
+
+def get_directory(app_id, file_name):
+    # type: (int, str) -> None
+    """ Call to get_directory.
+
+    :param app_id: Application identifier.
+    :param file_name: File name.
+    :return: None
+    """
+    _COMPSs.get_directory(app_id, file_name)  # noqa
+
+
+def barrier(app_id, no_more_tasks):
+    # type: (int, bool) -> None
+    """ Call to barrier.
+
+    :param app_id: Application identifier.
+    :param no_more_tasks: No more tasks boolean.
+    :return: None
+    """
+    _COMPSs.barrier(app_id, no_more_tasks)  # noqa
+
+
+def barrier_group(app_id, group_name):
+    # type: (int, str) -> str
+    """ Call barrier_group.
+
+    :param app_id: Application identifier.
+    :param group_name: Group name.
+    :return: Exception message.
+    """
+    return _COMPSs.barrier_group(app_id, group_name)  # noqa
+
+
+def open_task_group(group_name, implicit_barrier, app_id):
+    # type: (str, bool, int) -> None
+    """ Call to open_task_group.
+
+    :param group_name: Group name.
+    :param implicit_barrier: Implicit barrier boolean.
+    :param app_id: Application identifier.
+    :return: None
+    """
+    _COMPSs.open_task_group(group_name, implicit_barrier, app_id)  # noqa
+
+
+def close_task_group(group_name, app_id):
+    # type: (str, int) -> None
+    """ Call to close_task_group.
+
+    :param group_name: Group name.
+    :param app_id: Application identifier.
+    :return: None
+    """
+    _COMPSs.close_task_group(group_name, app_id)  # noqa
+
+
+def get_logging_path():
+    # type: () -> str
+    """ Call to get_logging_path.
+
+    :return: The COMPSs log path
+    """
+    return _COMPSs.get_logging_path()  # noqa
+
+
+def get_number_of_resources(app_id):
+    # type: (int) -> int
+    """ Call to number_of_resources.
+
+    :param app_id: Application identifier
+    :return: Number of resources
+    """
+    return _COMPSs.get_number_of_resources(app_id)  # noqa
+
+
+def request_resources(app_id, num_resources, group_name):
+    # type: (int, int, str) -> None
+    """ Call to request_resources.
+
+    :param app_id: Application identifier.
+    :param num_resources: Number of resources.
+    :param group_name: Group name.
+    :return: None
+    """
+    _COMPSs.request_resources(app_id, num_resources, group_name)  # noqa
+
+
+def free_resources(app_id, num_resources, group_name):
+    # type: (int, int, str) -> None
+    """ Call to free_resources.
+
+    :param app_id: Application identifier.
+    :param num_resources: Number of resources.
+    :param group_name: Group name.
+    :return: None
+    """
+    _COMPSs.free_resources(app_id, num_resources, group_name)  # noqa
+
+
+def register_core_element(ce_signature,      # type: str
+                          impl_signature,    # type: str
+                          impl_constraints,  # type: str
+                          impl_type,         # type: str
+                          impl_io,           # type: str
+                          impl_type_args     # type: list
+                          ):
+    # type: (...) -> None
+    """ Call to register_core_element.
+
+    :param ce_signature: Core element signature
+    :param impl_signature: Implementation signature
+    :param impl_constraints: Implementation constraints
+    :param impl_type: Implementation type
+    :param impl_io: Implementation IO
+    :param impl_type_args: Implementation type arguments
+    :return: None
+    """
+    _COMPSs.register_core_element(ce_signature,    # noqa
+                                  impl_signature,
+                                  impl_constraints,
+                                  impl_type,
+                                  impl_io,
+                                  impl_type_args)
+
+
+def process_task(app_id,             # type: int
+                 signature,          # type: str
+                 on_failure,         # type: str
+                 time_out,           # type: int
+                 has_priority,       # type: bool
+                 num_nodes,          # type: int
+                 replicated,         # type: bool
+                 distributed,        # type: bool
+                 has_target,         # type: bool
+                 num_returns,        # type: int
+                 values,             # type: list
+                 names,              # type: list
+                 compss_types,       # type: list
+                 compss_directions,  # type: list
+                 compss_streams,     # type: list
+                 compss_prefixes,    # type: list
+                 content_types,      # type: list
+                 weights,            # type: list
+                 keep_renames        # type: list
+                 ):
+    # type: (...) -> None
+    """ Call to process_task.
+
+    :param app_id: Application identifier
+    :param signature: Task signature
+    :param on_failure: On failure action
+    :param time_out: Task time out
+    :param has_priority: Boolean has priority
+    :param num_nodes: Number of nodes
+    :param replicated: Boolean is replicated
+    :param distributed: Boolean is distributed
+    :param has_target: Boolean has target
+    :param num_returns: Number of returns
+    :param values: Values
+    :param names: Names
+    :param compss_types: COMPSs types
+    :param compss_directions: COMPSs directions
+    :param compss_streams: COMPSs streams
+    :param compss_prefixes: COMPSs prefixes
+    :param content_types: COMPSs types
+    :param weights: Parameter weights
+    :param keep_renames: Boolean keep renames
+    :return: None
+    """
+    _COMPSs.process_task(app_id,    # noqa
+                         signature,
+                         on_failure,
+                         time_out,
+                         has_priority,
+                         num_nodes,
+                         replicated,
+                         distributed,
+                         has_target,
+                         num_returns,
+                         values,
+                         names,
+                         compss_types,
+                         compss_directions,
+                         compss_streams,
+                         compss_prefixes,
+                         content_types,
+                         weights,
+                         keep_renames)

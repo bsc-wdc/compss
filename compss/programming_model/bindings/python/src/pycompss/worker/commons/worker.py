@@ -26,73 +26,88 @@ import signal
 import traceback
 import base64
 
-from pycompss.api.parameter import TaskParameter
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
+from pycompss.runtime.task.parameter import Parameter
+from pycompss.runtime.task.parameter import PYCOMPSS_LONG
+from pycompss.runtime.task.parameter import JAVA_MIN_INT
+from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import SerializerException
+from pycompss.util.exceptions import TimeOutError
+from pycompss.util.exceptions import task_timed_out
+from pycompss.util.exceptions import task_cancel
 from pycompss.util.storages.persistent import storage_task_context
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
 import pycompss.api.parameter as parameter
 
 
-def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
-                         args=None, pos=None):
+def build_task_parameter(p_type,     # type: int
+                         p_stream,   # type: int
+                         p_prefix,   # type: str
+                         p_name,     # type: str
+                         p_value,    # type: object
+                         p_c_type,   # type: str
+                         args=None,  # type: list
+                         pos=None    # type: int
+                         ):
+    # type: (...) -> (Parameter, int)
     """
     Build task parameter object from the given parameters.
 
-    :param p_type: Parameter type
-    :param p_stream: Parameter stream
-    :param p_prefix: Parameter prefix
-    :param p_name: Parameter name
-    :param p_value: Parameter value
-    :param p_c_type: Parameter Python Type
-    :param args: Arguments (Default: None)
-    :param pos: Position (Default: None)
-    :return: Parameter object
+    :param p_type: Parameter type.
+    :param p_stream: Parameter stream.
+    :param p_prefix: Parameter prefix.
+    :param p_name: Parameter name.
+    :param p_value: Parameter value.
+    :param p_c_type: Parameter Python Type.
+    :param args: Arguments (Default: None).
+    :param pos: Position (Default: None).
+    :return: Parameter object and the number fo substrings.
     """
     num_substrings = 0
     if p_type in [parameter.TYPE.FILE, parameter.TYPE.DIRECTORY,
                   parameter.TYPE.COLLECTION]:
-        # Maybe the file is a object, we dont care about this here
+        # Maybe the file is a object, we do not care about this here
         # We will decide whether to deserialize or to forward the value
         # when processing parameters in the task decorator
-        _param = TaskParameter(
-            p_type=p_type,
+        _param = Parameter(
+            name=p_name,
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
-            name=p_name,
             file_name=p_value,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         )
         return _param, 0
     elif p_type == parameter.TYPE.EXTERNAL_PSCO:
         # Next position contains R/W but we do not need it. Currently skipped.
-        return TaskParameter(
-            p_type=p_type,
+        return Parameter(
+            content=p_value,
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            key=p_value,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.EXTERNAL_STREAM:
         # Next position contains R/W but we do not need it. Currently skipped.
-        return TaskParameter(
-            p_type=p_type,
+        return Parameter(
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
             file_name=p_value,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
-            num_substrings = int(p_value)
+            num_substrings = int(p_value)  # noqa
             aux = ''
             first_substring = True
             for j in range(6, num_substrings + 6):
@@ -131,44 +146,44 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
         if IS_PYTHON3 and isinstance(aux, bytes):
             aux = aux.decode('utf-8')
 
-        return TaskParameter(
-            p_type=p_type,
+        return Parameter(
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
             content=aux,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), num_substrings
     else:
         # Basic numeric types. These are passed as command line arguments
         # and only a cast is needed
         val = None
         if p_type == parameter.TYPE.INT:
-            val = int(p_value)
+            val = int(p_value)  # noqa
         elif p_type == parameter.TYPE.LONG:
-            val = parameter.PYCOMPSS_LONG(p_value)
-            if val > parameter.JAVA_MAX_INT or val < parameter.JAVA_MIN_INT:
+            val = PYCOMPSS_LONG(p_value)
+            if val > JAVA_MAX_INT or val < JAVA_MIN_INT:
                 # A Python in parameter was converted to a Java long to prevent
                 # overflow. We are sure we will not overflow Python int,
                 # otherwise this would have been passed as a serialized object.
                 val = int(val)
         elif p_type == parameter.TYPE.DOUBLE:
-            val = float(p_value)
+            val = float(p_value)  # noqa
         elif p_type == parameter.TYPE.BOOLEAN:
             val = (p_value == 'true')
-        return TaskParameter(
-            p_type=p_type,
+        return Parameter(
+            content=val,
+            content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            content=val,
-            content_type=p_c_type
+            extra_content_type=p_c_type
         ), 0
 
 
-def get_task_params(num_params, logger, args):
-    """
-    Get and prepare the input parameters from string to lists.
+def get_task_params(num_params, logger, args):  # noqa
+    # type: (int, ..., list) -> list
+    """ Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters
     :param logger: Logger
@@ -209,11 +224,19 @@ def get_task_params(num_params, logger, args):
     return ret
 
 
-def task_execution(logger, process_name, module, method_name, time_out,
-                   types, values, compss_kwargs,
-                   persistent_storage, storage_conf):
-    """
-    Task execution function.
+def task_execution(logger,              # type: ...
+                   process_name,        # type: str
+                   module,              # type: ...
+                   method_name,         # type: str
+                   time_out,            # type: int
+                   types,               # type: list
+                   values,              # type: list
+                   compss_kwargs,       # type: dict
+                   persistent_storage,  # type: bool
+                   storage_conf         # type: str
+                   ):
+    # type: (...) -> (int, list, list, str, bool, str)
+    """ Task execution function.
 
     :param logger: Logger
     :param process_name: Process name
@@ -225,7 +248,8 @@ def task_execution(logger, process_name, module, method_name, time_out,
     :param compss_kwargs: PyCOMPSs keywords
     :param persistent_storage: If persistent storage is enabled
     :param storage_conf: Persistent storage configuration file
-    :return: exit_code, new types, new_values, and target_direction
+    :return: exit_code, new_types, new_values, target_direction, timed_out
+             and return_message
     """
     if __debug__:
         logger.debug("Starting task execution")
@@ -236,9 +260,6 @@ def task_execution(logger, process_name, module, method_name, time_out,
         logger.debug("Values     : %s " % str(values))
         logger.debug("P. storage : %s " % str(persistent_storage))
         logger.debug("Storage cfg: %s " % str(storage_conf))
-
-    new_types = []
-    new_values = []
 
     try:
         # WARNING: the following call will not work if a user decorator
@@ -270,9 +291,10 @@ def task_execution(logger, process_name, module, method_name, time_out,
         logger.exception("TIMEOUT ERROR IN %s - Time Out Exception" %
                          process_name)
         logger.exception("Task has taken too much time to process")
+        new_values = _get_return_values_for_exception(types, values)
         return task_returns(3,
                             types,
-                            values,
+                            new_values,
                             None,
                             True,
                             "",
@@ -282,10 +304,12 @@ def task_execution(logger, process_name, module, method_name, time_out,
         return_message = "No message"
         if compss_exception.message is not None:
             return_message = compss_exception.message
+        new_values = _get_return_values_for_exception(types, values)
         return task_returns(2,
-                            new_types,
+                            types,
                             new_values,
-                            compss_exception.target_direction, False,
+                            None,
+                            False,
                             return_message,
                             logger)
     except AttributeError:
@@ -300,8 +324,8 @@ def task_execution(logger, process_name, module, method_name, time_out,
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
         return task_returns(1,
-                            new_types,
-                            new_values,
+                            [],
+                            [],
                             None,
                             False,
                             "",
@@ -315,8 +339,8 @@ def task_execution(logger, process_name, module, method_name, time_out,
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
         return task_returns(1,
-                            new_types,
-                            new_values,
+                            [],
+                            [],
                             None,
                             False,
                             "",
@@ -346,18 +370,46 @@ def task_execution(logger, process_name, module, method_name, time_out,
                         False, "", logger)
 
 
-def task_returns(exit_code, new_types, new_values, target_direction,
-                 timed_out, return_message, logger):
+def _get_return_values_for_exception(types, values):
+    # type: (list, list) -> list
+    """ Builds the values list to retrieve on an exception.
+
+    It takes the input types and returns a list of 'null' for each type
+    unless it is a PSCO, where it puts the psco identifier.
+
+    :param types: List of input types.
+    :param values: List of input values.
+    :return: List of values to return
     """
-    Unified task return function
-    :param exit_code: Exit value (0 ok, 1 error)
-    :param new_types: New types to be returned
-    :param new_values: New values to be returned
-    :param target_direction: Target direction
-    :param timed_out: If the task has reached time ot
-    :param return_message: Return exception messsage
-    :param logger: Logger where to place the messages
-    :return: exit code, new types, new values, target direction and time out
+    new_values = []
+    for i in range(len(types)):
+        if types[i] == parameter.TYPE.EXTERNAL_PSCO:
+            new_values.append(values[i])
+        else:
+            new_values.append('null')
+    return new_values
+
+
+def task_returns(exit_code,         # type: int
+                 new_types,         # type: list
+                 new_values,        # type: list
+                 target_direction,  # type: ...
+                 timed_out,         # type: bool
+                 return_message,    # type: str
+                 logger             # noqa
+                 ):
+    # type: (...) -> (int, list, list, str, bool, str)
+    """ Unified task return function.
+
+    :param exit_code: Exit value (0 ok, 1 error).
+    :param new_types: New types to be returned.
+    :param new_values: New values to be returned.
+    :param target_direction: Target direction.
+    :param timed_out: If the task has reached time out.
+    :param return_message: Return exception message.
+    :param logger: Logger where to place the messages.
+    :return: exit code, new types, new values, target direction, time out
+             and return message.
     """
     if __debug__:
         # The types may change
@@ -377,52 +429,26 @@ def task_returns(exit_code, new_types, new_values, target_direction,
             return_message)
 
 
-class TimeOutError(BaseException):
-    """
-    Time out error exception
-    """
-    pass
-
-
-def task_timed_out(signum, frame):  # noqa
-    """
-    Task time out signal handler
-
-    :param signum: Signal number
-    :param frame: Frame
-    :raise: TimeOutError exception
-    """
-    raise TimeOutError
-
-
-class CancelError(BaseException):
-    pass
-
-
-def task_cancel(signum, frame):  # noqa
-    raise CancelError
-
-
 def import_user_module(path, logger):
-    """
-    Import the user module
+    # type: (str, ...) -> ...
+    """ Import the user module.
 
-    :param path: Path to the user module
-    :return: The module loaded
+    :param path: Path to the user module.
+    :param logger: Logger.
+    :return: The loaded module.
     """
-    module = None
     py_version = sys.version_info
     if py_version >= (2, 7):
         import importlib
         module = importlib.import_module(path)  # Python 2.7
-        if path.startswith('InteractiveMode_'):
+        if path.startswith(INTERACTIVE_FILE_NAME):
             # Force reload in interactive mode. The user may have
             # overwritten a function or task.
             if py_version < (3, 0):
                 reload(module)  # noqa
             elif py_version < (3, 4):
-                import imp
-                imp.reload(module)
+                import imp          # noqa
+                imp.reload(module)  # noqa
             else:
                 importlib.reload(module)
         if __debug__:
@@ -436,20 +462,26 @@ def import_user_module(path, logger):
     return module
 
 
-def execute_task(process_name, storage_conf, params, tracing,
-                 logger, log_files, python_mpi=False):
-    """
-    ExecuteTask main method.
+def execute_task(process_name,     # type: str
+                 storage_conf,     # type: str
+                 params,           # type: list
+                 tracing,          # type: bool
+                 logger,           # type: ...
+                 log_files,        # type: tuple
+                 python_mpi=False  # type: bool
+                 ):
+    # type: (...) -> (str, list, list, bool, str)
+    """ ExecuteTask main method.
 
-    :param process_name: Process name
-    :param storage_conf: Storage configuration file path
-    :param params: List of parameters
-    :param tracing: Tracing flag
-    :param logger: Logger to use
+    :param process_name: Process name.
+    :param storage_conf: Storage configuration file path.
+    :param params: List of parameters.
+    :param tracing: Tracing flag.
+    :param logger: Logger to use.
     :param log_files: Tuple with (out filename, err filename). None to avoid
                       stdout and sdterr fd redirection.
-    :param python_mpi: If it is a MPI task
-    :return: exit code, new types and new values
+    :param python_mpi: If it is a MPI task.
+    :return: exit_code, new_types, new_values, timed_out and except_msg
     """
     if __debug__:
         logger.debug("Begin task execution in %s" % process_name)
@@ -469,10 +501,10 @@ def execute_task(process_name, storage_conf, params, tracing,
     arg_position = 4 + num_slaves
 
     args = params[arg_position:]
-    cus = args[0]
+    cus = args[0]          # noqa
     args = args[1:]
     has_target = args[0]
-    return_type = args[1]
+    return_type = args[1]  # noqa
     return_length = int(args[2])
     num_params = int(args[3])
 
@@ -484,7 +516,7 @@ def execute_task(process_name, storage_conf, params, tracing,
     # user code (reason: ignore @task decorator if called from another task).
     compss_kwargs = {
         'compss_key': True,
-        'compss_tracing': tracing,
+        '_compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,
@@ -515,7 +547,7 @@ def execute_task(process_name, storage_conf, params, tracing,
         logger.debug("Processing parameters:")
         # logger.debug(args)
     values = get_task_params(num_params, logger, args)
-    types = [x.type for x in values]
+    types = [x.content_type for x in values]
 
     if __debug__:
         logger.debug("RUN TASK with arguments:")
@@ -531,10 +563,6 @@ def execute_task(process_name, storage_conf, params, tracing,
         #     logger.debug("\t\t %s" % str(t))
 
     import_error = False
-
-    new_types = []
-    new_values = []
-    timed_out = False
 
     try:
         # Try to import the module (for functions)
@@ -562,7 +590,7 @@ def execute_task(process_name, storage_conf, params, tracing,
         exit_code = result[0]
         new_types = result[1]
         new_values = result[2]
-        target_direction = result[3]
+        # target_direction = result[3]
         timed_out = result[4]
         except_msg = result[5]
 
@@ -573,7 +601,6 @@ def execute_task(process_name, storage_conf, params, tracing,
         # Method declared as task in class
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
-        module_name = '.'.join(path.split('.')[0:-1])
 
         if '.' in path:
             module_name = '.'.join(path.split('.')[0:-1])
@@ -609,12 +636,12 @@ def execute_task(process_name, storage_conf, params, tracing,
             if self_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
                     logger.debug("Last element (self) is a PSCO with id: %s" %
-                                 str(self_elem.key))
-                obj = get_by_id(self_elem.key)
+                                 str(self_elem.content))
+                obj = get_by_id(self_elem.content)
             else:
                 obj = None
                 file_name = None
-                if self_elem.key is None:
+                if self_elem.content is None:
                     file_name = self_elem.file_name.split(':')[-1]
                     if __debug__:
                         logger.debug("Deserialize self from file.")
@@ -633,7 +660,7 @@ def execute_task(process_name, storage_conf, params, tracing,
                                      self_elem.content)
                         logger.debug("Processing callee, a hidden object of %s in file %s" %  # noqa: E501
                                      (file_name, type(self_elem.content)))
-            values.insert(0, obj)
+            values.insert(0, obj)  # noqa
 
             if not self_type == parameter.TYPE.EXTERNAL_PSCO:
                 types.insert(0, parameter.TYPE.OBJECT)
@@ -711,7 +738,7 @@ def execute_task(process_name, storage_conf, params, tracing,
             exit_code = result[0]
             new_types = result[1]
             new_values = result[2]
-            target_direction = result[3]
+            # target_direction = result[3]
             timed_out = result[4]
             except_msg = result[5]
 

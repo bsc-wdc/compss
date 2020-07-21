@@ -133,14 +133,15 @@ class Implement(PyCOMPSsDecorator):
         another_method = self.kwargs['method']
         ce_signature = '.'.join((another_class, another_method))
         impl_type = "METHOD"
-        impl_args = [another_class, another_method]
+        # impl_args = [another_class, another_method]  # set by @task
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             # (e.g. @constraint)
             kwargs[CORE_ELEMENT_KEY].set_ce_signature(ce_signature)
             kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
-            kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+            # @task sets the implementation type arguments
+            # kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
         else:
             # @implement is in the top of the decorators stack.
             # Instantiate a new core element object, update it and include
@@ -148,7 +149,8 @@ class Implement(PyCOMPSsDecorator):
             core_element = CE()
             core_element.set_ce_signature(ce_signature)
             core_element.set_impl_type(impl_type)
-            core_element.set_impl_type_args(impl_args)
+            # @task sets the implementation type arguments
+            # core_element.set_impl_type_args(impl_args)
             kwargs[CORE_ELEMENT_KEY] = core_element
 
         # Set as configured

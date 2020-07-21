@@ -800,6 +800,7 @@ class TaskMaster(TaskCommons):
                 # decorator, which means that this core element has already
                 # a signature
                 core_element.set_impl_signature(impl_signature)
+                core_element.set_impl_type_args(impl_type_args)
             if core_element.get_impl_constraints() is None:
                 core_element.set_impl_constraints(impl_constraints)
             if core_element.get_impl_type() is None:

@@ -86,8 +86,6 @@ public class DataInfoProvider {
     // Constants definition
     private static final String RES_FILE_TRANSFER_ERR = "Error transferring result files";
 
-    // Map: filename:host:path -> file identifier
-    private TreeMap<String, Integer> nameToId;
     // Map: collectionName -> collection identifier
     private TreeMap<String, Integer> collectionToId;
     // Map: hash code -> object identifier
@@ -106,7 +104,6 @@ public class DataInfoProvider {
      * New Data Info Provider instance.
      */
     public DataInfoProvider() {
-        this.nameToId = new TreeMap<>();
         this.collectionToId = new TreeMap<>();
         this.codeToId = new TreeMap<>();
         this.idToData = new TreeMap<>();
@@ -159,7 +156,7 @@ public class DataInfoProvider {
     public void registerRemoteFileSources(Application app, DataLocation loc, String data) {
         DataInfo oInfo;
         String locationKey = loc.getLocationKey();
-        Integer aoId = this.nameToId.get(locationKey);
+        Integer aoId = app.getFileDataId(locationKey);
         if (aoId == null) {
             if (DEBUG) {
                 LOGGER.debug("Registering Remote file on DIP at location " + locationKey);
@@ -168,7 +165,7 @@ public class DataInfoProvider {
             oInfo = new FileInfo(app, loc);
             app.addData(oInfo);
             aoId = oInfo.getDataId();
-            this.nameToId.put(locationKey, aoId);
+            app.registerFileData(locationKey, oInfo);
             this.idToData.put(aoId, oInfo);
         } else {
             oInfo = idToData.get(aoId);
@@ -207,7 +204,7 @@ public class DataInfoProvider {
     public DataAccessId registerFileAccess(Application app, AccessMode mode, DataLocation location) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
-        Integer fileId = this.nameToId.get(locationKey);
+        Integer fileId = app.getFileDataId(locationKey);
 
         // First access to this file
         if (fileId == null) {
@@ -219,7 +216,7 @@ public class DataInfoProvider {
             fileInfo = new FileInfo(app, location);
             app.addData(fileInfo);
             fileId = fileInfo.getDataId();
-            this.nameToId.put(locationKey, fileId);
+            app.registerFileData(locationKey, fileInfo);
             this.idToData.put(fileId, fileInfo);
 
             // Register the initial location of the file
@@ -512,7 +509,7 @@ public class DataInfoProvider {
     public void finishFileAccess(Application app, AccessMode mode, DataLocation location) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
-        Integer fileId = this.nameToId.get(locationKey);
+        Integer fileId = app.getFileDataId(locationKey);
 
         // First access to this file
         if (fileId == null) {
@@ -728,7 +725,7 @@ public class DataInfoProvider {
     public boolean alreadyAccessed(Application app, DataLocation loc) {
         LOGGER.debug("Check already accessed: " + loc.getLocationKey());
         String locationKey = loc.getLocationKey();
-        Integer fileId = nameToId.get(locationKey);
+        Integer fileId = app.getFileDataId(locationKey);
         return fileId != null;
     }
 
@@ -829,7 +826,7 @@ public class DataInfoProvider {
         LOGGER.debug("Waiting for data to be ready for deletion: " + loc.getPath());
         String locationKey = loc.getLocationKey();
 
-        Integer dataId = this.nameToId.get(locationKey);
+        Integer dataId = app.getFileDataId(locationKey);
         if (dataId == null) {
             LOGGER.debug("No data id found for this data location" + loc.getPath());
             semWait.release();
@@ -850,8 +847,8 @@ public class DataInfoProvider {
      */
     public DataInfo getLocationDataInfo(Application app, DataLocation loc) {
         String locationKey = loc.getLocationKey();
-        if (this.nameToId.containsKey(locationKey)) {
-            Integer dataId = this.nameToId.get(locationKey);
+        Integer dataId = app.getFileDataId(locationKey);
+        if (dataId != null) {
             DataInfo dataInfo = this.idToData.get(dataId);
             return dataInfo;
         }
@@ -868,7 +865,7 @@ public class DataInfoProvider {
     public DataInfo deleteData(Application app, DataLocation loc, boolean noReuse) {
         LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
-        Integer dataId = this.nameToId.get(locationKey);
+        Integer dataId = app.getFileDataId(locationKey);
 
         if (dataId == null) {
             LOGGER.debug("No data id found for this data location" + loc.getPath());
@@ -876,7 +873,7 @@ public class DataInfoProvider {
         }
 
         DataInfo dataInfo = this.idToData.get(dataId);
-        this.nameToId.remove(locationKey);
+        app.removeFileData(locationKey);
         if (dataInfo != null) {
             if (dataInfo.delete(noReuse)) {
                 removeDataFromInternalStructures(dataInfo);

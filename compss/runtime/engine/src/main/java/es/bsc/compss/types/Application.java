@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -67,6 +68,9 @@ public class Application {
      */
     // Data registered by the application
     private LinkedList<DataInfo> data;
+    // Map: filename:host:path -> file identifier
+    private final TreeMap<String, Integer> nameToId;
+
     // Set of written data ids (for result files)
     private Set<Integer> writtenFileDataIds;
     // Set of written data ids (for result SCOs)
@@ -205,6 +209,7 @@ public class Application {
         this.taskGroups = new TreeMap<>();
         this.stackTaskGroup("App" + appId);
         this.data = new LinkedList<>();
+        this.nameToId = new TreeMap<>();
         this.writtenFileDataIds = new HashSet<>();
         this.writtenPSCODataIds = new HashSet<>();
     }
@@ -334,6 +339,35 @@ public class Application {
      */
     public void addData(DataInfo di) {
         this.data.add(di);
+    }
+
+    /**
+     * Stores the relation between a file and the corresponding dataInfo.
+     * 
+     * @param locationKey file location
+     * @param di data registered by the application
+     */
+    public void registerFileData(String locationKey, DataInfo di) {
+        this.nameToId.put(locationKey, di.getDataId());
+    }
+
+    /**
+     * Returns the Data Id related to a file.
+     * 
+     * @param locationKey file location
+     * @return data Id related to the file
+     */
+    public Integer getFileDataId(String locationKey) {
+        return nameToId.get(locationKey);
+    }
+
+    /**
+     * Removes any data association related to file location.
+     *
+     * @param locationKey file location
+     */
+    public void removeFileData(String locationKey) {
+        this.nameToId.remove(locationKey);
     }
 
     /**

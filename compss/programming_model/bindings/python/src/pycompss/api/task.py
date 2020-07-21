@@ -196,6 +196,7 @@ class Task(PyCOMPSsDecorator):
         def task_decorator(*args, **kwargs):
             # Determine the context and decide what to do
             if context.in_master():
+                # @task being executed in the master
                 from pycompss.runtime.task.master import TaskMaster
                 # Each task will have a TaskMaster, so its content will
                 # not be shared.
@@ -210,6 +211,7 @@ class Task(PyCOMPSsDecorator):
                 return fo
             elif context.in_worker():
                 if 'compss_key' in kwargs.keys():
+                    # @task being executed in the worker
                     from pycompss.runtime.task.worker import TaskWorker
                     worker = TaskWorker(self.decorator_arguments,
                                         self.user_function)
@@ -217,15 +219,18 @@ class Task(PyCOMPSsDecorator):
                     del worker
                     return result
                 else:
-                    # Called from another task within the worker
-                    # Ignore the @task decorator and run it sequentially
-                    message = "".join(("WARNING: Calling task: ",
-                                       str(user_function.__name__),
-                                       " from this task.\n",
-                                       "         It will be executed sequentially ",  # noqa: E501
-                                       "within the caller task."))
-                    print(message, file=sys.stderr)
-                    return self._sequential_call(*args, **kwargs)
+                    # nested @task executed in the worker
+                    from pycompss.runtime.task.master import TaskMaster
+                    # Each task will have a TaskMaster, so its content will
+                    # not be shared.
+                    master = TaskMaster(self.decorator_arguments,
+                                        self.user_function,
+                                        self.registered,
+                                        self.signature)
+                    fo, self.registered, self.signature = master.call(*args,
+                                                                      **kwargs)
+                    del master
+                    return fo
             # We are neither in master nor in the worker, or the user has
             # stopped the interactive session.
             # Therefore, the user code is being executed with no

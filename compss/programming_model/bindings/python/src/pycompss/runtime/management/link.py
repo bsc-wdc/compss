@@ -27,7 +27,6 @@ PyCOMPSs Binding - Link
 """
 
 import multiprocessing
-import logging
 
 # Global variables
 LINK_PROCESS = multiprocessing.Process()
@@ -57,8 +56,9 @@ FREE_RESOURCES = 'FREE_RESOURCES'
 REGISTER_CORE_ELEMENT = 'REGISTER_CORE_ELEMENT'
 PROCESS_TASK = 'PROCESS_TASK'
 
-# Setup logger
-logger = logging.getLogger(__name__)
+if __debug__:
+    import logging
+    logger = logging.getLogger(__name__)
 
 
 def shutdown_handler(signal, frame):  # noqa
@@ -142,10 +142,11 @@ def c_extension_link(in_queue, out_queue):
             raise Exception("Unknown link command")
 
 
-def establish_link():
-    # type: () -> ...
+def establish_link(logger=logger):  # noqa
+    # type: (...) -> ...
     """ Loads the compss C extension within the same process.
 
+    :param logger: Use this logger instead of the module logger.
     :return: The COMPSs C extension link.
     """
     if __debug__:
@@ -156,11 +157,12 @@ def establish_link():
     return compss
 
 
-def establish_interactive_link():
-    # type: () -> ...
+def establish_interactive_link(logger=logger):  # noqa
+    # type: (...) -> ...
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
+    :param logger: Use this logger instead of the module logger.
     :return: The COMPSs C extension link.
     """
     global LINK_PROCESS

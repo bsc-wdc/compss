@@ -37,7 +37,6 @@
   "loggers": {
     "pycompss.runtime.task.worker":        { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.piper_worker":  { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
-    "pycompss.worker.external.mpi_worker": { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
 
     "dataclay":                     { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "hecuba":                       { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },

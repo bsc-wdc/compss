@@ -27,7 +27,7 @@
     }
   },
   "loggers": {
-    "pycompss.worker.gat.worker":          { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.external.mpi_worker":          { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
 
     "dataclay":                     { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
     "hecuba":                       { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},

@@ -75,20 +75,24 @@ def executor(process_name, command):
     # Replace Python Worker's SIGTERM handler.
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    debug = command.split()[6] == "true"
+    log_level = command.split()[6]
     tracing = command.split()[7] == "true"
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
-    if debug:
+    if log_level == 'true' or log_level == "debug":
         # Debug
         init_logging_worker(worker_path +
-                            '/../../../log/logging_worker_debug.json',
+                            '/../../../log/logging_mpi_worker_debug.json',
+                            tracing)
+    elif log_level == "info" or log_level == "off":
+        init_logging_worker(worker_path +
+                            '/../../../log/logging_mpi_worker_off.json',
                             tracing)
     else:
         # Default
         init_logging_worker(worker_path +
-                            '/../../../log/logging_worker_off.json',
+                            '/../../../log/logging_mpi_worker.json',
                             tracing)
 
     logger = logging.getLogger('pycompss.worker.external.mpi_worker')

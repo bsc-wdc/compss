@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers.util;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
@@ -63,7 +64,9 @@ public class BinaryRunner {
     private static final String ERROR_EXT_STREAM_CLOSURE = "ERROR: Cannot close External Stream due to internal error.";
     private static final String ERROR_EXT_STREAM_GET_ID = "ERROR: Cannot close External Stream due to innvalid Id";
 
-    private static final int PB_KILL_SIGNAL = 10;
+    private static final String DEFAULT_PB_KILL_SIGNAL = "15";
+    private static final int PB_KILL_SIGNAL =
+        Integer.valueOf(System.getProperty(COMPSsConstants.WORKER_BINARY_KILL_SIGNAL, DEFAULT_PB_KILL_SIGNAL));
 
     private Process process;
 

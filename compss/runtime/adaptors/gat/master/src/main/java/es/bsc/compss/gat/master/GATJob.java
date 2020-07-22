@@ -462,6 +462,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 lArgs.add(Boolean.toString(pythonMPIImpl.isFailByEV()));
 
                 throw new UnsupportedOperationException("Python MPI is not supported in GAT");
+            case CONTAINER:
+                // TODO: Container task execution in GAT not implemented
+                throw new UnsupportedOperationException("Container is not supported in GAT");
         }
 
         // Job arguments

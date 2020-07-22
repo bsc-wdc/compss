@@ -239,8 +239,8 @@ class TaskWorker(TaskCommons):
         except (ImportError, AttributeError):
             return False
 
-    def retrieve_content(self, argument, name_prefix, 
-                         python_mpi, collections_layouts, 
+    def retrieve_content(self, argument, name_prefix,
+                         python_mpi, collections_layouts,
                          depth=0):
         # type: (Parameter, str, bool, bool, int) -> None
         """ Retrieve the content of a particular argument.
@@ -300,7 +300,7 @@ class TaskWorker(TaskCommons):
                 logger.debug("\t\t - It is a COLLECTION: " +
                              str(col_f_name))
                 logger.debug("\t\t\t - Depth: " + str(_col_dep))
-            
+
             # Check if this collection is in layout
             # Three conditions:
             # 1- this is a mpi task
@@ -313,7 +313,7 @@ class TaskWorker(TaskCommons):
                 # call rank_distributor if the current param is the target of the layout
                 # for each rank, return its offset(s) in the collection
                 rank_distribution = rank_distributor(collections_layouts[1:])
-            
+
             for (i, line) in enumerate(open(col_f_name, 'r')):
                 if in_mpi_collection_env:
                     # this is not my offset? skip
@@ -353,7 +353,7 @@ class TaskWorker(TaskCommons):
                         if _col_dep == 1:
                             temp = create_object_by_con_type(content_type)
                             sub_arg.content = temp
-                            # In case that only one element is used in this mpi rank, 
+                            # In case that only one element is used in this mpi rank,
                             # the collection list is removed
                             if in_mpi_collection_env and len(rank_distribution) == 1:
                                 argument.content = sub_arg.content
@@ -374,7 +374,7 @@ class TaskWorker(TaskCommons):
                     else:
                         # Recursively call the retrieve method, fill the
                         # content field in our new taskParameter object
-                        self.retrieve_content(sub_arg, sub_name, 
+                        self.retrieve_content(sub_arg, sub_name,
                                               python_mpi, collections_layouts)
                         # In case only one element is used in this mpi rank,
                         # the collection list is removed

@@ -46,9 +46,8 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
 
 
     protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
-        String mpiRunner, String mpiFlags, boolean scaleByCU, boolean failByEV,
-        String paramName, int blockCount, int blockLen, int blockStride,
-        MethodResourceDescription implConstraints) {
+        String mpiRunner, String mpiFlags, boolean scaleByCU, boolean failByEV, String paramName, int blockCount,
+        int blockLen, int blockStride, MethodResourceDescription implConstraints) {
 
         super(implSignature, implConstraints);
 
@@ -70,7 +69,7 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     public Implementation getImpl(int coreId, int implId) {
         return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, mpiFlags, scaleByCU,
             failByEV, coreId, implId, this.cl.paramName, this.cl.blockCount, this.cl.blockLen, this.cl.blockStride,
-	    this.getSignature(), this.getConstraints());
+            this.getSignature(), this.getConstraints());
     }
 
     @Override

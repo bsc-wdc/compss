@@ -167,13 +167,6 @@ Weight = _ParamDictKeys.Weight            # parameter weight
 Keep_rename = _ParamDictKeys.Keep_rename  # parameter keep rename property
 
 # Aliases for collection layout for native mpi tasks
-block_count = _MPILayoutKeys.Block_count 
+block_count = _MPILayoutKeys.Block_count
 block_length = _MPILayoutKeys.Block_length
 stride = _MPILayoutKeys.Stride
-
-# Java max and min integer and long values
-JAVA_MAX_INT = 2147483647
-JAVA_MIN_INT = -2147483648
-JAVA_MAX_LONG = PYTHON_MAX_INT = 9223372036854775807
-JAVA_MIN_LONG = PYTHON_MIN_INT = -9223372036854775808
->>>>>>> collection_layout in @mpi and runtime (squashed)

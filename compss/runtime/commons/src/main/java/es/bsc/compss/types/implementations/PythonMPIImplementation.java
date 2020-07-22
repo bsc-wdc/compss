@@ -94,8 +94,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      */
     public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
         String mpiFlags, boolean scaleByCU, boolean failByEV, Integer coreId, Integer implementationId,
-        String paramName, int blockCount, int blockLen, int blockStride,
-        String signature, MethodResourceDescription requirements) {
+        String paramName, int blockCount, int blockLen, int blockStride, String signature,
+        MethodResourceDescription requirements) {
 
         super(coreId, implementationId, signature, requirements);
 
@@ -183,8 +183,9 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      */
     public boolean isFailByEV() {
         return failByEV;
+    }
 
-    /** 
+    /**
      * Returns the collection layout.
      * 
      * @return The collection layout.

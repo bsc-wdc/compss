@@ -82,12 +82,11 @@ class MPI(PyCOMPSsDecorator):
             # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
             for key in self.kwargs.keys():
                 if "_layout" in key:
-                   layout_nums += 1
-                   SUPPORTED_ARGUMENTS.add(key)
-            
+                    layout_nums += 1
+                    SUPPORTED_ARGUMENTS.add(key)
             if layout_nums > 1:
-               raise Exception("More than one layout definition is not yet supported!")
-           
+                raise Exception("More than one layout definition is not yet supported!")
+
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
                             DEPRECATED_ARGUMENTS,
@@ -150,7 +149,8 @@ class MPI(PyCOMPSsDecorator):
 
         mpi_f.__doc__ = func.__doc__
         return mpi_f
-    def __resolve_collection_layout_params__(self, kwargs):
+
+    def __resolve_collection_layout_params__(self):
         param_name = ""
         block_count = -1
         block_length = -1
@@ -158,28 +158,27 @@ class MPI(PyCOMPSsDecorator):
 
         for key, value in self.kwargs.items():
             if "_layout" in key:
-               param_name = key.split("_layout")[0]
-               collection_layout = value
-               if "block_count" in collection_layout:
-                   block_count = collection_layout["block_count"]
-               else:
-                   block_count = -1
+                param_name = key.split("_layout")[0]
+                collection_layout = value
+                if "block_count" in collection_layout:
+                    block_count = collection_layout["block_count"]
+                else:
+                    block_count = -1
 
-               if "block_length" in collection_layout:
-                   block_length = collection_layout["block_length"]
-               else:
-                   block_length = -1
+                if "block_length" in collection_layout:
+                    block_length = collection_layout["block_length"]
+                else:
+                    block_length = -1
 
-               if "stride" in collection_layout:
-                  stride = collection_layout["stride"]
-               else:
-                  stride = -1
+                if "stride" in collection_layout:
+                    stride = collection_layout["stride"]
+                else:
+                    stride = -1
 
-               if (block_length != -1 and block_count == -1) or (stride != -1 and block_count == -1):
-                       raise Exception("Error: collection_layout must contain block_count!")
+                if (block_length != -1 and block_count == -1) or (stride != -1 and block_count == -1):
+                    raise Exception("Error: collection_layout must contain block_count!")
 
         return [param_name, str(block_count), str(block_length), str(stride)]
-
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None

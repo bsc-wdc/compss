@@ -44,6 +44,7 @@ SUCCESS_SIG = 0
 FAILURE_SIG = 1
 UNEXPECTED_SIG = 2
 
+
 def shutdown_handler(signal, frame):  # noqa
     """ MPI exception signal handler
 
@@ -105,11 +106,10 @@ def executor(process_name, command):
                             logger_handlers,
                             logger_level,
                             logger_formatter)
-                            
     if sig == FAILURE_SIG:
-       raise Exception("Task execution failed!", msg)
+        raise Exception("Task execution failed!", msg)
     elif sig == UNEXPECTED_SIG:
-       raise Exception("Unexpected message!", msg)
+        raise Exception("Unexpected message!", msg)
 
     sys.stdout.flush()
     sys.stderr.flush()
@@ -236,7 +236,7 @@ def process_task(current_line,     # type: str
                                   tracing,
                                   logger,
                                   (job_out, job_err),
-                                  python_mpi, 
+                                  python_mpi,
                                   collections_layouts)
             exit_value, new_types, new_values, time_out, except_msg = result
 
@@ -261,7 +261,6 @@ def process_task(current_line,     # type: str
                 # An exception has been raised in task
                 message = END_TASK_TAG + " " + str(job_id)
                 message += " " + str(exit_value) + "\n"
-                
                 return FAILURE_SIG, except_msg
 
             if __debug__:
@@ -293,12 +292,12 @@ def process_task(current_line,     # type: str
         except Exception as e:
             logger.exception("%s - Exception %s" % (str(process_name),
                                                     str(e)))
-            #TODO: to be reviewed
-            #HEAD
+            # TODO: to be reviewed
+            # HEAD
             exit_value = 7
             message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"  # noqa: E501
-            #Layout version
-            #return FAILURE_SIG, e
+            # Layout version
+            # return FAILURE_SIG, e
 
         # Clean environment variables
         if __debug__:
@@ -317,14 +316,14 @@ def process_task(current_line,     # type: str
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s" %
                          (str(process_name), str(job_id)))
-    
-        return SUCCESS_SIG, "{0} -- Task Ended Successfully!".format(str(process_name)) 
+        return SUCCESS_SIG, "{0} -- Task Ended Successfully!".format(str(process_name))
 
     else:
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" %
                          (str(process_name), str(current_line)))
         return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)
+
 
 if __name__ == '__main__':
     # Set the binding in worker mode

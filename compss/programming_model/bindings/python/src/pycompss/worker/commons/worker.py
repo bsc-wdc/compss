@@ -428,6 +428,7 @@ def task_returns(exit_code,         # type: int
             timed_out,
             return_message)
 
+
 def import_user_module(path, logger):
     # type: (str, ...) -> ...
     """ Import the user module.
@@ -467,7 +468,7 @@ def execute_task(process_name,     # type: str
                  tracing,          # type: bool
                  logger,           # type: ...
                  log_files,        # type: tuple
-                 python_mpi=False  # type: bool
+                 python_mpi=False,  # type: bool
                  collections_layouts=None  # type: list
                  ):
     # type: (...) -> (str, list, list, bool, str)

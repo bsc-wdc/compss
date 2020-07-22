@@ -208,10 +208,10 @@ public class PythonMPIInvoker extends ExternalInvoker {
         cmd[numBasePythonMpiArgs - 2] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker"
             + File.separator + "external" + File.separator + "mpi_executor.py";
 
-        //TODO, to be review this could not work
-	//OLD part:
-	//cmd[numBasePythonMpiArgs - 1] = taskCMD;
-	int collectionLayoutNum = this.cl == null ? 0 : 1;
+        // TODO, to be review this could not work
+        // OLD part:
+        // cmd[numBasePythonMpiArgs - 1] = taskCMD;
+        int collectionLayoutNum = this.cl == null ? 0 : 1;
         int collectionLayoutParamsNum = collectionLayoutNum * 4;
         String collectionLayoutParams = " ";
 
@@ -223,8 +223,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
         }
 
         collectionLayoutParams += Integer.toString(collectionLayoutNum);
-	
-	//Merged
+
+        // Merged
         cmd[numBasePythonMpiArgs - 1] = taskCMD + collectionLayoutParams;
 
         String pythonPath = System.getenv("PYTHONPATH");

@@ -813,6 +813,8 @@ class TaskMaster(TaskCommons):
             if self.core_element.get_impl_type_args() is None:
                 self.core_element.set_impl_type_args(impl_type_args)
             if self.core_element.get_impl_type() == "PYTHON_MPI":
+                # Need to update impl_type_args if task is PYTHON_MPI and
+                # if the parameter with layout exists.
                 param_name = current_core_element.get_impl_type_args()[-4]
                 if param_name in self.parameters:
                     if self.parameters[param_name].type != parameter.TYPE.COLLECTION:

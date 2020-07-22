@@ -810,11 +810,16 @@ class TaskMaster(TaskCommons):
                 self.core_element.set_impl_constraints(impl_constraints)
             if self.core_element.get_impl_type() is None:
                 self.core_element.set_impl_type(impl_type)
-            elif self.core_element.get_impl_type() == "PYTHON_MPI":
-                self.core_element.set_impl_signature("MPI." + impl_signature)
             if self.core_element.get_impl_type_args() is None:
                 self.core_element.set_impl_type_args(impl_type_args)
-            elif self.core_element.get_impl_type() == "PYTHON_MPI":
+            if self.core_element.get_impl_type() == "PYTHON_MPI":
+                param_name = current_core_element.get_impl_type_args()[-4]
+                if param_name in self.parameters:
+                    if self.parameters[param_name].type != parameter.TYPE.COLLECTION:
+                        raise Exception("Parameter " + param_name + " is not a collection!")
+                else:
+                    raise Exception("Parameter " + param_name + " doesn't exist!")
+                self.core_element.set_impl_signature("MPI." + impl_signature)
                 self.core_element.set_impl_type_args(
                     impl_type_args + self.core_element.get_impl_type_args()[1:])
             if self.core_element.get_impl_io() is None:

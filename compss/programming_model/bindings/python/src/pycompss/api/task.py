@@ -67,8 +67,8 @@ class Task(PyCOMPSsDecorator):
     TaskWorker.call() and self._sequential_call()
     """
 
-    __slots__ = ['decorator_arguments', 'user_function',
-                 'core_element', 'registered', 'signature']
+    __slots__ = ['task_type', 'decorator_arguments', 'user_function',
+                 'registered', 'signature']
 
     @staticmethod
     def _get_default_decorator_values():
@@ -99,7 +99,7 @@ class Task(PyCOMPSsDecorator):
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
-    def __init__(self, **kwargs):  # noqa
+    def __init__(self, *args, **kwargs):  # noqa
         """ Task constructor.
 
         This part is called in the decoration process, not as an
@@ -114,7 +114,17 @@ class Task(PyCOMPSsDecorator):
 
         :param kwargs: Decorator parameters. A task decorator has no positional
                        arguments.
+        :param user_function: User function to execute.
+        :param core_element: Core element for the task (only used in master,
+                             but needed here to keep it between task
+                             invocations).
+        :param registered: If the core element has already been registered.
+        :param signature: The user function signature.
         """
+        self.task_type = "task"
+        decorator_name = '@' + self.__class__.__name__.lower()
+        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+
         self.decorator_arguments = kwargs
         # Set missing values to their default ones (step a)
         for (key, value) in self._get_default_decorator_values().items():
@@ -158,7 +168,6 @@ class Task(PyCOMPSsDecorator):
         # Function to execute as task
         self.user_function = None
         # Global variables common for all tasks of this kind
-        self.core_element = None
         self.registered = None
         self.signature = None
 

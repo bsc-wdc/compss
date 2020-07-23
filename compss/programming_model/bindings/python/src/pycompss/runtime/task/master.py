@@ -173,6 +173,12 @@ class TaskMaster(TaskCommons):
     runtime.
     """
 
+    __slots__ = ['param_kwargs', 'param_defaults',
+                 'first_arg_name', 'computing_nodes', 'parameters',
+                 'function_name', 'module_name', 'function_type', 'class_name',
+                 'returns', 'multi_return',
+                 'core_element', 'registered', 'signature']
+
     def __init__(self,
                  decorator_arguments,
                  user_function,
@@ -180,12 +186,9 @@ class TaskMaster(TaskCommons):
                  registered,
                  signature):
         # Initialize TaskCommons
-        super(self.__class__, self).__init__(decorator_arguments, None, None)
-        # User function
-        self.user_function = user_function
+        super(self.__class__, self).__init__(decorator_arguments,
+                                             user_function)
         # Add more argument related attributes that will be useful later
-        self.param_args = None
-        self.param_varargs = None
         self.param_kwargs = None
         self.param_defaults = None
         # Add function related attributed that will be useful later

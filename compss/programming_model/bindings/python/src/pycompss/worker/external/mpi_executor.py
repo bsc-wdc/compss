@@ -252,20 +252,34 @@ def process_task(current_line,     # type: str
             out.close()
             err.close()
 
-            global_exit_value = MPI.COMM_WORLD.reduce(exit_value, op=MPI.SUM, root=0)
-            message = ""
+            #global_exit_value = MPI.COMM_WORLD.reduce(exit_value, op=MPI.SUM, root=0)
+            #message = ""
 
-            if MPI.COMM_WORLD.rank == 0 and global_exit_value == 0:
+            #if MPI.COMM_WORLD.rank == 0 and global_exit_value == 0:
+            if exit_value == 0:
                 # Task has finished without exceptions
                 # endTask jobId exitValue message
                 params = build_return_params_message(new_types, new_values)
                 message = END_TASK_TAG + " " + str(job_id)
                 message += " " + str(exit_value) + " " + str(params) + "\n"
-            elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
+            elif exit_value == 2:
+                # Task has finished with a COMPSs Exception
+                # compssExceptionTask jobId exitValue message
+
+                except_msg = except_msg.replace(" ", "_")
+                message = COMPSS_EXCEPTION_TAG + " " + str(job_id)
+                message += " " + str(except_msg) + "\n"
+                if __debug__:
+                    logger.debug(
+                        "%s - COMPSS EXCEPTION TASK MESSAGE: %s" %
+                        (str(process_name),
+                         str(except_msg)))
+            else:
+            #elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
                 # An exception has been raised in task
                 message = END_TASK_TAG + " " + str(job_id)
                 message += " " + str(exit_value) + "\n"
-                return FAILURE_SIG, except_msg
+                #return FAILURE_SIG, except_msg
 
             if __debug__:
                 logger.debug("%s - END TASK MESSAGE: %s" % (str(process_name),
@@ -320,13 +334,18 @@ def process_task(current_line,     # type: str
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s" %
                          (str(process_name), str(job_id)))
-        return SUCCESS_SIG, "{0} -- Task Ended Successfully!".format(str(process_name))
+        #return SUCCESS_SIG, "{0} -- Task Ended Successfully!".format(str(process_name))
 
     else:
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" %
                          (str(process_name), str(current_line)))
-        return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)
+        exit_value = 7
+        message = END_TASK_TAG + " " + str(job_id)
+        message += " " + str(exit_value) + "\n"
+
+    return exit_value, message
+        #return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)
 
 
 if __name__ == '__main__':

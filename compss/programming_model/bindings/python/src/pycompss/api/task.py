@@ -32,7 +32,6 @@ import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_new_parameter
-from pycompss.runtime.task.parameter import is_dict_specifier
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
 
 if __debug__:
@@ -69,7 +68,7 @@ class Task(PyCOMPSsDecorator):
     """
 
     __slots__ = ['decorator_arguments', 'user_function',
-                 'registered', 'signature']
+                 'core_element', 'registered', 'signature']
 
     @staticmethod
     def _get_default_decorator_values():
@@ -159,6 +158,7 @@ class Task(PyCOMPSsDecorator):
         # Function to execute as task
         self.user_function = None
         # Global variables common for all tasks of this kind
+        self.core_element = None
         self.registered = None
         self.signature = None
 
@@ -192,10 +192,11 @@ class Task(PyCOMPSsDecorator):
                 # not be shared.
                 master = TaskMaster(self.decorator_arguments,
                                     self.user_function,
+                                    self.core_element,
                                     self.registered,
                                     self.signature)
-                fo, self.registered, self.signature = master.call(*args,
-                                                                  **kwargs)
+                result = master.call(*args, **kwargs)
+                fo, self.core_element, self.registered, self.signature = result
                 del master
                 return fo
             elif context.in_worker():

@@ -81,9 +81,16 @@ def myLs(flag, hide, sort):
 def myLsWithoutType(flag, hide, sort):
     pass
 
+
 @ompss(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/')
 @task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
 def checkFileNames(f, fp, name, fout):
+    pass
+
+
+@ompss(binary="./checkString.sh", working_dir=os.getcwd() + '/src/scripts/')
+@task(returns=int)
+def checkStringParam(string_param):
     pass
 
 
@@ -157,3 +164,12 @@ class testOmpssDecorator(unittest.TestCase):
             data = result.read()
         print("CheckFileNamesResult: " + str(data))
         self.assertEqual(exit_value, 0, "At least one file name is NOT as expected: {}, {}, {}".format(f, fp, name))
+
+    def testStringParams(self):
+        string_param = "This is a string."
+        exit_value1 = checkStringParam(string_param)
+        exit_value2 = checkStringParam(string_param)
+        exit_value1 = compss_wait_on(exit_value1)
+        exit_value2 = compss_wait_on(exit_value2)
+        self.assertEqual(exit_value1, 0)
+        self.assertEqual(exit_value2, 0)

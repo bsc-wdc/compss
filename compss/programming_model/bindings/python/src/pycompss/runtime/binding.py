@@ -130,15 +130,16 @@ def stop_runtime(code=0):
         COMPSs.cancel_application_tasks(app_id, 0)
 
     if __debug__:
+        logger.info("Cleaning objects...")
+    _clean_objects()
+
+    if __debug__:
         reporting = OT.is_report_enabled()
         if reporting:
             logger.info("Generating Object tracker report...")
             target_path = get_log_path()
             OT.generate_report(target_path)
-
-    if __debug__:
-        logger.info("Cleaning objects...")
-    _clean_objects()
+            OT.clean_report()
 
     if __debug__:
         logger.info("Stopping COMPSs...")

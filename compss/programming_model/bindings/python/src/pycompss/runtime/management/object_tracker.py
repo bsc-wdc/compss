@@ -44,7 +44,8 @@ class ObjectTracker(object):
 
     __slots__ = ['file_names', 'pending_to_synchronize',
                  'written_objects', 'current_id', 'runtime_id',
-                 'obj_id_to_address', 'reporting', 'reporting_info']
+                 'obj_id_to_address', 'reporting', 'reporting_info',
+                 'initial_time']
 
     def __init__(self):
         # Dictionary to contain the conversion from object id to the
@@ -79,6 +80,8 @@ class ObjectTracker(object):
         self.reporting = False
         # Report info: Contains tuples composed by the values to be reported.
         self.reporting_info = []
+        # Store the initial time as reference for the reporting.
+        self.initial_time = 0
 
     def track(self, obj, collection=False):
         # type: (object, bool) -> str
@@ -104,11 +107,7 @@ class ObjectTracker(object):
             if __debug__:
                 logger.debug("Tracking object %s to file %s" % (obj_id,
                                                                 file_name))
-        if __debug__:
-            # Log the object tracker status
-            if self.reporting:
-                self.__log_object_tracker_status__()
-                self.__update_report__()
+        self.report_now()
         return obj_id
 
     def stop_tracking(self, obj, collection=False):
@@ -131,11 +130,7 @@ class ObjectTracker(object):
                 self._delete_file_name(obj_id)
                 self._remove_from_pending_to_synchronize(obj_id)
                 self._pop_object_id(obj_id)
-        if __debug__:
-            # Log the object tracker status
-            self.__log_object_tracker_status__()
-            if self.reporting:
-                self.__update_report__()
+        self.report_now()
 
     def get_object_id(self, obj):
         # type: (object) -> str or None
@@ -268,6 +263,14 @@ class ObjectTracker(object):
         self.file_names.clear()
         self.written_objects.clear()
         self.obj_id_to_address.clear()
+        self.report_now()
+
+    def clean_report(self):
+        # type: () -> None
+        """ Clears the reporting data.
+
+        :return: None
+        """
         del self.reporting_info[:]
 
     #############################################
@@ -418,6 +421,40 @@ class ObjectTracker(object):
     #           REPORTING FUNCTIONS             #
     #############################################
 
+    def enable_report(self):
+        # type: () -> None
+        """ Enables to keep the status in internal infrastructure so that
+        the report can be generated afterwards.
+
+        :return: None
+        """
+        self.reporting = True
+        # Get initial reporting status
+        self.report_now(first=True)
+
+    def is_report_enabled(self):
+        # type: () -> bool
+        """ Retrieves if the reporting is enabled.
+
+        :return: If the object tracker is keeping track of the status.
+        """
+        return self.reporting
+
+    def report_now(self, first=False):  # noqa
+        # type: (bool) -> None
+        """ Updates the report with the current Object Tracker status.
+
+        WARNING: This function only works if log_level=trace.
+
+        :param first: If it is the first time reporting the status.
+        :return: None
+        """
+        if __debug__:
+            # Log the object tracker status
+            if self.reporting:
+                self.__log_object_tracker_status__()
+                self.__update_report__(first)
+
     def __log_object_tracker_status__(self):
         # type: () -> None
         """ Logs the object tracker status.
@@ -431,31 +468,17 @@ class ObjectTracker(object):
                      + " Obj_id_to_address=" + str(len(self.obj_id_to_address))
                      + " Current_id=" + str(self.current_id))
 
-    def enable_report(self):
-        # type: () -> None
-        """ Enables to keep the status in internal infrastructure so that
-        the report can be generated afterwards.
-
-        :return: None
-        """
-        self.reporting = True
-
-    def is_report_enabled(self):
-        # type: () -> bool
-        """ Retrieves if the reporting is enabled.
-
-        :return: If the object tracker is keeping track of the status.
-        """
-        return self.reporting
-
-    def __update_report__(self):
-        # type: () -> None
+    def __update_report__(self, first=False):
+        # type: (bool) -> None
         """ Updates the internal self.report_info variable with the
         current object tracker status.
 
+        :param first: If it is the first time reporting the status.
         :return: None
         """
-        current_status = (time.time(),
+        if first:
+            self.initial_time = time.time()
+        current_status = (time.time() - self.initial_time,
                           (len(self.file_names),
                           len(self.pending_to_synchronize),
                           len(self.written_objects),
@@ -483,7 +506,7 @@ class ObjectTracker(object):
             logger.debug("Generating object tracker report...")
         x = [status[0] for status in self.reporting_info]
         y = [status[1] for status in self.reporting_info]
-        plt.xlabel("Timestamp")
+        plt.xlabel("Time (seconds)")
         plt.ylabel("# Elements")
         plt.title("Object tracker behaviour")
         labels = ['File names',

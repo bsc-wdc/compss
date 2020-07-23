@@ -106,8 +106,8 @@ class ObjectTracker(object):
                                                                 file_name))
         if __debug__:
             # Log the object tracker status
-            self.__log_object_tracker_status__()
             if self.reporting:
+                self.__log_object_tracker_status__()
                 self.__update_report__()
         return obj_id
 

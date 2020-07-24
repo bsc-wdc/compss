@@ -313,6 +313,8 @@ class TaskWorker(TaskCommons):
                 # call rank_distributor if the current param is the target of the layout
                 # for each rank, return its offset(s) in the collection
                 rank_distribution = rank_distributor(collections_layouts[1:])
+                if __debug__:
+                    logger.debug(" Rank distribution is: " + str(rank_distribution))
 
             for (i, line) in enumerate(open(col_f_name, 'r')):
                 if in_mpi_collection_env:
@@ -357,6 +359,7 @@ class TaskWorker(TaskCommons):
                             # the collection list is removed
                             if in_mpi_collection_env and len(rank_distribution) == 1:
                                 argument.content = sub_arg.content
+                                argument.content_type=sub_arg.content_type
                             else:
                                 argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
@@ -368,6 +371,7 @@ class TaskWorker(TaskCommons):
                             # the collection list is removed
                             if in_mpi_collection_env and len(rank_distribution) == 1:
                                 argument.content = sub_arg.content
+                                argument.content_type=sub_arg.content_type
                             else:
                                 argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
@@ -380,6 +384,7 @@ class TaskWorker(TaskCommons):
                         # the collection list is removed
                         if in_mpi_collection_env and len(rank_distribution) == 1:
                             argument.content = sub_arg.content
+                            argument.content_type=sub_arg.content_type
                         else:
                             argument.content.append(sub_arg.content)
                         argument.collection_content.append(sub_arg)
@@ -388,6 +393,7 @@ class TaskWorker(TaskCommons):
                     # the collection list is removed
                     if in_mpi_collection_env and len(rank_distribution) == 1:
                         argument.content = content_file
+                        argument.content_type=parameter.TYPE.FILE
                     else:
                         argument.content.append(content_file)
                     argument.collection_content.append(content_file)

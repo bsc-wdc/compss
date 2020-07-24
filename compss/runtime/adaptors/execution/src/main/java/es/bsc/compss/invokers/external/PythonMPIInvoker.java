@@ -25,6 +25,7 @@ import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.invokers.util.StdIOStream;
+import es.bsc.compss.types.CollectionLayout;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
@@ -47,16 +48,6 @@ public class PythonMPIInvoker extends ExternalInvoker {
     private final boolean failByEV;
 
     private BinaryRunner br;
-
-
-    public class CollectionLayout {
-
-        String paramName;
-        int blockCount;
-        int blockLen;
-        int blockStride;
-    }
-
 
     private CollectionLayout cl;
 
@@ -92,18 +83,9 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Internal binary runner
         this.br = null;
-        this.cl = new CollectionLayout();
-        this.cl.paramName = pythonmpiImpl.getCollectionLayout().getParamName();
-        this.cl.blockCount = pythonmpiImpl.getCollectionLayout().getBlockCount();
-        this.cl.blockLen = pythonmpiImpl.getCollectionLayout().getBlockLen();
-        this.cl.blockStride = pythonmpiImpl.getCollectionLayout().getBlockStride();
+        this.cl = pythonmpiImpl.getCollectionLayout();
 
-        System.out.println(">>>>>> " + this.cl.paramName);
-        System.out.println(">>>>>> " + this.cl.blockCount);
-        System.out.println(">>>>>> " + this.cl.blockLen);
-        System.out.println(">>>>>> " + this.cl.blockStride);
-
-        if ((this.cl.blockCount + this.cl.blockLen + this.cl.blockStride) < 0) {
+        if (this.cl.isEmpty()) {
             this.cl = null;
         }
 
@@ -216,10 +198,10 @@ public class PythonMPIInvoker extends ExternalInvoker {
         String collectionLayoutParams = " ";
 
         for (int i = 0; i < collectionLayoutParamsNum; i += 4) {
-            collectionLayoutParams += this.cl.paramName + " ";
-            collectionLayoutParams += Integer.toString(this.cl.blockCount) + " ";
-            collectionLayoutParams += Integer.toString(this.cl.blockLen) + " ";
-            collectionLayoutParams += Integer.toString(this.cl.blockStride) + " ";
+            collectionLayoutParams += this.cl.getParamName() + " ";
+            collectionLayoutParams += Integer.toString(this.cl.getBlockCount()) + " ";
+            collectionLayoutParams += Integer.toString(this.cl.getBlockLen()) + " ";
+            collectionLayoutParams += Integer.toString(this.cl.getBlockStride()) + " ";
         }
 
         collectionLayoutParams += Integer.toString(collectionLayoutNum);

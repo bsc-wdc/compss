@@ -16,16 +16,19 @@
  */
 package es.bsc.compss.invokers.binary;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.invokers.util.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.resources.ContainerDescription;
@@ -100,7 +103,13 @@ public class BinaryInvoker extends Invoker {
         // Close out streams if any
         try {
             if (this.br != null) {
-                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+                String pythonInterpreter = null;
+                LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+                if (lp instanceof PythonParams) {
+                    PythonParams pp = (PythonParams) lp;
+                    pythonInterpreter = pp.getPythonInterpreter();
+                }
+                this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
@@ -121,10 +130,18 @@ public class BinaryInvoker extends Invoker {
     private Object runInvocation() throws InvokeExecutionException {
         // Command similar to
         // ./exec args
+
+        String pythonInterpreter = null;
+        LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+        if (lp instanceof PythonParams) {
+            PythonParams pp = (PythonParams) lp;
+            pythonInterpreter = pp.getPythonInterpreter();
+        }
+
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-            this.invocation.getTarget(), streamValues, this.pythonInterpreter);
+            this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // Prepare command
         String[] cmd = null;

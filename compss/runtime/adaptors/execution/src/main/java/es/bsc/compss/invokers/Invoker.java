@@ -72,7 +72,6 @@ public abstract class Invoker {
     protected final String workers;
     protected final int numWorkers;
     protected final List<String> hostnames;
-    protected final String pythonInterpreter;
 
 
     /**
@@ -117,15 +116,6 @@ public abstract class Invoker {
         hostnames.add(context.getHostName());
         this.numWorkers = hostnames.size();
         this.workers = buildWorkersString(hostnames, computingUnits);
-
-        // Python interpreter for direct access on stream property calls
-        LanguageParams lp = this.context.getLanguageParams(Lang.PYTHON);
-        if (lp instanceof PythonParams) {
-            PythonParams pp = (PythonParams) this.context.getLanguageParams(Lang.PYTHON);
-            this.pythonInterpreter = pp.getPythonInterpreter();
-        } else {
-            this.pythonInterpreter = null;
-        }
 
         /* Parse the parameters ************************************ */
         AbstractMethodImplementation impl = invocation.getMethodImplementation();

@@ -272,7 +272,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
             } finally {
-                runtimeAPI.removeApplicationData(appId);
+                // runtimeAPI.removeApplicationData(appId);
                 runtimeAPI.deregisterApplication(appId);
             }
         }

@@ -16,10 +16,13 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.external.ExternalInvoker;
@@ -41,6 +44,7 @@ import java.util.List;
 public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;
+    private Long appId;
 
 
     /**
@@ -75,6 +79,37 @@ public abstract class PipedInvoker extends ExternalInvoker {
                 PipeCommand rcvdCommand = pipes.readCommand();
                 if (rcvdCommand != null) {
                     switch (rcvdCommand.getType()) {
+                        case EXECUTE_NESTED_TASK: {
+                            ExecuteNestedTaskPipeCommand entpc = (ExecuteNestedTaskPipeCommand) rcvdCommand;
+                            Lang lang = entpc.getLang();
+                            String onFailure = entpc.getOnFailure();
+                            int timeOut = entpc.getTimeOut();
+                            boolean isPrioritary = entpc.getPrioritary();
+                            boolean hasTarget = entpc.hasTarget();
+                            int numReturns = entpc.getNumReturns();
+                            int parameterCount = entpc.getParameterCount();
+                            String[] parameters = entpc.getParameters();
+                            if (appId == null) {
+                                appId = context.getRuntimeAPI().registerApplication();
+                            }
+
+                            if (lang == Lang.PYTHON) {
+                                String signature = entpc.getSignature();
+                                int numNodes = entpc.getNumNodes();
+                                boolean isReplicated = entpc.isReplicated();
+                                boolean isDistributed = entpc.isDistributed();
+                                context.getRuntimeAPI().executeTask(appId, signature, onFailure, timeOut, isPrioritary,
+                                    numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameterCount,
+                                    parameters);
+                            } else {
+                                String methodClass = entpc.getMethodClass();
+                                String methodName = entpc.getMethodName();
+                                context.getRuntimeAPI().executeTask(appId, methodClass, onFailure, timeOut, methodName,
+                                    isPrioritary, hasTarget, numReturns, parameterCount, parameters);
+                            }
+
+                        }
+                            break;
                         case END_TASK:
                             taskStatus = ((EndTaskPipeCommand) rcvdCommand).getTaskStatus();
                             Integer exitValue = taskStatus.getExitValue();

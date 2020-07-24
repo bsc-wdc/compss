@@ -26,6 +26,7 @@ import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
@@ -292,6 +293,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 String[] expected = Arrays.copyOfRange(command, 1, command.length);
                 PipeCommand expectedCommand = readCommand(cmd, expected);
                 readCommand = new ErrorPipeCommand(expectedCommand);
+                break;
+            case EXECUTE_NESTED_TASK:
+                readCommand = new ExecuteNestedTaskPipeCommand(command);
                 break;
             case PING:
             case EXECUTE_TASK:

@@ -173,18 +173,22 @@ class TaskMaster(TaskCommons):
     runtime.
     """
 
+    __slots__ = ['param_kwargs', 'param_defaults',
+                 'first_arg_name', 'computing_nodes', 'parameters',
+                 'function_name', 'module_name', 'function_type', 'class_name',
+                 'returns', 'multi_return',
+                 'core_element', 'registered', 'signature']
+
     def __init__(self,
                  decorator_arguments,
                  user_function,
+                 core_element,
                  registered,
                  signature):
         # Initialize TaskCommons
-        super(self.__class__, self).__init__(decorator_arguments, None, None)
-        # User function
-        self.user_function = user_function
+        super(self.__class__, self).__init__(decorator_arguments,
+                                             user_function)
         # Add more argument related attributes that will be useful later
-        self.param_args = None
-        self.param_varargs = None
         self.param_kwargs = None
         self.param_defaults = None
         # Add function related attributed that will be useful later
@@ -200,6 +204,7 @@ class TaskMaster(TaskCommons):
         self.multi_return = False
         # Task wont be registered until called from the master for the first
         # time or have a different signature
+        self.core_element = core_element
         self.registered = registered
         self.signature = signature
 
@@ -222,7 +227,7 @@ class TaskMaster(TaskCommons):
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
-        core_element, pre_defined_ce = self.extract_core_element(kwargs)
+        pre_defined_ce = self.extract_core_element(kwargs)
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
@@ -238,15 +243,15 @@ class TaskMaster(TaskCommons):
 
         # Prepare the core element registration information
         self.set_code_strings(self.user_function,
-                              core_element.get_impl_type())
+                              self.core_element.get_impl_type())
         impl_signature, impl_type_args = self.get_signature()
         self.update_core_element(impl_signature, impl_type_args,
-                                 core_element, pre_defined_ce)
+                                 pre_defined_ce)
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
         if not self.registered or self.signature != impl_signature:
-            self.register_task(core_element)
+            self.register_task()
             self.registered = True
             self.signature = impl_signature
 
@@ -256,7 +261,7 @@ class TaskMaster(TaskCommons):
         from pycompss.api.task import REGISTER_ONLY
         if REGISTER_ONLY:
             MASTER_LOCK.release()
-            return None, self.registered, self.signature
+            return None, self.core_element, self.registered, self.signature
 
         # Deal with dynamic computing nodes
         computing_nodes = self.process_computing_nodes()
@@ -358,7 +363,7 @@ class TaskMaster(TaskCommons):
         # (then the runtime will take care of the dependency).
         # Also return if the task has been registered and its signature,
         # so that future tasks of the same function register if necessary.
-        return fo, self.registered, self.signature
+        return fo, self.core_element, self.registered, self.signature
 
     def update_if_interactive(self):
         # type: () -> None
@@ -400,31 +405,33 @@ class TaskMaster(TaskCommons):
             # No need to update anything
             pass
 
-    @staticmethod
-    def extract_core_element(kwargs):
+    def extract_core_element(self, kwargs):
         # type: (dict) -> (CE, bool)
         """ Get or instantiate the Task's core element.
 
-        Extract the core element if created in a higher level decorator
-        or creates a new one if does not.
+        Extract the core element if created in a higher level decorator,
+        uses an existing or creates a new one if does not.
 
         IMPORTANT! extract the core element from kwargs if pre-defined
                    in decorators defined on top of @task.
 
-        :return: Core element, boolean if previously created.
+        :return: Boolean if previously created.
         """
         pre_defined_ce = False
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
-            core_element = kwargs[CORE_ELEMENT_KEY]
+            self.core_element = kwargs[CORE_ELEMENT_KEY]
             # Remove the core element from kwargs to avoid issues processing
             # the parameters (process_parameters function).
             kwargs.pop(CORE_ELEMENT_KEY)
             pre_defined_ce = True
+        elif self.core_element:
+            # A core element from previous task calls was saved.
+            pass
         else:
-            # No decorators over @task: instantiate an empty core element
-            core_element = CE()
-        return core_element, pre_defined_ce
+            # No decorators over @task: instantiate an empty core element.
+            self.core_element = CE()
+        return pre_defined_ce
 
     def inspect_user_function_arguments(self):
         # type: () -> None
@@ -702,7 +709,7 @@ class TaskMaster(TaskCommons):
         :param ce_type: Core element implementation type.
         :return: None
         """
-        default = 'task'
+        default = 'METHOD'
         if ce_type is None:
             ce_type = default
 
@@ -766,17 +773,15 @@ class TaskMaster(TaskCommons):
 
         return impl_signature, impl_type_args
 
-    @staticmethod
-    def update_core_element(impl_signature, impl_type_args,
-                            core_element, pre_defined_ce):
-        # type: (str, list, CE, bool) -> None
+    def update_core_element(self, impl_signature, impl_type_args,
+                            pre_defined_ce):
+        # type: (str, list, bool) -> None
         """ Adds the @task decorator information to the core element.
 
         CAUTION: Modifies the core_element parameter.
 
         :param impl_signature: Implementation signature.
         :param impl_type_args: Implementation type arguments.
-        :param core_element: Core element.
         :param pre_defined_ce: Boolean if core element contains predefined
                                fields (done by upper decorators).
         :return: None
@@ -787,45 +792,45 @@ class TaskMaster(TaskCommons):
         impl_io = False
 
         if __debug__:
-            logger.debug("Configuring @task core element.")
+            logger.debug("Configuring core element.")
 
         if pre_defined_ce:
             # Core element has already been created in an upper decorator
             # (e.g. @implements and @compss)
-            if core_element.get_ce_signature() is None:
-                core_element.set_ce_signature(impl_signature)
-                core_element.set_impl_signature(impl_signature)
+            if self.core_element.get_ce_signature() is None:
+                self.core_element.set_ce_signature(impl_signature)
+                self.core_element.set_impl_signature(impl_signature)
             else:
                 # If we are here that means that we come from an implements
                 # decorator, which means that this core element has already
                 # a signature
-                core_element.set_impl_signature(impl_signature)
-                core_element.set_impl_type_args(impl_type_args)
-            if core_element.get_impl_constraints() is None:
-                core_element.set_impl_constraints(impl_constraints)
-            if core_element.get_impl_type() is None:
-                core_element.set_impl_type(impl_type)
-            elif core_element.get_impl_type() == "PYTHON_MPI":
-                core_element.set_impl_signature("MPI." + impl_signature)
-            if core_element.get_impl_type_args() is None:
-                core_element.set_impl_type_args(impl_type_args)
-            elif core_element.get_impl_type() == "PYTHON_MPI":
-                core_element.set_impl_type_args(
-                    impl_type_args + core_element.get_impl_type_args()[1:])
-            if core_element.get_impl_io() is None:
-                core_element.set_impl_io(impl_io)
+                self.core_element.set_impl_signature(impl_signature)
+                self.core_element.set_impl_type_args(impl_type_args)
+            if self.core_element.get_impl_constraints() is None:
+                self.core_element.set_impl_constraints(impl_constraints)
+            if self.core_element.get_impl_type() is None:
+                self.core_element.set_impl_type(impl_type)
+            elif self.core_element.get_impl_type() == "PYTHON_MPI":
+                self.core_element.set_impl_signature("MPI." + impl_signature)
+            if self.core_element.get_impl_type_args() is None:
+                self.core_element.set_impl_type_args(impl_type_args)
+            elif self.core_element.get_impl_type() == "PYTHON_MPI":
+                self.core_element.set_impl_type_args(
+                    impl_type_args + self.core_element.get_impl_type_args()[1:])
+            if self.core_element.get_impl_io() is None:
+                self.core_element.set_impl_io(impl_io)
         else:
             # @task is in the top of the decorators stack.
             # Update the empty core_element
-            core_element.set_ce_signature(impl_signature)
-            core_element.set_impl_signature(impl_signature)
-            core_element.set_impl_constraints(impl_constraints)
-            core_element.set_impl_type(impl_type)
-            core_element.set_impl_type_args(impl_type_args)
-            core_element.set_impl_io(impl_io)
+            self.core_element.set_ce_signature(impl_signature)
+            self.core_element.set_impl_signature(impl_signature)
+            self.core_element.set_impl_constraints(impl_constraints)
+            self.core_element.set_impl_type(impl_type)
+            self.core_element.set_impl_type_args(impl_type_args)
+            self.core_element.set_impl_io(impl_io)
 
-    def register_task(self, core_element):
-        # type: (CE) -> None
+    def register_task(self):
+        # type: () -> None
         """ This function is used to register the task in the runtime.
 
         This registration must be done only once on the task decorator
@@ -837,7 +842,7 @@ class TaskMaster(TaskCommons):
         if __debug__:
             logger.debug("[@TASK] Registering the function %s in module %s" %
                          (self.function_name, self.module_name))
-        binding.register_ce(core_element)
+        binding.register_ce(self.core_element)
 
     def process_computing_nodes(self):
         # type: () -> int

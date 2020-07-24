@@ -52,13 +52,14 @@ class TaskWorker(TaskCommons):
     Process the task decorator and prepare call the user function.
     """
 
+    __slots__ = []
+
     def __init__(self,
                  decorator_arguments,
                  user_function):
         # Initialize TaskCommons
-        super(self.__class__, self).__init__(decorator_arguments, None, None)
-        # User function
-        self.user_function = user_function
+        super(self.__class__, self).__init__(decorator_arguments,
+                                             user_function)
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (list, list, list)

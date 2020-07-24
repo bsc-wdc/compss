@@ -472,6 +472,8 @@ class ObjectTracker(object):
         :return: None
         """
         try:
+            import matplotlib                # noqa
+            matplotlib.use('Agg')            # avoid issues in MN
             import matplotlib.pyplot as plt  # noqa
         except ImportError:
             print("WARNING: Could not generate the Object Tracker report")

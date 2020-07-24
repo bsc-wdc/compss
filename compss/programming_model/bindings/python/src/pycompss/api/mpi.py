@@ -215,10 +215,7 @@ class MPI(PyCOMPSsDecorator):
             kwargs[CORE_ELEMENT_KEY] = core_element
 
         # Set as configured
-        if impl_type == "PYTHON_MPI":
-            self.core_element_configured = False
-        else:
-            self.core_element_configured = True
+        self.core_element_configured = True
 
 
 # ########################################################################### #

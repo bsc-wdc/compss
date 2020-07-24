@@ -32,7 +32,6 @@ import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_new_parameter
-from pycompss.runtime.task.parameter import is_dict_specifier
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
 
 if __debug__:
@@ -68,7 +67,7 @@ class Task(PyCOMPSsDecorator):
     TaskWorker.call() and self._sequential_call()
     """
 
-    __slots__ = ['decorator_arguments', 'user_function',
+    __slots__ = ['task_type', 'decorator_arguments', 'user_function',
                  'registered', 'signature']
 
     @staticmethod
@@ -100,7 +99,7 @@ class Task(PyCOMPSsDecorator):
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
-    def __init__(self, **kwargs):  # noqa
+    def __init__(self, *args, **kwargs):  # noqa
         """ Task constructor.
 
         This part is called in the decoration process, not as an
@@ -115,7 +114,17 @@ class Task(PyCOMPSsDecorator):
 
         :param kwargs: Decorator parameters. A task decorator has no positional
                        arguments.
+        :param user_function: User function to execute.
+        :param core_element: Core element for the task (only used in master,
+                             but needed here to keep it between task
+                             invocations).
+        :param registered: If the core element has already been registered.
+        :param signature: The user function signature.
         """
+        self.task_type = "METHOD"
+        decorator_name = '@' + self.__class__.__name__.lower()
+        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+
         self.decorator_arguments = kwargs
         # Set missing values to their default ones (step a)
         for (key, value) in self._get_default_decorator_values().items():
@@ -192,10 +201,11 @@ class Task(PyCOMPSsDecorator):
                 # not be shared.
                 master = TaskMaster(self.decorator_arguments,
                                     self.user_function,
+                                    self.core_element,
                                     self.registered,
                                     self.signature)
-                fo, self.registered, self.signature = master.call(*args,
-                                                                  **kwargs)
+                result = master.call(*args, **kwargs)
+                fo, self.core_element, self.registered, self.signature = result
                 del master
                 return fo
             elif context.in_worker():

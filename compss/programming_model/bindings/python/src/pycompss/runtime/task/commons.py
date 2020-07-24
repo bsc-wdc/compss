@@ -27,15 +27,16 @@ class TaskCommons(object):
     Both classes inherit from TaskCommons.
     """
 
-    __slots__ = ['decorator_arguments', 'param_args', 'param_varargs']
+    __slots__ = ['user_function', 'decorator_arguments',
+                 'param_args', 'param_varargs']
 
     def __init__(self,
                  decorator_arguments,
-                 param_args=None,
-                 param_varargs=None):
+                 user_function):
+        self.user_function = user_function
         self.decorator_arguments = decorator_arguments
-        self.param_args = param_args
-        self.param_varargs = param_varargs
+        self.param_args = None
+        self.param_varargs = None
 
     def get_varargs_direction(self):
         # type: () -> ... # Parameter

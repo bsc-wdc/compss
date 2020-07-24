@@ -189,6 +189,7 @@ class CommAgentJob extends NIOJob {
         boolean keepRename = dPar.isKeepRename();
         CommParam commParam = new CommParam(dataMgmtId, type, dir, stdIOStream, prefix, name, pyType, weight,
             keepRename, dPar.getOriginalName());
+        commParam.setValue(dPar.getOriginalName());
         NIOData sourceData = (NIOData) dPar.getDataSource();
         if (sourceData != null) {
             RemoteDataInformation remoteData = new RemoteDataInformation(renaming);

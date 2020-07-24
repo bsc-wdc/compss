@@ -40,13 +40,14 @@ public interface ExternalCommand {
 
         // REQUIRED BY THE EXECUTOR
         EXECUTE_TASK, // Execute a task
+        EXECUTE_NESTED_TASK, // Execute a task
         END_TASK, // Task finished
         COMPSS_EXCEPTION, // Task raised a COMPSsException
         CANCEL_TASK, // Task to be cancelled
 
         REMOVE, // Remove data
         SERIALIZE, // Serialize data
-        ERROR, // Error
+        ERROR // Error
     }
 
 

@@ -36,20 +36,20 @@ def increment(file_path):
 
 
 @container(engine="DOCKER",
-           container="centos",
-           binary="ls", working_dir="/home/compss/")
+           image="ubuntu",
+           binary="ls", working_dir="${TEST_WORKING_DIR}")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
 def docker_func(result):
     pass
 
-
+'''
 @container(engine="SINGULARITY",
            container="/home/compss/singularity/examples/ubuntu_latest.sif",
            binary="ls", working_dir="/home/compss/")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
 def singularity_func(result):
     pass
-
+'''
 
 @binary(binary="ls", working_dir="${TEST_WORKING_DIR}")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
@@ -64,11 +64,11 @@ class testContainerDecorator(unittest.TestCase):
     def testContainer(self):
         initial_value = 1
         file_name = "counter"
-        infile = "infile.txt"
+        docker_out = "docker_output.txt"
 
         # Write value
         fos = open(file_name, 'w')
-        fos.write(initial_value)
+        fos.write(str(initial_value))
         fos.close()
         print("Initial counter value is " + str(initial_value))
 
@@ -81,14 +81,17 @@ class testContainerDecorator(unittest.TestCase):
         fis.close()
         print("Final counter value is " + str(final_value))
 
-        # Execute BINARY_FUNC
-        docker_func(infile)
-        # Write new value
-        fis_ls = compss_open(infile, 'r+')
-        final_value = fis_ls.read()
-        fis_ls.close()
-        print(final_value)
 
+        # Execute BINARY_FUNC
+        docker_func(docker_out)
+    
+        # Write new value
+        fis_ls = compss_open(docker_out, 'r+')
+        files_list = fis_ls.read()
+        fis_ls.close()
+        print("Docker files list is " + files_list)
+'''
+        
         # Execute LS
         # singularity_func(infile)
 
@@ -104,4 +107,4 @@ class testContainerDecorator(unittest.TestCase):
         fis_ls = compss_open(infile, 'r+')
         final_value = fis_ls.read()
         fis_ls.close()
-        print(final_value)
+        print(final_value)'''

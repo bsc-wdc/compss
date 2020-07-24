@@ -40,6 +40,8 @@ from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
+# TODO: Comments about exit value and return follwing values was
+# in another branch need to be reviewed if it works in trunk
 # SUCCESS_SIG = 0
 # FAILURE_SIG = 1
 # UNEXPECTED_SIG = 2
@@ -310,11 +312,8 @@ def process_task(current_line,     # type: str
         except Exception as e:
             logger.exception("%s - Exception %s" % (str(process_name),
                                                     str(e)))
-            # TODO: to be reviewed
-            # HEAD
             exit_value = 7
             message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"  # noqa: E501
-            # Layout version
             # return FAILURE_SIG, e
 
         # Clean environment variables

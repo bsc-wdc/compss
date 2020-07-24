@@ -130,6 +130,31 @@ public enum TraceEvent {
     MAKE_PERSISTENT(17, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
     DELETE_PERSISTENT(18, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
 
+    // Python Master Events
+    PYTHON_START_RUNTIME(1, Tracer.BINDING_MASTER_TYPE, "Start runtime"), // Start runtime
+    PYTHON_STOP_RUNTIME(2, Tracer.BINDING_MASTER_TYPE, "Stop runtime"), // Stop runtime
+    PYTHON_APPLICATION_RUNNING(3, Tracer.BINDING_MASTER_TYPE, "Application running"), // Application running
+    // 4 is empty
+    PYTHON_MASTER_INIT_STORAGE(5, Tracer.BINDING_MASTER_TYPE, "Start storage"), // Start storage
+    PYTHON_MASTER_STOP_STORAGE(6, Tracer.BINDING_MASTER_TYPE, "Stop storage"), // Stop storage
+    PYTHON_ACCESSED_FILE(7, Tracer.BINDING_MASTER_TYPE, "Accessed file"), // Accessed file
+    PYTHON_OPEN_FILE(8, Tracer.BINDING_MASTER_TYPE, "Open file"), // Open file
+    PYTHON_DELETE_FILE(9, Tracer.BINDING_MASTER_TYPE, "Delete file"), // Delete file
+    PYTHON_GET_FILE(10, Tracer.BINDING_MASTER_TYPE, "Get file"), // Get file
+    PYTHON_GET_DIRECTORY(11, Tracer.BINDING_MASTER_TYPE, "Get directory"), // Get directory
+    PYTHON_DELETE_OBJECT(12, Tracer.BINDING_MASTER_TYPE, "Delete object"), // Delete object
+    PYTHON_BARRIER(13, Tracer.BINDING_MASTER_TYPE, "Barrier"), // Barrier
+    PYTHON_BARRIER_GROUP(14, Tracer.BINDING_MASTER_TYPE, "Barrier group"), // Barrier group
+    PYTHON_OPEN_TASK_GROUP(15, Tracer.BINDING_MASTER_TYPE, "Open task group"), // Open task group
+    PYTHON_CLOSE_TASK_GROUP(16, Tracer.BINDING_MASTER_TYPE, "Close task group"), // Close task group
+    PYTHON_GET_LOG_PATH(17, Tracer.BINDING_MASTER_TYPE, "Get log path"), // Get log path
+    PYTHON_GET_NUMBER_RESOURCES(18, Tracer.BINDING_MASTER_TYPE, "Get number of resources"), // Get number of resources
+    PYTHON_REQUEST_RESOURCES(19, Tracer.BINDING_MASTER_TYPE, "Request resources"), // Request resources
+    PYTHON_FREE_RESOURCES(20, Tracer.BINDING_MASTER_TYPE, "Free resources"), // Free resources
+    PYTHON_REGISTER_CORE_ELEMENT(21, Tracer.BINDING_MASTER_TYPE, "Register Core Element"), // Register core element
+    PYTHON_WAIT_ON(22, Tracer.BINDING_MASTER_TYPE, "Wait on"), // Wait on
+    PYTHON_PROCESS_TASK(23, Tracer.BINDING_MASTER_TYPE, "Process task"), // Process task
+
     // Other
     READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count"); // Ready count
 

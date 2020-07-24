@@ -36,6 +36,29 @@ from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.commons import LIST_TYPE
 import pycompss.util.context as context
+# Tracing imports
+from pycompss.util.tracing.helpers import enable_trace_master
+from pycompss.util.tracing.helpers import event
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.runtime.constants import START_RUNTIME_EVENT
+from pycompss.runtime.constants import STOP_RUNTIME_EVENT
+from pycompss.runtime.constants import ACCESSED_FILE_EVENT
+from pycompss.runtime.constants import OPEN_FILE_EVENT
+from pycompss.runtime.constants import DELETE_FILE_EVENT
+from pycompss.runtime.constants import GET_FILE_EVENT
+from pycompss.runtime.constants import GET_DIRECTORY_EVENT
+from pycompss.runtime.constants import DELETE_OBJECT_EVENT
+from pycompss.runtime.constants import BARRIER_EVENT
+from pycompss.runtime.constants import BARRIER_GROUP_EVENT
+from pycompss.runtime.constants import OPEN_TASK_GROUP_EVENT
+from pycompss.runtime.constants import CLOSE_TASK_GROUP_EVENT
+from pycompss.runtime.constants import GET_LOG_PATH_EVENT
+from pycompss.runtime.constants import GET_NUMBER_RESOURCES_EVENT
+from pycompss.runtime.constants import REQUEST_RESOURCES_EVENT
+from pycompss.runtime.constants import FREE_RESOURCES_EVENT
+from pycompss.runtime.constants import REGISTER_CORE_ELEMENT_EVENT
+from pycompss.runtime.constants import WAIT_ON_EVENT
+from pycompss.runtime.constants import PROCESS_TASK_EVENT
 
 if __debug__:
     import logging
@@ -46,36 +69,43 @@ if __debug__:
 # ############ FUNCTIONS THAT COMMUNICATE WITH THE RUNTIME ################## #
 # ########################################################################### #
 
-def start_runtime(log_level='off', interactive=False):
-    # type: (str, bool) -> None
+def start_runtime(log_level='off', tracing=0, interactive=False):
+    # type: (str, int, bool) -> None
     """ Starts the COMPSs runtime.
 
     Starts the runtime by calling the external python library that calls
     the bindings-common.
 
     :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ].
+    :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
     if __debug__:
         logger.info("Starting COMPSs...")
 
-    if interactive and context.in_master():
-        COMPSs.load_runtime(external_process=True)
-    else:
-        COMPSs.load_runtime(external_process=False)
+    if tracing > 0:
+        enable_trace_master()
 
-    if log_level == 'trace':
-        # Could also be 'debug' or True, but we only show the C extension
-        # debug in the maximum tracing level.
-        COMPSs.set_debug(True)
-        OT.enable_report()
+    with event(START_RUNTIME_EVENT, master=True):
+        if interactive and context.in_master():
+            COMPSs.load_runtime(external_process=True)
+        else:
+            COMPSs.load_runtime(external_process=False)
 
-    COMPSs.start_runtime()
+        if log_level == 'trace':
+            # Could also be 'debug' or True, but we only show the C extension
+            # debug in the maximum tracing level.
+            COMPSs.set_debug(True)
+            OT.enable_report()
+
+        COMPSs.start_runtime()
+
     if __debug__:
         logger.info("COMPSs started")
 
 
+@emit_event(STOP_RUNTIME_EVENT, master=True)
 def stop_runtime(code=0):
     # type: (int) -> None
     """ Stops the COMPSs runtime.
@@ -121,6 +151,7 @@ def stop_runtime(code=0):
         logger.info("COMPSs stopped")
 
 
+@emit_event(ACCESSED_FILE_EVENT, master=True)
 def accessed_file(file_name):
     # type: (str) -> bool
     """ Check if the file has been accessed.
@@ -137,6 +168,7 @@ def accessed_file(file_name):
     return COMPSs.accessed_file(app_id, file_name)
 
 
+@emit_event(OPEN_FILE_EVENT, master=True)
 def open_file(file_name, mode):
     # type: (str, str) -> str
     """ Opens a file (retrieves if necessary).
@@ -159,6 +191,7 @@ def open_file(file_name, mode):
     return compss_name
 
 
+@emit_event(DELETE_FILE_EVENT, master=True)
 def delete_file(file_name):
     # type: (str) -> bool
     """ Remove a file.
@@ -181,6 +214,7 @@ def delete_file(file_name):
     return result
 
 
+@emit_event(GET_FILE_EVENT, master=True)
 def get_file(file_name):
     # type: (str) -> None
     """ Retrieve a file.
@@ -197,6 +231,7 @@ def get_file(file_name):
     COMPSs.get_file(app_id, file_name)
 
 
+@emit_event(GET_DIRECTORY_EVENT, master=True)
 def get_directory(dir_name):
     # type: (str) -> None
     """ Retrieve a directory.
@@ -213,6 +248,7 @@ def get_directory(dir_name):
     COMPSs.get_directory(app_id, dir_name)
 
 
+@emit_event(DELETE_OBJECT_EVENT, master=True)
 def delete_object(obj):
     # type: (object) -> bool
     """ Remove object.
@@ -239,6 +275,7 @@ def delete_object(obj):
         return True
 
 
+@emit_event(BARRIER_EVENT, master=True)
 def barrier(no_more_tasks=False):
     # type: (bool) -> None
     """ Wait for all submitted tasks.
@@ -261,6 +298,7 @@ def barrier(no_more_tasks=False):
     COMPSs.barrier(app_id, no_more_tasks)
 
 
+@emit_event(BARRIER_GROUP_EVENT, master=True)
 def barrier_group(group_name):
     # type: (str) -> str
     """ Wait for all tasks of the given group.
@@ -276,6 +314,7 @@ def barrier_group(group_name):
     return COMPSs.barrier_group(app_id, group_name)
 
 
+@emit_event(OPEN_TASK_GROUP_EVENT, master=True)
 def open_task_group(group_name, implicit_barrier):
     # type: (str, bool) -> None
     """ Open task group.
@@ -291,6 +330,7 @@ def open_task_group(group_name, implicit_barrier):
     COMPSs.open_task_group(group_name, implicit_barrier, app_id)
 
 
+@emit_event(CLOSE_TASK_GROUP_EVENT, master=True)
 def close_task_group(group_name):
     # type: (str) -> None
     """ Close task group.
@@ -305,6 +345,7 @@ def close_task_group(group_name):
     COMPSs.close_task_group(group_name, app_id)
 
 
+@emit_event(GET_LOG_PATH_EVENT, master=True)
 def get_log_path():
     # type: () -> str
     """ Get logging path.
@@ -322,6 +363,7 @@ def get_log_path():
     return log_path
 
 
+@emit_event(GET_NUMBER_RESOURCES_EVENT, master=True)
 def get_number_of_resources():
     # type: () -> int
     """ Get the number of resources.
@@ -339,6 +381,7 @@ def get_number_of_resources():
     return COMPSs.get_number_of_resources(app_id)
 
 
+@emit_event(REQUEST_RESOURCES_EVENT, master=True)
 def request_resources(num_resources, group_name):
     # type: (int, str) -> None
     """ Request new resources.
@@ -363,6 +406,7 @@ def request_resources(num_resources, group_name):
     COMPSs.request_resources(app_id, num_resources, group_name)
 
 
+@emit_event(FREE_RESOURCES_EVENT, master=True)
 def free_resources(num_resources, group_name):
     # type: (int, str) -> None
     """ Liberate resources.
@@ -388,6 +432,7 @@ def free_resources(num_resources, group_name):
     COMPSs.free_resources(app_id, num_resources, group_name)
 
 
+@emit_event(REGISTER_CORE_ELEMENT_EVENT, master=True)
 def register_ce(core_element):
     # type: (CE) -> None
     """ Register a core element.
@@ -515,6 +560,7 @@ def register_ce(core_element):
         logger.debug("CE with signature %s registered." % ce_signature)
 
 
+@emit_event(WAIT_ON_EVENT, master=True)
 def wait_on(*args, **kwargs):
     # type: (tuple, dict) -> object
     """ Wait on a set of objects.
@@ -538,6 +584,7 @@ def wait_on(*args, **kwargs):
     return ret
 
 
+@emit_event(PROCESS_TASK_EVENT, master=True)
 def process_task(signature,             # type: str
                  has_target,            # type: bool
                  names,                 # type: list

@@ -84,7 +84,7 @@ INTERACTIVE_FILE_NAME = 'InteractiveMode'
 ###############################################
 
 # Set temporary dir
-_TEMP_DIR = '.'
+_TEMP_DIR = ''
 _TEMP_DIR_PREFIX = 'pycompss'
 _TEMP_DIR_FOLDER = 'tmpFiles/'
 _TEMP_OBJ_PREFIX = '/compss-serialized-obj_'

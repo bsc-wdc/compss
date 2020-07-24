@@ -37,6 +37,7 @@ from pycompss.util.supercomputer.scs import get_specific_log_dir
 from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_tracing
 from pycompss.util.supercomputer.scs import get_storage_conf
+from pycompss.util.tracing.helpers import enable_trace_master
 
 DEFAULT_PROJECT_PATH = '/Runtime/configuration/xml/projects/'
 DEFAULT_RESOURCES_PATH = '/Runtime/configuration/xml/resources/'

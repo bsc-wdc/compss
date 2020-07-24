@@ -68,15 +68,16 @@ if context.in_pycompss():
     from pycompss.runtime.binding import wait_on as __wait_on__
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
-    def compss_start(log_level='off', interactive=False):
-        # type: (str, bool) -> None
+    def compss_start(log_level='off', tracing=0, interactive=False):
+        # type: (str, int, bool) -> None
         """ Starts the runtime.
 
         :param log_level: Log level ['trace'|'debug'|'info'|'api'|'off'].
+        :param tracing: Tracing level [0 (deactivated)|1 (basic)|2 (advanced)].
         :param interactive: Boolean if interactive (ipython or jupyter).
         :return: None
         """
-        __start_runtime__(log_level, interactive)
+        __start_runtime__(log_level, tracing, interactive)
 
     def compss_stop(code=0):
         # type: (int) -> None

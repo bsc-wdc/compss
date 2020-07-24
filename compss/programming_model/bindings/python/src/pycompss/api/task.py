@@ -121,7 +121,7 @@ class Task(PyCOMPSsDecorator):
         :param registered: If the core element has already been registered.
         :param signature: The user function signature.
         """
-        self.task_type = "task"
+        self.task_type = "METHOD"
         decorator_name = '@' + self.__class__.__name__.lower()
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
 

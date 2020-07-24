@@ -709,7 +709,7 @@ class TaskMaster(TaskCommons):
         :param ce_type: Core element implementation type.
         :return: None
         """
-        default = 'task'
+        default = 'METHOD'
         if ce_type is None:
             ce_type = default
 

@@ -359,7 +359,7 @@ class TaskWorker(TaskCommons):
                             # the collection list is removed
                             if in_mpi_collection_env and len(rank_distribution) == 1:
                                 argument.content = sub_arg.content
-                                argument.content_type=sub_arg.content_type
+                                argument.content_type = sub_arg.content_type
                             else:
                                 argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
@@ -371,7 +371,7 @@ class TaskWorker(TaskCommons):
                             # the collection list is removed
                             if in_mpi_collection_env and len(rank_distribution) == 1:
                                 argument.content = sub_arg.content
-                                argument.content_type=sub_arg.content_type
+                                argument.content_type = sub_arg.content_type
                             else:
                                 argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
@@ -384,7 +384,7 @@ class TaskWorker(TaskCommons):
                         # the collection list is removed
                         if in_mpi_collection_env and len(rank_distribution) == 1:
                             argument.content = sub_arg.content
-                            argument.content_type=sub_arg.content_type
+                            argument.content_type = sub_arg.content_type
                         else:
                             argument.content.append(sub_arg.content)
                         argument.collection_content.append(sub_arg)
@@ -393,7 +393,7 @@ class TaskWorker(TaskCommons):
                     # the collection list is removed
                     if in_mpi_collection_env and len(rank_distribution) == 1:
                         argument.content = content_file
-                        argument.content_type=parameter.TYPE.FILE
+                        argument.content_type = parameter.TYPE.FILE
                     else:
                         argument.content.append(content_file)
                     argument.collection_content.append(content_file)

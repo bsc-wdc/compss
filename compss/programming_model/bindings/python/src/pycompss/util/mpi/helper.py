@@ -48,7 +48,7 @@ def rank_distributor(collection_layout):
     if block_count == size:
         # Number of block bigger than processes (one block per process)
         offset = rank * stride
-        distribution = list(range(offset, offset+block_length)) 
+        distribution = list(range(offset, offset+block_length))
     else:
         # elif block_count > size:
         # If number of blocks is bigger than processes (blocks round-robin distributed)

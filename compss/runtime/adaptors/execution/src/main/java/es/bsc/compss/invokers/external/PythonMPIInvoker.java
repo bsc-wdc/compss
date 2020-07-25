@@ -25,6 +25,7 @@ import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.invokers.util.StdIOStream;
+import es.bsc.compss.types.CollectionLayout;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
@@ -47,6 +48,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
     private final boolean failByEV;
 
     private BinaryRunner br;
+
+    private CollectionLayout cl;
 
 
     /**
@@ -80,6 +83,12 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Internal binary runner
         this.br = null;
+        this.cl = pythonmpiImpl.getCollectionLayout();
+
+        if (this.cl.isEmpty()) {
+            this.cl = null;
+        }
+
     }
 
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
@@ -181,7 +190,20 @@ public class PythonMPIInvoker extends ExternalInvoker {
         cmd[numBasePythonMpiArgs - 2] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker"
             + File.separator + "external" + File.separator + "mpi_executor.py";
 
-        cmd[numBasePythonMpiArgs - 1] = taskCMD;
+        int collectionLayoutNum = this.cl == null ? 0 : 1;
+        int collectionLayoutParamsNum = collectionLayoutNum * 4;
+        String collectionLayoutParams = " ";
+
+        for (int i = 0; i < collectionLayoutParamsNum; i += 4) {
+            collectionLayoutParams += this.cl.getParamName() + " ";
+            collectionLayoutParams += Integer.toString(this.cl.getBlockCount()) + " ";
+            collectionLayoutParams += Integer.toString(this.cl.getBlockLen()) + " ";
+            collectionLayoutParams += Integer.toString(this.cl.getBlockStride()) + " ";
+        }
+
+        collectionLayoutParams += Integer.toString(collectionLayoutNum);
+
+        cmd[numBasePythonMpiArgs - 1] = taskCMD + collectionLayoutParams;
 
         String pythonPath = System.getenv("PYTHONPATH");
         pythonPath = pyCOMPSsHome + ":" + pythonPath;

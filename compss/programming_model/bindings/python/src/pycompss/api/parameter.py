@@ -49,6 +49,7 @@ PyCOMPSs API - Parameter
 from pycompss.api.commons.data_type import DataType as _DataType
 from pycompss.runtime.task.keys import ParamAliasKeys as _ParamAliasKeys
 from pycompss.runtime.task.keys import ParamDictKeys as _ParamDictKeys
+from pycompss.runtime.mpi.keys import MPILayoutKeys as _MPILayoutKeys
 
 # Type definitions -> Numbers match both C and Java enums and are generated
 #                     during the installation.
@@ -164,3 +165,8 @@ Prefix = _ParamDictKeys.Prefix            # parameter prefix
 Depth = _ParamDictKeys.Depth              # collection recursive depth
 Weight = _ParamDictKeys.Weight            # parameter weight
 Keep_rename = _ParamDictKeys.Keep_rename  # parameter keep rename property
+
+# Aliases for collection layout for native mpi tasks
+block_count = _MPILayoutKeys.Block_count
+block_length = _MPILayoutKeys.Block_length
+stride = _MPILayoutKeys.Stride

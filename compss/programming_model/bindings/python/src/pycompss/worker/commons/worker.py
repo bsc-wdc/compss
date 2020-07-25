@@ -468,7 +468,8 @@ def execute_task(process_name,     # type: str
                  tracing,          # type: bool
                  logger,           # type: ...
                  log_files,        # type: tuple
-                 python_mpi=False  # type: bool
+                 python_mpi=False,  # type: bool
+                 collections_layouts=None  # type: list
                  ):
     # type: (...) -> (str, list, list, bool, str)
     """ ExecuteTask main method.
@@ -481,6 +482,7 @@ def execute_task(process_name,     # type: str
     :param log_files: Tuple with (out filename, err filename). None to avoid
                       stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
+    :param collections_layouts: collections layouts for python MPI tasks
     :return: exit_code, new_types, new_values, timed_out and except_msg
     """
     if __debug__:
@@ -521,7 +523,8 @@ def execute_task(process_name,     # type: str
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,
         'compss_log_files': log_files,
-        'python_MPI': python_mpi
+        'python_MPI': python_mpi,
+        'collections_layouts': collections_layouts
     }
 
     if __debug__:

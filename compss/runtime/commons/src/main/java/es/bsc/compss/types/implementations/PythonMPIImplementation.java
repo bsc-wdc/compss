@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.CollectionLayout;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -35,6 +36,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     private String mpiFlags;
     private boolean scaleByCU;
     private boolean failByEV;
+    private CollectionLayout cl;
 
 
     /**
@@ -54,14 +56,15 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      * @param mpiRunner Path to the MPI command.
      * @param scaleByCU Scale by computing units property.
      * @param failByEV Flag to enable failure with EV.
+     * @param cl Collection Layout.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature Method signature.
      * @param requirements Method requirements.
      */
     public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
-        String mpiFlags, boolean scaleByCU, boolean failByEV, Integer coreId, Integer implementationId,
-        String signature, MethodResourceDescription requirements) {
+        String mpiFlags, boolean scaleByCU, boolean failByEV, CollectionLayout cl, Integer coreId,
+        Integer implementationId, String signature, MethodResourceDescription requirements) {
 
         super(coreId, implementationId, signature, requirements);
 
@@ -72,6 +75,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.mpiFlags = mpiFlags;
         this.scaleByCU = scaleByCU;
         this.failByEV = failByEV;
+        this.cl = cl;
     }
 
     /**
@@ -146,6 +150,15 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         return failByEV;
     }
 
+    /**
+     * Returns the collection layout.
+     * 
+     * @return The collection layout.
+     */
+    public CollectionLayout getCollectionLayout() {
+        return this.cl;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.PYTHON_MPI;
@@ -160,7 +173,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         sb.append(", MPI FLAGS=").append(this.mpiFlags);
         sb.append(", SCALE_BY_CU=").append(this.scaleByCU);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
-        sb.append("]");
+        sb.append(", Collection Layouts: ").append(this.cl);
 
         return sb.toString();
     }
@@ -168,7 +181,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     @Override
     public String toString() {
         return super.toString() + " Python MPI Method declared in class " + this.declaringClass + "."
-            + this.alternativeMethod + " with MPIrunner " + this.mpiRunner + ": " + this.requirements.toString();
+            + this.alternativeMethod + " with MPIrunner " + this.mpiRunner
+            + ". with the following Collection Layout: \n" + cl + "\n " + this.requirements.toString();
     }
 
     @Override
@@ -181,6 +195,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
         this.failByEV = in.readBoolean();
+        this.cl = (CollectionLayout) in.readObject();
     }
 
     @Override
@@ -193,6 +208,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);
         out.writeBoolean(this.failByEV);
+        out.writeObject(this.cl);
     }
 
 }

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.types.CollectionLayout;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -30,11 +31,13 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     private final String mpiFlags;
     private final boolean scaleByCU;
     private final boolean failByEV;
+    // This parameter has to be a list because if you have multiple layouts for multiple parameters
+    private final CollectionLayout cl;
 
 
     protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
-        String mpiRunner, String mpiFlags, boolean scaleByCU, boolean failByEV,
-        MethodResourceDescription implConstraints) {
+        String mpiRunner, String mpiFlags, boolean scaleByCU, boolean failByEV, String paramName, int blockCount,
+        int blockLen, int blockStride, MethodResourceDescription implConstraints) {
 
         super(implSignature, implConstraints);
 
@@ -45,12 +48,13 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         this.methodName = methodName;
         this.scaleByCU = scaleByCU;
         this.failByEV = failByEV;
+        this.cl = new CollectionLayout(paramName, blockCount, blockLen, blockStride);
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, mpiFlags, scaleByCU,
-            failByEV, coreId, implId, this.getSignature(), this.getConstraints());
+            failByEV, this.cl, coreId, implId, this.getSignature(), this.getConstraints());
     }
 
     @Override
@@ -66,6 +70,7 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
+        sb.append("\t Collection Layouts: ").append(this.cl).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from _ast import If
 
 # -*- coding: utf-8 -*-
 
@@ -74,6 +75,19 @@ class MPI(PyCOMPSsDecorator):
         decorator_name = '@' + self.__class__.__name__.lower()
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
+            if __debug__:
+                logger.debug("Init @mpi decorator...")
+
+            layout_nums = 0
+            # TODO: Maybe add here the collection layout to avoid iterate twice per elements
+            # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
+            for key in self.kwargs.keys():
+                if "_layout" in key:
+                    layout_nums += 1
+                    SUPPORTED_ARGUMENTS.add(key)
+            if layout_nums > 1:
+                raise Exception("More than one layout definition is not yet supported!")
+
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
                             DEPRECATED_ARGUMENTS,
@@ -137,6 +151,36 @@ class MPI(PyCOMPSsDecorator):
         mpi_f.__doc__ = func.__doc__
         return mpi_f
 
+    def __resolve_collection_layout_params__(self):
+        param_name = ""
+        block_count = -1
+        block_length = -1
+        stride = -1
+
+        for key, value in self.kwargs.items():
+            if "_layout" in key:
+                param_name = key.split("_layout")[0]
+                collection_layout = value
+                if "block_count" in collection_layout:
+                    block_count = collection_layout["block_count"]
+                else:
+                    block_count = -1
+
+                if "block_length" in collection_layout:
+                    block_length = collection_layout["block_length"]
+                else:
+                    block_length = -1
+
+                if "stride" in collection_layout:
+                    stride = collection_layout["stride"]
+                else:
+                    stride = -1
+
+                if (block_length != -1 and block_count == -1) or (stride != -1 and block_count == -1):
+                    raise Exception("Error: collection_layout must contain block_count!")
+
+        return [param_name, str(block_count), str(block_length), str(stride)]
+
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
         """ Include the registering info related to @mpi.
@@ -184,6 +228,8 @@ class MPI(PyCOMPSsDecorator):
         self.__resolve_working_dir__()
         # Resolve the fail by exit value
         self.__resolve_fail_by_exit_value__()
+        # Resolve parameter collection layout
+        collection_layout_params = self.__resolve_collection_layout_params__()
 
         if binary == "[unassigned]":
             impl_signature = impl_type + '.'
@@ -197,6 +243,9 @@ class MPI(PyCOMPSsDecorator):
                      flags,
                      scale_by_cu_str,
                      self.kwargs['fail_by_exit_value']]
+
+        if impl_type == "PYTHON_MPI":
+            impl_args = impl_args + collection_layout_params
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

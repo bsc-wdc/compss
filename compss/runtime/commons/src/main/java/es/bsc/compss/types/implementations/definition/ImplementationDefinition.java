@@ -133,6 +133,11 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String pythonMPIFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
                     boolean pythonMPIscaleByCU = Boolean.parseBoolean(implTypeArgs[5]);
                     boolean pythonMPIfailByEV = Boolean.parseBoolean(implTypeArgs[6]);
+                    String pythonMPILayoutParam = EnvironmentLoader.loadFromEnvironment(implTypeArgs[7]);
+                    int pythonMPIBlockSize = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[8]));
+                    int pythonMPIBlockLen = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[9]));
+                    int pythonMPIBlockStride =
+                        Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[10]));
                     if (pythonMPIdeclaringClass == null || pythonMPIdeclaringClass.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty declaringClass annotation for method " + implSignature);
@@ -143,7 +148,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
 
                     id = (ImplementationDefinition<T>) new PythonMPIDefinition(implSignature, pythonMPIdeclaringClass,
                         pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner, pythonMPIFlags, pythonMPIscaleByCU,
-                        pythonMPIfailByEV, (MethodResourceDescription) implConstraints);
+                        pythonMPIfailByEV, pythonMPILayoutParam, pythonMPIBlockSize, pythonMPIBlockLen,
+                        pythonMPIBlockStride, (MethodResourceDescription) implConstraints);
                     break;
 
                 case BINARY:

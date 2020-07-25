@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from _ast import If
 
 # -*- coding: utf-8 -*-
 
@@ -241,7 +242,10 @@ class MPI(PyCOMPSsDecorator):
                      runner,
                      flags,
                      scale_by_cu_str,
-                     self.kwargs['fail_by_exit_value']] + collection_layout_params
+                     self.kwargs['fail_by_exit_value']]
+
+        if impl_type == "PYTHON_MPI":
+            impl_args = impl_args + collection_layout_params
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

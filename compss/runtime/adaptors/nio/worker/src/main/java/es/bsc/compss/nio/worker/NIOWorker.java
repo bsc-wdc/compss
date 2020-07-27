@@ -251,7 +251,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
-            computingUnitsFPGA, fpgaMap, limitOfTasks, ioExecNum);
+            computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
 
         if (this.tracingLevel == NIOTracer.BASIC_MODE) {
             NIOTracer.enablePThreads();
@@ -1027,8 +1027,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String cpuMap = args[11];
         String gpuMap = args[12];
         String fpgaMap = args[13];
-        int limitOfTasks = Integer.parseInt(args[14]);
-        int ioExecNum = Integer.parseInt(args[15]);
+        int ioExecNum = Integer.parseInt(args[14]);
+        int limitOfTasks = Integer.parseInt(args[15]);
 
         String appUuid = args[16];
         // String lang = args[17];

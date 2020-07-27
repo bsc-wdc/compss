@@ -903,9 +903,10 @@ public class Executor implements Runnable {
         // if there's one or more missing, they will be necessarily out.
         boolean allOutFilesCreated = true;
         for (InvocationParam param : invocation.getParams()) {
-            if (!checkOutParam(param, invocation)) {
-                allOutFilesCreated = false;
-            }
+            allOutFilesCreated &= checkOutParam(param, invocation);
+        }
+        for (InvocationParam param : invocation.getResults()) {
+            allOutFilesCreated &= checkOutParam(param, invocation);
         }
         if (!allOutFilesCreated) {
             throw new JobExecutionException(

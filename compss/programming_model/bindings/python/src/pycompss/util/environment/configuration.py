@@ -37,7 +37,6 @@ from pycompss.util.supercomputer.scs import get_specific_log_dir
 from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_tracing
 from pycompss.util.supercomputer.scs import get_storage_conf
-from pycompss.util.tracing.helpers import enable_trace_master
 
 DEFAULT_PROJECT_PATH = '/Runtime/configuration/xml/projects/'
 DEFAULT_RESOURCES_PATH = '/Runtime/configuration/xml/resources/'
@@ -222,10 +221,12 @@ def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
         trace_value = 1
         os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
         ld_library_path = ld_library_path + ':' + extrae_lib
+        sys.path.append(extrae_lib)
     elif trace == 'advanced':
         trace_value = 2
         os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
         ld_library_path = ld_library_path + ':' + extrae_lib
+        sys.path.append(extrae_lib)
     else:
         msg = "ERROR: Wrong tracing parameter " + \
               "( [ True | basic ] | advanced | False)"

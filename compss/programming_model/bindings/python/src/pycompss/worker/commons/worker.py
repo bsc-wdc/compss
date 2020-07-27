@@ -54,8 +54,8 @@ def build_task_parameter(p_type,     # type: int
                          p_value,    # type: object
                          p_c_type,   # type: str
                          args=None,  # type: list
-                         pos=None    # type: int
-                         ):
+                         pos=None,    # type: int
+                         logger=None):
     # type: (...) -> (Parameter, int)
     """
     Build task parameter object from the given parameters.
@@ -169,6 +169,9 @@ def build_task_parameter(p_type,     # type: int
                 val = int(val)
         elif p_type == parameter.TYPE.DOUBLE:
             val = float(p_value)  # noqa
+            p_type = parameter.TYPE.FLOAT
+            if __debug__:
+                logger.debug("Changing type from DOUBLE to FLOAT")
         elif p_type == parameter.TYPE.BOOLEAN:
             val = (p_value == 'true')
         return Parameter(
@@ -217,7 +220,11 @@ def get_task_params(num_params, logger, args):  # noqa
                                                   p_value,
                                                   p_c_type,
                                                   args,
-                                                  pos)
+                                                  pos, logger)
+
+        if __debug__:
+            logger.debug("\t * Type : %s" % str(task_param.content_type))
+
         ret.append(task_param)
         pos += offset + 6
 

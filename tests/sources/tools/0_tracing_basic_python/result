@@ -76,10 +76,8 @@
       echo "evts_tasks: ${evts_tasks}"
       evts_tasks_end=$(grep -c ":${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       echo "evts_tasks_end: ${evts_tasks_end}"
-
-      evts_tasks_running=$(grep -c ":${WORKER_EVENTS}:2:" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "evts_tasks_running: ${evts_tasks_runing}"
-
+      evts_tasks_running=$(grep -c ":${WORKER_EVENTS}:2" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      echo "evts_tasks_running: ${evts_tasks_running}"
       evts_worker_running=$(grep -c ":${WORKER_EVENTS}:${WORKER_RUNNING}" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       echo "evts_worker_running: ${evts_worker_running}"
 

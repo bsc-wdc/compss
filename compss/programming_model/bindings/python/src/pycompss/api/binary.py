@@ -131,7 +131,9 @@ class Binary(PyCOMPSsDecorator):
         impl_signature = '.'.join((impl_type, _binary))
         impl_args = [_binary,
                      self.kwargs['working_dir'],
-                     self.kwargs['fail_by_exit_value']]
+                     self.kwargs['fail_by_exit_value'],
+                     engine,
+                     image]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

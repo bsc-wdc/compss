@@ -103,7 +103,7 @@ def compss_persistent_worker(config):
     for i in range(0, config.tasks_x_node):
         if __debug__:
             logger.debug(HEADER + "Launching process " + str(i))
-        process_name = 'Process-' + str(i)
+        process_name = "".join(("Process-", str(i)))
         queue = Queue()
         queues.append(queue)
         conf = ExecutorConf(TRACING,
@@ -130,52 +130,49 @@ def compss_persistent_worker(config):
             line = command.split()
 
             if line[0] == ADD_EXECUTOR_TAG:
-
-                process_name = 'Process-' + str(process_counter)
+                process_name = "".join(("Process-", str(process_counter)))
                 process_counter = process_counter + 1
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pipe = Pipe(in_pipe, out_pipe)
                 pid = create_threads(process_name, pipe)
-                control_pipe.write(ADDED_EXECUTOR_TAG + " " +
-                                   out_pipe + " " +
-                                   in_pipe + " " +
-                                   str(pid))
+                control_pipe.write(" ".join((ADDED_EXECUTOR_TAG,
+                                             out_pipe,
+                                             in_pipe,
+                                             str(pid))))
 
             elif line[0] == QUERY_EXECUTOR_ID_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 proc = PROCESSES.get(in_pipe)
                 pid = proc.pid
-                control_pipe.write(REPLY_EXECUTOR_ID_TAG + " " +
-                                   out_pipe + " " +
-                                   in_pipe + " " +
-                                   str(pid))
+                control_pipe.write(" ".join((REPLY_EXECUTOR_ID_TAG,
+                                             out_pipe,
+                                             in_pipe,
+                                             str(pid))))
 
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
                 proc = PROCESSES.get(in_pipe)
                 pid = proc.pid
-                logger.debug("[PYTHON WORKER] Signaling process with PID " +
-                             str(pid) + " to cancel a task")
+                if __debug__:
+                    logger.debug(HEADER + "Signaling process with PID " +
+                                 str(pid) + " to cancel a task")
                 os.kill(pid, signal.SIGUSR2)
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
-
                 in_pipe = line[1]
                 out_pipe = line[2]
-
                 proc = PROCESSES.pop(in_pipe, None)
-
                 if proc:
                     if proc.is_alive():
                         logger.warn(HEADER + "Forcing terminate on : " +
                                     proc.name)
                         proc.terminate()
                     proc.join()
-                control_pipe.write(REMOVED_EXECUTOR_TAG + " " +
-                                   out_pipe + " " +
-                                   in_pipe)
+                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG,
+                                             out_pipe,
+                                             in_pipe)))
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)

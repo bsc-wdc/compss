@@ -516,7 +516,7 @@ class ObjectTracker(object):
         for i in range(len(y[0])):
             plt.plot(x, [pt[i] for pt in y], label='%s' % labels[i])
         plt.legend()
-        target = os.path.join(target_path + "object_tracker.png")
+        target = os.path.join(target_path, "object_tracker.png")
         plt.savefig(target)
         if __debug__:
             logger.debug("Object tracker report stored in " + target)

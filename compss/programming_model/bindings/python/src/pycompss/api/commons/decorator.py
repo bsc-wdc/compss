@@ -116,7 +116,7 @@ class PyCOMPSsDecorator(object):
                 # Accepted argument
                 pass
             else:
-                raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
+                raise Exception("Incorrect format for fail_by_exit_value property. "    # noqa: E501
                                 "It should be boolean or an environment variable")      # noqa: E501
         else:
             self.kwargs['fail_by_exit_value'] = 'false'

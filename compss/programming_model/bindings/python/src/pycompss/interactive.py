@@ -268,27 +268,27 @@ def start(log_level='off',                     # type: str
     if RUNNING_IN_SUPERCOMPUTER:
         updated_vars = updated_variables_in_sc()
         if verbose:
-            print("- Overridden project xml with: " +
+            print("- Overridden project xml with: %s" %
                   updated_vars['project_xml'])
-            print("- Overridden resources xml with: " +
+            print("- Overridden resources xml with: %s" %
                   updated_vars['resources_xml'])
-            print("- Overridden master name with: " +
+            print("- Overridden master name with: %s" %
                   updated_vars['master_name'])
-            print("- Overridden master port with: " +
+            print("- Overridden master port with: %s" %
                   updated_vars['master_port'])
-            print("- Overridden uuid with: " +
+            print("- Overridden uuid with: %s" %
                   updated_vars['uuid'])
-            print("- Overridden base log dir with: " +
+            print("- Overridden base log dir with: %s" %
                   updated_vars['base_log_dir'])
-            print("- Overridden specific log dir with: " +
+            print("- Overridden specific log dir with: %s" %
                   updated_vars['specific_log_dir'])
-            print("- Overridden storage conf with: " +
+            print("- Overridden storage conf with: %s" %
                   updated_vars['storage_conf'])
-            print("- Overridden log level with: " +
+            print("- Overridden log level with: %s" %
                   str(updated_vars['log_level']))
-            print("- Overridden debug with: " +
+            print("- Overridden debug with: %s" %
                   str(updated_vars['debug']))
-            print("- Overridden trace with: " +
+            print("- Overridden trace with: %s" %
                   str(updated_vars['trace']))
         all_vars.update(updated_vars)
 
@@ -572,8 +572,11 @@ def __export_globals__():
     user_globals = ipython.__dict__['ns_table']['user_global']
     # Inject APP_PATH variable to user globals so that task and constraint
     # decorators can get it.
-    temp_app_filename = os.path.join(os.getcwd(), INTERACTIVE_FILE_NAME + '_')
-    temp_app_filename += str(time.strftime('%d%m%y_%H%M%S')) + '.py'
+    temp_app_filename = "".join((os.path.join(os.getcwd(),
+                                              INTERACTIVE_FILE_NAME),
+                                 '_',
+                                 str(time.strftime('%d%m%y_%H%M%S')),
+                                 '.py'))
     user_globals['APP_PATH'] = temp_app_filename
     APP_PATH = temp_app_filename
 

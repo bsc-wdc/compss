@@ -61,7 +61,7 @@ class OpenCL(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = '@' + self.__class__.__name__.lower()
+        decorator_name = "".join(('@', self.__class__.__name__.lower()))
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments

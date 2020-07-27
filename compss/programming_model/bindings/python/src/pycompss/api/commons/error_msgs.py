@@ -46,7 +46,7 @@ def cast_env_to_int_error(what):
     :param what: Environment variable name.
     :return: String - Can not cast from environment variable to integer.
     """
-    return "ERROR: " + what + " value cannot be cast from ENV variable to int"
+    return "ERROR: %s value cannot be cast from ENV variable to int" % what
 
 
 def cast_string_to_int_error(what):
@@ -57,7 +57,7 @@ def cast_string_to_int_error(what):
     :param what: Environment variable name.
     :return: String - Can not cast from string to integer.
     """
-    return "ERROR: " + what + " value cannot be cast from string to int"
+    return "ERROR: %s value cannot be cast from string to int" % what
 
 
 def wrong_value(value_name, decorator_name):
@@ -69,6 +69,5 @@ def wrong_value(value_name, decorator_name):
     :param decorator_name: Decorator name which requires the message.
     :return: String - Wrong value at decorator message.
     """
-    return "ERROR: Wrong " + value_name + \
-           " value at " + decorator_name + \
-           " decorator."
+    return "ERROR: Wrong %s value at %s decorator." % (value_name,
+                                                       decorator_name)

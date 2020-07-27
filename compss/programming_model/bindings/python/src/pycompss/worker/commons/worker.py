@@ -108,13 +108,10 @@ def build_task_parameter(p_type,     # type: int
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
             num_substrings = int(p_value)  # noqa
-            aux = ''
-            first_substring = True
+            aux_str = []
             for j in range(6, num_substrings + 6):
-                if not first_substring:
-                    aux += ' '
-                first_substring = False
-                aux += args[pos + j]
+                aux_str.append(args[pos + j])
+            aux = " ".join(aux_str)
         else:
             aux = str(p_value)
         # Decode the received string
@@ -326,7 +323,7 @@ def task_execution(logger,              # type: ...
         logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" %
                          process_name)
         logger.exception(''.join(line for line in lines))
-        logger.exception("Check that all parameters have been defined with " +
+        logger.exception("Check that all parameters have been defined with "
                          "an absolute import path (even if in the same file)")
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None

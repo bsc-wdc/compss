@@ -789,9 +789,9 @@ class TaskWorker(TaskCommons):
         for arg in args[params_start:params_end - 1]:
             # Loop through the arguments and update new_types and new_values
             if not isinstance(arg, Parameter):
-                raise Exception('ERROR: A task parameter arrived as an' +
-                                ' object instead as a TaskParameter' +
-                                ' when building the task result message.')
+                raise Exception("ERROR: A task parameter arrived as an"
+                                " object instead as a TaskParameter"
+                                " when building the task result message.")
             else:
                 original_name = get_name_from_kwarg(arg.name)
                 param = self.decorator_arguments.get(original_name,

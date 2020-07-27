@@ -535,13 +535,13 @@ def register_ce(core_element):
         logger.debug("\t - Implementation signature: %s" % impl_signature)
 
     # Build constraints string from constraints dictionary
-    impl_constraints_str = ''
+    impl_constraints_lst = []
     for key, value in impl_constraints.items():
         if isinstance(value, list):
             val = str(value).replace('\'', '')
-            impl_constraints_str += key + ':' + str(val) + ';'
-        else:
-            impl_constraints_str += key + ':' + str(value) + ';'
+        kv_constraint = "".join((key, ':', str(val), ';'))
+        impl_constraints_lst.append(kv_constraint)
+    impl_constraints_str = "".join(impl_constraints_lst)
 
     if __debug__:
         logger.debug("\t - Implementation constraints: %s" %

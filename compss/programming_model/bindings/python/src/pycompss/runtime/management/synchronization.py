@@ -85,7 +85,9 @@ def _synchronize(obj, mode):
         else:
             # file_path is of the form storage://pscoId or
             # file://sys_path_to_file
-            file_path = COMPSs.open_file(app_id, "storage://" + str(obj_id), mode)
+            file_path = COMPSs.open_file(app_id,
+                                         "".join(("storage://", str(obj_id))),
+                                         mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
             new_obj = get_by_id(file_name)

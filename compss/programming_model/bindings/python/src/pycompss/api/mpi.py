@@ -72,7 +72,7 @@ class MPI(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         self.task_type = "mpi"
-        decorator_name = '@' + self.__class__.__name__.lower()
+        decorator_name = "".join(('@', self.__class__.__name__.lower()))
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
@@ -219,7 +219,7 @@ class MPI(PyCOMPSsDecorator):
             elif isinstance(scale_by_cu, str):
                 scale_by_cu_str = scale_by_cu
             else:
-                raise Exception("Incorrect format for scale_by_cu property. " +  # noqa: E501
+                raise Exception("Incorrect format for scale_by_cu property. "
                                 "It should be boolean or an environment variable")  # noqa: E501
         else:
             scale_by_cu_str = 'false'

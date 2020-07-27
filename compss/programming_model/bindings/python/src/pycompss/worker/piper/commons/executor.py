@@ -35,9 +35,9 @@ try:
     import thread_affinity  # noqa
 except ImportError:
     from pycompss.worker.piper.commons.constants import HEADER as MAIN_HEADER
-    print(MAIN_HEADER +
-          "WARNING: Could not import process affinity library: " +
-          "CPU AFFINITY NOT SUPPORTED!")
+    print("".join((MAIN_HEADER,
+                   "WARNING: Could not import process affinity library: ",
+                   "CPU AFFINITY NOT SUPPORTED!")))
     THREAD_AFFINITY = False
 
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
@@ -123,7 +123,7 @@ class Pipe(object):
         :return: None
         """
         with open(self.output_pipe, 'w') as out_pipe:
-            out_pipe.write(message + "\n")
+            out_pipe.write("".join((message, "\n")))
 
     def close(self):
         # type: () -> None
@@ -136,7 +136,8 @@ class Pipe(object):
             self.input_pipe_open = None
 
     def __str__(self):
-        return "PIPE IN " + self.input_pipe + " OUT " + self.output_pipe
+        return " ".join(("PIPE IN", self.input_pipe,
+                         "PIPE OUT", self.output_pipe))
 
 
 class ExecutorConf(object):
@@ -247,7 +248,8 @@ def executor(queue, process_name, pipe, conf):
             # Runtime -> pipe - Read command from pipe
             command = pipe.read_command(retry_period=0.5)
             if command != "":
-                logger.debug(HEADER + "Received %s" % command)
+                if __debug__:
+                    logger.debug(HEADER + "Received %s" % command)
                 # Process the command
                 alive = process_message(command,
                                         process_name,
@@ -270,9 +272,9 @@ def executor(queue, process_name, pipe, conf):
                     finishWorkerPostFork()
             except ImportError:
                 if __debug__:
-                    logger.info(
-                        HEADER + "[%s] Could not find finishWorkerPostFork storage call. Ignoring it." %  # noqa: E501
-                        str(process_name))
+                    logger.info(HEADER +
+                                "[%s] Could not find finishWorkerPostFork storage call. Ignoring it." %  # noqa: E501
+                                str(process_name))
 
         # Stop streaming
         if streaming:
@@ -625,9 +627,9 @@ def bind_cpus(cpus, process_name, logger):  # noqa
         thread_affinity.setaffinity(cpus)
     except Exception:  # noqa
         if __debug__:
-            logger.error(
-                HEADER + "[%s] WARNING: could not assign affinity %s" %
-                (str(process_name), str(cpus)))
+            logger.error(HEADER +
+                         "[%s] WARNING: could not assign affinity %s" %
+                         (str(process_name), str(cpus)))
         return False
     return True
 
@@ -677,8 +679,10 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
     # Task has finished without exceptions
     # endTask jobId exitValue message
     params = build_return_params_message(new_types, new_values)
-    message = END_TASK_TAG + " " + str(job_id)
-    message += " " + str(exit_value) + " " + str(params) + "\n"
+    message = " ".join((END_TASK_TAG,
+                        str(job_id),
+                        str(exit_value),
+                        str(params) + "\n"))
     return message
 
 
@@ -691,8 +695,9 @@ def build_compss_exception_message(except_msg, job_id):
     :return: Exception message and message.
     """
     except_msg = except_msg.replace(" ", "_")
-    message = COMPSS_EXCEPTION_TAG + " " + str(job_id)
-    message += " " + str(except_msg) + "\n"
+    message = " ".join((COMPSS_EXCEPTION_TAG,
+                        str(job_id),
+                        str(except_msg) + "\n"))
     return except_msg, message
 
 
@@ -704,8 +709,9 @@ def build_exception_message(job_id, exit_value):
     :param exit_value: Exit value.
     :return: Exception message.
     """
-    message = END_TASK_TAG + " " + str(job_id)
-    message += " " + str(exit_value) + "\n"
+    message = " ".join((END_TASK_TAG,
+                        str(job_id),
+                        str(exit_value) + "\n"))
     return message
 
 

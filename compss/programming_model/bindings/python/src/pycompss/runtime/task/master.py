@@ -309,7 +309,7 @@ class TaskMaster(TaskCommons):
         if self.class_name == '':
             path = self.module_name
         else:
-            path = self.module_name + '.' + self.class_name
+            path = ".".join((self.module_name, self.class_name))
 
         # Infer COMPSs types from real types, except for files
         self._serialize_objects()
@@ -320,7 +320,7 @@ class TaskMaster(TaskCommons):
         compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
         # Signature and other parameters:
-        signature = '.'.join([path, self.function_name])
+        signature = '.'.join((path, self.function_name))
 
         if __debug__:
             logger.debug("TASK: %s of type %s, in module %s, in class %s" %
@@ -754,21 +754,22 @@ class TaskMaster(TaskCommons):
             # The task is defined within the main app file.
             # This case is never reached with Python 3 since it includes
             # frames that are not present with Python 2.
-            impl_signature = self.module_name + "." + self.function_name
+            impl_signature = ".".join((self.module_name, self.function_name))
             impl_type_args = [self.module_name, self.function_name]
         else:
             if self.class_name:
                 # Within class or subclass
-                impl_signature = self.module_name + '.' + \
-                                 self.class_name + '.' + \
-                                 self.function_name
-                impl_type_args = [self.module_name + '.' + self.class_name,
+                impl_signature = ".".join((self.module_name,
+                                           self.class_name,
+                                           self.function_name))
+                impl_type_args = [".".join((self.module_name, self.class_name)),
                                   self.function_name]
             else:
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular
                 # frames are included, but not class names found.
-                impl_signature = self.module_name + "." + self.function_name
+                impl_signature = ".".join((self.module_name,
+                                           self.function_name))
                 impl_type_args = [self.module_name, self.function_name]
 
         return impl_signature, impl_type_args

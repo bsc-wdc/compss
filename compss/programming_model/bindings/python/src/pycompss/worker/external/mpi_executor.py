@@ -84,20 +84,18 @@ def executor(process_name, command):
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == 'true' or log_level == "debug":
         # Debug
-        init_logging_worker(worker_path +
-                            '/../../../log/logging_mpi_worker_debug.json',
-                            tracing)
+        log_json = "".join((worker_path,
+                            "/../../../log/logging_mpi_worker_debug.json"))
     elif log_level == "info" or log_level == "off":
-        init_logging_worker(worker_path +
-                            '/../../../log/logging_mpi_worker_off.json',
-                            tracing)
+        log_json = "".join((worker_path,
+                            "/../../../log/logging_mpi_worker_off.json"))
     else:
         # Default
-        init_logging_worker(worker_path +
-                            '/../../../log/logging_mpi_worker.json',
-                            tracing)
+        log_json = "".join((worker_path,
+                            "/../../../log/logging_mpi_worker.json"))
+    init_logging_worker(log_json, tracing)
 
-    logger = logging.getLogger('pycompss.worker.external.mpi_worker')
+    logger = logging.getLogger("pycompss.worker.external.mpi_worker")
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
     logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)  # noqa
@@ -262,25 +260,26 @@ def process_task(current_line,     # type: str
                 # Task has finished without exceptions
                 # endTask jobId exitValue message
                 params = build_return_params_message(new_types, new_values)
-                message = END_TASK_TAG + " " + str(job_id)
-                message += " " + str(exit_value) + " " + str(params) + "\n"
+                message = " ".join((END_TASK_TAG,
+                                    str(job_id),
+                                    str(exit_value),
+                                    str(params) + "\n"))
             elif exit_value == 2:
                 # Task has finished with a COMPSs Exception
                 # compssExceptionTask jobId exitValue message
-
                 except_msg = except_msg.replace(" ", "_")
-                message = COMPSS_EXCEPTION_TAG + " " + str(job_id)
-                message += " " + str(except_msg) + "\n"
+                message = " ".join((COMPSS_EXCEPTION_TAG,
+                                    str(job_id),
+                                    str(except_msg) + "\n"))
                 if __debug__:
-                    logger.debug(
-                        "%s - COMPSS EXCEPTION TASK MESSAGE: %s" %
-                        (str(process_name),
-                         str(except_msg)))
+                    logger.debug("%s - COMPSS EXCEPTION TASK MESSAGE: %s" %
+                                 (str(process_name), str(except_msg)))
             else:
                 # elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
                 # An exception has been raised in task
-                message = END_TASK_TAG + " " + str(job_id)
-                message += " " + str(exit_value) + "\n"
+                message = " ".join((END_TASK_TAG,
+                                    str(job_id),
+                                    str(exit_value) + "\n"))
                 # return FAILURE_SIG, except_msg
 
             if __debug__:
@@ -313,7 +312,9 @@ def process_task(current_line,     # type: str
             logger.exception("%s - Exception %s" % (str(process_name),
                                                     str(e)))
             exit_value = 7
-            message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"  # noqa: E501
+            message = " ".join((END_TASK_TAG,
+                                str(job_id),
+                                str(exit_value) + "\n"))
             # return FAILURE_SIG, e
 
         # Clean environment variables
@@ -340,8 +341,9 @@ def process_task(current_line,     # type: str
             logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" %
                          (str(process_name), str(current_line)))
         exit_value = 7
-        message = END_TASK_TAG + " " + str(job_id)
-        message += " " + str(exit_value) + "\n"
+        message = " ".join((END_TASK_TAG,
+                            str(job_id),
+                            str(exit_value) + "\n"))
 
     return exit_value, message
     #    return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)

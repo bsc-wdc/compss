@@ -112,14 +112,13 @@ def load_loggers(debug, persistent_storage, tracing):
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if debug:
         # Debug
-        init_logging_worker(worker_path +
-                            '/../../../../log/logging_worker_debug.json',
-                            tracing)
+        log_json = "".join((worker_path,
+                            '/../../../../log/logging_worker_debug.json'))
     else:
         # Default
-        init_logging_worker(worker_path +
-                            '/../../../../log/logging_worker_off.json',
-                            tracing)
+        log_json = "".join((worker_path,
+                            '/../../../../log/logging_worker_off.json'))
+    init_logging_worker(log_json, tracing)
 
     # Define logger facilities
     logger = logging.getLogger('pycompss.worker.piper.piper_worker')

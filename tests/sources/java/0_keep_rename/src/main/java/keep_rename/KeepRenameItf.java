@@ -1,7 +1,5 @@
 package keep_rename;
 
-import java.util.List;
-
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Type;

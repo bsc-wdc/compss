@@ -53,7 +53,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -162,8 +161,7 @@ public class DataManagerImpl implements DataManager {
         fileOpsExecutor = Executors.newFixedThreadPool(1);
 
         if (NIOTracer.extraeEnabled()) {
-
-            Future<Object> f = fileOpsExecutor.submit(new Callable() {
+            Future<Object> f = this.fileOpsExecutor.submit(new Callable<Object>() {
 
                 public Object call() {
                     if (NIOTracer.extraeEnabled()) {
@@ -177,6 +175,7 @@ public class DataManagerImpl implements DataManager {
                     return new Object();
                 }
             });
+
             try {
                 f.get();
             } catch (Exception e) {

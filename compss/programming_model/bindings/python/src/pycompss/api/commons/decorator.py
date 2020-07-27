@@ -124,50 +124,27 @@ class PyCOMPSsDecorator(object):
     def __process_computing_nodes__(self, decorator_name):
         # type: (str) -> None
         """
-        Process computing nodes from decorator.
-        Modifies the self.kwargs dictionary since it can be used in lower level
-        decorators (until execution when invoked).
-        Used in some decorators:
+        Processes the computing_nodes from the decorator.
+        We only ensure that the corect self.kwargs entry exists since its value
+        will be parsed and resolved by the master.process_computing_nodes.
+        Used in decorators:
+            - mpi
+            - multinode
             - compss
             - decaf
-            - multinode
-            - ompss
 
-        :return: the number of computing nodes
+        :return: None
         """
-        if 'computing_nodes' not in self.kwargs and \
-                'computingNodes' not in self.kwargs:
-            self.kwargs['computing_nodes'] = 1
-        else:
-            if 'computingNodes' in self.kwargs:
-                self.kwargs['computing_nodes'] = \
-                    self.kwargs.pop('computingNodes')
-            computing_nodes = self.kwargs['computing_nodes']
-            if isinstance(computing_nodes, int):
-                # Nothing to do
-                pass
-            elif isinstance(computing_nodes, str):
-                # Check if it is an environment variable to be loaded
-                if computing_nodes.strip().startswith('$'):
-                    # Computing nodes is an ENV variable, load it
-                    env_var = computing_nodes.strip()[1:]  # Remove $
-                    if env_var.startswith('{'):
-                        env_var = env_var[1:-1]  # remove brackets
-                    try:
-                        self.kwargs['computing_nodes'] = \
-                            int(os.environ[env_var])
-                    except ValueError:
-                        raise Exception(
-                            cast_env_to_int_error('Computing Nodes'))
-                else:
-                    # ComputingNodes is in string form, cast it
-                    try:
-                        self.kwargs['computing_nodes'] = int(computing_nodes)
-                    except ValueError:
-                        raise Exception(
-                            cast_string_to_int_error('Computing Nodes'))
+        if 'computing_nodes' not in self.kwargs:
+            if 'computingNodes' not in self.kwargs:
+                # No annotation present, adding default value
+                self.kwargs['computing_nodes'] = 1
             else:
-                raise Exception(wrong_value("Computing Nodes", decorator_name))
+                # Legacy annotation present, switching
+                self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
+        else:
+            # Valid annotation found, nothing to do
+            pass
 
         if __debug__:
             logger.debug("This " + decorator_name + " task will have " +

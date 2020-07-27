@@ -261,6 +261,9 @@ public class GATWorker implements InvocationContext {
             case PYTHON_MPI:
                 // TODO: Support Python MPI in GAT
                 throw new UnsupportedOperationException("Python MPI is not supported in GAT");
+            case CONTAINER:
+                // TODO: Container task execution in GAT not implemented
+                throw new UnsupportedOperationException("Container is not supported in GAT");
         }
         // If we reach this point means that the methodType was unrecognized
         ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);

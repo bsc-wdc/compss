@@ -19,6 +19,7 @@ package es.bsc.compss.types.listeners;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.util.ResourceManager;
 
 
 /**
@@ -26,32 +27,50 @@ import es.bsc.compss.types.resources.ResourceDescription;
  */
 public class CancelTaskGroupOnResourceCreation implements ResourceCreationListener {
 
-    private final AccessProcessor taskProducer;
-    private final Application app;
-    private final String groupName;
+    private final AccessProcessor ap;
+    private final Application application;
+
+    private final int numTotalResources;
+    private int grantedResources;
+
+    private final String taskGroupName;
 
 
     /**
      * Creates a new ResourceCreationListener.
      * 
-     * @param taskProducer Associated task producer.
-     * @param app Application.
-     * @param groupName Task group to be notified.
+     * @param ap Associated AccessProcessor.
+     * @param application Application.
+     * @param numTotalResources Total number of resources to be requested.
+     * @param taskGroupName Task group to be notified.
      */
-    public CancelTaskGroupOnResourceCreation(AccessProcessor taskProducer, Application app, String groupName) {
-        this.taskProducer = taskProducer;
-        this.app = app;
-        this.groupName = groupName;
+    public CancelTaskGroupOnResourceCreation(AccessProcessor ap, Application application, int numTotalResources,
+        String taskGroupName) {
+        this.ap = ap;
+        this.application = application;
+
+        this.numTotalResources = numTotalResources;
+        this.grantedResources = 0;
+        this.taskGroupName = taskGroupName;
     }
 
     @Override
     public void notifyResourceCreation(ResourceDescription desc) {
-        // Cancel associated task group (if provided)
-        if (this.taskProducer != null && this.app != null && this.groupName != null && !this.groupName.isEmpty()
-            && !this.groupName.equals("NULL")) {
-            this.taskProducer.cancelTaskGroup(this.app, this.groupName);
-        }
+        // Increase granted resources
+        this.grantedResources = this.grantedResources + 1;
 
+        // Check status
+        if (this.grantedResources < this.numTotalResources) {
+            // Keep requesting resources
+            ResourceManager.requestResources(1, this);
+        } else {
+            // Petition totally fulfilled
+            // Canceling associated task group if provided
+            if (this.ap != null && this.application != null && this.taskGroupName != null
+                && !this.taskGroupName.isEmpty() && !this.taskGroupName.equals("NULL")) {
+                this.ap.cancelTaskGroup(this.application, this.taskGroupName);
+            }
+        }
     }
 
 }

@@ -65,7 +65,6 @@ EOF
      \
      --streaming=PSCOS \
      --storage_conf=${storageConf} \
-     --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
      \
      --classpath="${base_app_dir}/${jar_name}":${storageImplPath} \
      \

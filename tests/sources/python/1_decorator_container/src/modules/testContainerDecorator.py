@@ -37,7 +37,8 @@ def increment(file_path):
 
 @container(engine="DOCKER",
            image="ubuntu",
-           binary="ls", working_dir="${TEST_WORKING_DIR}")
+           working_dir="${TEST_WORKING_DIR}")
+@binary(binary="ls")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
 def docker_func(result):
     pass
@@ -90,8 +91,8 @@ class testContainerDecorator(unittest.TestCase):
         files_list = fis_ls.read()
         fis_ls.close()
         print("Docker files list is " + files_list)
-'''
-        
+
+'''        
         # Execute LS
         # singularity_func(infile)
 
@@ -107,4 +108,6 @@ class testContainerDecorator(unittest.TestCase):
         fis_ls = compss_open(infile, 'r+')
         final_value = fis_ls.read()
         fis_ls.close()
-        print(final_value)'''
+        print(final_value)
+
+'''

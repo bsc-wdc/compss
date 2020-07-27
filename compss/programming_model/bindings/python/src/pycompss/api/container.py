@@ -39,14 +39,13 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'engine',
-                       'image',
-                       'binary'}
+                       'image'}
 SUPPORTED_ARGUMENTS = {'engine',
                        'image',
                        'fail_by_exit_value',
-                       'binary',
                        'working_dir'}
-DEPRECATED_ARGUMENTS = {'workingDir'}
+DEPRECATED_ARGUMENTS = {'workingDir',
+                        'binary'}
 
 
 class Container(PyCOMPSsDecorator):
@@ -113,7 +112,7 @@ class Container(PyCOMPSsDecorator):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @binary.
+        """ Include the registering info related to @containerZ.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -127,16 +126,14 @@ class Container(PyCOMPSsDecorator):
         engine = self.kwargs['engine']
         image = self.kwargs['image']
 
-
         # Resolve the working directory
         self.__resolve_working_dir__()
         # Resolve the fail by exit value
         self.__resolve_fail_by_exit_value__()
 
         impl_type = 'CONTAINER'
-        _binary = str(self.kwargs['binary'])
-        impl_signature = '.'.join((impl_type, _binary))
-        impl_args = [_binary,
+        impl_signature = impl_type
+        impl_args = [None,
                      self.kwargs['working_dir'],
                      self.kwargs['fail_by_exit_value'],
                      engine,

@@ -41,10 +41,10 @@ if __debug__:
 MANDATORY_ARGUMENTS = {'binary'}
 SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
-                       'fail_by_exit_value',
+                       'fail_by_exit_value'}
+DEPRECATED_ARGUMENTS = {'workingDir',
                        'engine',
                        'image'}
-DEPRECATED_ARGUMENTS = {'workingDir'}
 
 
 class Binary(PyCOMPSsDecorator):
@@ -118,34 +118,30 @@ class Binary(PyCOMPSsDecorator):
         if __debug__:
             logger.debug("Configuring @binary core element.")
 
-        # Resolve @binary specific parameters
-        if 'engine' in self.kwargs:
-            engine = self.kwargs['engine']
-        else:
-            engine = '[unassigned]'
-
-        if 'image' in self.kwargs:
-            image = self.kwargs['image']
-        else:
-            image = '[unassigned]'
-
         # Resolve the working directory
         self.__resolve_working_dir__()
         # Resolve the fail by exit value
         self.__resolve_fail_by_exit_value__()
+
+        engine = '[unassigned]'
+        image = '[unassigned]'
 
         impl_type = 'BINARY'
         _binary = str(self.kwargs['binary'])
         impl_signature = '.'.join((impl_type, _binary))
         impl_args = [_binary,
                      self.kwargs['working_dir'],
-                     self.kwargs['fail_by_exit_value'],
-                     engine,
-                     image]
+                     self.kwargs['fail_by_exit_value']]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             # (e.g. @constraint)
+
+            # Container decorator sits on top of binary decorator
+            if kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
+                impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
+                impl_args[0] = _binary
+
             kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
             kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)

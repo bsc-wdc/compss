@@ -57,6 +57,7 @@ from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.util.arguments import check_arguments
+from pycompss.util.interactive.helpers import update_tasks_code_file
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import SerializerException
@@ -202,7 +203,7 @@ class TaskMaster(TaskCommons):
         # Add returns related attributes that will be useful later
         self.returns = None
         self.multi_return = False
-        # Task wont be registered until called from the master for the first
+        # Task won't be registered until called from the master for the first
         # time or have a different signature
         self.core_element = core_element
         self.registered = registered
@@ -273,27 +274,28 @@ class TaskMaster(TaskCommons):
 
         # Get other arguments if exist
         # Get is replicated
+        deco_arg_getter = self.decorator_arguments.get
         if 'isReplicated' in self.decorator_arguments:
-            is_replicated = self.decorator_arguments['isReplicated']
+            is_replicated = deco_arg_getter('isReplicated')
         else:
-            is_replicated = self.decorator_arguments['is_replicated']
+            is_replicated = deco_arg_getter('is_replicated')
         # Get is distributed
         if 'isDistributed' in self.decorator_arguments:
-            is_distributed = self.decorator_arguments['isDistributed']
+            is_distributed = deco_arg_getter('isDistributed')
         else:
-            is_distributed = self.decorator_arguments['is_distributed']
+            is_distributed = deco_arg_getter('is_distributed')
         # Get on failure
         if 'onFailure' in self.decorator_arguments:
-            on_failure = self.decorator_arguments['onFailure']
+            on_failure = deco_arg_getter('onFailure')
         else:
-            on_failure = self.decorator_arguments['on_failure']
+            on_failure = deco_arg_getter('on_failure')
         # Get time out
         if 'timeOut' in self.decorator_arguments:
-            time_out = self.decorator_arguments['timeOut']
+            time_out = deco_arg_getter('timeOut')
         else:
-            time_out = self.decorator_arguments['time_out']
+            time_out = deco_arg_getter('time_out')
         # Get priority
-        has_priority = self.decorator_arguments['priority']
+        has_priority = deco_arg_getter('priority')
 
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
@@ -398,7 +400,6 @@ class TaskMaster(TaskCommons):
                 # that consists of putting all user code that may be executed
                 # in the worker on a file.
                 # This file has to be visible for all workers.
-                from pycompss.util.interactive.helpers import update_tasks_code_file  # noqa: E501
                 update_tasks_code_file(self.user_function, path)
                 print("Found task: " + str(self.user_function.__name__))
         else:
@@ -795,48 +796,59 @@ class TaskMaster(TaskCommons):
         if __debug__:
             logger.debug("Configuring core element.")
 
+        set_ce_signature = self.core_element.set_ce_signature
+        set_impl_signature = self.core_element.set_impl_signature
+        set_impl_type_args = self.core_element.set_impl_type_args
+        set_impl_constraints = self.core_element.set_impl_constraints
+        set_impl_type = self.core_element.set_impl_type
+        set_impl_io = self.core_element.set_impl_io
         if pre_defined_ce:
             # Core element has already been created in an upper decorator
             # (e.g. @implements and @compss)
-            if self.core_element.get_ce_signature() is None:
-                self.core_element.set_ce_signature(impl_signature)
-                self.core_element.set_impl_signature(impl_signature)
+            get_ce_signature = self.core_element.get_ce_signature
+            get_impl_constraints = self.core_element.get_impl_constraints
+            get_impl_type = self.core_element.get_impl_type
+            get_impl_type_args = self.core_element.get_impl_type_args
+            get_impl_io = self.core_element.get_impl_io
+            if get_ce_signature() is None:
+                set_ce_signature(impl_signature)
+                set_impl_signature(impl_signature)
             else:
                 # If we are here that means that we come from an implements
                 # decorator, which means that this core element has already
                 # a signature
-                self.core_element.set_impl_signature(impl_signature)
-                self.core_element.set_impl_type_args(impl_type_args)
-            if self.core_element.get_impl_constraints() is None:
-                self.core_element.set_impl_constraints(impl_constraints)
-            if self.core_element.get_impl_type() is None:
-                self.core_element.set_impl_type(impl_type)
-            if self.core_element.get_impl_type_args() is None:
-                self.core_element.set_impl_type_args(impl_type_args)
+                set_impl_signature(impl_signature)
+                set_impl_type_args(impl_type_args)
+            if get_impl_constraints() is None:
+                set_impl_constraints(impl_constraints)
+            if get_impl_type() is None:
+                set_impl_type(impl_type)
+            if get_impl_type_args() is None:
+                set_impl_type_args(impl_type_args)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
-            if self.core_element.get_impl_type() == "PYTHON_MPI":
-                param_name = self.core_element.get_impl_type_args()[-4].strip()
+            if get_impl_type() == "PYTHON_MPI":
+                param_name = get_impl_type_args()[-4].strip()
                 if param_name:
                     if param_name in self.parameters:
                         if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:  # noqa: E501
                             raise Exception("Parameter " + param_name + " is not a collection!")   # noqa: E501
                     else:
                         raise Exception("Parameter " + param_name + " doesn't exist!")             # noqa: E501
-                self.core_element.set_impl_signature("MPI." + impl_signature)
-                self.core_element.set_impl_type_args(
-                    impl_type_args + self.core_element.get_impl_type_args()[1:])
-            if self.core_element.get_impl_io() is None:
-                self.core_element.set_impl_io(impl_io)
+                set_impl_signature("MPI." + impl_signature)
+                set_impl_type_args(
+                    impl_type_args + get_impl_type_args()[1:])
+            if get_impl_io() is None:
+                set_impl_io(impl_io)
         else:
             # @task is in the top of the decorators stack.
             # Update the empty core_element
-            self.core_element.set_ce_signature(impl_signature)
-            self.core_element.set_impl_signature(impl_signature)
-            self.core_element.set_impl_constraints(impl_constraints)
-            self.core_element.set_impl_type(impl_type)
-            self.core_element.set_impl_type_args(impl_type_args)
-            self.core_element.set_impl_io(impl_io)
+            set_ce_signature(impl_signature)
+            set_impl_signature(impl_signature)
+            set_impl_constraints(impl_constraints)
+            set_impl_type(impl_type)
+            set_impl_type_args(impl_type_args)
+            set_impl_io(impl_io)
 
     def register_task(self):
         # type: () -> None
@@ -972,7 +984,7 @@ class TaskMaster(TaskCommons):
             # This is also the only case when no multiple objects are
             # returned but only one
             self.multi_return = False
-            to_return = [_returns]
+            to_return = tuple([_returns])
 
         # At this point we have a list of returns
         for (i, elem) in enumerate(to_return):
@@ -1195,8 +1207,8 @@ class TaskMaster(TaskCommons):
             # Check if the object is small in order not to serialize it.
             if get_object_conversion():
                 p, written_bytes = _convert_parameter_obj_to_string(p,
-                                                             max_obj_arg_size,
-                                                             policy='objectSize')  # noqa: E501
+                                                                    max_obj_arg_size,     # noqa: E501
+                                                                    policy='objectSize')  # noqa: E501
                 max_obj_arg_size -= written_bytes
             else:
                 # Serialize objects into files
@@ -1626,13 +1638,11 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # we register it as file
         value = param.file_name
         typ = TYPE.FILE
-
         try:
             _mf = sys.modules[param.content.__class__.__module__].__file__
         except AttributeError:
             # 'builtin' modules do not have __file__ attribute!
             _mf = "builtins"
-
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(_mf, _class_name)
     elif param.content_type == TYPE.EXTERNAL_STREAM:

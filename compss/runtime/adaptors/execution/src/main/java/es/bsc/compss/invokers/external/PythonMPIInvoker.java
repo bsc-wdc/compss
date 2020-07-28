@@ -28,6 +28,7 @@ import es.bsc.compss.invokers.util.StdIOStream;
 import es.bsc.compss.types.CollectionLayout;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
 
@@ -111,7 +112,14 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Close out streams if any
         try {
             if (this.br != null) {
-                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+                // Python interpreter for direct access on stream property calls
+                String pythonInterpreter = null;
+                LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+                if (lp instanceof PythonParams) {
+                    PythonParams pp = (PythonParams) lp;
+                    pythonInterpreter = pp.getPythonInterpreter();
+                }
+                this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
@@ -136,7 +144,6 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Get COMPSS ENV VARS
 
         final String taskCMD = this.command.getAsString();
-        int numBasePythonMpiArgs = NUM_BASE_PYTHON_MPI_ARGS;
         String hostfile = null;
         if (this.scaleByCU) {
             hostfile = writeHostfile(taskSandboxWorkingDir, workers);
@@ -145,10 +152,18 @@ public class PythonMPIInvoker extends ExternalInvoker {
             // numBasePythonMpiArgs = numBasePythonMpiArgs + 2; // to add the -x OMP_NUM_THREADS
         }
 
+        // Python interpreter for direct access on stream property calls
+        String pythonInterpreter = null;
+        LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+        if (lp instanceof PythonParams) {
+            PythonParams pp = (PythonParams) lp;
+            pythonInterpreter = pp.getPythonInterpreter();
+        }
+
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-            this.invocation.getTarget(), streamValues, this.pythonInterpreter);
+            this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // MPI Flags
         int numMPIFlags = 0;
@@ -158,6 +173,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
             numMPIFlags = mpiflagsArray.length;
         }
 
+        int numBasePythonMpiArgs = NUM_BASE_PYTHON_MPI_ARGS;
         numBasePythonMpiArgs = numBasePythonMpiArgs + numMPIFlags;
 
         // Prepare command

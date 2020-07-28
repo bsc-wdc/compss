@@ -27,6 +27,7 @@ import es.bsc.compss.loader.total.ITAppEditor;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.io.File;
@@ -236,7 +237,6 @@ public class JavaNestedInvoker extends JavaInvoker {
         } else {
             long appId;
             appId = runtimeAPI.registerApplication(ceiName);
-
             // Register Core Elements on Runtime
             List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(ceiClass);
             for (CoreElementDefinition ced : ceds) {
@@ -262,9 +262,17 @@ public class JavaNestedInvoker extends JavaInvoker {
             }
             try {
                 returnValue = super.runMethod();
-                Object internal = context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, returnValue);
-                if (internal != null) {
-                    returnValue = internal;
+                if (returnValue != null) {
+                    Object internal = context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, returnValue);
+                    if (internal != null) {
+                        returnValue = internal;
+                    }
+                }
+                for (InvocationParam p : this.invocation.getParams()) {
+                    getLastValue(appId, p);
+                }
+                for (InvocationParam p : this.invocation.getResults()) {
+                    getLastValue(appId, p);
                 }
                 runtimeAPI.noMoreTasks(appId);
                 return returnValue;
@@ -277,5 +285,23 @@ public class JavaNestedInvoker extends JavaInvoker {
             }
         }
         return returnValue;
+    }
+
+    private void getLastValue(Long appId, InvocationParam p) {
+        switch (p.getType()) {
+            case OBJECT_T:
+            case PSCO_T:
+                context.getLoaderAPI().getObjectRegistry().newObjectAccess(appId, p.getValue(), false);
+                Object internal = context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, p.getValue());
+                p.setValue(internal);
+                break;
+            case FILE_T:
+                context.getRuntimeAPI().getFile(appId, p.getOriginalName());
+                java.io.File f = new java.io.File((String) p.getValue());
+                f = new java.io.File((String) p.getOriginalName());
+                break;
+            default:
+                // Do nothing
+        }
     }
 }

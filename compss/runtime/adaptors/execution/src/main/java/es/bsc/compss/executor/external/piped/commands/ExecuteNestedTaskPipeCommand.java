@@ -16,31 +16,13 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
-import java.util.Arrays;
+import es.bsc.compss.executor.external.commands.ExecuteNestedTaskExternalCommand;
 
 
 /**
  * Description of a task execution command to be sent through a pipe.
  */
-public class ExecuteNestedTaskPipeCommand extends ExecuteTaskExternalCommand implements PipeCommand {
-
-    private final Lang lang;
-    private final String onFailure;
-    private final int timeout;
-    private final boolean prioritary;
-    private final String signature;
-    private final String[] parameters;
-    private final int parameterCount;
-    private final int numReturns;
-    private final boolean hasTarget;
-    private final int numNodes;
-    private final boolean isReplicated;
-    private final boolean isDistributed;
-    private final String methodName;
-    private final String methodClass;
-
+public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalCommand implements PipeCommand {
 
     /**
      * Execute task command constructor.
@@ -48,25 +30,11 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteTaskExternalCommand imp
     public ExecuteNestedTaskPipeCommand(String[] command) {
         super();
 
-        this.lang = Lang.valueOf(command[1]);
+        entryPoint = EntryPoint.valueOf(command[1]);
 
-        String onFailure = "";
-        int timeout = 0;
-        boolean prioritary = false;
-        String signature = null;
-        String[] parameters = null;
-        int parameterCount = 0;
-        int numReturns = 0;
-        boolean hasTarget = false;
-        int numNodes = 0;
-        boolean isReplicated = false;
-        boolean isDistributed = false;
-        String methodName = null;
-        String methodClass = null;
-
-        switch (lang) {
-            case PYTHON:
-                // EXECUTE_NESTED_TASK LANG SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES IS_REPLICATED
+        switch (this.entryPoint) {
+            case SIGNATURE:
+                // EXECUTE_NESTED_TASK "SIGNATURE" SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES IS_REPLICATED
                 // IS_DISTRIBUTED HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
                 signature = command[2];
                 onFailure = command[3];
@@ -83,8 +51,8 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteTaskExternalCommand imp
                     System.arraycopy(command, 12, parameters, 0, parameters.length);
                 }
                 break;
-            case C:
-                // EXECUTE_NESTED_TASK LANG METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME IS_PRIORITARY
+            case CLASS_METHOD:
+                // EXECUTE_NESTED_TASK "CLASS_METHOD" METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME IS_PRIORITARY
                 // HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
                 methodClass = command[2];
                 onFailure = command[3];
@@ -118,16 +86,6 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteTaskExternalCommand imp
     }
 
     @Override
-    public String getAsString() {
-        StringBuilder sb = new StringBuilder(CommandType.EXECUTE_NESTED_TASK.name());
-        for (String c : this.arguments) {
-            sb.append(TOKEN_SEP);
-            sb.append(c);
-        }
-        return sb.toString();
-    }
-
-    @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
         if (value == 0) {
@@ -141,59 +99,4 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteTaskExternalCommand imp
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Lang getLang() {
-        return this.lang;
-    }
-
-    public String getOnFailure() {
-        return this.onFailure;
-    }
-
-    public int getTimeOut() {
-        return this.timeout;
-    }
-
-    public boolean getPrioritary() {
-        return this.prioritary;
-    }
-
-    public boolean hasTarget() {
-        return this.hasTarget;
-    }
-
-    public int getNumReturns() {
-        return this.numReturns;
-    }
-
-    public int getParameterCount() {
-        return this.parameterCount;
-    }
-
-    public String[] getParameters() {
-        return this.parameters;
-    }
-
-    public String getSignature() {
-        return this.signature;
-    }
-
-    public int getNumNodes() {
-        return this.numNodes;
-    }
-
-    public boolean isReplicated() {
-        return this.isReplicated;
-    }
-
-    public boolean isDistributed() {
-        return this.isDistributed;
-    }
-
-    public String getMethodClass() {
-        return this.methodClass;
-    }
-
-    public String getMethodName() {
-        return this.methodName;
-    }
 }

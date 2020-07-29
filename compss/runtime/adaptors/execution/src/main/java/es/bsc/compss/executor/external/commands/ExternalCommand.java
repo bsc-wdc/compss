@@ -44,7 +44,9 @@ public interface ExternalCommand {
         END_TASK, // Task finished
         COMPSS_EXCEPTION, // Task raised a COMPSsException
         CANCEL_TASK, // Task to be cancelled
+        NO_MORE_TASKS, // Sync until all previously-submitted tasks have finish
 
+        SYNCH, // Expected synch notification
         REMOVE, // Remove data
         SERIALIZE, // Serialize data
         ERROR // Error

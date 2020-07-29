@@ -24,6 +24,7 @@ import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
@@ -49,7 +50,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     /**
      * Piped Invoker constructor.
-     * 
+     *
      * @param context Task execution context
      * @param invocation Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
@@ -81,7 +82,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                     switch (rcvdCommand.getType()) {
                         case EXECUTE_NESTED_TASK: {
                             ExecuteNestedTaskPipeCommand entpc = (ExecuteNestedTaskPipeCommand) rcvdCommand;
-                            Lang lang = entpc.getLang();
+                            ExecuteNestedTaskPipeCommand.EntryPoint entryPoint = entpc.getEntryPoint();
                             String onFailure = entpc.getOnFailure();
                             int timeOut = entpc.getTimeOut();
                             boolean isPrioritary = entpc.getPrioritary();
@@ -93,7 +94,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 appId = context.getRuntimeAPI().registerApplication();
                             }
 
-                            if (lang == Lang.PYTHON) {
+                            if (entryPoint == ExecuteNestedTaskPipeCommand.EntryPoint.SIGNATURE) {
                                 String signature = entpc.getSignature();
                                 int numNodes = entpc.getNumNodes();
                                 boolean isReplicated = entpc.isReplicated();
@@ -108,6 +109,13 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                     isPrioritary, hasTarget, numReturns, parameterCount, parameters);
                             }
 
+                        }
+                            break;
+                        case NO_MORE_TASKS: {
+                            if (appId != null) {
+                                context.getRuntimeAPI().noMoreTasks(appId);
+                                pipes.sendCommand(new SynchPipeCommand());
+                            }
                         }
                             break;
                         case END_TASK:
@@ -157,14 +165,16 @@ public abstract class PipedInvoker extends ExternalInvoker {
             if (value != null) {
                 param.setValueClass(value.getClass());
             }
-        } else if (paramType != null && paramType.equals(DataType.COLLECTION_T)) {
-            param.setType(paramType);
-            InvocationParamCollection ipc = (InvocationParamCollection) param;
-            LinkedList<Object> values = taskStatus.getParameterValues(parIdx);
-            if (ipc.getCollectionParameters().size() == values.size()) {
-                updateParamCollection(ipc, values);
+        } else {
+            if (paramType != null && paramType.equals(DataType.COLLECTION_T)) {
+                param.setType(paramType);
+                InvocationParamCollection ipc = (InvocationParamCollection) param;
+                LinkedList<Object> values = taskStatus.getParameterValues(parIdx);
+                if (ipc.getCollectionParameters().size() == values.size()) {
+                    updateParamCollection(ipc, values);
+                }
+                // otherwise the collection contains null - it was in and has not been changed.
             }
-            // otherwise the collection contains null - it was in and has not been changed.
         }
     }
 
@@ -180,24 +190,28 @@ public abstract class PipedInvoker extends ExternalInvoker {
                 // The element is an inner collection. Resolve recursively.
                 param.setType(elementType);
                 updateParamCollection((InvocationParamCollection) param, (LinkedList<Object>) values.get(position));
-            } else if (elementType.equals(DataType.EXTERNAL_PSCO_T)) {
-                param.setType(elementType);
-                TypeValuePair pair = (TypeValuePair) values.get(position);
-                if (pair != null) {
-                    Object value = pair.getUpdatedParameterValue();
-                    param.setValue(value);
-                    if (value != null) {
-                        param.setValueClass(value.getClass());
+            } else {
+                if (elementType.equals(DataType.EXTERNAL_PSCO_T)) {
+                    param.setType(elementType);
+                    TypeValuePair pair = (TypeValuePair) values.get(position);
+                    if (pair != null) {
+                        Object value = pair.getUpdatedParameterValue();
+                        param.setValue(value);
+                        if (value != null) {
+                            param.setValueClass(value.getClass());
+                        }
+                    } else {
+                        param.setValue(null);
                     }
                 } else {
-                    param.setValue(null);
-                }
-            } else if (elementType.equals(DataType.FILE_T)) {
-                TypeValuePair pair = (TypeValuePair) values.get(position);
-                if (pair != null && pair.getUpdatedParameterValue() != null) {
-                    param.setType(pair.getUpdatedParameterType());
-                    param.setValue(pair.getUpdatedParameterValue());
-                    param.setValueClass(pair.getUpdatedParameterValue().getClass());
+                    if (elementType.equals(DataType.FILE_T)) {
+                        TypeValuePair pair = (TypeValuePair) values.get(position);
+                        if (pair != null && pair.getUpdatedParameterValue() != null) {
+                            param.setType(pair.getUpdatedParameterType());
+                            param.setValue(pair.getUpdatedParameterValue());
+                            param.setValueClass(pair.getUpdatedParameterValue().getClass());
+                        }
+                    }
                 }
             }
             position += 1;

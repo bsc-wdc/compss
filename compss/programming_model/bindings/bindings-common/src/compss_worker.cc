@@ -22,6 +22,7 @@
 #include <fstream>
 
 #include "common.h"
+#include "common_jni.h"
 #include "compss_worker.h"
 #include "BindingDataManager.h"
 #include "BindingExecutor.h"

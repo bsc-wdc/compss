@@ -14,25 +14,22 @@
  *  limitations under the License.
  *
  */
-#ifndef GS_COMPSS_H
-#define GS_COMPSS_H
+#ifndef JNI_COMPSS_H
+#define JNI_COMPSS_H
 
 
-#include "AbstractCache.h"
 #include "common.h"
-
-void GS_On(AbstractCache* absCache);
+#include "common_jni.h"
 
 /*** ==============> API FUNCTIONS <================= ***/
 
 // COMPSs Runtime state
-extern "C" void GS_On(void);
-extern "C" void GS_set_pipes(char* comPipe, char* resPipe);
-extern "C" void GS_Off(int code);
-extern "C" void GS_Cancel_Application_Tasks(long appId);
+void JNI_On(void);
+void JNI_Off(int code);
+void JNI_Cancel_Application_Tasks(long appId);
 
 // Task methods
-extern "C" void GS_RegisterCE(char* ceSignature,
+void JNI_RegisterCE(char* ceSignature,
                               char* implSignature,
                               char* implConstraints,
                               char* implType,
@@ -40,7 +37,7 @@ extern "C" void GS_RegisterCE(char* ceSignature,
                               int numParams,
                               char** implTypeArgs
                              );
-extern "C" void GS_ExecuteTask(long appId,
+void JNI_ExecuteTask(long appId,
                                char* className,
                                char* onFailure,
                                int timeout,
@@ -51,7 +48,7 @@ extern "C" void GS_ExecuteTask(long appId,
 			                   int numParams,
                                void** params
                               );
-extern "C" void GS_ExecuteTaskNew(long appId,
+void JNI_ExecuteTaskNew(long appId,
                                   char* signature,
                                   char* onFailure,
                                   int timeout,
@@ -66,28 +63,28 @@ extern "C" void GS_ExecuteTaskNew(long appId,
                                  );
 
 // File methods
-extern "C" int GS_Accessed_File(long appId, char* fileName);
-extern "C" void GS_Open_File(long appId, char* fileName, int mode, char** buf);
-extern "C" void GS_Close_File(long appId, char* fileName, int mode);
-extern "C" void GS_Delete_File(long appId, char* fileName, int waitForData);
-extern "C" void GS_Get_File(long appId, char* fileName);
+int JNI_Accessed_File(long appId, char* fileName);
+void JNI_Open_File(long appId, char* fileName, int mode, char** buf);
+void JNI_Close_File(long appId, char* fileName, int mode);
+void JNI_Delete_File(long appId, char* fileName, int waitForData);
+void JNI_Get_File(long appId, char* fileName);
 
-extern "C" void GS_Get_Directory(long appId, char* dirName);
+void JNI_Get_Directory(long appId, char* dirName);
 
 // COMPSs API Calls
-extern "C" void GS_Barrier(long appId);
-extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
-extern "C" void GS_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
-extern "C" void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
-extern "C" void GS_CloseTaskGroup(char* groupName, long appId);
-extern "C" int GS_GetNumberOfResources(long appId);
-extern "C" void GS_RequestResources(long appId, int numResources, char* groupName);
-extern "C" void GS_FreeResources(long appId, int numResources, char* groupName);
+void JNI_Barrier(long appId);
+void JNI_BarrierNew(long appId, int noMoreTasks);
+void JNI_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
+void JNI_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
+void JNI_CloseTaskGroup(char* groupName, long appId);
+int JNI_GetNumberOfResources(long appId);
+void JNI_RequestResources(long appId, int numResources, char* groupName);
+void JNI_FreeResources(long appId, int numResources, char* groupName);
 
 // Misc functions
-extern "C" void GS_Get_AppDir(char** buf);
-extern "C" void GS_EmitEvent(int type, long id);
-extern "C" void GS_Get_Object(long appId, char* objectId, char** buf);
-extern "C" void GS_Delete_Object(long appId, char* objectId, int** buf);
+void JNI_Get_AppDir(char** buf);
+void JNI_EmitEvent(int type, long id);
+void JNI_Get_Object(long appId, char* objectId, char** buf);
+void JNI_Delete_Object(long appId, char* objectId, int** buf);
 
-#endif /* GS_COMPSS_H */
+#endif /* JNI_COMPSS_H */

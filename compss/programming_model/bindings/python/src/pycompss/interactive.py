@@ -48,9 +48,15 @@ from pycompss.util.environment.configuration import check_infrastructure_variabl
 from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
+from pycompss.util.interactive.events import setup_event_manager
+from pycompss.util.interactive.events import release_event_manager
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
+<<<<<<< HEAD
 from pycompss.util.interactive.utils import parameters_to_dict
+=======
+from pycompss.util.interactive.outwatcher import STDW
+>>>>>>> Enabled error reporting in Jupyter notebooks.
 
 # Tracing imports
 from pycompss.util.tracing.helpers import emit_manual_event
@@ -196,6 +202,11 @@ def start(log_level="off",                     # type: str
     """
     # Export global variables
     global GRAPHING
+
+    if context.in_pycompss():
+        print("The runtime is already running")
+        return None
+
     GRAPHING = graph
     __export_globals__()
 
@@ -320,6 +331,10 @@ def start(log_level="off",                     # type: str
     # runtime start
     create_init_config_file(**all_vars)
 
+    # Start the event manager (ipython hooks)
+    ipython = globals()['__builtins__']['get_ipython']()
+    setup_event_manager(ipython)
+
     ##############################################################
     # RUNTIME START
     ##############################################################
@@ -359,6 +374,9 @@ def start(log_level="off",                     # type: str
     STREAMING = init_streaming(all_vars["streaming_backend"],
                                all_vars["streaming_master_name"],
                                all_vars["streaming_master_port"])
+
+    # Start monitoring the stdout and stderr
+    STDW.start_watching()
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -425,24 +443,44 @@ def stop(sync=False):
                  (default: False)
     :return: None
     """
+    logger = logging.getLogger(__name__)
+    ipython = globals()['__builtins__']['get_ipython']()
+
+    if not context.in_pycompss():
+        return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
+
     from pycompss.api.api import compss_stop
 
     print(LINE_SEPARATOR)
     print("*************** STOPPING PyCOMPSs ******************")
     print(LINE_SEPARATOR)
+    # Wait 2 seconds to give some time to process the remaining messages
+    # of the STDW and check if there is some error that could have stopped
+    # the runtime before continuing.
+    print("Checking if any issue happened.")
+    time.sleep(5)
+    messages = STDW.get_messages()
+    if messages:
+        halt = False
+        for message in messages:
+            sys.stderr.write("".join((message, '\n')))
+            if message == '[ERRMGR]  -  Shutting down COMPSs...':
+                halt = True
+                context.set_pycompss_context(context.OUT_OF_SCOPE)
+        if halt:
+            # The runtime was stopped by something external
+            return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)  # noqa: E501
 
-    logger = logging.getLogger(__name__)
-
+    # import pprint
+    # pprint.pprint(ipython.__dict__, width=1)
     if sync:
         sync_msg = "Synchronizing all future objects left on the user scope."
         print(sync_msg)
         logger.debug(sync_msg)
         from pycompss.api.api import compss_wait_on
-
-        ipython = globals()["__builtins__"]["get_ipython"]()
-        reserved_names = ("quit", "exit", "get_ipython",
-                          "APP_PATH", "ipycompss", "In", "Out")
-        raw_code = ipython.__dict__["user_ns"]
+        reserved_names = ('quit', 'exit', 'get_ipython',
+                          'APP_PATH', 'ipycompss', 'In', 'Out')
+        raw_code = ipython.__dict__['user_ns']
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith('_'):   # not internal objects
@@ -480,7 +518,17 @@ def stop(sync=False):
     # Stop runtime
     compss_stop()
 
+    # Cleanup events and files
+    release_event_manager(ipython)
     __clean_temp_files__()
+
+    # Stop watching stdout and stderr
+    STDW.stop_watching(clean=not interactive_helpers.DEBUG)
+    # Retrieve the remaining messages that could have been captured.
+    last_messages = STDW.get_messages()
+    if last_messages:
+        for message in last_messages:
+            print(message)
 
     # Let the Python binding know we are not at master anymore
     context.set_pycompss_context(context.OUT_OF_SCOPE)
@@ -489,6 +537,45 @@ def stop(sync=False):
     logger.debug("--- END ---")
 
     # --- Execution finished ---
+
+
+def __hard_stop__(debug, sync, logger, ipython):
+    # type: (bool, bool, ..., ...) -> None
+    """ The runtime has been stopped by any error and this method stops the
+    remaining things in the binding.
+
+    :param debug: If debugging.
+    :param sync: Scope variables synchronization [ True | False ].
+    :param logger: Logger where to put the logging messages.
+    :param ipython: Ipython instance.
+    :return: None
+    """
+    print("The runtime is not running.")
+    # Check that everything is stopped as well:
+
+    # Stop streaming
+    if STREAMING:
+        stop_streaming()
+
+    # Stop persistent storage
+    if PERSISTENT_STORAGE:
+        master_stop_storage(logger)
+
+    # Cleanup events and files
+    release_event_manager(ipython)
+    __clean_temp_files__()
+
+    # Stop watching stdout and stderr
+    STDW.stop_watching(clean=not debug)
+    # Retrieve the remaining messages that could have been captured.
+    last_messages = STDW.get_messages()
+    if last_messages:
+        for message in last_messages:
+            print(message)
+
+    if sync:
+        print("* Can not synchronize any future object.")
+    return None
 
 
 def __show_current_graph__(fit=False):

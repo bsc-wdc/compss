@@ -24,6 +24,9 @@ PyCOMPSs Binding - Management - Runtime
     Loads the external C module.
 """
 
+from pycompss.runtime.management.link import establish_interactive_link
+from pycompss.runtime.management.link import establish_link
+
 if __debug__:
     import logging
     logger = logging.getLogger(__name__)
@@ -33,7 +36,14 @@ if __debug__:
 # Keep the COMPSs runtime link in this module so that any module can access
 # it through the module methods.
 _COMPSs = None
+# Files where the std may be redirected with interactive
+_STDOUT = None
+_STDERR = None
 
+
+######################################################
+#             INTERNAL FUNCTIONS                     #
+######################################################
 
 def load_runtime(external_process=False, _logger=None):
     # type: (bool, ...) -> None
@@ -45,6 +55,8 @@ def load_runtime(external_process=False, _logger=None):
     :return: None
     """
     global _COMPSs
+    global _STDOUT
+    global _STDERR
 
     if external_process:
         # For interactive python environments
@@ -55,6 +67,34 @@ def load_runtime(external_process=False, _logger=None):
         from pycompss.runtime.management.link import establish_link
         _COMPSs = establish_link(_logger)
 
+
+def is_redirected():
+    """ Check if the stdout and stderr are being redirected.
+
+    :return: If stdout/stderr are being redirected.
+    """
+    if _STDOUT is None and _STDERR is None:
+        return False
+    elif _STDOUT is not None and _STDERR is not None:
+        return True
+    else:
+        raise Exception("Inconsistent status of _STDOUT and _STDERR")
+
+
+def get_redirection_file_names():
+    """ Retrieves the stdout and stderr file names.
+
+    :return: The stdout and stderr file names.
+    """
+    if is_redirected():
+        return _STDOUT, _STDERR
+    else:
+        raise Exception("The runtime stdout and stderr are  not being redirected.")  # noqa: E501
+
+
+######################################################
+#          COMPSs API EXPOSED FUNCTIONS              #
+######################################################
 
 def start_runtime():
     # type: () -> None

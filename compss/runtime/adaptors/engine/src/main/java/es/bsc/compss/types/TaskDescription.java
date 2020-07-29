@@ -21,9 +21,12 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.ErrorManager;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class TaskDescription {
@@ -260,4 +263,5 @@ public class TaskDescription {
 
         return buffer.toString();
     }
+
 }

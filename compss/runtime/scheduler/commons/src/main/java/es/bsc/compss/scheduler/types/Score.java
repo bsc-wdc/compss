@@ -32,6 +32,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.Worker;
 
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 
@@ -220,7 +221,7 @@ public class Score implements Comparable<Score> {
      * @param w Target worker.
      * @return Number of paramters already located in a given worker.
      */
-    public static long calculateDataLocalityScore(TaskDescription params, Worker<?> w) {
+    public static long calculateDataLocalityScore(List<Parameter> params, Worker<?> w) {
         long resourceScore = 0;
         if (params != null) {
             // Obtain the scores for the host: number of task parameters that

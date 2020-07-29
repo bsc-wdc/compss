@@ -17,15 +17,25 @@
 package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class SchedulingInformation {
+
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
 
     // List of active resources per core
     private static final List<List<ResourceScheduler<? extends WorkerResourceDescription>>> CORE_TO_WORKERS;
@@ -34,6 +44,8 @@ public class SchedulingInformation {
     private final List<AllocatableAction> constrainingPredecessors;
     // Resource execution information
     private final ResourceScheduler<? extends WorkerResourceDescription> enforcedTargetResource;
+
+    private Map<Resource, Double> perResourceScore;
 
     static {
         CORE_TO_WORKERS = new ArrayList<>();
@@ -95,9 +107,23 @@ public class SchedulingInformation {
      * 
      * @param enforcedTargetResource Enforced resource.
      */
-    public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
+    public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource,
+        List<Parameter> params, Integer coreId) {
         this.constrainingPredecessors = new LinkedList<>();
         this.enforcedTargetResource = enforcedTargetResource;
+        this.perResourceScore = new HashMap<Resource, Double>();
+        if (enforcedTargetResource == null) {
+            if (coreId != null) {
+                List<ResourceScheduler<? extends WorkerResourceDescription>> res = getCoreElementExecutors(coreId);
+
+                if (params != null) {
+                    for (ResourceScheduler<? extends WorkerResourceDescription> rs : res) {
+                        double initialScore = (double) Score.calculateDataLocalityScore(params, rs.getResource());
+                        perResourceScore.put(rs.getResource(), initialScore);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -136,4 +162,28 @@ public class SchedulingInformation {
         return this.enforcedTargetResource;
     }
 
+    /**
+     * Returns the score for a given worker.
+     * 
+     * @return The score for the worker.
+     */
+    public double getScore(Resource r) {
+        Double score = perResourceScore.get(r);
+        if (score == null) {
+            LOGGER.warn("The resource " + r.toString() + " is not registered");
+            score = 0.00;
+            perResourceScore.put(r, score);
+        }
+        return score;
+    }
+
+    /**
+     * Adds a score for a worker.
+     */
+    public void setScore(List<Resource> resources, Parameter p) {
+        for (Resource r : resources) {
+            Double score = this.getScore(r) + p.getWeight();
+            perResourceScore.put(r, score);
+        }
+    }
 }

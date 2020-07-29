@@ -75,21 +75,21 @@ public class FIFODataLocationResourceScheduler<T extends WorkerResourceDescripti
 
         // We compute the rest of the fields
         // double resource = Math.min(1.5, 1.0 / (double) myWorker.getUsedTaskCount());
-        long resource = calculateResourceScore(params);
+        long resource = calculateResourceScore(params, action);
         long waitingScore = -action.getId();
         long implementationScore = 0;
 
         return new Score(priority, groupId, resource, waitingScore, implementationScore);
     }
 
-    private long calculateResourceScore(TaskDescription params) {
+    private long calculateResourceScore(TaskDescription params, AllocatableAction action) {
         long resourceScore = 0;
         if (params != null) {
             List<Parameter> parameters = params.getParameters();
             if (parameters.size() == 0) {
                 return 1;
             }
-            resourceScore = Score.calculateDataLocalityScore(params, myWorker);
+            resourceScore = (long) action.getSchedulingInfo().getScore(myWorker);
         }
         return resourceScore;
     }

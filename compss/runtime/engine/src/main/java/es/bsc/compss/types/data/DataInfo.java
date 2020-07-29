@@ -18,6 +18,7 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.ReadersInfo;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
@@ -64,7 +65,7 @@ public abstract class DataInfo {
         this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
         this.currentVersion = new DataVersion(dataId, 1);
-        Comm.registerData(currentVersion.getDataInstanceId().getRenaming());
+        Comm.registerData(currentVersion.getDataInstanceId().getRenaming(), currentVersion);
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
@@ -120,9 +121,9 @@ public abstract class DataInfo {
     /**
      * Marks the data to be read.
      */
-    public final void willBeRead() {
+    public final void willBeRead(ReadersInfo readerData) {
         this.currentVersion.versionUsed();
-        this.currentVersion.willBeRead();
+        this.currentVersion.willBeRead(readerData);
     }
 
     /**
@@ -149,9 +150,9 @@ public abstract class DataInfo {
      * @param versionId Version Id.
      * @return {@code true} if the version Id has no pending reads, {@code false} otherwise.
      */
-    public final boolean versionHasBeenRead(int versionId) {
+    public final boolean versionHasBeenRead(int versionId, ReadersInfo readData) {
         DataVersion readVersion = this.versions.get(versionId);
-        if (readVersion.hasBeenRead()) {
+        if (readVersion.hasBeenRead(readData)) {
             Comm.removeData(readVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
             // return (this.toDelete && versions.size() == 0);
@@ -166,7 +167,7 @@ public abstract class DataInfo {
     public void willBeWritten() {
         this.currentVersionId++;
         DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId);
-        Comm.registerData(newVersion.getDataInstanceId().getRenaming());
+        Comm.registerData(newVersion.getDataInstanceId().getRenaming(), newVersion);
         newVersion.willBeWritten();
         this.versions.put(this.currentVersionId, newVersion);
         this.currentVersion = newVersion;
@@ -292,12 +293,12 @@ public abstract class DataInfo {
      *
      * @param versionId Version Id.
      */
-    public final boolean canceledReadVersion(Integer versionId) {
+    public final boolean canceledReadVersion(Integer versionId, ReadersInfo readData) {
         DataVersion readVersion = this.versions.get(versionId);
         if (!deleted && readVersion.isToDelete() && readVersion.hasBeenUsed()) {
             readVersion.unmarkToDelete();
         }
-        if (readVersion.hasBeenRead()) {
+        if (readVersion.hasBeenRead(readData)) {
             Comm.removeData(readVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
             // return (this.toDelete && versions.size() == 0);

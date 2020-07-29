@@ -23,6 +23,7 @@ import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -49,6 +50,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -366,9 +368,11 @@ public class Comm {
      * @param dataId Data Id.
      * @return The LogicalData representing the dataId after its registration.
      */
-    public static synchronized LogicalData registerData(String dataId) {
+    public static synchronized LogicalData registerData(String dataId, DataVersion version) {
         LOGGER.debug("Register new data " + dataId);
-        LogicalData logicalData = new LogicalData(dataId);
+        LinkedList<DataVersion> versions = new LinkedList<>();
+        versions.add(version);
+        LogicalData logicalData = new LogicalData(dataId, versions);
         DATA.put(dataId, logicalData);
 
         return logicalData;
@@ -386,7 +390,7 @@ public class Comm {
         LOGGER.debug("  * Location: " + location);
         LogicalData logicalData = DATA.get(dataId);
         logicalData.addLocation(location);
-
+        
         return logicalData;
     }
 
@@ -420,7 +424,6 @@ public class Comm {
                 Comm.registerPSCO(dataId, id);
             }
         }
-
         return logicalData;
     }
 
@@ -522,7 +525,7 @@ public class Comm {
                 ld2.addKnownAlias(dataId);
             } else {
                 // None of the values exists. Create an empty LogicalData for both
-                ld = registerData(dataId);
+                ld = registerData(dataId, null);
                 DATA.put(dataId2, ld);
                 ld.addKnownAlias(dataId2);
             }

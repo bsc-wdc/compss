@@ -160,8 +160,11 @@ public class ExecuteTasksRequest extends TDRequest {
         ResourceScheduler<T> specificResource) {
 
         LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
-        ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource),
-            ts.getOrchestrator(), this.ap, this.task);
+        ExecutionAction action =
+            new ExecutionAction(
+                ts.generateSchedulingInformation(specificResource, this.task.getTaskDescription().getParameters(),
+                    this.task.getTaskDescription().getCoreElement().getCoreId()),
+                ts.getOrchestrator(), this.ap, this.task);
         ts.newAllocatableAction(action);
     }
 
@@ -174,7 +177,9 @@ public class ExecuteTasksRequest extends TDRequest {
         MultiNodeGroup group = new MultiNodeGroup(numNodes);
         for (int i = 0; i < numNodes; ++i) {
             MultiNodeExecutionAction action = new MultiNodeExecutionAction(
-                ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), this.ap, this.task, group);
+                ts.generateSchedulingInformation(specificResource, this.task.getTaskDescription().getParameters(),
+                    this.task.getTaskDescription().getCoreElement().getCoreId()),
+                ts.getOrchestrator(), this.ap, this.task, group);
             ts.newAllocatableAction(action);
         }
     }

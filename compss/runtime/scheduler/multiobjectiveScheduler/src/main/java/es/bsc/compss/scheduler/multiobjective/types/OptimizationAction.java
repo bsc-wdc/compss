@@ -41,7 +41,7 @@ public class OptimizationAction extends AllocatableAction {
      * Creates a new OptimizationAction instance.
      */
     public OptimizationAction() {
-        super(new MOSchedulingInformation(null), null);
+        super(new MOSchedulingInformation(null, null, null), null);
         MOSchedulingInformation asi = (MOSchedulingInformation) this.getSchedulingInfo();
         asi.scheduled();
         asi.setOnOptimization(true);

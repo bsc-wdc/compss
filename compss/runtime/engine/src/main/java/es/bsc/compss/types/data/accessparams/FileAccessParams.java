@@ -56,7 +56,7 @@ public class FileAccessParams extends AccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerFileAccess(this.app, this.mode, this.loc);
+        return dip.registerFileAccess(this.app, this.mode, this.loc, null);
     }
 
     @Override

@@ -23,6 +23,7 @@ import es.bsc.compss.scheduler.multiobjective.types.MOProfile;
 import es.bsc.compss.scheduler.multiobjective.types.MOScore;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ResourceOptimizer;
@@ -56,10 +57,10 @@ public class MOScheduler extends TaskScheduler {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> MOSchedulingInformation
-        generateSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
+    public <T extends WorkerResourceDescription> MOSchedulingInformation generateSchedulingInformation(
+        ResourceScheduler<T> enforcedTargetResource, List<Parameter> params, Integer coreId) {
 
-        return new MOSchedulingInformation(enforcedTargetResource);
+        return new MOSchedulingInformation(enforcedTargetResource, params, coreId);
     }
 
     @Override

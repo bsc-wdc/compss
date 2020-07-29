@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.resources.Resource;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -30,6 +33,7 @@ public class DataVersion {
     private boolean used; // The version has been read or written
     private boolean semUsed;
     private List<Semaphore> semReaders;
+    private List<LocationMonitor> readersData;
 
 
     /**
@@ -46,6 +50,7 @@ public class DataVersion {
         this.used = false;
         this.semReaders = new LinkedList<>();
         this.semUsed = false;
+        this.readersData = new LinkedList<>();
     }
 
     /**
@@ -60,8 +65,11 @@ public class DataVersion {
     /**
      * Marks a read access on the data version.
      */
-    public void willBeRead() {
+    public void willBeRead(LocationMonitor readerData) {
         this.readers++;
+        if (readerData != null) {
+            this.readersData.add(readerData);
+        }
     }
 
     /**
@@ -94,13 +102,14 @@ public class DataVersion {
      *
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
      */
-    public boolean hasBeenRead() {
+    public boolean hasBeenRead(LocationMonitor readData) {
         this.readers--;
         if (readers == 0 && this.semUsed == true) {
             for (Semaphore s : semReaders) {
                 s.release();
             }
         }
+        this.readersData.remove(readData);
 
         return checkDeletion();
     }
@@ -204,5 +213,17 @@ public class DataVersion {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Registers a new location in the readers.
+     * 
+     * @param loc Location to add.
+     */
+    public void addLocation(DataLocation loc) {
+        for (LocationMonitor readerData : this.readersData) {
+            List<Resource> resources = loc.getHosts();
+            readerData.addLocation(resources, readerData.getParameter());
+        }
     }
 }

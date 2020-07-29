@@ -326,7 +326,7 @@ public class ExecutionAction extends AllocatableAction {
 
                 String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
                 String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-                LogicalData tmpData = Comm.registerData("tmp" + tgtName);
+                LogicalData tmpData = Comm.registerData("tmp" + tgtName, null);
                 w.getData(srcName, tgtName, tmpData, param, listener);
             }
         }
@@ -1059,13 +1059,15 @@ public class ExecutionAction extends AllocatableAction {
                 candidates = getCompatibleWorkers();
             }
         }
+
         this.schedule(actionScore, candidates);
+        
     }
 
     private <T extends WorkerResourceDescription> void schedule(Score actionScore,
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
         throws BlockedActionException, UnassignedActionException {
-
+        
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         ResourceScheduler<? extends WorkerResourceDescription> bestWorker = null;
@@ -1092,7 +1094,8 @@ public class ExecutionAction extends AllocatableAction {
                     Score implScore =
                         worker.generateImplementationScore(this, this.task.getTaskDescription(), impl, resourceScore);
                     if (DEBUG) {
-                        debugString.append(" Resource ").append(worker.getName()).append(" ").append(" Implementation ")
+                        debugString.append("[Task ").append(this.task.getId()).append("] Resource ")
+                            .append(worker.getName()).append(" ").append(" Implementation ")
                             .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore)
                             .append("\n");
                     }
@@ -1120,12 +1123,12 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         schedule(bestWorker, bestImpl);
+        
     }
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Score actionScore) throws BlockedActionException, UnassignedActionException {
-
+        Score actionScore) throws UnassignedActionException {
         if (targetWorker == null
             // Resource is not compatible with the Core
             || !targetWorker.getResource().canRun(this.task.getTaskDescription().getCoreElement().getCoreId())
@@ -1155,7 +1158,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Implementation impl) throws BlockedActionException, UnassignedActionException {
+        Implementation impl) throws UnassignedActionException {
 
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();

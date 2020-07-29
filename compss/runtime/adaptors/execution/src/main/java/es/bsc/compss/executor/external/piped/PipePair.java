@@ -28,6 +28,7 @@ import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.NoMoreTasksPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
@@ -296,6 +297,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 break;
             case EXECUTE_NESTED_TASK:
                 readCommand = new ExecuteNestedTaskPipeCommand(command);
+                break;
+            case NO_MORE_TASKS:
+                readCommand = new NoMoreTasksPipeCommand();
                 break;
             case PING:
             case EXECUTE_TASK:

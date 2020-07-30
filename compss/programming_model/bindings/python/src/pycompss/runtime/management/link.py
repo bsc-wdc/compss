@@ -55,6 +55,7 @@ REQUEST_RESOURCES = 'REQUEST_RESOURCES'
 FREE_RESOURCES = 'FREE_RESOURCES'
 REGISTER_CORE_ELEMENT = 'REGISTER_CORE_ELEMENT'
 PROCESS_TASK = 'PROCESS_TASK'
+SET_PIPES = 'SET_PIPES'
 
 if __debug__:
     import logging
@@ -138,6 +139,8 @@ def c_extension_link(in_queue, out_queue):
             compss.register_core_element(*parameters)
         elif command == PROCESS_TASK:
             compss.process_task(*parameters)
+        elif command == SET_PIPES:
+            compss.set_pipes(*parameters)
         else:
             raise Exception("Unknown link command")
 
@@ -409,3 +412,8 @@ class COMPSs(object):
                       content_types,
                       weights,
                       keep_renames))
+
+    @staticmethod
+    def set_pipes(pipe_in, pipe_out):
+        # type: (str, str) -> None
+        IN_QUEUE.put((SET_PIPES, pipe_in, pipe_out))

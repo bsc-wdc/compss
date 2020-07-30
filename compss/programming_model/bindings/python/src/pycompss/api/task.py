@@ -225,6 +225,7 @@ class Task(PyCOMPSsDecorator):
                     # not be shared.
                     master = TaskMaster(self.decorator_arguments,
                                         self.user_function,
+                                        self.core_element,
                                         self.registered,
                                         self.signature)
                     fo, self.registered, self.signature = master.call(*args,

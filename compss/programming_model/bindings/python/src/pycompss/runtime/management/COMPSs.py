@@ -342,3 +342,14 @@ def process_task(app_id,             # type: int
                          content_types,
                          weights,
                          keep_renames)
+
+
+def set_pipes(pipe_in, pipe_out):
+    # type: (str, str) -> None
+    """ Set nesting pipes.
+
+    :param pipe_in: Input pipe.
+    :param pipe_out: Output pipe.
+    :return: None
+    """
+    _COMPSs.set_pipes(pipe_in, pipe_out)  # noqa

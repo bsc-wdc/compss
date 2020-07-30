@@ -392,7 +392,7 @@ void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstrain
 	// NO RETURN
 
 	stringstream ss;
-	ss << "EXECUTE_TASK SIGNATURE " << ceSignature << " " << implSignature << " " << implConstraints << "  " << implType << " " << implIO << " " << numArgs;
+	ss << "REGISTER_CE SIGNATURE " << ceSignature << " " << implSignature << " " << implConstraints << "  " << implType << " " << implIO << " " << numArgs;
 
     for (int i = 0; i < numArgs; i++) {
     	ss << " " << implTypeArgs[i];

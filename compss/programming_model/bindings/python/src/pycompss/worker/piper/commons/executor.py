@@ -214,6 +214,7 @@ def executor(queue, process_name, pipe, conf):
         if __debug__:
             logger.debug(HEADER + "Establishing link with runtime in process " + str(process_name))  # noqa: E501
         COMPSs.load_runtime(external_process=False, _logger=logger)
+        COMPSs.set_pipes(pipe.output_pipe, pipe.input_pipe)
 
         if storage_conf != 'null':
             try:

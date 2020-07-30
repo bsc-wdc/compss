@@ -219,13 +219,13 @@ def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
         trace_value = 0
     elif trace == 'basic' or trace is True:
         trace_value = 1
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
         ld_library_path = ld_library_path + ':' + extrae_lib
+        os.environ['PYTHONPATH'] = extrae_lib + ':' + os.environ['PYTHONPATH']
         sys.path.append(extrae_lib)
     elif trace == 'advanced':
         trace_value = 2
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
         ld_library_path = ld_library_path + ':' + extrae_lib
+        os.environ['PYTHONPATH'] = extrae_lib + ':' + os.environ['PYTHONPATH']
         sys.path.append(extrae_lib)
     else:
         msg = "ERROR: Wrong tracing parameter " + \

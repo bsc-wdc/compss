@@ -31,12 +31,13 @@ PyCOMPSs Binding - Management - Runtime
 _COMPSs = None
 
 
-def load_runtime(external_process=False):
-    # type: (bool) -> None
+def load_runtime(external_process=False, tracing=0):
+    # type: (bool, int) -> None
     """ Loads the external C extension module.
 
     :param external_process: Loads the runtime in an external process if true.
                              Within this python process if false.
+    :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
     :return: None
     """
     global _COMPSs
@@ -44,11 +45,11 @@ def load_runtime(external_process=False):
     if external_process:
         # For interactive python environments
         from pycompss.runtime.management.link import establish_interactive_link
-        _COMPSs = establish_interactive_link()
+        _COMPSs = establish_interactive_link(tracing)
     else:
         # Normal python environments
         from pycompss.runtime.management.link import establish_link
-        _COMPSs = establish_link()
+        _COMPSs = establish_link(tracing)
 
 
 def start_runtime():

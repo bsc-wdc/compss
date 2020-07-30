@@ -37,7 +37,6 @@ from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.commons import LIST_TYPE
 import pycompss.util.context as context
 # Tracing imports
-from pycompss.util.tracing.helpers import enable_trace_master
 from pycompss.util.tracing.helpers import event
 from pycompss.util.tracing.helpers import emit_event
 from pycompss.runtime.constants import START_RUNTIME_EVENT
@@ -84,21 +83,18 @@ def start_runtime(log_level='off', tracing=0, interactive=False):
     if __debug__:
         logger.info("Starting COMPSs...")
 
-    if tracing > 0:
-        enable_trace_master()
+    if interactive and context.in_master():
+        COMPSs.load_runtime(external_process=True, tracing=tracing)
+    else:
+        COMPSs.load_runtime(external_process=False, tracing=tracing)
+
+    if log_level == 'trace':
+        # Could also be 'debug' or True, but we only show the C extension
+        # debug in the maximum tracing level.
+        COMPSs.set_debug(True)
+        OT.enable_report()
 
     with event(START_RUNTIME_EVENT, master=True):
-        if interactive and context.in_master():
-            COMPSs.load_runtime(external_process=True)
-        else:
-            COMPSs.load_runtime(external_process=False)
-
-        if log_level == 'trace':
-            # Could also be 'debug' or True, but we only show the C extension
-            # debug in the maximum tracing level.
-            COMPSs.set_debug(True)
-            OT.enable_report()
-
         COMPSs.start_runtime()
 
     if __debug__:

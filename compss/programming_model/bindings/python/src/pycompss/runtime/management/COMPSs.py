@@ -35,7 +35,7 @@ if __debug__:
 _COMPSs = None
 
 
-def load_runtime(external_process=False, _logger=logger):
+def load_runtime(external_process=False, _logger=None):
     # type: (bool, ...) -> None
     """ Loads the external C extension module.
 

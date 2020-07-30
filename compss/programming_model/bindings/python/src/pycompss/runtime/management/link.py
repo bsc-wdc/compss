@@ -58,7 +58,7 @@ PROCESS_TASK = 'PROCESS_TASK'
 
 if __debug__:
     import logging
-    logger = logging.getLogger(__name__)
+    link_logger = logging.getLogger(__name__)
 
 
 def shutdown_handler(signal, frame):  # noqa
@@ -142,7 +142,7 @@ def c_extension_link(in_queue, out_queue):
             raise Exception("Unknown link command")
 
 
-def establish_link(logger=logger):  # noqa
+def establish_link(logger=None):  # noqa
     # type: (...) -> ...
     """ Loads the compss C extension within the same process.
 
@@ -150,14 +150,22 @@ def establish_link(logger=logger):  # noqa
     :return: The COMPSs C extension link.
     """
     if __debug__:
-        logger.debug("Loading compss extension")
+        message = "Loading compss extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
     import compss
     if __debug__:
-        logger.debug("Loaded compss extension")
+        message = "Loaded compss extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
     return compss
 
 
-def establish_interactive_link(logger=logger):  # noqa
+def establish_interactive_link(logger=None):  # noqa
     # type: (...) -> ...
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
@@ -176,14 +184,22 @@ def establish_interactive_link(logger=logger):  # noqa
         RELOAD = False
 
     if __debug__:
-        logger.debug("Starting new process linking with the C-extension")
+        message = "Starting new process linking with the C-extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
 
     LINK_PROCESS = multiprocessing.Process(target=c_extension_link,
                                            args=(IN_QUEUE, OUT_QUEUE))
     LINK_PROCESS.start()
 
     if __debug__:
-        logger.debug("Established link with C-extension")
+        message = "Established link with C-extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
 
     compss_link = COMPSs  # object that mimics compss library
     return compss_link

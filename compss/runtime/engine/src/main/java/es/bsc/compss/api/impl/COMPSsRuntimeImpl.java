@@ -724,7 +724,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
-        return executeTask(appId, null, null, false, methodClass, methodName, null, OnFailure.valueOf(onFailure),
+        return executeTask(appId, null, Lang.C, false, methodClass, methodName, null, OnFailure.valueOf(onFailure),
             timeOut, isPrioritary, Constants.SINGLE_NODE, isReplicated, isDistributed, hasTarget, numReturns,
             parameterCount, parameters);
     }
@@ -735,7 +735,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
         int parameterCount, Object... parameters) {
 
-        return executeTask(appId, null, null, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut,
+        return executeTask(appId, null, Lang.PYTHON, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut,
             isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
     }
 

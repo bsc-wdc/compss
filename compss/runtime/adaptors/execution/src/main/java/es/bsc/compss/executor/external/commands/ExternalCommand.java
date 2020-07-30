@@ -39,6 +39,7 @@ public interface ExternalCommand {
         REMOVED_EXECUTOR, // Removed executor
 
         // REQUIRED BY THE EXECUTOR
+        REGISTER_CE, // Register CE
         EXECUTE_TASK, // Execute a task
         EXECUTE_NESTED_TASK, // Execute a task
         END_TASK, // Task finished

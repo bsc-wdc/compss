@@ -283,7 +283,7 @@ void PIPE_ExecuteTask(long appId, char* className, char* onFailure, int timeout,
     // NO RETURN
     stringstream ss;
 
-    ss << "EXECUTE_NESTED_TASK CLASS_METHOD " << className << " " << onFailure << " " << timeout << "  " << methodName << " ";
+    ss << "EXECUTE_NESTED_TASK CLASS_METHOD " << className << " " << onFailure << " " << timeout << " " << methodName << " ";
 
 
     if (priority != 0) {
@@ -329,7 +329,7 @@ void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeo
     // NO RETURN
 
     stringstream ss;
-    ss << "EXECUTE_NESTED_TASK SIGNATURE " << signature << " " << onFailure << " " << timeout << "  " ;
+    ss << "EXECUTE_NESTED_TASK SIGNATURE " << signature << " " << onFailure << " " << timeout << " " ;
 
     if (priority != 0) {
 		ss << "true ";
@@ -392,7 +392,7 @@ void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstrain
 	// NO RETURN
 
 	stringstream ss;
-	ss << "REGISTER_CE SIGNATURE " << ceSignature << " " << implSignature << " " << implConstraints << "  " << implType << " " << implIO << " " << numArgs;
+	ss << "REGISTER_CE " << ceSignature << " " << implSignature << " " << implConstraints << " " << implType << " " << implIO << " " << numArgs;
 
     for (int i = 0; i < numArgs; i++) {
     	ss << " " << implTypeArgs[i];

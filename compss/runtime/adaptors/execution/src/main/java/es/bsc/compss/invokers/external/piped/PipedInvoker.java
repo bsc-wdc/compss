@@ -24,6 +24,7 @@ import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.external.ExternalInvoker;
@@ -80,6 +81,18 @@ public abstract class PipedInvoker extends ExternalInvoker {
                 PipeCommand rcvdCommand = pipes.readCommand();
                 if (rcvdCommand != null) {
                     switch (rcvdCommand.getType()) {
+                        case REGISTER_CE: {
+                            RegisterCEPipeCommand rcpc = (RegisterCEPipeCommand) rcvdCommand;
+                            String ceSignature = rcpc.getCESignature();
+                            String implSignature = rcpc.getImplSignature();
+                            String implConstraints = rcpc.getConstraints();
+                            String implType = rcpc.getImplType();
+                            String implIO = rcpc.getImplIO();
+                            String[] implTypeArgs = rcpc.getTypeArgs();
+                            context.getRuntimeAPI().registerCoreElement(ceSignature, implSignature, implConstraints,
+                                implType, implIO, implTypeArgs);
+                        }
+                            break;
                         case EXECUTE_NESTED_TASK: {
                             ExecuteNestedTaskPipeCommand entpc = (ExecuteNestedTaskPipeCommand) rcvdCommand;
                             ExecuteNestedTaskPipeCommand.EntryPoint entryPoint = entpc.getEntryPoint();

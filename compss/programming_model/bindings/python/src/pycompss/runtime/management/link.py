@@ -29,8 +29,6 @@ PyCOMPSs Binding - Link
 import multiprocessing
 import logging
 
-from pycompss.util.tracing.helpers import enable_trace_master
-
 # Global variables
 LINK_PROCESS = multiprocessing.Process()
 IN_QUEUE = multiprocessing.Queue()
@@ -76,18 +74,14 @@ def shutdown_handler(signal, frame):  # noqa
         LINK_PROCESS.terminate()
 
 
-def c_extension_link(in_queue, out_queue, tracing):
-    # type: (..., ..., int) -> None
+def c_extension_link(in_queue, out_queue):
+    # type: (..., ...) -> None
     """ Main C extension process.
 
     :param in_queue: Queue to receive messages.
     :param out_queue: Queue to send messages.
-    :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
     :return: None
     """
-    if tracing > 0:
-        enable_trace_master()
-
     import compss
 
     alive = True
@@ -148,16 +142,12 @@ def c_extension_link(in_queue, out_queue, tracing):
             raise Exception("Unknown link command")
 
 
-def establish_link(tracing):
-    # type: (int) -> ...
+def establish_link():
+    # type: () -> ...
     """ Loads the compss C extension within the same process.
 
-    :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
     :return: The COMPSs C extension link.
     """
-    if tracing > 0:
-        enable_trace_master()
-
     if __debug__:
         logger.debug("Loading compss extension")
     import compss
@@ -166,12 +156,11 @@ def establish_link(tracing):
     return compss
 
 
-def establish_interactive_link(tracing):
-    # type: (int) -> ...
+def establish_interactive_link():
+    # type: () -> ...
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
-    :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
     :return: The COMPSs C extension link.
     """
     global LINK_PROCESS
@@ -184,15 +173,11 @@ def establish_interactive_link(tracing):
         OUT_QUEUE = multiprocessing.Queue()
         RELOAD = False
 
-    if tracing > 0:
-        enable_trace_master()
-
     if __debug__:
         logger.debug("Starting new process linking with the C-extension")
 
     LINK_PROCESS = multiprocessing.Process(target=c_extension_link,
-                                           args=(IN_QUEUE, OUT_QUEUE,
-                                                 tracing))
+                                           args=(IN_QUEUE, OUT_QUEUE))
     LINK_PROCESS.start()
 
     if __debug__:

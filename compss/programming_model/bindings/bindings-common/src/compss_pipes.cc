@@ -423,7 +423,7 @@ int PIPE_Accessed_File(long appId, char* fileName){
 	read_result_from_pipe(result);
 
     // Parse output
-    int ret = stoi(result);
+    int ret =  atoi(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Accessed_File - Access to file %s marked as %d\n", fileName, ret);
     return ret;
@@ -476,7 +476,7 @@ void PIPE_Delete_File(long appId, char* fileName, int wait) {
 
     string result;
     read_result_from_pipe(result);
-    int res = stoi(result);
+    int res = atoi(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Delete_File - COMPSs filename: %s\n", fileName);
     debug_printf("[BINDING-COMMONS] - @PIPE_Delete_File - File erased with status: %i\n", (bool) res);
@@ -493,7 +493,7 @@ void PIPE_Get_File(long appId, char* fileName) {
 	write_command_in_pipe(ss);
 	string result;
 	read_result_from_pipe(result);
-	int res = stoi(result);
+	int res = atoi(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Get_File - COMPSs filename: %s\n", fileName);
 }
@@ -507,7 +507,7 @@ void PIPE_Get_Directory(long appId, char* dirName) {
 	write_command_in_pipe(ss);
 	string result;
 	read_result_from_pipe(result);
-	int res = stoi(result);
+	int res = atoi(result.c_str());
 
 	debug_printf("[BINDING-COMMONS] - @PIPE_Get_Directory - COMPSs directory: %s\n", dirName);
 }
@@ -539,7 +539,7 @@ void PIPE_Delete_Object(long appId, char* objectId, int** buf) {
     write_command_in_pipe(ss);
     string result;
     read_result_from_pipe(result);
-    int res = stoi(result);
+    int res = atoi(result.c_str());
     *buf = (int*) &res;
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Delete_Binding_Object - COMPSs obj: %s\n", objectId);
@@ -658,7 +658,7 @@ int PIPE_GetNumberOfResources(long appId) {
     write_command_in_pipe(ss);
     string result;
     read_result_from_pipe(result);
-    int resources = stoi(result);
+    int resources = atoi(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_GetNumberOfResources - Number of active resources %u\n", (int) resources);
     return (int) resources;

@@ -36,9 +36,9 @@ def increment(file_path):
 
 
 @container(engine="DOCKER",
-           image="ubuntu",
-           working_dir="${TEST_WORKING_DIR}")
-@binary(binary="ls")
+           image="ubuntu")
+@binary(binary="ls",
+        working_dir="${TEST_WORKING_DIR}")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
 def docker_func(result):
     pass
@@ -52,7 +52,8 @@ def singularity_func(result):
     pass
 '''
 
-@binary(binary="ls", working_dir="${TEST_WORKING_DIR}")
+@binary(binary="ls",
+        working_dir="${TEST_WORKING_DIR}")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
 def exec_ls(result):
     pass

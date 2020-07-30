@@ -41,10 +41,10 @@ if __debug__:
 MANDATORY_ARGUMENTS = {'engine',
                        'image'}
 SUPPORTED_ARGUMENTS = {'engine',
-                       'image',
-                       'fail_by_exit_value',
-                       'working_dir'}
-DEPRECATED_ARGUMENTS = {'workingDir',
+                       'image'}
+DEPRECATED_ARGUMENTS = {'fail_by_exit_value',
+                        'workingDir',
+                        'working_dir',
                         'binary'}
 
 
@@ -54,7 +54,7 @@ class Container(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = []
+    __slots__ = ['function_name']
 
     def __init__(self, *args, **kwargs):
         """
@@ -108,6 +108,7 @@ class Container(PyCOMPSsDecorator):
             return ret
 
         container_f.__doc__ = func.__doc__
+        self.function_name = str(func.__name__)
         return container_f
 
     def __configure_core_element__(self, kwargs):
@@ -123,21 +124,20 @@ class Container(PyCOMPSsDecorator):
             logger.debug("Configuring @container core element.")
 
         # Resolve @container (mandatory) specific parameters
-        engine = self.kwargs['engine']
-        image = self.kwargs['image']
+        _engine = self.kwargs['engine']
+        _image = self.kwargs['image']
 
-        # Resolve the working directory
-        self.__resolve_working_dir__()
-        # Resolve the fail by exit value
-        self.__resolve_fail_by_exit_value__()
-
+        # Type and signature
         impl_type = 'CONTAINER'
-        impl_signature = impl_type
-        impl_args = [None,
-                     self.kwargs['working_dir'],
-                     self.kwargs['fail_by_exit_value'],
-                     engine,
-                     image]
+        impl_signature = '.'.join((impl_type, self.function_name))
+
+        impl_args = ['[unassigned]',                # internal_type
+                     '[unassigned]',                # internal_func
+                     '[unassigned]',                # internal_binary
+                     '[unassigned]',                # working_dir
+                     '[unassigned]',                # fail_by_ev
+                     _engine,                       # engine
+                     _image]                        # image
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

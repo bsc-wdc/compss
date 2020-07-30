@@ -228,8 +228,8 @@ class Task(PyCOMPSsDecorator):
                                         self.core_element,
                                         self.registered,
                                         self.signature)
-                    fo, self.registered, self.signature = master.call(*args,
-                                                                      **kwargs)
+                    result = master.call(*args, **kwargs)
+                    fo, self.core_element, self.registered, self.signature = result  # noqa: E501
                     del master
                     return fo
             # We are neither in master nor in the worker, or the user has

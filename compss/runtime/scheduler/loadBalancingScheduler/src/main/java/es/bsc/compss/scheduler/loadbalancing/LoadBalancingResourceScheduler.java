@@ -97,10 +97,12 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         if (params != null) {
             List<Parameter> parameters = params.getParameters();
             if (parameters.isEmpty()) {
-                return 1;
+                resourceScore = 0;
+            } else {
+                resourceScore = 200 * Score.calculateDataLocalityScore(params, myWorker);
             }
-            resourceScore = 200 * Score.calculateDataLocalityScore(params, myWorker);
         }
+        
         if (this.myWorker == Comm.getAppHost()) {
             resourceScore++;
         }

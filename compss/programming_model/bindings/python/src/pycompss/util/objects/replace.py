@@ -157,7 +157,7 @@ def sure(obj):
 
 
 def gen(obj):
-    while True:
+    while 1:
         yield obj
 
 

@@ -84,7 +84,8 @@ def start_runtime(log_level='off', tracing=0, interactive=False):
     if __debug__:
         logger.info("Starting COMPSs...")
 
-    if tracing > 0:
+    if tracing > 0 and not interactive:
+        # Enabled only if not interactive - extrae issues within jupyter.
         enable_trace_master()
 
     with event(START_RUNTIME_EVENT, master=True):

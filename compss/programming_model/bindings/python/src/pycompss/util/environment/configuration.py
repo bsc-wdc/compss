@@ -220,13 +220,9 @@ def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
     elif trace == "basic" or trace is True:
         trace_value = 1
         ld_library_path = ld_library_path + ':' + extrae_lib
-        os.environ["PYTHONPATH"] = extrae_lib + ':' + os.environ.get("PYTHONPATH", '')
-        sys.path.append(extrae_lib)
     elif trace == "advanced":
         trace_value = 2
         ld_library_path = ld_library_path + ':' + extrae_lib
-        os.environ["PYTHONPATH"] = extrae_lib + ':' + os.environ.get("PYTHONPATH", '')
-        sys.path.append(extrae_lib)
     else:
         msg = "ERROR: Wrong tracing parameter " + \
               "( [ True | basic ] | advanced | False)"

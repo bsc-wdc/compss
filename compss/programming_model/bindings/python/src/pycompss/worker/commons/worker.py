@@ -47,15 +47,16 @@ from pycompss.util.storages.persistent import get_by_id
 import pycompss.api.parameter as parameter
 
 
-def build_task_parameter(p_type,     # type: int
-                         p_stream,   # type: int
-                         p_prefix,   # type: str
-                         p_name,     # type: str
-                         p_value,    # type: object
-                         p_c_type,   # type: str
-                         args=None,  # type: list
+def build_task_parameter(p_type,      # type: int
+                         p_stream,    # type: int
+                         p_prefix,    # type: str
+                         p_name,      # type: str
+                         p_value,     # type: object
+                         p_c_type,    # type: str
+                         args=None,   # type: list
                          pos=None,    # type: int
-                         logger=None):
+                         logger=None  # noqa # type: ...
+                         ):
     # type: (...) -> (Parameter, int)
     """
     Build task parameter object from the given parameters.
@@ -68,6 +69,7 @@ def build_task_parameter(p_type,     # type: int
     :param p_c_type: Parameter Python Type.
     :param args: Arguments (Default: None).
     :param pos: Position (Default: None).
+    :param logger: Logger where to push the logging messages.
     :return: Parameter object and the number fo substrings.
     """
     num_substrings = 0
@@ -483,8 +485,8 @@ def execute_task(process_name,     # type: str
     :param params: List of parameters.
     :param tracing: Tracing flag.
     :param logger: Logger to use.
-    :param log_files: Tuple with (out filename, err filename). None to avoid
-                      stdout and sdterr fd redirection.
+    :param log_files: Tuple with (out filename, err filename).
+                      None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
     :param collections_layouts: collections layouts for python MPI tasks
     :return: exit_code, new_types, new_values, timed_out and except_msg
@@ -522,13 +524,13 @@ def execute_task(process_name,     # type: str
     # user code (reason: ignore @task decorator if called from another task).
     compss_kwargs = {
         'compss_key': True,
-        '_compss_tracing': tracing,
+        'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,
         'compss_log_files': log_files,
-        'python_MPI': python_mpi,
-        'collections_layouts': collections_layouts
+        'compss_python_MPI': python_mpi,
+        'compss_collections_layouts': collections_layouts
     }
 
     if __debug__:
@@ -570,7 +572,6 @@ def execute_task(process_name,     # type: str
         #     logger.debug("\t\t %s" % str(t))
 
     import_error = False
-
     try:
         # Try to import the module (for functions)
         if __debug__:
@@ -603,7 +604,6 @@ def execute_task(process_name,     # type: str
 
         if exit_code != 0:
             return exit_code, new_types, new_values, timed_out, except_msg
-
     else:
         # Method declared as task in class
         # Not the path of a module, it ends with a class name

@@ -70,9 +70,8 @@ import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
 
-if __debug__:
-    import logging
-    logger = logging.getLogger(__name__)
+import logging
+logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
@@ -277,21 +276,25 @@ class TaskMaster(TaskCommons):
         deco_arg_getter = self.decorator_arguments.get
         if 'isReplicated' in self.decorator_arguments:
             is_replicated = deco_arg_getter('isReplicated')
+            logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
         else:
             is_replicated = deco_arg_getter('is_replicated')
         # Get is distributed
         if 'isDistributed' in self.decorator_arguments:
             is_distributed = deco_arg_getter('isDistributed')
+            logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
         else:
             is_distributed = deco_arg_getter('is_distributed')
         # Get on failure
         if 'onFailure' in self.decorator_arguments:
             on_failure = deco_arg_getter('onFailure')
+            logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
         else:
             on_failure = deco_arg_getter('on_failure')
         # Get time out
         if 'timeOut' in self.decorator_arguments:
             time_out = deco_arg_getter('timeOut')
+            logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
         else:
             time_out = deco_arg_getter('time_out')
         # Get priority
@@ -832,12 +835,11 @@ class TaskMaster(TaskCommons):
                 if param_name:
                     if param_name in self.parameters:
                         if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:  # noqa: E501
-                            raise Exception("Parameter " + param_name + " is not a collection!")   # noqa: E501
+                            raise Exception("Parameter %s is not a collection!" % param_name)      # noqa: E501
                     else:
-                        raise Exception("Parameter " + param_name + " doesn't exist!")             # noqa: E501
-                set_impl_signature("MPI." + impl_signature)
-                set_impl_type_args(
-                    impl_type_args + get_impl_type_args()[1:])
+                        raise Exception("Parameter %s does not exist!" % param_name)               # noqa: E501
+                set_impl_signature(".".join(("MPI", impl_signature)))
+                set_impl_type_args(impl_type_args + get_impl_type_args()[1:])
             if get_impl_io() is None:
                 set_impl_io(impl_io)
         else:
@@ -921,9 +923,8 @@ class TaskMaster(TaskCommons):
         if parsed_computing_nodes is None:
             raise Exception("ERROR: Wrong Computing Nodes value.")
         if parsed_computing_nodes <= 0:
-            logger.warning("Registered computing_nodes is less than 1 (" +
-                           str(parsed_computing_nodes) +
-                           " <= 0). Automatically set it to 1")
+            logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa
+                           str(parsed_computing_nodes))
             parsed_computing_nodes = 1
 
         return parsed_computing_nodes
@@ -1147,8 +1148,8 @@ class TaskMaster(TaskCommons):
                 try:
                     fo = ret_value()
                 except TypeError:
-                    if __debug__:
-                        logger.warning("Type {0} does not have an empty constructor, building generic future object".format(ret_value))  # noqa: E501
+                    logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
+                                   str(ret_value))
                     fo = Future()
             else:
                 fo = Future()  # modules, functions, methods
@@ -1174,8 +1175,8 @@ class TaskMaster(TaskCommons):
                     try:
                         foe = v.content()
                     except TypeError:
-                        if __debug__:
-                            logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))  # noqa: E501
+                        logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
+                            str(v['Value']))
                         foe = Future()
                 else:
                     foe = Future()  # modules, functions, methods

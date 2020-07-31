@@ -173,16 +173,3 @@ def enable_trace_master():
     import pyextrae.sequential as pyextrae  # noqa
     PYEXTRAE = pyextrae
     TRACING = True
-
-
-def enable_trace_master_interactive():
-    # type: () -> None
-    """ Enables tracing for the master process in interactive environments.
-
-    :return: None
-    """
-    global PYEXTRAE
-    global TRACING
-    import pyextrae.multiprocessing as pyextrae  # noqa
-    PYEXTRAE = pyextrae
-    TRACING = True

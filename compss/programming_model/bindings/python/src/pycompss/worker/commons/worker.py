@@ -30,6 +30,7 @@ from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
+from pycompss.runtime.commons import range
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT

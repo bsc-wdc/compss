@@ -36,6 +36,7 @@ from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
+from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.task.commons import TaskCommons

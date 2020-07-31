@@ -26,6 +26,7 @@ PyCOMPSs Binding - Management - Object tracker
 import os
 import time
 import uuid
+from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_temporary_directory
 
 if __debug__:

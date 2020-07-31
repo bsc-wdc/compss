@@ -29,6 +29,7 @@ import signal
 from multiprocessing import Process
 from multiprocessing import Queue
 
+from pycompss.runtime.commons import range
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event

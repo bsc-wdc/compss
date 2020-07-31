@@ -26,6 +26,7 @@ PyCOMPSs Persistent Worker
 import os
 import sys
 import signal
+from pycompss.runtime.commons import range
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context

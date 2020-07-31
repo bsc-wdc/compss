@@ -25,6 +25,7 @@ PyCOMPSs Common piper utils
 
 import os
 import logging
+from pycompss.runtime.commons import range
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe

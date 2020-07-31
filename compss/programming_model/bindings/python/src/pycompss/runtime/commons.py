@@ -79,6 +79,18 @@ EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
 # Interactive mode file name
 INTERACTIVE_FILE_NAME = 'InteractiveMode'
 
+#####################################################
+# Builtin functions depending on the python version #
+#####################################################
+
+if IS_PYTHON3:
+    # Python 3 does not have
+    range = range   # noqa
+else:
+    # Python 2 xrange is more memory efficient than xrange
+    range = xrange  # noqa
+
+
 ###############################################
 # Global variables set from different modules #
 ###############################################

@@ -56,6 +56,11 @@
       pos=$((5 + i))
       jvmFlags="${jvmFlags} ${!pos}"
     done
+    #Changed to support Coverage mode
+    uuid=$(uuidgen) 
+    jvmFlags=$(echo $jvmFlags | tr "#" ",")
+    jvmFlags=$(echo $jvmFlags | tr "@" ",")
+    jvmFlags=$(echo "${jvmFlags/ffff/$uuid}")
 
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((5 + numJvmFlags))

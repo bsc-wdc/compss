@@ -176,52 +176,58 @@
 
         workerCMD=$(echo ${line} | cut -d' ' -f3-)
 
-        if [ "$binding" == "PYTHON" ] && [ "$mpiWorker" == "true" ]; then
-          # delimiter example: "python -u"
+        #CHANGED TO SUPPORT coverage#run as command split if else
+        if [ "$binding" == "PYTHON" ]; then
+	  # delimiter example: "python -u"
           delimiter="${pythonInterpreter} -u"
-          bindingExecutable="${workerCMD%%"$delimiter"*}"
-          bindingArgs=${workerCMD#*"$delimiter"}
-
-          # Get full path of the binary
-          pythonInterpreter=$(which ${pythonInterpreter})
-
-          if [ "$tracing" -eq "-1" ]; then # scorep
-            echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
-            TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-            python_version=$( ${pythonInterpreter} -c "import sys; print(sys.version_info[:][0])" )
-            source ${TRACE_SCRIPTS_PATH}/scorep.sh $python_version
-            # Set path to the application - this even better because the submission is independent of the current working directory
-            app_path=$(pwd)
-            app_name=piper_worker.py
-            rm -rf $app_path/.scorep_preload
-            ld_preload=$(scorep-preload-init --value-only --user --nocompiler --mpp=mpi --thread=pthread --io=runtime:posix ${app_path}/${app_name})
-            bindingArgs=" -x LD_PRELOAD=$ld_preload ${pythonInterpreter} -u -m scorep $bindingArgs"
-            echo "[BINDINGS PIPER] ScoreP setup done"
-
-          elif [ "$tracing" -eq "-2" ]; then # arm-map
-            echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
-            TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-            source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
-            # Set path to the application - this even better because the submission is independent of the current working directory
-            bindingExecutable="map"
-            bindingArgs=" --profile -o $(pwd)/$(hostname).map --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
-            echo "[BINDINGS PIPER] Arm setup for MAP done"
-
-          elif [ "$tracing" -eq "-3" ]; then # arm-ddt
-            echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
-            TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-            source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
-            # Set path to the application - this even better because the submission is independent of the current working directory
-            bindingExecutable="ddt"
-            bindingArgs=" --connect --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
-            echo "[BINDINGS PIPER] Arm setup for DDT done"
-
-          else
-            bindingExecutable="${workerCMD%%"$delimiter"*}$delimiter"
+	  if [ "$mpiWorker" == "true" ]; then
+             bindingExecutable="${workerCMD%%"$delimiter"*}"
+             bindingArgs=${workerCMD#*"$delimiter"}
+             # Get full path of the binary
+             #pythonInterpreter=$(which ${pythonInterpreter})
+             if [ "$tracing" -eq "-1" ]; then # scorep
+               echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
+               TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
+               python_version=$( ${pythonInterpreter} -c "import sys; print(sys.version_info[:][0])" )
+               source ${TRACE_SCRIPTS_PATH}/scorep.sh $python_version
+               # Set path to the application - this even better because the submission is independent of the current working directory
+               app_path=$(pwd)
+               app_name=piper_worker.py
+               rm -rf $app_path/.scorep_preload
+               ld_preload=$(scorep-preload-init --value-only --user --nocompiler --mpp=mpi --thread=pthread --io=runtime:posix ${app_path}/${app_name})
+               bindingArgs=" -x LD_PRELOAD=$ld_preload ${pythonInterpreter} -u -m scorep $bindingArgs"
+               echo "[BINDINGS PIPER] ScoreP setup done"
+             elif [ "$tracing" -eq "-2" ]; then # arm-map
+               echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
+               TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
+               source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
+               # Set path to the application - this even better because the submission is independent of the current working directory
+               bindingExecutable="map"
+               bindingArgs=" --profile -o $(pwd)/$(hostname).map --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
+               echo "[BINDINGS PIPER] Arm setup for MAP done"
+             elif [ "$tracing" -eq "-3" ]; then # arm-ddt
+               echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
+               TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
+               source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
+               # Set path to the application - this even better because the submission is independent of the current working directory
+               bindingExecutable="ddt"
+               bindingArgs=" --connect --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
+               echo "[BINDINGS PIPER] Arm setup for DDT done"
+             else
+               bindingExecutable="${workerCMD%%"$delimiter"*}$delimiter"
+             fi
+             workerCMD="${bindingExecutable} ${bindingArgs}"
           fi
-          workerCMD="${bindingExecutable} ${bindingArgs}"
-        fi
-
+	  #CHANGED TO SUPPORT coverage#run as command Added the following if block
+	  #check coverage
+	  if [[ "${pythonInterpreter}" = coverage* ]]; then
+	     newInterpreter=$(echo ${pythonInterpreter} | tr "#" " " )
+	     newDelimiter=$(echo ${delimiter})
+	     echo "[BINDINGS PIPER] Changing Interpreter: ${newDelimiter} to ${newInterpreter}"
+	     workerCMD=$(echo ${workerCMD} | sed "s+${newDelimiter}+${newInterpreter}+")
+	  fi
+   	fi
+        echo "[BINDINGS PIPER] Executing command: ${workerCMD}"
         eval ${workerCMD} </dev/null 3>/dev/null &
         bindingPID=$!
         echo "WORKER_STARTED ${bindingPID}" >> "${controlRESULTpipe}"

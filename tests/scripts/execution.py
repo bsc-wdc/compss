@@ -12,7 +12,7 @@ from enum import Enum
 
 from constants import RUNCOMPSS_REL_PATH
 from constants import CLEAN_PROCS_REL_PATH
-
+from constants import JACOCO_LIB_REL_PATH
 
 ############################################
 # ERROR CLASS
@@ -104,6 +104,25 @@ def get_exit_code(exit_value):
     # FAIL
     return 1
 
+def generate_coverage_reports(jacoco_lib_path, coverage_report_path):
+    import subprocess
+    print("[INFO] Generating Coverage reports (" + coverage_report_path + ")...")
+    coverageBashCommand = "java -jar " + jacoco_lib_path + "/jacococli.jar merge "+coverage_report_path+"/*.exec --destfile "+coverage_report_path+"/temp/jacocoreport.exec"
+    output = subprocess.check_output(['bash','-c', coverageBashCommand])
+
+    coverageBashCommand = "rm -r "+coverage_report_path+"/*.exec"
+    output = subprocess.check_output(['bash','-c', coverageBashCommand])
+
+    coverageBashCommand = "mv "+coverage_report_path+"/temp/jacocoreport.exec "+coverage_report_path
+    output = subprocess.check_output(['bash','-c',coverageBashCommand])
+    output = subprocess.check_output(['bash','-c',"rm -r "+coverage_report_path+"/temp"])
+
+    coverageBashCommand = "coverage combine --rcfile=/tmp/coverage_rc"
+    try:
+        subprocess.check_output(['bash','-c', coverageBashCommand])
+    except subprocess.CalledProcessError as e:
+        print("No Python Coverage files to merge")
+
 
 ############################################
 # PUBLIC METHODS
@@ -126,14 +145,33 @@ def execute_tests(cmd_args, compss_cfg):
     compss_logs_root = compss_cfg.get_compss_base_log_dir()
     target_base_dir = compss_cfg.get_target_base_dir()
     execution_sanbdox = os.path.join(target_base_dir, "apps")
+    coverage_path = os.path.join(target_base_dir, "coverage")
+    jaccoco_lib_path = compss_cfg.get_compss_home() + JACOCO_LIB_REL_PATH 
 
+    if cmd_args.coverage:
+        print("[INFO] Coverage mode enabled")
+        coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
+        #coverage_paths[2] = coverage_paths[2].replace("#","@")		
+        #coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
+        print("[INFO] Coverage expression: "+coverage_expression)
+        print("[INFO] File coverage_rc generated")   
     # Execute all the deployed tests
     results = []
+    i=0
     for test_dir in sorted(os.listdir(execution_sanbdox)):
+        old_runcompss_opts = compss_cfg.runcompss_opts
+        if cmd_args.coverage:
+            old_runcompss_opts = compss_cfg.runcompss_opts
+            coverage_expression = coverage_expression.replace("id", test_dir)
+            if old_runcompss_opts is None:
+                compss_cfg.runcompss_opts = coverage_expression
+            else:
+                compss_cfg.runcompss_opts = compss_cfg.runcompss_opts + " " + coverage_expression
+            print("[INFO] Modified runcompss_opt with coverage: "+compss_cfg.runcompss_opts)
         test_path = os.path.join(execution_sanbdox, test_dir)
         ev, exec_time = _execute_test(test_dir, test_path, compss_logs_root, cmd_args, compss_cfg)
         results.append((test_dir, ev, exec_time))
-
+        compss_cfg.runcompss_opts = old_runcompss_opts
         if cmd_args.fail_fast and ev == ExitValue.FAIL:
             print()
             print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -163,7 +201,9 @@ def execute_tests(cmd_args, compss_cfg):
     print()
     print(tabulate(results_info, headers=headers))
     print("----------------------------------------")
-
+    
+    if cmd_args.coverage:
+        generate_coverage_reports(jaccoco_lib_path, coverage_path)
     # Return if any test has failed
     return global_ev
 
@@ -259,7 +299,6 @@ def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss
     runcompss_user_opts = compss_cfg.get_runcompss_opts()
     if runcompss_user_opts is None:
         runcompss_user_opts = ""
-
     cmd = [str(execution_script_path),
            str(runcompss_bin),
            str(compss_cfg.get_comm()),
@@ -272,8 +311,8 @@ def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss
 
     if __debug__:
         print("[DEBUG] Test execution command: " + str(cmd))
-
     # Invoke execution script
+
     import subprocess
     try:
         exec_env = os.environ.copy()

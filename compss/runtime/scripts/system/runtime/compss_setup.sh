@@ -156,19 +156,24 @@ check_compss_setup () {
   if [ -z "${agent_config}" ]; then
     agent_config=${DEFAULT_AGENT_CONFIG}
   fi
+
   
   check_analysis_setup
 
   check_worker_setup
+
   check_adaptors_setup
+
   check_scheduler_setup
 
   check_bindings_setup
 
   check_stream_setup
+
   check_storage_setup
 
   check_tracing_setup
+
 
 }
 
@@ -206,12 +211,70 @@ EOT
 
 }
 
+
+prepare_coverage() {
+    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ]; 
+        then jvm_master_opts="-javaagent:${jacoco_agent_expression}"
+        else jvm_master_opts+=", -javaagent:${jacoco_agent_expression}"
+    fi
+    IFS='#'
+    aux=$jacoco_agent_expression
+    read -ra ADDR <<< ${aux}
+    location=${ADDR[0]}
+    options=${ADDR[1]}
+    IFS='/'
+    read -ra ADDR <<< ${ADDR[0]}
+    IFS=''
+    p=0
+    text=${ADDR[-1]}
+    ADDR[-1]="${ADDR[-1]:0:p}"workerffff"${ADDR[-1]:p}"
+    for i in "${ADDR[@]}"; do
+        final+="${i}/"
+    done
+    final=${final%?}
+    IFS=','
+    read -ra ADDR <<< ${aux}
+    IFS=' '
+    ADDR[0]=${final}
+    for i in "${ADDR[@]}"; do
+        final2+="${i},"
+    done
+    final2=${final2%?}
+    if [ -z "$options" ]
+    then
+        jvm_workers_opts+=",-javaagent:${final2}"
+    else
+        jvm_workers_opts+=",-javaagent:${final2}#${options}"
+    fi
+    jvm_master_opts=$(echo $jvm_master_opts | tr "#" ",")
+    jvm_master_opts=$(echo $jvm_master_opts | tr "@" ",")
+    destfile=${location}
+    IFS='='
+    read -ra ADDR <<< ${location}
+    IFS=' '
+    IFS='.'
+    read -ra ADDR <<< ${ADDR[2]}
+    IFS=' '
+    final=""
+    final=$(echo ${ADDR[0]} | rev | cut -d"/" -f2- | rev)
+    echo "[run]" > /tmp/coverage_rc
+    echo "parallel=true" >> /tmp/coverage_rc
+    echo "data_file=${final}/coverage" >> /tmp/coverage_rc
+    python_interpreter="coverage${python_version}#run#--rcfile=/tmp/coverage_rc"
+}
+
 #----------------------------------------------
 # Prepares all the necessary configuration for the runtime
 #----------------------------------------------
 prepare_runtime_environment() {
   # Create tmp dir for initial loggers configuration
   mkdir -p /tmp/"$uuid"
+
+
+  #Coverage Mode logic
+  if [ -n "${coverage}" ]; then
+    prepare_coverage
+  fi
 
   # Create JVM Options file
   generate_jvm_opts_file
@@ -362,12 +425,16 @@ EOT
 exec_python() {
   PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python/${python_version}
   export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
+  #CHANGED TO SUPPORT coverage#run as command
+  python_interpreter=$(echo $python_interpreter | tr "#" " ")
 
   # Initialize python flags
-  if [ "$log_level" != "debug" ] && [ "$log_level" != "trace" ] ; then
-    py_flags="-u -O"
-  else
-    py_flags="-u"
+  if [ "${coverage}" != "true" ]; then
+    if [ "$log_level" != "debug" ] && [ "$log_level" != "trace" ] ; then
+      py_flags="-u -O"
+    else
+      py_flags="-u"
+    fi
   fi
 
   # Launch application

@@ -149,13 +149,12 @@ def execute_tests(cmd_args, compss_cfg):
     jaccoco_lib_path = compss_cfg.get_compss_home() + JACOCO_LIB_REL_PATH 
 
     if cmd_args.coverage:
-	print("[INFO] Coverage mode enabled")
-	coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
+        print("[INFO] Coverage mode enabled")
+        coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
         #coverage_paths[2] = coverage_paths[2].replace("#","@")		
-	#coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
+        #coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
         print("[INFO] Coverage expression: "+coverage_expression)
-       	print("[INFO] File coverage_rc generated")   
-    
+        print("[INFO] File coverage_rc generated")   
     # Execute all the deployed tests
     results = []
     i=0
@@ -164,12 +163,12 @@ def execute_tests(cmd_args, compss_cfg):
         if cmd_args.coverage:
             old_runcompss_opts = compss_cfg.runcompss_opts
             coverage_expression = coverage_expression.replace("id", test_dir)
-	    if old_runcompss_opts is None:
+            if old_runcompss_opts is None:
                 compss_cfg.runcompss_opts = coverage_expression
             else:
                 compss_cfg.runcompss_opts = compss_cfg.runcompss_opts + " " + coverage_expression
             print("[INFO] Modified runcompss_opt with coverage: "+compss_cfg.runcompss_opts)
-	test_path = os.path.join(execution_sanbdox, test_dir)
+        test_path = os.path.join(execution_sanbdox, test_dir)
         ev, exec_time = _execute_test(test_dir, test_path, compss_logs_root, cmd_args, compss_cfg)
         results.append((test_dir, ev, exec_time))
         compss_cfg.runcompss_opts = old_runcompss_opts

@@ -537,6 +537,7 @@ def register_ce(core_element):
     # Build constraints string from constraints dictionary
     impl_constraints_lst = []
     for key, value in impl_constraints.items():
+        val = value
         if isinstance(value, list):
             val = str(value).replace('\'', '')
         kv_constraint = "".join((key, ':', str(val), ';'))

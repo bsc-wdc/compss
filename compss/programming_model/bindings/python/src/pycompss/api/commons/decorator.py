@@ -23,14 +23,10 @@ PyCOMPSs DECORATOR COMMONS
     This file contains the main decorator class.
 """
 
-import os
 from contextlib import contextmanager
 
 import pycompss.util.context as context
 from pycompss.util.exceptions import MissingImplementedException
-from pycompss.api.commons.error_msgs import wrong_value
-from pycompss.api.commons.error_msgs import cast_env_to_int_error
-from pycompss.api.commons.error_msgs import cast_string_to_int_error
 
 if __debug__:
     import logging
@@ -96,7 +92,7 @@ class PyCOMPSsDecorator(object):
         elif 'workingDir' in self.kwargs:
             self.kwargs['working_dir'] = self.kwargs.pop('workingDir')
         else:
-            self.kwargs['working_dir'] = '[unassigned]'  # Empty or '[unassigned]'
+            self.kwargs['working_dir'] = '[unassigned]'
 
     def __resolve_fail_by_exit_value__(self):
         # type: () -> None
@@ -141,7 +137,7 @@ class PyCOMPSsDecorator(object):
                 self.kwargs['computing_nodes'] = 1
             else:
                 # Legacy annotation present, switching
-                self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
+                self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')  # noqa: E501
         else:
             # Valid annotation found, nothing to do
             pass

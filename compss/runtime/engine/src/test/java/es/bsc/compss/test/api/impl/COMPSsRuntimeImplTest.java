@@ -119,7 +119,9 @@ public class COMPSsRuntimeImplTest {
         implConstraints = "MemoryType:RAM";
         implType = "BINARY";
         implIO = "False";
-        implTypeArgs = new String[] { "binary",
+        implTypeArgs = new String[] { "internal_type",
+            "internal_func",
+            "binary",
             "binaryWorkingDir",
             "fasle",
             "engine",

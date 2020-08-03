@@ -91,12 +91,12 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);
                     }
 
-                    String binaryc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
-                    String binaryWorkingDirc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
-                    boolean binaryfailByEVc = Boolean.parseBoolean(implTypeArgs[2]);
+                    String binaryc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
+                    String binaryWorkingDirc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    boolean binaryfailByEVc = Boolean.parseBoolean(implTypeArgs[4]);
                     ContainerDescription containerc =
-                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
-                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]));
+                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]),
+                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[6]));
                     if (binaryc == null || binaryc.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for BINARY method " + implSignature);
@@ -157,12 +157,12 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);
                     }
 
-                    String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
-                    String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
-                    boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[2]);
+                    String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
+                    String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[4]);
                     ContainerDescription container =
-                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
-                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]));
+                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]),
+                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[6]));
                     if (binary == null || binary.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for BINARY method " + implSignature);

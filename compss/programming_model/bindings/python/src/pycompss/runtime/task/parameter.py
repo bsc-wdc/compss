@@ -25,6 +25,10 @@ PyCOMPSs runtime - Parameter
 
 import sys
 import copy
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.task.keys import ParamAliasKeys
@@ -467,6 +471,7 @@ def get_parameter_from_dictionary(d):
         return parameter
 
 
+# @lru_cache(maxsize=128)
 def get_compss_type(value, depth=0):
     # type: (object, int) -> int
     """ Retrieve the value type mapped to COMPSs types.

@@ -19,6 +19,10 @@
 
 import os
 import sys
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
@@ -685,6 +689,7 @@ class TaskWorker(TaskCommons):
                     serialize_to_file(obj, f_name)
         return user_returns
 
+    @lru_cache(maxsize=128)
     def is_parameter_an_object(self, name):
         # type: (str) -> bool
         """ Given the name of a parameter, determine if it is an object or not.
@@ -706,6 +711,7 @@ class TaskWorker(TaskCommons):
         # return True
         return True
 
+    @lru_cache(maxsize=128)
     def is_parameter_file_collection(self, name):
         # type: (str) -> bool
         """ Given the name of a parameter, determine if it is a file

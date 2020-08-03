@@ -17,6 +17,10 @@
 
 # -*- coding: utf-8 -*-
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 import pycompss.api.parameter as parameter
 from pycompss.runtime.task.parameter import get_new_parameter
 
@@ -38,6 +42,7 @@ class TaskCommons(object):
         self.param_args = None
         self.param_varargs = None
 
+    @lru_cache(maxsize=128)
     def get_varargs_direction(self):
         # type: () -> ... # Parameter
         """ Returns the direction of the varargs arguments.
@@ -56,6 +61,7 @@ class TaskCommons(object):
                 return self.decorator_arguments['varargs_type']
         return self.decorator_arguments[self.param_varargs]
 
+    @lru_cache(maxsize=128)
     def get_default_direction(self, var_name):
         # type: (str) -> ...  # Parameter
         """ Returns the default direction for a given parameter.

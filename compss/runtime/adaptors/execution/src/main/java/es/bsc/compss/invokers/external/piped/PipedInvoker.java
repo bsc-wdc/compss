@@ -102,7 +102,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             boolean hasTarget = entpc.hasTarget();
                             int numReturns = entpc.getNumReturns();
                             int parameterCount = entpc.getParameterCount();
-                            String[] parameters = entpc.getParameters();
+                            Object[] parameters = entpc.getParameters();
                             if (appId == null) {
                                 appId = context.getRuntimeAPI().registerApplication();
                             }

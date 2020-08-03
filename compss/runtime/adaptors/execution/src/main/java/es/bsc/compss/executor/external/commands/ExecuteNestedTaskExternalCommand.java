@@ -16,10 +16,25 @@
  */
 package es.bsc.compss.executor.external.commands;
 
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import java.util.Arrays;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
 /**
  * Command to request an execution to the runtime.
  */
 public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
+
+    // Number of fields per parameter
+    public static final int NUM_FIELDS_PER_PARAM = 9;
+
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+
 
     public static enum EntryPoint {
         SIGNATURE, CLASS_METHOD
@@ -31,7 +46,7 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
     protected int timeout;
     protected boolean prioritary;
     protected String signature;
-    protected String[] parameters;
+    protected Object[] parameters;
     protected int parameterCount;
     protected int numReturns;
     protected boolean hasTarget;
@@ -81,7 +96,7 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
         return this.parameterCount;
     }
 
-    public String[] getParameters() {
+    public Object[] getParameters() {
         return this.parameters;
     }
 
@@ -107,5 +122,37 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
 
     public String getMethodName() {
         return this.methodName;
+    }
+
+    /**
+     * Parses the task parameters.
+     * 
+     * @param commandParams string array with the parameters read from the external command
+     * @return Object array to pass in into the executeTask call
+     */
+    protected Object[] processParameters(String[] commandParams) {
+        LOGGER.info(Arrays.toString(commandParams));
+        Object[] methodParams = new Object[commandParams.length];
+        for (int offset = 0; offset < commandParams.length;) {
+            // content
+            methodParams[offset] = commandParams[offset++];
+            // type
+            methodParams[offset] = DataType.values()[Integer.parseInt(commandParams[offset++])];
+            // direction
+            methodParams[offset] = Direction.values()[Integer.parseInt(commandParams[offset++])];
+            // Stream
+            methodParams[offset] = StdIOStream.values()[Integer.parseInt(commandParams[offset++])];
+            // prefix
+            methodParams[offset] = commandParams[offset++];
+            // name
+            methodParams[offset] = commandParams[offset++];
+            // pyContent
+            methodParams[offset] = commandParams[offset++];
+            // weight
+            methodParams[offset] = commandParams[offset++];
+            // keepRename
+            methodParams[offset] = Boolean.parseBoolean(commandParams[offset++]);
+        }
+        return methodParams;
     }
 }

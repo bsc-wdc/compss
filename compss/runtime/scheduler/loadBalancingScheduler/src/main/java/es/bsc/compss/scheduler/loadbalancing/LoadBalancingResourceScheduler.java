@@ -102,7 +102,7 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
                 resourceScore = 200 * Score.calculateDataLocalityScore(params, myWorker);
             }
         }
-        
+
         if (this.myWorker == Comm.getAppHost()) {
             resourceScore++;
         }

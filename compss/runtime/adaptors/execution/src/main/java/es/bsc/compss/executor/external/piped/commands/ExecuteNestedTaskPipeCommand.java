@@ -33,7 +33,7 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
         entryPoint = EntryPoint.valueOf(command[1]);
 
         switch (this.entryPoint) {
-            case SIGNATURE:
+            case SIGNATURE: {
                 // EXECUTE_NESTED_TASK "SIGNATURE" SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES IS_REPLICATED
                 // IS_DISTRIBUTED HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
                 signature = command[2];
@@ -46,12 +46,14 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
                 hasTarget = Boolean.parseBoolean(command[9]);
                 numReturns = Integer.parseInt(command[10]);
                 parameterCount = Integer.parseInt(command[11]);
-                parameters = new String[command.length - 12];
+                String[] params = new String[command.length - 12];
                 if (command.length > 12) {
-                    System.arraycopy(command, 12, parameters, 0, parameters.length);
+                    System.arraycopy(command, 12, params, 0, params.length);
                 }
+                parameters = processParameters(params);
                 break;
-            case CLASS_METHOD:
+            }
+            case CLASS_METHOD: {
                 // EXECUTE_NESTED_TASK "CLASS_METHOD" METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME IS_PRIORITARY
                 // HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
                 methodClass = command[2];
@@ -62,11 +64,13 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
                 hasTarget = Boolean.parseBoolean(command[7]);
                 numReturns = Integer.parseInt(command[8]);
                 parameterCount = Integer.parseInt(command[9]);
-                parameters = new String[command.length - 10];
+                String[] params = new String[command.length - 10];
                 if (command.length > 10) {
-                    System.arraycopy(command, 10, parameters, 0, parameters.length);
+                    System.arraycopy(command, 10, params, 0, params.length);
                 }
+                parameters = processParameters(params);
                 break;
+            }
             default:
 
         }

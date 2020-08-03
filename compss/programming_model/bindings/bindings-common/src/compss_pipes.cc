@@ -66,7 +66,7 @@ void write_command_in_pipe(stringstream& ss){
  */
 void process_param(void** params, int i, stringstream& ss) {
 
-	// FORMAT: Type(int) value(depens on type) direction(int) IOstream(int) Prefix(String)
+	// FORMAT: value(depens on type) Type(int) direction(int) IOstream(int) Prefix(String)
 	// Name(String) Content_type(String) Weight(String) Keep_rename(boolean)
 
 	debug_printf("[BINDING-COMMONS] - @process_param - Processing parameter %d\n", i);
@@ -89,10 +89,6 @@ void process_param(void** params, int i, stringstream& ss) {
     char *parConType    = *(char**) params[pc];
     char *parWeight	    = *(char**) params[pw];
     int parKeepRename   = *(int*)   params[pkr];
-
-    // Add parameter type
-    debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DATA_TYPE: %d\n", (enum datatype) parType);
-    ss << parType << " ";
 
     // Add parameter value
     switch ( (enum datatype) parType) {
@@ -179,6 +175,10 @@ void process_param(void** params, int i, stringstream& ss) {
             ss << "ERROR ";
             break;
     }
+    
+    // Add parameter type
+    debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DATA_TYPE: %d\n", (enum datatype) parType);
+    ss << parType << " ";
 
     // Add param direction
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DIRECTION: %d\n", (enum direction) parDirect);

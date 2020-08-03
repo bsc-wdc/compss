@@ -27,6 +27,7 @@ else
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
+DEFAULT_PYTHON_MEMORY_PROFILE=false
 
 # C
 DEFAULT_PERSISTENT_WORKER_C=false
@@ -46,7 +47,7 @@ JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your 
 # CHECK BINDING-RELATED ENV VARIABLES
 #----------------------------------------------
 check_bindings_env() {
-  : 
+  :
 }
 
 
@@ -114,14 +115,14 @@ check_bindings_setup () {
     if [ -z "$PyObject_serialize" ]; then
              PyObject_serialize="${DEFAULT_PyOBJECT_SERIALIZE}"
     fi
-    
+
     if [ -z "$python_interpreter" ]; then
         python_interpreter=$DEFAULT_PYTHON_INTERPRETER
         python_version=$DEFAULT_PYTHON_VERSION
         if ! command_exists "${python_interpreter}" ; then
            fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
         fi
-    else 
+    else
         if [ "${coverage}" = "true" ]; then
            echo "import sys; print(sys.version_info[:][0])" > .tmp.py
            py_aux=$(echo ${python_interpreter} | tr "#" " ")
@@ -147,6 +148,10 @@ check_bindings_setup () {
             python_mpi_worker=$DEFAULT_PYTHON_MPI_WORKER
     fi
 
+    if [ -z "$python_memory_profile" ]; then
+            python_memory_profile=$DEFAULT_PYTHON_MEMORY_PROFILE
+    fi
+
     # Check if installed
     if [ ! -d "${COMPSS_HOME}/Bindings/python/$python_version" ]; then
       fatal_error "PyCOMPSs for Python $python_version not installed." 1
@@ -168,7 +173,7 @@ check_bindings_setup () {
       export COMPSS_PERSISTENT_BINDING=0
     else
       display_warning "${WARN_INCOMPATIBLE_ADAPTOR_AND_PERSITENT_C}"
-      persistent_worker_c="false" 
+      persistent_worker_c="false"
     fi
   fi
 }

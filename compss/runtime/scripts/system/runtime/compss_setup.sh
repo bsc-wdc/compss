@@ -434,6 +434,9 @@ exec_python() {
     else
       py_flags="-u"
     fi
+    if [ "$python_memory_profile" == "true" ]; then
+      py_flags="${py_flags} -m mprof run"
+    fi
   fi
 
   # Launch application

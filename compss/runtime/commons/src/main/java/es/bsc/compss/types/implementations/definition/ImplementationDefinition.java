@@ -18,6 +18,7 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
@@ -87,22 +88,41 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
             switch (mt) {
 
                 case CONTAINER:
-                    if (implTypeArgs.length != BinaryImplementation.NUM_PARAMS) {
-                        throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);
+                    if (implTypeArgs.length != ContainerImplementation.NUM_PARAMS) {
+                        throw new IllegalArgumentException(
+                            "Incorrect parameters for type CONTAINER on " + implSignature);
                     }
+                    String internalTypec = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                    String internalFuncc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                    String internalBinaryc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
 
-                    String binaryc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String binaryWorkingDirc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     boolean binaryfailByEVc = Boolean.parseBoolean(implTypeArgs[4]);
+
                     ContainerDescription containerc =
                         new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]),
                             EnvironmentLoader.loadFromEnvironment(implTypeArgs[6]));
-                    if (binaryc == null || binaryc.isEmpty()) {
+
+                    if ((internalBinaryc == null || internalBinaryc.isEmpty()) && internalTypec == "BINARY") {
                         throw new IllegalArgumentException(
-                            "Empty binary annotation for BINARY method " + implSignature);
+                            "Empty binary annotation for CONTAINER method " + implSignature);
                     }
-                    id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, binaryc, binaryWorkingDirc,
-                        binaryfailByEVc, containerc, (MethodResourceDescription) implConstraints);
+
+                    if ((internalFuncc == null || internalFuncc.isEmpty()) && internalTypec == "PYTHON") {
+                        throw new IllegalArgumentException(
+                            "Empty python function annotation for CONTAINER method " + implSignature);
+                    }
+
+                    id = (ImplementationDefinition<T>) new ContainerDefinition(implSignature, internalTypec,
+                        internalFuncc, internalBinaryc, binaryWorkingDirc, binaryfailByEVc, containerc,
+                        (MethodResourceDescription) implConstraints);
+
+                    /*
+                     * Old implementation
+                     * 
+                     * id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, internal_binaryc,
+                     * binaryWorkingDirc, binaryfailByEVc, containerc, (MethodResourceDescription) implConstraints);
+                     */
                     break;
                 case METHOD:
                     if (implTypeArgs.length != MethodImplementation.NUM_PARAMS) {

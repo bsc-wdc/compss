@@ -14,11 +14,11 @@
  *  limitations under the License.
  *
  */
-
 package es.bsc.compss.types.implementations;
 
 import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -32,10 +32,17 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 3;
+    public static final int NUM_PARAMS = 7;
     public static final String SIGNATURE = "container.CONTAINER";
+
+    private String internalType;
+    private String internalBinary;
+    private String internalFunc;
+
+    private String workingDir;
+    private boolean failByEV;
+
     private ContainerDescription container;
-    private String binary;
 
 
     /**
@@ -49,26 +56,86 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
     /**
      * Creates a new ContainerImplementation from the given parameters.
      * 
-     * @param container Engine and image which describes a container
-     * @param binary Binary to execute.
+     * @param internalType "PYTHON"/"BINARY"
+     * @param internalFunc Python function path.
+     * @param internalBinary Binary path.
+     * @param workingDir Working directory.
+     * @param failByEV Flag to enable failure with EV.
+     * @param container Container Description.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param signature Container signature.
-     * @param annot Container requirements.
+     * @param signature Binary signature.
+     * @param annot Binary requirements.
      */
-    public ContainerImplementation(ContainerDescription container, String binary, Integer coreId,
-        Integer implementationId, String signature, MethodResourceDescription annot) {
+
+    public ContainerImplementation(String internalType, String internalFunc, String internalBinary, String workingDir,
+        boolean failByEV, ContainerDescription container, Integer coreId, Integer implementationId, String signature,
+        MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
+
+        this.internalType = internalType;
+        this.internalBinary = internalBinary;
+        this.internalFunc = internalFunc;
+
+        this.workingDir = workingDir;
+        this.failByEV = failByEV;
+
         this.container = container;
     }
 
-    public ContainerDescription getContainer() {
-        return container;
+    /**
+     * Returns the internal type.
+     * 
+     * @return The internal type.
+     */
+    public String getType() {
+        return this.internalType;
     }
 
+    /**
+     * Returns the python function path.
+     * 
+     * @return The python function path.
+     */
+    public String getFunction() {
+        return this.internalFunc;
+    }
+
+    /**
+     * Returns the binary path.
+     * 
+     * @return The binary path.
+     */
     public String getBinary() {
-        return binary;
+        return this.internalBinary;
+    }
+
+    /**
+     * Returns the binary working directory.
+     * 
+     * @return The binary working directory.
+     */
+    public String getWorkingDir() {
+        return this.workingDir;
+    }
+
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
+    /**
+     * Returns the container.
+     * 
+     * @return The container implementation.
+     */
+    public ContainerDescription getContainer() {
+        return container;
     }
 
     @Override
@@ -87,21 +154,35 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
 
     @Override
     public String toString() {
-        return "ContainerImplementation [container=" + container + ", binary=" + binary + "]";
+        return "ContainerImplementation [container=" + container + ", binary=" + internalBinary + "]";
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
+
+        this.internalType = (String) in.readObject();
+        this.internalFunc = (String) in.readObject();
+        this.internalBinary = (String) in.readObject();
+
+        this.workingDir = (String) in.readObject();
+        this.failByEV = in.readBoolean();
+
         this.container = (ContainerDescription) in.readObject();
-        this.binary = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
+
+        out.writeObject(this.internalType);
+        out.writeObject(this.internalFunc);
+        out.writeObject(this.internalBinary);
+
+        out.writeObject(this.workingDir);
+        out.writeBoolean(this.failByEV);
+
         out.writeObject(this.container);
-        out.writeObject(this.binary);
     }
 
 }

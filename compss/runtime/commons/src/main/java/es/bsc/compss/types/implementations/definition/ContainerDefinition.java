@@ -27,30 +27,45 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
  */
 public class ContainerDefinition extends ImplementationDefinition<MethodResourceDescription> {
 
-    private ContainerDescription container;
-    private final String binary;
+    private final String internalType;
+    private final String internalFunc;
+    private final String internalBinary;
+
+    private final String workingDir;
+    private final boolean failByEV;
+
+    private final ContainerDescription container;
 
 
-    protected ContainerDefinition(String signature, ContainerDescription container, String binary,
-        MethodResourceDescription constraints) {
-        super(signature, constraints);
+    protected ContainerDefinition(String signature, String internalType, String internalFunc, String internalBinary,
+        String workingDir, boolean failByEV, ContainerDescription container,
+        MethodResourceDescription implConstraints) {
+
+        super(signature, implConstraints);
+
+        this.internalType = internalType;
+        this.internalBinary = internalBinary;
+        this.internalFunc = internalFunc;
+
+        this.workingDir = workingDir;
+        this.failByEV = failByEV;
+
         this.container = container;
-        this.binary = binary;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new ContainerImplementation(container, binary, coreId, implId, this.getSignature(),
-            this.getConstraints());
+        return new ContainerImplementation(internalType, internalFunc, internalBinary, workingDir, failByEV, container,
+            coreId, implId, this.getSignature(), this.getConstraints());
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("COntainer Implementation \n");
+        sb.append("Container Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
         sb.append("\t Container: ").append(container).append("\n");
-        sb.append("\t Binary: ").append(binary).append("\n");
+        sb.append("\t Binary: ").append(internalBinary).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

@@ -532,7 +532,7 @@ class TaskMaster(TaskCommons):
         for (arg_name, default_value) in reversed(
                 list(zip(list(reversed(self.param_args))[:num_defaults],
                          list(reversed(self.param_defaults))))):
-            if arg_name not in self.parameters.keys():
+            if arg_name not in self.parameters:
                 real_arg_name = get_kwarg_name(arg_name)
                 self.parameters[real_arg_name] = \
                     self.build_parameter_object(real_arg_name,
@@ -1238,7 +1238,6 @@ class TaskMaster(TaskCommons):
         :return: List of values, their types, their directions, their streams
                  and their prefixes.
         """
-        slf = None
         values = []
         names = []
         arg_names = list(self.parameters.keys())
@@ -1254,16 +1253,16 @@ class TaskMaster(TaskCommons):
         code_strings = self.user_function.__code_strings__
 
         # Build the range of elements
-        ra = list(self.parameters.keys())
+        # ra = list(self.parameters.keys())
         if self.function_type == FunctionType.INSTANCE_METHOD or \
                 self.function_type == FunctionType.CLASS_METHOD:
-            slf = ra.pop(0)
+            # ra.pop(0)
             slf_name = arg_names.pop(0)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters
-        for i in ra:
+        for name in arg_names:
             val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
-                self.parameters[i],
+                self.parameters[name],
                 code_strings
             )
             values.append(val)
@@ -1271,7 +1270,7 @@ class TaskMaster(TaskCommons):
             compss_directions.append(direc)
             compss_streams.append(st)
             compss_prefixes.append(pre)
-            names.append(arg_names.pop(0))
+            names.append(name)
             extra_content_types.append(ct)
             weights.append(wght)
             keep_renames.append(kr)
@@ -1280,7 +1279,7 @@ class TaskMaster(TaskCommons):
         if self.function_type == FunctionType.INSTANCE_METHOD:
             # self is always an object
             val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
-                self.parameters[slf],
+                self.parameters[slf_name],
                 code_strings
             )
             values.append(val)

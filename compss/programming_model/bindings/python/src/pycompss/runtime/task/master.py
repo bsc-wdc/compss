@@ -1577,7 +1577,6 @@ def _turn_into_file(p, skip_creation=False):
     #     # instance of the same type as the original parameter:
     #     t = type(p.content)
     #     p.content = t()
-
     obj_id = OT.is_tracked(p.content)
     if obj_id is None:
         # This is the first time a task accesses this object

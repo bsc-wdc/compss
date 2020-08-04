@@ -405,9 +405,7 @@ def process_task(current_line,             # type: list
     current_line = current_line[0:-3]
 
     # task jobId command
-    job_id = current_line[1]
-    job_out = current_line[2]
-    job_err = current_line[3]
+    job_id, job_out, job_err = current_line[1:4]  # 4th is not taken
     # current_line[4] = <boolean> = tracing
     # current_line[5] = <integer> = task id
     # current_line[6] = <boolean> = debug

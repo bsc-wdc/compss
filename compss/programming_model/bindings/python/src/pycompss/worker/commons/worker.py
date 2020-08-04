@@ -134,7 +134,7 @@ def build_task_parameter(p_type,      # type: int
                     # decode removes double backslash, and encode returns
                     # the result as binary
                     p_bin_str = aux.decode(STR_ESCAPE).encode()
-                    aux = deserialize_from_string(p_bin_str)
+                    aux = deserialize_from_string(p_bin_str)  # noqa
                 else:
                     # decode removes double backslash, and str casts the output
                     aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))

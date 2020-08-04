@@ -31,6 +31,7 @@ rank = comm.rank
 
 
 def rank_distributor(collection_layout):
+    # type: (tuple) -> list
     """
     Distributes mpi ranks to data given a collection layout
 
@@ -46,15 +47,17 @@ def rank_distributor(collection_layout):
         block_length = 1
     distribution = []
     if block_count == size:
-        # Number of block bigger than processes (one block per process)
+        # Number of block bigger than processes
+        # (one block per process)
         offset = rank * stride
         distribution = list(range(offset, offset+block_length))
     else:
-        # elif block_count > size:
-        # If number of blocks is bigger than processes (blocks round-robin distributed)
+        # If number of blocks is bigger than processes
+        # (blocks round-robin distributed)
         block = rank
-        while (block < block_count):
+        while block < block_count:
             offset = block * stride
-            distribution = distribution + list(range(offset, offset + block_length))
+            distribution = distribution + list(range(offset,
+                                                     offset + block_length))
             block = block + size
     return distribution

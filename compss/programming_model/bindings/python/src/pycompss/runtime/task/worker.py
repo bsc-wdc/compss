@@ -298,10 +298,8 @@ class TaskWorker(TaskCommons):
             _dec_arg = self.decorator_arguments.get(argument.name, None)
             _col_dir = _dec_arg.direction if _dec_arg else None
             _col_dep = _dec_arg.depth if _dec_arg else depth
-
             if __debug__:
-                logger.debug("\t\t - It is a COLLECTION: " +
-                             str(col_f_name))
+                logger.debug("\t\t - It is a COLLECTION: " + str(col_f_name))
                 logger.debug("\t\t\t - Depth: " + str(_col_dep))
 
             # Check if this collection is in layout
@@ -310,21 +308,24 @@ class TaskWorker(TaskCommons):
             # 2- it has a collection layout
             # 3- the current argument is the layout target
             in_mpi_collection_env = False
-            if python_mpi and collections_layouts and collections_layouts[0] == argument.name:
+            if python_mpi and collections_layouts and \
+                    collections_layouts[0] == argument.name:
                 in_mpi_collection_env = True
                 from pycompss.util.mpi.helper import rank_distributor
-                # call rank_distributor if the current param is the target of the layout
-                # for each rank, return its offset(s) in the collection
+                # Call rank_distributor if the current param is the target of
+                # the layout for each rank, return its offset(s) in the
+                # collection.
                 rank_distribution = rank_distributor(collections_layouts[1:])
+                rank_distr_len = len(rank_distribution)
                 if __debug__:
-                    logger.debug("Rank distribution is: " + str(rank_distribution))
+                    logger.debug("Rank distribution is: " + str(rank_distribution))  # noqa: E501
 
             for (i, line) in enumerate(open(col_f_name, 'r')):
                 if in_mpi_collection_env:
-                    # this is not my offset? skip
+                    # Isn't this my offset? skip
                     if i not in rank_distribution:
                         continue
-                data_type, content_file, content_type = line.strip().split()  # noqa: E501
+                data_type, content_file, content_type = line.strip().split()
                 # Same naming convention as in COMPSsRuntimeImpl.java
                 sub_name = "%s.%d" % (argument.name, i)
                 if name_prefix:
@@ -358,21 +359,23 @@ class TaskWorker(TaskCommons):
                         if _col_dep == 1:
                             temp = create_object_by_con_type(content_type)
                             sub_arg.content = temp
-                            # In case that only one element is used in this mpi rank,
-                            # the collection list is removed
-                            if in_mpi_collection_env and len(rank_distribution) == 1:
+                            # In case that only one element is used in this
+                            # mpi rank, the collection list is removed
+                            if in_mpi_collection_env and rank_distr_len == 1:
                                 argument.content = sub_arg.content
                                 argument.content_type = sub_arg.content_type
                             else:
                                 argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
                         else:
-                            self.retrieve_content(sub_arg, sub_name,
-                                                  python_mpi, collections_layouts,
+                            self.retrieve_content(sub_arg,
+                                                  sub_name,
+                                                  python_mpi,
+                                                  collections_layouts,
                                                   depth=_col_dep - 1)
-                            # In case that only one element is used in this mpi rank,
-                            # the collection list is removed
-                            if in_mpi_collection_env and len(rank_distribution) == 1:
+                            # In case that only one element is used in this mpi
+                            # rank, the collection list is removed
+                            if in_mpi_collection_env and rank_distr_len == 1:
                                 argument.content = sub_arg.content
                                 argument.content_type = sub_arg.content_type
                             else:
@@ -385,7 +388,7 @@ class TaskWorker(TaskCommons):
                                               python_mpi, collections_layouts)
                         # In case only one element is used in this mpi rank,
                         # the collection list is removed
-                        if in_mpi_collection_env and len(rank_distribution) == 1:
+                        if in_mpi_collection_env and rank_distr_len == 1:
                             argument.content = sub_arg.content
                             argument.content_type = sub_arg.content_type
                         else:
@@ -394,7 +397,7 @@ class TaskWorker(TaskCommons):
                 else:
                     # In case only one element is used in this mpi rank,
                     # the collection list is removed
-                    if in_mpi_collection_env and len(rank_distribution) == 1:
+                    if in_mpi_collection_env and rank_distr_len == 1:
                         argument.content = content_file
                         argument.content_type = parameter.TYPE.FILE
                     else:
@@ -706,7 +709,7 @@ class TaskWorker(TaskCommons):
             annotated = [parameter.TYPE.COLLECTION,
                          parameter.TYPE.EXTERNAL_STREAM,
                          None]
-            return self.decorator_arguments[original_name].content_type in annotated
+            return self.decorator_arguments[original_name].content_type in annotated  # noqa: E501
         # The parameter is not annotated in the decorator, so (by default)
         # return True
         return True
@@ -757,9 +760,7 @@ class TaskWorker(TaskCommons):
         :param self_value: Self value.
         :return: List new types, List new values.
         """
-
         new_types, new_values = [], []
-
         if __debug__:
             logger.debug("Building types update")
 
@@ -808,8 +809,10 @@ class TaskWorker(TaskCommons):
                         new_values.append('null')
                 elif arg.content_type == parameter.TYPE.COLLECTION:
                     # There is a collection that can contain persistent objects
-                    collection_new_values = build_collection_types_values(arg.content, arg,
-                                                                          param.direction)       # noqa: E501
+                    collection_new_values = \
+                        build_collection_types_values(arg.content,
+                                                      arg,
+                                                      param.direction)
                     new_types.append(parameter.TYPE.COLLECTION)
                     new_values.append(collection_new_values)
                 else:
@@ -887,6 +890,7 @@ def __get_collection_objects__(content, argument):
         yield content, argument
 
 
+@lru_cache(maxsize=128)
 def __get_file_name__(file_path):
     # type: (str) -> str
     """ Retrieve the file name from an absolute file path.

@@ -172,7 +172,7 @@ show_opts() {
                                                    Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
     --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
                                             Default: $DEFAULT_PYTHON_MPI_WORKER
-    --python_memory_profile=<false>         Generate a memory profile of the master. (true/false).
+    --python_memory_profile                 Generate a memory profile of the master.
                                             Default: $DEFAULT_PYTHON_MEMORY_PROFILE
 
 * Application name:

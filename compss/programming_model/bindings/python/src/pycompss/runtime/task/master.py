@@ -150,7 +150,6 @@ DEPRECATED_ARGUMENTS = ['isReplicated',
 ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
                             'param_args',
                             'param_varargs',
-                            'param_kwargs',
                             'param_defaults',
                             'first_arg_name',
                             'parameters',
@@ -174,7 +173,7 @@ class TaskMaster(TaskCommons):
     runtime.
     """
 
-    __slots__ = ['param_kwargs', 'param_defaults',
+    __slots__ = ['param_defaults',
                  'first_arg_name', 'computing_nodes', 'parameters',
                  'function_name', 'module_name', 'function_type', 'class_name',
                  'returns', 'multi_return',
@@ -190,7 +189,6 @@ class TaskMaster(TaskCommons):
         super(self.__class__, self).__init__(decorator_arguments,
                                              user_function)
         # Add more argument related attributes that will be useful later
-        self.param_kwargs = None
         self.param_defaults = None
         # Add function related attributed that will be useful later
         self.first_arg_name = None
@@ -232,7 +230,7 @@ class TaskMaster(TaskCommons):
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
-        # self.param_kwargs, self.param_defaults. And gives non-None default
+        # and self.param_defaults. And gives non-None default
         # values to them if necessary
         self.inspect_user_function_arguments()
 
@@ -449,15 +447,17 @@ class TaskMaster(TaskCommons):
         This will be useful when pairing arguments with the direction
         the user has specified for them in the decorator.
 
+        # The third return value was self.param_kwargs - not used (removed)
+
         :return: None, it just adds attributes.
         """
         try:
             arguments = self._getargspec(self.user_function)
-            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa: E501
+            self.param_args, self.param_varargs, _, self.param_defaults = arguments  # noqa: E501
         except TypeError:
             # This is a numba jit declared task
             arguments = self._getargspec(self.user_function.py_func)
-            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa: E501
+            self.param_args, self.param_varargs, _, self.param_defaults = arguments  # noqa: E501
         # It will be easier to deal with functions if we pretend that all have
         # the signature f(positionals, *variadic, **named). This is why we are
         # substituting Nones with default stuff.
@@ -483,7 +483,7 @@ class TaskMaster(TaskCommons):
             full_argspec = inspect.getfullargspec(function)
             as_args = full_argspec.args
             as_varargs = full_argspec.varargs
-            as_keywords = full_argspec.varkw
+            as_keywords = None  # full_argspec.varkw  # not needed
             as_defaults = full_argspec.defaults
             return as_args, as_varargs, as_keywords, as_defaults
         else:
@@ -1466,7 +1466,9 @@ def _serialize_object_into_file(name, p):
     :param p: Parameter.
     :return: Parameter (whose type and value might be modified).
     """
-    if p.content_type == TYPE.OBJECT or p.content_type == TYPE.EXTERNAL_STREAM or p.is_future:
+    if p.content_type == TYPE.OBJECT or \
+            p.content_type == TYPE.EXTERNAL_STREAM or \
+            p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a
         # future (object)
         try:

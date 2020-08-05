@@ -103,12 +103,12 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]),
                             EnvironmentLoader.loadFromEnvironment(implTypeArgs[6]));
 
-                    if ((internalBinaryc == null || internalBinaryc.isEmpty()) && internalTypec == "BINARY") {
+                    if ((internalBinaryc == null || internalBinaryc.isEmpty() || internalBinaryc == "[unassigned]") && internalTypec == "BINARY") {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for CONTAINER method " + implSignature);
                     }
 
-                    if ((internalFuncc == null || internalFuncc.isEmpty()) && internalTypec == "PYTHON") {
+                    if ((internalFuncc == null || internalFuncc.isEmpty() || internalFuncc == "[unassigned]") && internalTypec == "PYTHON") {
                         throw new IllegalArgumentException(
                             "Empty python function annotation for CONTAINER method " + implSignature);
                     }
@@ -116,13 +116,6 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     id = (ImplementationDefinition<T>) new ContainerDefinition(implSignature, internalTypec,
                         internalFuncc, internalBinaryc, binaryWorkingDirc, binaryfailByEVc, containerc,
                         (MethodResourceDescription) implConstraints);
-
-                    /*
-                     * Old implementation
-                     * 
-                     * id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, internal_binaryc,
-                     * binaryWorkingDirc, binaryfailByEVc, containerc, (MethodResourceDescription) implConstraints);
-                     */
                     break;
                 case METHOD:
                     if (implTypeArgs.length != MethodImplementation.NUM_PARAMS) {
@@ -180,16 +173,13 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[4]);
-                    ContainerDescription container =
-                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]),
-                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[6]));
-                    if (binary == null || binary.isEmpty()) {
+                    
+                    if (binary == null || binary.isEmpty() || binary == "[unassigned]") {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for BINARY method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, binary, binaryWorkingDir,
-                        binaryfailByEV, container, (MethodResourceDescription) implConstraints);
-
+                        binaryfailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case MPI:

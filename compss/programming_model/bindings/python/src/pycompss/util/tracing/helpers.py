@@ -29,6 +29,7 @@ from contextlib import contextmanager
 from pycompss.worker.commons.constants import SYNC_EVENTS
 from pycompss.worker.commons.constants import WORKER_EVENTS
 from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
+from pycompss.runtime.constants import MASTER_EVENTS
 
 PYEXTRAE = None
 TRACING = False
@@ -103,39 +104,72 @@ def trace_mpi_executor():
     yield  # here the mpi executor runs
 
 
-def emit_event(event_id):
+def emit_event(event_id, master=False):
     """
-    Simple decorator to emit events
+    Simple decorator to emit worker events.
 
-    :param event_id: Event identifier to emit
+    :param event_id: Event identifier to emit.
+    :param master: If the event is emitted as master.
     :return: Wraps the function with eventandcounter if tracing is active.
     """
-    def actual_decorator(function):
+    event_group = MASTER_EVENTS if master else WORKER_EVENTS
+
+    def worker_tracing_decorator(function):
         @wraps(function)
-        def wrapped(*args, **kwargs):
+        def worker_tracing_wrapper(*args, **kwargs):
             if TRACING:
-                PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)  # noqa
+                PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
                 result = function(*args, **kwargs)
-                PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)         # noqa
+                PYEXTRAE.eventandcounters(event_group, 0)         # noqa
             else:
                 result = function(*args, **kwargs)
             return result
-        return wrapped
-    return actual_decorator
+        return worker_tracing_wrapper
+    return worker_tracing_decorator
 
 
 @contextmanager
-def event(event_id):
-    # type: (str) -> None
+def event(event_id, master=False):
+    # type: (str, bool) -> None
     """ Emits an event wrapping the desired code.
 
-    Does nothing if tracing is disabled
+    Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
+    :param master: If the event is emitted as master.
     :return: None
     """
+    event_group = MASTER_EVENTS if master else WORKER_EVENTS
     if TRACING:
-        PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)  # noqa
+        PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
     yield  # here the code runs
     if TRACING:
-        PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)         # noqa
+        PYEXTRAE.eventandcounters(event_group, 0)         # noqa
+
+
+def emit_manual_event(event_id, master=False):
+    # type: (str, bool) -> None
+    """ Emits a single event with the desired code.
+
+    Does nothing if tracing is disabled.
+
+    :param event_id: Event identifier to emit.
+    :param master: If the event is emitted as master.
+    :return: None
+    """
+    event_group = MASTER_EVENTS if master else WORKER_EVENTS
+    if TRACING:
+        PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
+
+
+def enable_trace_master():
+    # type: () -> None
+    """ Enables tracing for the master process.
+
+    :return: None
+    """
+    global PYEXTRAE
+    global TRACING
+    import pyextrae.sequential as pyextrae  # noqa
+    PYEXTRAE = pyextrae
+    TRACING = True

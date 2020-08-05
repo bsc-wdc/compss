@@ -47,9 +47,13 @@ from pycompss.util.logger.helpers import init_logging
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 
+# Tracing imports
+from pycompss.util.tracing.helpers import emit_manual_event
+from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
+
 # Storage imports
-from pycompss.util.storages.persistent import init_storage
-from pycompss.util.storages.persistent import stop_storage
+from pycompss.util.storages.persistent import master_init_storage
+from pycompss.util.storages.persistent import master_stop_storage
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming
@@ -314,7 +318,7 @@ def start(log_level='off',                     # type: str
 
     print("* - Starting COMPSs runtime...                       *")
     sys.stdout.flush()  # Force flush
-    compss_start(log_level, True)
+    compss_start(log_level, all_vars['trace'], True)
 
     global LOG_PATH
     LOG_PATH = get_log_path()
@@ -340,7 +344,7 @@ def start(log_level='off',                     # type: str
 
     logger.debug("Starting storage")
     global PERSISTENT_STORAGE
-    PERSISTENT_STORAGE = init_storage(all_vars['storage_conf'], logger)
+    PERSISTENT_STORAGE = master_init_storage(all_vars['storage_conf'], logger)
 
     logger.debug("Starting streaming")
     global STREAMING
@@ -352,6 +356,9 @@ def start(log_level='off',                     # type: str
     # let the user write an interactive application
     print("* - PyCOMPSs Runtime started... Have fun!            *")
     print("******************************************************")
+
+    # Emit the application start event (the 0 is in the stop function)
+    emit_manual_event(APPLICATION_RUNNING_EVENT)
 
 
 def __show_flower__():
@@ -454,8 +461,12 @@ def stop(sync=False):
 
     # Stop persistent storage
     if PERSISTENT_STORAGE:
-        stop_storage(logger)
+        master_stop_storage(logger)
 
+    # Emit the 0 for the APPLICATION_RUNNING_EVENT emitted on start function.
+    emit_manual_event(0)
+
+    # Stop runtime
     compss_stop()
 
     __clean_temp_files__()

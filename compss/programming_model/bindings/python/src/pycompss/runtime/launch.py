@@ -53,9 +53,13 @@ from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.api.exceptions import COMPSsException
 
+# Tracing imports
+from pycompss.util.tracing.helpers import event
+from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
+
 # Storage imports
-from pycompss.util.storages.persistent import init_storage
-from pycompss.util.storages.persistent import stop_storage
+from pycompss.util.storages.persistent import master_init_storage
+from pycompss.util.storages.persistent import master_stop_storage
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming
@@ -81,6 +85,8 @@ def parse_arguments():
         description='PyCOMPSs application launcher')
     parser.add_argument('log_level',
                         help='Logging level [trace|debug|api|info|off]')
+    parser.add_argument('tracing',
+                        help='Tracing [-3(ARM DDT)|-2(ARM MAP)|-1(ScoreP)|0(Deactivated)|1(Basic)|2(Advanced)]')  # noqa: E501
     parser.add_argument('object_conversion',
                         help='Object_conversion [true|false]')
     parser.add_argument('storage_configuration',
@@ -112,12 +118,14 @@ def compss_main():
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
+    # Then we can import the appropriate start and stop functions from the API
+    from pycompss.api.api import compss_start, compss_stop
 
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
     # args from sys.argv
-    user_sys_argv = sys.argv[8:]
-    sys.argv = sys.argv[:8]
+    user_sys_argv = sys.argv[9:]
+    sys.argv = sys.argv[:9]
     args = parse_arguments()
     # We are done, now sys.argv must contain user args only
     sys.argv = [args.app_path] + user_sys_argv
@@ -125,10 +133,11 @@ def compss_main():
     # Get log_level
     log_level = args.log_level
 
-    # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start, compss_stop
+    # Setup tracing
+    tracing = int(args.tracing)
+
     # Start the runtime
-    compss_start(log_level, False)
+    compss_start(log_level, tracing, False)
 
     # Get object_conversion boolean
     set_object_conversion(args.object_conversion == 'true')
@@ -164,7 +173,7 @@ def compss_main():
             logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
 
         # Start persistent storage
-        persistent_storage = init_storage(storage_conf, logger)
+        persistent_storage = master_init_storage(storage_conf, logger)
 
         # Start streaming
         streaming = init_streaming(args.streaming_backend,
@@ -176,11 +185,12 @@ def compss_main():
             show_optional_module_warnings()
 
         # MAIN EXECUTION
-        if IS_PYTHON3:
-            with open(APP_PATH) as f:
-                exec(compile(f.read(), APP_PATH, 'exec'), globals())
-        else:
-            execfile(APP_PATH, globals())  # MAIN EXECUTION
+        with event(APPLICATION_RUNNING_EVENT, master=True):
+            if IS_PYTHON3:
+                with open(APP_PATH) as f:
+                    exec(compile(f.read(), APP_PATH, 'exec'), globals())
+            else:
+                execfile(APP_PATH, globals())  # MAIN EXECUTION
 
         # Stop streaming
         if streaming:
@@ -188,7 +198,7 @@ def compss_main():
 
         # Stop persistent storage
         if persistent_storage:
-            stop_storage(logger)
+            master_stop_storage(logger)
 
         # End
         if __debug__:
@@ -219,6 +229,7 @@ def compss_main():
         traceback.print_exc()
         exit_code = 1
     finally:
+        # Stop runtime
         compss_stop(exit_code)
         sys.stdout.flush()
         sys.stderr.flush()
@@ -415,7 +426,7 @@ def launch_pycompss_application(app,
     ##############################################################
 
     # Runtime start
-    compss_start(log_level, False)
+    compss_start(log_level, all_vars['trace'], False)
 
     # Setup logging
     binding_log_path = get_log_path()
@@ -433,7 +444,7 @@ def launch_pycompss_application(app,
     logger.debug('PyCOMPSs Log path: %s' % log_path)
 
     logger.debug("Starting storage")
-    persistent_storage = init_storage(all_vars['storage_conf'], logger)
+    persistent_storage = master_init_storage(all_vars['storage_conf'], logger)
 
     logger.debug("Starting streaming")
     streaming = init_streaming(all_vars['streaming_backend'],
@@ -443,23 +454,24 @@ def launch_pycompss_application(app,
     saved_argv = sys.argv
     sys.argv = args
     # Execution:
-    if func is None or func == '__main__':
-        if IS_PYTHON3:
-            exec(open(app).read())
+    with event(APPLICATION_RUNNING_EVENT, master=True):
+        if func is None or func == '__main__':
+            if IS_PYTHON3:
+                exec(open(app).read())
+            else:
+                execfile(app)  # noqa
+            result = None
         else:
-            execfile(app)  # noqa
-        result = None
-    else:
-        if IS_PYTHON3:
-            import importlib.util
-            spec = importlib.util.spec_from_file_location(all_vars['file_name'], app)  # noqa: E501
-            imported_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(imported_module)
-        else:
-            import imp  # noqa
-            imported_module = imp.load_source(all_vars['file_name'], app)  # noqa
-        method_to_call = getattr(imported_module, func)
-        result = method_to_call(*args, **kwargs)
+            if IS_PYTHON3:
+                import importlib.util
+                spec = importlib.util.spec_from_file_location(all_vars['file_name'], app)  # noqa: E501
+                imported_module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(imported_module)
+            else:
+                import imp  # noqa
+                imported_module = imp.load_source(all_vars['file_name'], app)  # noqa
+            method_to_call = getattr(imported_module, func)
+            result = method_to_call(*args, **kwargs)
     # Recover the system arguments
     sys.argv = saved_argv
 
@@ -469,7 +481,7 @@ def launch_pycompss_application(app,
 
     # Stop persistent storage
     if persistent_storage:
-        stop_storage(logger)
+        master_stop_storage(logger)
 
     logger.debug('--- END ---')
 
@@ -477,6 +489,7 @@ def launch_pycompss_application(app,
     # RUNTIME STOP
     ##############################################################
 
+    # Stop runtime
     compss_stop()
 
     return result

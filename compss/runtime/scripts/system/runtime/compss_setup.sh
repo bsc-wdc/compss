@@ -91,7 +91,7 @@ check_compss_env() {
     PLUTO_HOME=${COMPSS_HOME}/Dependencies/pluto/
     export PLUTO_HOME=${PLUTO_HOME}
     export PATH=${PLUTO_HOME}/bin:${PATH}
-  fi  
+  fi
   check_stream_env
   check_storage_env
 
@@ -139,7 +139,7 @@ check_compss_setup () {
   else
     export LD_LIBRARY_PATH=${library_path}:${LD_LIBRARY_PATH}
   fi
-  
+
   # Python Path
   if [ -z "$pythonpath" ]; then
     pythonpath=${DEFAULT_PYTHONPATH}
@@ -157,7 +157,6 @@ check_compss_setup () {
     agent_config=${DEFAULT_AGENT_CONFIG}
   fi
 
-  
   check_analysis_setup
 
   check_worker_setup
@@ -213,7 +212,7 @@ EOT
 
 
 prepare_coverage() {
-    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ]; 
+    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];
         then jvm_master_opts="-javaagent:${jacoco_agent_expression}"
         else jvm_master_opts+=", -javaagent:${jacoco_agent_expression}"
     fi
@@ -283,7 +282,7 @@ prepare_runtime_environment() {
   start_stream_backends
 
   if [ -n "${gen_core}" ]; then
-    echo "[RUNCOMPSS] Setting coredump generation." 
+    echo "[RUNCOMPSS] Setting coredump generation."
     ulimit -c unlimited
   fi
 }
@@ -330,7 +329,7 @@ clean_runtime_environment() {
 start_compss_agent() {
   # Prepare COMPSs Runtime + Bindings environment
   prepare_runtime_environment
-  
+
   append_agent_jvm_options_to_file "${jvm_options_file}"
 
   # Define command
@@ -354,7 +353,7 @@ start_compss_app() {
 
   # Prepare COMPSs Runtime + Bindings environment
   prepare_runtime_environment
-  
+
   append_app_jvm_options_to_file "${jvm_options_file}"
 
   # Init COMPSs
@@ -379,7 +378,7 @@ exec_java() {
   local JAVACMD
   java_opts=$(tr "\\n" " " < "${jvm_options_file}")
   JAVACMD=$JAVA" -noverify -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
-  
+
   # Launch application
   start_tracing
   # shellcheck disable=SC2086
@@ -410,7 +409,7 @@ EOT
   echo "COMPSS_HOME: $COMPSS_HOME"
   echo "Args: $application_args"
   echo " "
- 
+
   start_tracing
   # shellcheck disable=SC2086
   $fullAppPath ${application_args}
@@ -440,7 +439,7 @@ exec_python() {
   # Launch application
   start_tracing
   # shellcheck disable=SC2086
-  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${log_level} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
+  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${log_level} ${tracing} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
   endCode=$?
   stop_tracing
 
@@ -450,7 +449,7 @@ exec_python() {
 }
 
 #----------------------------------------------
-# Clean up an application environment 
+# Clean up an application environment
 #----------------------------------------------
 clear_compss_app() {
   clean_runtime_environment

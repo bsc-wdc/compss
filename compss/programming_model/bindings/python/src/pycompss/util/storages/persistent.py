@@ -24,6 +24,8 @@ PyCOMPSs Utils - External Storage
     Isolates the API signature calls.
 """
 from pycompss.util.tracing.helpers import emit_event
+from pycompss.runtime.constants import INIT_STORAGE_EVENT as MASTER_INIT_STORAGE_EVENT  # noqa: E501
+from pycompss.runtime.constants import STOP_STORAGE_EVENT as MASTER_STOP_STORAGE_EVENT  # noqa: E501
 from pycompss.worker.commons.constants import INIT_STORAGE_EVENT
 from pycompss.worker.commons.constants import STOP_STORAGE_EVENT
 
@@ -128,8 +130,35 @@ def get_by_id(identifier):
     return getByID(identifier)
 
 
+@emit_event(MASTER_INIT_STORAGE_EVENT, master=True)
+def master_init_storage(storage_conf, logger):  # noqa
+    # type: (str, ...) -> bool
+    """ Call to init storage from the master.
+
+    This function emits the event in the master.
+
+    :param storage_conf: Storage configuration file.
+    :param logger: Logger where to log the messages.
+    :return: True if initialized. False on the contrary.
+    """
+    return __init_storage__(storage_conf, logger)
+
+
 @emit_event(INIT_STORAGE_EVENT)
 def init_storage(storage_conf, logger):  # noqa
+    # type: (str, ...) -> bool
+    """ Call to init storage.
+
+    This function emits the event in the worker.
+
+    :param storage_conf: Storage configuration file.
+    :param logger: Logger where to log the messages.
+    :return: True if initialized. False on the contrary.
+    """
+    return __init_storage__(storage_conf, logger)
+
+
+def __init_storage__(storage_conf, logger):
     # type: (str, ...) -> bool
     """ Call to init storage.
 
@@ -150,8 +179,33 @@ def init_storage(storage_conf, logger):  # noqa
         return False
 
 
+@emit_event(MASTER_STOP_STORAGE_EVENT, master=True)
+def master_stop_storage(logger):
+    # type: (...) -> None
+    """ Stops the persistent storage.
+
+    This function emits the event in the master.
+
+    :param logger: Logger where to log the messages.
+    :return: None
+    """
+    __stop_storage__(logger)
+
+
 @emit_event(STOP_STORAGE_EVENT)
 def stop_storage(logger):
+    # type: (...) -> None
+    """ Stops the persistent storage.
+
+    This function emits the event in the worker.
+
+    :param logger: Logger where to log the messages.
+    :return: None
+    """
+    __stop_storage__(logger)
+
+
+def __stop_storage__(logger):
     # type: (...) -> None
     """ Stops the persistent storage.
 

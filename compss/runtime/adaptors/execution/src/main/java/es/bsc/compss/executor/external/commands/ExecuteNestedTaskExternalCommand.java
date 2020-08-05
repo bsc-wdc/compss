@@ -134,23 +134,14 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
         LOGGER.info(Arrays.toString(commandParams));
         Object[] methodParams = new Object[commandParams.length];
         for (int offset = 0; offset < commandParams.length;) {
-            // content
             methodParams[offset] = commandParams[offset++];
-            // type
             methodParams[offset] = DataType.values()[Integer.parseInt(commandParams[offset++])];
-            // direction
             methodParams[offset] = Direction.values()[Integer.parseInt(commandParams[offset++])];
-            // Stream
             methodParams[offset] = StdIOStream.values()[Integer.parseInt(commandParams[offset++])];
-            // prefix
             methodParams[offset] = commandParams[offset++];
-            // name
             methodParams[offset] = commandParams[offset++];
-            // pyContent
             methodParams[offset] = commandParams[offset++];
-            // weight
             methodParams[offset] = commandParams[offset++];
-            // keepRename
             methodParams[offset] = Boolean.parseBoolean(commandParams[offset++]);
         }
         return methodParams;

@@ -119,7 +119,7 @@ def get_temporary_directory():
     return _TEMP_DIR
 
 
-def set_temporary_directory(folder):
+def set_temporary_directory(folder, create_tmpdir=True):
     # type: (str) -> None
     """ Set the temporary directory.
 
@@ -130,9 +130,13 @@ def set_temporary_directory(folder):
     :return: None
     """
     global _TEMP_DIR
-    temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX,
-                       dir=os.path.join(folder,
-                                        _TEMP_DIR_FOLDER))
+    if create_tmpdir:
+        temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX,
+                           dir=os.path.join(folder,
+                                            _TEMP_DIR_FOLDER))
+    else:
+        temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX,
+                           dir=folder)
     _TEMP_DIR = temp_dir
 
 

@@ -26,6 +26,7 @@ PyCOMPSs Common piper utils
 import os
 import logging
 from pycompss.runtime.commons import range
+from pycompss.runtime.commons import set_temporary_directory
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
@@ -62,15 +63,16 @@ class PiperWorkerConfiguration(object):
         :param argv: arguments from the command line.
         :return: None
         """
-        self.debug = argv[1] == 'true'
-        self.tracing = argv[2] == '1'
-        self.storage_conf = argv[3]
-        self.stream_backend = argv[4]
-        self.stream_master_name = argv[5]
-        self.stream_master_port = argv[6]
-        self.tasks_x_node = int(argv[7])
-        in_pipes = argv[8:8 + self.tasks_x_node]
-        out_pipes = argv[8 + self.tasks_x_node:-2]
+        set_temporary_directory(argv[1], create_tmpdir=False)
+        self.debug = argv[2] == 'true'
+        self.tracing = argv[3] == '1'
+        self.storage_conf = argv[4]
+        self.stream_backend = argv[5]
+        self.stream_master_name = argv[6]
+        self.stream_master_port = argv[7]
+        self.tasks_x_node = int(argv[8])
+        in_pipes = argv[9:9 + self.tasks_x_node]
+        out_pipes = argv[9 + self.tasks_x_node:-2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)

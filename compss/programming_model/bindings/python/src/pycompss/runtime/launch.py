@@ -266,10 +266,10 @@ def launch_pycompss_application(app,
                                 specific_log_dir=None,           # type: str
                                 extrae_cfg=None,                 # type: str
                                 comm='NIO',                      # type: str
-                                conn='es.bsc.compss.connectors.DefaultSSHConnector',                        # noqa: E501
+                                conn='es.bsc.compss.connectors.DefaultSSHConnector',                       # noqa: E501
                                 master_name='',                  # type: str
                                 master_port='',                  # type: str
-                                scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',   # noqa: E501
+                                scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # noqa: E501
                                 jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
                                 cpu_affinity='automatic',        # type: str
                                 gpu_affinity='automatic',        # type: str
@@ -466,7 +466,7 @@ def launch_pycompss_application(app,
                 import importlib.util
                 spec = importlib.util.spec_from_file_location(all_vars['file_name'], app)  # noqa: E501
                 imported_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(imported_module)
+                spec.loader.exec_module(imported_module)  # noqa
             else:
                 import imp  # noqa
                 imported_module = imp.load_source(all_vars['file_name'], app)  # noqa

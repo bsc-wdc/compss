@@ -123,8 +123,12 @@
     "pycompss.util.translators.py2pycompss.components.loop_taskificator": { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.util.translators.py2pycompss.components.calculator":        { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
 
-    "pycompss.streams.distro_stream_client": { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
-    "pycompss.streams.distro_stream":        { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" }
+    "pycompss.streams.environment":                         { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.streams.distro_stream_client":                { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.streams.distro_stream":                       { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.streams.types.requests":                      { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.streams.components.distro_stream_client":     { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.streams.components.objects.kafka_connectors": { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" }
   },
   "root": {
     "level": "ERROR"

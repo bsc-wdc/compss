@@ -26,6 +26,7 @@ PyCOMPSs Persistent Worker
 import os
 import sys
 import signal
+from pycompss.runtime.commons import range
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
@@ -125,7 +126,8 @@ def compss_persistent_worker(config):
     # Start storage
     if persistent_storage:
         # Initialize storage
-        logger.debug(HEADER + "Starting persistent storage")
+        if __debug__:
+            logger.debug(HEADER + "Starting persistent storage")
         from storage.api import initWorker  # noqa
         initWorker(config_file_path=config.storage_conf)
 
@@ -136,8 +138,7 @@ def compss_persistent_worker(config):
 
     if __debug__:
         logger.debug(HEADER + "Starting alive")
-        logger.debug(HEADER + "Control pipe: " +
-                     str(config.control_pipe))
+        logger.debug(HEADER + "Control pipe: " + str(config.control_pipe))
     # Read command from control pipe
     alive = True
     control_pipe = config.control_pipe
@@ -148,20 +149,19 @@ def compss_persistent_worker(config):
             if line[0] == REMOVE_EXECUTOR_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
-
                 PROCESSES.pop(in_pipe, None)
-                control_pipe.write(REMOVED_EXECUTOR_TAG +
-                                   " " + out_pipe +
-                                   " " + in_pipe)
+                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG,
+                                             out_pipe,
+                                             in_pipe)))
 
             elif line[0] == QUERY_EXECUTOR_ID_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pid = PROCESSES.get(in_pipe)
-                control_pipe.write(REPLY_EXECUTOR_ID_TAG +
-                                   " " + out_pipe +
-                                   " " + in_pipe +
-                                   " " + str(pid))
+                control_pipe.write(" ".join((REPLY_EXECUTOR_ID_TAG,
+                                             out_pipe,
+                                             in_pipe,
+                                             str(pid))))
 
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
@@ -176,8 +176,7 @@ def compss_persistent_worker(config):
             elif line[0] == QUIT_TAG:
                 alive = False
             else:
-                logger.debug(HEADER + "ERROR: UNKNOWN COMMAND: " +
-                             command)
+                logger.debug(HEADER + "ERROR: UNKNOWN COMMAND: " + command)
                 alive = False
 
     # Stop storage
@@ -226,7 +225,7 @@ def compss_persistent_executor(config):
             from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
-    process_name = 'Rank-' + str(RANK)
+    process_name = "".join(("Rank-", str(RANK)))
     conf = ExecutorConf(TRACING,
                         config.storage_conf,
                         logger,

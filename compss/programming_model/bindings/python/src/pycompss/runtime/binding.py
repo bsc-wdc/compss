@@ -130,15 +130,16 @@ def stop_runtime(code=0):
         COMPSs.cancel_application_tasks(app_id, 0)
 
     if __debug__:
-        logger.info("Generating Object tracker report...")
-        reporting = OT.is_report_enabled()
-        if reporting:
-            target_path = get_log_path()
-            OT.generate_report(target_path)
-
-    if __debug__:
         logger.info("Cleaning objects...")
     _clean_objects()
+
+    if __debug__:
+        reporting = OT.is_report_enabled()
+        if reporting:
+            logger.info("Generating Object tracker report...")
+            target_path = get_log_path()
+            OT.generate_report(target_path)
+            OT.clean_report()
 
     if __debug__:
         logger.info("Stopping COMPSs...")
@@ -534,13 +535,14 @@ def register_ce(core_element):
         logger.debug("\t - Implementation signature: %s" % impl_signature)
 
     # Build constraints string from constraints dictionary
-    impl_constraints_str = ''
+    impl_constraints_lst = []
     for key, value in impl_constraints.items():
+        val = value
         if isinstance(value, list):
             val = str(value).replace('\'', '')
-            impl_constraints_str += key + ':' + str(val) + ';'
-        else:
-            impl_constraints_str += key + ':' + str(value) + ';'
+        kv_constraint = "".join((key, ':', str(val), ';'))
+        impl_constraints_lst.append(kv_constraint)
+    impl_constraints_str = "".join(impl_constraints_lst)
 
     if __debug__:
         logger.debug("\t - Implementation constraints: %s" %

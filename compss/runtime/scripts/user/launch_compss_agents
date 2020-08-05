@@ -41,6 +41,7 @@ else
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
+DEFAULT_PYTHON_MEMORY_PROFILE=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 
@@ -257,7 +258,7 @@ agent_cmd() {
 
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
 
-  
+
   ACMD="${ACMD} ${@}"
   echo ${ACMD}
 }
@@ -480,6 +481,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        python_memory_profile)
+          python_memory_profile=true
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         prolog=*)
           action=${OPTARG//prolog=/}
           prologActions[numPrologActions]="$action"
@@ -566,7 +572,7 @@ get_args() {
         scheduler=*)
           # Added for tracing in heterogeneity
           scheduler="${OPTARG//scheduler=/}"
-          ;;          
+          ;;
         *)
           # Flag didn't match any patern. Add to COMPSs
           call_options="${call_options} --$OPTARG"
@@ -676,6 +682,10 @@ check_args() {
 
   if [ -z "${python_mpi_worker}" ]; then
     python_mpi_worker=${DEFAULT_PYTHON_MPI_WORKER}
+  fi
+
+  if [ -z "${python_memory_profile}" ]; then
+    python_memory_profile=${DEFAULT_PYTHON_MEMORY_PROFILE}
   fi
 
   if [ -z "${scheduler}" ]; then
@@ -1006,8 +1016,9 @@ log_variables() {
   echo "Python Interpreter:        ${python_interpreter}"
   echo "Python version:            ${python_version}"
   echo "Python virtual env:        ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}"
-  echo "Python propagate virt env.:${python_propagate_virtual_environment}"
-  echo "Python use MPI worker    .:${python_mpi_worker}"
+  echo "Python propagate virt env. ${python_propagate_virtual_environment}"
+  echo "Python use MPI worker      ${python_mpi_worker}"
+  echo "Python memory profile      ${python_memory_profile}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"
@@ -1041,7 +1052,7 @@ write_log_usage() {
 ###############################################
 # Launches the application
 ###############################################
-launch_agent () { 
+launch_agent () {
   local node_name=$1
 
   local jvm_opts_str
@@ -1111,8 +1122,8 @@ launch() {
 
   launch_agent ${master_node}
   hostid=$((hostid+1))
-  
-  if [ ! -z "${worker_nodes}" ]; then    
+
+  if [ ! -z "${worker_nodes}" ]; then
     for node in ${worker_nodes}; do
       launch_agent ${node}
       hostid=$((hostid+1))
@@ -1141,7 +1152,7 @@ launch() {
         CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
       fi
     done
-  done  
+  done
   echo "All nodes are ready"
 
   curl -s -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null

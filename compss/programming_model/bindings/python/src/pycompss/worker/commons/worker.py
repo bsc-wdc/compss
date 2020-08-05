@@ -30,6 +30,7 @@ from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
+from pycompss.runtime.commons import range
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
@@ -47,15 +48,16 @@ from pycompss.util.storages.persistent import get_by_id
 import pycompss.api.parameter as parameter
 
 
-def build_task_parameter(p_type,     # type: int
-                         p_stream,   # type: int
-                         p_prefix,   # type: str
-                         p_name,     # type: str
-                         p_value,    # type: object
-                         p_c_type,   # type: str
-                         args=None,  # type: list
+def build_task_parameter(p_type,      # type: int
+                         p_stream,    # type: int
+                         p_prefix,    # type: str
+                         p_name,      # type: str
+                         p_value,     # type: object
+                         p_c_type,    # type: str
+                         args=None,   # type: list
                          pos=None,    # type: int
-                         logger=None):
+                         logger=None  # noqa # type: ...
+                         ):
     # type: (...) -> (Parameter, int)
     """
     Build task parameter object from the given parameters.
@@ -68,6 +70,7 @@ def build_task_parameter(p_type,     # type: int
     :param p_c_type: Parameter Python Type.
     :param args: Arguments (Default: None).
     :param pos: Position (Default: None).
+    :param logger: Logger where to push the logging messages.
     :return: Parameter object and the number fo substrings.
     """
     num_substrings = 0
@@ -108,13 +111,10 @@ def build_task_parameter(p_type,     # type: int
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
             num_substrings = int(p_value)  # noqa
-            aux = ''
-            first_substring = True
+            aux_str = []
             for j in range(6, num_substrings + 6):
-                if not first_substring:
-                    aux += ' '
-                first_substring = False
-                aux += args[pos + j]
+                aux_str.append(args[pos + j])
+            aux = " ".join(aux_str)
         else:
             aux = str(p_value)
         # Decode the received string
@@ -134,7 +134,7 @@ def build_task_parameter(p_type,     # type: int
                     # decode removes double backslash, and encode returns
                     # the result as binary
                     p_bin_str = aux.decode(STR_ESCAPE).encode()
-                    aux = deserialize_from_string(p_bin_str)
+                    aux = deserialize_from_string(p_bin_str)  # noqa
                 else:
                     # decode removes double backslash, and str casts the output
                     aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
@@ -326,7 +326,7 @@ def task_execution(logger,              # type: ...
         logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" %
                          process_name)
         logger.exception(''.join(line for line in lines))
-        logger.exception("Check that all parameters have been defined with " +
+        logger.exception("Check that all parameters have been defined with "
                          "an absolute import path (even if in the same file)")
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
@@ -486,8 +486,8 @@ def execute_task(process_name,     # type: str
     :param params: List of parameters.
     :param tracing: Tracing flag.
     :param logger: Logger to use.
-    :param log_files: Tuple with (out filename, err filename). None to avoid
-                      stdout and sdterr fd redirection.
+    :param log_files: Tuple with (out filename, err filename).
+                      None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
     :param collections_layouts: collections layouts for python MPI tasks
     :return: exit_code, new_types, new_values, timed_out and except_msg
@@ -525,13 +525,13 @@ def execute_task(process_name,     # type: str
     # user code (reason: ignore @task decorator if called from another task).
     compss_kwargs = {
         'compss_key': True,
-        '_compss_tracing': tracing,
+        'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,
         'compss_log_files': log_files,
-        'python_MPI': python_mpi,
-        'collections_layouts': collections_layouts
+        'compss_python_MPI': python_mpi,
+        'compss_collections_layouts': collections_layouts
     }
 
     if __debug__:
@@ -573,7 +573,6 @@ def execute_task(process_name,     # type: str
         #     logger.debug("\t\t %s" % str(t))
 
     import_error = False
-
     try:
         # Try to import the module (for functions)
         if __debug__:
@@ -606,7 +605,6 @@ def execute_task(process_name,     # type: str
 
         if exit_code != 0:
             return exit_code, new_types, new_values, timed_out, except_msg
-
     else:
         # Method declared as task in class
         # Not the path of a module, it ends with a class name

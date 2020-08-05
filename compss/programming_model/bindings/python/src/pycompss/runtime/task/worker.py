@@ -19,6 +19,10 @@
 
 import os
 import sys
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
@@ -40,9 +44,8 @@ from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.worker.commons.worker import build_task_parameter
 
-if __debug__:
-    import logging
-    logger = logging.getLogger(__name__)
+import logging
+logger = logging.getLogger(__name__)
 
 
 class TaskWorker(TaskCommons):
@@ -85,7 +88,9 @@ class TaskWorker(TaskCommons):
         # the type, the name and the "value" of the parameter. This value may
         # be treated to get the actual object (e.g: deserialize it, query the
         # database in case of persistent objects, etc.)
-        self.reveal_objects(args, logger, kwargs["python_MPI"], kwargs["collections_layouts"])
+        self.reveal_objects(args, logger,
+                            kwargs["compss_python_MPI"],
+                            kwargs["compss_collections_layouts"])
         if __debug__:
             logger.debug("Finished revealing objects")
             logger.debug("Building task parameters structures")
@@ -130,29 +135,27 @@ class TaskWorker(TaskCommons):
         redirect_std = True
         if kwargs['compss_log_files']:
             # Redirect all stdout and stderr during the user code execution
-            # jo job out and err files.
+            # to job out and err files.
             job_out, job_err = kwargs['compss_log_files']
         else:
             job_out, job_err = None, None
             redirect_std = False
-
         if __debug__:
             logger.debug("Redirecting stdout to: " + str(job_out))
             logger.debug("Redirecting stderr to: " + str(job_err))
-
         with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
             if __debug__:
                 logger.debug("Invoking user code")
             # Now execute the user code
             result = self.execute_user_code(user_args,
                                             user_kwargs,
-                                            kwargs['_compss_tracing'])
+                                            kwargs['compss_tracing'])
             user_returns, compss_exception = result
             if __debug__:
                 logger.debug("Finished user code")
 
         python_mpi = False
-        if kwargs["python_MPI"]:
+        if kwargs["compss_python_MPI"]:
             python_mpi = True
 
         # Deal with INOUTs and COL_OUTs
@@ -161,7 +164,7 @@ class TaskWorker(TaskCommons):
         # Deal with COMPSsExceptions
         if compss_exception is not None:
             if __debug__:
-                logger.debug("Detected COMPSs Exception. Raising.")
+                logger.warning("Detected COMPSs Exception. Raising.")
             raise compss_exception
 
         # Deal with returns (if any)
@@ -171,6 +174,7 @@ class TaskWorker(TaskCommons):
         # Check old targetDirection
         if 'targetDirection' in self.decorator_arguments:
             target_label = 'targetDirection'
+            logger.info("Detected deprecated targetDirection. Please, change it to target_direction")  # noqa: E501
         else:
             target_label = 'target_direction'
 
@@ -182,14 +186,13 @@ class TaskWorker(TaskCommons):
                                                              target_label,
                                                              self_type,
                                                              self_value)
-
         if __debug__:
             logger.debug("Finished @task decorator")
 
         return new_types, new_values, self.decorator_arguments[target_label]
 
     def reveal_objects(self, args, logger, python_mpi=False, collections_layouts=None):  # noqa
-        # type: (tuple, logger) -> None
+        # type: (tuple, logger, bool, list) -> None
         """ Get the objects from the args message.
 
         This function takes the arguments passed from the persistent worker
@@ -242,7 +245,7 @@ class TaskWorker(TaskCommons):
     def retrieve_content(self, argument, name_prefix,
                          python_mpi, collections_layouts,
                          depth=0):
-        # type: (Parameter, str, bool, bool, int) -> None
+        # type: (Parameter, str, bool, list, int) -> None
         """ Retrieve the content of a particular argument.
 
         :param argument: Argument.
@@ -295,10 +298,8 @@ class TaskWorker(TaskCommons):
             _dec_arg = self.decorator_arguments.get(argument.name, None)
             _col_dir = _dec_arg.direction if _dec_arg else None
             _col_dep = _dec_arg.depth if _dec_arg else depth
-
             if __debug__:
-                logger.debug("\t\t - It is a COLLECTION: " +
-                             str(col_f_name))
+                logger.debug("\t\t - It is a COLLECTION: " + str(col_f_name))
                 logger.debug("\t\t\t - Depth: " + str(_col_dep))
 
             # Check if this collection is in layout
@@ -307,21 +308,24 @@ class TaskWorker(TaskCommons):
             # 2- it has a collection layout
             # 3- the current argument is the layout target
             in_mpi_collection_env = False
-            if python_mpi and collections_layouts and collections_layouts[0] == argument.name:
+            if python_mpi and collections_layouts and \
+                    collections_layouts[0] == argument.name:
                 in_mpi_collection_env = True
                 from pycompss.util.mpi.helper import rank_distributor
-                # call rank_distributor if the current param is the target of the layout
-                # for each rank, return its offset(s) in the collection
+                # Call rank_distributor if the current param is the target of
+                # the layout for each rank, return its offset(s) in the
+                # collection.
                 rank_distribution = rank_distributor(collections_layouts[1:])
+                rank_distr_len = len(rank_distribution)
                 if __debug__:
-                    logger.debug(" Rank distribution is: " + str(rank_distribution))
+                    logger.debug("Rank distribution is: " + str(rank_distribution))  # noqa: E501
 
             for (i, line) in enumerate(open(col_f_name, 'r')):
                 if in_mpi_collection_env:
-                    # this is not my offset? skip
+                    # Isn't this my offset? skip
                     if i not in rank_distribution:
                         continue
-                data_type, content_file, content_type = line.strip().split()  # noqa: E501
+                data_type, content_file, content_type = line.strip().split()
                 # Same naming convention as in COMPSsRuntimeImpl.java
                 sub_name = "%s.%d" % (argument.name, i)
                 if name_prefix:
@@ -355,21 +359,23 @@ class TaskWorker(TaskCommons):
                         if _col_dep == 1:
                             temp = create_object_by_con_type(content_type)
                             sub_arg.content = temp
-                            # In case that only one element is used in this mpi rank,
-                            # the collection list is removed
-                            if in_mpi_collection_env and len(rank_distribution) == 1:
+                            # In case that only one element is used in this
+                            # mpi rank, the collection list is removed
+                            if in_mpi_collection_env and rank_distr_len == 1:
                                 argument.content = sub_arg.content
                                 argument.content_type = sub_arg.content_type
                             else:
                                 argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
                         else:
-                            self.retrieve_content(sub_arg, sub_name,
-                                                  python_mpi, collections_layouts,
+                            self.retrieve_content(sub_arg,
+                                                  sub_name,
+                                                  python_mpi,
+                                                  collections_layouts,
                                                   depth=_col_dep - 1)
-                            # In case that only one element is used in this mpi rank,
-                            # the collection list is removed
-                            if in_mpi_collection_env and len(rank_distribution) == 1:
+                            # In case that only one element is used in this mpi
+                            # rank, the collection list is removed
+                            if in_mpi_collection_env and rank_distr_len == 1:
                                 argument.content = sub_arg.content
                                 argument.content_type = sub_arg.content_type
                             else:
@@ -382,7 +388,7 @@ class TaskWorker(TaskCommons):
                                               python_mpi, collections_layouts)
                         # In case only one element is used in this mpi rank,
                         # the collection list is removed
-                        if in_mpi_collection_env and len(rank_distribution) == 1:
+                        if in_mpi_collection_env and rank_distr_len == 1:
                             argument.content = sub_arg.content
                             argument.content_type = sub_arg.content_type
                         else:
@@ -391,7 +397,7 @@ class TaskWorker(TaskCommons):
                 else:
                     # In case only one element is used in this mpi rank,
                     # the collection list is removed
-                    if in_mpi_collection_env and len(rank_distribution) == 1:
+                    if in_mpi_collection_env and rank_distr_len == 1:
                         argument.content = content_file
                         argument.content_type = parameter.TYPE.FILE
                     else:
@@ -437,8 +443,7 @@ class TaskWorker(TaskCommons):
             elif is_return(arg.name):
                 ret_params.append(arg)
             elif is_kwarg(arg.name):
-                user_kwargs[get_name_from_kwarg(arg.name)] = \
-                    arg.content
+                user_kwargs[get_name_from_kwarg(arg.name)] = arg.content
             else:
                 if is_vararg(arg.name):
                     self.param_varargs = get_varargs_name(arg.name)
@@ -579,20 +584,19 @@ class TaskWorker(TaskCommons):
         # Manage all the possible outputs of the task and build the return new
         # types and values
         for arg in args:
-            # handle only task parameters that are objects
+            # Handle only task parameters that are objects
 
-            # skip files and non-task-parameters
+            # Skip files and non-task-parameters
             if not isinstance(arg, Parameter) or \
                     not self.is_parameter_an_object(arg.name):
                 continue
 
-            # file collections are objects, but must be skipped as well
+            # File collections are objects, but must be skipped as well
             if self.is_parameter_file_collection(arg.name):
                 continue
 
-            # skip psco
-            # since param.content_type has the old type, we can not use:
-            #     param.content_type != parameter.TYPE.EXTERNAL_PSCO
+            # Skip psco: since param.content_type has the old type, we can
+            # not use:  param.content_type != parameter.TYPE.EXTERNAL_PSCO
             _is_psco_true = (arg.content_type == parameter.TYPE.EXTERNAL_PSCO or
                              is_psco(arg.content))
             if _is_psco_true:
@@ -613,7 +617,7 @@ class TaskWorker(TaskCommons):
                 continue
 
             # Now it's 'INOUT' or 'COLLLECTION_OUT' object param, serialize
-            # to a file
+            # to a file.
             if arg.content_type == parameter.TYPE.COLLECTION:
                 if __debug__:
                     logger.debug("Serializing collection: " + str(arg.name))
@@ -688,6 +692,7 @@ class TaskWorker(TaskCommons):
                     serialize_to_file(obj, f_name)
         return user_returns
 
+    @lru_cache(maxsize=128)
     def is_parameter_an_object(self, name):
         # type: (str) -> bool
         """ Given the name of a parameter, determine if it is an object or not.
@@ -704,11 +709,12 @@ class TaskWorker(TaskCommons):
             annotated = [parameter.TYPE.COLLECTION,
                          parameter.TYPE.EXTERNAL_STREAM,
                          None]
-            return self.decorator_arguments[original_name].content_type in annotated
+            return self.decorator_arguments[original_name].content_type in annotated  # noqa: E501
         # The parameter is not annotated in the decorator, so (by default)
         # return True
         return True
 
+    @lru_cache(maxsize=128)
     def is_parameter_file_collection(self, name):
         # type: (str) -> bool
         """ Given the name of a parameter, determine if it is a file
@@ -754,17 +760,14 @@ class TaskWorker(TaskCommons):
         :param self_value: Self value.
         :return: List new types, List new values.
         """
-
         new_types, new_values = [], []
-
         if __debug__:
             logger.debug("Building types update")
 
         def build_collection_types_values(_content, _arg, direction):
             """ Retrieve collection type-value recursively"""
             coll = []
-            for (_cont, _elem) in zip(_arg.content,
-                                      _arg.collection_content):
+            for (_cont, _elem) in zip(_arg.content, _arg.collection_content):
                 if isinstance(_elem, str):
                     coll.append((parameter.TYPE.FILE, 'null'))
                 else:
@@ -781,7 +784,6 @@ class TaskWorker(TaskCommons):
             return coll
 
         # Add parameter types and value
-
         params_start = 1 if has_self else 0
         params_end = len(args) - num_returns + 1
         # Update new_types and new_values with the args list
@@ -789,9 +791,9 @@ class TaskWorker(TaskCommons):
         for arg in args[params_start:params_end - 1]:
             # Loop through the arguments and update new_types and new_values
             if not isinstance(arg, Parameter):
-                raise Exception('ERROR: A task parameter arrived as an' +
-                                ' object instead as a TaskParameter' +
-                                ' when building the task result message.')
+                raise Exception("ERROR: A task parameter arrived as an"
+                                " object instead as a TaskParameter"
+                                " when building the task result message.")
             else:
                 original_name = get_name_from_kwarg(arg.name)
                 param = self.decorator_arguments.get(original_name,
@@ -807,8 +809,10 @@ class TaskWorker(TaskCommons):
                         new_values.append('null')
                 elif arg.content_type == parameter.TYPE.COLLECTION:
                     # There is a collection that can contain persistent objects
-                    collection_new_values = build_collection_types_values(arg.content, arg,
-                                                                          param.direction)       # noqa: E501
+                    collection_new_values = \
+                        build_collection_types_values(arg.content,
+                                                      arg,
+                                                      param.direction)
                     new_types.append(parameter.TYPE.COLLECTION)
                     new_values.append(collection_new_values)
                 else:
@@ -876,7 +880,7 @@ class TaskWorker(TaskCommons):
 #######################
 
 def __get_collection_objects__(content, argument):
-    """ Retrieve collection objects recursively. """
+    """ Retrieve collection objects recursively generator. """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for (new_con, _elem) in zip(argument.content,
                                     argument.collection_content):
@@ -886,6 +890,7 @@ def __get_collection_objects__(content, argument):
         yield content, argument
 
 
+@lru_cache(maxsize=128)
 def __get_file_name__(file_path):
     # type: (str) -> str
     """ Retrieve the file name from an absolute file path.

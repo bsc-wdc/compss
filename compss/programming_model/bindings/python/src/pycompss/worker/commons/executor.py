@@ -33,12 +33,13 @@ def build_return_params_message(types, values):
 
     pairs = list(zip(types, values))
     num_params = len(pairs)
-    params = ''
+    params = [str(num_params)]
     for pair in pairs:
         value = str(pair[1])
         if pair[0] == TYPE.COLLECTION:
             value = value.replace(" ", "")
             value = value.replace("'", "")
-        params = params + str(pair[0]) + ' ' + value + ' '
-    message = str(num_params) + ' ' + params
+        params.append(str(pair[0]))
+        params.append(value)
+    message = " ".join(params)
     return message

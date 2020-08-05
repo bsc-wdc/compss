@@ -23,7 +23,13 @@ PyCOMPSs runtime - Task - Arguments
     This file contains the classes needed for the arguments identification.
 """
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 
+
+@lru_cache(maxsize=128)
 def is_vararg(param_name):
     # type: (str) -> bool
     """ Determine if a parameter is named as a (internal) vararg.
@@ -34,6 +40,7 @@ def is_vararg(param_name):
     return param_name.startswith('*')
 
 
+@lru_cache(maxsize=128)
 def get_varargs_name(full_name):
     # type: (str) -> str
     """ Extract the vararg name from the name given with full_name.
@@ -45,6 +52,7 @@ def get_varargs_name(full_name):
     return full_name.split('*')[0]
 
 
+@lru_cache(maxsize=128)
 def is_kwarg(param_name):
     # type: (str) -> bool
     """ Determine if a parameter is named as a (internal) kwargs.
@@ -55,6 +63,7 @@ def is_kwarg(param_name):
     return param_name.startswith('#kwarg')
 
 
+@lru_cache(maxsize=128)
 def is_return(param_name):
     # type: (str) -> bool
     """ Determine if a parameter is named as a (internal) return.

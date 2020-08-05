@@ -122,7 +122,7 @@ class Task(PyCOMPSsDecorator):
         :param signature: The user function signature.
         """
         self.task_type = "METHOD"
-        decorator_name = '@' + self.__class__.__name__.lower()
+        decorator_name = "".join(('@', self.__class__.__name__.lower()))
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
 
         self.decorator_arguments = kwargs
@@ -219,11 +219,11 @@ class Task(PyCOMPSsDecorator):
                 else:
                     # Called from another task within the worker
                     # Ignore the @task decorator and run it sequentially
-                    message = "WARNING: Calling task: "
-                    message += str(user_function.__name__)
-                    message += " from this task.\n"
-                    message += "         It will be executed sequentially "
-                    message += "within the caller task."
+                    message = "".join(("WARNING: Calling task: ",
+                                       str(user_function.__name__),
+                                       " from this task.\n",
+                                       "         It will be executed sequentially ",  # noqa: E501
+                                       "within the caller task."))
                     print(message, file=sys.stderr)
                     return self._sequential_call(*args, **kwargs)
             # We are neither in master nor in the worker, or the user has

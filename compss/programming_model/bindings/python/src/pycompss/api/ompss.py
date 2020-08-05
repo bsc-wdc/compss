@@ -64,7 +64,7 @@ class OmpSs(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = '@' + self.__class__.__name__.lower()
+        decorator_name = "".join(('@', self.__class__.__name__.lower()))
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -135,7 +135,7 @@ class OmpSs(PyCOMPSsDecorator):
         self.__resolve_fail_by_exit_value__()
 
         impl_type = "OMPSS"
-        impl_signature = 'OMPSS.' + binary
+        impl_signature = "".join(("OMPSS.", binary))
         impl_args = [binary,
                      self.kwargs['working_dir'],
                      self.kwargs['fail_by_exit_value']]

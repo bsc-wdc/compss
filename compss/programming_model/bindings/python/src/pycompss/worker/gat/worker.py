@@ -69,7 +69,7 @@ def compss_worker(tracing, task_id, storage_conf, params):
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
-    result = execute_task("Task " + task_id,
+    result = execute_task("".join(("Task ", task_id)),
                           storage_conf,
                           params,
                           tracing,
@@ -112,17 +112,18 @@ def main():
     # num_params = int(sys.argv[i+3])
     # params = sys.argv[i+4..]
 
-    print("tracing = " + str(tracing))
-    print("task_id = " + str(task_id))
-    print("log_level = " + str(log_level))
-    print("storage_conf = " + str(storage_conf))
+    if log_level == "true" or log_level == "debug":
+        print("tracing = " + str(tracing))
+        print("task_id = " + str(task_id))
+        print("log_level = " + str(log_level))
+        print("storage_conf = " + str(storage_conf))
 
     persistent_storage = False
-    if storage_conf != 'null':
+    if storage_conf != "null":
         persistent_storage = True
 
     streaming = False
-    if stream_backend not in [None, 'null', 'NONE']:
+    if stream_backend not in [None, "null", "NONE"]:
         streaming = True
 
     with trace_multiprocessing_worker() if tracing else dummy_context():
@@ -135,21 +136,19 @@ def main():
 
         # Load log level configuration file
         worker_path = os.path.dirname(os.path.realpath(__file__))
-        if log_level == 'true' or log_level == "debug":
+        if log_level == "true" or log_level == "debug":
             # Debug
-            init_logging_worker(worker_path +
-                                '/../../../log/logging_gat_worker_debug.json',
-                                tracing)
+            log_json = "".join((worker_path,
+                                "/../../../log/logging_gat_worker_debug.json"))
         elif log_level == "info" or log_level == "off":
             # Info or no debug
-            init_logging_worker(worker_path +
-                                '/../../../log/logging_gat_worker_off.json',
-                                tracing)
+            log_json = "".join((worker_path,
+                                "/../../../log/logging_gat_worker_off.json"))
         else:
             # Default
-            init_logging_worker(worker_path +
-                                '/../../../log/logging_gat_worker.json',
-                                tracing)
+            log_json = "".join((worker_path,
+                                "/../../../log/logging_gat_worker.json"))
+        init_logging_worker(log_json, tracing)
 
         if persistent_storage:
             # Initialize storage

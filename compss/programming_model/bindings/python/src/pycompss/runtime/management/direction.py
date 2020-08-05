@@ -23,9 +23,14 @@ PyCOMPSs Binding - Management - Direction
     This file contains the Direction management functions.
 """
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 from pycompss.api.parameter import DIRECTION
 
 
+@lru_cache(maxsize=128)
 def get_compss_direction(pymode):
     # type: (str) -> int
     """ Get the COMPSs direction of the given pymode string.

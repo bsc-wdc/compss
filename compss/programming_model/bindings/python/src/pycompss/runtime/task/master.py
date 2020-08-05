@@ -36,6 +36,7 @@ from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
+from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.task.commons import TaskCommons
@@ -57,6 +58,7 @@ from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.util.arguments import check_arguments
+from pycompss.util.interactive.helpers import update_tasks_code_file
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import SerializerException
@@ -69,9 +71,8 @@ import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
 
-if __debug__:
-    import logging
-    logger = logging.getLogger(__name__)
+import logging
+logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
@@ -149,7 +150,6 @@ DEPRECATED_ARGUMENTS = ['isReplicated',
 ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
                             'param_args',
                             'param_varargs',
-                            'param_kwargs',
                             'param_defaults',
                             'first_arg_name',
                             'parameters',
@@ -173,7 +173,7 @@ class TaskMaster(TaskCommons):
     runtime.
     """
 
-    __slots__ = ['param_kwargs', 'param_defaults',
+    __slots__ = ['param_defaults',
                  'first_arg_name', 'computing_nodes', 'parameters',
                  'function_name', 'module_name', 'function_type', 'class_name',
                  'returns', 'multi_return',
@@ -189,7 +189,6 @@ class TaskMaster(TaskCommons):
         super(self.__class__, self).__init__(decorator_arguments,
                                              user_function)
         # Add more argument related attributes that will be useful later
-        self.param_kwargs = None
         self.param_defaults = None
         # Add function related attributed that will be useful later
         self.first_arg_name = None
@@ -202,7 +201,7 @@ class TaskMaster(TaskCommons):
         # Add returns related attributes that will be useful later
         self.returns = None
         self.multi_return = False
-        # Task wont be registered until called from the master for the first
+        # Task won't be registered until called from the master for the first
         # time or have a different signature
         self.core_element = core_element
         self.registered = registered
@@ -231,7 +230,7 @@ class TaskMaster(TaskCommons):
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
-        # self.param_kwargs, self.param_defaults. And gives non-None default
+        # and self.param_defaults. And gives non-None default
         # values to them if necessary
         self.inspect_user_function_arguments()
 
@@ -273,27 +272,32 @@ class TaskMaster(TaskCommons):
 
         # Get other arguments if exist
         # Get is replicated
+        deco_arg_getter = self.decorator_arguments.get
         if 'isReplicated' in self.decorator_arguments:
-            is_replicated = self.decorator_arguments['isReplicated']
+            is_replicated = deco_arg_getter('isReplicated')
+            logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
         else:
-            is_replicated = self.decorator_arguments['is_replicated']
+            is_replicated = deco_arg_getter('is_replicated')
         # Get is distributed
         if 'isDistributed' in self.decorator_arguments:
-            is_distributed = self.decorator_arguments['isDistributed']
+            is_distributed = deco_arg_getter('isDistributed')
+            logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
         else:
-            is_distributed = self.decorator_arguments['is_distributed']
+            is_distributed = deco_arg_getter('is_distributed')
         # Get on failure
         if 'onFailure' in self.decorator_arguments:
-            on_failure = self.decorator_arguments['onFailure']
+            on_failure = deco_arg_getter('onFailure')
+            logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
         else:
-            on_failure = self.decorator_arguments['on_failure']
+            on_failure = deco_arg_getter('on_failure')
         # Get time out
         if 'timeOut' in self.decorator_arguments:
-            time_out = self.decorator_arguments['timeOut']
+            time_out = deco_arg_getter('timeOut')
+            logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
         else:
-            time_out = self.decorator_arguments['time_out']
+            time_out = deco_arg_getter('time_out')
         # Get priority
-        has_priority = self.decorator_arguments['priority']
+        has_priority = deco_arg_getter('priority')
 
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
@@ -309,7 +313,7 @@ class TaskMaster(TaskCommons):
         if self.class_name == '':
             path = self.module_name
         else:
-            path = self.module_name + '.' + self.class_name
+            path = ".".join((self.module_name, self.class_name))
 
         # Infer COMPSs types from real types, except for files
         self._serialize_objects()
@@ -320,7 +324,7 @@ class TaskMaster(TaskCommons):
         compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
         # Signature and other parameters:
-        signature = '.'.join([path, self.function_name])
+        signature = '.'.join((path, self.function_name))
 
         if __debug__:
             logger.debug("TASK: %s of type %s, in module %s, in class %s" %
@@ -398,7 +402,6 @@ class TaskMaster(TaskCommons):
                 # that consists of putting all user code that may be executed
                 # in the worker on a file.
                 # This file has to be visible for all workers.
-                from pycompss.util.interactive.helpers import update_tasks_code_file  # noqa: E501
                 update_tasks_code_file(self.user_function, path)
                 print("Found task: " + str(self.user_function.__name__))
         else:
@@ -444,15 +447,17 @@ class TaskMaster(TaskCommons):
         This will be useful when pairing arguments with the direction
         the user has specified for them in the decorator.
 
+        # The third return value was self.param_kwargs - not used (removed)
+
         :return: None, it just adds attributes.
         """
         try:
             arguments = self._getargspec(self.user_function)
-            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa: E501
+            self.param_args, self.param_varargs, _, self.param_defaults = arguments  # noqa: E501
         except TypeError:
             # This is a numba jit declared task
             arguments = self._getargspec(self.user_function.py_func)
-            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = arguments  # noqa: E501
+            self.param_args, self.param_varargs, _, self.param_defaults = arguments  # noqa: E501
         # It will be easier to deal with functions if we pretend that all have
         # the signature f(positionals, *variadic, **named). This is why we are
         # substituting Nones with default stuff.
@@ -478,7 +483,7 @@ class TaskMaster(TaskCommons):
             full_argspec = inspect.getfullargspec(function)
             as_args = full_argspec.args
             as_varargs = full_argspec.varargs
-            as_keywords = full_argspec.varkw
+            as_keywords = None  # full_argspec.varkw  # not needed
             as_defaults = full_argspec.defaults
             return as_args, as_varargs, as_keywords, as_defaults
         else:
@@ -527,7 +532,7 @@ class TaskMaster(TaskCommons):
         for (arg_name, default_value) in reversed(
                 list(zip(list(reversed(self.param_args))[:num_defaults],
                          list(reversed(self.param_defaults))))):
-            if arg_name not in self.parameters.keys():
+            if arg_name not in self.parameters:
                 real_arg_name = get_kwarg_name(arg_name)
                 self.parameters[real_arg_name] = \
                     self.build_parameter_object(real_arg_name,
@@ -754,21 +759,22 @@ class TaskMaster(TaskCommons):
             # The task is defined within the main app file.
             # This case is never reached with Python 3 since it includes
             # frames that are not present with Python 2.
-            impl_signature = self.module_name + "." + self.function_name
+            impl_signature = ".".join((self.module_name, self.function_name))
             impl_type_args = [self.module_name, self.function_name]
         else:
             if self.class_name:
                 # Within class or subclass
-                impl_signature = self.module_name + '.' + \
-                                 self.class_name + '.' + \
-                                 self.function_name
-                impl_type_args = [self.module_name + '.' + self.class_name,
+                impl_signature = ".".join((self.module_name,
+                                           self.class_name,
+                                           self.function_name))
+                impl_type_args = [".".join((self.module_name, self.class_name)),
                                   self.function_name]
             else:
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular
                 # frames are included, but not class names found.
-                impl_signature = self.module_name + "." + self.function_name
+                impl_signature = ".".join((self.module_name,
+                                           self.function_name))
                 impl_type_args = [self.module_name, self.function_name]
 
         return impl_signature, impl_type_args
@@ -794,48 +800,58 @@ class TaskMaster(TaskCommons):
         if __debug__:
             logger.debug("Configuring core element.")
 
+        set_ce_signature = self.core_element.set_ce_signature
+        set_impl_signature = self.core_element.set_impl_signature
+        set_impl_type_args = self.core_element.set_impl_type_args
+        set_impl_constraints = self.core_element.set_impl_constraints
+        set_impl_type = self.core_element.set_impl_type
+        set_impl_io = self.core_element.set_impl_io
         if pre_defined_ce:
             # Core element has already been created in an upper decorator
             # (e.g. @implements and @compss)
-            if self.core_element.get_ce_signature() is None:
-                self.core_element.set_ce_signature(impl_signature)
-                self.core_element.set_impl_signature(impl_signature)
+            get_ce_signature = self.core_element.get_ce_signature
+            get_impl_constraints = self.core_element.get_impl_constraints
+            get_impl_type = self.core_element.get_impl_type
+            get_impl_type_args = self.core_element.get_impl_type_args
+            get_impl_io = self.core_element.get_impl_io
+            if get_ce_signature() is None:
+                set_ce_signature(impl_signature)
+                set_impl_signature(impl_signature)
             else:
                 # If we are here that means that we come from an implements
                 # decorator, which means that this core element has already
                 # a signature
-                self.core_element.set_impl_signature(impl_signature)
-                self.core_element.set_impl_type_args(impl_type_args)
-            if self.core_element.get_impl_constraints() is None:
-                self.core_element.set_impl_constraints(impl_constraints)
-            if self.core_element.get_impl_type() is None:
-                self.core_element.set_impl_type(impl_type)
-            if self.core_element.get_impl_type_args() is None:
-                self.core_element.set_impl_type_args(impl_type_args)
+                set_impl_signature(impl_signature)
+                set_impl_type_args(impl_type_args)
+            if get_impl_constraints() is None:
+                set_impl_constraints(impl_constraints)
+            if get_impl_type() is None:
+                set_impl_type(impl_type)
+            if get_impl_type_args() is None:
+                set_impl_type_args(impl_type_args)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
-            if self.core_element.get_impl_type() == "PYTHON_MPI":
-                param_name = self.core_element.get_impl_type_args()[-4].strip()
+            if get_impl_type() == "PYTHON_MPI":
+                param_name = get_impl_type_args()[-4].strip()
                 if param_name:
                     if param_name in self.parameters:
                         if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:  # noqa: E501
-                            raise Exception("Parameter " + param_name + " is not a collection!")   # noqa: E501
+                            raise Exception("Parameter %s is not a collection!" % param_name)      # noqa: E501
                     else:
-                        raise Exception("Parameter " + param_name + " doesn't exist!")             # noqa: E501
-                self.core_element.set_impl_signature("MPI." + impl_signature)
-                self.core_element.set_impl_type_args(
-                    impl_type_args + self.core_element.get_impl_type_args()[1:])
-            if self.core_element.get_impl_io() is None:
-                self.core_element.set_impl_io(impl_io)
+                        raise Exception("Parameter %s does not exist!" % param_name)               # noqa: E501
+                set_impl_signature(".".join(("MPI", impl_signature)))
+                set_impl_type_args(impl_type_args + get_impl_type_args()[1:])
+            if get_impl_io() is None:
+                set_impl_io(impl_io)
         else:
             # @task is in the top of the decorators stack.
             # Update the empty core_element
-            self.core_element.set_ce_signature(impl_signature)
-            self.core_element.set_impl_signature(impl_signature)
-            self.core_element.set_impl_constraints(impl_constraints)
-            self.core_element.set_impl_type(impl_type)
-            self.core_element.set_impl_type_args(impl_type_args)
-            self.core_element.set_impl_io(impl_io)
+            set_ce_signature(impl_signature)
+            set_impl_signature(impl_signature)
+            set_impl_constraints(impl_constraints)
+            set_impl_type(impl_type)
+            set_impl_type_args(impl_type_args)
+            set_impl_io(impl_io)
 
     def register_task(self):
         # type: () -> None
@@ -908,9 +924,8 @@ class TaskMaster(TaskCommons):
         if parsed_computing_nodes is None:
             raise Exception("ERROR: Wrong Computing Nodes value.")
         if parsed_computing_nodes <= 0:
-            logger.warning("Registered computing_nodes is less than 1 (" +
-                           str(parsed_computing_nodes) +
-                           " <= 0). Automatically set it to 1")
+            logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa
+                           str(parsed_computing_nodes))
             parsed_computing_nodes = 1
 
         return parsed_computing_nodes
@@ -971,7 +986,7 @@ class TaskMaster(TaskCommons):
             # This is also the only case when no multiple objects are
             # returned but only one
             self.multi_return = False
-            to_return = [_returns]
+            to_return = tuple([_returns])
 
         # At this point we have a list of returns
         for (i, elem) in enumerate(to_return):
@@ -1134,8 +1149,8 @@ class TaskMaster(TaskCommons):
                 try:
                     fo = ret_value()
                 except TypeError:
-                    if __debug__:
-                        logger.warning("Type {0} does not have an empty constructor, building generic future object".format(ret_value))  # noqa: E501
+                    logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
+                                   str(ret_value))
                     fo = Future()
             else:
                 fo = Future()  # modules, functions, methods
@@ -1161,8 +1176,8 @@ class TaskMaster(TaskCommons):
                     try:
                         foe = v.content()
                     except TypeError:
-                        if __debug__:
-                            logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))  # noqa: E501
+                        logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
+                            str(v['Value']))
                         foe = Future()
                 else:
                     foe = Future()  # modules, functions, methods
@@ -1194,8 +1209,8 @@ class TaskMaster(TaskCommons):
             # Check if the object is small in order not to serialize it.
             if get_object_conversion():
                 p, written_bytes = _convert_parameter_obj_to_string(p,
-                                                             max_obj_arg_size,
-                                                             policy='objectSize')  # noqa: E501
+                                                                    max_obj_arg_size,     # noqa: E501
+                                                                    policy='objectSize')  # noqa: E501
                 max_obj_arg_size -= written_bytes
             else:
                 # Serialize objects into files
@@ -1223,7 +1238,6 @@ class TaskMaster(TaskCommons):
         :return: List of values, their types, their directions, their streams
                  and their prefixes.
         """
-        slf = None
         values = []
         names = []
         arg_names = list(self.parameters.keys())
@@ -1239,16 +1253,16 @@ class TaskMaster(TaskCommons):
         code_strings = self.user_function.__code_strings__
 
         # Build the range of elements
-        ra = list(self.parameters.keys())
+        # ra = list(self.parameters.keys())
         if self.function_type == FunctionType.INSTANCE_METHOD or \
                 self.function_type == FunctionType.CLASS_METHOD:
-            slf = ra.pop(0)
+            # ra.pop(0)
             slf_name = arg_names.pop(0)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters
-        for i in ra:
+        for name in arg_names:
             val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
-                self.parameters[i],
+                self.parameters[name],
                 code_strings
             )
             values.append(val)
@@ -1256,7 +1270,7 @@ class TaskMaster(TaskCommons):
             compss_directions.append(direc)
             compss_streams.append(st)
             compss_prefixes.append(pre)
-            names.append(arg_names.pop(0))
+            names.append(name)
             extra_content_types.append(ct)
             weights.append(wght)
             keep_renames.append(kr)
@@ -1265,7 +1279,7 @@ class TaskMaster(TaskCommons):
         if self.function_type == FunctionType.INSTANCE_METHOD:
             # self is always an object
             val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
-                self.parameters[slf],
+                self.parameters[slf_name],
                 code_strings
             )
             values.append(val)
@@ -1452,7 +1466,9 @@ def _serialize_object_into_file(name, p):
     :param p: Parameter.
     :return: Parameter (whose type and value might be modified).
     """
-    if p.content_type == TYPE.OBJECT or p.content_type == TYPE.EXTERNAL_STREAM or p.is_future:
+    if p.content_type == TYPE.OBJECT or \
+            p.content_type == TYPE.EXTERNAL_STREAM or \
+            p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a
         # future (object)
         try:
@@ -1561,7 +1577,6 @@ def _turn_into_file(p, skip_creation=False):
     #     # instance of the same type as the original parameter:
     #     t = type(p.content)
     #     p.content = t()
-
     obj_id = OT.is_tracked(p.content)
     if obj_id is None:
         # This is the first time a task accesses this object
@@ -1625,13 +1640,11 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # we register it as file
         value = param.file_name
         typ = TYPE.FILE
-
         try:
             _mf = sys.modules[param.content.__class__.__module__].__file__
         except AttributeError:
             # 'builtin' modules do not have __file__ attribute!
             _mf = "builtins"
-
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(_mf, _class_name)
     elif param.content_type == TYPE.EXTERNAL_STREAM:

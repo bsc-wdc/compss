@@ -42,6 +42,7 @@ else
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
+DEFAULT_PYTHON_MEMORY_PROFILE=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_SHARED_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler"
@@ -256,7 +257,7 @@ infer_language() {
       fi
       lang=python
     elif [ -n "$isC" ]; then
-      if [ "${log_level}" != "off" ]; then    
+      if [ "${log_level}" != "off" ]; then
          echo "[  INFO] Inferred C/C++ language"
       fi
       lang=c
@@ -808,7 +809,7 @@ init_het_xml_files() {
 ###############################################
 add_het_xml_files() {
   local suffix=$1
-  if [ "${log_level}" != "off" ]; then 
+  if [ "${log_level}" != "off" ]; then
     # LOG
     echo "[LAUNCH_COMPSS] HT-XML - Continue generating project and resources files"
     echo "[LAUNCH_COMPSS] HT-XML - List of workers: ${worker_nodes}"
@@ -1013,7 +1014,7 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-        streaming=*)                                                                                                                                                                                                                    
+        streaming=*)
           streaming=${OPTARG//streaming=/}
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
@@ -1111,11 +1112,16 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-	scheduler=*)
-	  scheduler=${OPTARG//scheduler=/}
+        python_memory_profile)
+          python_memory_profile=true
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
-	  ;;
+          ;;
+       scheduler=*)
+          scheduler=${OPTARG//scheduler=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         prolog=*)
           action=${OPTARG//prolog=/}
           prologActions[numPrologActions]="$action"
@@ -1320,6 +1326,10 @@ check_args() {
     python_mpi_worker=${DEFAULT_PYTHON_MPI_WORKER}
   fi
 
+  if [ -z "${python_memory_profile}" ]; then
+    python_memory_profile=${DEFAULT_PYTHON_MEMORY_PROFILE}
+  fi
+
   if [ -z "${automatic_scaling}" ]; then
     automatic_scaling=${DEFAULT_AUTOMATIC_SCALING}
   fi
@@ -1441,12 +1451,12 @@ check_args() {
   fi
 
   if [ -z "${scheduler}" ]; then
-    if [ "${worker_working_dir}" != "scratch" ]; then	  
+    if [ "${worker_working_dir}" != "scratch" ]; then
         scheduler=${DEFAULT_SHARED_DISK_SCHEDULER}
     else
-	scheduler=${DEFAULT_SCRATCH_SCHEDULER}    
+	scheduler=${DEFAULT_SCRATCH_SCHEDULER}
     fi
-    args_pass="--scheduler=${scheduler} ${args_pass}"    
+    args_pass="--scheduler=${scheduler} ${args_pass}"
   fi
 
   #
@@ -1700,8 +1710,9 @@ log_variables() {
   echo "Python Interpreter:        ${python_interpreter}"
   echo "Python version:            ${python_version}"
   echo "Python virtual env:        ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}"
-  echo "Python propagate virt env.:${python_propagate_virtual_environment}"
-  echo "Python use MPI worker    .:${python_mpi_worker}"
+  echo "Python propagate virt env. ${python_propagate_virtual_environment}"
+  echo "Python use MPI worker      ${python_mpi_worker}"
+  echo "Python memory profile      ${python_memory_profile}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"
@@ -1749,7 +1760,7 @@ launch() {
       hostid=${initial_hostid}
     fi
     if [ ! -z "${master_node}" ]; then
-      if [ "${worker_in_master_cpus}" -ne 0 ]; then 
+      if [ "${worker_in_master_cpus}" -ne 0 ]; then
         # Worker in master node
         local jvm_worker_in_master_opts_str
         local jvm_worker_in_master_opts_size
@@ -1824,7 +1835,7 @@ launch() {
         sleep_time="80s"
       fi
     fi
-    if [ "${log_level}" != "off" ]; then 
+    if [ "${log_level}" != "off" ]; then
         echo "[LAUNCH_COMPSS] Number of spawned workers: $num_workers"
         echo "[LAUNCH_COMPSS] Waiting ${sleep_time} ..."
     fi

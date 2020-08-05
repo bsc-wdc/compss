@@ -63,7 +63,7 @@ class Implement(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments.
         """
         self.first_register = False
-        decorator_name = '@' + self.__class__.__name__.lower()
+        decorator_name = "".join(('@', self.__class__.__name__.lower()))
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments

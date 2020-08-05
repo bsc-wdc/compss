@@ -46,13 +46,15 @@ void write_command_in_pipe(stringstream& ss){
 	    ofs.close();
 }
 
- void read_result_from_pipe(string line){
+string read_result_from_pipe(){
 	if (result_pipe == NULL){
 		printf("\n[BINDING-COMMONS] ERROR: Pipe is not set");
-	    return;
+	    return NULL;
 	}
 	ifstream file(result_pipe);
+    string line;
     getline(file, line);
+    return line;
 }
 
  void PIPE_set_pipes(char* comPipe, char* resPipe){
@@ -264,7 +266,7 @@ void PIPE_Get_AppDir(char** buf) {
     ss << "GET_APPDIR" << endl;
     write_command_in_pipe(ss);
     string result;
-    read_result_from_pipe(result);
+    result = read_result_from_pipe();
     // Parse output
     *buf = strdup(result.c_str());
 
@@ -420,7 +422,7 @@ int PIPE_Accessed_File(long appId, char* fileName){
 
     // read result
     string result;
-	read_result_from_pipe(result);
+	result = read_result_from_pipe();
 
     // Parse output
     int ret =  atoi(result.c_str());
@@ -438,10 +440,10 @@ void PIPE_Open_File(long appId, char* fileName, int mode, char** buf) {
     ss << "OPEN_FILE " << appId << " " << fileName << " " << mode << endl;
     write_command_in_pipe(ss);
     string result;
-    read_result_from_pipe(result);
+    result = read_result_from_pipe();
     // Parse output
     *buf = strdup(result.c_str());
-
+    *buf=*buf+6;
     debug_printf("[BINDING-COMMONS] - @PIPE_Open_File - COMPSs filename: %s\n", *buf);
 }
 
@@ -475,8 +477,10 @@ void PIPE_Delete_File(long appId, char* fileName, int wait) {
     write_command_in_pipe(ss);
 
     string result;
-    read_result_from_pipe(result);
-    int res = atoi(result.c_str());
+    result = read_result_from_pipe();
+    const char* buf = result.c_str();
+    buf = buf + 6;
+    int res = atoi(buf);
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Delete_File - COMPSs filename: %s\n", fileName);
     debug_printf("[BINDING-COMMONS] - @PIPE_Delete_File - File erased with status: %i\n", (bool) res);
@@ -492,7 +496,7 @@ void PIPE_Get_File(long appId, char* fileName) {
 	ss << "GET_FILE " << appId << " " << fileName << endl;
 	write_command_in_pipe(ss);
 	string result;
-	read_result_from_pipe(result);
+	result = read_result_from_pipe();
 	int res = atoi(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Get_File - COMPSs filename: %s\n", fileName);
@@ -506,7 +510,7 @@ void PIPE_Get_Directory(long appId, char* dirName) {
 	ss << "GET_DIRECTORY " << appId << " " << dirName << endl;
 	write_command_in_pipe(ss);
 	string result;
-	read_result_from_pipe(result);
+	result = read_result_from_pipe();
 	int res = atoi(result.c_str());
 
 	debug_printf("[BINDING-COMMONS] - @PIPE_Get_Directory - COMPSs directory: %s\n", dirName);
@@ -521,7 +525,7 @@ void PIPE_Get_Object(long appId, char* objectId, char** buf) {
     ss << "GET_OBJECT" << appId << " " << objectId << endl;
     write_command_in_pipe(ss);
     string result;
-    read_result_from_pipe(result);
+    result = read_result_from_pipe();
     *buf = strdup(result.c_str());
 
 
@@ -538,7 +542,7 @@ void PIPE_Delete_Object(long appId, char* objectId, int** buf) {
     ss << "DELETE_OBJECT" << appId << " " << objectId << endl;
     write_command_in_pipe(ss);
     string result;
-    read_result_from_pipe(result);
+    result = read_result_from_pipe();
     int res = atoi(result.c_str());
     *buf = (int*) &res;
 
@@ -555,7 +559,7 @@ void PIPE_Barrier(long appId) {
 	ss << "BARRIER " << appId << endl;
 	write_command_in_pipe(ss);
 	string result;
-	read_result_from_pipe(result);
+	result = read_result_from_pipe();
 
 	debug_printf("[BINDING-COMMONS] - @PIPE_Barrier - APP id: %lu\n", appId);
 }
@@ -577,7 +581,7 @@ void PIPE_BarrierNew(long appId, int noMoreTasks) {
     ss << endl;
     write_command_in_pipe(ss);
     string result;
-    read_result_from_pipe(result);
+    result = read_result_from_pipe();
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Barrier - APP id: %lu\n", appId);
 }
@@ -592,7 +596,7 @@ void PIPE_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
     ss << "BARRIER_GROUP " << appId << " " << groupName << endl;
     write_command_in_pipe(ss);
     string result;
-    read_result_from_pipe(result);
+    result = read_result_from_pipe();
     *exceptionMessage = strdup(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_BarrierGroup - Barrier ended for COMPSs group name: %s\n", groupName);
@@ -657,7 +661,7 @@ int PIPE_GetNumberOfResources(long appId) {
     ss << "GET_RESOURCES " << appId << endl;
     write_command_in_pipe(ss);
     string result;
-    read_result_from_pipe(result);
+    result = read_result_from_pipe();
     int resources = atoi(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_GetNumberOfResources - Number of active resources %u\n", (int) resources);

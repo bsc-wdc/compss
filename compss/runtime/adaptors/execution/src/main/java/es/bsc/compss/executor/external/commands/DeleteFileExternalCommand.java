@@ -14,29 +14,25 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.external.piped.commands;
+package es.bsc.compss.executor.external.commands;
 
-import es.bsc.compss.executor.external.commands.SynchExternalCommand;
+public class DeleteFileExternalCommand implements ExternalCommand {
+
+    protected String file;
 
 
-public class SynchPipeCommand extends SynchExternalCommand implements PipeCommand {
-
-    public SynchPipeCommand() {
-        super();
-    }
-
-    public SynchPipeCommand(String value) {
-        super(value);
+    @Override
+    public CommandType getType() {
+        return CommandType.DELETE_FILE;
     }
 
     @Override
-    public int compareTo(PipeCommand t) {
-        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+    public String getAsString() {
+        return CommandType.DELETE_FILE.name() + " " + file;
     }
 
-    @Override
-    public void join(PipeCommand receivedCommand) {
-        // Do nothing
+    public String getFile() {
+        return file;
     }
 
 }

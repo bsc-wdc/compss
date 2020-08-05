@@ -16,22 +16,30 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.SynchExternalCommand;
+import es.bsc.compss.executor.external.commands.CloseFileExternalCommand;
+import es.bsc.compss.types.annotations.parameter.Direction;
 
 
-public class SynchPipeCommand extends SynchExternalCommand implements PipeCommand {
+public class CloseFilePipeCommand extends CloseFileExternalCommand implements PipeCommand {
 
-    public SynchPipeCommand() {
+    /**
+     * Constructs an OpenFileCommand out of the message received through the pipe.
+     *
+     * @param args message received through the pipe
+     */
+    public CloseFilePipeCommand(String[] args) {
         super();
-    }
-
-    public SynchPipeCommand(String value) {
-        super(value);
+        this.file = args[2];
+        this.direction = Direction.values()[Integer.parseInt(args[3])];
     }
 
     @Override
     public int compareTo(PipeCommand t) {
-        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+        int val = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+        if (val == 0) {
+            val = this.getFile().compareTo(((CloseFileExternalCommand) t).getFile());
+        }
+        return val;
     }
 
     @Override

@@ -20,9 +20,12 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
+import es.bsc.compss.executor.external.piped.commands.CloseFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.DeleteFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.OpenFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
@@ -31,6 +34,7 @@ import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
 import es.bsc.compss.invokers.types.TypeValuePair;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -122,6 +126,28 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                     isPrioritary, hasTarget, numReturns, parameterCount, parameters);
                             }
 
+                        }
+                            break;
+                        case OPEN_FILE: {
+                            OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
+                            String file = ofpc.getFile();
+                            Direction dir = ofpc.getDirection();
+                            String finalLocation = context.getRuntimeAPI().openFile(appId, file, dir);
+                            pipes.sendCommand(new SynchPipeCommand(finalLocation));
+                        }
+                            break;
+                        case CLOSE_FILE: {
+                            CloseFilePipeCommand ofpc = (CloseFilePipeCommand) rcvdCommand;
+                            String file = ofpc.getFile();
+                            Direction dir = ofpc.getDirection();
+                            context.getRuntimeAPI().closeFile(appId, file, dir);
+                        }
+                            break;
+                        case DELETE_FILE: {
+                            DeleteFilePipeCommand ofpc = (DeleteFilePipeCommand) rcvdCommand;
+                            String file = ofpc.getFile();
+                            boolean val = context.getRuntimeAPI().deleteFile(appId, file);
+                            pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
                         }
                             break;
                         case NO_MORE_TASKS: {

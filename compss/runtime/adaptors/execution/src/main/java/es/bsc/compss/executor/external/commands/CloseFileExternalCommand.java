@@ -14,29 +14,33 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.external.piped.commands;
+package es.bsc.compss.executor.external.commands;
 
-import es.bsc.compss.executor.external.commands.SynchExternalCommand;
+import es.bsc.compss.types.annotations.parameter.Direction;
 
 
-public class SynchPipeCommand extends SynchExternalCommand implements PipeCommand {
+public class CloseFileExternalCommand implements ExternalCommand {
 
-    public SynchPipeCommand() {
-        super();
-    }
+    protected String file;
+    protected Direction direction;
 
-    public SynchPipeCommand(String value) {
-        super(value);
+
+    @Override
+    public CommandType getType() {
+        return CommandType.CLOSE_FILE;
     }
 
     @Override
-    public int compareTo(PipeCommand t) {
-        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+    public String getAsString() {
+        return CommandType.CLOSE_FILE.name() + " " + file + " " + direction;
     }
 
-    @Override
-    public void join(PipeCommand receivedCommand) {
-        // Do nothing
+    public String getFile() {
+        return file;
+    }
+
+    public Direction getDirection() {
+        return direction;
     }
 
 }

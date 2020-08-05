@@ -23,12 +23,15 @@ import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.CloseFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.DeleteFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.NoMoreTasksPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.OpenFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
@@ -301,6 +304,15 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 break;
             case EXECUTE_NESTED_TASK:
                 readCommand = new ExecuteNestedTaskPipeCommand(command);
+                break;
+            case OPEN_FILE:
+                readCommand = new OpenFilePipeCommand(command);
+                break;
+            case CLOSE_FILE:
+                readCommand = new CloseFilePipeCommand(command);
+                break;
+            case DELETE_FILE:
+                readCommand = new DeleteFilePipeCommand(command);
                 break;
             case NO_MORE_TASKS:
                 readCommand = new NoMoreTasksPipeCommand();

@@ -29,6 +29,7 @@ class ExtensionPlugin(Plugin):
         'src',
         'pycompss',
         'pycompss/tests',
+        'pycompss/tests/api',
         # 'pycompss/api',
         # 'pycompss/util',
         # 'pycompss/util/translators',
@@ -45,6 +46,7 @@ class ExtensionPlugin(Plugin):
         # 'pycompss/util/translators/scop_types/scop/statement'
     ]
     files_white_list = [
+        'pycompss/tests/api/test_binary.py',
         'pycompss/tests/test_runtime_ot.py',
         # 'pycompss/api/parallel.py',
         # 'pycompss/util/translators/code_loader/code_loader.py',

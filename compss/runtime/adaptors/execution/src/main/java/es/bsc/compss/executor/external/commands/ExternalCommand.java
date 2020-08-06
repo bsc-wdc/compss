@@ -45,9 +45,16 @@ public interface ExternalCommand {
         END_TASK, // Task finished
         COMPSS_EXCEPTION, // Task raised a COMPSsException
         CANCEL_TASK, // Task to be cancelled
+        
+        // REQUIRED BY THE EXECUTOR TO ACCESS DATA
+        ACCESSED_FILE, // Executor checks whether a file has been accessed by a task
+        GET_FILE, // Executors gets a file
+        GET_DIRECTORY, // Executor gets a directory
+        GET_OBJECT, // Executor gets a binding object
         OPEN_FILE, // Executor requires a file
         CLOSE_FILE, // Executor ended access to the file
         DELETE_FILE, // Executor deletes a file
+        DELETE_OBJECT, // Executor deletes a binding object
         NO_MORE_TASKS, // Sync until all previously-submitted tasks have finish
 
         SYNCH, // Expected synch notification

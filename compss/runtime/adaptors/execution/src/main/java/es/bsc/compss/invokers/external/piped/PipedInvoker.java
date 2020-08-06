@@ -20,11 +20,16 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
+import es.bsc.compss.executor.external.piped.commands.AccessedFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CloseFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.DeleteFilePipeCommand;
+import es.bsc.compss.executor.external.piped.commands.DeleteObjectPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.GetDirectoryPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.GetFilePipeCommand;
+import es.bsc.compss.executor.external.piped.commands.GetObjectPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.OpenFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
@@ -128,6 +133,13 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
                         }
                             break;
+                        case ACCESSED_FILE: {
+                            AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
+                            String file = afpc.getFile();
+                            boolean accessed = context.getRuntimeAPI().isFileAccessed(appId, file);
+                            pipes.sendCommand(new SynchPipeCommand(accessed?"1":"0"));
+                        }
+                            break;
                         case OPEN_FILE: {
                             OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
                             String file = ofpc.getFile();
@@ -150,6 +162,34 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
                         }
                             break;
+                        case GET_FILE:{
+                            GetFilePipeCommand gfpc = (GetFilePipeCommand) rcvdCommand;
+                            String file = gfpc.getFile();
+                            context.getRuntimeAPI().getFile(appId, file);
+                            pipes.sendCommand(new SynchPipeCommand());
+                        }
+                        break;
+                        case GET_DIRECTORY:{
+                            GetDirectoryPipeCommand gfpc = (GetDirectoryPipeCommand) rcvdCommand;
+                            String file = gfpc.getDirectory();
+                            context.getRuntimeAPI().getDirectory(appId, file);
+                            pipes.sendCommand(new SynchPipeCommand());
+                        }
+                        break;
+                        case GET_OBJECT:{
+                            GetObjectPipeCommand gfpc = (GetObjectPipeCommand) rcvdCommand;
+                            String id = gfpc.getObjectId();
+                            context.getRuntimeAPI().getBindingObject(appId, id);
+                            pipes.sendCommand(new SynchPipeCommand());
+                        }
+                        break;
+                        case DELETE_OBJECT: {
+                            DeleteObjectPipeCommand ofpc = (DeleteObjectPipeCommand) rcvdCommand;
+                            String id = ofpc.getObjectId();
+                            boolean val = context.getRuntimeAPI().deleteFile(appId, id);
+                            pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
+                        }
+                        break;
                         case NO_MORE_TASKS: {
                             if (appId != null) {
                                 context.getRuntimeAPI().noMoreTasks(appId);

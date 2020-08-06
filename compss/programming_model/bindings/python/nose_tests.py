@@ -47,6 +47,7 @@ class ExtensionPlugin(Plugin):
     ]
     files_white_list = [
         'pycompss/tests/api/test_binary.py',
+        'pycompss/tests/api/test_ompss.py',
         'pycompss/tests/test_runtime_ot.py',
         # 'pycompss/api/parallel.py',
         # 'pycompss/util/translators/code_loader/code_loader.py',

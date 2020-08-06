@@ -30,6 +30,7 @@ from pycompss.runtime.commons import set_temporary_directory
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
+import pycompss.util.context as context
 
 
 class PiperWorkerConfiguration(object):
@@ -64,15 +65,17 @@ class PiperWorkerConfiguration(object):
         :return: None
         """
         set_temporary_directory(argv[1], create_tmpdir=False)
-        self.debug = argv[2] == 'true'
-        self.tracing = argv[3] == '1'
-        self.storage_conf = argv[4]
-        self.stream_backend = argv[5]
-        self.stream_master_name = argv[6]
-        self.stream_master_port = argv[7]
-        self.tasks_x_node = int(argv[8])
-        in_pipes = argv[9:9 + self.tasks_x_node]
-        out_pipes = argv[9 + self.tasks_x_node:-2]
+        if argv[2] == 'true':
+            context.enable_nesting()
+        self.debug = argv[3] == 'true'
+        self.tracing = argv[4] == '1'
+        self.storage_conf = argv[5]
+        self.stream_backend = argv[6]
+        self.stream_master_name = argv[7]
+        self.stream_master_port = argv[8]
+        self.tasks_x_node = int(argv[9])
+        in_pipes = argv[10:10 + self.tasks_x_node]
+        out_pipes = argv[10 + self.tasks_x_node:-2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)
@@ -91,6 +94,7 @@ class PiperWorkerConfiguration(object):
         logger.debug(HEADER + "-----------------------------")
         logger.debug(HEADER + "Persistent worker parameters:")
         logger.debug(HEADER + "-----------------------------")
+        logger.debug(HEADER + "Nesting        : " + str(self.nesting))
         logger.debug(HEADER + "Debug          : " + str(self.debug))
         logger.debug(HEADER + "Tracing        : " + str(self.tracing))
         logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))

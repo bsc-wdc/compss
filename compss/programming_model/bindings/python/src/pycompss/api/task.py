@@ -219,19 +219,30 @@ class Task(PyCOMPSsDecorator):
                     del worker
                     return result
                 else:
-                    # nested @task executed in the worker
-                    from pycompss.runtime.task.master import TaskMaster
-                    # Each task will have a TaskMaster, so its content will
-                    # not be shared.
-                    master = TaskMaster(self.decorator_arguments,
-                                        self.user_function,
-                                        self.core_element,
-                                        self.registered,
-                                        self.signature)
-                    result = master.call(*args, **kwargs)
-                    fo, self.core_element, self.registered, self.signature = result  # noqa: E501
-                    del master
-                    return fo
+                    if context.is_nesting_enabled():
+                        # nested @task executed in the worker
+                        from pycompss.runtime.task.master import TaskMaster
+                        # Each task will have a TaskMaster, so its content will
+                        # not be shared.
+                        master = TaskMaster(self.decorator_arguments,
+                                            self.user_function,
+                                            self.core_element,
+                                            self.registered,
+                                            self.signature)
+                        result = master.call(*args, **kwargs)
+                        fo, self.core_element, self.registered, self.signature = result  # noqa: E501
+                        del master
+                        return fo
+                    else:
+                        # Called from another task within the worker
+                        # Ignore the @task decorator and run it sequentially
+                        message = "".join(("WARNING: Calling task: ",
+                                        str(user_function.__name__),
+                                        " from this task.\n",
+                                        "         It will be executed sequentially ",  # noqa: E501
+                                        "within the caller task."))
+                        print(message, file=sys.stderr)
+                        return self._sequential_call(*args, **kwargs)
             # We are neither in master nor in the worker, or the user has
             # stopped the interactive session.
             # Therefore, the user code is being executed with no

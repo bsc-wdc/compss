@@ -19,6 +19,7 @@
 
 from pycompss.api.opencl import OpenCL
 from pycompss.runtime.task.core_element import CE
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 import pycompss.util.context as context
 
 
@@ -61,5 +62,5 @@ def test_opencl_existing_core_element():
     f = my_opencl(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    assert "compss_core_element" not in my_opencl.kwargs, \
+    assert CORE_ELEMENT_KEY not in my_opencl.kwargs, \
            "Core Element is not defined in kwargs dictionary."

@@ -19,6 +19,7 @@
 
 from pycompss.api.binary import Binary
 from pycompss.runtime.task.core_element import CE
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 import pycompss.util.context as context
 
 
@@ -85,5 +86,5 @@ def test_binary_existing_core_element():
     f = my_bin(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    assert "compss_core_element" not in my_bin.kwargs, \
+    assert CORE_ELEMENT_KEY not in my_bin.kwargs, \
            "Core Element is not defined in kwargs dictionary."

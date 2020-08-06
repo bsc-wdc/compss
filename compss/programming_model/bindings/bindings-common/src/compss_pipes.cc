@@ -606,10 +606,10 @@ void PIPE_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
 void PIPE_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
     debug_printf("[BINDING-COMMONS] - @PIPE_OpenTaskGroup - Opening task group %s ...\n", groupName);
 
-    // MESSAGE: OPEN_GROUP appId groupName implicitBarrier(boolean)
+    // MESSAGE: OPEN_TASK_GROUP appId groupName implicitBarrier(boolean)
     // NO RETURN
     stringstream ss;
-    ss << "OPEN_GROUP " << appId << " " << groupName << endl;
+    ss << "OPEN_TASK_GROUP " << appId << " " << groupName << endl;
     if (implicitBarrier != 0) {
     	ss << "true ";
     } else {
@@ -625,10 +625,10 @@ void PIPE_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
 void PIPE_CloseTaskGroup(char* groupName, long appId){
     debug_printf("[BINDING-COMMONS] - @PIPE_CloseTaskGroup - COMPSs group name: %s\n", groupName);
 
-    // MESSAGE: CLOSE_GROUP appId groupName
+    // MESSAGE: CLOSE_TASK_GROUP appId groupName
     // NO RETURN
     stringstream ss;
-    ss << "CLOSE_GROUP " << appId << " " << groupName << endl;
+    ss << "CLOSE_TASK_GROUP " << appId << " " << groupName << endl;
     write_command_in_pipe(ss);
 
     debug_printf("[BINDING-COMMONS] - @PIPE_CloseTaskGroup - Task group %s closed.\n", groupName);

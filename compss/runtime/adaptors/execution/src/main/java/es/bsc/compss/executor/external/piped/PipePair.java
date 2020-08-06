@@ -22,16 +22,21 @@ import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.BarrierPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.BarrierTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CloseFilePipeCommand;
+import es.bsc.compss.executor.external.piped.commands.CloseTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.DeleteFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.NewBarrierPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.NoMoreTasksPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.OpenFilePipeCommand;
+import es.bsc.compss.executor.external.piped.commands.OpenTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
@@ -313,6 +318,21 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 break;
             case DELETE_FILE:
                 readCommand = new DeleteFilePipeCommand(command);
+                break;
+            case BARRIER:
+                readCommand = new BarrierPipeCommand(command);
+                break;
+            case BARRIER_NEW:
+                readCommand = new NewBarrierPipeCommand(command);
+                break;
+            case OPEN_TASK_GROUP:
+                readCommand = new OpenTaskGroupPipeCommand(command);
+                break;
+            case BARRIER_GROUP:
+                readCommand = new BarrierTaskGroupPipeCommand(command);
+                break;
+            case CLOSE_TASK_GROUP:
+                readCommand = new CloseTaskGroupPipeCommand(command);
                 break;
             case NO_MORE_TASKS:
                 readCommand = new NoMoreTasksPipeCommand();

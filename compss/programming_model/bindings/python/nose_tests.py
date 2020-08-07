@@ -53,7 +53,7 @@ class ExtensionPlugin(Plugin):
         'pycompss/tests/api/test_exceptions.py',
         'pycompss/tests/api/test_implement.py',
         'pycompss/tests/api/test_io.py',
-        # 'pycompss/tests/api/test_local.py',  # fails due to replace util.
+        'pycompss/tests/api/test_mpi.py',
         'pycompss/tests/api/test_ompss.py',
         'pycompss/tests/api/test_opencl.py',
         'pycompss/tests/test_runtime_ot.py',
@@ -75,6 +75,9 @@ class ExtensionPlugin(Plugin):
         # 'pycompss/util/translators/scop_types/scop/statement/statement_extension_class.py',
         # 'pycompss/util/translators/scop_types/scop/statement/relation_class.py',
         # 'pycompss/util/translators/scop_types/scop/extensions_class.py'
+    ]
+    files_black_list = [
+        'pycompss/tests/api/test_local.py',  # fails due to replace util.
     ]
 
     def options(self, parser, env):

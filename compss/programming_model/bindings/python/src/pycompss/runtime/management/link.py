@@ -27,7 +27,6 @@ PyCOMPSs Binding - Link
 """
 
 import multiprocessing
-import logging
 
 # Global variables
 LINK_PROCESS = multiprocessing.Process()
@@ -56,9 +55,11 @@ REQUEST_RESOURCES = 'REQUEST_RESOURCES'
 FREE_RESOURCES = 'FREE_RESOURCES'
 REGISTER_CORE_ELEMENT = 'REGISTER_CORE_ELEMENT'
 PROCESS_TASK = 'PROCESS_TASK'
+SET_PIPES = 'SET_PIPES'
 
-# Setup logger
-logger = logging.getLogger(__name__)
+if __debug__:
+    import logging
+    link_logger = logging.getLogger(__name__)
 
 
 def shutdown_handler(signal, frame):  # noqa
@@ -138,29 +139,41 @@ def c_extension_link(in_queue, out_queue):
             compss.register_core_element(*parameters)
         elif command == PROCESS_TASK:
             compss.process_task(*parameters)
+        elif command == SET_PIPES:
+            compss.set_pipes(*parameters)
         else:
             raise Exception("Unknown link command")
 
 
-def establish_link():
-    # type: () -> ...
+def establish_link(logger=None):  # noqa
+    # type: (...) -> ...
     """ Loads the compss C extension within the same process.
 
+    :param logger: Use this logger instead of the module logger.
     :return: The COMPSs C extension link.
     """
     if __debug__:
-        logger.debug("Loading compss extension")
+        message = "Loading compss extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
     import compss
     if __debug__:
-        logger.debug("Loaded compss extension")
+        message = "Loaded compss extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
     return compss
 
 
-def establish_interactive_link():
-    # type: () -> ...
+def establish_interactive_link(logger=None):  # noqa
+    # type: (...) -> ...
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
+    :param logger: Use this logger instead of the module logger.
     :return: The COMPSs C extension link.
     """
     global LINK_PROCESS
@@ -174,14 +187,22 @@ def establish_interactive_link():
         RELOAD = False
 
     if __debug__:
-        logger.debug("Starting new process linking with the C-extension")
+        message = "Starting new process linking with the C-extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
 
     LINK_PROCESS = multiprocessing.Process(target=c_extension_link,
                                            args=(IN_QUEUE, OUT_QUEUE))
     LINK_PROCESS.start()
 
     if __debug__:
-        logger.debug("Established link with C-extension")
+        message = "Established link with C-extension"
+        if logger:
+            logger.debug(message)
+        else:
+            link_logger.debug(message)
 
     compss_link = COMPSs  # object that mimics compss library
     return compss_link
@@ -391,3 +412,8 @@ class COMPSs(object):
                       content_types,
                       weights,
                       keep_renames))
+
+    @staticmethod
+    def set_pipes(pipe_in, pipe_out):
+        # type: (str, str) -> None
+        IN_QUEUE.put((SET_PIPES, pipe_in, pipe_out))

@@ -14,19 +14,25 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_H
-#define COMMONS_H
+package es.bsc.compss.executor.external.commands;
 
-#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
+public class DeleteFileExternalCommand implements ExternalCommand {
 
-const int NUM_FIELDS = 9;
+    protected String file;
 
-void init_env_vars();
 
-int is_debug();
+    @Override
+    public CommandType getType() {
+        return CommandType.DELETE_FILE;
+    }
 
-int is_persistent();
+    @Override
+    public String getAsString() {
+        return CommandType.DELETE_FILE.name() + " " + file;
+    }
 
-char* concat(const char*, const char*);
+    public String getFile() {
+        return file;
+    }
 
-#endif // COMMONS_H
+}

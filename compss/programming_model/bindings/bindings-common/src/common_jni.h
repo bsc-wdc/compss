@@ -14,19 +14,17 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_H
-#define COMMONS_H
+#ifndef COMMONS_JNI_H
+#define COMMONS_JNI_H
+#include <jni.h>
+#include "common.h"
 
-#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
+JNIEnv* create_vm(JavaVM ** jvm);
 
-const int NUM_FIELDS = 9;
+void destroy_vm(JavaVM * jvm);
 
-void init_env_vars();
+int check_and_attach(JavaVM * jvm, JNIEnv *&env);
 
-int is_debug();
+void check_and_treat_exception(JNIEnv *pEnv, const char*);
 
-int is_persistent();
-
-char* concat(const char*, const char*);
-
-#endif // COMMONS_H
+#endif // COMMONS_JNI_H

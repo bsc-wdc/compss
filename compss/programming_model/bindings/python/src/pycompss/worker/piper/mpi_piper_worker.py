@@ -250,7 +250,7 @@ def compss_persistent_executor(config):
 
 if __name__ == '__main__':
     # Configure the global tracing variable from the argument
-    TRACING = (int(sys.argv[2]) > 0)
+    TRACING = (int(sys.argv[4]) > 0)
 
     # Configure the piper worker with the arguments
     WORKER_CONF = PiperWorkerConfiguration()

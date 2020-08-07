@@ -26,9 +26,11 @@ PyCOMPSs Common piper utils
 import os
 import logging
 from pycompss.runtime.commons import range
+from pycompss.runtime.commons import set_temporary_directory
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
+import pycompss.util.context as context
 
 
 class PiperWorkerConfiguration(object):
@@ -36,14 +38,15 @@ class PiperWorkerConfiguration(object):
     Description of the configuration parameters for the Piper Worker.
     """
 
-    __slots__ = ['debug', 'tracing', 'storage_conf', 'stream_backend',
-                 'stream_master_name', 'stream_master_port', 'tasks_x_node',
-                 'pipes', 'control_pipe']
+    __slots__ = ['nesting', 'debug', 'tracing', 'storage_conf',
+                 'stream_backend', 'stream_master_name', 'stream_master_port',
+                 'tasks_x_node', 'pipes', 'control_pipe']
 
     def __init__(self):
         """
         Constructs an empty configuration description for the piper worker.
         """
+        self.nesting = False
         self.debug = False
         self.tracing = False
         self.storage_conf = None
@@ -62,15 +65,19 @@ class PiperWorkerConfiguration(object):
         :param argv: arguments from the command line.
         :return: None
         """
-        self.debug = argv[1] == 'true'
-        self.tracing = argv[2] == '1'
-        self.storage_conf = argv[3]
-        self.stream_backend = argv[4]
-        self.stream_master_name = argv[5]
-        self.stream_master_port = argv[6]
-        self.tasks_x_node = int(argv[7])
-        in_pipes = argv[8:8 + self.tasks_x_node]
-        out_pipes = argv[8 + self.tasks_x_node:-2]
+        set_temporary_directory(argv[1], create_tmpdir=False)
+        if argv[2] == 'true':
+            context.enable_nesting()
+            self.nesting = True
+        self.debug = argv[3] == 'true'
+        self.tracing = argv[4] == '1'
+        self.storage_conf = argv[5]
+        self.stream_backend = argv[6]
+        self.stream_master_name = argv[7]
+        self.stream_master_port = argv[8]
+        self.tasks_x_node = int(argv[9])
+        in_pipes = argv[10:10 + self.tasks_x_node]
+        out_pipes = argv[10 + self.tasks_x_node:-2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)
@@ -89,6 +96,7 @@ class PiperWorkerConfiguration(object):
         logger.debug(HEADER + "-----------------------------")
         logger.debug(HEADER + "Persistent worker parameters:")
         logger.debug(HEADER + "-----------------------------")
+        logger.debug(HEADER + "Nesting        : " + str(self.nesting))
         logger.debug(HEADER + "Debug          : " + str(self.debug))
         logger.debug(HEADER + "Tracing        : " + str(self.tracing))
         logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))

@@ -265,6 +265,19 @@ static PyObject* cancel_application_tasks(PyObject* self, PyObject* args){
 }
 
 /*
+  A function that initiatiates the pipe mechanism setting two pipes.
+  First argument will be the command_pipe, where the binding_commons library
+  writes the commands, and the second argument will be the result_pipe, where
+  the binding_commons library expects the command results
+*/
+static PyObject* set_pipes(PyObject* self, PyObject* args){
+	char* command_pipe = _pystring_to_char(PyTuple_GetItem(args, 0));
+	char* result_pipe = _pystring_to_char(PyTuple_GetItem(args, 1));
+	GS_set_pipes(command_pipe,result_pipe);
+	Py_RETURN_NONE;
+}
+
+/*
   A function that, given a task with its decorator parameters, translates these
   fields to a C-friendly format and sends them to the bindings_common part,
   which is responsible to send them to the COMPSs runtime via JNI.
@@ -733,6 +746,7 @@ static PyMethodDef CompssMethods[] = {
     { "free_resources", free_resources, METH_VARARGS, "Requests the destruction of a resource."},
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
 	{ "emit_event", emit_event, METH_VARARGS, "Emit a event in the API Thread." },
+	{ "set_pipes", set_pipes, METH_VARARGS, "Set compss module to pipe comunication mode." },
     { NULL, NULL } /* sentinel */
 };
 

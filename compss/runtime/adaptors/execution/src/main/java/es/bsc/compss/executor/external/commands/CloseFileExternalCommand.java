@@ -14,19 +14,33 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_H
-#define COMMONS_H
+package es.bsc.compss.executor.external.commands;
 
-#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
+import es.bsc.compss.types.annotations.parameter.Direction;
 
-const int NUM_FIELDS = 9;
 
-void init_env_vars();
+public class CloseFileExternalCommand implements ExternalCommand {
 
-int is_debug();
+    protected String file;
+    protected Direction direction;
 
-int is_persistent();
 
-char* concat(const char*, const char*);
+    @Override
+    public CommandType getType() {
+        return CommandType.CLOSE_FILE;
+    }
 
-#endif // COMMONS_H
+    @Override
+    public String getAsString() {
+        return CommandType.CLOSE_FILE.name() + " " + file + " " + direction;
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+}

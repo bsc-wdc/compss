@@ -18,6 +18,17 @@ package es.bsc.compss.executor.external.commands;
 
 public class SynchExternalCommand implements ExternalCommand {
 
+    private String value;
+
+
+    public SynchExternalCommand() {
+
+    }
+
+    public SynchExternalCommand(String val) {
+        this.value = val;
+    }
+
     @Override
     public CommandType getType() {
         return CommandType.SYNCH;
@@ -25,7 +36,12 @@ public class SynchExternalCommand implements ExternalCommand {
 
     @Override
     public String getAsString() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        StringBuilder sb = new StringBuilder(CommandType.SYNCH.name());
+        if (value != null) {
+            sb.append(TOKEN_SEP);
+            sb.append(this.value);
+        }
+        return sb.toString();
     }
 
 }

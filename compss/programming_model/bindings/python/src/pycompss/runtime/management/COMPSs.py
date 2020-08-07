@@ -24,6 +24,10 @@ PyCOMPSs Binding - Management - Runtime
     Loads the external C module.
 """
 
+if __debug__:
+    import logging
+    logger = logging.getLogger(__name__)
+
 # C module extension for the communication with the runtime
 # See ext/compssmodule.cc
 # Keep the COMPSs runtime link in this module so that any module can access
@@ -31,12 +35,13 @@ PyCOMPSs Binding - Management - Runtime
 _COMPSs = None
 
 
-def load_runtime(external_process=False):
-    # type: (bool) -> None
+def load_runtime(external_process=False, _logger=None):
+    # type: (bool, ...) -> None
     """ Loads the external C extension module.
 
     :param external_process: Loads the runtime in an external process if true.
                              Within this python process if false.
+    :param _logger: Use this logger instead of the module logger.
     :return: None
     """
     global _COMPSs
@@ -44,11 +49,11 @@ def load_runtime(external_process=False):
     if external_process:
         # For interactive python environments
         from pycompss.runtime.management.link import establish_interactive_link
-        _COMPSs = establish_interactive_link()
+        _COMPSs = establish_interactive_link(_logger)
     else:
         # Normal python environments
         from pycompss.runtime.management.link import establish_link
-        _COMPSs = establish_link()
+        _COMPSs = establish_link(_logger)
 
 
 def start_runtime():
@@ -337,3 +342,14 @@ def process_task(app_id,             # type: int
                          content_types,
                          weights,
                          keep_renames)
+
+
+def set_pipes(pipe_in, pipe_out):
+    # type: (str, str) -> None
+    """ Set nesting pipes.
+
+    :param pipe_in: Input pipe.
+    :param pipe_out: Output pipe.
+    :return: None
+    """
+    _COMPSs.set_pipes(pipe_in, pipe_out)  # noqa

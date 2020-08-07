@@ -16,22 +16,28 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.SynchExternalCommand;
+import es.bsc.compss.executor.external.commands.GetFileExternalCommand;
 
 
-public class SynchPipeCommand extends SynchExternalCommand implements PipeCommand {
+public class GetFilePipeCommand extends GetFileExternalCommand implements PipeCommand {
 
-    public SynchPipeCommand() {
+    /**
+     * Constructs an OpenFileCommand out of the message received through the pipe.
+     *
+     * @param args message received through the pipe
+     */
+    public GetFilePipeCommand(String[] args) {
         super();
-    }
-
-    public SynchPipeCommand(String value) {
-        super(value);
+        this.file = args[2];
     }
 
     @Override
     public int compareTo(PipeCommand t) {
-        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+        int val = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+        if (val == 0) {
+            val = this.getFile().compareTo(((GetFileExternalCommand) t).getFile());
+        }
+        return val;
     }
 
     @Override

@@ -33,6 +33,8 @@ OUT_OF_SCOPE = 'OUT_OF_SCOPE'
 _WHO = OUT_OF_SCOPE
 _WHERE = OUT_OF_SCOPE
 
+NESTING = False
+
 
 def in_master():
     """
@@ -97,3 +99,20 @@ def get_who_contextualized():
     :return: PyCOMPSs contextualization caller name
     """
     return _WHO
+
+
+def is_nesting_enabled():
+    """ Check if nesting is enabled.
+
+    :returns: None
+    """
+    return NESTING is True
+
+
+def enable_nesting():
+    """ Enable nesting.
+
+    :returns: None
+    """
+    global NESTING
+    NESTING = True

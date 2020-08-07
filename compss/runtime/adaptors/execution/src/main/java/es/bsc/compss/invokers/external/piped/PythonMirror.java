@@ -109,6 +109,8 @@ public class PythonMirror extends PipedMirror {
         } else {
             cmd.append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
         }
+        cmd.append(context.getWorkingDir()).append(TOKEN_SEP);
+        cmd.append(context.getRuntimeAPI() != null).append(TOKEN_SEP);
         cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
         cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
         cmd.append(context.getStorageConf()).append(TOKEN_SEP);

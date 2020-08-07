@@ -14,19 +14,18 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_H
-#define COMMONS_H
+package es.bsc.compss.executor.external.commands;
 
-#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
+public class BarrierExternalCommand implements ExternalCommand {
 
-const int NUM_FIELDS = 9;
+    @Override
+    public CommandType getType() {
+        return CommandType.BARRIER;
+    }
 
-void init_env_vars();
+    @Override
+    public String getAsString() {
+        return CommandType.BARRIER.name();
+    }
 
-int is_debug();
-
-int is_persistent();
-
-char* concat(const char*, const char*);
-
-#endif // COMMONS_H
+}

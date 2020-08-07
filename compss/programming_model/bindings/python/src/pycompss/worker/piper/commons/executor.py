@@ -40,6 +40,7 @@ except ImportError:
                    "CPU AFFINITY NOT SUPPORTED!")))
     THREAD_AFFINITY = False
 
+import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
@@ -208,6 +209,12 @@ def executor(queue, process_name, pipe, conf):
         storage_loggers_handlers = []
         for storage_logger in storage_loggers:
             storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
+
+        # Establish link with the binding-commons to enable task nesting
+        if __debug__:
+            logger.debug(HEADER + "Establishing link with runtime in process " + str(process_name))  # noqa: E501
+        COMPSs.load_runtime(external_process=False, _logger=logger)
+        COMPSs.set_pipes(pipe.output_pipe, pipe.input_pipe)
 
         if storage_conf != 'null':
             try:

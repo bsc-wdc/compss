@@ -14,19 +14,25 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_H
-#define COMMONS_H
+package es.bsc.compss.executor.external.commands;
 
-#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
+public class CloseTaskGroupExternalCommand implements ExternalCommand {
 
-const int NUM_FIELDS = 9;
+    protected String groupName;
 
-void init_env_vars();
 
-int is_debug();
+    public String getGroupName() {
+        return groupName;
+    }
 
-int is_persistent();
+    @Override
+    public CommandType getType() {
+        return CommandType.CLOSE_TASK_GROUP;
+    }
 
-char* concat(const char*, const char*);
+    @Override
+    public String getAsString() {
+        return CommandType.CLOSE_TASK_GROUP.name();
+    }
 
-#endif // COMMONS_H
+}

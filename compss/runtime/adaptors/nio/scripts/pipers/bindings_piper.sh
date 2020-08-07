@@ -75,6 +75,10 @@
   echo "[BINDINGS PIPER] Control RESULT Pipe: $controlRESULTpipe"
   create_pipe "$controlRESULTpipe"
 
+  # Take control pipe path for creating the binding log path
+  tmpFiles_dir=`dirname ${controlCMDpipe}`
+  worker_log_dir="${tmpFiles_dir}/log"
+
   # Clean and Create CMD Pipes
   for i in "${CMDpipes[@]}"; do
     echo "[BINDINGS PIPER] CMD Pipe: $i"
@@ -176,9 +180,14 @@
 
         workerCMD=$(echo ${line} | cut -d' ' -f3-)
 
+	# touch the binding_worker.out and err files
+	mkdir -p ${worker_log_dir}
+	touch ${worker_log_dir}/binding_worker.out
+	touch ${worker_log_dir}/binding_worker.err
+
         #CHANGED TO SUPPORT coverage#run as command split if else
         if [ "$binding" == "PYTHON" ]; then
-	  # delimiter example: "python -u"
+          # delimiter example: "python -u"
           delimiter="${pythonInterpreter} -u"
 	  if [ "$mpiWorker" == "true" ]; then
              bindingExecutable="${workerCMD%%"$delimiter"*}"

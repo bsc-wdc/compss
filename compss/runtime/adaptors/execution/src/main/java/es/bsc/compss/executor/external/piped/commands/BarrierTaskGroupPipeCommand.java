@@ -14,19 +14,25 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_H
-#define COMMONS_H
+package es.bsc.compss.executor.external.piped.commands;
 
-#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
+import es.bsc.compss.executor.external.commands.BarrierTaskGroupExternalCommand;
 
-const int NUM_FIELDS = 9;
 
-void init_env_vars();
+public class BarrierTaskGroupPipeCommand extends BarrierTaskGroupExternalCommand implements PipeCommand {
 
-int is_debug();
+    public BarrierTaskGroupPipeCommand(String[] command) {
+        super();
+        this.groupName = command[2];
+    }
 
-int is_persistent();
+    @Override
+    public int compareTo(PipeCommand t) {
+        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+    }
 
-char* concat(const char*, const char*);
-
-#endif // COMMONS_H
+    @Override
+    public void join(PipeCommand receivedCommand) {
+        // Do nothing
+    }
+}

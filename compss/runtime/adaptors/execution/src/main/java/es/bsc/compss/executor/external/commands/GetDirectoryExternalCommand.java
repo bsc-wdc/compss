@@ -14,19 +14,25 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_H
-#define COMMONS_H
+package es.bsc.compss.executor.external.commands;
 
-#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
+public class GetDirectoryExternalCommand implements ExternalCommand {
 
-const int NUM_FIELDS = 9;
+    protected String directory;
 
-void init_env_vars();
 
-int is_debug();
+    @Override
+    public CommandType getType() {
+        return CommandType.GET_DIRECTORY;
+    }
 
-int is_persistent();
+    @Override
+    public String getAsString() {
+        return CommandType.GET_DIRECTORY.name() + " " + directory;
+    }
 
-char* concat(const char*, const char*);
+    public String getDirectory() {
+        return directory;
+    }
 
-#endif // COMMONS_H
+}

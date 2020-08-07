@@ -16,17 +16,20 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.SynchExternalCommand;
+import es.bsc.compss.executor.external.commands.OpenTaskGroupExternalCommand;
 
 
-public class SynchPipeCommand extends SynchExternalCommand implements PipeCommand {
+public class OpenTaskGroupPipeCommand extends OpenTaskGroupExternalCommand implements PipeCommand {
 
-    public SynchPipeCommand() {
+    /**
+     * Constructs a new instance of an Open Task Group Command from a message received through the pipe.
+     * 
+     * @param command message received through the pipe
+     */
+    public OpenTaskGroupPipeCommand(String[] command) {
         super();
-    }
-
-    public SynchPipeCommand(String value) {
-        super(value);
+        this.groupName = command[2];
+        this.implicitBarrier = Boolean.parseBoolean(command[3]);
     }
 
     @Override
@@ -38,5 +41,4 @@ public class SynchPipeCommand extends SynchExternalCommand implements PipeComman
     public void join(PipeCommand receivedCommand) {
         // Do nothing
     }
-
 }

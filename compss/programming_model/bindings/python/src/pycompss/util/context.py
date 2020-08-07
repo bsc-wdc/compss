@@ -100,12 +100,14 @@ def get_who_contextualized():
     """
     return _WHO
 
+
 def is_nesting_enabled():
     """ Check if nesting is enabled.
 
     :returns: None
     """
     return NESTING is True
+
 
 def enable_nesting():
     """ Enable nesting.

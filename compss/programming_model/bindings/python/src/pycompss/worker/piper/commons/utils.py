@@ -38,14 +38,15 @@ class PiperWorkerConfiguration(object):
     Description of the configuration parameters for the Piper Worker.
     """
 
-    __slots__ = ['debug', 'tracing', 'storage_conf', 'stream_backend',
-                 'stream_master_name', 'stream_master_port', 'tasks_x_node',
-                 'pipes', 'control_pipe']
+    __slots__ = ['nesting', 'debug', 'tracing', 'storage_conf',
+                 'stream_backend', 'stream_master_name', 'stream_master_port',
+                 'tasks_x_node', 'pipes', 'control_pipe']
 
     def __init__(self):
         """
         Constructs an empty configuration description for the piper worker.
         """
+        self.nesting = False
         self.debug = False
         self.tracing = False
         self.storage_conf = None
@@ -67,6 +68,7 @@ class PiperWorkerConfiguration(object):
         set_temporary_directory(argv[1], create_tmpdir=False)
         if argv[2] == 'true':
             context.enable_nesting()
+            self.nesting = True
         self.debug = argv[3] == 'true'
         self.tracing = argv[4] == '1'
         self.storage_conf = argv[5]

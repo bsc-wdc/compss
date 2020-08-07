@@ -216,7 +216,7 @@ def compss_persistent_worker(config):
 
 if __name__ == '__main__':
     # Configure the global tracing variable from the argument
-    TRACING = (int(sys.argv[3]) > 0)
+    TRACING = (int(sys.argv[4]) > 0)
 
     with trace_multiprocessing_worker() if TRACING else dummy_context():
         # Configure the piper worker with the arguments

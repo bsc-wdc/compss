@@ -31,11 +31,12 @@ public class BinaryDefinition extends ImplementationDefinition<MethodResourceDes
     private final String workingDir;
     private final boolean failByEV;
 
+
     protected BinaryDefinition(String signature, String binary, String workingDir, boolean failByEV,
-    		MethodResourceDescription implConstraints) {
-    	
+        MethodResourceDescription implConstraints) {
+
         super(signature, implConstraints);
-        
+
         this.binary = binary;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
@@ -44,8 +45,8 @@ public class BinaryDefinition extends ImplementationDefinition<MethodResourceDes
     @Override
     public Implementation getImpl(int coreId, int implId) {
 
-        return new BinaryImplementation(binary, workingDir, failByEV, coreId, implId,
-        		this.getSignature(), this.getConstraints());
+        return new BinaryImplementation(binary, workingDir, failByEV, coreId, implId, this.getSignature(),
+            this.getConstraints());
     }
 
     @Override

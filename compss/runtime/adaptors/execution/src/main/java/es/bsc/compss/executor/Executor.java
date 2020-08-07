@@ -32,6 +32,7 @@ import es.bsc.compss.invokers.OpenCLInvoker;
 import es.bsc.compss.invokers.StorageInvoker;
 import es.bsc.compss.invokers.binary.BinaryInvoker;
 import es.bsc.compss.invokers.binary.COMPSsInvoker;
+import es.bsc.compss.invokers.binary.ContainerInvoker;
 import es.bsc.compss.invokers.binary.DecafInvoker;
 import es.bsc.compss.invokers.binary.MPIInvoker;
 import es.bsc.compss.invokers.binary.OmpSsInvoker;
@@ -50,6 +51,7 @@ import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodType;
@@ -462,7 +464,7 @@ public class Executor implements Runnable {
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case CONTAINER:
-                    invoker = new BinaryInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new ContainerInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case BINARY:
                     invoker = new BinaryInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
@@ -521,8 +523,8 @@ public class Executor implements Runnable {
         String specificWD = null;
         switch (invocation.getMethodImplementation().getMethodType()) {
             case CONTAINER:
-                BinaryImplementation binaryImplC = (BinaryImplementation) invocation.getMethodImplementation();
-                specificWD = binaryImplC.getWorkingDir();
+                ContainerImplementation contImpl = (ContainerImplementation) invocation.getMethodImplementation();
+                specificWD = contImpl.getWorkingDir();
                 break;
             case BINARY:
                 BinaryImplementation binaryImpl = (BinaryImplementation) invocation.getMethodImplementation();

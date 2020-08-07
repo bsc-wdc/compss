@@ -58,8 +58,8 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      * @param signature Binary signature.
      * @param annot Binary requirements.
      */
-    public BinaryImplementation(String binary, String workingDir, boolean failByEV,
-        Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
+    public BinaryImplementation(String binary, String workingDir, boolean failByEV, Integer coreId,
+        Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 

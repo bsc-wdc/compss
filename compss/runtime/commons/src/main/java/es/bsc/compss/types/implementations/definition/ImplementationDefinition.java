@@ -103,12 +103,14 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]),
                             EnvironmentLoader.loadFromEnvironment(implTypeArgs[6]));
 
-                    if ((internalBinaryc == null || internalBinaryc.isEmpty() || internalBinaryc == "[unassigned]") && internalTypec == "BINARY") {
+                    if ((internalBinaryc == null || internalBinaryc.isEmpty() || internalBinaryc == "[unassigned]")
+                        && internalTypec == "BINARY") {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for CONTAINER method " + implSignature);
                     }
 
-                    if ((internalFuncc == null || internalFuncc.isEmpty() || internalFuncc == "[unassigned]") && internalTypec == "PYTHON") {
+                    if ((internalFuncc == null || internalFuncc.isEmpty() || internalFuncc == "[unassigned]")
+                        && internalTypec == "PYTHON") {
                         throw new IllegalArgumentException(
                             "Empty python function annotation for CONTAINER method " + implSignature);
                     }
@@ -173,7 +175,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[4]);
-                    
+
                     if (binary == null || binary.isEmpty() || binary == "[unassigned]") {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for BINARY method " + implSignature);

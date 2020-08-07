@@ -50,6 +50,7 @@ class ExtensionPlugin(Plugin):
         'pycompss/tests/api/test_compss.py',
         'pycompss/tests/api/test_constraint.py',
         'pycompss/tests/api/test_decaf.py',
+        'pycompss/tests/api/test_exceptions.py',
         'pycompss/tests/api/test_io.py',
         'pycompss/tests/api/test_ompss.py',
         'pycompss/tests/api/test_opencl.py',

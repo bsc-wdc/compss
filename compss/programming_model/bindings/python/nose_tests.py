@@ -54,6 +54,7 @@ class ExtensionPlugin(Plugin):
         'pycompss/tests/api/test_implement.py',
         'pycompss/tests/api/test_io.py',
         'pycompss/tests/api/test_mpi.py',
+        'pycompss/tests/api/test_multinode.py',
         'pycompss/tests/api/test_ompss.py',
         'pycompss/tests/api/test_opencl.py',
         'pycompss/tests/test_runtime_ot.py',

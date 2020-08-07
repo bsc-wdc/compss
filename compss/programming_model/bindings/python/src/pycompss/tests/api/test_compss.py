@@ -87,9 +87,9 @@ def test_compss_flags_parameter():
     f = my_compss(dummy_function)
     _ = f()
     assert "flags" in my_compss.kwargs, \
-        "Image is not defined in kwargs dictionary."
+        "flags is not defined in kwargs dictionary."
     assert flags == my_compss.kwargs["flags"], \
-        "Image parameter has not been initialized."
+        "flags parameter has not been initialized."
 
 
 def test_compss_worker_in_master_parameter():
@@ -99,9 +99,9 @@ def test_compss_worker_in_master_parameter():
     f = my_compss(dummy_function)
     _ = f()
     assert "worker_in_master" in my_compss.kwargs, \
-        "Image is not defined in kwargs dictionary."
+        "worker_in_master is not defined in kwargs dictionary."
     assert worker_in_master == my_compss.kwargs["worker_in_master"], \
-        "Image parameter has not been initialized."
+        "worker_in_master parameter has not been initialized."
 
 
 def test_compss_workerInMaster_parameter():  # noqa
@@ -111,9 +111,9 @@ def test_compss_workerInMaster_parameter():  # noqa
     f = my_compss(dummy_function)
     _ = f()
     assert "workerInMaster" in my_compss.kwargs, \
-        "Image is not defined in kwargs dictionary."
+        "workerInMaster is not defined in kwargs dictionary."
     assert workerInMaster == my_compss.kwargs["workerInMaster"], \
-        "Image parameter has not been initialized."
+        "workerInMaster parameter has not been initialized."
 
 
 def test_compss_existing_core_element():

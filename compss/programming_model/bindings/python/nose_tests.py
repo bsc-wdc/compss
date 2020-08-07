@@ -48,6 +48,7 @@ class ExtensionPlugin(Plugin):
     files_white_list = [
         'pycompss/tests/api/test_binary.py',
         'pycompss/tests/api/test_compss.py',
+        'pycompss/tests/api/test_constraint.py',
         'pycompss/tests/api/test_io.py',
         'pycompss/tests/api/test_ompss.py',
         'pycompss/tests/api/test_opencl.py',

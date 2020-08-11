@@ -16,18 +16,22 @@
  */
 package es.bsc.compss.invokers.binary;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.invokers.util.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.ContainerImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation.ContainerExecutionType;
 import es.bsc.compss.types.resources.ContainerDescription;
 
 import java.io.File;
@@ -39,12 +43,14 @@ public class ContainerInvoker extends Invoker {
 
     private static final int NUM_BASE_DOCKER_ARGS = 10;
     private static final int NUM_BASE_SINGULARITY_ARGS = 6;
-    private static final String DOCKER_ENGINE = "DOCKER";
-    private static final String SINGULARITY_ENGINE = "SINGULARITY";
 
-    private final String binary;
-    private final boolean failByEV;
     private final ContainerDescription container;
+    private final ContainerExecutionType internalExecutionType;
+    private final String internalBinary;
+    private final String internalFunction;
+
+    private final String workingDir;
+    private final boolean failByEV;
 
     private BinaryRunner br;
 
@@ -72,18 +78,23 @@ public class ContainerInvoker extends Invoker {
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
 
-        this.binary = containerImpl.getBinary();
+        this.container = containerImpl.getContainer();
+        this.internalExecutionType = containerImpl.getInternalExecutionType();
+        this.internalBinary = containerImpl.getInternalBinary();
+        this.internalFunction = containerImpl.getInternalFunction();
+
+        this.workingDir = containerImpl.getWorkingDir(); // TODO: Check if this is required
         this.failByEV = containerImpl.isFailByEV();
 
         // Internal binary runner
         this.br = null;
-
-        this.container = containerImpl.getContainer();
     }
 
     @Override
     public void invokeMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.binary + " in " + this.context.getHostName());
+        LOGGER.info("Invoked Container execution (internalType = " + this.internalExecutionType + ", internalBinary = "
+            + this.internalBinary + ", internalFunction = " + this.internalFunction + ") in "
+            + this.context.getHostName());
 
         // Execute container
         Object retValue;
@@ -97,10 +108,16 @@ public class ContainerInvoker extends Invoker {
         // Close out streams if any
         try {
             if (this.br != null) {
-                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+                String pythonInterpreter = null;
+                LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+                if (lp instanceof PythonParams) {
+                    PythonParams pp = (PythonParams) lp;
+                    pythonInterpreter = pp.getPythonInterpreter();
+                }
+                this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing container streams", se);
+            LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -117,16 +134,26 @@ public class ContainerInvoker extends Invoker {
 
     private Object runInvocation() throws InvokeExecutionException {
         // Command similar to
-        // ./exec args
+        // docker exec -it -w X:X ./exec args
+
+        // Get python interpreter
+        String pythonInterpreter = null;
+        LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+        if (lp instanceof PythonParams) {
+            PythonParams pp = (PythonParams) lp;
+            pythonInterpreter = pp.getPythonInterpreter();
+        }
+
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-            this.invocation.getTarget(), streamValues, this.pythonInterpreter);
+            this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // Prepare command
+        // TODO: Implement python execution
         String[] cmd = null;
-        switch (container.getEngine()) {
-            case DOCKER_ENGINE:
+        switch (this.container.getEngine()) {
+            case DOCKER:
                 cmd = new String[NUM_BASE_DOCKER_ARGS + binaryParams.size()];
                 cmd[0] = "docker";
                 cmd[1] = "run";
@@ -141,20 +168,20 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[6] = "-w";
                 cmd[7] = this.taskSandboxWorkingDir + "/";
-                cmd[8] = container.getImage();
-                cmd[9] = this.binary;
+                cmd[8] = this.container.getImage();
+                cmd[9] = this.internalBinary;
                 for (int i = 0; i < binaryParams.size(); ++i) {
                     cmd[NUM_BASE_DOCKER_ARGS + i] = binaryParams.get(i);
                 }
                 break;
-            case SINGULARITY_ENGINE:
+            case SINGULARITY:
                 cmd = new String[NUM_BASE_SINGULARITY_ARGS + binaryParams.size()];
                 cmd[0] = "singularity";
                 cmd[1] = "exec";
                 cmd[2] = "--bind";
                 cmd[3] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
-                cmd[4] = container.getImage();
-                cmd[5] = this.binary;
+                cmd[4] = this.container.getImage();
+                cmd[5] = this.internalBinary;
                 for (int i = 0; i < binaryParams.size(); ++i) {
                     cmd[NUM_BASE_SINGULARITY_ARGS + i] = binaryParams.get(i);
                 }
@@ -163,11 +190,15 @@ public class ContainerInvoker extends Invoker {
                 throw new InvokeExecutionException("Invalid engine name");
         }
 
-        if (invocation.isDebugEnabled()) {
-            PrintStream outLog = context.getThreadOutStream();
+        if (this.invocation.isDebugEnabled()) {
+            PrintStream outLog = this.context.getThreadOutStream();
             outLog.println("");
-            outLog.println("[CONTAINER INVOKER] Begin binary call to " + this.binary);
-            outLog.println("[CONTAINER INVOKER] " + this.container);
+            outLog.println("[CONTAINER INVOKER] Begin binary call to container execution");
+            outLog.println("[CONTAINER INVOKER] Engine: " + this.container.getEngine().toString());
+            outLog.println("[CONTAINER INVOKER] Image: " + this.container.getImage());
+            outLog.println("[CONTAINER INVOKER] Internal Type: " + this.internalExecutionType);
+            outLog.println("[CONTAINER INVOKER] Internal Binary: " + this.internalBinary);
+            outLog.println("[CONTAINER INVOKER] Internal Function: " + this.internalFunction);
             outLog.println("[CONTAINER INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[CONTAINER INVOKER] BINARY CMD: ");

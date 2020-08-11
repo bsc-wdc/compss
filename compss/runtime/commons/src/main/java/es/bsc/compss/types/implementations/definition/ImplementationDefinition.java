@@ -19,6 +19,7 @@ package es.bsc.compss.types.implementations.definition;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.ContainerImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation.ContainerExecutionType;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
@@ -31,6 +32,7 @@ import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.ContainerDescription;
+import es.bsc.compss.types.resources.ContainerDescription.ContainerEngine;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -85,40 +87,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
             } catch (IllegalArgumentException iae) {
                 throw new IllegalArgumentException("Unrecognised method type " + implType);
             }
+
             switch (mt) {
-
-                case CONTAINER:
-                    if (implTypeArgs.length != ContainerImplementation.NUM_PARAMS) {
-                        throw new IllegalArgumentException(
-                            "Incorrect parameters for type CONTAINER on " + implSignature);
-                    }
-                    String internalTypec = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
-                    String internalFuncc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
-                    String internalBinaryc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
-
-                    String binaryWorkingDirc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
-                    boolean binaryfailByEVc = Boolean.parseBoolean(implTypeArgs[4]);
-
-                    ContainerDescription containerc =
-                        new ContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]),
-                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[6]));
-
-                    if ((internalBinaryc == null || internalBinaryc.isEmpty() || internalBinaryc == "[unassigned]")
-                        && internalTypec == "BINARY") {
-                        throw new IllegalArgumentException(
-                            "Empty binary annotation for CONTAINER method " + implSignature);
-                    }
-
-                    if ((internalFuncc == null || internalFuncc.isEmpty() || internalFuncc == "[unassigned]")
-                        && internalTypec == "PYTHON") {
-                        throw new IllegalArgumentException(
-                            "Empty python function annotation for CONTAINER method " + implSignature);
-                    }
-
-                    id = (ImplementationDefinition<T>) new ContainerDefinition(implSignature, internalTypec,
-                        internalFuncc, internalBinaryc, binaryWorkingDirc, binaryfailByEVc, containerc,
-                        (MethodResourceDescription) implConstraints);
-                    break;
                 case METHOD:
                     if (implTypeArgs.length != MethodImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type METHOD on " + implSignature);
@@ -165,6 +135,54 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner, pythonMPIFlags, pythonMPIscaleByCU,
                         pythonMPIfailByEV, pythonMPILayoutParam, pythonMPIBlockSize, pythonMPIBlockLen,
                         pythonMPIBlockStride, (MethodResourceDescription) implConstraints);
+                    break;
+
+                case CONTAINER:
+                    if (implTypeArgs.length != ContainerImplementation.NUM_PARAMS) {
+                        throw new IllegalArgumentException(
+                            "Incorrect parameters for type CONTAINER on " + implSignature);
+                    }
+
+                    // Retrieve arguments
+                    String engineStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                    engineStr = engineStr.toUpperCase();
+                    ContainerEngine engine = ContainerEngine.valueOf(engineStr);
+                    String image = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                    ContainerDescription container = new ContainerDescription(engine, image);
+
+                    String internalTypeContainerStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
+                    internalTypeContainerStr = internalTypeContainerStr.toUpperCase();
+                    // String to ENUM can throw IllegalArgumentException
+                    ContainerExecutionType internalTypeContainer =
+                        ContainerExecutionType.valueOf(internalTypeContainerStr);
+                    String internalBinaryContainer = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    String internalFuncContainer = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
+
+                    String binaryWorkingDirContainer = EnvironmentLoader.loadFromEnvironment(implTypeArgs[5]);
+                    boolean binaryfailByEVContainer = Boolean.parseBoolean(implTypeArgs[6]);
+
+                    // Check empty arguments
+                    switch (internalTypeContainer) {
+                        case CET_BINARY:
+                            if (internalBinaryContainer == null || internalBinaryContainer.isEmpty()
+                                || internalBinaryContainer == "[unassigned]") {
+                                throw new IllegalArgumentException(
+                                    "Empty binary annotation for CONTAINER method " + implSignature);
+                            }
+                            break;
+                        case CET_PYTHON:
+                            if (internalFuncContainer == null || internalFuncContainer.isEmpty()
+                                || internalFuncContainer == "[unassigned]") {
+                                throw new IllegalArgumentException(
+                                    "Empty python function annotation for CONTAINER method " + implSignature);
+                            }
+                            break;
+                    }
+
+                    // Build definition
+                    id = (ImplementationDefinition<T>) new ContainerDefinition(implSignature, internalTypeContainer,
+                        internalFuncContainer, internalBinaryContainer, binaryWorkingDirContainer,
+                        binaryfailByEVContainer, container, (MethodResourceDescription) implConstraints);
                     break;
 
                 case BINARY:

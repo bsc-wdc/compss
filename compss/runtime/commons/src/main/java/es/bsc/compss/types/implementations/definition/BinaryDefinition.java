@@ -44,9 +44,8 @@ public class BinaryDefinition extends ImplementationDefinition<MethodResourceDes
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-
-        return new BinaryImplementation(binary, workingDir, failByEV, coreId, implId, this.getSignature(),
-            this.getConstraints());
+        return new BinaryImplementation(this.binary, this.workingDir, this.failByEV, coreId, implId, getSignature(),
+            getConstraints());
     }
 
     @Override

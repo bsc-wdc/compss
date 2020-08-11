@@ -35,14 +35,20 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
     public static final int NUM_PARAMS = 7;
     public static final String SIGNATURE = "container.CONTAINER";
 
-    private String internalType;
+
+    public static enum ContainerExecutionType {
+        CET_PYTHON, // For Python CET executions
+        CET_BINARY; // For Binary CET executions
+    }
+
+
+    private ContainerDescription container;
+    private ContainerExecutionType internalExecutionType;
     private String internalBinary;
     private String internalFunc;
 
     private String workingDir;
     private boolean failByEV;
-
-    private ContainerDescription container;
 
 
     /**
@@ -56,7 +62,7 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
     /**
      * Creates a new ContainerImplementation from the given parameters.
      * 
-     * @param internalType "PYTHON"/"BINARY"
+     * @param internalExecutionType ContainerExecutionType "PYTHON"/"BINARY"
      * @param internalFunc Python function path.
      * @param internalBinary Binary path.
      * @param workingDir Working directory.
@@ -68,13 +74,13 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
      * @param annot Binary requirements.
      */
 
-    public ContainerImplementation(String internalType, String internalFunc, String internalBinary, String workingDir,
-        boolean failByEV, ContainerDescription container, Integer coreId, Integer implementationId, String signature,
-        MethodResourceDescription annot) {
+    public ContainerImplementation(ContainerExecutionType internalExecutionType, String internalFunc,
+        String internalBinary, String workingDir, boolean failByEV, ContainerDescription container, Integer coreId,
+        Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 
-        this.internalType = internalType;
+        this.internalExecutionType = internalExecutionType;
         this.internalBinary = internalBinary;
         this.internalFunc = internalFunc;
 
@@ -89,17 +95,8 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
      * 
      * @return The internal type.
      */
-    public String getType() {
-        return this.internalType;
-    }
-
-    /**
-     * Returns the python function path.
-     * 
-     * @return The python function path.
-     */
-    public String getFunction() {
-        return this.internalFunc;
+    public ContainerExecutionType getInternalExecutionType() {
+        return this.internalExecutionType;
     }
 
     /**
@@ -107,8 +104,17 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
      * 
      * @return The binary path.
      */
-    public String getBinary() {
+    public String getInternalBinary() {
         return this.internalBinary;
+    }
+
+    /**
+     * Returns the Python function path.
+     * 
+     * @return The Python function path.
+     */
+    public String getInternalFunction() {
+        return this.internalFunc;
     }
 
     /**
@@ -126,7 +132,7 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
      * @return True is fail by exit value is enabled.
      */
     public boolean isFailByEV() {
-        return failByEV;
+        return this.failByEV;
     }
 
     /**
@@ -135,7 +141,7 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
      * @return The container implementation.
      */
     public ContainerDescription getContainer() {
-        return container;
+        return this.container;
     }
 
     @Override
@@ -146,7 +152,7 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[CONTAINER=").append(container);
+        sb.append("[CONTAINER=").append(this.container);
         sb.append("]");
 
         return sb.toString();
@@ -154,14 +160,15 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
 
     @Override
     public String toString() {
-        return "ContainerImplementation [container=" + container + ", binary=" + internalBinary + "]";
+        return "ContainerImplementation [container=" + this.container + ", internalExecutionType="
+            + this.internalExecutionType + ", binary=" + this.internalBinary + ", pyFunc=" + this.internalFunc + "]";
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
 
-        this.internalType = (String) in.readObject();
+        this.internalExecutionType = (ContainerExecutionType) in.readObject();
         this.internalFunc = (String) in.readObject();
         this.internalBinary = (String) in.readObject();
 
@@ -175,7 +182,7 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
 
-        out.writeObject(this.internalType);
+        out.writeObject(this.internalExecutionType);
         out.writeObject(this.internalFunc);
         out.writeObject(this.internalBinary);
 

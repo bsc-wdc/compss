@@ -55,6 +55,13 @@ public class Constants {
     public static final String WORKER_NOT_IN_MASTER = "false";
 
     /*
+     * Fail by exit value
+     */
+    public static final String FAIL_BY_EV = "true";
+
+    public static final String NOT_FAIL_BY_EV = "false";
+
+    /*
      * Single node value.
      */
     public static final int SINGLE_NODE = 1;

@@ -27,43 +27,74 @@ public class ContainerDescription implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String engine;
+
+    public static enum ContainerEngine {
+        DOCKER, // Docker container engine
+        SINGULARITY; // Singularity container engine
+    }
+
+
+    private ContainerEngine engine;
     private String image;
 
 
+    /**
+     * Create an empty container description for serialisation.
+     */
     public ContainerDescription() {
+        // Only for serialisation
     }
 
     /**
      * Create a Container Description.
      * 
      * @param engine Container engine.
-     * @param image Container imagen.
+     * @param image Container image.
      */
-    public ContainerDescription(String engine, String image) {
+    public ContainerDescription(ContainerEngine engine, String image) {
         this.engine = engine;
         this.image = image;
     }
 
-    public String getEngine() {
-        return engine;
+    /**
+     * Returns the associated container engine.
+     * 
+     * @return The associated container engine.
+     */
+    public ContainerEngine getEngine() {
+        return this.engine;
     }
 
-    public void setEngine(String engine) {
+    /**
+     * Sets a new container engine.
+     * 
+     * @param engine New container engine.
+     */
+    public void setEngine(ContainerEngine engine) {
         this.engine = engine;
     }
 
+    /**
+     * Returns the associated container image.
+     * 
+     * @return The associated container image.
+     */
     public String getImage() {
-        return image;
+        return this.image;
     }
 
+    /**
+     * Sets a new container image.
+     * 
+     * @param image New container image.
+     */
     public void setImage(String image) {
         this.image = image;
     }
 
     @Override
     public String toString() {
-        return "ContainerDescription [engine=" + engine + ", image=" + image + "]";
+        return "ContainerDescription [engine=" + this.engine.toString() + ", image=" + this.image + "]";
     }
 
 }

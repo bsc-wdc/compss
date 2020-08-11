@@ -29,6 +29,7 @@ import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
@@ -463,8 +464,17 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
                 throw new UnsupportedOperationException("Python MPI is not supported in GAT");
             case CONTAINER:
-                // TODO: Container task execution in GAT not implemented
-                throw new UnsupportedOperationException("Container is not supported in GAT");
+                // TODO: Container executions in GAT not implemented
+                ContainerImplementation containerImpl = (ContainerImplementation) absImpl;
+                lArgs.add(containerImpl.getContainer().getEngine().toString());
+                lArgs.add(containerImpl.getContainer().getImage());
+                lArgs.add(containerImpl.getInternalExecutionType().toString());
+                lArgs.add(containerImpl.getInternalBinary());
+                lArgs.add(containerImpl.getInternalFunction());
+                lArgs.add(containerImpl.getWorkingDir());
+                lArgs.add(Boolean.toString(containerImpl.isFailByEV()));
+
+                throw new UnsupportedOperationException("Container executions are not supported in GAT");
         }
 
         // Job arguments

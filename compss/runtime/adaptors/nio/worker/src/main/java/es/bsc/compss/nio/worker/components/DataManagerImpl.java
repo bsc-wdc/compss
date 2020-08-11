@@ -172,6 +172,7 @@ public class DataManagerImpl implements DataManager {
                     if (NIOTracer.extraeEnabled()) {
                         NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.INIT_FS.getType());
                     }
+
                     return new Object();
                 }
             });

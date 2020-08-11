@@ -584,9 +584,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     private void updateParameter(DataType newType, String location, DependencyParameter dp) {
-
         // Parameter needs to be updated
-        String tgtName = dp.getDataTarget();
         SimpleURI resultUri = new SimpleURI(location);
         // If the parameter has been persisted and it was not a PSCO, the PSCO location needs to be registered.
         // If it is an IN parameter, the runtime won't add any new location
@@ -596,13 +594,15 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             if (previousType == DataType.PSCO_T || previousType == DataType.EXTERNAL_PSCO_T) {
                 if (!previousType.equals(newType)) {
                     // The parameter types do not match, log exception
-                    LOGGER.warn("WARN: Cannot update parameter " + tgtName + " because types are not compatible");
+                    LOGGER.warn(
+                        "WARN: Cannot update parameter " + dp.getDataTarget() + " because types are not compatible");
                 }
             } else {
                 String pscoId = resultUri.getPath();
                 registerPersistedParameter(newType, pscoId, dp);
             }
         }
+
         // Update Task information
         dp.setType(newType);
         dp.setDataTarget(resultUri.toString());

@@ -140,7 +140,7 @@ class Binary(PyCOMPSsDecorator):
             _engine = impl_args[5]
             _image = impl_args[6]
 
-            impl_args = ['BINARY',  # internal_type
+            impl_args = ['CET_BINARY',  # internal_type
                          '[unassigned]',  # internal_func
                          _binary,  # internal_binary
                          _working_dir,  # working_dir

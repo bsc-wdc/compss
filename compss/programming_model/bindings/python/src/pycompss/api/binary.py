@@ -33,9 +33,9 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 
-
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'binary'}
@@ -43,8 +43,8 @@ SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
                        'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'workingDir',
-                       'engine',
-                       'image'}
+                        'engine',
+                        'image'}
 
 
 class Binary(PyCOMPSsDecorator):
@@ -81,6 +81,7 @@ class Binary(PyCOMPSsDecorator):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         @wraps(func)
         def binary_f(*args, **kwargs):
             if not self.scope:
@@ -139,13 +140,13 @@ class Binary(PyCOMPSsDecorator):
             _engine = impl_args[5]
             _image = impl_args[6]
 
-            impl_args = ['BINARY',          # internal_type
-                         '[unassigned]',    # internal_func
-                         _binary,           # internal_binary
-                         _working_dir,      # working_dir
-                         _fail_by_ev,       # fail_by_ev
-                         _engine,           # engine
-                         _image]            # image
+            impl_args = ['BINARY',  # internal_type
+                         '[unassigned]',  # internal_func
+                         _binary,  # internal_binary
+                         _working_dir,  # working_dir
+                         _fail_by_ev,  # fail_by_ev
+                         _engine,  # engine
+                         _image]  # image
 
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
         else:
@@ -156,13 +157,13 @@ class Binary(PyCOMPSsDecorator):
             impl_type = 'BINARY'
             impl_signature = '.'.join((impl_type, _binary))
 
-            impl_args = ['[unassigned]',    # internal_type
-                         '[unassigned]',    # internal_func
-                         _binary,           # internal_binary
-                         _working_dir,      # working_dir
-                         _fail_by_ev,       # fail_by_ev
-                         '[unassigned]',    # engine
-                         '[unassigned]']    # image
+            impl_args = ['[unassigned]',  # internal_type
+                         '[unassigned]',  # internal_func
+                         _binary,  # internal_binary
+                         _working_dir,  # working_dir
+                         _fail_by_ev,  # fail_by_ev
+                         '[unassigned]',  # engine
+                         '[unassigned]']  # image
 
             if CORE_ELEMENT_KEY in kwargs:
                 # Core element has already been created in a higher level decorator

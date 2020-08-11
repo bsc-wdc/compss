@@ -33,9 +33,9 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 
-
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'engine',
@@ -85,6 +85,7 @@ class Container(PyCOMPSsDecorator):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         @wraps(func)
         def container_f(*args, **kwargs):
             if not self.scope:
@@ -131,13 +132,13 @@ class Container(PyCOMPSsDecorator):
         impl_type = 'CONTAINER'
         impl_signature = '.'.join((impl_type, self.function_name))
 
-        impl_args = ['[unassigned]',                # internal_type
-                     '[unassigned]',                # internal_func
-                     '[unassigned]',                # internal_binary
-                     '[unassigned]',                # working_dir
-                     '[unassigned]',                # fail_by_ev
-                     _engine,                       # engine
-                     _image]                        # image
+        impl_args = ['[unassigned]',  # internal_type
+                     '[unassigned]',  # internal_func
+                     '[unassigned]',  # internal_binary
+                     '[unassigned]',  # working_dir
+                     '[unassigned]',  # fail_by_ev
+                     _engine,  # engine
+                     _image]  # image
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

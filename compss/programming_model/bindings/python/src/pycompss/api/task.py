@@ -33,9 +33,11 @@ from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 # Determine if strings should have a sharp symbol prepended or not
@@ -92,9 +94,9 @@ class Task(PyCOMPSsDecorator):
             'is_distributed': False,
             'computing_nodes': 1,
             'tracing_hook': False,
-            'numba': False,          # numba mode (jit, vectorize, guvectorize)
-            'numba_flags': {},          # user defined extra numba flags
-            'numba_signature': None,    # vectorize and guvectorize signature
+            'numba': False,  # numba mode (jit, vectorize, guvectorize)
+            'numba_flags': {},  # user defined extra numba flags
+            'numba_signature': None,  # vectorize and guvectorize signature
             'numba_declaration': None,  # guvectorize declaration
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
@@ -197,6 +199,8 @@ class Task(PyCOMPSsDecorator):
             # Determine the context and decide what to do
             if context.in_master():
                 # @task being executed in the master
+                self.__check_core_element__(kwargs, user_function)
+
                 from pycompss.runtime.task.master import TaskMaster
                 # Each task will have a TaskMaster, so its content will
                 # not be shared.
@@ -237,10 +241,10 @@ class Task(PyCOMPSsDecorator):
                         # Called from another task within the worker
                         # Ignore the @task decorator and run it sequentially
                         message = "".join(("WARNING: Calling task: ",
-                                        str(user_function.__name__),
-                                        " from this task.\n",
-                                        "         It will be executed sequentially ",  # noqa: E501
-                                        "within the caller task."))
+                                           str(user_function.__name__),
+                                           " from this task.\n",
+                                           "         It will be executed sequentially ",  # noqa: E501
+                                           "within the caller task."))
                         print(message, file=sys.stderr)
                         return self._sequential_call(*args, **kwargs)
             # We are neither in master nor in the worker, or the user has
@@ -268,6 +272,26 @@ class Task(PyCOMPSsDecorator):
         d_t = dummy_task(args, kwargs)
         return d_t.__call__(self.user_function)(*args, **kwargs)
 
+    def __check_core_element__(self, kwargs, user_function):
+        if CORE_ELEMENT_KEY in kwargs and kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
+            # The task is using a container
+            impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
+            _type = impl_args[2]
+            if _type == '[unassigned]':
+                # The task is not invoking a binary
+                _engine = impl_args[0]
+                _image = impl_args[1]
+                _type = 'CET_PYTHON'
+                _func = str(user_function.__name__)
+
+                impl_args = [_engine,  # engine
+                             _image,  # image
+                             _type,  # internal_type
+                             '[unassigned]',  # internal_binary
+                             _func,  # internal_func
+                             '[unassigned]',  # working_dir
+                             '[unassigned]']  # fail_by_ev
+                kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
 
 # task can be also typed as Task
 task = Task

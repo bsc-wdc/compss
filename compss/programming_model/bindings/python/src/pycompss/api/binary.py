@@ -75,14 +75,14 @@ class Binary(PyCOMPSsDecorator):
                             list(kwargs.keys()),
                             decorator_name)
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the binary parameters within the task core element.
 
-        :param func: Function to decorate
+        :param user_function: Function to decorate
         :return: Decorated function.
         """
 
-        @wraps(func)
+        @wraps(user_function)
         def binary_f(*args, **kwargs):
             if not self.scope:
                 raise Exception(not_in_pycompss("binary"))
@@ -93,26 +93,27 @@ class Binary(PyCOMPSsDecorator):
             if context.in_master():
                 # master code
                 if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
             else:
                 # worker code
                 pass
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        binary_f.__doc__ = func.__doc__
+        binary_f.__doc__ = user_function.__doc__
         return binary_f
 
-    def __configure_core_element__(self, kwargs):
+    def __configure_core_element__(self, kwargs, user_function):
         # type: (dict) -> None
         """ Include the registering info related to @binary.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
+        :param user_function: Function to decorate
         :param kwargs: Keyword arguments received from call.
         :return: None
         """
@@ -137,16 +138,18 @@ class Binary(PyCOMPSsDecorator):
 
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
 
-            _engine = impl_args[5]
-            _image = impl_args[6]
+            _engine = impl_args[0]
+            _image = impl_args[1]
 
-            impl_args = ['CET_BINARY',  # internal_type
-                         '[unassigned]',  # internal_func
+            _func = str(user_function.__name__)
+
+            impl_args = [_engine,  # engine
+                         _image,  # image
+                         'CET_BINARY',  # internal_type
                          _binary,  # internal_binary
+                         '[unassigned]',  # internal_func
                          _working_dir,  # working_dir
-                         _fail_by_ev,  # fail_by_ev
-                         _engine,  # engine
-                         _image]  # image
+                         _fail_by_ev]  # fail_by_ev
 
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
         else:

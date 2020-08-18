@@ -54,7 +54,7 @@ class Container(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ['function_name']
+    __slots__ = []
 
     def __init__(self, *args, **kwargs):
         """
@@ -78,15 +78,15 @@ class Container(PyCOMPSsDecorator):
                             list(kwargs.keys()),
                             decorator_name)
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """
         Parse and set the container parameters within the task core element.
 
-        :param func: Function to decorate
+        :param user_function: Function to decorate
         :return: Decorated function.
         """
 
-        @wraps(func)
+        @wraps(user_function)
         def container_f(*args, **kwargs):
             if not self.scope:
                 raise Exception(not_in_pycompss("container"))
@@ -97,27 +97,27 @@ class Container(PyCOMPSsDecorator):
             if context.in_master():
                 # master code
                 if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
             else:
                 # worker code
                 pass
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        container_f.__doc__ = func.__doc__
-        self.function_name = str(func.__name__)
+        container_f.__doc__ = user_function.__doc__
         return container_f
 
-    def __configure_core_element__(self, kwargs):
+    def __configure_core_element__(self, kwargs, user_function):
         # type: (dict) -> None
         """ Include the registering info related to @containerZ.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
+        :param user_function: Function to decorate
         :param kwargs: Keyword arguments received from call.
         :return: None
         """
@@ -128,17 +128,20 @@ class Container(PyCOMPSsDecorator):
         _engine = self.kwargs['engine']
         _image = self.kwargs['image']
 
+        _func = str(user_function.__name__)
+
         # Type and signature
         impl_type = 'CONTAINER'
-        impl_signature = '.'.join((impl_type, self.function_name))
+        impl_signature = '.'.join((impl_type, _func))
 
-        impl_args = ['[unassigned]',  # internal_type
-                     '[unassigned]',  # internal_func
+        impl_args = [_engine,  # engine
+                     _image,  # image
+                     '[unassigned]',  # internal_type
                      '[unassigned]',  # internal_binary
+                     '[unassigned]',  # internal_func
                      '[unassigned]',  # working_dir
-                     '[unassigned]',  # fail_by_ev
-                     _engine,  # engine
-                     _image]  # image
+                     '[unassigned]']  # fail_by_ev
+
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

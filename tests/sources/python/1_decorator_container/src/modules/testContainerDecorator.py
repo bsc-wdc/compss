@@ -22,93 +22,33 @@ import unittest
 
 
 # Tasks definitions
-@task(file_path=FILE_INOUT)
-def increment(file_path):
-    # Read value
-    fis = open(file_path, 'r')
-    value = fis.read()
-    fis.close()
-
-    # Write value
-    fos = open(file_path, 'w')
-    fos.write(str(int(value) + 1))
-    fos.close()
-
-
 @container(engine="DOCKER",
            image="ubuntu")
 @binary(binary="ls",
         working_dir="${TEST_WORKING_DIR}")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
-def docker_func(result):
+def func1(result):
     pass
 
-'''
-@container(engine="SINGULARITY",
-           container="/home/compss/singularity/examples/ubuntu_latest.sif",
-           binary="ls", working_dir="/home/compss/")
+@container(engine="DOCKER",
+           image="ubuntu")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
-def singularity_func(result):
+def func2(result):
     pass
-'''
 
 @binary(binary="ls",
         working_dir="${TEST_WORKING_DIR}")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
-def exec_ls(result):
+def func3(result):
     pass
-
 
 # Tests
 
 class testContainerDecorator(unittest.TestCase):
 
     def testContainer(self):
-        initial_value = 1
-        file_name = "counter"
         docker_out = "docker_output.txt"
+        func1(docker_out)
+        func2(docker_out)
+        func3(docker_out)
 
-        # Write value
-        fos = open(file_name, 'w')
-        fos.write(str(initial_value))
-        fos.close()
-        print("Initial counter value is " + str(initial_value))
-
-        # Execute increment
-        increment(file_name)
-
-        # Write new value
-        fis = compss_open(file_name, 'r+')
-        final_value = fis.read()
-        fis.close()
-        print("Final counter value is " + str(final_value))
-
-
-        # Execute BINARY_FUNC
-        docker_func(docker_out)
-    
-        # Write new value
-        fis_ls = compss_open(docker_out, 'r+')
-        files_list = fis_ls.read()
-        fis_ls.close()
-        print("Docker files list is " + files_list)
-
-'''        
-        # Execute LS
-        # singularity_func(infile)
-
-        # Write new value
-        fis_ls = compss_open(infile, 'r+')
-        final_value = fis_ls.read()
-        fis_ls.close()
-        print(final_value)
-
-        exec_ls(infile)
-
-        # Write new value
-        fis_ls = compss_open(infile, 'r+')
-        final_value = fis_ls.read()
-        fis_ls.close()
-        print(final_value)
-
-'''

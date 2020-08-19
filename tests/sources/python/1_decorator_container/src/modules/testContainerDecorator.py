@@ -36,7 +36,7 @@ def func1(result):
 def func2(result):
     pass
 
-@binary(binary="ls",
+@binary(binary="pwd",
         working_dir="${TEST_WORKING_DIR}")
 @task(result={Type: FILE_OUT, StdIOStream: STDOUT})
 def func3(result):
@@ -49,6 +49,9 @@ class testContainerDecorator(unittest.TestCase):
     def testContainer(self):
         docker_out = "docker_output.txt"
         func1(docker_out)
+        print("[PYTHON APP] - Done func1")
         func2(docker_out)
+        print("[PYTHON APP] - Done func2")
         func3(docker_out)
+        print("[PYTHON APP] - Done func3")
 

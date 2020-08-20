@@ -41,8 +41,11 @@ import java.util.ArrayList;
 
 public class ContainerInvoker extends Invoker {
 
-    private static final int NUM_BASE_DOCKER_ARGS = 10;
-    private static final int NUM_BASE_SINGULARITY_ARGS = 6;
+    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 23;
+    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
+    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 14;
+    private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 6;
+    private static final int PYTHON_PARAMETER_FORMAT_LENGTH = 6;
 
     private final ContainerDescription container;
     private final ContainerExecutionType internalExecutionType;
@@ -136,58 +139,156 @@ public class ContainerInvoker extends Invoker {
         // Command similar to
         // docker exec -it -w X:X ./exec args
 
-        // Get python interpreter
+        // Get python interpreter and required directories
         String pythonInterpreter = null;
+        String pythonPath = null;
         LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
         if (lp instanceof PythonParams) {
             PythonParams pp = (PythonParams) lp;
             pythonInterpreter = pp.getPythonInterpreter();
+            pythonPath = pp.getPythonPath();
         }
 
-        // Convert binary parameters and calculate binary-streams redirection
+        String workingDir = null;
+        workingDir = this.taskSandboxWorkingDir + "/../..";
+        if (workingDir.contains("sandBox")) {
+            workingDir = this.taskSandboxWorkingDir + "/../..";
+        } else {
+            workingDir = this.taskSandboxWorkingDir + "";
+        }
+
+        String appDir = null;
+        appDir = this.context.getAppDir();
+
+        if (this.invocation.isDebugEnabled()) {
+            PrintStream outLog = this.context.getThreadOutStream();
+            outLog.println("[CONTAINER INVOKER] appDir: " + appDir);
+        }
+
+        String pyCompssDir = null;
+        pyCompssDir = this.context.getInstallDir() + "Bindings/python/" + pythonInterpreter + "/pycompss";
+
+        // Convert binary parameters and calculate binary-streams redirection - binary execution
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
             this.invocation.getTarget(), streamValues, pythonInterpreter);
 
-        // Prepare command
-        // TODO: Implement python execution
-        String[] cmd = null;
+        // Prepare command - Determine length of the command
+        int numCmdArgs = 0;
         switch (this.container.getEngine()) {
             case DOCKER:
-                cmd = new String[NUM_BASE_DOCKER_ARGS + binaryParams.size()];
-                cmd[0] = "docker";
-                cmd[1] = "run";
-                cmd[2] = "-i";
-                cmd[3] = "--rm";
-                cmd[4] = "-v";
-                cmd[5] = this.taskSandboxWorkingDir + "/../..";
-                if (cmd[5].contains("sandBox")) {
-                    cmd[5] = this.taskSandboxWorkingDir + "/../.." + ":" + this.taskSandboxWorkingDir + "/../..";
-                } else {
-                    cmd[5] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
-                }
-                cmd[6] = "-w";
-                cmd[7] = this.taskSandboxWorkingDir + "/";
-                cmd[8] = this.container.getImage();
-                cmd[9] = this.internalBinary;
-                for (int i = 0; i < binaryParams.size(); ++i) {
-                    cmd[NUM_BASE_DOCKER_ARGS + i] = binaryParams.get(i);
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS
+                            + this.invocation.getParams().size() * PYTHON_PARAMETER_FORMAT_LENGTH;
+                        break;
+                    case CET_BINARY:
+                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + binaryParams.size();
                 }
                 break;
             case SINGULARITY:
-                cmd = new String[NUM_BASE_SINGULARITY_ARGS + binaryParams.size()];
-                cmd[0] = "singularity";
-                cmd[1] = "exec";
-                cmd[2] = "--bind";
-                cmd[3] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
-                cmd[4] = this.container.getImage();
-                cmd[5] = this.internalBinary;
-                for (int i = 0; i < binaryParams.size(); ++i) {
-                    cmd[NUM_BASE_SINGULARITY_ARGS + i] = binaryParams.get(i);
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        numCmdArgs = NUM_BASE_SINGULARITY_PYTHON_ARGS
+                            + this.invocation.getParams().size() * PYTHON_PARAMETER_FORMAT_LENGTH;
+                        break;
+                    case CET_BINARY:
+                        numCmdArgs = NUM_BASE_SINGULARITY_BINARY_ARGS + binaryParams.size();
+                }
+        }
+
+        String[] cmd = null;
+        cmd = new String[numCmdArgs];
+        int cmdIndex = 0;
+
+        // Prepare command - Determine base of the command and container binds
+        switch (this.container.getEngine()) {
+            case DOCKER:
+                cmd[cmdIndex++] = "docker";
+                cmd[cmdIndex++] = "run";
+                cmd[cmdIndex++] = "-i";
+                cmd[cmdIndex++] = "--rm";
+
+                cmd[cmdIndex++] = "-v";
+                cmd[cmdIndex++] = workingDir + ":" + workingDir;
+
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        cmd[cmdIndex++] = "-v";
+                        cmd[cmdIndex++] = appDir + ":" + appDir;
+                        cmd[cmdIndex++] = "-v";
+                        cmd[cmdIndex++] = pyCompssDir + ":" + pyCompssDir;
+                        cmd[cmdIndex++] = "--env";
+                        cmd[cmdIndex++] = "PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
+                        cmd[cmdIndex++] = "-w";
+                        cmd[cmdIndex++] = pyCompssDir + "/";
+                        cmd[cmdIndex++] = this.container.getImage();
+                        cmd[cmdIndex++] = "python";
+                        cmd[cmdIndex++] = "worker/container/container_worker.py";
+
+                        break;
+                    case CET_BINARY:
+                        cmd[cmdIndex++] = "-w";
+                        cmd[cmdIndex++] = this.taskSandboxWorkingDir + "/";
+                        cmd[cmdIndex++] = this.container.getImage();
+                        cmd[cmdIndex++] = this.internalBinary;
                 }
                 break;
-            default:
-                throw new InvokeExecutionException("Invalid engine name");
+            case SINGULARITY:
+                // TODO: Add pythonpath enviroment variable
+                // TODO: Set working dir??
+
+                cmd[cmdIndex++] = "singularity";
+                cmd[cmdIndex++] = "exec";
+
+                cmd[cmdIndex++] = "--bind";
+                cmd[cmdIndex++] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        cmd[cmdIndex++] = "--bind";
+                        cmd[cmdIndex++] = appDir + ":" + appDir;
+                        cmd[cmdIndex++] = "--bind";
+                        cmd[cmdIndex++] = pyCompssDir + ":" + pyCompssDir;
+                        cmd[cmdIndex++] = this.container.getImage();
+                        cmd[cmdIndex++] = "python";
+                        cmd[cmdIndex++] = pyCompssDir + "worker/container/container_worker.py";
+                        break;
+                    case CET_BINARY:
+                        cmd[cmdIndex++] = this.container.getImage();
+                        cmd[cmdIndex++] = this.internalBinary;
+                }
+        }
+
+        // Prepare command - Determine base python arguments
+        switch (this.internalExecutionType) {
+            case CET_PYTHON:
+                String[] parts = this.internalFunction.split("&");
+                String userModule = parts[0];
+                String userFunction = parts[1];
+                cmd[cmdIndex++] = userModule;
+                cmd[cmdIndex++] = userFunction;
+                cmd[cmdIndex++] = String.valueOf(this.invocation.getParams().size());
+                break;
+            case CET_BINARY:
+        }
+
+        // Prepare command - Prepare user arguments
+        switch (this.internalExecutionType) {
+            case CET_PYTHON:
+                for (int i = 0; i < this.invocation.getParams().size(); ++i) {
+                    InvocationParam userParam = this.invocation.getParams().get(i);
+                    cmd[cmdIndex++] = String.valueOf(userParam.getType());
+                    cmd[cmdIndex++] = String.valueOf(userParam.getStdIOStream());
+                    cmd[cmdIndex++] = userParam.getPrefix();
+                    cmd[cmdIndex++] = userParam.getName();
+                    cmd[cmdIndex++] = null;
+                    cmd[cmdIndex++] = String.valueOf(userParam.getValue());
+                }
+                break;
+            case CET_BINARY:
+                for (int i = 0; i < binaryParams.size(); ++i) {
+                    cmd[cmdIndex + i] = binaryParams.get(i);
+                }
         }
 
         if (this.invocation.isDebugEnabled()) {
@@ -223,4 +324,5 @@ public class ContainerInvoker extends Invoker {
             this.br.cancelProcess();
         }
     }
+
 }

@@ -618,7 +618,7 @@ class DDS(object):
         >>> x = DDS().load([("a", 1), ("b", 3)])
         >>> y = DDS().load([("a", 2), ("b", 4)])
         >>> sorted(x.join(y).collect())
-        [('a', [1, 2]), ('b', [3, 4])]
+        [('a', (1, 2)), ('b', (3, 4))]
         """
 
         def dispatch(seq):
@@ -783,6 +783,30 @@ class DDS(object):
 
         return self.combine_by_key(_create, _merge, _combine,
                                    total_parts=num_of_parts)
+
+    def take(self, num):
+        """
+        The first num elements of DDS.
+        :param num: number of elements to be retrieved.
+        :return:
+
+        """
+        items = []
+        partitions = self.collect(future_objects=True)
+        taken = 0
+
+        for part in partitions:
+            _p = iter(cwo(part))
+            while taken < num:
+                try:
+                    items.append(next(_p))
+                    taken += 1
+                except StopIteration:
+                    break
+            if taken >= num:
+                break
+
+        return items[:num]
 
 
 class ChildDDS(DDS):

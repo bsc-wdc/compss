@@ -273,6 +273,7 @@ class Task(PyCOMPSsDecorator):
         return d_t.__call__(self.user_function)(*args, **kwargs)
 
     def __check_core_element__(self, kwargs, user_function):
+        import inspect
         import os
 
         if CORE_ELEMENT_KEY in kwargs and kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
@@ -284,8 +285,7 @@ class Task(PyCOMPSsDecorator):
                 _engine = impl_args[0]
                 _image = impl_args[1]
                 _type = 'CET_PYTHON'
-                _func_complete = os.path.dirname(os.path.abspath(__file__)) + '/' + os.path.basename(
-                    __file__) + '&' + str(user_function.__name__)
+                _func_complete = os.path.abspath(inspect.getmodule(user_function).__file__)+'&'+str(user_function.__name__)
 
                 impl_args = [_engine,  # engine
                              _image,  # image

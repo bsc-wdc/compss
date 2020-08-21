@@ -61,15 +61,15 @@ def task_binary_std(stdout, stderr):
 # Python Tasks definition
 #
 @container(engine="DOCKER",
-           image="ubuntu")
+           image="compss/compss")
 @task()
 def task_python_empty():
     print("Hello from Task Python EMPTY")
 
 
 @container(engine="DOCKER",
-           image="ubuntu")
-@task(num=IN, in_str=IN, file=FILE_IN)
+           image="compss/compss")
+@task(num=IN, in_str=IN, fin=FILE_IN)
 def task_python_args(num, in_str, fin):
     print("Hello from Task Python ARGS")
     print("- Arg 1: num -- " + str(num))
@@ -80,7 +80,7 @@ def task_python_args(num, in_str, fin):
 
 
 @container(engine="DOCKER",
-           image="ubuntu")
+           image="compss/compss")
 @task(returns=1)
 def task_python_return():
     print("Hello from Task Python RETURN")
@@ -121,7 +121,9 @@ class testContainerDecorator(unittest.TestCase):
 
         print("STDOUT:")
         with compss_open(stdout, 'r') as f:
-            print(f.read())
+            content = f.read()
+            print(content)
+            self.assertTrue(len(content) != 0)
         print("STDERR:")
         with compss_open(stderr, 'r') as f:
             print(f.read())

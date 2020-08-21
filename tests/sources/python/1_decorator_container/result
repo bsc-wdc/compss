@@ -53,6 +53,17 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # SPECIFIC TEST CHECKS
+
+  # Check job 3 custom working directory
+  job2_wd=$(grep "CONTAINER INVOKER] On WorkingDir : " "${target_log_folder}/jobs/job2_NEW.out" | tr ":" "\n" | tail -n +2)
+  job3_wd=$(grep "CONTAINER INVOKER] On WorkingDir : " "${target_log_folder}/jobs/job3_NEW.out" | tr ":" "\n" | tail -n +2)
+  if [ "${job2_wd}" == "${job3_wd}" ]; then
+    echo "ERROR: Custom working directory is not respected" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
   # All ok
   exit 0
 

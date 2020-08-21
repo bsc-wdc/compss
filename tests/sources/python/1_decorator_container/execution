@@ -17,7 +17,7 @@
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
-  sed -i '/<AppDir>/c<AppDir>'"${base_app_dir}"'\/<\/AppDir>' "${base_app_dir}"/project.xml
+  sed -i '/<AppDir>/c<AppDir>'"${base_app_dir}/src"'\/<\/AppDir>' "${base_app_dir}"/project.xml
 
   #----------------------------------------------------------------------------------
   # Create all working dir folders

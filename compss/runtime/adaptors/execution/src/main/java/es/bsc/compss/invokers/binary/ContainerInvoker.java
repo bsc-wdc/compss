@@ -41,9 +41,9 @@ import java.util.ArrayList;
 
 public class ContainerInvoker extends Invoker {
 
-    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 23;
+    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 20;
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
-    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 14;
+    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 15;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 6;
     private static final int PYTHON_PARAMETER_FORMAT_LENGTH = 6;
 
@@ -136,9 +136,6 @@ public class ContainerInvoker extends Invoker {
     }
 
     private Object runInvocation() throws InvokeExecutionException {
-        // Command similar to
-        // docker exec -it -w X:X ./exec args
-
         // Get python interpreter and required directories
         String pythonInterpreter = null;
         String pythonPath = null;
@@ -159,11 +156,6 @@ public class ContainerInvoker extends Invoker {
 
         String appDir = null;
         appDir = this.context.getAppDir();
-
-        if (this.invocation.isDebugEnabled()) {
-            PrintStream outLog = this.context.getThreadOutStream();
-            outLog.println("[CONTAINER INVOKER] appDir: " + appDir);
-        }
 
         String pyCompssDir = null;
         pyCompssDir = this.context.getInstallDir() + "Bindings/python/" + pythonInterpreter + "/pycompss";
@@ -235,14 +227,20 @@ public class ContainerInvoker extends Invoker {
                 }
                 break;
             case SINGULARITY:
-                // TODO: Add pythonpath enviroment variable
-                // TODO: Set working dir??
+                // TODO: Set container working directory?
+
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        cmd[cmdIndex++] = "SINGULARITYENV_PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
+                        break;
+                    case CET_BINARY:
+                }
 
                 cmd[cmdIndex++] = "singularity";
                 cmd[cmdIndex++] = "exec";
 
                 cmd[cmdIndex++] = "--bind";
-                cmd[cmdIndex++] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
+                cmd[cmdIndex++] = workingDir + ":" + workingDir;
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
                         cmd[cmdIndex++] = "--bind";
@@ -281,13 +279,13 @@ public class ContainerInvoker extends Invoker {
                     cmd[cmdIndex++] = String.valueOf(userParam.getStdIOStream());
                     cmd[cmdIndex++] = userParam.getPrefix();
                     cmd[cmdIndex++] = userParam.getName();
-                    cmd[cmdIndex++] = null;
+                    cmd[cmdIndex++] = "null";
                     cmd[cmdIndex++] = String.valueOf(userParam.getValue());
                 }
                 break;
             case CET_BINARY:
                 for (int i = 0; i < binaryParams.size(); ++i) {
-                    cmd[cmdIndex + i] = binaryParams.get(i);
+                    cmd[cmdIndex++] = binaryParams.get(i);
                 }
         }
 
@@ -324,5 +322,4 @@ public class ContainerInvoker extends Invoker {
             this.br.cancelProcess();
         }
     }
-
 }

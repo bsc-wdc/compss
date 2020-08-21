@@ -24,6 +24,7 @@ PyCOMPSs Worker for Containers
 import sys
 import logging
 
+import pycompss.util.context as context
 from pycompss.worker.commons.worker import execute_task
 
 # Define static logger
@@ -61,8 +62,8 @@ def main():
     num_params = sys.argv[3]
     func_params = sys.argv[4:]
 
-    execute_task_params = [func_file_path, func_name, num_slaves, timeout, cus, has_target, return_type, return_length,
-                           num_params, func_params]
+    execute_task_params = [func_file_path, func_name, num_slaves, timeout, cus, has_target, return_type,
+                           return_length, num_params] + func_params
 
     if __debug__:
         LOGGER.debug("- File: " + str(func_file_path))
@@ -81,6 +82,7 @@ def main():
     log_files = None
     python_mpi = False
     collections_layouts = None
+    context.set_pycompss_context(context.WORKER)
     result = execute_task(process_name,
                           storage_conf,
                           execute_task_params,
@@ -101,7 +103,7 @@ def main():
         LOGGER.debug("Processing results...")
 
     if exit_value != 0:
-        LOGGER.debug("ERROR: Task execution finished with non-zero exit value (" + str(exit_value) + " != 0")
+        LOGGER.debug("ERROR: Task execution finished with non-zero exit value (" + str(exit_value) + " != 0)")
     else:
         LOGGER.debug("Task execution finished SUCCESSFULLY!")
     return exit_value

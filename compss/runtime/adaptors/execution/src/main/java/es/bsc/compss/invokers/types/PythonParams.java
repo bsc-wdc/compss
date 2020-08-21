@@ -54,7 +54,7 @@ public class PythonParams implements LanguageParams {
     }
 
     public String getPythonInterpreter() {
-        return pythonInterpreter;
+        return this.pythonInterpreter;
     }
 
     public void setPythonInterpreter(String pythonInterpreter) {
@@ -62,7 +62,7 @@ public class PythonParams implements LanguageParams {
     }
 
     public String getPythonVersion() {
-        return pythonVersion;
+        return this.pythonVersion;
     }
 
     public void setPythonVersion(String pythonVersion) {
@@ -70,7 +70,7 @@ public class PythonParams implements LanguageParams {
     }
 
     public String getPythonVirtualEnvironment() {
-        return pythonVirtualEnvironment;
+        return this.pythonVirtualEnvironment;
     }
 
     public void setPythonVirtualEnvironment(String pythonVirtualEnvironment) {
@@ -78,7 +78,7 @@ public class PythonParams implements LanguageParams {
     }
 
     public String getPythonPropagateVirtualEnvironment() {
-        return pythonPropagateVirtualEnvironment;
+        return this.pythonPropagateVirtualEnvironment;
     }
 
     public void setPythonPropagateVirtualEnvironment(String pythonPropagateVirtualEnvironment) {
@@ -86,7 +86,7 @@ public class PythonParams implements LanguageParams {
     }
 
     public String getPythonPath() {
-        return pythonPath;
+        return this.pythonPath;
     }
 
     public void setPythonPath(String pythonPath) {

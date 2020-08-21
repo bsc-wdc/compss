@@ -22,8 +22,8 @@
   coverage xml
   ev=$?
   if [ "$ev" -ne 0 ]; then
-          echo "[ERROR] Coverage XML generation failed with exit value: $ev"
-          exit $ev
+    echo "[ERROR] Coverage XML generation failed with exit value: $ev"
+    exit $ev
   fi
 
   # Exit all ok

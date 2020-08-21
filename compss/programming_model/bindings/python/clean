@@ -11,7 +11,9 @@
   # SCRIPT GLOBAL HELPERS
   #
 
-  source ${SCRIPT_DIR}/commons
+  # shellcheck source=./commons
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/commons
 
 
   #
@@ -19,11 +21,14 @@
   #
 
   remove_symbolic_links (){
-      get_packages_folder $1
+      # Retrieve packages (using commons function)
+      # Sets global variable packages_folder
+      get_packages_folder "$1"
+      # shellcheck disable=SC2154
       echo "Cleaning PyCOMPSs symbolic links from ${packages_folder}"
-      rm ${packages_folder}/pycompss
-      rm ${packages_folder}/compss*.so
-      rm ${packages_folder}/thread_affinity*.so
+      rm "${packages_folder}"/pycompss
+      rm "${packages_folder}"/compss*.so
+      rm "${packages_folder}"/thread_affinity*.so
   }
 
   #

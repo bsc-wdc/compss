@@ -50,16 +50,16 @@ def main():
         LOGGER.debug("Parsing Python function and arguments...")
 
     # TODO: Enhance the received parameters from ContainerInvoker.java
-    func_file_path = sys.argv[2]
-    func_name = sys.argv[3]
+    func_file_path = sys.argv[1]
+    func_name = sys.argv[2]
     num_slaves = 0
     timeout = 0
     cus = 1
     has_target = False
     return_type = "null"
     return_length = 0
-    num_params = sys.argv[4]
-    func_params = sys.argv[5:]
+    num_params = sys.argv[3]
+    func_params = sys.argv[4:]
 
     execute_task_params = [func_file_path, func_name, num_slaves, timeout, cus, has_target, return_type, return_length,
                            num_params, func_params]

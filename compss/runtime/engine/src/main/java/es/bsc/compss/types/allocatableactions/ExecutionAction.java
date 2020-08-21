@@ -909,8 +909,8 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     @Override
-    public final <
-        T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public final <T extends WorkerResourceDescription> List<Implementation>
+        getCompatibleImplementations(ResourceScheduler<T> r) {
         return r.getExecutableImpls(this.task.getTaskDescription().getCoreElement().getCoreId());
     }
 

@@ -142,7 +142,6 @@ class Container(PyCOMPSsDecorator):
                      '[unassigned]',  # working_dir
                      '[unassigned]']  # fail_by_ev
 
-
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             # (e.g. @constraint)

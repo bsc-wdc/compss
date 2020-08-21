@@ -284,7 +284,8 @@ class Task(PyCOMPSsDecorator):
                 _engine = impl_args[0]
                 _image = impl_args[1]
                 _type = 'CET_PYTHON'
-                _func_complete = os.path.dirname(os.path.abspath(__file__))+'/'+os.path.basename(__file__)+'&'+str(user_function.__name__)
+                _func_complete = os.path.dirname(os.path.abspath(__file__)) + '/' + os.path.basename(
+                    __file__) + '&' + str(user_function.__name__)
 
                 impl_args = [_engine,  # engine
                              _image,  # image
@@ -294,6 +295,7 @@ class Task(PyCOMPSsDecorator):
                              '[unassigned]',  # working_dir
                              '[unassigned]']  # fail_by_ev
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+
 
 # task can be also typed as Task
 task = Task

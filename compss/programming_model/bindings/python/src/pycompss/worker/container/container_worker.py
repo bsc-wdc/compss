@@ -98,7 +98,7 @@ def main():
     # Process results
     # TODO: Enhance the result treatment for ContainerInvoker.java
     if __debug__:
-        print ("Processing results...")
+        LOGGER.debug("Processing results...")
 
     if exit_value != 0:
         LOGGER.debug("ERROR: Task execution finished with non-zero exit value (" + str(exit_value) + " != 0")

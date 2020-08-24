@@ -51,6 +51,7 @@ class ExtensionPlugin(Plugin):
         # 'pycompss/util/translators/scop_types/scop/statement'
     ]
     files_white_list = [
+        'pycompss/tests/test_task.py',
         'pycompss/tests/api/test_api.py',
         'pycompss/tests/api/test_binary.py',
         'pycompss/tests/api/test_compss.py',

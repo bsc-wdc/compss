@@ -17,12 +17,9 @@
 
 # -*- coding: utf-8 -*-
 
-try:
-    from functools import lru_cache
-except ImportError:
-    from functools32 import lru_cache
 import pycompss.api.parameter as parameter
 from pycompss.runtime.task.parameter import get_new_parameter
+from pycompss.util.importing.functools import lru_cache
 
 
 class TaskCommons(object):

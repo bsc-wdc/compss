@@ -23,10 +23,7 @@ PyCOMPSs runtime - Task - Arguments
     This file contains the classes needed for the arguments identification.
 """
 
-try:
-    from functools import lru_cache
-except ImportError:
-    from functools32 import lru_cache
+from pycompss.util.importing.functools import lru_cache
 
 
 @lru_cache(maxsize=128)

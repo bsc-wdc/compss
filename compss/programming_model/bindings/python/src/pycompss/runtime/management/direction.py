@@ -23,11 +23,8 @@ PyCOMPSs Binding - Management - Direction
     This file contains the Direction management functions.
 """
 
-try:
-    from functools import lru_cache
-except ImportError:
-    from functools32 import lru_cache
 from pycompss.api.parameter import DIRECTION
+from pycompss.util.importing.functools import lru_cache
 
 
 @lru_cache(maxsize=128)

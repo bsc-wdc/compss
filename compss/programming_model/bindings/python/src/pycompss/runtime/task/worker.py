@@ -19,10 +19,6 @@
 
 import os
 import sys
-try:
-    from functools import lru_cache
-except ImportError:
-    from functools32 import lru_cache
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
@@ -35,6 +31,7 @@ from pycompss.runtime.task.arguments import get_name_from_kwarg
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
+from pycompss.util.importing.functools import lru_cache
 from pycompss.util.objects.properties import create_object_by_con_type
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file

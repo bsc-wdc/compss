@@ -106,8 +106,7 @@ class PyCOMPSsDecorator(object):
         if 'fail_by_exit_value' in self.kwargs:
             fail_by_ev = self.kwargs['fail_by_exit_value']
             if isinstance(fail_by_ev, bool):
-                # Accepted argument
-                pass
+                self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
             elif isinstance(fail_by_ev, str):
                 # Accepted argument
                 pass

@@ -45,8 +45,8 @@ public class ContainerInvoker extends Invoker {
 
     private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 20;
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
-    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 15;
-    private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 6;
+    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 17;
+    private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
     private static final String REL_PATH_WORKER_CONTAINER =
@@ -287,8 +287,8 @@ public class ContainerInvoker extends Invoker {
                         // Nothing to add
                         break;
                 }
-
-                // TODO: Set container working directory?
+                cmd[cmdIndex++] = "--pwd";
+                cmd[cmdIndex++] = workingDir;
                 cmd[cmdIndex++] = this.container.getImage();
         }
 

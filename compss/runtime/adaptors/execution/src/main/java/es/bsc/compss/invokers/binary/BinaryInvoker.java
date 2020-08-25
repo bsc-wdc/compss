@@ -142,8 +142,8 @@ public class BinaryInvoker extends Invoker {
             cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);
         }
 
-        if (invocation.isDebugEnabled()) {
-            PrintStream outLog = context.getThreadOutStream();
+        if (this.invocation.isDebugEnabled()) {
+            PrintStream outLog = this.context.getThreadOutStream();
             outLog.println("");
             outLog.println("[BINARY INVOKER] Begin binary call to " + this.binary);
             outLog.println("[BINARY INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());

@@ -838,6 +838,7 @@ public class Executor implements Runnable {
                             } else {
                                 // Rewrite inout param by moving the new file to the renaming
                                 LOGGER.debug("Moving from " + inSandboxFile.toPath() + " to " + renamedFile.toPath());
+                                Files.delete(renamedFile.toPath());
                                 move(inSandboxFile.toPath(), renamedFile.toPath());
                             }
                         } else {

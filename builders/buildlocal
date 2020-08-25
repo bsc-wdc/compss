@@ -551,8 +551,8 @@ install_compss() {
   cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/
   # Extrae
   if [ "$tracing" == "true" ]; then
-    cd "${TMP_DIR}"/dependencies/extrae
-    ./install ${targetDir}/Dependencies/extrae true
+    cd "${TMP_DIR}"/dependencies/
+    ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae ${targetDir}/Dependencies/extrae true
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install extrae dependency"

@@ -19,22 +19,27 @@ import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.Type;
-import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.Container;
 
 
 public interface MainItf {
 
-    // @Binary(binary="/test/ejecutable/exec", workingDir="/test", container = @BinaryContainer(engine="SINGULARITY",
-    // image="/home/compss/singularity/examples/ubuntu_latest.sif"))
-    // @Binary(binary="/test/ejecutable/exec", workingDir="/test", container = @BinaryContainer(engine="DOCKER",
-    // image="centos"))
-    @Binary(binary = "ls", workingDir = "${APP_DIR}")
-    void ls(@Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String out);
+    @Container(engine = "DOCKER", image = "ubuntu", binary = "pwd")
+    void pwdEmpty();
 
-    // @Container(engine="SINGULARITY", image="/home/compss/singularity/examples/ubuntu_latest.sif",
-    // binary="/test/ejecutable/exec", workingDir="/test")
-    @Container(engine = "DOCKER", image = "centos", binary = "pwd", workingDir = "/test")
-    void lsContainer(@Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String out);
+    @Container(engine = "DOCKER", image = "ubuntu", binary = "pwd")
+    Integer pwdExitValue();
+
+    @Container(engine = "DOCKER", image = "ubuntu", binary = "pwd", workingDir = "${TEST_WORKING_DIR}")
+    void pwdWorkingDir();
+
+    @Container(engine = "DOCKER", image = "ubuntu", binary = "${PARAMS_BINARY}", workingDir = "${TEST_WORKING_DIR}/..")
+    void customParams(@Parameter() int n, @Parameter() String msg,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String fileName);
+
+    @Container(engine = "DOCKER", image = "ubuntu", binary = "pwd", workingDir = "${TEST_WORKING_DIR}")
+    void pwdWorkingDirStd(
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String stdout,
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDERR) String stderr);
 
 }

@@ -15,64 +15,54 @@
  */
 package testContainer;
 
+import container.CONTAINER;
+
+import es.bsc.compss.api.COMPSs;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import binary.BINARY;
-import container.CONTAINER;
-
 
 public class Main {
 
-    private static final String FILE_IN = "in";
-    private static final String FILE_OUT = "out";
-
-
-    private static void usage() {
-        System.out.println("- Usage: increment.Increment <numIterations> <counter>");
-    }
-
     public static void main(String[] args) throws Exception {
-        // Check and get parameters
-        if (args.length != 2) {
-            usage();
-            throw new Exception("[ERROR] Incorrect number of parameters");
-        }
-        final int N = Integer.parseInt(args[0]);
-        final int counter = Integer.parseInt(args[1]);
+        // Empty execution
+        CONTAINER.pwdEmpty();
 
-        // Initialize counter files
-        System.out.println("Initial counter values:");
-        initializeCounters(counter);
+        COMPSs.barrier();
 
-        // Execute increment tasks
-        System.out.println("Launch binary and container tasks");
-        for (int i = 0; i < N; ++i) {
-            BINARY.ls(FILE_OUT);
-            CONTAINER.lsContainer(FILE_IN);
-        }
+        // ExitValue execution
+        Integer ev = CONTAINER.pwdExitValue();
+        System.out.println("EXIT VALUE: " + ev);
 
-        System.out.println("Final counter values:");
-        printCounterValues();
-    }
+        // WorkingDir execution
+        CONTAINER.pwdWorkingDir();
 
-    private static void initializeCounters(int counter) throws Exception {
-        // FILE IN
-        writeFileContent(FILE_IN, counter);
+        COMPSs.barrier();
 
-        // FILE OUT
-        writeFileContent(FILE_OUT, counter);
-    }
+        // Empty execution
+        int n = 3;
+        final String msg = "Hello World!";
+        final String fileName = "my_file.in";
+        writeFileContent(fileName, 1);
 
-    private static void printCounterValues() throws Exception {
-        // FILE_OUT
-        printFileContent(FILE_OUT);
+        CONTAINER.customParams(n, msg, fileName);
 
-        // FILE IN
-        printFileContent(FILE_IN);
+        // WARN: Check job parameters in result script
+        COMPSs.barrier();
+
+        // StdOut and StdErr
+        final String stdout = "pwd_working_dir.stdout";
+        final String stderr = "pwd_working_dir.stderr";
+        CONTAINER.pwdWorkingDirStd(stdout, stderr);
+
+        System.out.println("STDOUT:");
+        printFileContent(stdout);
+        System.out.println("STDERR:");
+        printFileContent(stderr);
     }
 
     private static void writeFileContent(String filename, int value) throws Exception {

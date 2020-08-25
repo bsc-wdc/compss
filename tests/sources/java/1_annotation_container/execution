@@ -32,15 +32,10 @@
   error_log="${target_log_folder}/test_annotation_container_0${retry_num}.errorlog"
   expectedTime=180s
   
-  export RUNCOMPSS=${COMPSs_exec}
-
+  export PARAMS_BINARY=${base_app_dir}/bin/print_params.sh
   export TEST_WORKING_DIR=${base_app_dir}/wd
-  if [ -d "${TEST_WORKING_DIR}" ]; then
-    rm -rf "${TEST_WORKING_DIR}"
-  fi
+  rm -rf "${TEST_WORKING_DIR}"
   mkdir -p "${TEST_WORKING_DIR}"
-  touch "${TEST_WORKING_DIR}/f1.txt"
-  touch "${TEST_WORKING_DIR}/f2.txt"
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

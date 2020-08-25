@@ -43,6 +43,31 @@
     exit 1
   fi
 
+
+  #----------------------------------------------------------------------------------
+  # Test result checker
+
+  # Job 1 has correct default working directory
+  wd=$(grep -A 1 "CMD OUTPUT" "${target_log_folder}/jobs/job1_NEW.out" | tail -n +2)
+  if [[ "${wd}" != /tmp/COMPSsWorker01/* ]]; then
+    echo "[ERROR] Invalid default working directory" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # Job 3 has correct custom working directory
+  wd=$(grep -A 1 "CMD OUTPUT" "${target_log_folder}/jobs/job3_NEW.out" | tail -n +2)
+  if [[ "${wd}" == /tmp/COMPSsWorker01/* ]]; then
+    echo "[ERROR] Invalid custom working directory" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # Job 4 processes 3 args
+  num_args=$(grep "Arg:" "${target_log_folder}/jobs/job4_NEW.out" | wc -l)
+  if [ "${num_args}" -ne 3 ]; then
+    echo "[ERROR] Invalid number of binary arguments" | tee -a "${output_file}"
+    exit 1
+  fi
+
   #----------------------------------------------------------------------------------
   # All ok
   exit 0

@@ -14,3 +14,5 @@
 
   cp "${source_base_dir}"/execution "${target_base_dir}"/execution
   cp "${source_base_dir}"/result "${target_base_dir}"/result
+
+  cp -r "${source_base_dir}"/bin "${target_base_dir}"

@@ -244,12 +244,12 @@ class TaskMaster(TaskCommons):
         self.set_code_strings(self.user_function,
                               self.core_element.get_impl_type())
         impl_signature, impl_type_args = self.get_signature()
-        self.update_core_element(impl_signature, impl_type_args,
-                                 pre_defined_ce)
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
         if not self.registered or self.signature != impl_signature:
+            self.update_core_element(impl_signature, impl_type_args,
+                                     pre_defined_ce)
             self.register_task()
             self.registered = True
             self.signature = impl_signature
@@ -430,7 +430,7 @@ class TaskMaster(TaskCommons):
             pre_defined_ce = True
         elif self.core_element:
             # A core element from previous task calls was saved.
-            pass
+            pre_defined_ce = True
         else:
             # No decorators over @task: instantiate an empty core element.
             self.core_element = CE()

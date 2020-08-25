@@ -314,9 +314,10 @@ else:
     # Hidden TaskGroup context manager
     from pycompss.api.dummy.api import TaskGroup  # noqa
 
-    def compss_start(log_level='off', interactive=False):
-        # type: (str, bool) -> None
-        __dummy_compss_start__(log_level, interactive)
+
+    def compss_start(log_level='off', tracing=0, interactive=False):
+        # type: (str, int, bool) -> None
+        __dummy_compss_start__(log_level, tracing, interactive)
 
     def compss_stop(code=0):
         # type: (int) -> None

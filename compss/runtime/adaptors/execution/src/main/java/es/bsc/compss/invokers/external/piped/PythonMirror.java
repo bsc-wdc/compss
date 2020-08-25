@@ -92,23 +92,31 @@ public class PythonMirror extends PipedMirror {
         // Specific launch command is of the form: binding bindingExecutor bindingArgs
         // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads <cmdPipes>
         // <resultPipes> controlPipeCMD controlPipeRESULT
-        StringBuilder cmd = new StringBuilder();
-        // TODO check if this call is no longer necessary with Francesc changes
-        // cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
 
+        StringBuilder cmd = new StringBuilder();
+
+        // Add specific MPI worker parameters (uses LATER_ variables defined in bindings_piper.sh)
         if (this.pyParams.usePythonMpiWorker()) {
             // Rank 0 acts as the Piper Worker. Other processes act as piped executors
-            cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size + 1)
+            cmd.append("mpirun").append(TOKEN_SEP);
+            cmd.append("-np").append(TOKEN_SEP).append(this.size + 1).append(TOKEN_SEP);
+            cmd.append("-x").append(TOKEN_SEP).append("LD_PRELOAD=$LATER_MPI_LD_PRELOAD").append(TOKEN_SEP);
+            cmd.append("-x").append(TOKEN_SEP).append("EXTRAE_CONFIG_FILE=$LATER_MPI_EXTRAE_CONFIG_FILE")
                 .append(TOKEN_SEP);
+            cmd.append("-x").append(TOKEN_SEP).append("PYTHONPATH=$LATER_MPI_PYTHONPATH").append(TOKEN_SEP);
         }
-        cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
-        cmd.append(this.pyCOMPSsHome);
 
+        // Add Python interpreter call
+        cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
+
+        // Add PyCOMPSs worker main class
         if (this.pyParams.usePythonMpiWorker()) {
-            cmd.append(MPI_WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+            cmd.append(this.pyCOMPSsHome).append(MPI_WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
         } else {
-            cmd.append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+            cmd.append(this.pyCOMPSsHome).append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
         }
+
+        // Add Python worker arguments
         cmd.append(context.getWorkingDir()).append(TOKEN_SEP);
         cmd.append(context.getRuntimeAPI() != null).append(TOKEN_SEP);
         cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
@@ -117,19 +125,18 @@ public class PythonMirror extends PipedMirror {
         cmd.append(context.getStreamingBackend().name()).append(TOKEN_SEP);
         cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);
         cmd.append(context.getStreamingMasterPort()).append(TOKEN_SEP);
+
         cmd.append(this.size).append(TOKEN_SEP);
         String executorPipes = this.basePipePath + "executor";
-
         for (int i = 0; i < this.size; ++i) {
             cmd.append(executorPipes).append(i).append(".outbound").append(TOKEN_SEP);
         }
-
         for (int i = 0; i < this.size; ++i) {
             cmd.append(executorPipes).append(i).append(".inbound").append(TOKEN_SEP);
         }
-
         cmd.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
         cmd.append(pipe.getInboundPipe());
+
         return cmd.toString();
     }
 

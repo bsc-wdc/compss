@@ -25,7 +25,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING PYTHON APPLICATION THAT USES PYCOMPSS FUNCTIONS"
+  echo "*** RUNNING PYTHON APPLICATION THAT CHECKS STRING ENCODING"
 
   # Set environment variables - compss
   export RUNCOMPSS=${COMPSs_exec}

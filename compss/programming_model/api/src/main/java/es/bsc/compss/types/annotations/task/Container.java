@@ -59,7 +59,7 @@ public @interface Container {
      * 
      * @return The internal container execution type.
      */
-    String executionType() default Constants.UNASSIGNED;
+    String executionType() default Constants.BINARY_CONTAINER_EXECUTION;
 
     /**
      * Returns the binary name.

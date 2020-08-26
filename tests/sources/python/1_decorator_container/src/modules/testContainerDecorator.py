@@ -98,6 +98,22 @@ def task_python_return_str(num, in_str, fin):
     return "Hello"
 
 
+@container(engine="DOCKER",
+           image="compss/compss")
+@task(finout=FILE_INOUT)
+def task_python_inout(finout):
+    print("Hello from Task Python ARGS")
+
+    # Read
+    print("- Arg 1: num -- " + str(finout))
+    with open(finout, 'r') as f:
+        print(f.read())
+
+    # Write
+    with open(finout, 'a') as f:
+        f.write("Hello from task!\n")
+
+
 # Tests
 
 class testContainerDecorator(unittest.TestCase):
@@ -143,6 +159,7 @@ class testContainerDecorator(unittest.TestCase):
         # Imports
         from pycompss.api.api import compss_barrier
         from pycompss.api.api import compss_wait_on
+        from pycompss.api.api import compss_open
 
         # Test empty Python execution
         task_python_empty()
@@ -155,7 +172,7 @@ class testContainerDecorator(unittest.TestCase):
         in_str = "Hello World!"
         fin = "in.file"
         with open(fin, 'w') as f:
-            f.write("Hello World!")
+            f.write("Hello from main!\n")
 
         task_python_args(num, in_str, fin)
 
@@ -169,3 +186,16 @@ class testContainerDecorator(unittest.TestCase):
         ret_str = task_python_return_str(num, in_str, fin)
         ret_str = compss_wait_on(ret_str)
         self.assertEquals(ret_str, "Hello")
+
+        # Test INOUT
+        finout = "inout.file"
+        with open(finout, 'w') as f:
+            f.write("Hello from main!\n")
+
+        task_python_inout(finout)
+
+        print("FINOUT:")
+        with compss_open(finout, 'r') as f:
+            content = f.read()
+            print(content)
+            self.assertTrue("Hello from task!" in content)

@@ -43,7 +43,7 @@ import java.util.List;
 
 public class ContainerInvoker extends Invoker {
 
-    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 20;
+    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 23;
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 17;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
@@ -130,12 +130,32 @@ public class ContainerInvoker extends Invoker {
         }
 
         // Update container results
-        for (InvocationParam np : this.invocation.getResults()) {
-            if (np.getType() == DataType.FILE_T) {
-                serializeBinaryExitValue(np, retValue);
-            } else {
-                np.setValue(retValue);
-                np.setValueClass(retValue.getClass());
+        switch (this.internalExecutionType) {
+            case CET_PYTHON:
+                // Real return value is updated in the container_worker.py
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Python Container Execution of Job " + this.invocation.getJobId() + " (Task "
+                        + this.invocation.getTaskId() + ") has exit value " + retValue.toString());
+                }
+                break;
+            case CET_BINARY:
+                // Update the result parameters with the binary exit value
+                for (InvocationParam np : this.invocation.getResults()) {
+                    if (np.getType() == DataType.FILE_T) {
+                        serializeBinaryExitValue(np, retValue);
+                    } else {
+                        np.setValue(retValue);
+                        np.setValueClass(retValue.getClass());
+                    }
+                }
+                break;
+        }
+
+        // Mark job as failed if needed
+        if (this.failByEV) {
+            if (!retValue.toString().equals("0")) {
+                throw new JobExecutionException("Received non-zero exit value (" + retValue.toString() + ") for Job "
+                    + this.invocation.getJobId() + " (Task " + this.invocation.getTaskId() + ")");
             }
         }
     }
@@ -180,28 +200,49 @@ public class ContainerInvoker extends Invoker {
         pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python" + File.separator + pythonVersion
             + File.separator + "pycompss";
 
+        // Setup Python CET execution flags
+        boolean hasTarget = false;
+        String returnType = "null";
+        int returnLength = 0;
+        switch (this.internalExecutionType) {
+            case CET_PYTHON:
+                hasTarget = (this.invocation.getTarget() != null);
+                List<? extends InvocationParam> results = this.invocation.getResults();
+                if (results != null && !results.isEmpty()) {
+                    returnType = String.valueOf(DataType.FILE_T.ordinal());
+                    returnLength = results.size();
+                } else {
+                    // Default values
+                }
+                break;
+
+            case CET_BINARY:
+                // Default values
+                break;
+        }
+
         // Setup arguments
         StdIOStream streamValues = new StdIOStream();
         List<String> containerCallParams = new ArrayList<>();
+        int numContainerCallParams = 0;
         switch (this.internalExecutionType) {
             case CET_PYTHON:
                 // Format parameters
+                if (hasTarget) {
+                    addParamInfo(containerCallParams, this.invocation.getTarget());
+                    numContainerCallParams++;
+                }
+                if (returnLength > 0) {
+                    for (int i = 0; i < this.invocation.getResults().size(); ++i) {
+                        InvocationParam userParam = this.invocation.getResults().get(i);
+                        addParamInfo(containerCallParams, userParam);
+                        numContainerCallParams++;
+                    }
+                }
                 for (int i = 0; i < this.invocation.getParams().size(); ++i) {
                     InvocationParam userParam = this.invocation.getParams().get(i);
-                    containerCallParams.add(String.valueOf(userParam.getType().ordinal()));
-                    containerCallParams.add(String.valueOf(userParam.getStdIOStream().ordinal()));
-                    containerCallParams.add(userParam.getPrefix());
-                    containerCallParams.add(userParam.getName());
-                    containerCallParams.add("null");
-                    String value = String.valueOf(userParam.getValue());
-                    if (userParam.getType().equals(DataType.STRING_T)) {
-                        // TODO: Support more sub-strings
-                        containerCallParams.add("1");
-                        String encodedValue = Base64.getEncoder().encodeToString(value.getBytes());
-                        containerCallParams.add(encodedValue);
-                    } else {
-                        containerCallParams.add(value);
-                    }
+                    addParamInfo(containerCallParams, userParam);
+                    numContainerCallParams++;
                 }
                 break;
             case CET_BINARY:
@@ -302,7 +343,10 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = pyCompssDir + REL_PATH_WORKER_CONTAINER;
                 cmd[cmdIndex++] = userModule;
                 cmd[cmdIndex++] = userFunction;
-                cmd[cmdIndex++] = String.valueOf(this.invocation.getParams().size());
+                cmd[cmdIndex++] = String.valueOf(hasTarget);
+                cmd[cmdIndex++] = returnType;
+                cmd[cmdIndex++] = String.valueOf(returnLength);
+                cmd[cmdIndex++] = String.valueOf(numContainerCallParams);
                 break;
             case CET_BINARY:
                 cmd[cmdIndex++] = this.internalBinary;
@@ -340,6 +384,23 @@ public class ContainerInvoker extends Invoker {
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.failByEV);
+    }
+
+    private void addParamInfo(List<String> paramsList, InvocationParam p) {
+        paramsList.add(String.valueOf(p.getType().ordinal()));
+        paramsList.add(String.valueOf(p.getStdIOStream().ordinal()));
+        paramsList.add(p.getPrefix());
+        paramsList.add(p.getName());
+        paramsList.add("null");
+        String value = String.valueOf(p.getValue());
+        if (p.getType().equals(DataType.STRING_T)) {
+            // TODO: There is always one substring (legacy code)
+            paramsList.add("1");
+            String encodedValue = Base64.getEncoder().encodeToString(value.getBytes());
+            paramsList.add(encodedValue);
+        } else {
+            paramsList.add(value);
+        }
     }
 
     @Override

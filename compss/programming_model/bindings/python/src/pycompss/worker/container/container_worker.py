@@ -26,6 +26,7 @@ import logging
 
 import pycompss.util.context as context
 from pycompss.worker.commons.worker import execute_task
+from pycompss.worker.commons.executor import build_return_params_message
 
 # Define static logger
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -51,16 +52,16 @@ def main():
         LOGGER.debug("Parsing Python function and arguments...")
 
     # TODO: Enhance the received parameters from ContainerInvoker.java
-    func_file_path = sys.argv[1]
-    func_name = sys.argv[2]
+    func_file_path = str(sys.argv[1])
+    func_name = str(sys.argv[2])
     num_slaves = 0
     timeout = 0
     cus = 1
-    has_target = False
-    return_type = "null"
-    return_length = 0
-    num_params = sys.argv[3]
-    func_params = sys.argv[4:]
+    has_target = str(sys.argv[3]).lower() == "true"
+    return_type = str(sys.argv[4])
+    return_length = int(sys.argv[5])
+    num_params = int(sys.argv[6])
+    func_params = sys.argv[7:]
 
     execute_task_params = [func_file_path, func_name, num_slaves, timeout, cus, has_target, return_type,
                            return_length, num_params] + func_params
@@ -68,6 +69,9 @@ def main():
     if __debug__:
         LOGGER.debug("- File: " + str(func_file_path))
         LOGGER.debug("- Function: " + str(func_name))
+        LOGGER.debug("- HasTarget: " + str(has_target))
+        LOGGER.debug("- ReturnType: " + str(return_type))
+        LOGGER.debug("- Num Returns: " + str(return_length))
         LOGGER.debug("- Num Parameters: " + str(num_params))
         LOGGER.debug("- Parameters: " + str(func_params))
         LOGGER.debug("DONE Parsing Python function and arguments")
@@ -98,10 +102,31 @@ def main():
         LOGGER.debug("DONE Processing task")
 
     # Process results
-    # TODO: Enhance the result treatment for ContainerInvoker.java
     if __debug__:
         LOGGER.debug("Processing results...")
+        LOGGER.debug("Task exit value = " + str(exit_value))
 
+    if exit_value == 0:
+        # Task has finished without exceptions
+        if __debug__:
+            LOGGER.debug("Building return parameters...")
+            LOGGER.debug("New Types: " + str(new_types))
+            LOGGER.debug("New Values: " + str(new_values))
+        build_return_params_message(new_types, new_values)
+        if __debug__:
+            LOGGER.debug("DONE Building return parameters")
+    elif exit_value == 2:
+        # Task has finished with a COMPSs Exception
+        except_msg = except_msg.replace(" ", "_")
+        if __debug__:
+            LOGGER.debug("Registered COMPSs Exception: " + str(except_msg))
+    else:
+        # An exception has been raised in task
+        except_msg = except_msg.replace(" ", "_")
+        if __debug__:
+            LOGGER.debug("Registered Exception in task execution" + str(except_msg))
+
+    # Return
     if exit_value != 0:
         LOGGER.debug("ERROR: Task execution finished with non-zero exit value (" + str(exit_value) + " != 0)")
     else:

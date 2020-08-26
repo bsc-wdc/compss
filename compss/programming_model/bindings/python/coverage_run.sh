@@ -8,8 +8,8 @@
   run() {
     coverage run --source="src/pycompss" \
                  --omit="/usr/lib/*" \
-                 --omit="src/pycompss/util/translators/*" \
                  nose_tests.py
+                 # --omit="src/pycompss/util/translators/*" \
     coverage report -m
   }
 

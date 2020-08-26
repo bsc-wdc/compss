@@ -61,15 +61,17 @@ class IteratorLoader(IPartitionGenerator):
         Divide and retrieve the next partition.
         :return:
         """
-
+        ret = list()
         # If it's a dict
         if isinstance(self.iterable, dict):
             sorted_keys = sorted(self.iterable.keys())
             for key in sorted_keys[self.start:self.end]:
-                yield key, self.iterable[key]
+                # yield key, self.iterable[key]
+                ret.append((key, self.iterable[key]))
         elif isinstance(self.iterable, list):
             for item in iter(self.iterable[self.start:self.end]):
-                yield item
+                # yield item
+                ret.append(item)
         else:
             index = 0
             for item in iter(self.iterable):
@@ -77,7 +79,10 @@ class IteratorLoader(IPartitionGenerator):
                 if index > self.end:
                     break
                 elif index > self.start:
-                    yield item
+                    # yield item
+                    ret.append(item)
+
+        return ret
 
 
 class WorkerFileLoader(IPartitionGenerator):

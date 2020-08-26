@@ -130,6 +130,8 @@ public enum TraceEvent {
     MAKE_PERSISTENT(17, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
     DELETE_PERSISTENT(18, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
 
+    TASK_INSTANTIATION_PYTHON(25, Tracer.INSIDE_TASKS_TYPE, "Task instantiation"), // Task instantiation
+
     // Python Master Events
     PYTHON_START_RUNTIME(1001, Tracer.BINDING_MASTER_TYPE, "Start runtime"), // Start runtime
     PYTHON_STOP_RUNTIME(1002, Tracer.BINDING_MASTER_TYPE, "Stop runtime"), // Stop runtime
@@ -153,7 +155,23 @@ public enum TraceEvent {
     PYTHON_FREE_RESOURCES(1020, Tracer.BINDING_MASTER_TYPE, "Free resources"), // Free resources
     PYTHON_REGISTER_CORE_ELEMENT(1021, Tracer.BINDING_MASTER_TYPE, "Register Core Element"), // Register core element
     PYTHON_WAIT_ON(1022, Tracer.BINDING_MASTER_TYPE, "Wait on"), // Wait on
-    PYTHON_PROCESS_TASK(1023, Tracer.BINDING_MASTER_TYPE, "Process task"), // Process task
+    PYTHON_PROCESS_TASK(1023, Tracer.BINDING_MASTER_TYPE, "Call to process task"), // Process task
+    // Internal events
+    PYTHON_TASK_INSTANTIATION(2000, Tracer.BINDING_MASTER_TYPE, "Task instantiation"), // Task instantiation
+    PYTHON_EXTRACT_CORE_ELEMENT(2001, Tracer.BINDING_MASTER_TYPE, "Extract core element"), // Extract core element
+    PYTHON_INSPECT_FUNCTION_ARGUMENTS(2002, Tracer.BINDING_MASTER_TYPE, "Inspect function arguments"),
+    PYTHON_PROCESS_PARAMETERS(2003, Tracer.BINDING_MASTER_TYPE, "Process function parameters"),
+    PYTHON_GET_FUNCTION_INFORMATION(2004, Tracer.BINDING_MASTER_TYPE, "Get function information"),
+    PYTHON_PREPARE_CORE_ELEMENT(2005, Tracer.BINDING_MASTER_TYPE, "Prepare Core Element"), // Prepare Core Element
+    PYTHON_GET_FUNCTION_SIGNATURE(2006, Tracer.BINDING_MASTER_TYPE, "Check function signature"),
+    PYTHON_UPDATE_CORE_ELEMENT(2007, Tracer.BINDING_MASTER_TYPE, "Update Core Element"), // Update Core Element
+    PYTHON_GET_COMPUTING_NODES(2008, Tracer.BINDING_MASTER_TYPE, "Get computing nodes"), // Get computing nodes
+    PYTHON_PROCESS_RETURN(2009, Tracer.BINDING_MASTER_TYPE, "Process return"), // Process return
+    PYTHON_PROCESS_OTHER_ARGUMENTS(2010, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
+    PYTHON_BUILD_RETURN_OBJECTS(2011, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
+    PYTHON_SERIALIZE_OBJECTS(2012, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
+    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(2013, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"),
+    PYTHON_ATTRIBUTES_CLEANUP(2014, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
 
     // Other
     READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count"); // Ready count

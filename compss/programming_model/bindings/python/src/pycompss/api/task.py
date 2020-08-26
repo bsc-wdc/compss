@@ -30,10 +30,15 @@ from functools import wraps
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.runtime.constants import TASK_INSTANTIATION
+from pycompss.worker.commons.constants import WORKER_TASK_INSTANTIATION
+from pycompss.runtime.task.master import TaskMaster
+from pycompss.runtime.task.worker import TaskWorker
 from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.util.tracing.helpers import event
 
 if __debug__:
     import logging
@@ -199,16 +204,14 @@ class Task(PyCOMPSsDecorator):
             # Determine the context and decide what to do
             if context.in_master():
                 # @task being executed in the master
-                self.__check_core_element__(kwargs, user_function)
-
-                from pycompss.runtime.task.master import TaskMaster
                 # Each task will have a TaskMaster, so its content will
                 # not be shared.
-                master = TaskMaster(self.decorator_arguments,
-                                    self.user_function,
-                                    self.core_element,
-                                    self.registered,
-                                    self.signature)
+                with event(TASK_INSTANTIATION, master=True):
+                    master = TaskMaster(self.decorator_arguments,
+                                        self.user_function,
+                                        self.core_element,
+                                        self.registered,
+                                        self.signature)
                 result = master.call(*args, **kwargs)
                 fo, self.core_element, self.registered, self.signature = result
                 del master
@@ -216,23 +219,24 @@ class Task(PyCOMPSsDecorator):
             elif context.in_worker():
                 if 'compss_key' in kwargs.keys():
                     # @task being executed in the worker
-                    from pycompss.runtime.task.worker import TaskWorker
-                    worker = TaskWorker(self.decorator_arguments,
-                                        self.user_function)
+                    with event(WORKER_TASK_INSTANTIATION,
+                               master=False, inside=True):
+                        worker = TaskWorker(self.decorator_arguments,
+                                            self.user_function)
                     result = worker.call(*args, **kwargs)
                     del worker
                     return result
                 else:
                     if context.is_nesting_enabled():
                         # nested @task executed in the worker
-                        from pycompss.runtime.task.master import TaskMaster
                         # Each task will have a TaskMaster, so its content will
                         # not be shared.
-                        master = TaskMaster(self.decorator_arguments,
-                                            self.user_function,
-                                            self.core_element,
-                                            self.registered,
-                                            self.signature)
+                        with event(TASK_INSTANTIATION, master=True):
+                            master = TaskMaster(self.decorator_arguments,
+                                                self.user_function,
+                                                self.core_element,
+                                                self.registered,
+                                                self.signature)
                         result = master.call(*args, **kwargs)
                         fo, self.core_element, self.registered, self.signature = result  # noqa: E501
                         del master

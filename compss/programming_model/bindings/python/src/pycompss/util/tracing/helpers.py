@@ -27,6 +27,7 @@ import time
 from functools import wraps
 from contextlib import contextmanager
 from pycompss.worker.commons.constants import SYNC_EVENTS
+from pycompss.worker.commons.constants import TASK_EVENTS
 from pycompss.worker.commons.constants import WORKER_EVENTS
 from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
 from pycompss.runtime.constants import MASTER_EVENTS
@@ -129,17 +130,24 @@ def emit_event(event_id, master=False):
 
 
 @contextmanager
-def event(event_id, master=False):
-    # type: (str, bool) -> None
+def event(event_id, master=False, inside=False):
+    # type: (int, bool, bool) -> None
     """ Emits an event wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
     :param master: If the event is emitted as master.
+    :param inside: If the event is produced inside the worker.
     :return: None
     """
-    event_group = MASTER_EVENTS if master else WORKER_EVENTS
+    if master:
+        event_group = MASTER_EVENTS
+    else:
+        if inside:
+            event_group = TASK_EVENTS
+        else:
+            event_group = WORKER_EVENTS
     if TRACING:
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
     yield  # here the code runs
@@ -148,7 +156,7 @@ def event(event_id, master=False):
 
 
 def emit_manual_event(event_id, master=False):
-    # type: (str, bool) -> None
+    # type: (int, bool) -> None
     """ Emits a single event with the desired code.
 
     Does nothing if tracing is disabled.

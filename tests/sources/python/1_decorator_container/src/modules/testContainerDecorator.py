@@ -82,9 +82,20 @@ def task_python_args(num, in_str, fin):
 @container(engine="DOCKER",
            image="compss/compss")
 @task(returns=1)
-def task_python_return():
+def task_python_return_int():
     print("Hello from Task Python RETURN")
     return 3
+
+
+@container(engine="DOCKER",
+           image="compss/compss")
+@task(returns=1, num=IN, in_str=IN, fin=FILE_IN)
+def task_python_return_str(num, in_str, fin):
+    print("Hello from Task Python RETURN")
+    print("- Arg 1: num -- " + str(num))
+    print("- Arg 1: str -- " + str(in_str))
+    print("- Arg 1: fin -- " + str(fin))
+    return "Hello"
 
 
 # Tests
@@ -151,8 +162,10 @@ class testContainerDecorator(unittest.TestCase):
         compss_barrier()
 
         # Test returns
-        # TODO: Enable test
-        # ret = task_python_return()
+        ret_int = task_python_return_int()
+        ret_int = compss_wait_on(ret_int)
+        self.assertEquals(ret_int, 3)
 
-        # ret = compss_wait_on(ret)
-        # print("Return: " + str(ret))
+        ret_str = task_python_return_str(num, in_str, fin)
+        ret_str = compss_wait_on(ret_str)
+        self.assertEquals(ret_str, "Hello")

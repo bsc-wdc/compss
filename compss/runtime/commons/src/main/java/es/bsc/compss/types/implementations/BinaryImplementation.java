@@ -31,7 +31,7 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 7;
+    public static final int NUM_PARAMS = 3;
     public static final String SIGNATURE = "binary.BINARY";
 
     private String binary;

@@ -141,8 +141,6 @@ class Binary(PyCOMPSsDecorator):
             _engine = impl_args[0]
             _image = impl_args[1]
 
-            _func = str(user_function.__name__)
-
             impl_args = [_engine,  # engine
                          _image,  # image
                          'CET_BINARY',  # internal_type
@@ -160,13 +158,9 @@ class Binary(PyCOMPSsDecorator):
             impl_type = 'BINARY'
             impl_signature = '.'.join((impl_type, _binary))
 
-            impl_args = ['[unassigned]',  # internal_type
-                         '[unassigned]',  # internal_func
-                         _binary,  # internal_binary
+            impl_args = [_binary,  # internal_binary
                          _working_dir,  # working_dir
-                         _fail_by_ev,  # fail_by_ev
-                         '[unassigned]',  # engine
-                         '[unassigned]']  # image
+                         _fail_by_ev]  # fail_by_ev
 
             if CORE_ELEMENT_KEY in kwargs:
                 # Core element has already been created in a higher level decorator

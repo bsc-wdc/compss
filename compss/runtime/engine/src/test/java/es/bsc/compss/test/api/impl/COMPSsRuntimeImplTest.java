@@ -119,13 +119,9 @@ public class COMPSsRuntimeImplTest {
         implConstraints = "MemoryType:RAM";
         implType = "BINARY";
         implIO = "False";
-        implTypeArgs = new String[] { "internal_type",
-            "internal_func",
-            "binary",
+        implTypeArgs = new String[] { "binary",
             "binaryWorkingDir",
-            "fasle",
-            "engine",
-            "container" };
+            "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(2).getImplementations().get(0);

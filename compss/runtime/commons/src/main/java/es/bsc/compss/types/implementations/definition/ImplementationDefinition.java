@@ -190,9 +190,9 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);
                     }
 
-                    String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
-                    String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
-                    boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[4]);
+                    String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                    String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                    boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[2]);
 
                     if (binary == null || binary.isEmpty() || binary == "[unassigned]") {
                         throw new IllegalArgumentException(

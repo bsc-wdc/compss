@@ -101,7 +101,6 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
     @Override
     protected void invokeMethod() throws JobExecutionException {
-
         Object retObj;
         try {
             retObj = runPythonMPIInvocation();
@@ -146,9 +145,9 @@ public class PythonMPIInvoker extends ExternalInvoker {
         final String taskCMD = this.command.getAsString();
         String hostfile = null;
         if (this.scaleByCU) {
-            hostfile = writeHostfile(taskSandboxWorkingDir, workers);
+            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.workers);
         } else {
-            hostfile = writeHostfile(taskSandboxWorkingDir, hostnames);
+            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.hostnames);
             // numBasePythonMpiArgs = numBasePythonMpiArgs + 2; // to add the -x OMP_NUM_THREADS
         }
 
@@ -169,7 +168,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
         int numMPIFlags = 0;
         String[] mpiflagsArray = null;
         if (this.mpiFlags == null || this.mpiFlags.isEmpty()) {
-            mpiflagsArray = mpiFlags.split(" ");
+            mpiflagsArray = this.mpiFlags.split(" ");
             numMPIFlags = mpiflagsArray.length;
         }
 
@@ -182,7 +181,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
         cmd[1] = "-hostfile";
         cmd[2] = hostfile;
         cmd[3] = "-n";
-        if (scaleByCU) {
+        if (this.scaleByCU) {
             cmd[4] = String.valueOf(this.numWorkers * this.computingUnits);
         } else {
             cmd[4] = String.valueOf(this.numWorkers);

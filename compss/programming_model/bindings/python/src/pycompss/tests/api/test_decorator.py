@@ -66,7 +66,7 @@ def test_decorator_resolve_fail_by_exit_value_bool_true():
     my_deco = PyCOMPSsDecorator(decorator_name="@decorator",
                                 fail_by_exit_value=fail_by_exit_value)
     my_deco.__resolve_fail_by_exit_value__()
-    assert my_deco.kwargs['fail_by_exit_value'] == fail_by_exit_value, \
+    assert my_deco.kwargs['fail_by_exit_value'] == str(fail_by_exit_value), \
         "Wrong fail_by_exit_value."
 
 
@@ -76,7 +76,7 @@ def test_decorator_resolve_fail_by_exit_value_bool_false():
     my_deco = PyCOMPSsDecorator(decorator_name="@decorator",
                                 fail_by_exit_value=fail_by_exit_value)
     my_deco.__resolve_fail_by_exit_value__()
-    assert my_deco.kwargs['fail_by_exit_value'] == fail_by_exit_value, \
+    assert my_deco.kwargs['fail_by_exit_value'] == str(fail_by_exit_value), \
         "Wrong fail_by_exit_value."
 
 

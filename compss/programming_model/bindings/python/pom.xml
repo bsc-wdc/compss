@@ -31,7 +31,7 @@
     </organization>
     <properties>
 	    <sonar.sources>src</sonar.sources>
-	    <sonar.skip>true</sonar.skip>
+	    <!--sonar.skip>true</sonar.skip-->
     </properties>
     <build>
 	<plugins>

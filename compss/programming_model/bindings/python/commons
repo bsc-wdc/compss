@@ -40,18 +40,20 @@ else:
 
     # Copy compiled sources - find recursively and copy __pycache__ folders.
     compiled_sources=$(find "${target_dir}/3" -name '__pycache__' -type d)
-    if [ $? -ne 0 ]; then
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "Failed. Could not find the compiled sources from ${target_dir}/3"
-      exit 1
+      exit $ev
     else
       echo "Found compiled sources in ${target_dir}/3."
     fi
-    echo "${compiled_sources}" | while read line; do
+    echo "${compiled_sources}" | while read -r line; do
       relative=${line#"${target_dir}/3"}
-      cp -r $line "${target_dir}/2${relative}"
-      if [ $? -ne 0 ]; then
+      cp -r "$line" "${target_dir}/2${relative}"
+      ev=$?
+      if [ $ev -ne 0 ]; then
         echo "Failed, to copy from $line to ${target_dir}/2${relative}"
-        exit 1
+        exit $ev
       else
         echo "Copied $line to ${target_dir}/2${relative}"
       fi
@@ -59,17 +61,19 @@ else:
 
     # Remove and link
     rm -rf "${target_dir}/3/pycompss"
-    if [ $? -ne 0 ]; then
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "Failed, to remove version folder ${target_dir}/3/pycompss"
-      exit 1
+      exit $ev
     else
       echo "Removed folder ${target_dir}/3/pycompss"
     fi
 
     ln -sfn "${target_dir}/2/pycompss" "${target_dir}/3/pycompss"
-    if [ $? -ne 0 ]; then
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "Failed, to create symbolic link from ${target_dir}/2/pycompss to ${target_dir}/3/pycompss"
-      exit 1
+      exit $ev
     else
       echo "Created symbolic link from ${target_dir}/2/pycompss to ${target_dir}/3/pycompss"
     fi
@@ -85,37 +89,40 @@ else:
     origin=$2
 
     echo "Looking for package where to place the symbolic links."
-    get_packages_folder python${version}
+    get_packages_folder "python${version}"
 
     echo "Checking if the folder exists."
     if [ ! -d "${packages_folder}" ]; then
         echo "Could not find folder: ${packages_folder} - Creating it."
-        mkdir -p ${packages_folder}
+        mkdir -p "${packages_folder}"
     fi
 
     # Setup a symbolic link to pycompss
-    ln -sfn ${origin}/pycompss ${packages_folder}/pycompss
-    if [ $? -ne 0 ]; then
+    ln -sfn "${origin}/pycompss" "${packages_folder}/pycompss"
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "Failed, to create symbolic link from ${origin}/pycompss to ${packages_folder}/pycompss"
-      exit 1
+      exit ev
     else
       echo "Created symbolic link from ${origin}/pycompss to ${packages_folder}/pycompss"
     fi
 
     # Setup a symbolic link to compss module
-    ln -sfn ${origin}/compss.* ${packages_folder}/
-    if [ $? -ne 0 ]; then
+    ln -sfn "${origin}"/compss.* "${packages_folder}/"
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "Failed, to create symbolic link from ${origin}/compss.* to ${packages_folder}/compss.*"
-      exit 1
+      exit $ev
     else
       echo "Created symbolic link from ${origin}/compss.* to ${packages_folder}/compss.*"
     fi
 
     # Setup a symbolic link to thread affinity module
-    ln -sfn ${origin}/thread_affinity.* ${packages_folder}/
-    if [ $? -ne 0 ]; then
+    ln -sfn "${origin}"/thread_affinity.* "${packages_folder}/"
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "Failed, to create symbolic link from ${origin}/thread_affinity.* to ${packages_folder}/thread_affinity.*"
-      exit 1
+      exit $ev
     else
       echo "Created symbolic link from ${origin}/thread_affinity.* to ${packages_folder}/thread_affinity.*"
     fi

@@ -26,7 +26,6 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Binary;
-import es.bsc.compss.types.annotations.task.BinaryContainer;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Container;
 import es.bsc.compss.types.annotations.task.Decaf;
@@ -49,6 +48,7 @@ import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.ContainerImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation.ContainerExecutionType;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodType;
@@ -56,7 +56,6 @@ import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
-import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
@@ -161,7 +160,6 @@ public class ITFParser {
                 && !annot.annotationType().getName().equals(Service.class.getName())
                 && !annot.annotationType().getName().equals(Binary.class.getName())
                 && !annot.annotationType().getName().equals(Container.class.getName())
-                && !annot.annotationType().getName().equals(BinaryContainer.class.getName())
                 && !annot.annotationType().getName().equals(MPI.class.getName())
                 && !annot.annotationType().getName().equals(Decaf.class.getName())
                 && !annot.annotationType().getName().equals(COMPSs.class.getName())
@@ -173,7 +171,6 @@ public class ITFParser {
                 && !annot.annotationType().getName().equals(Services.class.getName())
                 && !annot.annotationType().getName().equals(Binaries.class.getName())
                 && !annot.annotationType().getName().equals(Containers.class.getName())
-                && !annot.annotationType().getName().equals(BinaryContainer.class.getName())
                 && !annot.annotationType().getName().equals(MPIs.class.getName())
                 && !annot.annotationType().getName().equals(Decafs.class.getName())
                 && !annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
@@ -201,7 +198,6 @@ public class ITFParser {
         for (Annotation annot : m.getAnnotations()) {
             if (annot.annotationType().getName().equals(Binary.class.getName())
                 || annot.annotationType().getName().equals(Container.class.getName())
-                || annot.annotationType().getName().equals(BinaryContainer.class.getName())
                 || annot.annotationType().getName().equals(MPI.class.getName())
                 || annot.annotationType().getName().equals(Decaf.class.getName())
                 || annot.annotationType().getName().equals(COMPSs.class.getName())
@@ -531,18 +527,43 @@ public class ITFParser {
         for (Container containerAnnot : m.getAnnotationsByType(Container.class)) {
             String engine = EnvironmentLoader.loadFromEnvironment(containerAnnot.engine());
             String image = EnvironmentLoader.loadFromEnvironment(containerAnnot.image());
-            String binaryC = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
-            String hostDir = EnvironmentLoader.loadFromEnvironment(containerAnnot.workingDir());
-            String failByEVstrC = Boolean.toString(false);
 
-            if (image == null || image.isEmpty()) {
+            String internalExecutionTypeStr = EnvironmentLoader.loadFromEnvironment(containerAnnot.executionType());
+            String internalBinary = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
+            String internalFunc = EnvironmentLoader.loadFromEnvironment(containerAnnot.function());
+
+            String hostDir = EnvironmentLoader.loadFromEnvironment(containerAnnot.workingDir());
+            String containerFailByExitValue = EnvironmentLoader.loadFromEnvironment(containerAnnot.failByExitValue());
+
+            // Check parameters
+            if (image == null || image.isEmpty() || image.equals(Constants.UNASSIGNED)) {
                 ErrorManager.error("Empty image annotation for method " + m.getName());
             }
-            if (binaryC == null || binaryC.isEmpty()) {
-                ErrorManager.error("Empty binary annotation for method " + m.getName());
+
+            internalExecutionTypeStr = internalExecutionTypeStr.toUpperCase();
+            ContainerExecutionType internalExecutionType = null;
+            try {
+                internalExecutionType = ContainerExecutionType.valueOf(internalExecutionTypeStr);
+            } catch (IllegalArgumentException iae) {
+                ErrorManager.error("Invalid container internal execution type for method " + m.getName());
             }
 
-            String binarySignature = calleeMethodSignature.toString() + ContainerImplementation.SIGNATURE;
+            switch (internalExecutionType) {
+                case CET_BINARY:
+                    if (internalBinary == null || internalBinary.isEmpty()
+                        || internalBinary.equals(Constants.UNASSIGNED)) {
+                        ErrorManager.error("Empty binary annotation for method " + m.getName());
+                    }
+                    break;
+                case CET_PYTHON:
+                    if (internalFunc == null || internalFunc.isEmpty() || internalFunc.equals(Constants.UNASSIGNED)) {
+                        ErrorManager.error("Empty function annotation for method " + m.getName());
+                    }
+                    break;
+            }
+
+            // Load signature
+            String containerSignature = calleeMethodSignature.toString() + ContainerImplementation.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -554,8 +575,9 @@ public class ITFParser {
             // Register container implementation
             ImplementationDefinition<?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binaryC, hostDir, failByEVstrC, engine, image);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.CONTAINER.toString(),
+                    containerSignature, implConstraints, engine, image, internalExecutionTypeStr, internalBinary,
+                    internalFunc, hostDir, containerFailByExitValue);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -569,8 +591,9 @@ public class ITFParser {
         for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
-            String failByEVstr = Boolean.toString(binaryAnnot.failByExitValue());
-            if (binary == null || binary.isEmpty()) {
+            String failByEVstr = EnvironmentLoader.loadFromEnvironment(binaryAnnot.failByExitValue());
+
+            if (binary == null || binary.isEmpty() || binary.equals(Constants.UNASSIGNED)) {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
@@ -582,17 +605,11 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Load specific method container if present
-            ContainerDescription container = null;
-            if (binaryAnnot.container() != null) {
-                container = new ContainerDescription(binaryAnnot.container().engine(), binaryAnnot.container().image());
-            }
-
             // Register binary implementation
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binary, workingDir, failByEVstr, container.getEngine(), container.getImage());
+                    implConstraints, binary, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage(), e);
             }
@@ -612,6 +629,7 @@ public class ITFParser {
             String mpiFlags = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiFlags());
             String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
             String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
+
             if (mpiRunner == null || mpiRunner.isEmpty()) {
                 ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
             }

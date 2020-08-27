@@ -55,6 +55,20 @@ public class Constants {
     public static final String WORKER_NOT_IN_MASTER = "false";
 
     /*
+     * Fail by exit value
+     */
+    public static final String FAIL_BY_EV = "true";
+
+    public static final String NOT_FAIL_BY_EV = "false";
+
+    /*
+     * CONTAINER EXECUTION
+     */
+    public static final String BINARY_CONTAINER_EXECUTION = "CET_BINARY";
+
+    public static final String PYTHON_CONTAINER_EXECUTION = "CET_PYTHON";
+
+    /*
      * Single node value.
      */
     public static final int SINGLE_NODE = 1;

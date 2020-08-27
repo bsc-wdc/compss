@@ -24,7 +24,6 @@
   }
   trap kill_agents EXIT
 
-
   function validate_parallel_running_tasks() {
     starts="${1}"
     ends="${2}"
@@ -55,6 +54,8 @@
       exit 1
     fi
   }
+
+
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
@@ -94,10 +95,12 @@
 
   retries="3"
   curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
-  while [ ! "$?" == "0" ] && [ "${retries}" -gt "0" ]; do
-    sleep 1
+  ev=$?
+  while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 2s
     retries=$((retries - 1 ))
     curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+    ev=$?
   done
 
   RESULT=$(grep "test invoked" "${agent1_output_log}")
@@ -106,7 +109,7 @@
      exit 1
   fi
   echo "Agent started" > >(tee -a "${output_log}")
-  sleep 1
+  sleep 2s
  
   # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
@@ -132,8 +135,6 @@
     exit 1
   fi
 
-
-
   # Invoking DemoFunction method
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
    --master_node="127.0.0.1" \
@@ -141,15 +142,19 @@
    --method_name="demoFunction" \
    --cei="es.bsc.compss.test.DemoClassItf" \
    es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
-  if [ ! "$?" == "0" ]; then
+   ev=$?
+
+   sleep 5s
+   if [ "$ev" != "0" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
-    exit 1
+    exit $ev
   fi
   echo "demoFunction function invoked" > >(tee -a "${output_log}")
 
+  sleep 5s
   retries="3"
   while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
-    sleep 1
+    sleep 2s
     retries=$((retries - 1 ))
   done
   if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
@@ -162,7 +167,7 @@
     exit 1
   fi
   echo  "demoFunction method properly started" > >(tee -a "${output_log}")
-  sleep 5
+  sleep 1s
 
   created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
   if [ ! "${created_jobs}" == "6" ]; then
@@ -234,16 +239,18 @@
     --method_name="demoFunction" \
     --cei="es.bsc.compss.test.DemoClassItf" \
     es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  ev=$?
 
-  if [ ! "$?" == "0" ]; then
+  sleep 5s
+  if [ "$ev" != "0" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
-    exit 1
+    exit $ev
   fi
   echo "demoFunction function invoked" > >(tee -a "${output_log}")
 
   retries="3"
   while [ ! -f "${agent1_log_dir}/jobs/job7_NEW.out" ] && [ "${retries}" -gt "0" ]; do
-    sleep 1
+    sleep 2s
     retries=$((retries - 1 ))
   done
   if [ ! -f "${agent1_log_dir}/jobs/job7_NEW.out" ]; then
@@ -326,10 +333,12 @@
     --method_name="demoFunction" \
     --cei="es.bsc.compss.test.DemoClassItf" \
     es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  ev=$?
 
-  if [ ! "$?" == "0" ]; then
+  sleep 5s
+  if [ "$ev" != "0" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
-    exit 1
+    exit $ev
   fi
   echo "demoFunction function invoked" > >(tee -a "${output_log}")
 

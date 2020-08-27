@@ -30,63 +30,51 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
     public ExecuteNestedTaskPipeCommand(String[] command) {
         super();
 
-        entryPoint = EntryPoint.valueOf(command[1]);
+        this.entryPoint = EntryPoint.valueOf(command[1]);
 
         switch (this.entryPoint) {
             case SIGNATURE: {
                 // EXECUTE_NESTED_TASK "SIGNATURE" SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES IS_REPLICATED
                 // IS_DISTRIBUTED HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
-                signature = command[2];
-                onFailure = command[3];
-                timeout = Integer.parseInt(command[4]);
-                prioritary = Boolean.parseBoolean(command[5]);
-                numNodes = Integer.parseInt(command[6]);
-                isReplicated = Boolean.parseBoolean(command[7]);
-                isDistributed = Boolean.parseBoolean(command[8]);
-                hasTarget = Boolean.parseBoolean(command[9]);
-                numReturns = Integer.parseInt(command[10]);
-                parameterCount = Integer.parseInt(command[11]);
+                this.signature = command[2];
+                this.onFailure = command[3];
+                this.timeout = Integer.parseInt(command[4]);
+                this.prioritary = Boolean.parseBoolean(command[5]);
+                this.numNodes = Integer.parseInt(command[6]);
+                this.isReplicated = Boolean.parseBoolean(command[7]);
+                this.isDistributed = Boolean.parseBoolean(command[8]);
+                this.hasTarget = Boolean.parseBoolean(command[9]);
+                this.numReturns = Integer.parseInt(command[10]);
+                this.parameterCount = Integer.parseInt(command[11]);
                 String[] params = new String[command.length - 12];
                 if (command.length > 12) {
                     System.arraycopy(command, 12, params, 0, params.length);
                 }
-                parameters = processParameters(params);
+                this.parameters = processParameters(params);
                 break;
             }
             case CLASS_METHOD: {
                 // EXECUTE_NESTED_TASK "CLASS_METHOD" METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME IS_PRIORITARY
                 // HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
-                methodClass = command[2];
-                onFailure = command[3];
-                timeout = Integer.parseInt(command[4]);
-                methodName = command[5];
-                prioritary = Boolean.parseBoolean(command[6]);
-                hasTarget = Boolean.parseBoolean(command[7]);
-                numReturns = Integer.parseInt(command[8]);
-                parameterCount = Integer.parseInt(command[9]);
+                this.methodClass = command[2];
+                this.onFailure = command[3];
+                this.timeout = Integer.parseInt(command[4]);
+                this.methodName = command[5];
+                this.prioritary = Boolean.parseBoolean(command[6]);
+                this.hasTarget = Boolean.parseBoolean(command[7]);
+                this.numReturns = Integer.parseInt(command[8]);
+                this.parameterCount = Integer.parseInt(command[9]);
                 String[] params = new String[command.length - 10];
                 if (command.length > 10) {
                     System.arraycopy(command, 10, params, 0, params.length);
                 }
-                parameters = processParameters(params);
+                this.parameters = processParameters(params);
                 break;
             }
             default:
-
+                // Nothing to do
+                break;
         }
-        this.onFailure = onFailure;
-        this.timeout = timeout;
-        this.prioritary = prioritary;
-        this.signature = signature;
-        this.parameters = parameters;
-        this.parameterCount = parameterCount;
-        this.numReturns = numReturns;
-        this.hasTarget = hasTarget;
-        this.numNodes = numNodes;
-        this.isReplicated = isReplicated;
-        this.isDistributed = isDistributed;
-        this.methodClass = methodClass;
-        this.methodName = methodName;
     }
 
     @Override

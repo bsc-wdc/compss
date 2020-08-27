@@ -43,17 +43,14 @@ public class BinaryDefinition extends ImplementationDefinition {
         super(debug, args, execArgsIdx + BinaryImplementation.NUM_PARAMS);
 
         this.binary = args[execArgsIdx++];
-
         String wDir = args[execArgsIdx++];
-
-        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+        if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;
         }
         this.failByEV = Boolean.parseBoolean(args[execArgsIdx++]);
-
-        this.impl = new BinaryImplementation(this.binary, this.workingDir, this.failByEV, null, null, null, "", null);
+        this.impl = new BinaryImplementation(this.binary, this.workingDir, this.failByEV, null, null, "", null);
     }
 
     @Override

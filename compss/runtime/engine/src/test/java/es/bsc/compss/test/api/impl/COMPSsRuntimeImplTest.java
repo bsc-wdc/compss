@@ -121,9 +121,7 @@ public class COMPSsRuntimeImplTest {
         implIO = "False";
         implTypeArgs = new String[] { "binary",
             "binaryWorkingDir",
-            "fasle",
-            "engine",
-            "container" };
+            "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(2).getImplementations().get(0);

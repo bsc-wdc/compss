@@ -25,7 +25,7 @@ public class DemoClass {
     public static void addDelay() {
         System.out.println("Start time:" + System.currentTimeMillis());
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1_000);
         } catch (Exception e) {
         }
         System.out.println("End time:" + System.currentTimeMillis());

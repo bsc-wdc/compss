@@ -121,7 +121,9 @@ def build_task_parameter(p_type,      # type: int
         # Note that we prepend a sharp to all strings in order to avoid
         # getting empty encodings in the case of empty strings, so we need
         # to remove it when decoding
-        aux = base64.b64decode(aux.encode())[1:]
+        aux = base64.b64decode(aux.encode())
+        aux = aux[1:]
+
         if aux:
             #######
             # Check if the string is really an object

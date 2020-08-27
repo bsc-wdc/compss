@@ -19,7 +19,6 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
@@ -31,23 +30,22 @@ public class BinaryDefinition extends ImplementationDefinition<MethodResourceDes
     private final String binary;
     private final String workingDir;
     private final boolean failByEV;
-    private final ContainerDescription container;
 
 
     protected BinaryDefinition(String signature, String binary, String workingDir, boolean failByEV,
-        ContainerDescription container, MethodResourceDescription implConstraints) {
+        MethodResourceDescription implConstraints) {
+
         super(signature, implConstraints);
+
         this.binary = binary;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
-        this.container = container;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-
-        return new BinaryImplementation(binary, workingDir, failByEV, container, coreId, implId, this.getSignature(),
-            this.getConstraints());
+        return new BinaryImplementation(this.binary, this.workingDir, this.failByEV, coreId, implId, getSignature(),
+            getConstraints());
     }
 
     @Override

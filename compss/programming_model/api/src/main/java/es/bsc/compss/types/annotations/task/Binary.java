@@ -59,14 +59,7 @@ public @interface Binary {
      * 
      * @return True if task will fail if exit value different from 0.
      */
-    boolean failByExitValue() default false;
-
-    /**
-     * Returns the container description.
-     * 
-     * @return container
-     */
-    BinaryContainer container() default @BinaryContainer();
+    String failByExitValue() default Constants.NOT_FAIL_BY_EV;
 
     /*
      * COMMON PROPERTIES

@@ -33,18 +33,18 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 
-
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'binary'}
 SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
-                       'fail_by_exit_value',
-                       'engine',
-                       'image'}
-DEPRECATED_ARGUMENTS = {'workingDir'}
+                       'fail_by_exit_value'}
+DEPRECATED_ARGUMENTS = {'workingDir',
+                        'engine',
+                        'image'}
 
 
 class Binary(PyCOMPSsDecorator):
@@ -75,13 +75,14 @@ class Binary(PyCOMPSsDecorator):
                             list(kwargs.keys()),
                             decorator_name)
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the binary parameters within the task core element.
 
-        :param func: Function to decorate
+        :param user_function: Function to decorate
         :return: Decorated function.
         """
-        @wraps(func)
+
+        @wraps(user_function)
         def binary_f(*args, **kwargs):
             if not self.scope:
                 raise Exception(not_in_pycompss("binary"))
@@ -92,72 +93,90 @@ class Binary(PyCOMPSsDecorator):
             if context.in_master():
                 # master code
                 if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
             else:
                 # worker code
                 pass
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        binary_f.__doc__ = func.__doc__
+        binary_f.__doc__ = user_function.__doc__
         return binary_f
 
-    def __configure_core_element__(self, kwargs):
+    def __configure_core_element__(self, kwargs, user_function):
         # type: (dict) -> None
         """ Include the registering info related to @binary.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
+        :param user_function: Function to decorate
         :param kwargs: Keyword arguments received from call.
         :return: None
         """
         if __debug__:
             logger.debug("Configuring @binary core element.")
 
-        # Resolve @binary specific parameters
-        if 'engine' in self.kwargs:
-            engine = self.kwargs['engine']
-        else:
-            engine = '[unassigned]'
-
-        if 'image' in self.kwargs:
-            image = self.kwargs['image']
-        else:
-            image = '[unassigned]'
-
         # Resolve the working directory
         self.__resolve_working_dir__()
+        _working_dir = self.kwargs['working_dir']
+
         # Resolve the fail by exit value
         self.__resolve_fail_by_exit_value__()
+        _fail_by_ev = self.kwargs['fail_by_exit_value']
 
-        impl_type = 'BINARY'
+        # Resolve binary
         _binary = str(self.kwargs['binary'])
-        impl_signature = '.'.join((impl_type, _binary))
-        impl_args = [_binary,
-                     self.kwargs['working_dir'],
-                     self.kwargs['fail_by_exit_value'],
-                     engine,
-                     image]
 
-        if CORE_ELEMENT_KEY in kwargs:
-            # Core element has already been created in a higher level decorator
-            # (e.g. @constraint)
-            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
-            kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
+        if CORE_ELEMENT_KEY in kwargs and kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
+            # @container decorator sits on top of @binary decorator
+            # Note: impl_type and impl_signature are NOT modified
+            # ('CONTAINER' and 'CONTAINER.function_name' respectively)
+
+            impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
+
+            _engine = impl_args[0]
+            _image = impl_args[1]
+
+            impl_args = [_engine,  # engine
+                         _image,  # image
+                         'CET_BINARY',  # internal_type
+                         _binary,  # internal_binary
+                         '[unassigned]',  # internal_func
+                         _working_dir,  # working_dir
+                         _fail_by_ev]  # fail_by_ev
+
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
         else:
-            # @binary is in the top of the decorators stack.
-            # Instantiate a new core element object, update it and include
-            # it into kwarg
-            core_element = CE()
-            core_element.set_impl_type(impl_type)
-            core_element.set_impl_signature(impl_signature)
-            core_element.set_impl_type_args(impl_args)
-            kwargs[CORE_ELEMENT_KEY] = core_element
+            # @container decorator does NOT sit on top of @binary decorator
+
+            _binary = str(self.kwargs['binary'])
+
+            impl_type = 'BINARY'
+            impl_signature = '.'.join((impl_type, _binary))
+
+            impl_args = [_binary,  # internal_binary
+                         _working_dir,  # working_dir
+                         _fail_by_ev]  # fail_by_ev
+
+            if CORE_ELEMENT_KEY in kwargs:
+                # Core element has already been created in a higher level decorator
+                # (e.g. @constraint)
+                kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
+                kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
+                kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+            else:
+                # @binary is in the top of the decorators stack.
+                # Instantiate a new core element object, update it and include
+                # it into kwarg
+                core_element = CE()
+                core_element.set_impl_type(impl_type)
+                core_element.set_impl_signature(impl_signature)
+                core_element.set_impl_type_args(impl_args)
+                kwargs[CORE_ELEMENT_KEY] = core_element
 
         # Set as configured
         self.core_element_configured = True

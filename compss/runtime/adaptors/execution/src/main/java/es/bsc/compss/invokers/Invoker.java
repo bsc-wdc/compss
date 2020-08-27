@@ -16,16 +16,13 @@
  */
 package es.bsc.compss.invokers;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.types.InvocationResources;
-import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;

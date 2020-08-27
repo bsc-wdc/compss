@@ -55,6 +55,13 @@ public @interface Container {
     String image() default Constants.UNASSIGNED;
 
     /**
+     * Returns the internal execution type.
+     * 
+     * @return The internal container execution type.
+     */
+    String executionType() default Constants.BINARY_CONTAINER_EXECUTION;
+
+    /**
      * Returns the binary name.
      * 
      * @return the binary name.
@@ -62,11 +69,25 @@ public @interface Container {
     String binary() default Constants.UNASSIGNED;
 
     /**
+     * Returns the function name.
+     * 
+     * @return the function name.
+     */
+    String function() default Constants.UNASSIGNED;
+
+    /**
      * Returns the volume path from the host.
      * 
      * @return the volume path from the host.
      */
     String workingDir() default Constants.UNASSIGNED;
+
+    /**
+     * Indicates if the task will fail because of an exit value different from 0.
+     * 
+     * @return True if task will fail if exit value different from 0.
+     */
+    String failByExitValue() default Constants.NOT_FAIL_BY_EV;
 
     /*
      * COMMON PROPERTIES

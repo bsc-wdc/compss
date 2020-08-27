@@ -30,12 +30,14 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.util.parsers.ITFParser;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
+
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CodeConverter;
@@ -232,19 +234,19 @@ public class JavaNestedInvoker extends JavaInvoker {
     @Override
     protected Object runMethod() throws JobExecutionException {
         Object returnValue;
-        if (ceiClass == null) {
+        if (this.ceiClass == null) {
             returnValue = super.runMethod();
         } else {
             long appId;
-            appId = runtimeAPI.registerApplication(ceiName);
+            appId = this.runtimeAPI.registerApplication(this.ceiName);
             // Register Core Elements on Runtime
-            List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(ceiClass);
+            List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(this.ceiClass);
             for (CoreElementDefinition ced : ceds) {
-                runtimeAPI.registerCoreElement(ced);
+                this.runtimeAPI.registerCoreElement(ced);
             }
             Method setter;
             try {
-                setter = methodClass.getDeclaredMethod("setCOMPSsVariables",
+                setter = this.methodClass.getDeclaredMethod("setCOMPSsVariables",
                     new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
                         Class.forName(LoaderConstants.CLASS_LOADERAPI),
                         Class.forName(LoaderConstants.CLASS_APP_ID) });
@@ -253,8 +255,8 @@ public class JavaNestedInvoker extends JavaInvoker {
                     e);
             }
             try {
-                Object[] values = new Object[] { runtimeAPI,
-                    loaderAPI,
+                Object[] values = new Object[] { this.runtimeAPI,
+                    this.loaderAPI,
                     appId };
                 setter.invoke(null, values);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -274,14 +276,14 @@ public class JavaNestedInvoker extends JavaInvoker {
                 for (InvocationParam p : this.invocation.getResults()) {
                     getLastValue(appId, p);
                 }
-                runtimeAPI.noMoreTasks(appId);
+                this.runtimeAPI.noMoreTasks(appId);
                 return returnValue;
 
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
             } finally {
                 // runtimeAPI.removeApplicationData(appId);
-                runtimeAPI.deregisterApplication(appId);
+                this.runtimeAPI.deregisterApplication(appId);
             }
         }
         return returnValue;
@@ -291,14 +293,15 @@ public class JavaNestedInvoker extends JavaInvoker {
         switch (p.getType()) {
             case OBJECT_T:
             case PSCO_T:
-                context.getLoaderAPI().getObjectRegistry().newObjectAccess(appId, p.getValue(), false);
-                Object internal = context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, p.getValue());
+                this.context.getLoaderAPI().getObjectRegistry().newObjectAccess(appId, p.getValue(), false);
+                Object internal =
+                    this.context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, p.getValue());
                 p.setValue(internal);
                 break;
             case FILE_T:
-                context.getRuntimeAPI().getFile(appId, p.getOriginalName());
-                java.io.File f = new java.io.File((String) p.getValue());
-                f = new java.io.File((String) p.getOriginalName());
+                this.context.getRuntimeAPI().getFile(appId, p.getOriginalName());
+                new File((String) p.getValue());
+                new File((String) p.getOriginalName());
                 break;
             default:
                 // Do nothing

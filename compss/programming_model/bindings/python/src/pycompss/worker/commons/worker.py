@@ -122,8 +122,7 @@ def build_task_parameter(p_type,      # type: int
         # getting empty encodings in the case of empty strings, so we need
         # to remove it when decoding
         aux = base64.b64decode(aux.encode())
-        if aux.startswith('#'):
-            aux = aux[1:]
+        aux = aux[1:]
 
         if aux:
             #######

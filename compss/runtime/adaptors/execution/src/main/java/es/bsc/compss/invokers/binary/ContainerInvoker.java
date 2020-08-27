@@ -396,7 +396,8 @@ public class ContainerInvoker extends Invoker {
         if (p.getType().equals(DataType.STRING_T)) {
             // TODO: There is always one substring (legacy code)
             paramsList.add("1");
-            String encodedValue = Base64.getEncoder().encodeToString(value.getBytes());
+            byte[] sharpedValue = ("#" + value).getBytes(); // Pre-pend # to avoid empty strings on binding
+            String encodedValue = Base64.getEncoder().encodeToString(sharpedValue);
             paramsList.add(encodedValue);
         } else {
             paramsList.add(value);

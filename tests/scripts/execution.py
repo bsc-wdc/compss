@@ -17,6 +17,7 @@ from constants import CLEAN_PROCS_REL_PATH
 from constants import JACOCO_LIB_REL_PATH
 from constants import SCRIPT_DIR
 from constants import DEFAULT_REL_TARGET_TESTS_DIR
+from constants import CONFIGURATIONS_DIR
 
 ############################################
 # ERROR CLASS
@@ -108,9 +109,10 @@ def get_exit_code(exit_value):
     # FAIL
     return 1
 
-def generate_coverage_reports(jacoco_lib_path, coverage_report_path):
+def generate_coverage_reports(jacoco_lib_path, coverage_report_path, compss_home_path):
     import subprocess
     print("[INFO] Generating Coverage reports (" + coverage_report_path + ")...")
+    print("[INFO] Merging jacoco reports...")
     coverageBashCommand = "java -jar " + jacoco_lib_path + "/jacococli.jar merge "+coverage_report_path+"/*.exec --destfile "+coverage_report_path+"/temp/jacocoreport.exec"
     output = subprocess.check_output(['bash','-c', coverageBashCommand])
 
@@ -119,14 +121,32 @@ def generate_coverage_reports(jacoco_lib_path, coverage_report_path):
 
     coverageBashCommand = "mv "+coverage_report_path+"/temp/jacocoreport.exec "+coverage_report_path
     output = subprocess.check_output(['bash','-c',coverageBashCommand])
-    output = subprocess.check_output(['bash','-c',"rm -r "+coverage_report_path+"/temp"])
-
-    coverageBashCommand = "coverage combine --rcfile=/tmp/coverage_rc"
+    output = subprocess.check_output(['bash','-c',"rm -r " + coverage_report_path + "/temp"])
+    
+    coverageBashCommand = "coverage combine --rcfile=" + coverage_report_path + "/coverage_rc"
     try:
+        print("[INFO] Merging combining python reports (" + coverageBashCommand + ")...")
         subprocess.check_output(['bash','-c', coverageBashCommand])
+        
+        coverageBashCommand = "coverage xml --rcfile=" + coverage_report_path + "/coverage_rc"
+        print("[INFO] Merging generating cobertura xml report (" + coverageBashCommand + ")...")
+        subprocess.check_output(['bash','-c', coverageBashCommand])
+        print("[INFO] Correcting path to source paths (" + coverageBashCommand + ")...")
+        for i in ["2","3"]:
+            coverageBashCommand = "sed -i \'s#"+compss_home_path+"/Bindings/python/"+i+"/#compss/programming_model/runtime/bindings/python/src/#g\' " + coverage_report_path + "/coverage.xml"
+            subprocess.check_output(['bash','-c', coverageBashCommand])
+        coverageBashCommand = "sed \'s#compss/programming_model/runtime/bindings/python/src/#src/#g " + coverage_report_path + "/coverage.xml > " + coverage_report_path + "/coverage-pycompss.xml"
     except subprocess.CalledProcessError as e:
-        print("No Python Coverage files to merge")
+        print("Error generating coverage report")
+        print(e)
 
+def create_coverage_file(coverage_rc_path, tests_output_path):
+    fin = open(CONFIGURATIONS_DIR + "/coverage_rc", "rt")
+    fout = open(coverage_rc_path, "w")
+    for line in fin:
+        fout.write(line.replace('@TEST_OUTPUT_PATH@', tests_output_path))
+    fin.close()
+    fout.close()
 
 ############################################
 # PUBLIC METHODS
@@ -154,11 +174,17 @@ def execute_tests(cmd_args, compss_cfg):
 
     if cmd_args.coverage:
         print("[INFO] Coverage mode enabled")
+        try:
+            os.makedirs(coverage_path)
+        except OSError:
+            raise TestExecutionError("[ERROR] Cannot create coverage dir " + str(coverage_path))
+        
         coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
         #coverage_paths[2] = coverage_paths[2].replace("#","@")
         #coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
         print("[INFO] Coverage expression: "+coverage_expression)
-        print("[INFO] File coverage_rc generated")
+        create_coverage_file(coverage_path+"/coverage_rc", target_base_dir)
+        print("[INFO] File coverage_rc generated")   
     # Execute all the deployed tests
     results = []
     i=0
@@ -207,7 +233,7 @@ def execute_tests(cmd_args, compss_cfg):
     print("----------------------------------------")
 
     if cmd_args.coverage:
-        generate_coverage_reports(jaccoco_lib_path, coverage_path)
+        generate_coverage_reports(jaccoco_lib_path, coverage_path, compss_cfg.get_compss_home())
     # Return if any test has failed
     return global_ev
 

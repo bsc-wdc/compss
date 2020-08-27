@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>pycompss</artifactId>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-pm</artifactId>
+        <version>2.7.rc2008</version>
+	<relativePath>../../</relativePath>
+    </parent>
+
+    <!-- PROJECT INFORMATION -->
+    <name>PyCOMPSs Programming Model</name>
+    <description>Python binding for COMPSs Programming Model</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2020</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
+    <properties>
+	    <sonar.sources>src</sonar.sources>
+	    <sonar.skip>true</sonar.skip>
+    </properties>
+    <build>
+	<plugins>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>Datatype Generation</id>
+			<phase/>
+		    </execution>
+	        </executions>
+            </plugin>
+       </plugins>
+    </build>
+
+</project>

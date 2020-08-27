@@ -237,7 +237,32 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+	</plugin>
+	<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.5</version>
+    <executions>
+        <execution>
+            <id>prepare-and-report</id>
+            <goals>
+                <goal>prepare-agent</goal>
+                <goal>report</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>report-integration</id>
+            <phase>verify</phase>
+            <goals>
+                <goal>report-integration</goal>
+            </goals>
+	    <configuration>
+		<dataFile>${jacoco.tests.reportPath}</dataFile>
+                <outputDirectory>${project.basedir}/../target/site/jacoco-aggregate</outputDirectory>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
         </plugins>
 
         <pluginManagement>

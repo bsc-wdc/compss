@@ -24,10 +24,8 @@ PyCOMPSs Binding - Management - Direction
 """
 
 from pycompss.api.parameter import DIRECTION
-from pycompss.util.importing.functools import lru_cache
 
 
-@lru_cache(maxsize=128)
 def get_compss_direction(pymode):
     # type: (str) -> int
     """ Get the COMPSs direction of the given pymode string.

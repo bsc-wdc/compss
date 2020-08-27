@@ -774,9 +774,9 @@ class TaskMaster(TaskCommons):
         # To do this, we will check the frames
         # frames = inspect.getouterframes(inspect.currentframe())
         app_frames = []
-        # Ignore current, self.get_signature and call functions from the frame
-        # and lightly faster than inspect.currentframe().
-        frame = sys._getframe(3)  # noqa
+        # Ignore self.get_signature and call functions from the frame.
+        # Sightly faster than inspect.currentframe().
+        frame = sys._getframe(2)  # noqa
         try:
             while frame:
                 # This loop does like inspect.getouterframes(frame)
@@ -812,6 +812,7 @@ class TaskMaster(TaskCommons):
                 impl_signature = ".".join((self.module_name,
                                            self.function_name))
                 impl_type_args = [self.module_name, self.function_name]
+
         return impl_signature, impl_type_args
 
     def update_core_element(self, impl_signature, impl_type_args,

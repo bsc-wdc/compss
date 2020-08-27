@@ -29,8 +29,7 @@ import time
 
 @decorator  # Mandatory in order to preserver the argspec
 def timeit(func, *a, **k):
-    """
-    Elapsed time decorator.
+    """ Elapsed time decorator.
 
     :param func: Function to be measured (can be a decorated function, usually
                  with @task decorator).

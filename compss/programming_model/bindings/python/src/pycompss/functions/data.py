@@ -29,8 +29,8 @@ from pycompss.api.task import task
 
 def generator(size, num_frag, seed=None, distribution='random', wait=False):
     # type: (tuple, int, int, str, bool) -> object
-    """
-    Data generator.
+    """ Data generator.
+
     Generates a list of fragments.
 
     :param size: (numElements, dim)
@@ -61,8 +61,7 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
 @task(returns=list)
 def _gen_random(size, frag_size, seed):
     # type: (int, int, int) -> list
-    """
-    Random generator.
+    """ Random generator.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -77,8 +76,7 @@ def _gen_random(size, frag_size, seed):
 @task(returns=list)
 def _gen_normal(size, frag_size, seed):
     # type: (int, int, int) -> list
-    """
-    Normal generator.
+    """ Normal generator.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -93,8 +91,7 @@ def _gen_normal(size, frag_size, seed):
 @task(returns=list)
 def _gen_uniform(size, frag_size, seed):
     # type: (int, int, int) -> list
-    """
-    Uniform generator.
+    """ Uniform generator.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -108,8 +105,7 @@ def _gen_uniform(size, frag_size, seed):
 
 def chunks(lst, n, balanced=False):
     # type: (list, int, bool) -> list
-    """
-    List splitter into fragments.
+    """ List splitter into fragments.
 
     WARNING: Not tested!
 

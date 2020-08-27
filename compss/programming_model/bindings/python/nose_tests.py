@@ -67,6 +67,9 @@ class ExtensionPlugin(Plugin):
         'pycompss/tests/api/test_ompss.py',
         'pycompss/tests/api/test_opencl.py',
         'pycompss/tests/api/test_information.py',
+        'pycompss/tests/functions/test_data.py',
+        'pycompss/tests/functions/test_elapsed_time.py',
+        'pycompss/tests/functions/test_reduce.py',
         'pycompss/tests/runtime/test_object_tracker.py',
         # ############ @parallel related ############ #
         'pycompss/api/parallel.py',

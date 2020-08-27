@@ -61,12 +61,15 @@ def prepare_environment(interactive, o_c, storage_impl,
     """
     launch_path = os.path.dirname(os.path.realpath(__file__))
 
-    compss_home = ''
-    if interactive:
-        # compss_home = launch_path without the last 6 folders:
-        # (Bindings/python/version/pycompss/util/environment)
-        compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-6])
-    os.environ['COMPSS_HOME'] = compss_home
+    if 'COMPSS_HOME' in os.environ:
+        compss_home = os.environ['COMPSS_HOME']
+    else:
+        compss_home = ''
+        if interactive:
+            # compss_home = launch_path without the last 6 folders:
+            # (Bindings/python/version/pycompss/util/environment)
+            compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-6])
+        os.environ['COMPSS_HOME'] = compss_home
 
     # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment
     # variables values

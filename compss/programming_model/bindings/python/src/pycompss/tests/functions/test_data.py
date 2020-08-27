@@ -18,18 +18,23 @@
 # -*- coding: utf-8 -*-
 
 
-def test_data_generator():
-    import pycompss.util.context as context
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
-    from pycompss.functions.data import generator
-
-    size = (20, 2)
-    data_r = generator(size, 4, 0, 'random', True)
-    data_n = generator(size, 4, 0, 'normal', True)
-    data_u = generator(size, 4, 0, 'uniform', True)
-
-    assert data_r != data_n != data_u, \
-        "ERROR: Got equal results when different were expected."
+# def test_data_generator():
+#
+#     # TODO: This must be tested with launch_pycompss_application
+#
+#     import pycompss.util.context as context
+#     context.set_pycompss_context(context.OUT_OF_SCOPE)
+#     from pycompss.functions.data import generator
+#
+#     size = (20, 2)
+#     data_r = generator(size, 4, 0, 'random', True)
+#     data_n = generator(size, 4, 0, 'normal', True)
+#     data_u = generator(size, 4, 0, 'uniform', True)
+#
+#     context.set_pycompss_context(context.MASTER)
+#
+#     assert data_r != data_n != data_u, \
+#         "ERROR: Got equal results when different were expected."
 
 
 def test_data_chunks():

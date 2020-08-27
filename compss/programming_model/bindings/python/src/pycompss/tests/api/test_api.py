@@ -24,21 +24,21 @@ import os
 
 
 def test_dummy_api():
-    from pycompss.api.api import compss_start
-    from pycompss.api.api import compss_stop
-    from pycompss.api.api import compss_file_exists
-    from pycompss.api.api import compss_open
-    from pycompss.api.api import compss_delete_file
-    from pycompss.api.api import compss_wait_on_file
-    from pycompss.api.api import compss_wait_on_directory
-    from pycompss.api.api import compss_delete_object
-    from pycompss.api.api import compss_barrier
-    from pycompss.api.api import compss_barrier_group
-    from pycompss.api.api import compss_wait_on
-    from pycompss.api.api import compss_get_number_of_resources
-    from pycompss.api.api import compss_request_resources
-    from pycompss.api.api import compss_free_resources
-    from pycompss.api.api import TaskGroup
+    from pycompss.api.dummy.api import compss_start
+    from pycompss.api.dummy.api import compss_stop
+    from pycompss.api.dummy.api import compss_file_exists
+    from pycompss.api.dummy.api import compss_open
+    from pycompss.api.dummy.api import compss_delete_file
+    from pycompss.api.dummy.api import compss_wait_on_file
+    from pycompss.api.dummy.api import compss_wait_on_directory
+    from pycompss.api.dummy.api import compss_delete_object
+    from pycompss.api.dummy.api import compss_barrier
+    from pycompss.api.dummy.api import compss_barrier_group
+    from pycompss.api.dummy.api import compss_wait_on
+    from pycompss.api.dummy.api import compss_get_number_of_resources
+    from pycompss.api.dummy.api import compss_request_resources
+    from pycompss.api.dummy.api import compss_free_resources
+    from pycompss.api.dummy.api import TaskGroup
 
     file_name = "simulated_file.txt"
     directory_name = "simulated_directory"

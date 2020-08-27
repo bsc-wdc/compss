@@ -70,8 +70,9 @@ class ExtensionPlugin(Plugin):
         'pycompss/tests/functions/test_data.py',
         'pycompss/tests/functions/test_elapsed_time.py',
         'pycompss/tests/functions/test_reduce.py',
+        'pycompss/tests/runtime/test_launch_application.py',   # uses the installation
         'pycompss/tests/runtime/test_object_tracker.py',
-        # ############ @parallel related ############ #
+        # # ############ @parallel related ############ #
         'pycompss/api/parallel.py',
         'pycompss/util/translators/code_loader/code_loader.py',
         'pycompss/util/translators/code_replacer/code_replacer.py',

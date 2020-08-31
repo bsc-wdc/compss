@@ -396,8 +396,8 @@ public class BinaryRunner {
 
         // Retrieve COMPSs properties
         final String theoreticalHostnames = System.getProperty(Invoker.COMPSS_HOSTNAMES);
-        // int theoreticalNumNodes = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_NODES));
-        // int theoreticalNumThreads = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_THREADS));
+        final int theoreticalNumNodes = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_NODES));
+        final int theoreticalNumThreads = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_THREADS));
 
         // Re-compute real task properties
         final Map<String, Integer> hostnames2numThreads = new HashMap<>();
@@ -414,9 +414,8 @@ public class BinaryRunner {
         final int maxNumThreads = hostnames2numThreads.entrySet().stream()
             .max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getValue();
 
-        // WARN: WE ONLY RESET SLURM ENVIRONMENT BUT NOT COMPSS ENVIRONMENT
-        // HOWEVER, INFORMATION IN COMPSS AND SLURM CAN BE INCONSISTENT
         // Re-set COMPSs properties
+        // We do not reset COMPSs properties because it does not have to match SLURM
         // System.setProperty(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));
         // System.setProperty(Invoker.COMPSS_NUM_THREADS, String.valueOf(maxNumThreads));
         // System.setProperty(Invoker.OMP_NUM_THREADS, String.valueOf(maxNumThreads));
@@ -426,21 +425,25 @@ public class BinaryRunner {
         builder.directory(taskSandboxWorkingDir);
         outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
 
-        // Setup process environment -- Regular entries
+        // Setup process environment -- Tracing entries
         builder.environment().remove(Tracer.LD_PRELOAD);
 
-        // WARN: WE ONLY RESET SLURM ENVIRONMENT BUT NOT COMPSS ENVIRONMENT
-        // HOWEVER, INFORMATION IN COMPSS AND SLURM CAN BE INCONSISTENT
-        // builder.environment().put(Invoker.COMPSS_HOSTNAMES, theoreticalHostnames);
-        // builder.environment().put(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));
-        // builder.environment().put(Invoker.COMPSS_NUM_THREADS, String.valueOf(maxNumThreads));
-        // builder.environment().put(Invoker.OMP_NUM_THREADS, String.valueOf(maxNumThreads));
+        // Setup process environment -- COMPSs entries
+        // WARN: THE COMPSS ENVIRONMENT DOES NOT HAVE TO MATCH SLURM CONFIGURATION
+        builder.environment().put(Invoker.COMPSS_HOSTNAMES, theoreticalHostnames);
+        builder.environment().put(Invoker.COMPSS_NUM_NODES, String.valueOf(theoreticalNumNodes));
+        builder.environment().put(Invoker.COMPSS_NUM_THREADS, String.valueOf(theoreticalNumThreads));
+        builder.environment().put(Invoker.OMP_NUM_THREADS, String.valueOf(theoreticalNumThreads));
 
+        // Setup process environment -- Extra entries
         if (pythonPath != null) {
             builder.environment().put("PYTHONPATH", pythonPath);
+            builder.environment().put("SINGULARITYENV_PYTHONPATH", pythonPath);
         }
 
-        // Setup SLURM environment (for elasticity with MPI in supercomputers)
+        // Setup process environment -- SLURM entries (for elasticity with MPI in supercomputers)
+        // WARN: WE ONLY RESET SLURM ENVIRONMENT BUT NOT COMPSS ENVIRONMENT
+        // HOWEVER, INFORMATION IN COMPSS AND SLURM CAN BE INCONSISTENT
         final String tasksPerNode = String.valueOf(maxNumThreads) + "(x" + String.valueOf(uniqueNumNodes) + ")";
         final String hostnamesString = String.join(",", hostnames2numThreads.keySet());
         final int totalProcs = uniqueNumNodes * maxNumThreads;

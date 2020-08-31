@@ -46,8 +46,8 @@ class ObjectTracker(object):
 
     __slots__ = ['file_names', 'pending_to_synchronize',
                  'written_objects', 'current_id', 'runtime_id',
-                 'obj_id_to_address', 'reporting', 'reporting_info',
-                 'initial_time']
+                 'obj_id_to_obj', 'address_to_obj_id',
+                 'reporting', 'reporting_info', 'initial_time']
 
     def __init__(self):
         # Dictionary to contain the conversion from object id to the
@@ -69,11 +69,13 @@ class ObjectTracker(object):
         self.runtime_id = str(uuid.uuid1())
         # Dictionary to contain the conversion from object identifier to
         # the object (address pointer).
-        # Given these positions, all objects are then reverse-mapped.
         # NOTE: it can not be done in the other way since the memory addresses
         #       can be reused, not guaranteeing their uniqueness, and causing
         #       weird behaviour.
-        self.obj_id_to_address = {}
+        self.obj_id_to_obj = {}
+        # Dictionary to contain the object address (currently the id(obj)) to
+        # the identifier provided by the binding.
+        self.address_to_obj_id = {}
 
         # Boolean to store tracking information
         # CAUTION: Enabling reporting increases the memory usage since
@@ -86,7 +88,7 @@ class ObjectTracker(object):
         self.initial_time = 0
 
     def track(self, obj, collection=False):
-        # type: (object, bool) -> str
+        # type: (object, bool) -> (str, str)
         """ Start tracking an object.
 
         Collections are not stored into a file. Consequently, we just register
@@ -95,22 +97,27 @@ class ObjectTracker(object):
 
         :param obj: Object to track.
         :param collection: If the object to be tracked is a collection.
-        :return: Object identifier.
+        :return: Object identifier and its corresponding file name.
         """
         if collection:
             obj_id = self._register_object(obj, True)
+            file_name = None
             if __debug__:
                 logger.debug("Tracking collection %s" % obj_id)
         else:
             obj_id = self._register_object(obj, True)
-            file_name = os.path.join(get_temporary_directory(), str(obj_id))
+            file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
             self._set_file_name(obj_id, file_name)
             self.set_pending_to_synchronize(obj_id)
             if __debug__:
                 logger.debug("Tracking object %s to file %s" % (obj_id,
                                                                 file_name))
-        self.report_now()
-        return obj_id
+        address = self._get_object_address(obj)
+        self.address_to_obj_id[address] = obj_id
+        if self.reporting:
+            self.report_now()
+
+        return obj_id, file_name
 
     def stop_tracking(self, obj, collection=False):
         # type: (object, bool) -> None
@@ -156,15 +163,10 @@ class ObjectTracker(object):
         :param obj: Object to check.
         :return: Object identifier if under tracking. None otherwise.
         """
-        if self.obj_id_to_address:
-            for identifier in self.obj_id_to_address:
-                if self.obj_id_to_address[identifier] is obj:
-                    # Found
-                    return identifier
-            # Not Found
-            return None
+        address = self._get_object_address(obj)
+        if address in self.address_to_obj_id:
+            return self.address_to_obj_id[address]
         else:
-            # The dictionary is empty. So it is not tracked.
             return None
 
     def get_all_file_names(self):
@@ -184,7 +186,7 @@ class ObjectTracker(object):
         :param obj_id: Object identifier.
         :return: File name.
         """
-        return self.file_names.get(obj_id)
+        return self.file_names[obj_id]
 
     def is_obj_pending_to_synchronize(self, obj):
         # type: (object) -> bool
@@ -264,7 +266,8 @@ class ObjectTracker(object):
         self.pending_to_synchronize.clear()
         self.file_names.clear()
         self.written_objects.clear()
-        self.obj_id_to_address.clear()
+        self.obj_id_to_obj.clear()
+        self.address_to_obj_id.clear()
         self.report_now()
 
     def clean_report(self):
@@ -288,6 +291,12 @@ class ObjectTracker(object):
         object, deleting the old one if necessary. We can also query for some
         object without adding it in case of failure.
 
+        Identifiers are of the form _runtime_id-_current_id in order to avoid
+        having two objects from different applications with the same identifier
+        (and thus file name).
+        This function updates the internal self.current_id to guarantee
+        that each time returns a new identifier.
+
         :param obj: Object to analyse.
         :param assign_new_key: Assign new key.
         :param force_insertion: force insertion.
@@ -299,32 +308,22 @@ class ObjectTracker(object):
         identifier = self.is_tracked(obj)
         if identifier is not None:
             if force_insertion:
-                self.obj_id_to_address.pop(identifier)
+                self.obj_id_to_obj.pop(identifier)
+                address = self._get_object_address(obj)
+                self.address_to_obj_id.pop(address)
             else:
                 return identifier
 
         if assign_new_key:
             # This object was not in our object database or we were forced to
             # remove it, lets assign it an identifier and store it.
-            new_id = self._calculate_new_identifier()
-            self.obj_id_to_address[new_id] = obj
+            # Generate a new identifier
+            new_id = '%s-%d' % (self.runtime_id, self.current_id)
+            self.current_id += 1
+            self.obj_id_to_obj[new_id] = obj
+            address = self._get_object_address(obj)
+            self.address_to_obj_id[address] = new_id
             return new_id
-
-    def _calculate_new_identifier(self):
-        # type: () -> str
-        """ Generates a new identifier.
-
-        Identifiers are of the form _runtime_id-_current_id in order to avoid
-        having two objects from different applications with the same identifier
-        (and thus file name).
-        This function updates the internal self.current_id to guarantee
-        that each time returns a new identifier.
-
-        :return: New identifier.
-        """
-        new_id = '%s-%d' % (self.runtime_id, self.current_id)
-        self.current_id += 1
-        return new_id
 
     def _set_file_name(self, obj_id, filename, written=False):
         # type: (str, str, bool) -> None
@@ -365,59 +364,53 @@ class ObjectTracker(object):
         :param obj_id: Object identifier to pop.
         :return: Popped object.
         """
-        return self.obj_id_to_address.pop(obj_id)
+        obj = self.obj_id_to_obj.pop(obj_id)
+        address = self._get_object_address(obj)
+        self.address_to_obj_id.pop(address)
 
-    #############################################
-    #           DEPRECATED FUNCTIONS            #
-    #############################################
+    @staticmethod
+    def _get_object_address(obj):
+        # type: (object) -> int
+        """ Retrieves the object memory address.
 
-    # REASON: Use the object address in the obj_id_to_address instead of the
-    #         object reference causes weird behaviour randomly due to the fact
-    #         the the address is not guarantee to be unique.
-
-    # @staticmethod
-    # def _get_object_address(obj):
-    #     # type: (object) -> int
-    #     """ Retrieves the object memory address.
-    #
-    #     :param obj: Object to get the memory address.
-    #     :return: Object identifier.
-    #     """
-    #     return id(obj)
-    #     # # If we want to detect automatically IN objects modification we need
-    #     # # to ensure uniqueness of the identifier. At this point, obj is a
-    #     # # reference to the object that we want to compute its identifier.
-    #     # # This means that we do not have the previous object to compare
-    #     # # directly.
-    #     # # So the only way would be to ensure the uniqueness by calculating
-    #     # # an id which depends on the object.
-    #     # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
-    #     # #                                   object (IN) to be modified
-    #     # #                                   explicitly.
-    #     # immutable_types = [bool, int, float, complex, str,
-    #     #                    tuple, frozenset, bytes]
-    #     # obj_type = type(obj)
-    #     # if obj_type in immutable_types:
-    #     #     obj_address = id(obj)  # Only guarantees uniqueness with
-    #     #                            # immutable objects
-    #     # else:
-    #     #     # For all the rest, use hash of:
-    #     #     #  - The object id
-    #     #     #  - The size of the object (object increase/decrease)
-    #     #     #  - The object representation (object size is the same but has
-    #     #     #                               been modified(e.g. list element))
-    #     #     # WARNING: Caveat:
-    #     #     #  - IN User defined object with parameter change without
-    #     #     #    __repr__
-    #     #     # INOUT parameters to be modified require a synchronization, so
-    #     #     # they are not affected.
-    #     #     import hashlib
-    #     #     hash_id = hashlib.md5()
-    #     #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-    #     #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-    #     #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
-    #     #     obj_address = str(hash_id.hexdigest())
-    #     # return obj_address
+        :param obj: Object to get the memory address.
+        :return: Object identifier.
+        """
+        return id(obj)
+        # # If we want to detect automatically IN objects modification we need
+        # # to ensure uniqueness of the identifier. At this point, obj is a
+        # # reference to the object that we want to compute its identifier.
+        # # This means that we do not have the previous object to compare
+        # # directly.
+        # # So the only way would be to ensure the uniqueness by calculating
+        # # an id which depends on the object.
+        # # BUT THIS IS REALLY EXPENSIVE. So: Use the id and unregister the
+        # #                                   object (IN) to be modified
+        # #                                   explicitly.
+        # immutable_types = [bool, int, float, complex, str,
+        #                    tuple, frozenset, bytes]
+        # obj_type = type(obj)
+        # if obj_type in immutable_types:
+        #     obj_address = id(obj)  # Only guarantees uniqueness with
+        #                            # immutable objects
+        # else:
+        #     # For all the rest, use hash of:
+        #     #  - The object id
+        #     #  - The size of the object (object increase/decrease)
+        #     #  - The object representation (object size is the same but has
+        #     #                               been modified(e.g. list element))
+        #     # WARNING: Caveat:
+        #     #  - IN User defined object with parameter change without
+        #     #    __repr__
+        #     # INOUT parameters to be modified require a synchronization, so
+        #     # they are not affected.
+        #     import hashlib
+        #     hash_id = hashlib.md5()
+        #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
+        #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
+        #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+        #     obj_address = str(hash_id.hexdigest())
+        # return obj_address
 
     #############################################
     #           REPORTING FUNCTIONS             #
@@ -451,11 +444,10 @@ class ObjectTracker(object):
         :param first: If it is the first time reporting the status.
         :return: None
         """
-        if __debug__:
+        if __debug__ and self.reporting:
             # Log the object tracker status
-            if self.reporting:
-                self.__log_object_tracker_status__()
-                self.__update_report__(first)
+            self.__log_object_tracker_status__()
+            self.__update_report__(first)
 
     def __log_object_tracker_status__(self):
         # type: () -> None
@@ -467,7 +459,8 @@ class ObjectTracker(object):
                      + " File_names=" + str(len(self.file_names))
                      + " Pending_to_synchronize=" + str(len(self.pending_to_synchronize))  # noqa: E501
                      + " Written_objs=" + str(len(self.written_objects))
-                     + " Obj_id_to_address=" + str(len(self.obj_id_to_address))
+                     + " Obj_id_to_obj=" + str(len(self.obj_id_to_obj))
+                     + " Address_to_obj_id=" + str(len(self.address_to_obj_id))
                      + " Current_id=" + str(self.current_id))
 
     def __update_report__(self, first=False):
@@ -484,7 +477,8 @@ class ObjectTracker(object):
                           (len(self.file_names),
                           len(self.pending_to_synchronize),
                           len(self.written_objects),
-                          len(self.obj_id_to_address)))
+                          len(self.obj_id_to_obj),
+                          len(self.address_to_obj_id)))
         self.reporting_info.append(current_status)
 
     def generate_report(self, target_path):
@@ -514,6 +508,7 @@ class ObjectTracker(object):
         labels = ['File names',
                   'Pending to synchronize',
                   'Updated mappings',
+                  'IDs',
                   'Addresses']
         for i in range(len(y[0])):
             plt.plot(x, [pt[i] for pt in y], label='%s' % labels[i])
@@ -527,3 +522,21 @@ class ObjectTracker(object):
 # Instantiation of the Object tracker class to be shared among
 # management modules
 OT = ObjectTracker()
+
+# Alias for the object tracker functions to avoid resolving the dot on each
+# OT call.
+OT_track = OT.track
+OT_stop_tracking = OT.stop_tracking
+OT_is_tracked = OT.is_tracked
+OT_is_pending_to_synchronize = OT.is_pending_to_synchronize
+OT_is_obj_pending_to_synchronize = OT.is_obj_pending_to_synchronize
+OT_set_pending_to_synchronize = OT.set_pending_to_synchronize
+OT_get_file_name = OT.get_file_name
+OT_get_all_file_names = OT.get_all_file_names
+OT_has_been_written = OT.has_been_written
+OT_pop_written_obj = OT.pop_written_obj
+OT_update_mapping = OT.update_mapping
+OT_clean_object_tracker = OT.clean_object_tracker
+OT_enable_report = OT.enable_report
+OT_is_report_enabled = OT.is_report_enabled
+OT_generate_report = OT.generate_report

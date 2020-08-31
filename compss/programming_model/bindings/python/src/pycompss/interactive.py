@@ -31,7 +31,7 @@ import time
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
@@ -445,7 +445,7 @@ def stop(sync=False):
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
                 elif k not in reserved_names and \
-                        OT.is_pending_to_synchronize(obj_k):
+                        OT_is_pending_to_synchronize(obj_k):
                     print("Found an object to synchronize: %s" % str(k))
                     logger.debug("Found an object to synchronize: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)

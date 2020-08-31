@@ -29,7 +29,14 @@ from shutil import rmtree
 
 import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.runtime.commons import get_temporary_directory
-from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.management.object_tracker import OT_is_tracked
+from pycompss.runtime.management.object_tracker import OT_get_file_name
+from pycompss.runtime.management.object_tracker import OT_stop_tracking
+from pycompss.runtime.management.object_tracker import OT_get_all_file_names
+from pycompss.runtime.management.object_tracker import OT_clean_object_tracker
+from pycompss.runtime.management.object_tracker import OT_enable_report
+from pycompss.runtime.management.object_tracker import OT_is_report_enabled
+from pycompss.runtime.management.object_tracker import OT_generate_report
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import EmptyReturn
@@ -98,7 +105,7 @@ def start_runtime(log_level='off', tracing=0, interactive=False):
             # Could also be 'debug' or True, but we only show the C extension
             # debug in the maximum tracing level.
             COMPSs.set_debug(True)
-            OT.enable_report()
+            OT_enable_report()
 
         COMPSs.start_runtime()
 
@@ -134,12 +141,12 @@ def stop_runtime(code=0):
     _clean_objects()
 
     if __debug__:
-        reporting = OT.is_report_enabled()
+        reporting = OT_is_report_enabled()
         if reporting:
             logger.info("Generating Object tracker report...")
             target_path = get_log_path()
-            OT.generate_report(target_path)
-            OT.clean_report()
+            OT_generate_report(target_path)
+            OT_clean_report()
 
     if __debug__:
         logger.info("Stopping COMPSs...")
@@ -263,15 +270,15 @@ def delete_object(obj):
     :return: True if success. False otherwise.
     """
     app_id = 0
-    obj_id = OT.is_tracked(obj)
+    obj_id = OT_is_tracked(obj)
     if obj_id is None:
         # Not being tracked
         return False
     else:
         try:
-            file_name = OT.get_file_name(obj_id)
+            file_name = OT_get_file_name(obj_id)
             COMPSs.delete_file(app_id, file_name, False)
-            OT.stop_tracking(obj)
+            OT_stop_tracking(obj)
         except KeyError:
             pass
         return True
@@ -738,9 +745,9 @@ def _clean_objects():
     :return: None
     """
     app_id = 0
-    for filename in OT.get_all_file_names():
+    for filename in OT_get_all_file_names():
         COMPSs.delete_file(app_id, filename, False)
-    OT.clean_object_tracker()
+    OT_clean_object_tracker()
 
 
 def _clean_temps():

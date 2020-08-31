@@ -52,7 +52,13 @@ from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
 from pycompss.runtime.constants import SERIALIZE_OBJECTS
 from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
-from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.management.object_tracker import OT_track
+from pycompss.runtime.management.object_tracker import OT_set_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import OT_is_tracked
+from pycompss.runtime.management.object_tracker import OT_get_file_name
+from pycompss.runtime.management.object_tracker import OT_has_been_written
+from pycompss.runtime.management.object_tracker import OT_pop_written_obj
+from pycompss.runtime.management.object_tracker import OT_stop_tracking
 from pycompss.runtime.task.commons import TaskCommons
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.parameter import Parameter
@@ -336,8 +342,7 @@ class TaskMaster(TaskCommons):
                 num_returns = len(self.returns)
 
         # Infer COMPSs types from real types, except for files
-        with event(SERIALIZE_OBJECTS, master=True):
-            self._serialize_objects()
+        self._serialize_objects()
 
         # Build values and COMPSs types and directions
         with event(BUILD_COMPSS_TYPES_DIRECTIONS, master=True):
@@ -1190,8 +1195,7 @@ class TaskMaster(TaskCommons):
                     fo = Future()
             else:
                 fo = Future()  # modules, functions, methods
-            obj_id = OT.track(fo)
-            ret_filename = OT.get_file_name(obj_id)
+            obj_id, ret_filename = OT_track(fo)
             self.returns[get_return_name(0)] = \
                 Parameter(content_type=TYPE.FILE,
                           direction=DIRECTION.OUT,
@@ -1218,8 +1222,7 @@ class TaskMaster(TaskCommons):
                 else:
                     foe = Future()  # modules, functions, methods
                 fo.append(foe)
-                obj_id = OT.track(foe)
-                ret_filename = OT.get_file_name(obj_id)
+                obj_id, ret_filename = OT_track(foe)
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return object
                 self.returns[k] = Parameter(content_type=TYPE.FILE,
@@ -1239,23 +1242,24 @@ class TaskMaster(TaskCommons):
         """
         max_obj_arg_size = 320000
         for k in self.parameters:
-            # Check user annotations concerning this argument
-            p = self.parameters[k]
-            # Convert small objects to string if OBJECT_CONVERSION enabled
-            # Check if the object is small in order not to serialize it.
-            if get_object_conversion():
-                p, written_bytes = _convert_parameter_obj_to_string(p,
-                                                                    max_obj_arg_size,     # noqa: E501
-                                                                    policy='objectSize')  # noqa: E501
-                max_obj_arg_size -= written_bytes
-            else:
-                # Serialize objects into files
-                p = _serialize_object_into_file(k, p)
-            # Update k parameter's Parameter object
-            self.parameters[k] = p
+            with event(SERIALIZE_OBJECTS, master=True):
+                # Check user annotations concerning this argument
+                p = self.parameters[k]
+                # Convert small objects to string if OBJECT_CONVERSION enabled
+                # Check if the object is small in order not to serialize it.
+                if get_object_conversion():
+                    p, written_bytes = _convert_parameter_obj_to_string(p,
+                                                                        max_obj_arg_size,     # noqa: E501
+                                                                        policy='objectSize')  # noqa: E501
+                    max_obj_arg_size -= written_bytes
+                else:
+                    # Serialize objects into files
+                    p = _serialize_object_into_file(k, p)
+                # Update k parameter's Parameter object
+                self.parameters[k] = p
 
-            if __debug__:
-                logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
+                if __debug__:
+                    logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
 
     def _build_values_types_directions(self):
         # type: () -> (list, list, list, list, list)
@@ -1488,7 +1492,7 @@ def _manage_persistent_object(p):
     """
     p.content_type = TYPE.EXTERNAL_PSCO
     obj_id = get_id(p.content)
-    OT.set_pending_to_synchronize(obj_id)
+    OT_set_pending_to_synchronize(obj_id)
     p.content = obj_id
     if __debug__:
         logger.debug("Managed persistent object: %s" % obj_id)
@@ -1587,7 +1591,7 @@ def _serialize_object_into_file(name, p):
 
         p.content = new_object
         # Give this object an identifier inside the binding
-        OT.track(p.content, collection=True)
+        _, _ = OT_track(p.content, collection=True)
     return p
 
 
@@ -1613,29 +1617,25 @@ def _turn_into_file(p, skip_creation=False):
     #     # instance of the same type as the original parameter:
     #     t = type(p.content)
     #     p.content = t()
-    obj_id = OT.is_tracked(p.content)
+    obj_id = OT_is_tracked(p.content)
     if obj_id is None:
         # This is the first time a task accesses this object
-        obj_id = OT.track(p.content)
-        file_name = OT.get_file_name(obj_id)
+        obj_id, file_name = OT_track(p.content)
         if not skip_creation:
             serialize_to_file(p.content, file_name)
     else:
-        file_name = OT.get_file_name(obj_id)
-
-    if OT.has_been_written(obj_id):
-        if p.direction == DIRECTION.INOUT or \
-                p.direction == DIRECTION.COMMUTATIVE:
-            OT.set_pending_to_synchronize(obj_id)
-        # Main program generated the last version
-        compss_file = OT.pop_written_obj(obj_id)
-        if __debug__:
-            logger.debug("Serializing object %s to file %s" % (obj_id,
-                                                               compss_file))
-        if not skip_creation:
-            serialize_to_file(p.content, compss_file)
-    else:
-        pass
+        file_name = OT_get_file_name(obj_id)
+        if OT_has_been_written(obj_id):
+            if p.direction == DIRECTION.INOUT or \
+                    p.direction == DIRECTION.COMMUTATIVE:
+                OT_set_pending_to_synchronize(obj_id)
+            # Main program generated the last version
+            compss_file = OT_pop_written_obj(obj_id)
+            if __debug__:
+                logger.debug("Serializing object %s to file %s" % (obj_id,
+                                                                   compss_file))
+            if not skip_creation:
+                serialize_to_file(p.content, compss_file)
     # Set file name in Parameter object
     p.file_name = file_name
 
@@ -1705,9 +1705,9 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN IdN pyTypeN
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format("collection", _class_name)
-        value = "{} {} {}".format(OT.is_tracked(param.content),
+        value = "{} {} {}".format(OT_is_tracked(param.content),
                                   len(param.content), con_type)
-        OT.stop_tracking(param.content, collection=True)
+        OT_stop_tracking(param.content, collection=True)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.content):
             x_value, x_type, _, _, _, x_con_type, _, _ = _extract_parameter(

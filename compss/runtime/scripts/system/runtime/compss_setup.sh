@@ -269,10 +269,11 @@ prepare_coverage() {
     IFS=' '
     final=""
     final=$(echo ${ADDR[0]} | rev | cut -d"/" -f2- | rev)
-    echo "[run]" > /tmp/coverage_rc
-    echo "parallel=true" >> /tmp/coverage_rc
-    echo "data_file=${final}/coverage" >> /tmp/coverage_rc
-    python_interpreter="coverage${python_version}#run#--rcfile=/tmp/coverage_rc"
+    #echo "[run]" > /tmp/coverage_rc
+    #echo "parallel=true" >> /tmp/coverage_rc
+    #echo "data_file=${final}/coverage" >> /tmp/coverage_rc
+    #python_interpreter="coverage${python_version}#run#--rcfile=/tmp/coverage_rc"
+    python_interpreter="coverage${python_version}#run#--rcfile=${final}/coverage_rc"
 }
 
 #----------------------------------------------

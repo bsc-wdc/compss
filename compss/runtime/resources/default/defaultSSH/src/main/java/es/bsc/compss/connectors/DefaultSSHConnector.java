@@ -92,15 +92,13 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
             // Load jar to classpath
             LOGGER.debug(" - Loading from : " + jarPath);
-            Classpath.loadPath(jarPath, LOGGER);
+            Classpath.loadJarsInPath(jarPath, LOGGER);
 
             // Invoke connector main class
             LOGGER.debug(" - Using connector " + connectorMainClass);
             Class<?> conClass = Class.forName(connectorMainClass);
             Constructor<?> constructor = conClass.getDeclaredConstructors()[0];
             conn = (Connector) constructor.newInstance(connectorProperties);
-        } catch (FileNotFoundException fnfe) {
-            throw new ConnectorException("Specific Connector jar file (" + connectorJarPath + ") not found", fnfe);
         } catch (Exception e) {
             throw new ConnectorException(e);
         } finally {

@@ -1,8 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
     <!-- GENERAL INFORMATION -->
     <artifactId>compss-adaptors-agent-comm-worker</artifactId>
     <packaging>jar</packaging>
@@ -12,191 +11,186 @@
         <version>2.9.rc2109</version>
         <relativePath>..</relativePath>
     </parent>
-
-
+   
     <!-- PROJECT INFORMATION -->
     <name>COMPSs Back-end Comm Agent Worker</name>
     <description>Worker to run COMPSs as an Agent with the Comm library interface</description>
     <url>http://www.bsc.es</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        </license>
+	<license>
+		<name>Apache License, Version 2.0</name>
+		<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+	</license>
     </licenses>
     <organization>
-        <name>BSC</name>
-        <url>http://www.bsc.es</url>
+	<name>BSC</name>
+	<url>http://www.bsc.es</url>
     </organization>
 
-    <!-- DEPENDENCIES -->
-    <dependencies>
-        <!-- COMPSs dependencies -->
-        <!-- Common classes for the Comm Agent communications -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-agent-comm-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<!-- COMPSs dependencies -->
+		<!-- Common classes for the Comm Agent communications -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-agent-comm-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-agent-comm-master</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-nio-commons</artifactId>
-        </dependency>
-                 
-        <!-- Agent interface -->                 
-        <!-- Common classes for the all agents -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-agent-commons</artifactId>
-        </dependency>
-        
-        <!-- Agent implementation -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-agent-impl</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- Engine classes -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-engine</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- Configuration classes -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-project-schema</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-resources-schema</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- JUnit dependencies -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-agent-comm-master</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-    </dependencies>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-nio-commons</artifactId>
+		</dependency>
 
-    <!-- BUILD -->
-    <build>
-        <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <!-- Compile Java code -->
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
+		<!-- Agent interface -->
+		<!-- Common classes for the all agents -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-agent-commons</artifactId>
+		</dependency>
 
-            <!-- Copy dependencies into lib folder -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy</id>
-                        <phase>packaging</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <silent>true</silent>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+		<!-- Agent implementation -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-agent-impl</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
-            <!-- Create jar with dependencies -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>${project.artifactId}</finalName>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+		<!-- Engine classes -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-engine</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
-            <!--Copy compss-adaptors-agent-comm-worker.jar to adaptor basedir -->
-            <plugin>
-		<artifactId>maven-resources-plugin</artifactId>
-		<version>${maven-resources-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>copy-final-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.build.directory}</directory>
-                                    <includes>
-                                        <include>${project.artifactId}.jar</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-			
-            <!-- Remove final *.jar from project basedir -->
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>${maven-clean-plugin.version}</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${basedir}</directory>
-                            <includes>
-                                <include>${project.artifactId}.jar</include>
-                                <include>dependency-reduced-pom.xml</include>
-                            </includes>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+		<!-- Configuration classes -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-project-schema</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-resources-schema</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<!-- Compile Java code -->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+			</plugin>
+
+			<!-- Copy dependencies into lib folder -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>packaging</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<silent>true</silent>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Create jar with dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<finalName>${project.artifactId}</finalName>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--Copy compss-adaptors-agent-comm-worker.jar to adaptor basedir -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>copy-final-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}</directory>
+									<includes>
+										<include>${project.artifactId}.jar</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Remove final *.jar from project basedir -->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>${maven-clean-plugin.version}</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${basedir}</directory>
+							<includes>
+								<include>${project.artifactId}.jar</include>
+								<include>dependency-reduced-pom.xml</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

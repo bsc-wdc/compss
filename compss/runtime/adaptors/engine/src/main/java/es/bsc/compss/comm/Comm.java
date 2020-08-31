@@ -46,7 +46,6 @@ import es.bsc.distrostreamlib.server.DistroStreamServer;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -671,11 +670,7 @@ public class Comm {
             return;
         }
 
-        try {
-            Classpath.loadPath(compssHome + ADAPTORS_REL_PATH, LOGGER);
-        } catch (FileNotFoundException ex) {
-            LOGGER.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
-        }
+        Classpath.loadJarsInPath(compssHome + ADAPTORS_REL_PATH, LOGGER);
     }
 
 }

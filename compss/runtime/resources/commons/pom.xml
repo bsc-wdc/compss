@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
     <artifactId>compss-resources-commons</artifactId>
@@ -13,179 +13,172 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <!-- PROJECT INFORMATION -->
-    <name>COMPSs Resource Management Commons</name>
-    <description>Commons types and utilities for the Resource Management in the COMPSs Framework</description>
-    <url>http://www.bsc.es</url>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        </license>
-    </licenses>
-    <organization>
-        <name>BSC</name>
-        <url>http://www.bsc.es</url>
-    </organization>
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Resource Management Commons</name>
+	<description>Commons types and utilities for the Resource Management in the COMPSs Framework</description>
+	<url>http://www.bsc.es</url>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
 
-    <!-- DEPENDENCIES -->
-    <dependencies>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-commons</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-local-master</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-resources-schema</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-project-schema</artifactId>
-        </dependency>
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-commons</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-engine</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-local-master</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-resources-schema</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-project-schema</artifactId>
+		</dependency>
+		<!-- Log4j -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+		<!-- SSH -->
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+		</dependency>
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
-        <!-- Log4j -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-        </dependency>
 
-        <!-- SSH -->
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-        </dependency>
-        
-        <!-- jUnit -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<!-- Compile Java code -->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+			</plugin>
 
-    
-    <!-- BUILD -->
-    <build>
-        <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <!-- Compile Java code -->
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
+			<!-- Copy dependencies into lib folder -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>packaging</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<silent>true</silent>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-            <!-- Copy dependencies into lib folder -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy</id>
-                        <phase>packaging</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <silent>true</silent>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<!-- Create jar with dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<finalName>${project.artifactId}</finalName>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-            <!-- Create jar with dependencies -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>${project.artifactId}</finalName>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<!--Copy jar file to adaptor basedir -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>copy-final-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}</directory>
+									<includes>
+										<include>${project.artifactId}.jar</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-            <!--Copy jar file to adaptor basedir -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>copy-final-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.build.directory}</directory>
-                                    <includes>
-                                        <include>${project.artifactId}.jar</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-			
-            <!-- Remove final *.jar from project basedir -->
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>${maven-clean-plugin.version}</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${basedir}</directory>
-                            <includes>
-                                <include>${project.artifactId}.jar</include>
-                                <include>dependency-reduced-pom.xml</include>
-                            </includes>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-            
-            <!-- Run unit tests-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <reuseForks>false</reuseForks>
-                    <forkCount>1</forkCount>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+			<!-- Remove final *.jar from project basedir -->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>${maven-clean-plugin.version}</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${basedir}</directory>
+							<includes>
+								<include>${project.artifactId}.jar</include>
+								<include>dependency-reduced-pom.xml</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+
+			<!-- Run unit tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${maven-surefire-plugin.version}</version>
+				<configuration>
+					<reuseForks>false</reuseForks>
+					<forkCount>1</forkCount>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

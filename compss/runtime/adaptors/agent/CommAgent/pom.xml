@@ -16,7 +16,9 @@
 
     <!-- PROJECT INFORMATION -->
     <name>COMPSs Back-end Comm Agent Adaptor</name>
-    <description>COMPSs Back-end adaptor using the COMPSs runtime as an agent with interaction through the Comm library.</description>
+    <description>COMPSs Back-end adaptor using the COMPSs runtime as an agent with interaction through the Comm
+        library.
+    </description>
     <url>http://www.bsc.es</url>
     <inceptionYear>2015</inceptionYear>
     <licenses>
@@ -44,6 +46,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
     <!-- SUB-MODULES -->
     <modules>
         <module>commons</module>

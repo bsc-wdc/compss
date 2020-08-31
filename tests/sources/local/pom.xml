@@ -33,7 +33,8 @@
 
     <!-- PROPERTIES -->
     <properties>
-        <jaxws.version>2.2.10</jaxws.version>
+        <jaxb.version>2.3.3</jaxb.version>
+        <jaxws.version>2.3.3</jaxws.version>
     </properties>
 
     <!-- DEPENDENCIES MANAGEMENT -->
@@ -59,10 +60,28 @@
                 <artifactId>compss-scheduler-commons</artifactId>
                 <version>${compss.version}</version>
             </dependency>
+
+            <!-- JAXB AND JAXWS -->
+            <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>${jaxws.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>jaxws-rt</artifactId>
                 <version>${jaxws.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>${jaxb.version}</version>
+                <scope>runtime</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -191,8 +210,8 @@
         <module>autoparallel</module>
         <module>c</module>
         <module>cloud</module>
-	<module>fault_tolerance</module>
-	<module>gat</module>
+        <module>fault_tolerance</module>
+        <module>gat</module>
         <module>java</module>
         <module>performance</module>
         <module>pscos</module>

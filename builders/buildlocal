@@ -791,7 +791,7 @@ install_compss() {
     echo "- c-binaries added to user profile"
     echo " "
     echo "- Adding binding-common to profile..."   # Needed for jupyter notebook
-    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/jre/lib/amd64/server" >> $envFile
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/lib/amd64/server:\$JAVA_HOME/jre/lib/amd64/server" >> $envFile
     echo "- binding-common library added to user profile"
     echo " "
     # Instead of importing it in the envFile, it is done with softlinks from site-packages in both python2 a python3 (if available) on the installation

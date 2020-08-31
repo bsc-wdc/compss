@@ -35,6 +35,7 @@
         <jersey.version>2.26</jersey.version>
         <jetty.version>9.4.3.v20170317</jetty.version>
     </properties>
+
     <!-- SUB-MODULES -->
     <modules>
         <module>commons</module>

@@ -34,7 +34,7 @@
         <compss-ide.version>2.0.0</compss-ide.version>
         <maven-plugin-api.version>2.0</maven-plugin-api.version>
         <maven-project.version>2.0</maven-project.version>
-        <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
+        <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
     </properties>
 
 
@@ -57,22 +57,9 @@
                 <artifactId>maven-project</artifactId>
                 <version>${maven-project.version}</version>
             </dependency>
-
-            <!-- Log4j -->
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>${log4j.version}</version>
-            </dependency>
-
-            <!-- JUNIT -->
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>es.bsc.compss.ide.core</groupId>
@@ -94,7 +81,7 @@
             <artifactId>log4j-core</artifactId>
         </dependency>
 
-        <!-- JUNIT -->
+        <!-- JUnit -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -109,6 +96,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>${maven-plugin-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
             </plugin>
         </plugins>
     </build>

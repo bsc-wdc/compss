@@ -20,6 +20,7 @@ package es.bsc.compss.util;
  * Representation of a tracing event.
  */
 public enum TraceEvent {
+
     STATIC_IT(1, Tracer.API_EVENTS, "Loading Runtime"), // Static COMPSs
     START(2, Tracer.API_EVENTS, "Start"), // Start
     STOP(3, Tracer.API_EVENTS, "Stop"), // Stop
@@ -216,6 +217,7 @@ public enum TraceEvent {
 
     // Other
     READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count"); // Ready count
+
 
     private final int id;
     private final int type;

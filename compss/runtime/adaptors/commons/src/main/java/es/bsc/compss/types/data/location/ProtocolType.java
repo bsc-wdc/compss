@@ -20,6 +20,7 @@ package es.bsc.compss.types.data.location;
  * Supported Protocols.
  */
 public enum ProtocolType {
+
     FILE_URI("file://"), // File protocol
     DIR_URI("dir://"), // Directory protocol
     SHARED_URI("shared://"), // Shared protocol
@@ -29,6 +30,7 @@ public enum ProtocolType {
     PERSISTENT_URI("storage://"), // Persistent protocol
     BINDING_URI("binding://"), // Binding protocol
     ANY_URI("any://"); // Other
+
 
     private final String schema;
 

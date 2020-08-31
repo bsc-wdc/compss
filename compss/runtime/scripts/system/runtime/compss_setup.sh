@@ -213,7 +213,8 @@ ${jvm_master_opts}
 -XX:-UsePerfData
 -XX:+UseG1GC
 -XX:+UseThreadPriorities
--XX:ThreadPriorityPolicy=42
+-XX:ThreadPriorityPolicy=0
+-javaagent:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.to.file=false
 -Dcompss.appName=${appName}
 -Dcompss.uuid=${uuid}

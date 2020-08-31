@@ -439,7 +439,7 @@ def create_init_config_file(compss_home,                    # type: str
     jvm_options_file.write('-XX:-UsePerfData\n')
     jvm_options_file.write('-XX:+UseG1GC\n')
     jvm_options_file.write('-XX:+UseThreadPriorities\n')
-    jvm_options_file.write('-XX:ThreadPriorityPolicy=42\n')
+    jvm_options_file.write('-XX:ThreadPriorityPolicy=0\n')
     conf_file_key = '-Dlog4j.configurationFile='
     if debug or log_level == 'debug':
         jvm_options_file.write(conf_file_key +

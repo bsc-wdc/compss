@@ -26,7 +26,7 @@
     -XX:-UsePerfData \
     -XX:+UseG1GC \
     -XX:+UseThreadPriorities \
-    -XX:ThreadPriorityPolicy=42 \
+    -XX:ThreadPriorityPolicy=0 \
     -Dlog4j.configurationFile="$runtimeInstDir"/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
     -Dcompss.to.file=true \
     -Dcompss.is.ws="$isWs" \

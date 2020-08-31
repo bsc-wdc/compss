@@ -65,13 +65,7 @@ public class CloudManager {
             RUNTIME_LOGGER.warn(WARN_NO_COMPSS_HOME);
         } else {
             String connPath = compssHome + CONNECTORS_REL_PATH;
-            try {
-                Classpath.loadPath(connPath, RUNTIME_LOGGER);
-            } catch (FileNotFoundException fnfe) {
-                ErrorManager.warn("Connector jar " + connPath + " not found.");
-                RESOURCES_LOGGER.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
-                RUNTIME_LOGGER.warn(WARN_NO_CONNECTORS_FOLDER);
-            }
+            Classpath.loadJarsInPath(connPath, RUNTIME_LOGGER);
         }
     }
 

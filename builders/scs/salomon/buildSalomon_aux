@@ -27,7 +27,7 @@
   # SET SCRIPT VARIABLES
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+  
   # DEFINE MODULES
   modules="GCCcore/8.3.0 libxml2/2.9.9 binutils/2.32-GCCcore-8.3.0 bzip2/1.0.6 zlib/1.2.11 OpenMPI/3.1.5-GCCcore-8.3.0 boost-1.72.0-gcc-8.3.0-weqcjtk Java/1.8.0_202"
   unload_before_python="ignore"

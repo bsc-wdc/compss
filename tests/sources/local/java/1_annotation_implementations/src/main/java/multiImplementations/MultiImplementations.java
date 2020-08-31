@@ -14,7 +14,7 @@ import mpi.MPI;
 
 public class MultiImplementations {
 
-    private static final int SLEEP_WAIT_FOR_RUNTIME = 4_000; // ms
+    private static final int SLEEP_WAIT_FOR_RUNTIME = 20_000; // ms
     private static final int NUM_TESTS = 5;
     private static final String FILE_NAME = "counterFile_";
 

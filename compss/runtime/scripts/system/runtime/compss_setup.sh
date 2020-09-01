@@ -225,9 +225,14 @@ EOT
 
 
 prepare_coverage() {
-    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];
-        then jvm_master_opts="-javaagent:${jacoco_agent_expression}"
-        else jvm_master_opts+=", -javaagent:${jacoco_agent_expression}"
+    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];then 
+	    jvm_master_opts="-javaagent:${jacoco_agent_expression}"
+    else 
+	   if [[ $jvm_master_opts == *"-agentpath"* ]] || [[ $jvm_master_opts == *"-javaagent"* ]]; then
+		   echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
+	   else
+		   jvm_master_opts+=", -javaagent:${jacoco_agent_expression}"
+	   fi
     fi
     IFS='#'
     aux=$jacoco_agent_expression
@@ -252,14 +257,17 @@ prepare_coverage() {
         final2+="${i},"
     done
     final2=${final2%?}
-    if [ -z "$options" ]
-    then
-        jvm_workers_opts+=",-javaagent:${final2}"
+    if [[ $jvm_worker_opts == *"-agentpath"* ]] || [[ $jvm_worker_opts == *"-javaagent"* ]]; then
+	    echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
     else
-        jvm_workers_opts+=",-javaagent:${final2}#${options}"
+	    if [ -z "$options" ]; then
+		    jvm_workers_opts+=",-javaagent:${final2}"
+	    else
+		    jvm_workers_opts+=",-javaagent:${final2}#${options}"
+    	    fi
+             jvm_master_opts=$(echo $jvm_master_opts | tr "#" ",")
+             jvm_master_opts=$(echo $jvm_master_opts | tr "@" ",")
     fi
-    jvm_master_opts=$(echo $jvm_master_opts | tr "#" ",")
-    jvm_master_opts=$(echo $jvm_master_opts | tr "@" ",")
     destfile=${location}
     IFS='='
     read -ra ADDR <<< ${location}

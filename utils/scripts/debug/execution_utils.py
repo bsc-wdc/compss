@@ -12,6 +12,7 @@ from data_utils import DataRegister
 from task_utils import TaskRegister
 from action_utils import JobRegister
 from resource_utils import ResourceRegister
+from connection_utils import ConnectionRegister
 
 import sys
 
@@ -50,6 +51,7 @@ class ExecutionState:
         self.resources = ResourceRegister()
         self.jobs = JobRegister()
         self.data = DataRegister()
+        self.connections = ConnectionRegister()
         self.main_access = None
 
     def main_accesses_data(self, data_id, timestamp):
@@ -90,6 +92,38 @@ class ExecutionState:
             for resource in sorted(resources, key=lambda resource: resource.name):
                 name = resource.name
                 print(name + (((max_length - len(name)) + 3) * " ") + str(len(resource.hosts)))
+
+    def query_connection(self, query):
+        """
+
+        :param query:
+        """
+        if len(query) > 0:
+            if all(char.isdigit() for char in query[0]):
+                connection_id = query[0]
+                connection = self.connections.get_connection(connection_id)
+                if connection is None:
+                    print("Runtime has no information regarding connection " + connection_id + ".", file=sys.stderr)
+                else:
+                    print("-------- Connection ------")
+                    print("Id: " + connection.connection_id)
+                    print("Socket Id: " + str(connection.socket_id))
+                    print("Current Stage: "+str(connection.current_stage.name))
+                    
+                    print("Enqueued Stages: ")
+                    for stage in connection.get_stages():
+                        print("\t "+stage.name)
+                    print("Connection History:")
+                    for entry in connection.get_history():
+                        print("\t "+entry[0]+" -> "+entry[1])
+            else:
+                print("Unknown job sub-command "+query[0], file=sys.stderr)
+        else:
+            print("-------- Connections ------")
+            print("Connection ID\tStatus")
+            connections = self.connections.get_connections()
+            for connection in sorted(connections, key=lambda connection: int(connection.connection_id)):
+                print(connection.connection_id+"\t"+str(connection.status))
 
     def query_job(self, query):
         """

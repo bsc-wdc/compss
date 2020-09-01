@@ -132,7 +132,7 @@
     "pycompss.streams.distro_stream":                       { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.streams.types.requests":                      { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.streams.components.distro_stream_client":     { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
-    "pycompss.streams.components.objects.kafka_connectors": { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.streams.components.objects.kafka_connectors": { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" }
 
   },
   "root": {

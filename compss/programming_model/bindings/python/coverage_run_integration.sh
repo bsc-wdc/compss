@@ -6,10 +6,12 @@
 
   # Run a coverage report for a module
   run() {
-    coverage run --source="src/pycompss" \
+    # -a appends this coverage to the one produced by coverage_run.sh
+    coverage run -a \
+                 --source="src/pycompss" \
                  --omit="/usr/lib/*" \
                  --omit="src/pycompss/api/tests_parallel/*" \
-                 nose_tests.py False
+                 nose_tests.py True
                  # --omit="src/pycompss/util/translators/*" \
     coverage report -m
   }

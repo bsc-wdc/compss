@@ -23,78 +23,97 @@ import sys
 from nose.plugins.base import Plugin
 
 
+DIRECTORIES_WHITE_LIST = [
+    'src',
+    'pycompss',
+    'pycompss/tests',
+    'pycompss/tests/api',
+    'pycompss/tests/api/commons',
+    'pycompss/tests/functions',
+    'pycompss/tests/runtime',
+    'pycompss/tests/util',
+    'pycompss/tests/worker',
+    # ############ @parallel related ############ #
+    'pycompss/api',
+    'pycompss/util',
+    'pycompss/util/translators',
+    'pycompss/util/translators/code_loader',
+    'pycompss/util/translators/code_replacer',
+    'pycompss/util/translators/py2pycompss',
+    'pycompss/util/translators/py2scop',
+    'pycompss/util/translators/scop2pscop2py',
+    'pycompss/util/translators/scop_types',
+    'pycompss/util/translators/scop_types/scop',
+    'pycompss/util/translators/scop_types/scop/extensions',
+    'pycompss/util/translators/scop_types/scop/globl',
+    'pycompss/util/translators/scop_types/scop/globl/parameters',
+    'pycompss/util/translators/scop_types/scop/statement'
+]
+FILES_WHITE_LIST = [
+    # Include all tests that check only the sources.
+    # (Do not include tests that use the installed runtime. Use
+    # INTEGRATION_WHITE_LIST instead of this)
+    'pycompss/tests/api/test_api.py',
+    'pycompss/tests/api/test_binary.py',
+    'pycompss/tests/api/test_compss.py',
+    'pycompss/tests/api/test_constraint.py',
+    'pycompss/tests/api/test_decaf.py',
+    'pycompss/tests/api/test_decorator.py',
+    'pycompss/tests/api/test_err_msgs.py',
+    'pycompss/tests/api/test_exceptions.py',
+    'pycompss/tests/api/test_implement.py',
+    'pycompss/tests/api/test_io.py',
+    'pycompss/tests/api/test_local.py',  # blacklisted
+    'pycompss/tests/api/test_mpi.py',
+    'pycompss/tests/api/test_multinode.py',
+    'pycompss/tests/api/test_ompss.py',
+    'pycompss/tests/api/test_opencl.py',
+    'pycompss/tests/api/test_information.py',
+    'pycompss/tests/functions/test_data.py',
+    'pycompss/tests/functions/test_elapsed_time.py',
+    'pycompss/tests/functions/test_reduce.py',
+    'pycompss/tests/runtime/test_object_tracker.py',
+    # # ############ @parallel related ############ #
+    'pycompss/api/parallel.py',
+    'pycompss/util/translators/code_loader/code_loader.py',
+    'pycompss/util/translators/code_replacer/code_replacer.py',
+    'pycompss/util/translators/py2pycompss/translator_py2pycompss.py',
+    'pycompss/util/translators/py2scop/translator_py2scop.py',
+    'pycompss/util/translators/scop2pscop2py/translator_scop2pscop2py.py',
+    'pycompss/util/translators/scop_types/scop_class.py',
+    'pycompss/util/translators/scop_types/scop/statement_class.py',
+    'pycompss/util/translators/scop_types/scop/extensions/coordinates_class.py',
+    'pycompss/util/translators/scop_types/scop/extensions/scatnames_class.py',
+    'pycompss/util/translators/scop_types/scop/extensions/arrays_class.py',
+    'pycompss/util/translators/scop_types/scop/global_class.py',
+    'pycompss/util/translators/scop_types/scop/globl/parameters/parameter_class.py',
+    'pycompss/util/translators/scop_types/scop/globl/parameters_class.py',
+    'pycompss/util/translators/scop_types/scop/globl/context_class.py',
+    'pycompss/util/translators/scop_types/scop/statement/statement_extension_class.py',
+    'pycompss/util/translators/scop_types/scop/statement/relation_class.py',
+    'pycompss/util/translators/scop_types/scop/extensions_class.py'
+]
+FILES_BLACK_LIST = [
+    'pycompss/tests/api/test_local.py',  # fails due to replace util.
+]
+INTEGRATION_WHITE_LIST = [
+    # Include here all tests that require the runtime installed
+    'pycompss/tests/runtime/test_launch_application.py',  # uses the installation
+]
+
+
 class ExtensionPlugin(Plugin):
+
     name = "ExtensionPlugin"
-    directories_white_list = [
-        'src',
-        'pycompss',
-        'pycompss/tests',
-        'pycompss/tests/api',
-        'pycompss/tests/api/commons',
-        'pycompss/tests/functions',
-        'pycompss/tests/runtime',
-        'pycompss/tests/util',
-        'pycompss/tests/worker',
-        # ############ @parallel related ############ #
-        'pycompss/api',
-        'pycompss/util',
-        'pycompss/util/translators',
-        'pycompss/util/translators/code_loader',
-        'pycompss/util/translators/code_replacer',
-        'pycompss/util/translators/py2pycompss',
-        'pycompss/util/translators/py2scop',
-        'pycompss/util/translators/scop2pscop2py',
-        'pycompss/util/translators/scop_types',
-        'pycompss/util/translators/scop_types/scop',
-        'pycompss/util/translators/scop_types/scop/extensions',
-        'pycompss/util/translators/scop_types/scop/globl',
-        'pycompss/util/translators/scop_types/scop/globl/parameters',
-        'pycompss/util/translators/scop_types/scop/statement'
-    ]
-    files_white_list = [
-        'pycompss/tests/api/test_api.py',
-        'pycompss/tests/api/test_binary.py',
-        'pycompss/tests/api/test_compss.py',
-        'pycompss/tests/api/test_constraint.py',
-        'pycompss/tests/api/test_decaf.py',
-        'pycompss/tests/api/test_decorator.py',
-        'pycompss/tests/api/test_err_msgs.py',
-        'pycompss/tests/api/test_exceptions.py',
-        'pycompss/tests/api/test_implement.py',
-        'pycompss/tests/api/test_io.py',
-        'pycompss/tests/api/test_mpi.py',
-        'pycompss/tests/api/test_multinode.py',
-        'pycompss/tests/api/test_ompss.py',
-        'pycompss/tests/api/test_opencl.py',
-        'pycompss/tests/api/test_information.py',
-        'pycompss/tests/functions/test_data.py',
-        'pycompss/tests/functions/test_elapsed_time.py',
-        'pycompss/tests/functions/test_reduce.py',
-        'pycompss/tests/runtime/test_launch_application.py',   # uses the installation
-        'pycompss/tests/runtime/test_object_tracker.py',
-        # # ############ @parallel related ############ #
-        'pycompss/api/parallel.py',
-        'pycompss/util/translators/code_loader/code_loader.py',
-        'pycompss/util/translators/code_replacer/code_replacer.py',
-        'pycompss/util/translators/py2pycompss/translator_py2pycompss.py',
-        'pycompss/util/translators/py2scop/translator_py2scop.py',
-        'pycompss/util/translators/scop2pscop2py/translator_scop2pscop2py.py',
-        'pycompss/util/translators/scop_types/scop_class.py',
-        'pycompss/util/translators/scop_types/scop/statement_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions/coordinates_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions/scatnames_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions/arrays_class.py',
-        'pycompss/util/translators/scop_types/scop/global_class.py',
-        'pycompss/util/translators/scop_types/scop/globl/parameters/parameter_class.py',
-        'pycompss/util/translators/scop_types/scop/globl/parameters_class.py',
-        'pycompss/util/translators/scop_types/scop/globl/context_class.py',
-        'pycompss/util/translators/scop_types/scop/statement/statement_extension_class.py',
-        'pycompss/util/translators/scop_types/scop/statement/relation_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions_class.py'
-    ]
-    files_black_list = [
-        'pycompss/tests/api/test_local.py',  # fails due to replace util.
-    ]
+
+    def __init__(self, integration=False):
+        super(ExtensionPlugin, self).__init__()
+        if integration:
+            self.files_white_list = INTEGRATION_WHITE_LIST
+        else:
+            self.files_white_list = FILES_WHITE_LIST
+        self.directories_white_list = DIRECTORIES_WHITE_LIST
+        self.files_black_list = FILES_BLACK_LIST
 
     def options(self, parser, env):
         Plugin.options(self, parser, env)
@@ -103,35 +122,33 @@ class ExtensionPlugin(Plugin):
         Plugin.configure(self, options, config)
         self.enabled = True
 
-    @classmethod
-    def wantFile(cls, file):
+    def wantFile(self, file):  # noqa
         print("FILE: " + str(file))
         # Check that is a python file
         if file.endswith('.py'):
             # Check that is white-listed
-            for white_file in ExtensionPlugin.files_white_list:
-                if file.endswith(white_file):
+            for white_file in self.files_white_list:
+                if white_file not in self.files_black_list and file.endswith(white_file):
                     print("Testing File: " + str(file))
                     return True
         # Does not match any pattern
         return False
 
-    @classmethod
-    def wantDirectory(cls, directory):
+    def wantDirectory(self, directory):  # noqa
         # Check that the directory is white-listed
-        for white_dir in ExtensionPlugin.directories_white_list:
+        for white_dir in self.directories_white_list:
             if directory.endswith(white_dir):
                 return True
         # Does not match any pattern
         return False
 
-    @classmethod
-    def wantModule(cls, file):
+    def wantModule(self, file):  # noqa
         print("MODULE: " + str(file))
         return True
 
 
 if __name__ == '__main__':
+    do_integration_tests = sys.argv.pop() == "True"
     includeDirs = ["-w", "."]
-    nose.main(addplugins=[ExtensionPlugin()],
+    nose.main(addplugins=[ExtensionPlugin(integration=do_integration_tests)],
               argv=sys.argv.extend(includeDirs))

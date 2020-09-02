@@ -858,6 +858,10 @@ class TaskMaster(TaskCommons):
             if get_ce_signature() is None:
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
+            elif get_ce_signature() != impl_signature:
+                set_ce_signature(impl_signature)
+                set_impl_signature(impl_signature)
+                set_impl_type_args(impl_type_args)
             else:
                 # If we are here that means that we come from an implements
                 # decorator, which means that this core element has already

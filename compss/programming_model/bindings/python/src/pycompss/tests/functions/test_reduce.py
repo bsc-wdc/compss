@@ -42,4 +42,3 @@ def test_merge_n_reduce():
     result = merge_n_reduce(accumulate, 5, data)
 
     assert result == 55, "ERROR: Got unexpected result with merge_n_reduce."
-

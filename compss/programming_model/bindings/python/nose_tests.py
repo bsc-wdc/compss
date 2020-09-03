@@ -30,6 +30,7 @@ DIRECTORIES_WHITE_LIST = [
     'pycompss/tests/api',
     'pycompss/tests/api/commons',
     'pycompss/tests/functions',
+    'pycompss/tests/integration',
     'pycompss/tests/runtime',
     'pycompss/tests/util',
     'pycompss/tests/worker',
@@ -98,7 +99,8 @@ FILES_BLACK_LIST = [
 ]
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed
-    'pycompss/tests/runtime/test_launch_application.py',  # uses the installation
+    'pycompss/tests/integration/test_launch_application.py',
+    'pycompss/tests/integration/test_launch_synthetic_application.py',
 ]
 
 

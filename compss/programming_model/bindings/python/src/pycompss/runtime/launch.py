@@ -426,7 +426,7 @@ def launch_pycompss_application(app,
     ##############################################################
 
     # Runtime start
-    compss_start(log_level, all_vars['trace'], False)
+    compss_start(log_level, all_vars['trace'], True)
 
     # Setup logging
     binding_log_path = get_log_path()

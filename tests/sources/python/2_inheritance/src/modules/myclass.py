@@ -34,9 +34,15 @@ class myClass(object):
         return self.value
 
 class inheritedClass(myClass):
-    pass
+
+    def __init__(self):
+        super(inheritedClass, self).__init__()
 
 class inheritedClassWithOverride(myClass):
+
+    def __init__(self):
+        super(inheritedClassWithOverride, self).__init__()
+
     @task(returns = int)
     def increment_non_modifier(self, v):
         print("self.value: ", self.value)
@@ -55,6 +61,10 @@ class inheritedClassWithOverride(myClass):
         return 2 * (cls.static_value + v)
 
 class inheritedClassExtended(myClass):
+
+    def __init__(self):
+        super(inheritedClassExtended, self).__init__()
+
     @task(returns = int)
     def multiplier_non_modifier(self, v):
         print("self.value: ", self.value)
@@ -73,6 +83,10 @@ class inheritedClassExtended(myClass):
         return cls.static_value * v
 
 class inheritedClassMultilevelOverridedExtended(inheritedClassWithOverride):
+
+    def __init__(self):
+        super(inheritedClassMultilevelOverridedExtended, self).__init__()
+
     @task(returns = int)
     def divider_non_modifier(self, v):
         print("self.value: ", self.value)

@@ -28,7 +28,11 @@ import logging
 import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import Future
-from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.management.object_tracker import OT_is_tracked
+from pycompss.runtime.management.object_tracker import OT_get_file_name
+from pycompss.runtime.management.object_tracker import OT_stop_tracking
+from pycompss.runtime.management.object_tracker import OT_update_mapping
+from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
@@ -80,7 +84,7 @@ def _synchronize(obj, mode):
     app_id = 0
     if is_psco(obj):
         obj_id = get_id(obj)
-        if not OT.is_pending_to_synchronize(obj_id):
+        if not OT_is_pending_to_synchronize(obj_id):
             return obj
         else:
             # file_path is of the form storage://pscoId or
@@ -93,16 +97,16 @@ def _synchronize(obj, mode):
             new_obj = get_by_id(file_name)
             return new_obj
 
-    obj_id = OT.is_tracked(obj)
+    obj_id = OT_is_tracked(obj)
     if obj_id is None:  # Not being tracked
         return obj
-    if not OT.is_pending_to_synchronize(obj_id):
+    if not OT_is_pending_to_synchronize(obj_id):
         return obj
 
     if __debug__:
         logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
-    file_name = OT.get_file_name(obj_id)
+    file_name = OT_get_file_name(obj_id)
     compss_file = COMPSs.open_file(app_id, file_name, mode)
 
     # Runtime can return a path or a PSCOId
@@ -121,11 +125,11 @@ def _synchronize(obj, mode):
         new_obj = get_by_id(compss_file)
 
     if mode == 'r':
-        OT.update_mapping(obj_id, new_obj)
+        OT_update_mapping(obj_id, new_obj)
 
     if mode != 'r':
-        COMPSs.delete_file(app_id, OT.get_file_name(obj_id), False)
-        OT.stop_tracking(obj)
+        COMPSs.delete_file(app_id, OT_get_file_name(obj_id), False)
+        OT_stop_tracking(obj)
 
     return new_obj
 
@@ -140,8 +144,8 @@ def _wait_on_iterable(iter_obj, compss_mode):
     :return: Synchronized object.
     """
     # check if the object is in our pending_to_synchronize dictionary
-    obj_id = OT.is_tracked(iter_obj)
-    if OT.is_pending_to_synchronize(obj_id):
+    obj_id = OT_is_tracked(iter_obj)
+    if OT_is_pending_to_synchronize(obj_id):
         return _synchronize(iter_obj, compss_mode)
     else:
         if type(iter_obj) == list:

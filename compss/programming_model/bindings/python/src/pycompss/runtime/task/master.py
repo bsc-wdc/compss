@@ -38,7 +38,27 @@ from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_object_conversion
-from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.constants import EXTRACT_CORE_ELEMENT
+from pycompss.runtime.constants import INSPECT_FUNCTION_ARGUMENTS
+from pycompss.runtime.constants import PROCESS_PARAMETERS
+from pycompss.runtime.constants import GET_FUNCTION_INFORMATION
+from pycompss.runtime.constants import PREPARE_CORE_ELEMENT
+from pycompss.runtime.constants import GET_FUNCTION_SIGNATURE
+from pycompss.runtime.constants import UPDATE_CORE_ELEMENT
+from pycompss.runtime.constants import GET_COMPUTING_NODES
+from pycompss.runtime.constants import PROCESS_RETURN
+from pycompss.runtime.constants import PROCESS_OTHER_ARGUMENTS
+from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
+from pycompss.runtime.constants import SERIALIZE_OBJECTS
+from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
+from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
+from pycompss.runtime.management.object_tracker import OT_track
+from pycompss.runtime.management.object_tracker import OT_set_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import OT_is_tracked
+from pycompss.runtime.management.object_tracker import OT_get_file_name
+from pycompss.runtime.management.object_tracker import OT_has_been_written
+from pycompss.runtime.management.object_tracker import OT_pop_written_obj
+from pycompss.runtime.management.object_tracker import OT_stop_tracking
 from pycompss.runtime.task.commons import TaskCommons
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.parameter import Parameter
@@ -70,6 +90,7 @@ from pycompss.util.objects.properties import get_wrapped_source
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
+from pycompss.util.tracing.helpers import event
 
 import logging
 logger = logging.getLogger(__name__)
@@ -226,30 +247,38 @@ class TaskMaster(TaskCommons):
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
-        pre_defined_ce = self.extract_core_element(kwargs)
+        with event(EXTRACT_CORE_ELEMENT, master=True):
+            pre_defined_ce = self.extract_core_element(kwargs)  # noqa: E501
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
         # and self.param_defaults. And gives non-None default
         # values to them if necessary
-        self.inspect_user_function_arguments()
+        with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
+            self.inspect_user_function_arguments()
 
         # Process the parameters, give them a proper direction
-        self.process_parameters(*args, **kwargs)
+        with event(PROCESS_PARAMETERS, master=True):
+            self.process_parameters(*args, **kwargs)
 
         # Compute the function path, class (if any), and name
-        self.compute_user_function_information()
+        with event(GET_FUNCTION_INFORMATION, master=True):
+            self.compute_user_function_information()
 
         # Prepare the core element registration information
-        self.set_code_strings(self.user_function,
-                              self.core_element.get_impl_type())
-        impl_signature, impl_type_args = self.get_signature()
+        with event(PREPARE_CORE_ELEMENT, master=True):
+            self.set_code_strings(self.user_function,
+                                  self.core_element.get_impl_type())
+        with event(GET_FUNCTION_SIGNATURE, master=True):
+            impl_signature, impl_type_args = self.get_signature()
+
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
         if not self.registered or self.signature != impl_signature:
-            self.update_core_element(impl_signature, impl_type_args,
-                                     pre_defined_ce)
+            with event(UPDATE_CORE_ELEMENT, master=True):
+                self.update_core_element(impl_signature, impl_type_args,
+                                         pre_defined_ce)
             self.register_task()
             self.registered = True
             self.signature = impl_signature
@@ -263,67 +292,70 @@ class TaskMaster(TaskCommons):
             return None, self.core_element, self.registered, self.signature
 
         # Deal with dynamic computing nodes
-        computing_nodes = self.process_computing_nodes()
+        with event(GET_COMPUTING_NODES, master=True):
+            computing_nodes = self.process_computing_nodes()
 
         # Deal with the return part.
-        self.add_return_parameters()
-        if not self.returns:
-            self.update_return_if_no_returns(self.user_function)
+        with event(PROCESS_RETURN, master=True):
+            self.add_return_parameters()
+            if not self.returns:
+                self.update_return_if_no_returns(self.user_function)
 
         # Get other arguments if exist
         # Get is replicated
-        deco_arg_getter = self.decorator_arguments.get
-        if 'isReplicated' in self.decorator_arguments:
-            is_replicated = deco_arg_getter('isReplicated')
-            logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
-        else:
-            is_replicated = deco_arg_getter('is_replicated')
-        # Get is distributed
-        if 'isDistributed' in self.decorator_arguments:
-            is_distributed = deco_arg_getter('isDistributed')
-            logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
-        else:
-            is_distributed = deco_arg_getter('is_distributed')
-        # Get on failure
-        if 'onFailure' in self.decorator_arguments:
-            on_failure = deco_arg_getter('onFailure')
-            logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
-        else:
-            on_failure = deco_arg_getter('on_failure')
-        # Get time out
-        if 'timeOut' in self.decorator_arguments:
-            time_out = deco_arg_getter('timeOut')
-            logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
-        else:
-            time_out = deco_arg_getter('time_out')
-        # Get priority
-        has_priority = deco_arg_getter('priority')
-
-        # Check if the function is an instance method or a class method.
-        has_target = self.function_type == FunctionType.INSTANCE_METHOD
+        with event(PROCESS_OTHER_ARGUMENTS, master=True):
+            deco_arg_getter = self.decorator_arguments.get
+            if 'isReplicated' in self.decorator_arguments:
+                is_replicated = deco_arg_getter('isReplicated')
+                logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
+            else:
+                is_replicated = deco_arg_getter('is_replicated')
+            # Get is distributed
+            if 'isDistributed' in self.decorator_arguments:
+                is_distributed = deco_arg_getter('isDistributed')
+                logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
+            else:
+                is_distributed = deco_arg_getter('is_distributed')
+            # Get on failure
+            if 'onFailure' in self.decorator_arguments:
+                on_failure = deco_arg_getter('onFailure')
+                logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
+            else:
+                on_failure = deco_arg_getter('on_failure')
+            # Get time out
+            if 'timeOut' in self.decorator_arguments:
+                time_out = deco_arg_getter('timeOut')
+                logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
+            else:
+                time_out = deco_arg_getter('time_out')
+            # Get priority
+            has_priority = deco_arg_getter('priority')
+            # Check if the function is an instance method or a class method.
+            has_target = self.function_type == FunctionType.INSTANCE_METHOD
 
         # Build return objects
-        fo = None
-        num_returns = 0
-        if self.returns:
-            fo = self._build_return_objects()
-            num_returns = len(self.returns)
-
-        # Get path
-        if self.class_name == '':
-            path = self.module_name
-        else:
-            path = ".".join((self.module_name, self.class_name))
+        with event(BUILD_RETURN_OBJECTS, master=True):
+            fo = None
+            num_returns = 0
+            if self.returns:
+                fo = self._build_return_objects()
+                num_returns = len(self.returns)
 
         # Infer COMPSs types from real types, except for files
         self._serialize_objects()
 
         # Build values and COMPSs types and directions
-        vtdsc = self._build_values_types_directions()
-        values, names, compss_types, compss_directions, compss_streams, \
-        compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
+        with event(BUILD_COMPSS_TYPES_DIRECTIONS, master=True):
+            vtdsc = self._build_values_types_directions()
+            values, names, compss_types, compss_directions, compss_streams, \
+            compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
         # Signature and other parameters:
+        # Get path
+        if self.class_name == '':
+            path = self.module_name
+        else:
+            path = ".".join((self.module_name, self.class_name))
         signature = '.'.join((path, self.function_name))
 
         if __debug__:
@@ -353,10 +385,11 @@ class TaskMaster(TaskCommons):
             time_out
         )
 
-        # remove unused attributes from the memory
-        for at in ATTRIBUTES_TO_BE_REMOVED:
-            if hasattr(self, at):
-                delattr(self, at)
+        # Remove unused attributes from the memory
+        with event(ATTRIBUTES_CLEANUP, master=True):
+            for at in ATTRIBUTES_TO_BE_REMOVED:
+                if hasattr(self, at):
+                    delattr(self, at)
 
         # Release the lock
         MASTER_LOCK.release()
@@ -418,9 +451,10 @@ class TaskMaster(TaskCommons):
         IMPORTANT! extract the core element from kwargs if pre-defined
                    in decorators defined on top of @task.
 
-        :return: Boolean if previously created.
+        :return: If previously created and if created in higher level decorator
         """
         pre_defined_ce = False
+        upper_decorator = False
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             self.core_element = kwargs[CORE_ELEMENT_KEY]
@@ -428,13 +462,14 @@ class TaskMaster(TaskCommons):
             # the parameters (process_parameters function).
             kwargs.pop(CORE_ELEMENT_KEY)
             pre_defined_ce = True
+            upper_decorator = True
         elif self.core_element:
             # A core element from previous task calls was saved.
             pre_defined_ce = True
         else:
             # No decorators over @task: instantiate an empty core element.
             self.core_element = CE()
-        return pre_defined_ce
+        return pre_defined_ce, upper_decorator
 
     def inspect_user_function_arguments(self):
         # type: () -> None
@@ -744,17 +779,25 @@ class TaskMaster(TaskCommons):
         """
         # Get the task signature
         # To do this, we will check the frames
-        frames = inspect.getouterframes(inspect.currentframe())
-        # Pop the __register_task and __call__ functions from the frame
-        frames = frames[2:]
-        # Get the application frames
+        # frames = inspect.getouterframes(inspect.currentframe())
         app_frames = []
-        for frame in frames:
-            if frame[3] == 'compss_main':
-                break
-            else:
-                app_frames.append(frame)
-        # Analise the frames
+        # Ignore self.get_signature and call functions from the frame.
+        # Sightly faster than inspect.currentframe().
+        frame = sys._getframe(2)  # noqa
+        try:
+            while frame:
+                # This loop does like inspect.getouterframes(frame)
+                # but it is more efficient since it does only get the needed
+                # information.
+                frame_name = frame.f_code.co_name
+                if frame_name == 'compss_main':
+                    break
+                app_frames.append(frame_name)
+                frame = frame.f_back
+        finally:
+            # Avoid reference cycles
+            del frame
+
         if len(app_frames) == 1:
             # The task is defined within the main app file.
             # This case is never reached with Python 3 since it includes
@@ -781,17 +824,20 @@ class TaskMaster(TaskCommons):
 
     def update_core_element(self, impl_signature, impl_type_args,
                             pre_defined_ce):
-        # type: (str, list, bool) -> None
+        # type: (str, list, tuple) -> None
         """ Adds the @task decorator information to the core element.
 
         CAUTION: Modifies the core_element parameter.
 
         :param impl_signature: Implementation signature.
         :param impl_type_args: Implementation type arguments.
-        :param pre_defined_ce: Boolean if core element contains predefined
-                               fields (done by upper decorators).
+        :param pre_defined_ce: Two boolean (if core element contains predefined
+                               fields and if they have been predefined by
+                               upper decorators).
         :return: None
         """
+        pre_defined_ce, upper_decorator = pre_defined_ce
+
         # Include the registering info related to @task
         impl_type = "METHOD"
         impl_constraints = {}
@@ -817,6 +863,11 @@ class TaskMaster(TaskCommons):
             if get_ce_signature() is None:
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
+            elif get_ce_signature() != impl_signature and not upper_decorator:
+                # Specific for inheritance - not for @implements.
+                set_ce_signature(impl_signature)
+                set_impl_signature(impl_signature)
+                set_impl_type_args(impl_type_args)
             else:
                 # If we are here that means that we come from an implements
                 # decorator, which means that this core element has already
@@ -1154,8 +1205,7 @@ class TaskMaster(TaskCommons):
                     fo = Future()
             else:
                 fo = Future()  # modules, functions, methods
-            obj_id = OT.track(fo)
-            ret_filename = OT.get_file_name(obj_id)
+            obj_id, ret_filename = OT_track(fo)
             self.returns[get_return_name(0)] = \
                 Parameter(content_type=TYPE.FILE,
                           direction=DIRECTION.OUT,
@@ -1182,8 +1232,7 @@ class TaskMaster(TaskCommons):
                 else:
                     foe = Future()  # modules, functions, methods
                 fo.append(foe)
-                obj_id = OT.track(foe)
-                ret_filename = OT.get_file_name(obj_id)
+                obj_id, ret_filename = OT_track(foe)
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return object
                 self.returns[k] = Parameter(content_type=TYPE.FILE,
@@ -1203,23 +1252,24 @@ class TaskMaster(TaskCommons):
         """
         max_obj_arg_size = 320000
         for k in self.parameters:
-            # Check user annotations concerning this argument
-            p = self.parameters[k]
-            # Convert small objects to string if OBJECT_CONVERSION enabled
-            # Check if the object is small in order not to serialize it.
-            if get_object_conversion():
-                p, written_bytes = _convert_parameter_obj_to_string(p,
-                                                                    max_obj_arg_size,     # noqa: E501
-                                                                    policy='objectSize')  # noqa: E501
-                max_obj_arg_size -= written_bytes
-            else:
-                # Serialize objects into files
-                p = _serialize_object_into_file(k, p)
-            # Update k parameter's Parameter object
-            self.parameters[k] = p
+            with event(SERIALIZE_OBJECTS, master=True):
+                # Check user annotations concerning this argument
+                p = self.parameters[k]
+                # Convert small objects to string if OBJECT_CONVERSION enabled
+                # Check if the object is small in order not to serialize it.
+                if get_object_conversion():
+                    p, written_bytes = _convert_parameter_obj_to_string(p,
+                                                                        max_obj_arg_size,     # noqa: E501
+                                                                        policy='objectSize')  # noqa: E501
+                    max_obj_arg_size -= written_bytes
+                else:
+                    # Serialize objects into files
+                    p = _serialize_object_into_file(k, p)
+                # Update k parameter's Parameter object
+                self.parameters[k] = p
 
-            if __debug__:
-                logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
+                if __debug__:
+                    logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
 
     def _build_values_types_directions(self):
         # type: () -> (list, list, list, list, list)
@@ -1452,7 +1502,7 @@ def _manage_persistent_object(p):
     """
     p.content_type = TYPE.EXTERNAL_PSCO
     obj_id = get_id(p.content)
-    OT.set_pending_to_synchronize(obj_id)
+    OT_set_pending_to_synchronize(obj_id)
     p.content = obj_id
     if __debug__:
         logger.debug("Managed persistent object: %s" % obj_id)
@@ -1551,7 +1601,7 @@ def _serialize_object_into_file(name, p):
 
         p.content = new_object
         # Give this object an identifier inside the binding
-        OT.track(p.content, collection=True)
+        _, _ = OT_track(p.content, collection=True)
     return p
 
 
@@ -1577,29 +1627,25 @@ def _turn_into_file(p, skip_creation=False):
     #     # instance of the same type as the original parameter:
     #     t = type(p.content)
     #     p.content = t()
-    obj_id = OT.is_tracked(p.content)
+    obj_id = OT_is_tracked(p.content)
     if obj_id is None:
         # This is the first time a task accesses this object
-        obj_id = OT.track(p.content)
-        file_name = OT.get_file_name(obj_id)
+        obj_id, file_name = OT_track(p.content)
         if not skip_creation:
             serialize_to_file(p.content, file_name)
     else:
-        file_name = OT.get_file_name(obj_id)
-
-    if OT.has_been_written(obj_id):
-        if p.direction == DIRECTION.INOUT or \
-                p.direction == DIRECTION.COMMUTATIVE:
-            OT.set_pending_to_synchronize(obj_id)
-        # Main program generated the last version
-        compss_file = OT.pop_written_obj(obj_id)
-        if __debug__:
-            logger.debug("Serializing object %s to file %s" % (obj_id,
-                                                               compss_file))
-        if not skip_creation:
-            serialize_to_file(p.content, compss_file)
-    else:
-        pass
+        file_name = OT_get_file_name(obj_id)
+        if OT_has_been_written(obj_id):
+            if p.direction == DIRECTION.INOUT or \
+                    p.direction == DIRECTION.COMMUTATIVE:
+                OT_set_pending_to_synchronize(obj_id)
+            # Main program generated the last version
+            compss_file = OT_pop_written_obj(obj_id)
+            if __debug__:
+                logger.debug("Serializing object %s to file %s" % (obj_id,
+                                                                   compss_file))
+            if not skip_creation:
+                serialize_to_file(p.content, compss_file)
     # Set file name in Parameter object
     p.file_name = file_name
 
@@ -1669,9 +1715,9 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN IdN pyTypeN
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format("collection", _class_name)
-        value = "{} {} {}".format(OT.is_tracked(param.content),
+        value = "{} {} {}".format(OT_is_tracked(param.content),
                                   len(param.content), con_type)
-        OT.stop_tracking(param.content, collection=True)
+        OT_stop_tracking(param.content, collection=True)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.content):
             x_value, x_type, _, _, _, x_con_type, _, _ = _extract_parameter(

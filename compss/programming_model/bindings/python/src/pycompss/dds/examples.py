@@ -17,6 +17,7 @@
 
 import sys
 import time
+from random import Random
 
 from pycompss.api.api import compss_barrier
 from pycompss.dds import DDS
@@ -48,13 +49,28 @@ def _invert_files(pair):
     return list(res.items())
 
 
+def _generate_graph():
+    num_edges = 10
+    num_vertices = 5
+    rand = Random(42)
+
+    edges = set()
+    while len(edges) < num_edges:
+        src = rand.randrange(0, num_vertices)
+        dst = rand.randrange(0, num_vertices)
+        if src != dst:
+            edges.add((src, dst))
+    return edges
+
+
 def word_count():
 
     path_file = sys.argv[1]
     start = time.time()
 
     results = DDS().load_files_from_dir(path_file).\
-        map_and_flatten(lambda x: x[1].split())\
+        map_and_flatten(lambda x: x[1].split()) \
+        .map(lambda x: ''.join(e for e in x if e.isalnum())) \
         .count_by_value(arity=4, as_dict=True)
 
     print("Elapsed Time: ", time.time()-start)
@@ -104,12 +120,47 @@ def inverted_indexing():
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
+def transitive_closure():
+
+    # path = sys.argv[1]
+    partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+    #
+    # od = DDS().load_text_file(path, partitions) \
+    #     .map(lambda line: (int(line.split(",")[0]), int(line.split(",")[1])))\
+    #     .collect(future_objects=True)
+    edges = _generate_graph()
+    od = DDS().load(edges, partitions).collect(future_objects=True)
+
+    # Because join() joins on keys, the edges are stored in reversed order.
+    edges = DDS().load(od, -1).map(lambda x_y: (x_y[1], x_y[0]))
+
+    old_count = 0
+    next_count = DDS().load(od, -1).count()
+
+    while True:
+        old_count = next_count
+        # Perform the join, obtaining an RDD of (y, (z, x)) pairs,
+        # then project the result to obtain the new (x, z) paths.
+        new_edges = DDS().load(od, -1).join(edges)\
+            .map(lambda __a_b: (__a_b[1][1], __a_b[1][0]))
+        od = DDS().load(od, -1).union(new_edges).distinct()\
+            .collect(future_objects=True)
+
+        next_count = DDS().load(od, -1).count()
+
+        if next_count == old_count:
+            break
+
+    print("TC has %i edges" % next_count)
+
+
 def main_program():
     print("________RUNNING EXAMPLES_________")
     # pi_estimation()
     # word_count()
-    terasort()
+    # terasort()
     # inverted_indexing()
+    transitive_closure()
 
 
 if __name__ == '__main__':

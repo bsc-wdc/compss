@@ -31,7 +31,6 @@ from pycompss.runtime.task.arguments import get_name_from_kwarg
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
-from pycompss.util.importing.functools import lru_cache
 from pycompss.util.objects.properties import create_object_by_con_type
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
@@ -260,7 +259,15 @@ class TaskWorker(TaskCommons):
             self.param_varargs = argument.name
             if __debug__:
                 logger.debug("\t\t - It is vararg")
-        if argument.content_type == parameter.TYPE.FILE:
+
+        content_type = argument.content_type
+        type_file = parameter.TYPE.FILE
+        type_directory = parameter.TYPE.DIRECTORY
+        type_external_stream = parameter.TYPE.EXTERNAL_STREAM
+        type_collection = parameter.TYPE.COLLECTION
+        type_external_psco = parameter.TYPE.EXTERNAL_PSCO
+
+        if content_type == type_file:
             if self.is_parameter_an_object(argument.name):
                 # The object is stored in some file, load and deserialize
                 f_name = argument.file_name.split(':')[-1]
@@ -275,15 +282,15 @@ class TaskWorker(TaskCommons):
                 argument.content = argument.file_name.split(':')[-1]
                 if __debug__:
                     logger.debug("\t\t - It is FILE: " + str(argument.content))
-        elif argument.content_type == parameter.TYPE.DIRECTORY:
+        elif content_type == type_directory:
             if __debug__:
                 logger.debug("\t\t - It is a DIRECTORY")
             argument.content = argument.file_name.split(":")[-1]
-        elif argument.content_type == parameter.TYPE.EXTERNAL_STREAM:
+        elif content_type == type_external_stream:
             if __debug__:
                 logger.debug("\t\t - It is an EXTERNAL STREAM")
             argument.content = deserialize_from_file(argument.file_name)
-        elif argument.content_type == parameter.TYPE.COLLECTION:
+        elif content_type == type_collection:
             argument.content = []
             # This field is exclusive for COLLECTION_T parameters, so make
             # sure you have checked this parameter is a collection before
@@ -350,7 +357,6 @@ class TaskWorker(TaskCommons):
                     # them by 'depth'..
                     if _col_dir == parameter.DIRECTION.OUT or \
                             ((_col_dir is None) and _col_dep > 0):
-
                         # if we are at the last level of COL_OUT param,
                         # create 'empty' instances of elements
                         if _col_dep == 1:
@@ -402,7 +408,7 @@ class TaskWorker(TaskCommons):
                     argument.collection_content.append(content_file)
 
         elif not self.storage_supports_pipelining() and \
-                argument.content_type == parameter.TYPE.EXTERNAL_PSCO:
+                content_type == type_external_psco:
             if __debug__:
                 logger.debug("\t\t - It is a PSCO")
             # The object is a PSCO and the storage does not support
@@ -689,7 +695,6 @@ class TaskWorker(TaskCommons):
                     serialize_to_file(obj, f_name)
         return user_returns
 
-    @lru_cache(maxsize=128)
     def is_parameter_an_object(self, name):
         # type: (str) -> bool
         """ Given the name of a parameter, determine if it is an object or not.
@@ -711,7 +716,6 @@ class TaskWorker(TaskCommons):
         # return True
         return True
 
-    @lru_cache(maxsize=128)
     def is_parameter_file_collection(self, name):
         # type: (str) -> bool
         """ Given the name of a parameter, determine if it is a file
@@ -887,7 +891,6 @@ def __get_collection_objects__(content, argument):
         yield content, argument
 
 
-@lru_cache(maxsize=128)
 def __get_file_name__(file_path):
     # type: (str) -> str
     """ Retrieve the file name from an absolute file path.

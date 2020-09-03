@@ -24,6 +24,7 @@ from pycompss.api.api import compss_barrier
 from pycompss.dds import heapq3
 from pycompss.dds.partition_generators import *
 from pycompss.dds.tasks import *
+from pycompss.util.tracing.helpers import event
 
 
 def default_hash(x):
@@ -438,10 +439,12 @@ class DDS(object):
         if self.func:
             if self.paac:
                 for col in self.partitions:
-                    processed.append(map_partition(self.func, None, *col))
+                    with event(3001, master=True):
+                        processed.append(map_partition(self.func, None, *col))
             else:
                 for _p in self.partitions:
-                    processed.append(map_partition(self.func, _p))
+                    with event(3001, master=True):
+                        processed.append(map_partition(self.func, _p))
             # Reset the function!
             self.func = None
         else:
@@ -555,14 +558,16 @@ class DDS(object):
         if self.paac:
             for collection in self.partitions:
                 col = [[] for _ in range(nop)]
-                distribute_partition(col, self.func, partitioner_func, None,
-                                     *collection)
+                with event(3002, master=True):
+                    distribute_partition(col, self.func, partitioner_func, None,
+                                         *collection)
                 for _i in range(nop):
                     grouped[_i].append(col[_i])
         else:
             for _part in self.partitions:
                 col = [[] for _ in range(nop)]
-                distribute_partition(col, self.func, partitioner_func, _part)
+                with event(3002, master=True):
+                    distribute_partition(col, self.func, partitioner_func, _part)
                 for _i in range(nop):
                     grouped[_i].append(col[_i])
 

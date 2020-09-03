@@ -54,7 +54,7 @@ from pycompss.util.objects.properties import object_belongs_to_module
 
 from io import BytesIO
 
-DISABLE_GC = True
+DISABLE_GC = False
 
 if IS_PYTHON3:
     import pickle as pickle  # Uses _pickle if available

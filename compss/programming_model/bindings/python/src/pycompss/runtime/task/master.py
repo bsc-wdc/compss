@@ -248,7 +248,7 @@ class TaskMaster(TaskCommons):
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
         with event(EXTRACT_CORE_ELEMENT, master=True):
-            pre_defined_ce = self.extract_core_element(kwargs)
+            pre_defined_ce = self.extract_core_element(kwargs)  # noqa: E501
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
@@ -451,9 +451,10 @@ class TaskMaster(TaskCommons):
         IMPORTANT! extract the core element from kwargs if pre-defined
                    in decorators defined on top of @task.
 
-        :return: Boolean if previously created.
+        :return: If previously created and if created in higher level decorator
         """
         pre_defined_ce = False
+        upper_decorator = False
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             self.core_element = kwargs[CORE_ELEMENT_KEY]
@@ -461,13 +462,14 @@ class TaskMaster(TaskCommons):
             # the parameters (process_parameters function).
             kwargs.pop(CORE_ELEMENT_KEY)
             pre_defined_ce = True
+            upper_decorator = True
         elif self.core_element:
             # A core element from previous task calls was saved.
             pre_defined_ce = True
         else:
             # No decorators over @task: instantiate an empty core element.
             self.core_element = CE()
-        return pre_defined_ce
+        return pre_defined_ce, upper_decorator
 
     def inspect_user_function_arguments(self):
         # type: () -> None
@@ -822,17 +824,20 @@ class TaskMaster(TaskCommons):
 
     def update_core_element(self, impl_signature, impl_type_args,
                             pre_defined_ce):
-        # type: (str, list, bool) -> None
+        # type: (str, list, tuple) -> None
         """ Adds the @task decorator information to the core element.
 
         CAUTION: Modifies the core_element parameter.
 
         :param impl_signature: Implementation signature.
         :param impl_type_args: Implementation type arguments.
-        :param pre_defined_ce: Boolean if core element contains predefined
-                               fields (done by upper decorators).
+        :param pre_defined_ce: Two boolean (if core element contains predefined
+                               fields and if they have been predefined by
+                               upper decorators).
         :return: None
         """
+        pre_defined_ce, upper_decorator = pre_defined_ce
+
         # Include the registering info related to @task
         impl_type = "METHOD"
         impl_constraints = {}
@@ -858,7 +863,8 @@ class TaskMaster(TaskCommons):
             if get_ce_signature() is None:
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
-            elif get_ce_signature() != impl_signature:
+            elif get_ce_signature() != impl_signature and not upper_decorator:
+                # Specific for inheritance - not for @implements.
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
                 set_impl_type_args(impl_type_args)

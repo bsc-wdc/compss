@@ -118,8 +118,9 @@ def _deploy(source_path, test_exec_sandbox_global, test_num):
     print("[INFO] Deployment of " + str(source_path) + " completed")
 
 
+def
 
-def execute_tests_mn():
+def execute_tests_sc():
 	import subprocess
 	import polling
 	import configparser
@@ -165,11 +166,12 @@ def execute_tests_mn():
 	import pandas as pd
 	pd.set_option("display.colheader_justify", "left")
 	data = pd.read_csv("/tmp/outs.csv")
-	print(data) 
+	print(data)
 
 
 	sys.exit()
 
+def main():
 
 
 target_base_dir = "/home/sergi/tests_execution_sandbox"
@@ -180,15 +182,6 @@ except Exception:
 	print("[ERROR] Cannot clean target directory "+str(target_base_dir))
 
 compss_base_log_dir = "/home/sergi/.COMPSs"
-
-
-try:
-	shutil.rmtree(compss_base_log_dir)
-except Exception:
-	print("[ERROR] Cannot clean COMPSS log root directory "+ str(compss_base_log_dir))
-
-print("[INFO] Deployment structure cleaned")
-print("[INFO] Creating deployment structure")
 
 try:
 	os.makedirs(target_base_dir)
@@ -244,7 +237,7 @@ for test_dir, test_path, test_global_num in compiled_tests:
 
 
 print("[INFO] Tests locally deployed")
-print("[INFO] Deploying to SUPERCOMPUTER")		
+print("[INFO] Deploying to SUPERCOMPUTER")
 cfg_file = "MN.cfg"
 cfg_file = os.path.join(CONFIGURATIONS_DIR, cfg_file)
 print("[INFO] Loading values from " + str(cfg_file))
@@ -261,11 +254,3 @@ output = subprocess.check_output(["scp","-r",target_base_dir,username+":"+deploy
 
 print("[INFO] All tests deployed to Supercomputer")
 execute_tests_mn()
-
-
-
-
-
-
-
-

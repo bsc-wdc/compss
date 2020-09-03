@@ -11,8 +11,8 @@ import os
 from constants import DEFAULT_SKIP
 from constants import DEFAULT_NUM_RETRIES
 from constants import DEFAULT_FAIL_FAST
-from constants import DEFAULT_FAMILIES
-from constants import DEFAULT_CFG_FILE
+from constants import DEFAULT_FAMILIES, DEFAULT_SC_FAMILEES
+from constants import DEFAULT_CFG_FILE, DEFAULT_SC_CFG_FILE
 from constants import DEFAULT_TESTS
 from constants import TESTS_DIR
 
@@ -48,7 +48,7 @@ class ArgumentExit(Exception):
 
     def __init__(self):
         """
-        Initializes the ArgumentExit class 
+        Initializes the ArgumentExit class
         """
         pass
 
@@ -56,13 +56,16 @@ class ArgumentExit(Exception):
         return "[DONE] ArgumentExit"
 
 
+
+
 ############################################
 # PUBLIC METHODS
 ############################################
 
-def get_args():
+def get_local_args():
     """
     Constructs an object representing the command line arguments
+    for local test execution
 
     :return: Object representing the command line arguments
         + type: argparse.Namespace
@@ -81,7 +84,55 @@ def get_args():
 
     parser = argparse.ArgumentParser(description="Launch COMPSs tests",
                                      add_help=True)
+    _add_common_args(parser)
+    _add_local_args(parser)
 
+    if __debug__:
+        print("[DEBUG] Argument parser created")
+
+    # Parse arguments
+    # WARN: Stops the execution if an invalid argument is provided
+    if __debug__:
+        print("[DEBUG] Executing parser on command arguments...")
+    try:
+        args = parser.parse_args()
+    except SystemExit as se:
+        if se.code is None or se.code == 0:
+            raise ArgumentExit()
+        raise ArgumentError(se)
+
+    # Check arguments
+    args = _check_common_args(args, DEFAULT_FAMILIES)
+    args = _check_local_args(args)
+
+    # If numbering cmd arg is provided, display numbering and exit
+    if args.numbering:
+        _display_numbering(args.test_numbers)
+
+    # Print arguments
+    print("[INFO] Arguments parsed:")
+    _print_local_args(args)
+    _print_common_args(args)
+
+    return args
+
+
+############################################
+# INTERNAL METHODS
+############################################
+def _print_local_args(args):
+    print("[INFO]   - retry: " + str(args.retry))
+    print("[INFO]   - fail_fast: " + str(args.fail_fast))
+    print("[INFO]   - coverage: " + str(args.coverage))
+
+def _print_sc_args(args):
+    print("[INFO]   - skip: " + str(args.skip))
+    print("[INFO]   - numbering: " + str(args.numbering))
+    print("[INFO]   - families: " + str(args.families))
+    print("[INFO]   - cfg_file: " + str(args.cfg_file))
+    print("[INFO]   - tests: " + str(args.tests))
+
+def _add_common_args(cmd_args, default_families):
     # Add version
     parser.add_argument('--version', action='version', version='2.6.rc1911')
 
@@ -98,7 +149,56 @@ def get_args():
                         const=False,
                         default=DEFAULT_SKIP,
                         help="Disables test skipping")
+    # Add numbering option
+    parser.add_argument("-n", "--numbering",
+                        action="store_const",
+                        dest="numbering",
+                        const=True,
+                        default=False,
+                        help="Displays the test numbering and exits")
+    # Add cfg file option
+    parser.add_argument("-cfg", "--cfg-file",
+                        action="store",
+                        dest="cfg_file",
+                        default=DEFAULT_CFG_FILE,
+                        help="Path to a valid CFG file")
 
+    # Add specific test option
+    parser.add_argument("-t", "--specific-test",
+                        action="append",
+                        dest="tests",
+                        default=DEFAULT_TESTS,
+                        help="Executes only the given specific test number.\n"
+                             "If <int> is provided, executes test with global number <int>.\n"
+                             "If <str>:<int> is provided, executes test with local number <int> in family <str>.\n"
+                             "If <str1>:<str2> is provided, executes test with name <str2> in family <str1>.")
+    # Add test lang options
+    parser.add_argument("-f", "--family",
+                        action="append",
+                        dest="families",
+                        choices=default_families,
+                        default=[],
+                        help="Executes only the tests of the specified family")
+    parser.add_argument("-fj", "--family-java",
+                        action="append_const",
+                        dest="families",
+                        const="java",
+                        default=[],
+                        help="Executes only the Java tests")
+    parser.add_argument("-fp", "--family-python",
+                        action="append_const",
+                        dest="families",
+                        const="python",
+                        default=[],
+                        help="Executes only the Python tests")
+    parser.add_argument("-fc", "--family-c",
+                        action="append_const",
+                        dest="families",
+                        const="c",
+                        default=[],
+                        help="Executes only the C/C++ tests")
+
+def _add_local_args(cmd_args):
     # Add retry options
     parser.add_argument("-r", "--retry",
                         action="store",
@@ -122,56 +222,6 @@ def get_args():
                         default=DEFAULT_FAIL_FAST,
                         help="Enables fail-fast option on test execution")
 
-    # Add numbering option
-    parser.add_argument("-n", "--numbering",
-                        action="store_const",
-                        dest="numbering",
-                        const=True,
-                        default=False,
-                        help="Displays the test numbering and exits")
-
-    # Add test lang options
-    parser.add_argument("-f", "--family",
-                        action="append",
-                        dest="families",
-                        choices=DEFAULT_FAMILIES,
-                        default=[],
-                        help="Executes only the tests of the specified family")
-    parser.add_argument("-fj", "--family-java",
-                        action="append_const",
-                        dest="families",
-                        const="java",
-                        default=[],
-                        help="Executes only the Java tests")
-    parser.add_argument("-fp", "--family-python",
-                        action="append_const",
-                        dest="families",
-                        const="python",
-                        default=[],
-                        help="Executes only the Python tests")
-    parser.add_argument("-fc", "--family-c",
-                        action="append_const",
-                        dest="families",
-                        const="c",
-                        default=[],
-                        help="Executes only the C/C++ tests")
-
-    # Add cfg file option
-    parser.add_argument("-cfg", "--cfg-file",
-                        action="store",
-                        dest="cfg_file",
-                        default=DEFAULT_CFG_FILE,
-                        help="Path to a valid CFG file")
-
-    # Add specific test option
-    parser.add_argument("-t", "--specific-test",
-                        action="append",
-                        dest="tests",
-                        default=DEFAULT_TESTS,
-                        help="Executes only the given specific test number.\n"
-                             "If <int> is provided, executes test with global number <int>.\n"
-                             "If <str>:<int> is provided, executes test with local number <int> in family <str>.\n"
-                             "If <str1>:<str2> is provided, executes test with name <str2> in family <str1>.")
     # Add coverage options
     parser.add_argument("-c", "--coverage",
                         action="store_true",
@@ -179,52 +229,34 @@ def get_args():
                         default=False,
                         help="Executes in Coverage mode")
 
+def _add_sc_args(cmd_args):
+    # Add cfg file option
+    parser.add_argument("-sc-cfg", "--sc-cfg-file",
+                        action="store",
+                        dest="sc_cfg_file",
+                        default=DEFAULT_SC_CFG_FILE,
+                        help="Path to a valid CFG file")
 
-    if __debug__:
-        print("[DEBUG] Argument parser created")
-
-    # Parse arguments
-    # WARN: Stops the execution if an invalid argument is provided
-    if __debug__:
-        print("[DEBUG] Executing parser on command arguments...")
-    try:
-        args = parser.parse_args()
-    except SystemExit as se:
-        if se.code is None or se.code == 0:
-            raise ArgumentExit()
-        raise ArgumentError(se)
-
-    # Check arguments
-    args = _check_args(args)
-
-    # If numbering cmd arg is provided, display numbering and exit
-    if args.numbering:
-        _display_numbering(args.test_numbers)
-
-    # Print arguments
-    print("[INFO] Arguments parsed:")
-    print("[INFO]   - skip: " + str(args.skip))
-    print("[INFO]   - retry: " + str(args.retry))
-    print("[INFO]   - fail_fast: " + str(args.fail_fast))
-    print("[INFO]   - numbering: " + str(args.numbering))
-    print("[INFO]   - families: " + str(args.families))
-    print("[INFO]   - cfg_file: " + str(args.cfg_file))
-    print("[INFO]   - tests: " + str(args.tests))
-    print("[INFO]   - coverage: " + str(args.coverage))
-
-    # print("[INFO]   - test_numbers: " + str(args.test_numbers)) 
-    
-    
-    return args
-
-
-############################################
-# INTERNAL METHODS
-############################################
-
-def _check_args(cmd_args):
+def _check_sc_args(cmd_args):
     """
-    Validates and completes the parsed cmd_args
+    Validates and completes the parsed cmd_args for local tests
+
+    :return: Validated object representing the command line arguments
+        + type: argparse.Namespace
+    """
+
+    # If no family provided, load all
+    if cmd_args.families is None or not cmd_args.families:
+        cmd_args.families = DEFAULT_SC_FAMILIES
+
+    # Add test numbering to cmd_args
+    cmd_args.test_numbers = _get_test_numbers(TESTS_SC_DIR)
+
+    return cmd_args
+
+def _check_local_args(cmd_args):
+    """
+    Validates and completes the parsed cmd_args for local tests
 
     :return: Validated object representing the command line arguments
         + type: argparse.Namespace
@@ -235,12 +267,12 @@ def _check_args(cmd_args):
         cmd_args.families = DEFAULT_FAMILIES
 
     # Add test numbering to cmd_args
-    cmd_args.test_numbers = _get_test_numbers()
+    cmd_args.test_numbers = _get_test_numbers(TESTS_DIR)
 
     return cmd_args
 
 
-def _get_test_numbers():
+def _get_test_numbers(tests_dir):
     """
     Builds the numbering of each available test
 
@@ -253,8 +285,8 @@ def _get_test_numbers():
     # Number all tests
     test_numbers = {"global": {}}
     num_global = 1
-    for family_dir in sorted(os.listdir(TESTS_DIR)):
-        family_path = os.path.join(TESTS_DIR, family_dir)
+    for family_dir in sorted(os.listdir(tests_dir)):
+        family_path = os.path.join(tests_dir, family_dir)
         if os.path.isdir(family_path):
             test_numbers[family_dir] = {}
             num_family = 1

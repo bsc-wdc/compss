@@ -13,32 +13,32 @@ from pycompss.api.api import compss_open
 from pycompss.api.api import compss_wait_on_file
 
 
-@binary(binary="date", working_dir=".")
+@binary(binary="date", working_dir="/tmp")
 @task(result={Type: FILE_OUT_STDOUT})
 def check_binary(result):
     pass
 
 
-@mpi(binary="date", working_dir=".", runner="mpirun")
+@mpi(binary="date", working_dir="/tmp", runner="mpirun")
 @task(result={Type: FILE_OUT_STDOUT})
 def check_mpi(result):
     pass
 
 
-@ompss(binary="date", working_dir=".")
+@ompss(binary="date", working_dir="/tmp")
 @task(result={Type: FILE_OUT_STDOUT})
 def check_ompss(result):
     pass
 
 
-def main():
+def check_decorators():
     binary_result = "binary_result.out"
     mpi_result = "mpi_result.out"
     ompss_result = "ompss_result.out"
     check_binary(binary_result)
-    compss_barrier()
     check_mpi(mpi_result)
     check_ompss(ompss_result)
+    compss_wait_on_file(binary_result)
     compss_wait_on_file(mpi_result)
     compss_wait_on_file(ompss_result)
 
@@ -65,6 +65,11 @@ def main():
     print(binary_content)
     print(mpi_content)
     print(ompss_content)
+
+
+def main():
+    check_decorators()
+    # add more to be tested
 
 
 # if __name__ == "__main__":

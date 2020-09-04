@@ -199,7 +199,7 @@ class TaskMaster(TaskCommons):
                  'function_name', 'module_name', 'function_type', 'class_name',
                  'returns', 'multi_return',
                  'core_element', 'registered', 'signature',
-                 'interactive', 'module', 'function_arguments']
+                 'interactive', 'module', 'function_arguments', 'hints']
 
     def __init__(self,
                  decorator_arguments,
@@ -213,7 +213,8 @@ class TaskMaster(TaskCommons):
                  function_name,
                  module_name,
                  function_type,
-                 class_name
+                 class_name,
+                 hints
                  ):
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments,
@@ -245,6 +246,7 @@ class TaskMaster(TaskCommons):
         # self.module_name = module_name
         # self.function_type = function_type
         # self.class_name = class_name
+        self.hints = hints
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (object, bool, str)
@@ -337,35 +339,9 @@ class TaskMaster(TaskCommons):
         # Get other arguments if exist
         # Get is replicated
         with event(PROCESS_OTHER_ARGUMENTS, master=True):
-            deco_arg_getter = self.decorator_arguments.get
-            if 'isReplicated' in self.decorator_arguments:
-                is_replicated = deco_arg_getter('isReplicated')
-                logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
-            else:
-                is_replicated = deco_arg_getter('is_replicated')
-            # Get is distributed
-            if 'isDistributed' in self.decorator_arguments:
-                is_distributed = deco_arg_getter('isDistributed')
-                logger.warning(
-                    "Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
-            else:
-                is_distributed = deco_arg_getter('is_distributed')
-            # Get on failure
-            if 'onFailure' in self.decorator_arguments:
-                on_failure = deco_arg_getter('onFailure')
-                logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
-            else:
-                on_failure = deco_arg_getter('on_failure')
-            # Get time out
-            if 'timeOut' in self.decorator_arguments:
-                time_out = deco_arg_getter('timeOut')
-                logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
-            else:
-                time_out = deco_arg_getter('time_out')
-            # Get priority
-            has_priority = deco_arg_getter('priority')
-            # Check if the function is an instance method or a class method.
-            has_target = self.function_type == FunctionType.INSTANCE_METHOD
+            if not self.hints:
+                self.hints = self.check_task_hints()
+            is_replicated, is_distributed, on_failure, time_out, has_priority, has_target = self.hints  # noqa: E501
 
         # Deal with the return part.
         with event(PROCESS_RETURN, master=True):
@@ -444,7 +420,8 @@ class TaskMaster(TaskCommons):
                self.signature, self.interactive, self.module, \
                self.function_arguments, \
                self.function_name, \
-               self.module_name, self.function_type, self.class_name
+               self.module_name, self.function_type, self.class_name, \
+               self.hints
 
     def check_if_interactive(self):
         # type: () -> (bool, ...)
@@ -1020,6 +997,44 @@ class TaskMaster(TaskCommons):
 
         return parsed_computing_nodes
 
+    def check_task_hints(self):
+        # type: () -> (bool, bool, bool, int, bool, bool)
+        """ Process the @task hints.
+
+        :return: The value of all possible hints.
+        """
+        deco_arg_getter = self.decorator_arguments.get
+        if 'isReplicated' in self.decorator_arguments:
+            is_replicated = deco_arg_getter('isReplicated')
+            logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
+        else:
+            is_replicated = deco_arg_getter('is_replicated')
+        # Get is distributed
+        if 'isDistributed' in self.decorator_arguments:
+            is_distributed = deco_arg_getter('isDistributed')
+            logger.warning(
+                "Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
+        else:
+            is_distributed = deco_arg_getter('is_distributed')
+        # Get on failure
+        if 'onFailure' in self.decorator_arguments:
+            on_failure = deco_arg_getter('onFailure')
+            logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
+        else:
+            on_failure = deco_arg_getter('on_failure')
+        # Get time out
+        if 'timeOut' in self.decorator_arguments:
+            time_out = deco_arg_getter('timeOut')
+            logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
+        else:
+            time_out = deco_arg_getter('time_out')
+        # Get priority
+        has_priority = deco_arg_getter('priority')
+        # Check if the function is an instance method or a class method.
+        has_target = self.function_type == FunctionType.INSTANCE_METHOD
+
+        return is_replicated, is_distributed, on_failure, time_out, has_priority, has_target  # noqa: E501
+
     def add_return_parameters(self):
         # type: () -> None
         """ Modify the return parameters accordingly to the return statement.
@@ -1342,10 +1357,8 @@ class TaskMaster(TaskCommons):
         code_strings = self.user_function.__code_strings__
 
         # Build the range of elements
-        # ra = list(self.parameters.keys())
         if self.function_type == FunctionType.INSTANCE_METHOD or \
                 self.function_type == FunctionType.CLASS_METHOD:
-            # ra.pop(0)
             slf_name = arg_names.pop(0)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters

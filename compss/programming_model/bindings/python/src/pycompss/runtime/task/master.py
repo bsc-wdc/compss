@@ -198,14 +198,17 @@ class TaskMaster(TaskCommons):
                  'first_arg_name', 'computing_nodes', 'parameters',
                  'function_name', 'module_name', 'function_type', 'class_name',
                  'returns', 'multi_return',
-                 'core_element', 'registered', 'signature']
+                 'core_element', 'registered', 'signature',
+                 'interactive', 'module']
 
     def __init__(self,
                  decorator_arguments,
                  user_function,
                  core_element,
                  registered,
-                 signature):
+                 signature,
+                 interactive,
+                 module):
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments,
                                              user_function)
@@ -227,6 +230,9 @@ class TaskMaster(TaskCommons):
         self.core_element = core_element
         self.registered = registered
         self.signature = signature
+        # Parameters that will come from previous tasks
+        self.interactive = interactive
+        self.module = module
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (object, bool, str)
@@ -243,7 +249,10 @@ class TaskMaster(TaskCommons):
         MASTER_LOCK.acquire()
 
         # Check if we are in interactive mode and update if needed
-        self.update_if_interactive()
+        if not self.interactive:
+            self.interactive, self.module = self.check_if_interactive()
+        if self.interactive:
+            self.update_if_interactive(self.module)
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
@@ -295,12 +304,6 @@ class TaskMaster(TaskCommons):
         with event(GET_COMPUTING_NODES, master=True):
             computing_nodes = self.process_computing_nodes()
 
-        # Deal with the return part.
-        with event(PROCESS_RETURN, master=True):
-            self.add_return_parameters()
-            if not self.returns:
-                self.update_return_if_no_returns(self.user_function)
-
         # Get other arguments if exist
         # Get is replicated
         with event(PROCESS_OTHER_ARGUMENTS, master=True):
@@ -313,7 +316,8 @@ class TaskMaster(TaskCommons):
             # Get is distributed
             if 'isDistributed' in self.decorator_arguments:
                 is_distributed = deco_arg_getter('isDistributed')
-                logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
+                logger.warning(
+                    "Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
             else:
                 is_distributed = deco_arg_getter('is_distributed')
             # Get on failure
@@ -332,6 +336,12 @@ class TaskMaster(TaskCommons):
             has_priority = deco_arg_getter('priority')
             # Check if the function is an instance method or a class method.
             has_target = self.function_type == FunctionType.INSTANCE_METHOD
+
+        # Deal with the return part.
+        with event(PROCESS_RETURN, master=True):
+            self.add_return_parameters()
+            if not self.returns:
+                self.update_return_if_no_returns(self.user_function)
 
         # Build return objects
         with event(BUILD_RETURN_OBJECTS, master=True):
@@ -400,16 +410,13 @@ class TaskMaster(TaskCommons):
         # (then the runtime will take care of the dependency).
         # Also return if the task has been registered and its signature,
         # so that future tasks of the same function register if necessary.
-        return fo, self.core_element, self.registered, self.signature
+        return fo, self.core_element, self.registered, self.signature, self.interactive, self.module  # noqa: E501
 
-    def update_if_interactive(self):
-        # type: () -> None
-        """ Update the code for jupyter notebook.
+    def check_if_interactive(self):
+        # type: () -> (bool, ...)
+        """ Check if running in interactive mode.
 
-        Update the user code if in interactive mode and the session has
-        been started.
-
-        :return: None
+        :return: True if interactive. False otherwise.
         """
         mod = inspect.getmodule(self.user_function)
         module_name = mod.__name__
@@ -417,29 +424,40 @@ class TaskMaster(TaskCommons):
                 (module_name == '__main__' or
                  module_name == 'pycompss.runtime.launch'):
             # 1.- The runtime is running.
-            # 2.- The module where the function is defined was run as __main__,
-            # We need to find out the real module name
-            # Get the real module name from our launch.py APP_PATH global
-            # variable
-            # It is guaranteed that this variable will always exist because
-            # this code is only executed when we know we are in the master
-            path = getattr(mod, 'APP_PATH')
-            # Get the file name
-            file_name = os.path.splitext(os.path.basename(path))[0]
-            # Do any necessary pre processing action before executing any code
-            if file_name.startswith(INTERACTIVE_FILE_NAME) and not self.registered:
-                # If the file_name starts with 'InteractiveMode' means that
-                # the user is using PyCOMPSs from jupyter-notebook.
-                # Convention between this file and interactive.py
-                # In this case it is necessary to do a pre-processing step
-                # that consists of putting all user code that may be executed
-                # in the worker on a file.
-                # This file has to be visible for all workers.
-                update_tasks_code_file(self.user_function, path)
-                print("Found task: " + str(self.user_function.__name__))
+            # 2.- The module where the function is defined was run as __main__.
+            return True, mod
         else:
-            # No need to update anything
-            pass
+            return False, None
+
+    def update_if_interactive(self, mod):
+        # type: (...) -> None
+        """ Update the code for jupyter notebook.
+
+        Update the user code if in interactive mode and the session has
+        been started.
+
+        :param mod: Source module.
+        :return: None
+        """
+        # We need to find out the real module name
+        # Get the real module name from our launch.py APP_PATH global
+        # variable
+        # It is guaranteed that this variable will always exist because
+        # this code is only executed when we know we are in the master
+        path = getattr(mod, 'APP_PATH')
+        # Get the file name
+        file_name = os.path.splitext(os.path.basename(path))[0]
+        # Do any necessary pre processing action before executing any code
+        if file_name.startswith(INTERACTIVE_FILE_NAME) and not self.registered:
+            # If the file_name starts with 'InteractiveMode' means that
+            # the user is using PyCOMPSs from jupyter-notebook.
+            # Convention between this file and interactive.py
+            # In this case it is necessary to do a pre-processing step
+            # that consists of putting all user code that may be executed
+            # in the worker on a file.
+            # This file has to be visible for all workers.
+            update_tasks_code_file(self.user_function, path)
+            print("Found task: " + str(self.user_function.__name__))
 
     def extract_core_element(self, kwargs):
         # type: (dict) -> (CE, bool)

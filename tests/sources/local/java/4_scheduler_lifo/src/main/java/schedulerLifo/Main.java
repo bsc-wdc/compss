@@ -9,7 +9,7 @@ public class Main {
 
     private static final String FILE_NAME = "counterFile_";
 
-    private static final int SLEEP_WAIT_FOR_RUNTIME = 10_000; // ms
+    private static final int SLEEP_WAIT_FOR_RUNTIME = 8_000; // ms
 
 
     private static void generateTree(int taskWidth, int taskChilds, String fileInout, String fileIn) {

@@ -199,7 +199,7 @@ class TaskMaster(TaskCommons):
                  'function_name', 'module_name', 'function_type', 'class_name',
                  'returns', 'multi_return',
                  'core_element', 'registered', 'signature',
-                 'interactive', 'module']
+                 'interactive', 'module', 'function_arguments']
 
     def __init__(self,
                  decorator_arguments,
@@ -208,7 +208,8 @@ class TaskMaster(TaskCommons):
                  registered,
                  signature,
                  interactive,
-                 module):
+                 module,
+                 function_arguments):
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments,
                                              user_function)
@@ -231,8 +232,10 @@ class TaskMaster(TaskCommons):
         self.registered = registered
         self.signature = signature
         # Parameters that will come from previous tasks
+        # TODO: These parameters could be within a "precalculated" parameters
         self.interactive = interactive
         self.module = module
+        self.function_arguments = function_arguments
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (object, bool, str)
@@ -257,14 +260,30 @@ class TaskMaster(TaskCommons):
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
         with event(EXTRACT_CORE_ELEMENT, master=True):
-            pre_defined_ce = self.extract_core_element(kwargs)  # noqa: E501
+            pre_defined_ce = self.extract_core_element(kwargs)
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
         # and self.param_defaults. And gives non-None default
         # values to them if necessary
         with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
-            self.inspect_user_function_arguments()
+            if not self.function_arguments:
+                # This is done only first time
+                self.function_arguments = self.inspect_user_function_arguments()
+            self.param_args, self.param_varargs, _, self.param_defaults = self.function_arguments  # noqa: E501
+            # It will be easier to deal with functions if we pretend that all have
+            # the signature f(positionals, *variadic, **named). This is why we are
+            # substituting Nones with default stuff.
+            # As long as we remember what was the users original intention with
+            # the parameters we can internally mess with his signature as much as
+            # we want. There is no need to add self-imposed constraints here.
+            # Also, the very nature of decorators are a huge hint about how we
+            # should treat user functions, as most wrappers return a function
+            # f(*a, **k)
+            if self.param_varargs is None:
+                self.param_varargs = 'varargs_type'
+            if self.param_defaults is None:
+                self.param_defaults = ()
 
         # Process the parameters, give them a proper direction
         with event(PROCESS_PARAMETERS, master=True):
@@ -410,7 +429,9 @@ class TaskMaster(TaskCommons):
         # (then the runtime will take care of the dependency).
         # Also return if the task has been registered and its signature,
         # so that future tasks of the same function register if necessary.
-        return fo, self.core_element, self.registered, self.signature, self.interactive, self.module  # noqa: E501
+        return fo, self.core_element, self.registered, \
+               self.signature, self.interactive, self.module, \
+               self.function_arguments
 
     def check_if_interactive(self):
         # type: () -> (bool, ...)
@@ -490,7 +511,7 @@ class TaskMaster(TaskCommons):
         return pre_defined_ce, upper_decorator
 
     def inspect_user_function_arguments(self):
-        # type: () -> None
+        # type: () -> tuple
         """ Get user function arguments.
 
         Inspect the arguments of the user function and store them.
@@ -502,28 +523,14 @@ class TaskMaster(TaskCommons):
 
         # The third return value was self.param_kwargs - not used (removed)
 
-        :return: None, it just adds attributes.
+        :return: the attributes to be reused
         """
         try:
             arguments = self._getargspec(self.user_function)
-            self.param_args, self.param_varargs, _, self.param_defaults = arguments  # noqa: E501
         except TypeError:
             # This is a numba jit declared task
             arguments = self._getargspec(self.user_function.py_func)
-            self.param_args, self.param_varargs, _, self.param_defaults = arguments  # noqa: E501
-        # It will be easier to deal with functions if we pretend that all have
-        # the signature f(positionals, *variadic, **named). This is why we are
-        # substituting Nones with default stuff.
-        # As long as we remember what was the users original intention with
-        # the parameters we can internally mess with his signature as much as
-        # we want. There is no need to add self-imposed constraints here.
-        # Also, the very nature of decorators are a huge hint about how we
-        # should treat user functions, as most wrappers return a function
-        # f(*a, **k)
-        if self.param_varargs is None:
-            self.param_varargs = 'varargs_type'
-        if self.param_defaults is None:
-            self.param_defaults = ()
+        return arguments
 
     @staticmethod
     def _getargspec(function):

@@ -76,7 +76,7 @@ class Task(PyCOMPSsDecorator):
 
     __slots__ = ['task_type', 'decorator_arguments', 'user_function',
                  'registered', 'signature',
-                 'interactive', 'module']
+                 'interactive', 'module', 'function_arguments']
 
     @staticmethod
     def _get_default_decorator_values():
@@ -181,6 +181,7 @@ class Task(PyCOMPSsDecorator):
         # Saved from the initial task
         self.interactive = None
         self.module = None
+        self.function_arguments = None
 
     def __call__(self, user_function):
         """ This function is called in all explicit function calls.
@@ -218,9 +219,10 @@ class Task(PyCOMPSsDecorator):
                                         self.registered,
                                         self.signature,
                                         self.interactive,
-                                        self.module)
+                                        self.module,
+                                        self.function_arguments)
                 result = master.call(*args, **kwargs)
-                fo, self.core_element, self.registered, self.signature, self.interactive, self.module = result  # noqa: E501
+                fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments = result  # noqa: E501
                 del master
                 return fo
             elif context.in_worker():
@@ -245,9 +247,10 @@ class Task(PyCOMPSsDecorator):
                                                 self.registered,
                                                 self.signature,
                                                 self.interactive,
-                                                self.module)
+                                                self.module,
+                                                self.function_arguments)
                             result = master.call(*args, **kwargs)
-                            fo, self.core_element, self.registered, self.signature, self.interactive, self.module = result  # noqa: E501
+                            fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments = result  # noqa: E501
                         del master
                         return fo
                     else:

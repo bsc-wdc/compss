@@ -21,9 +21,14 @@ PyCOMPSs Worker for Containers
     This file contains the code of a fake worker to execute Python tasks inside containers.
 """
 
+# Fix PYTHONPATH setup
+import pythonpath_fixer  # noqa
+
+# Regular imports
 import sys
 import logging
 
+# PyCOMPSs imports
 import pycompss.util.context as context
 from pycompss.worker.commons.worker import execute_task
 from pycompss.worker.commons.executor import build_return_params_message

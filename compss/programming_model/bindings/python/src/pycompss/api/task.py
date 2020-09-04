@@ -206,6 +206,7 @@ class Task(PyCOMPSsDecorator):
                 # @task being executed in the master
                 # Each task will have a TaskMaster, so its content will
                 # not be shared.
+                self.__check_core_element__(kwargs, user_function)
                 with event(TASK_INSTANTIATION, master=True):
                     master = TaskMaster(self.decorator_arguments,
                                         self.user_function,

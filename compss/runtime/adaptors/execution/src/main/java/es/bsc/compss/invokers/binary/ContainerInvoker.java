@@ -45,12 +45,12 @@ public class ContainerInvoker extends Invoker {
 
     private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 23;
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
-    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 17;
+    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 19;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
-    private static final String REL_PATH_WORKER_CONTAINER =
-        File.separator + "worker" + File.separator + "container" + File.separator + "container_worker.py";
+    private static final String REL_PATH_WORKER_CONTAINER = File.separator + "pycompss" + File.separator + "worker"
+        + File.separator + "container" + File.separator + "container_worker.py";
 
     private final ContainerDescription container;
     private final ContainerExecutionType internalExecutionType;
@@ -197,8 +197,7 @@ public class ContainerInvoker extends Invoker {
         // Setup PyCOMPSs directory
         String pyCompssDir = this.context.getInstallDir();
         pyCompssDir = pyCompssDir.endsWith(File.separator) ? pyCompssDir : pyCompssDir + File.separator;
-        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python" + File.separator + pythonVersion
-            + File.separator + "pycompss";
+        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python" + File.separator + pythonVersion;
 
         // Setup Python CET execution flags
         boolean hasTarget = false;
@@ -305,14 +304,6 @@ public class ContainerInvoker extends Invoker {
                 break;
 
             case SINGULARITY:
-                switch (this.internalExecutionType) {
-                    case CET_PYTHON:
-                        cmd[cmdIndex++] = "SINGULARITYENV_PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
-                        break;
-                    case CET_BINARY:
-                        // Nothing to add
-                        break;
-                }
                 cmd[cmdIndex++] = "singularity";
                 cmd[cmdIndex++] = "exec";
                 cmd[cmdIndex++] = "--bind";
@@ -381,9 +372,10 @@ public class ContainerInvoker extends Invoker {
         }
 
         // Launch command
+        final String completePythonpath = pythonPath + ":" + pyCompssDir;
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), null, this.failByEV);
+            this.context.getThreadErrStream(), completePythonpath, this.failByEV);
     }
 
     private void addParamInfo(List<String> paramsList, InvocationParam p) {

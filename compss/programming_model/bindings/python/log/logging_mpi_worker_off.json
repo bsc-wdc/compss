@@ -69,7 +69,6 @@
     "pycompss.runtime.commons":                      { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.launch":                       { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.util.environment.configuration":       { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
-    "pycompss.util.importing.functools":             { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.util.interactive.flags":               { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.util.interactive.helpers":             { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.util.jvm.parser":                      { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },

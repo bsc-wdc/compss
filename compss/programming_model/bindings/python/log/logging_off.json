@@ -73,7 +73,6 @@
     "pycompss.runtime.commons":                      { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.launch":                       { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.util.environment.configuration":       { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
-    "pycompss.util.importing.functools":             { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.util.interactive.flags":               { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.util.interactive.helpers":             { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.util.jvm.parser":                      { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },

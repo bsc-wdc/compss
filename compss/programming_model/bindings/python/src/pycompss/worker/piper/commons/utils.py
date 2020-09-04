@@ -119,14 +119,16 @@ def load_loggers(debug, persistent_storage, tracing):
     """
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
+    log_cfg_path = "".join((worker_path, '/../../../../log'))
+    if not os.path.isdir(log_cfg_path):
+        # If not exists, then we are using the source for unit testing
+        log_cfg_path = "".join((worker_path, '/../../../../../log'))
     if debug:
         # Debug
-        log_json = "".join((worker_path,
-                            '/../../../../log/logging_worker_debug.json'))
+        log_json = "/".join((log_cfg_path, 'logging_worker_debug.json'))
     else:
         # Default
-        log_json = "".join((worker_path,
-                            '/../../../../log/logging_worker_off.json'))
+        log_json = "/".join((log_cfg_path, 'logging_worker_off.json'))
     init_logging_worker(log_json, tracing)
 
     # Define logger facilities

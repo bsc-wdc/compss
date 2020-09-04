@@ -75,6 +75,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/functions/test_reduce.py',
     'pycompss/tests/runtime/test_object_tracker.py',
     'pycompss/tests/worker/test_gat.py',
+    'pycompss/tests/worker/test_piper.py',
     # # ############ @parallel related ############ #
     'pycompss/api/parallel.py',
     'pycompss/util/translators/code_loader/code_loader.py',
@@ -97,6 +98,7 @@ FILES_WHITE_LIST = [
 ]
 FILES_BLACK_LIST = [
     'pycompss/tests/api/test_local.py',  # fails due to replace util.
+    'pycompss/tests/worker/test_piper.py',  # TODO: FINISH
 ]
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed

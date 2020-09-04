@@ -279,9 +279,9 @@ class TaskMaster(TaskCommons):
         # values to them if necessary
         with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
             if not self.function_arguments:
-                # This is done only first time
                 self.function_arguments = self.inspect_user_function_arguments()
             self.param_args, self.param_varargs, _, self.param_defaults = self.function_arguments  # noqa: E501
+            # TODO: Why this fails with first python test?
             # It will be easier to deal with functions if we pretend that all have
             # the signature f(positionals, *variadic, **named). This is why we are
             # substituting Nones with default stuff.
@@ -345,17 +345,15 @@ class TaskMaster(TaskCommons):
 
         # Deal with the return part.
         with event(PROCESS_RETURN, master=True):
-            self.add_return_parameters()
+            num_returns = self.add_return_parameters()
             if not self.returns:
-                self.update_return_if_no_returns(self.user_function)
+                num_returns = self.update_return_if_no_returns(self.user_function)  # noqa: E501
 
         # Build return objects
         with event(BUILD_RETURN_OBJECTS, master=True):
             fo = None
-            num_returns = 0
             if self.returns:
-                fo = self._build_return_objects()
-                num_returns = len(self.returns)
+                fo = self._build_return_objects(num_returns)
 
         # Infer COMPSs types from real types, except for files
         self._serialize_objects()
@@ -1036,17 +1034,18 @@ class TaskMaster(TaskCommons):
         return is_replicated, is_distributed, on_failure, time_out, has_priority, has_target  # noqa: E501
 
     def add_return_parameters(self):
-        # type: () -> None
+        # type: () -> int
         """ Modify the return parameters accordingly to the return statement.
 
-        :return: Nothing, it just creates and modifies self.returns.
+        :return: Creates and modifies self.returns and returns the number of
+                 returns.
         """
         self.returns = OrderedDict()
 
         _returns = self.decorator_arguments['returns']
         # Note that 'returns' is by default False
         if not _returns:
-            return None
+            return 0
 
         # A return statement can be the following:
         # 1) A type. This means 'this task returns an object of this type'
@@ -1057,6 +1056,7 @@ class TaskMaster(TaskCommons):
         # It is important to know because this will determine if we will
         # return a single object or [a single object] in some cases
         self.multi_return = True
+        defined_type = False
         if isinstance(_returns, str):
             # Check if the returns statement contains an string with an
             # integer or a global variable.
@@ -1076,34 +1076,47 @@ class TaskMaster(TaskCommons):
                     num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
             # Construct hidden multi-return
             if num_rets > 1:
-                to_return = [tuple([]) for _ in range(num_rets)]
+                to_return = num_rets
             else:
-                to_return = tuple([])
+                to_return = 1
         elif is_basic_iterable(_returns):
-            # The task returns a basic iterable with some types
-            # already defined
+            # The task returns a basic iterable with some types already defined
             to_return = _returns
+            defined_type = True
         elif isinstance(_returns, int):
             # The task returns a list of N objects, defined by the int N
-            to_return = tuple([() for _ in range(_returns)])
+            to_return = _returns
         else:
             # The task returns a single object of a single type
             # This is also the only case when no multiple objects are
             # returned but only one
             self.multi_return = False
-            to_return = tuple([_returns])
+            to_return = 1
 
         # At this point we have a list of returns
-        for (i, elem) in enumerate(to_return):
-            ret_type = get_compss_type(elem)
-            self.returns[get_return_name(i)] = \
-                Parameter(content=elem,
-                          content_type=ret_type,
-                          direction=parameter.OUT)
-            # Hopefully, an exception have been thrown if some invalid
-            # stuff has been put in the returns field
+        ret_dir = DIRECTION.OUT
+        if defined_type:
+            for (i, elem) in enumerate(to_return):
+                ret_type = get_compss_type(elem)
+                self.returns[get_return_name(i)] = \
+                    Parameter(content=elem,
+                              content_type=ret_type,
+                              direction=ret_dir)
+        else:
+            ret_type = TYPE.OBJECT
+            self.returns = {get_return_name(i): Parameter(content=None,
+                                                          content_type=ret_type,
+                                                          direction=ret_dir)
+                            for i in range(to_return)}
+        # Hopefully, an exception have been thrown if some invalid
+        # stuff has been put in the returns field
+        if defined_type:
+            return len(to_return)  # noqa
+        else:
+            return to_return
 
     def update_return_if_no_returns(self, f):
+        # type: (...) -> int
         """ Look for returns if no returns is specified.
 
         Checks the code looking for return statements if no returns is
@@ -1112,6 +1125,7 @@ class TaskMaster(TaskCommons):
         WARNING: Updates self.return if returns are found.
 
         :param f: Function to check.
+        :return: The number of return elements if found.
         """
         # Check type-hinting in python3
         if IS_PYTHON3:
@@ -1137,7 +1151,7 @@ class TaskMaster(TaskCommons):
                     param.content = object()
                     self.returns[get_return_name(0)] = param
                 # Found return defined as type-hint
-                return
+                return num_returns
             else:
                 # The user has not defined return as type-hint
                 # So, continue searching as usual
@@ -1219,9 +1233,10 @@ class TaskMaster(TaskCommons):
         else:
             # Return not found
             pass
+        return len(self.returns)
 
-    def _build_return_objects(self):
-        # type: () -> object
+    def _build_return_objects(self, num_returns):
+        # type: (int) -> object
         """ Build the return objects.
 
         Build the return object from the self.return dictionary and include
@@ -1233,20 +1248,21 @@ class TaskMaster(TaskCommons):
 
         WARNING: Updates self.returns dictionary.
 
+        :param num_returns: Number of returned elements.
         :return: Future object/s.
         """
         fo = None
-        if len(self.returns) == 0:
+        if num_returns == 0:
             # No return
             return fo
-        elif len(self.returns) == 1:
+        elif num_returns == 1:
             # Simple return
             if __debug__:
                 logger.debug("Simple object return found.")
             # Build the appropriate future object
             ret_value = self.returns[get_return_name(0)].content
-            if type(ret_value) in \
-                    _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
+            if type(ret_value) in _PYTHON_TO_COMPSS or \
+                    ret_value in _PYTHON_TO_COMPSS:
                 fo = Future()  # primitives,string,dic,list,tuple
             elif inspect.isclass(ret_value):
                 # For objects:
@@ -1260,11 +1276,10 @@ class TaskMaster(TaskCommons):
             else:
                 fo = Future()  # modules, functions, methods
             obj_id, ret_filename = OT_track(fo)
-            self.returns[get_return_name(0)] = \
-                Parameter(content_type=TYPE.FILE,
-                          direction=DIRECTION.OUT,
-                          prefix="#")
-            self.returns[get_return_name(0)].file_name = ret_filename
+            single_return = self.returns[get_return_name(0)]
+            single_return.content_type = TYPE.FILE
+            single_return.prefix = '#'
+            single_return.file_name = ret_filename
         else:
             # Multireturn
             fo = []
@@ -1289,10 +1304,10 @@ class TaskMaster(TaskCommons):
                 obj_id, ret_filename = OT_track(foe)
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return object
-                self.returns[k] = Parameter(content_type=TYPE.FILE,
-                                            direction=DIRECTION.OUT,
-                                            prefix="#")
-                self.returns[k].file_name = ret_filename
+                return_k = self.returns[k]
+                return_k.content_type = TYPE.FILE
+                return_k.prefix = '#'
+                return_k.file_name = ret_filename
         return fo
 
     def _serialize_objects(self):

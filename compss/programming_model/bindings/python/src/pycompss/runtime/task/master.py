@@ -174,10 +174,10 @@ ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
                             'param_defaults',
                             'first_arg_name',
                             'parameters',
-                            'function_name',
-                            'module_name',
-                            'function_type',
-                            'class_name',
+                            # 'function_name',
+                            # 'module_name',
+                            # 'function_type',
+                            # 'class_name',
                             'returns',
                             'multi_return']
 
@@ -209,7 +209,12 @@ class TaskMaster(TaskCommons):
                  signature,
                  interactive,
                  module,
-                 function_arguments):
+                 function_arguments,
+                 function_name,
+                 module_name,
+                 function_type,
+                 class_name
+                 ):
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments,
                                              user_function)
@@ -219,10 +224,10 @@ class TaskMaster(TaskCommons):
         self.first_arg_name = None
         self.computing_nodes = None
         self.parameters = None
-        self.function_name = None
-        self.module_name = None
-        self.function_type = None
-        self.class_name = None
+        self.function_name = function_name
+        self.module_name = module_name
+        self.function_type = function_type
+        self.class_name = class_name
         # Add returns related attributes that will be useful later
         self.returns = None
         self.multi_return = False
@@ -236,6 +241,10 @@ class TaskMaster(TaskCommons):
         self.interactive = interactive
         self.module = module
         self.function_arguments = function_arguments
+        # self.function_name = function_name
+        # self.module_name = module_name
+        # self.function_type = function_type
+        # self.class_name = class_name
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (object, bool, str)
@@ -291,7 +300,9 @@ class TaskMaster(TaskCommons):
 
         # Compute the function path, class (if any), and name
         with event(GET_FUNCTION_INFORMATION, master=True):
-            self.compute_user_function_information()
+            if not self.function_name:
+                self.compute_user_function_information()
+            # Else: the information is already there
 
         # Prepare the core element registration information
         with event(PREPARE_CORE_ELEMENT, master=True):
@@ -431,7 +442,9 @@ class TaskMaster(TaskCommons):
         # so that future tasks of the same function register if necessary.
         return fo, self.core_element, self.registered, \
                self.signature, self.interactive, self.module, \
-               self.function_arguments
+               self.function_arguments, \
+               self.function_name, \
+               self.module_name, self.function_type, self.class_name
 
     def check_if_interactive(self):
         # type: () -> (bool, ...)
@@ -766,6 +779,7 @@ class TaskMaster(TaskCommons):
                 # -1 to remove the last point
 
     def set_code_strings(self, f, ce_type):
+        # type: (..., str) -> None
         """ This function is used to set if the strings must be coded or not.
 
         IMPORTANT! modifies f adding __code_strings__ which is used in binding.
@@ -777,19 +791,18 @@ class TaskMaster(TaskCommons):
         default = 'METHOD'
         if ce_type is None:
             ce_type = default
-
+        if ce_type == default:
+            code_strings = True
+        elif ce_type == "PYTHON_MPI":
+            code_strings = True
+        elif ce_type == "MPI":
+            code_strings = False
+        else:
+            code_strings = False
+        f.__code_strings__ = code_strings
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" %
                          (self.function_name, self.module_name, str(ce_type)))
-
-        if ce_type == default:
-            f.__code_strings__ = True
-        elif ce_type == "PYTHON_MPI":
-            f.__code_strings__ = True
-        elif ce_type == "MPI":
-            f.__code_strings__ = False
-        else:
-            f.__code_strings__ = False
 
     def get_signature(self):
         # type: () -> (str, list)
@@ -835,7 +848,8 @@ class TaskMaster(TaskCommons):
                 impl_signature = ".".join((self.module_name,
                                            self.class_name,
                                            self.function_name))
-                impl_type_args = [".".join((self.module_name, self.class_name)),
+                impl_type_args = [".".join((self.module_name,
+                                            self.class_name)),
                                   self.function_name]
             else:
                 # Not in a class or subclass

@@ -115,9 +115,9 @@ void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints
 
 int GS_Accessed_File(long appId, char* fileName){
 	if (PIPES) {
-		PIPE_Accessed_File(appId, fileName);
+		return PIPE_Accessed_File(appId, fileName);
 	} else {
-		JNI_Accessed_File(appId, fileName);
+		return JNI_Accessed_File(appId, fileName);
 	}
 }
 
@@ -238,9 +238,9 @@ void GS_EmitEvent(int type, long id) {
 
 int GS_GetNumberOfResources(long appId) {
 	if (PIPES) {
-		PIPE_GetNumberOfResources(appId);
+		return PIPE_GetNumberOfResources(appId);
 	} else {
-		JNI_GetNumberOfResources(appId);
+		return JNI_GetNumberOfResources(appId);
 	}
 }
 

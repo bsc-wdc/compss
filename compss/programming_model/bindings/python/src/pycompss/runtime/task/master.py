@@ -166,6 +166,8 @@ DEPRECATED_ARGUMENTS = ['isReplicated',
                         'isDistributed',
                         'varargsType',
                         'targetDirection']
+# All supported arguments
+ALL_SUPPORTED_ARGUMENTS = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS
 # Some attributes cause memory leaks, we must delete them from memory after
 # master call
 ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
@@ -414,12 +416,12 @@ class TaskMaster(TaskCommons):
         # (then the runtime will take care of the dependency).
         # Also return if the task has been registered and its signature,
         # so that future tasks of the same function register if necessary.
-        return fo, self.core_element, self.registered, \
-               self.signature, self.interactive, self.module, \
-               self.function_arguments, \
-               self.function_name, \
-               self.module_name, self.function_type, self.class_name, \
-               self.hints
+        return (fo, self.core_element, self.registered,
+                self.signature, self.interactive, self.module,
+                self.function_arguments,
+                self.function_name,
+                self.module_name, self.function_type, self.class_name,
+                self.hints)
 
     def check_if_interactive(self):
         # type: () -> (bool, ...)
@@ -560,31 +562,37 @@ class TaskMaster(TaskCommons):
         # Process the positional arguments and fill self.parameters with
         # their corresponding Parameter object
         self.parameters = OrderedDict()
+
         # Some of these positional arguments may have been not
         # explicitly defined
         num_positionals = min(len(self.param_args), len(args))
-        for (arg_name, arg_object) in zip(self.param_args[:num_positionals],
-                                          args[:num_positionals]):
-            if self.first_arg_name is None:
-                self.first_arg_name = arg_name
+        arg_names = self.param_args[:num_positionals]
+        arg_objects = args[:num_positionals]
+        if arg_names and self.first_arg_name is None:
+            self.first_arg_name = arg_names[0]
+        for (arg_name, arg_object) in zip(arg_names, arg_objects):
             self.parameters[arg_name] = self.build_parameter_object(arg_name,
                                                                     arg_object)
+
+        # Check defaults
         num_defaults = len(self.param_defaults)
-        # Give default values to all the parameters that have a
-        # default value and are not already set
-        # As an important observation, defaults are matched as follows:
-        # defaults[-1] goes with positionals[-1]
-        # defaults[-2] goes with positionals[-2]
-        # ...
-        # Also, |defaults| <= |positionals|
-        for (arg_name, default_value) in reversed(
-                list(zip(list(reversed(self.param_args))[:num_defaults],
-                         list(reversed(self.param_defaults))))):
-            if arg_name not in self.parameters:
-                real_arg_name = get_kwarg_name(arg_name)
-                self.parameters[real_arg_name] = \
-                    self.build_parameter_object(real_arg_name,
-                                                default_value)
+        if num_defaults > 0:
+            # Give default values to all the parameters that have a
+            # default value and are not already set
+            # As an important observation, defaults are matched as follows:
+            # defaults[-1] goes with positionals[-1]
+            # defaults[-2] goes with positionals[-2]
+            # ...
+            # Also, |defaults| <= |positionals|
+            for (arg_name, default_value) in reversed(
+                    list(zip(list(reversed(self.param_args))[:num_defaults],
+                             list(reversed(self.param_defaults))))):
+                if arg_name not in self.parameters:
+                    real_arg_name = get_kwarg_name(arg_name)
+                    self.parameters[real_arg_name] = \
+                        self.build_parameter_object(real_arg_name,
+                                                    default_value)
+
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
         # This will allow us to determine the class of each parameter
@@ -601,9 +609,7 @@ class TaskMaster(TaskCommons):
                                                                     value)
 
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_arguments = (SUPPORTED_ARGUMENTS +
-                               DEPRECATED_ARGUMENTS +
-                               self.param_args)
+        supported_arguments = (ALL_SUPPORTED_ARGUMENTS + self.param_args)
         check_arguments(MANDATORY_ARGUMENTS,
                         DEPRECATED_ARGUMENTS,
                         supported_arguments,

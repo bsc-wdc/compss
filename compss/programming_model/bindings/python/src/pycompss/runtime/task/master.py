@@ -1098,16 +1098,24 @@ class TaskMaster(TaskCommons):
             # returned but only one
             self.multi_return = False
             to_return = 1
+            defined_type = True
 
         # At this point we have a list of returns
         ret_dir = DIRECTION.OUT
         if defined_type:
-            for (i, elem) in enumerate(to_return):
-                ret_type = get_compss_type(elem)
-                self.returns[get_return_name(i)] = \
-                    Parameter(content=elem,
+            if to_return == 1:
+                ret_type = get_compss_type(_returns)
+                self.returns[get_return_name(0)] = \
+                    Parameter(content=_returns,
                               content_type=ret_type,
                               direction=ret_dir)
+            else:
+                for (i, elem) in enumerate(to_return):
+                    ret_type = get_compss_type(elem)
+                    self.returns[get_return_name(i)] = \
+                        Parameter(content=elem,
+                                  content_type=ret_type,
+                                  direction=ret_dir)
         else:
             ret_type = TYPE.OBJECT
             self.returns = {get_return_name(i): Parameter(content=None,
@@ -1117,7 +1125,10 @@ class TaskMaster(TaskCommons):
         # Hopefully, an exception have been thrown if some invalid
         # stuff has been put in the returns field
         if defined_type:
-            return len(to_return)  # noqa
+            if to_return == 1:
+                return to_return
+            else:
+                return len(to_return)  # noqa
         else:
             return to_return
 

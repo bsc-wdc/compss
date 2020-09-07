@@ -1365,7 +1365,7 @@ class TaskMaster(TaskCommons):
         compss_directions = []
         compss_streams = []
         compss_prefixes = []
-        extra_content_types = list()
+        extra_content_types = []
         slf_name = None
         weights = []
         keep_renames = []
@@ -1411,9 +1411,9 @@ class TaskMaster(TaskCommons):
 
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function returns
-        for r in self.returns:
+        for r in self.returns.keys():
             p = self.returns[r]
-            values.append(self.returns[r].file_name)
+            values.append(p.file_name)
             compss_types.append(p.content_type)
             compss_directions.append(p.direction)
             compss_streams.append(p.stream)

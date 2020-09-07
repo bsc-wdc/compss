@@ -9,8 +9,8 @@
     coverage run --source="src/pycompss" \
                  --omit="/usr/lib/*" \
                  --omit="src/pycompss/api/tests_parallel/*" \
-                 --concurrency=multiprocessing \
                  nose_tests.py False
+                 # --concurrency=multiprocessing \
                  # --omit="src/pycompss/util/translators/*" \
     coverage report -m
   }

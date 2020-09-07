@@ -29,38 +29,41 @@ class DummyObject(object):
 def test_track():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    do_id = object_tracker.track(do)
+    do_id, do_file_name = object_tracker.track(do)
     assert object_tracker.is_tracked(do) is not None, "The identifier can not be None."        # noqa: E501
     assert isinstance(object_tracker.is_tracked(do), str), "The identifier must be a string."  # noqa: E501
     assert object_tracker.is_tracked(do) != "", "The identifier must not be empty."            # noqa: E501
     assert object_tracker.is_tracked(do) == do_id, "Tracked identifier differs from returned by track function."  # noqa: E501
+    assert do_file_name != "", "The file name can not be empty."
 
 
 def test_track_twice():
     object_tracker = ObjectTracker()
     do = DummyObject()
     _ = object_tracker.track(do)
-    do_id = object_tracker.track(do)
+    do_id, do_file_name = object_tracker.track(do)
     assert object_tracker.is_tracked(do) is not None, "The identifier can not be None."        # noqa: E501
     assert isinstance(object_tracker.is_tracked(do), str), "The identifier must be a string."  # noqa: E501
     assert object_tracker.is_tracked(do) != "", "The identifier must not be empty."            # noqa: E501
     assert object_tracker.is_tracked(do) == do_id, "Tracked identifier differs from returned by track function."  # noqa: E501
+    assert do_file_name != "", "The file name can not be empty."
 
 
 def test_track_collection():
     object_tracker = ObjectTracker()
     my_collection = [DummyObject(), DummyObject()]
-    collection_id = object_tracker.track(my_collection, collection=True)
+    collection_id, collection_file_name = object_tracker.track(my_collection, collection=True)  # noqa: E501
     assert object_tracker.is_tracked(my_collection) is not None, "The identifier can not be None."        # noqa: E501
     assert isinstance(object_tracker.is_tracked(my_collection), str), "The identifier must be a string."  # noqa: E501
     assert object_tracker.is_tracked(my_collection) != "", "The identifier must not be empty."            # noqa: E501
     assert object_tracker.is_tracked(my_collection) == collection_id, "Tracked identifier differs from returned by track function."  # noqa: E501
+    assert collection_file_name is None, "The file name must be None for collections."  # noqa: E501
 
 
 def test_stop_tracking():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    do_id = object_tracker.track(do)
+    do_id, do_file_name = object_tracker.track(do)
     assert object_tracker.is_tracked(do) is not None, "The identifier can not be None."        # noqa: E501
     assert isinstance(object_tracker.is_tracked(do), str), "The identifier must be a string."  # noqa: E501
     assert object_tracker.is_tracked(do) != "", "The identifier must not be empty."            # noqa: E501
@@ -68,12 +71,13 @@ def test_stop_tracking():
     # The object do is being tracked
     object_tracker.stop_tracking(do)
     assert object_tracker.is_tracked(do) is None, "The identifier must be None after stop tracking"  # noqa: E501
+    assert do_file_name != "", "The file name can not be empty."
 
 
 def test_stop_tracking_collection():
     object_tracker = ObjectTracker()
     my_collection = [DummyObject(), DummyObject()]
-    collection_id = object_tracker.track(my_collection, collection=True)
+    collection_id, collection_file_name = object_tracker.track(my_collection, collection=True)
     assert object_tracker.is_tracked(my_collection) is not None, "The identifier can not be None."        # noqa: E501
     assert isinstance(object_tracker.is_tracked(my_collection), str), "The identifier must be a string."  # noqa: E501
     assert object_tracker.is_tracked(my_collection) != "", "The identifier must not be empty."            # noqa: E501
@@ -81,14 +85,16 @@ def test_stop_tracking_collection():
     # The collection is being tracked
     object_tracker.stop_tracking(my_collection, collection=True)
     assert object_tracker.is_tracked(my_collection) is None, "The identifier must be None after stop tracking"  # noqa: E501
+    assert collection_file_name is None, "The file name must be None for collections."  # noqa: E501
 
 
 def test_get_object_id():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    do_id = object_tracker.track(do)
+    do_id, do_file_name = object_tracker.track(do)
     do_get_obj_id = object_tracker.get_object_id(do)
     assert do_id == do_get_obj_id, "The object identifiers are different!"
+    assert do_file_name != "", "The file name can not be empty."
 
 
 def test_not_tracking_empty():
@@ -100,7 +106,7 @@ def test_not_tracking_empty():
 def test_not_tracking_not_empty():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    _ = object_tracker.track(do)
+    _, _ = object_tracker.track(do)
     do2 = DummyObject()
     assert object_tracker.is_tracked(do2) is None, "The object seems to be tracked."  # noqa: E501
 
@@ -109,8 +115,8 @@ def test_get_all_file_names():
     object_tracker = ObjectTracker()
     do = DummyObject()
     do2 = DummyObject()
-    _ = object_tracker.track(do)
-    _ = object_tracker.track(do2)
+    _, _ = object_tracker.track(do)
+    _, _ = object_tracker.track(do2)
     file_names = object_tracker.get_all_file_names()
     assert len(file_names) == 2, "Two elements should be being tracked."
 
@@ -118,11 +124,13 @@ def test_get_all_file_names():
 def test_get_file_name():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    do_id = object_tracker.track(do)
+    do_id, do_file_name = object_tracker.track(do)
     file_name = object_tracker.get_file_name(do_id)
     assert file_name is not None, "The file name can not be None."
     assert isinstance(file_name, str), "The file name must be a string."
     assert file_name != "", "The file name must not be empty."
+    assert do_file_name != "", "The file name can not be empty."
+    assert do_file_name == file_name, "The file name received wrong file name."
 
 
 def test_obj_not_pending_to_synchronize():
@@ -143,7 +151,7 @@ def test_not_pending_to_synchronize():
 def test_obj_pending_to_synchronize():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    _ = object_tracker.track(do)
+    _, _ = object_tracker.track(do)
     # The object is being tracked
     pending = object_tracker.is_obj_pending_to_synchronize(do)
     assert pending is True, "The object must be pending to synchronize after tracking."  # noqa: E501
@@ -152,7 +160,7 @@ def test_obj_pending_to_synchronize():
 def test_pending_to_synchronize():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    do_id = object_tracker.track(do)
+    do_id, _ = object_tracker.track(do)
     # The object is being tracked
     pending = object_tracker.is_pending_to_synchronize(do_id)
     assert pending is True, "The object must be pending to synchronize after tracking."  # noqa: E501
@@ -161,7 +169,7 @@ def test_pending_to_synchronize():
 def test_update_mapping():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    do_id = object_tracker.track(do)
+    do_id, _ = object_tracker.track(do)
     # The object is being tracked
     written = object_tracker.has_been_written(do_id)
     assert written is False, "The object identifier must not be in written_objects after tracking."  # noqa: E501
@@ -181,12 +189,13 @@ def test_update_mapping():
 def test_clean_object_tracker():
     object_tracker = ObjectTracker()
     do = DummyObject()
-    _ = object_tracker.track(do)
+    _, _ = object_tracker.track(do)
     object_tracker.clean_object_tracker()
     assert len(object_tracker.pending_to_synchronize) == 0
     assert len(object_tracker.file_names) == 0
     assert len(object_tracker.written_objects) == 0
-    assert len(object_tracker.obj_id_to_address) == 0
+    assert len(object_tracker.obj_id_to_obj) == 0
+    assert len(object_tracker.address_to_obj_id) == 0
 
 
 def test_report():
@@ -194,7 +203,7 @@ def test_report():
     object_tracker.enable_report()
     assert object_tracker.is_report_enabled() is True, "Reporting must be enabled."  # noqa: E501
     do = DummyObject()
-    _ = object_tracker.track(do)
+    _, _ = object_tracker.track(do)
     object_tracker.stop_tracking(do)
     object_tracker.generate_report(".")
     report = "object_tracker.png"

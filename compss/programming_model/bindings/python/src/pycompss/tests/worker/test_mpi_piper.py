@@ -22,6 +22,7 @@ import sys
 import time
 import multiprocessing
 from pycompss.util.serialization.serializer import deserialize_from_file
+import subprocess
 
 from pycompss.api.task import task
 
@@ -37,27 +38,33 @@ def increment(value):
 
 
 def worker_thread(argv, current_path):
-    from pycompss.worker.piper.piper_worker import main
+    from pycompss.worker.piper.mpi_piper_worker import main
     # Start the piper worker
     sys.argv = argv
     sys.path.append(current_path)
     sys.stdout = open(current_path + "/../../../../std.out", 'w')
     sys.stderr = open(current_path + "/../../../../std.err", 'w')
-    main()
+    p = subprocess.Popen(" ".join(argv), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p.wait()
 
 
 def test_piper_worker():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
+    current_path = os.path.dirname(os.path.abspath(__file__))
 
-    sys.argv = ['piper_worker.py',
+    python_path = current_path + '/../../tests/worker/:' + os.environ["PYTHONPATH"]
+    sys.argv = ['mpirun',
+                '-np', '2',
+                '-x', 'PYTHONPATH=' + python_path,
+                'python', current_path + '/../../worker/piper/mpi_piper_worker.py',
                 '/tmp/',
-                'false', 'true', 0, 'null', 'NONE', 'localhost', '49049', '1',
-                '/tmp/pipe_-504901196_executor0.outbound',
-                '/tmp/pipe_-504901196_executor0.inbound',
-                '/tmp/pipe_-504901196_control_worker.outbound',  # noqa: E501
-                '/tmp/pipe_-504901196_control_worker.inbound']  # noqa: E501
+                'false', 'true', '0', 'null', 'NONE', 'localhost', '49049', '1',
+                '/tmp/pipe_-504901197_executor0.outbound',
+                '/tmp/pipe_-504901197_executor0.inbound',
+                '/tmp/pipe_-504901197_control_worker.outbound',  # noqa: E501
+                '/tmp/pipe_-504901197_control_worker.inbound']  # noqa: E501
     pipes = sys.argv[-4:]
     # Create pipes
     for pipe in pipes:
@@ -70,7 +77,6 @@ def test_piper_worker():
     worker_out = os.open(pipes[2], os.O_RDWR)
     worker_in = os.open(pipes[3], os.O_RDWR)
 
-    current_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(current_path)
     # Start the piper worker in a separate thread
     worker = multiprocessing.Process(target=worker_thread, args=(sys.argv,
@@ -86,7 +92,7 @@ def test_piper_worker():
     simple_task_message = ['EXECUTE_TASK', '1',
                            job1_out,
                            job1_err,
-                           '0', '1', 'true', 'null', 'METHOD', 'test_piper',
+                           '0', '1', 'true', 'null', 'METHOD', 'test_mpi_piper',
                            'simple', '0', '1', 'localhost', '1', 'false',
                            'None', '0', '0',
                            '-', '0', '0']
@@ -101,7 +107,7 @@ def test_piper_worker():
     increment_task_message = ['EXECUTE_TASK', '2',
                               job2_out,
                               job2_err,
-                              '0', '1', 'true', 'null', 'METHOD', 'test_piper',
+                              '0', '1', 'true', 'null', 'METHOD', 'test_mpi_piper',
                               'increment', '0', '1', 'localhost', '1', 'false',
                               '9', '1', '2', '4', '3', 'null', 'value', 'null',
                               '1', '9', '3', '#', '$return_0', 'null',

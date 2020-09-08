@@ -76,7 +76,8 @@ FILES_WHITE_LIST = [
     'pycompss/tests/runtime/test_object_tracker.py',
     'pycompss/tests/worker/test_gat.py',
     'pycompss/tests/worker/test_piper.py',
-    # # ############ @parallel related ############ #
+    'pycompss/tests/worker/test_mpi_piper.py',
+    # ############ @parallel related ############ #
     'pycompss/api/parallel.py',
     'pycompss/util/translators/code_loader/code_loader.py',
     'pycompss/util/translators/code_replacer/code_replacer.py',

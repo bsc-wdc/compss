@@ -304,9 +304,7 @@ class TaskMaster(TaskCommons):
 
         # Compute the function path, class (if any), and name
         with event(GET_FUNCTION_INFORMATION, master=True):
-            if not self.function_name:
-                self.compute_user_function_information()
-            # Else: the information is already there
+            self.compute_user_function_information()
 
         # Prepare the core element registration information
         with event(PREPARE_CORE_ELEMENT, master=True):

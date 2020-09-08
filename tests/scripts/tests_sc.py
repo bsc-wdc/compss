@@ -7,22 +7,26 @@ from __future__ import print_function
 
 # Imports
 import time
+import os
 
-from arguments import get_args
+from arguments import get_sc_args
 from arguments import ArgumentExit
 from arguments import ArgumentError
 
-from configuration import load_configuration_file
+from configuration import load_sc_configuration_file
 from configuration import ConfigurationError
 
 from compilation_and_deployment import compile_and_deploy_tests
 from compilation_and_deployment import TestCompilationError
 from compilation_and_deployment import TestDeploymentError
 
-from execution import execute_tests
 from execution import TestExecutionError
+from execution import execute_tests_sc
 from execution import str_exit_value_coloured
 from execution import get_exit_code
+
+from constants import SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH, TESTS_SC_DIR
+from constants import DEFAULT_REL_TARGET_TESTS_DIR
 
 
 def launch_tests():
@@ -39,19 +43,29 @@ def launch_tests():
     :exit 0: This method exits when test numbering is provided
     """
     # Process command line arguments
-    cmd_args = get_args()
+    cmd_args = get_sc_args()
 
     # Load configuration file
-    compss_cfg = load_configuration_file(cmd_args.cfg_file)
-    sc_cfg = load_sc_configuration_file(cmd_args.sc_cfg_file)
+    compss_cfg = load_sc_configuration_file(cmd_args.cfg_file)
 
     # Compile and Deploy tests
-    compile_and_deploy_tests(cmd_args, compss_cfg)
+    compile_and_deploy_tests(cmd_args, compss_cfg, TESTS_SC_DIR)
 
-    _copy_to_sc(cmd_args, compss_cfg, sc_cfg)
+    _copy_to_sc(cmd_args, compss_cfg)
 
     # Execute tests
-    return execute_tests_sc(cmd_args, compss_cfg, sc_cfg)
+    return execute_tests_sc(cmd_args, compss_cfg)
+
+def _copy_to_sc(cmd_args, compss_cfg):
+    compss_cfg.print_vars()
+    username = compss_cfg.get_user()
+    remote_dir = os.path.join(compss_cfg.get_remote_working_dir(),DEFAULT_REL_TARGET_TESTS_DIR)
+    target_base_dir = compss_cfg.get_target_base_dir()
+    import subprocess
+    output = subprocess.check_output(["cp", "-R", os.path.join(SCRIPT_DIR,REMOTE_SCRIPTS_REL_PATH),  target_base_dir])
+    output = subprocess.check_output(["ssh",username,"rm -rf {}".format(remote_dir)])
+    output = subprocess.check_output(["scp","-r",target_base_dir,username+":"+remote_dir])
+    print("[INFO] All tests deployed to Supercomputer")
 
 
 ############################################

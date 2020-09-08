@@ -11,10 +11,10 @@ import os
 from constants import DEFAULT_SKIP
 from constants import DEFAULT_NUM_RETRIES
 from constants import DEFAULT_FAIL_FAST
-from constants import DEFAULT_FAMILIES, DEFAULT_SC_FAMILEES
+from constants import DEFAULT_FAMILIES, DEFAULT_SC_FAMILIES
 from constants import DEFAULT_CFG_FILE, DEFAULT_SC_CFG_FILE
 from constants import DEFAULT_TESTS
-from constants import TESTS_DIR
+from constants import TESTS_DIR, TESTS_SC_DIR
 
 
 ############################################
@@ -62,6 +62,59 @@ class ArgumentExit(Exception):
 # PUBLIC METHODS
 ############################################
 
+def get_sc_args():
+    """
+    Constructs an object representing the command line arguments
+    for local test execution
+
+    :return: Object representing the command line arguments
+        + type: argparse.Namespace
+    :raise ArgumentError: Error parsing command line arguments
+    :raise ArgumentExit: Exit parsing command line arguments
+    :exit 0: This method exits when test numbering is provided
+    """
+    print()
+    print("[INFO] Parsing arguments...")
+
+    import argparse
+
+    # Create the argument parser
+    if __debug__:
+        print("[DEBUG] Creating argument parser...")
+
+    parser = argparse.ArgumentParser(description="Launch COMPSs tests",
+                                     add_help=True)
+    _add_common_args(parser,DEFAULT_SC_FAMILIES, DEFAULT_SC_CFG_FILE)
+    _add_sc_args(parser)
+
+    if __debug__:
+        print("[DEBUG] Argument parser created")
+
+    # Parse arguments
+    # WARN: Stops the execution if an invalid argument is provided
+    if __debug__:
+        print("[DEBUG] Executing parser on command arguments...")
+    try:
+        args = parser.parse_args()
+    except SystemExit as se:
+        if se.code is None or se.code == 0:
+            raise ArgumentExit()
+        raise ArgumentError(se)
+
+    # Check arguments
+    args = _check_sc_args(args)
+
+    # If numbering cmd arg is provided, display numbering and exit
+    if args.numbering:
+        _display_numbering(args.test_numbers)
+
+    # Print arguments
+    print("[INFO] Arguments parsed:")
+    _print_sc_args(args)
+    _print_common_args(args)
+
+    return args
+
 def get_local_args():
     """
     Constructs an object representing the command line arguments
@@ -84,7 +137,7 @@ def get_local_args():
 
     parser = argparse.ArgumentParser(description="Launch COMPSs tests",
                                      add_help=True)
-    _add_common_args(parser)
+    _add_common_args(parser, DEFAULT_FAMILIES, DEFAULT_CFG_FILE)
     _add_local_args(parser)
 
     if __debug__:
@@ -102,7 +155,6 @@ def get_local_args():
         raise ArgumentError(se)
 
     # Check arguments
-    args = _check_common_args(args, DEFAULT_FAMILIES)
     args = _check_local_args(args)
 
     # If numbering cmd arg is provided, display numbering and exit
@@ -125,14 +177,18 @@ def _print_local_args(args):
     print("[INFO]   - fail_fast: " + str(args.fail_fast))
     print("[INFO]   - coverage: " + str(args.coverage))
 
-def _print_sc_args(args):
+def _print_common_args(args):
     print("[INFO]   - skip: " + str(args.skip))
     print("[INFO]   - numbering: " + str(args.numbering))
     print("[INFO]   - families: " + str(args.families))
     print("[INFO]   - cfg_file: " + str(args.cfg_file))
     print("[INFO]   - tests: " + str(args.tests))
 
-def _add_common_args(cmd_args, default_families):
+def _print_sc_args(args):
+    #currently none
+    pass
+
+def _add_common_args(parser, default_families, default_cfg):
     # Add version
     parser.add_argument('--version', action='version', version='2.6.rc1911')
 
@@ -160,7 +216,7 @@ def _add_common_args(cmd_args, default_families):
     parser.add_argument("-cfg", "--cfg-file",
                         action="store",
                         dest="cfg_file",
-                        default=DEFAULT_CFG_FILE,
+                        default=default_cfg,
                         help="Path to a valid CFG file")
 
     # Add specific test option
@@ -198,7 +254,7 @@ def _add_common_args(cmd_args, default_families):
                         default=[],
                         help="Executes only the C/C++ tests")
 
-def _add_local_args(cmd_args):
+def _add_local_args(parser):
     # Add retry options
     parser.add_argument("-r", "--retry",
                         action="store",
@@ -229,13 +285,9 @@ def _add_local_args(cmd_args):
                         default=False,
                         help="Executes in Coverage mode")
 
-def _add_sc_args(cmd_args):
-    # Add cfg file option
-    parser.add_argument("-sc-cfg", "--sc-cfg-file",
-                        action="store",
-                        dest="sc_cfg_file",
-                        default=DEFAULT_SC_CFG_FILE,
-                        help="Path to a valid CFG file")
+def _add_sc_args(parser):
+    # Add sc specific arguments (Currently none)
+    pass
 
 def _check_sc_args(cmd_args):
     """

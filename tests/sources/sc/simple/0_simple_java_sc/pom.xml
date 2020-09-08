@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
-    <artifactId>0_simple_java_mn</artifactId>
+    <artifactId>0_simple_java_sc</artifactId>
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
-        <artifactId>compss-tests-performance-mn</artifactId>
-        <version>2.6.rc2004</version>
+        <artifactId>compss-sc-tests-simple</artifactId>
+        <version>2.7.rc2009</version>
         <relativePath>..</relativePath>
     </parent>
 

@@ -13,6 +13,10 @@ from constants import CONFIGURATIONS_DIR
 from constants import DEFAULT_COMPSS_HOME
 from constants import DEFAULT_COMM
 from constants import DEFAULT_EXECUTION_ENVS
+from constants import DEFAULT_SC_EXECUTION_ENVS
+from constants import DEFAULT_COMPSS_MODULE
+from constants import DEFAULT_REL_TARGET_TESTS_DIR
+from constants import DEFAULT_REL_COMPSS_LOG_DIR
 
 
 ############################################
@@ -102,11 +106,11 @@ class COMPSsConfiguration:
 
         # Define compss_base_log_dir
         user_home = os.path.expanduser("~")
-        self.compss_base_log_dir = os.path.join(user_home, ".COMPSs")
+        self.compss_base_log_dir = os.path.join(user_home, DEFAULT_REL_COMPSS_LOG_DIR)
 
         # Either we receive the target_base_dir or we compute it from user home
         if target_base_dir is None:
-            self.target_base_dir = os.path.join(user_home, "tests_execution_sandbox")
+            self.target_base_dir = os.path.join(user_home, DEFAULT_REL_TARGET_TESTS_DIR)
         else:
             self.target_base_dir = target_base_dir
 
@@ -199,6 +203,57 @@ class COMPSsConfiguration:
 
         return ' '.join(str(x) for x in self.execution_envs)
 
+    def print_vars(self):
+        print("[INFO]   - user: " + str(self.user))
+        print("[INFO]   - java_home: " + str(self.java_home))
+        print("[INFO]   - compss_home: " + str(self.compss_home))
+        print("[INFO]   - target_dir: " + str(self.target_base_dir))
+        print("[INFO]   - comm: " + str(self.comm))
+        print("[INFO]   - runcompss_opts: " + str(self.runcompss_opts))
+        print("[INFO]   - execution_envs: " + str(self.execution_envs))
+
+
+class COMPSsSCConfiguration(COMPSsConfiguration):
+    """
+    Class containing the configuration options for sc tests
+    extends :class: `COMPSsConfiguration`
+    :attribute remote_working_dir: working directory in remote supercomputer
+        + type: String
+    :attribute compss_module: COMPSs module used for tests
+        + type: String
+    """
+
+    def __init__(self, remote_working_dir=None, compss_module=DEFAULT_COMPSS_MODULE, user=None, java_home=None, compss_home=DEFAULT_COMPSS_HOME, target_base_dir=None,
+                 comm=DEFAULT_COMM, runcompss_opts=None, execution_envs=DEFAULT_SC_EXECUTION_ENVS):
+        COMPSsConfiguration.__init__(self, user, java_home, compss_home, target_base_dir, comm, runcompss_opts, execution_envs)
+
+        if remote_working_dir is None:
+                raise ConfigurationError("[ERROR] Undefined variable remote_working_dir")
+        self.remote_working_dir = remote_working_dir
+        self.compss_module = compss_module
+
+    def get_remote_working_dir(self):
+        """
+        Returns the path to the COMPSs log base directory
+
+        :return: The path to the COMPSs log base directory
+            + type: String
+        """
+        return self.remote_working_dir
+
+    def get_compss_module(self):
+        """
+        Returns the path to the COMPSs log base directory
+
+        :return: The path to the COMPSs log base directory
+            + type: String
+        """
+        return self.compss_module
+
+    def print_vars(self):
+        COMPSsConfiguration.print_vars(self)
+        print("[INFO]   - compss_modules: " + str(self.compss_module))
+        print("[INFO]   - remote_dir: " + str(self.remote_working_dir))
 
 ############################################
 # PUBLIC METHODS
@@ -216,6 +271,67 @@ def load_configuration_file(cfg_file):
     print()
     print("[INFO] Loading configuration file...")
 
+    cfg_file = _check_file(cfg_file)
+
+    # Load cfg values
+    print("[INFO] Loading values from " + str(cfg_file))
+    import configparser
+    config = configparser.ConfigParser()
+    config.read(cfg_file)
+    # Load default variables
+    cfg_vars = {k: v for k, v in config.items("DEFAULT")}
+
+    _check_common_vars(cfg_vars)
+
+    if __debug__:
+        print("[DEBUG] Retrieved CFG variables: " + str(cfg_vars))
+
+    # Create COMPSs Configuration
+    compss_cfg = COMPSsConfiguration(**cfg_vars)
+
+    # Log and return configuration object
+    print("[INFO] Configuration file loaded")
+    compss_cfg.print_vars()
+
+    return compss_cfg
+
+def load_sc_configuration_file(cfg_file):
+    """
+    Loads the configuration file provided in the cfg_file path
+
+    :param cfg_file: Path to the configuration file (relative or absolute, with or without extension)
+    :return: An object representing the COMPSs test configuration options available in the given cfg file
+        + type: COMPSsConfiguration
+    :raise ConfigurationError: If the provided file path is invalid or there is an error when loading the cfg content
+    """
+    print()
+    print("[INFO] Loading configuration file...")
+
+    cfg_file = _check_file(cfg_file)
+
+    # Load cfg values
+    print("[INFO] Loading values from " + str(cfg_file))
+    import configparser
+    config = configparser.ConfigParser()
+    config.read(cfg_file)
+    # Load default variables
+    cfg_vars = {k: v for k, v in config.items("DEFAULT")}
+
+    _check_common_vars(cfg_vars, config)
+
+    if __debug__:
+        print("[DEBUG] Retrieved CFG variables: " + str(cfg_vars))
+
+    # Create COMPSs Configuration
+    compss_cfg = COMPSsSCConfiguration(**cfg_vars)
+
+    # Log and return configuration object
+    print("[INFO] Configuration file loaded")
+    compss_cfg.print_vars()
+
+    return compss_cfg
+
+def _check_file(cfg_file):
     # Fix extension and absolute path
     if __debug__:
         print("[DEBUG] Checking cfg_file path: " + str(cfg_file))
@@ -235,14 +351,10 @@ def load_configuration_file(cfg_file):
     # Check file existence
     if not os.path.isfile(cfg_file):
         raise ConfigurationError("[ERROR] File " + str(cfg_file) + " does not exist")
+    return cfg_file
 
-    # Load cfg values
-    print("[INFO] Loading values from " + str(cfg_file))
-    import configparser
-    config = configparser.ConfigParser()
-    config.read(cfg_file)
-    # Load default variables
-    cfg_vars = {k: v for k, v in config.items("DEFAULT")}
+
+def _check_common_vars(cfg_vars, config):
     # Load comm variables
     if "comm" not in cfg_vars.keys():
         raise ConfigurationError("[ERROR] CFG file does not define comm variable under DEFAULT scope")
@@ -254,21 +366,3 @@ def load_configuration_file(cfg_file):
     # Fix execution environments (if any)
     if "execution_envs" in cfg_vars.keys():
         cfg_vars["execution_envs"] = cfg_vars["execution_envs"].strip().split(",")
-
-    if __debug__:
-        print("[DEBUG] Retrieved CFG variables: " + str(cfg_vars))
-
-    # Create COMPSs Configuration
-    compss_cfg = COMPSsConfiguration(**cfg_vars)
-
-    # Log and return configuration object
-    print("[INFO] Configuration file loaded")
-    print("[INFO]   - user: " + str(compss_cfg.get_user()))
-    print("[INFO]   - java_home: " + str(compss_cfg.get_java_home()))
-    print("[INFO]   - compss_home: " + str(compss_cfg.get_compss_home()))
-    print("[INFO]   - target_dir: " + str(compss_cfg.get_target_base_dir()))
-    print("[INFO]   - comm: " + str(compss_cfg.get_comm()))
-    print("[INFO]   - runcompss_opts: " + str(compss_cfg.get_runcompss_opts()))
-    print("[INFO]   - execution_envs: " + str(compss_cfg.get_execution_envs()))
-
-    return compss_cfg

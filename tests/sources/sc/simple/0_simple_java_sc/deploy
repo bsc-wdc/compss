@@ -5,7 +5,7 @@
   target_base_dir=$2
   
   # Copy files
-  app_name="0_simple_java_mn"
+  app_name="0_simple_java_sc"
 
   cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
 

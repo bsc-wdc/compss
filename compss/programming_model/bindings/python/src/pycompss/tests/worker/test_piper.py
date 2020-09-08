@@ -36,8 +36,6 @@ def increment(value):
 
 
 def worker_thread(argv, current_path):
-    import coverage
-    coverage.process_startup()
     from pycompss.worker.piper.piper_worker import main
     # Start the piper worker
     sys.argv = argv
@@ -79,6 +77,7 @@ def test_piper_worker():
     # Wait 4 seconds to start the worker.
     print("Sleeping")
     time.sleep(4)
+
     # Run a simple task
     simple_task_message = ['EXECUTE_TASK', '1',
                            '/tmp/job1_NEW.out',
@@ -89,8 +88,8 @@ def test_piper_worker():
     # Run an increment task
 
     # Send quit message
-    os.write(executor_out, "QUIT\n")
-    os.write(worker_out, "QUIT\n")
+    os.write(executor_out, b"QUIT\n")
+    os.write(worker_out, b"QUIT\n")
 
     # Cleanup
     # os.remove("/tmp/job1_NEW.out")
@@ -103,9 +102,13 @@ def test_piper_worker():
     # Remove pipes
     for pipe in pipes:
         os.unlink(pipe)
+        if os.path.isfile(pipe):
+            os.remove(pipe)
     # Remove logs
-    os.remove("log/binding_worker.err")
-    os.remove("log/binding_worker.out")
+    if os.path.isfile("log/binding_worker.err"):
+        os.remove("log/binding_worker.err")
+    if os.path.isfile("log/binding_worker.out"):
+        os.remove("log/binding_worker.out")
     # Restore sys.argv and sys.path
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup

@@ -98,7 +98,6 @@ FILES_WHITE_LIST = [
 ]
 FILES_BLACK_LIST = [
     'pycompss/tests/api/test_local.py',  # fails due to replace util.
-    'pycompss/tests/worker/test_piper.py',  # TODO: FINISH
 ]
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed

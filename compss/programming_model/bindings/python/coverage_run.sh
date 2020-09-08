@@ -4,14 +4,17 @@
   # HELPER FUNCTIONS
   #
 
+  export COVERAGE_PROCESS_START=$(pwd)/coverage.cfg
+
   # Run a coverage report for a module
   run() {
-    coverage run --source="src/pycompss" \
-                 --omit="/usr/lib/*" \
-                 --omit="src/pycompss/api/tests_parallel/*" \
-                 nose_tests.py False
-                 # --concurrency=multiprocessing \
+    coverage run --rcfile=$(pwd)/coverage.cfg nose_tests.py False
+                 # --source="src/pycompss" \
+                 # --omit="/usr/lib/*" \
+                 # --omit="src/pycompss/api/tests_parallel/*" \
+                 # --concurrency=multiprocessing \  # not allowed as flag with the others
                  # --omit="src/pycompss/util/translators/*" \
+    coverage combine
     coverage report -m
   }
 

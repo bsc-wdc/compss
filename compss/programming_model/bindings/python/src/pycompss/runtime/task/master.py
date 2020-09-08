@@ -332,8 +332,11 @@ class TaskMaster(TaskCommons):
         from pycompss.api.task import REGISTER_ONLY
         if REGISTER_ONLY:
             MASTER_LOCK.release()
-            return None, self.core_element, self.registered, self.signature
-
+            return (None, self.core_element, self.registered, self.signature,
+                    self.interactive, self.module,
+                    self.function_arguments, self.function_name,
+                    self.module_name, self.function_type, self.class_name,
+                    self.hints)
         # Deal with dynamic computing nodes
         with event(GET_COMPUTING_NODES, master=True):
             computing_nodes = self.process_computing_nodes()

@@ -60,6 +60,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/api/test_binary.py',
     'pycompss/tests/api/test_compss.py',
     'pycompss/tests/api/test_constraint.py',
+    'pycompss/tests/api/test_container.py',
     'pycompss/tests/api/test_decaf.py',
     'pycompss/tests/api/test_decorator.py',
     'pycompss/tests/api/test_err_msgs.py',

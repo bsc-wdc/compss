@@ -31,6 +31,7 @@ DIRECTORIES_WHITE_LIST = [
     'pycompss/tests/api/commons',
     'pycompss/tests/functions',
     'pycompss/tests/integration',
+    'pycompss/tests/main',
     'pycompss/tests/runtime',
     'pycompss/tests/util',
     'pycompss/tests/worker',
@@ -54,6 +55,7 @@ FILES_WHITE_LIST = [
     # Include all tests that check only the sources.
     # (Do not include tests that use the installed runtime. Use
     # INTEGRATION_WHITE_LIST instead of this)
+    'pycompss/tests/main/test_main.py',
     'pycompss/tests/api/test_api.py',
     'pycompss/tests/api/test_binary.py',
     'pycompss/tests/api/test_compss.py',

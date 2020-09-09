@@ -17,28 +17,15 @@
 
 # -*- coding: utf-8 -*-
 
-"""
-PyCOMPSs Dummy API - Container
-===============================
-    This file contains the dummy class container used as decorator.
-"""
+from pycompss.api.dummy.task import Task
 
 
-class Container(object):
-    """
-    Dummy Container class (decorator style)
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self, f):
-        def wrapped_f(*args, **kwargs):
-            return f(*args, **kwargs)
-
-        return wrapped_f
+@Task()
+def increment(value):
+    return value + 1
 
 
-container = Container
-CONTAINER = Container
+def test_dummy_task():
+    result = increment(1)
+    assert result == 2,\
+        "Unexpected result provided by the dummy task decorator. Expected: 2 Received: " + str(result)  # noqa: E501

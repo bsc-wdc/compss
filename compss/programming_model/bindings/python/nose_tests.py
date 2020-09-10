@@ -114,6 +114,7 @@ FILES_BLACK_LIST = [
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed
     'pycompss/tests/integration/test_launch_application.py',
+    'pycompss/tests/integration/test_launch_application_tracing.py',
     'pycompss/tests/integration/test_launch_synthetic_application.py',
     'pycompss/tests/integration/test_launch_functions.py',
     'pycompss/tests/integration/test_launch_0_basic1.py',

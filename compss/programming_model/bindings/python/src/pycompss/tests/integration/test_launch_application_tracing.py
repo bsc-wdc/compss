@@ -18,31 +18,18 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 
 
-def test_launch_test_0_basic1():
+def test_launch_application():
     if "COMPSS_HOME" in os.environ:
         from pycompss.runtime.launch import launch_pycompss_application
 
         current_path = os.path.dirname(os.path.abspath(__file__))
-        app_path = os.path.join(current_path, "..", "..", "..", "..", "..", "..",
-                                "..", "..", "tests", "sources", "python",
-                                "0_basic1", "src")
-        app = os.path.join(app_path, "test_mp.py")
-        sys.path.insert(0, app_path)
+        app = os.path.join(current_path, "..", "resources", "increment.py")
         launch_pycompss_application(app,
-                                    "main_program",
+                                    "main",
                                     debug=True,
-                                    app_name="test_0_basic1")
-        sys.path.pop(0)
-        if os.path.exists("infile"):
-            os.remove("infile")
-        if os.path.exists("outfile"):
-            os.remove("outfile")
-        if os.path.exists("inoutfile"):
-            os.remove("inoutfile")
-        if os.path.exists("message.txt"):
-            os.remove("message.txt")
+                                    app_name="increment",
+                                    trace=True)
     else:
         raise Exception("COMPSs is not installed")

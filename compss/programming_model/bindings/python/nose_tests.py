@@ -87,6 +87,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/worker/test_gat.py',
     'pycompss/tests/worker/test_piper.py',
     'pycompss/tests/worker/test_mpi_piper.py',
+    'pycompss/tests/worker/test_external_mpi.py',
     # ############ @parallel related ############ #
     'pycompss/api/parallel.py',
     'pycompss/util/translators/code_loader/code_loader.py',

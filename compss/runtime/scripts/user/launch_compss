@@ -1545,7 +1545,11 @@ check_args() {
 
   # Pythonpath
   if [ -z "$pythonpath" ]; then
-    pythonpath=${DEFAULT_PYTHONPATH}
+    if [ test -f "${fullAppPath%/*}/__init__.py" ]; then
+        pythonpath=${DEFAULT_PYTHONPATH}
+    else
+        pythonpath=${fullAppPath%/*}
+    fi
   fi
 
   # AppDir

@@ -498,26 +498,28 @@ def get_compss_type(value, depth=0):
     if np and isinstance(value, np.generic):
         return TYPE.OBJECT
 
-    if isinstance(value, bool):
-        return TYPE.BOOLEAN
-    elif isinstance(value, str):
-        # Char does not exist as char, only strings.
-        # Files will be detected as string, since it is a path.
-        # The difference among them is defined by the parameter
-        # decoration as FILE.
-        return TYPE.STRING
-    elif isinstance(value, int):
-        if IS_PYTHON3:
-            if value < PYTHON_MAX_INT:
-                return TYPE.INT
+    if isinstance(value, (bool, str, int, PYCOMPSS_LONG, float)):
+        value_type = type(value)
+        if value_type is bool:
+            return TYPE.BOOLEAN
+        elif value_type is str:
+            # Char does not exist as char, only strings.
+            # Files will be detected as string, since it is a path.
+            # The difference among them is defined by the parameter
+            # decoration as FILE.
+            return TYPE.STRING
+        elif value_type is int:
+            if IS_PYTHON3:
+                if value < PYTHON_MAX_INT:  # noqa
+                    return TYPE.INT
+                else:
+                    return TYPE.LONG
             else:
-                return TYPE.LONG
-        else:
-            return TYPE.INT
-    elif isinstance(value, PYCOMPSS_LONG):
-        return TYPE.LONG
-    elif isinstance(value, float):
-        return TYPE.DOUBLE
+                return TYPE.INT
+        elif value_type is PYCOMPSS_LONG:
+            return TYPE.LONG
+        elif value_type is float:
+            return TYPE.DOUBLE
     elif depth > 0 and is_basic_iterable(value):
         return TYPE.COLLECTION
     else:

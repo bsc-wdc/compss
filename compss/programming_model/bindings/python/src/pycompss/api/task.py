@@ -75,7 +75,9 @@ class Task(PyCOMPSsDecorator):
     """
 
     __slots__ = ['task_type', 'decorator_arguments', 'user_function',
-                 'registered', 'signature']
+                 'registered', 'signature',
+                 'interactive', 'module', 'function_arguments',
+                 'function_name', 'module_name', 'function_type', 'class_name', 'hints']
 
     @staticmethod
     def _get_default_decorator_values():
@@ -177,6 +179,15 @@ class Task(PyCOMPSsDecorator):
         # Global variables common for all tasks of this kind
         self.registered = None
         self.signature = None
+        # Saved from the initial task
+        self.interactive = None
+        self.module = None
+        self.function_arguments = None
+        self.function_name = None
+        self.module_name = None
+        self.function_type = None
+        self.class_name = None
+        self.hints = None
 
     def __call__(self, user_function):
         """ This function is called in all explicit function calls.
@@ -212,9 +223,17 @@ class Task(PyCOMPSsDecorator):
                                         self.user_function,
                                         self.core_element,
                                         self.registered,
-                                        self.signature)
+                                        self.signature,
+                                        self.interactive,
+                                        self.module,
+                                        self.function_arguments,
+                                        self.function_name,
+                                        self.module_name,
+                                        self.function_type,
+                                        self.class_name,
+                                        self.hints)
                 result = master.call(*args, **kwargs)
-                fo, self.core_element, self.registered, self.signature = result
+                fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
                 del master
                 return fo
             elif context.in_worker():
@@ -237,9 +256,17 @@ class Task(PyCOMPSsDecorator):
                                                 self.user_function,
                                                 self.core_element,
                                                 self.registered,
-                                                self.signature)
-                        result = master.call(*args, **kwargs)
-                        fo, self.core_element, self.registered, self.signature = result  # noqa: E501
+                                                self.signature,
+                                                self.interactive,
+                                                self.module,
+                                                self.function_arguments,
+                                                self.function_name,
+                                                self.module_name,
+                                                self.function_type,
+                                                self.class_name,
+                                                self.hints)
+                            result = master.call(*args, **kwargs)
+                            fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
                         del master
                         return fo
                     else:
@@ -277,10 +304,14 @@ class Task(PyCOMPSsDecorator):
         d_t = dummy_task(args, kwargs)
         return d_t.__call__(self.user_function)(*args, **kwargs)
 
-    def __check_core_element__(self, kwargs, user_function):
-        import inspect
-        import os
+    @staticmethod
+    def __check_core_element__(kwargs, user_function):
+        """ Check Core Element for containers.
 
+        :param kwargs: Keyword arguments
+        :param user_function: User function
+        :return: None (updates the Core Element of the given kwargs)
+        """
         if CORE_ELEMENT_KEY in kwargs and kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()

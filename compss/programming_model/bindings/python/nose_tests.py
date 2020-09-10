@@ -82,6 +82,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/runtime/test_object_tracker.py',
     'pycompss/tests/util/test_jvm_parser.py',
     'pycompss/tests/util/test_mpi_helper.py',
+    'pycompss/tests/util/test_object_sizer.py',
     'pycompss/tests/worker/test_gat.py',
     'pycompss/tests/worker/test_piper.py',
     'pycompss/tests/worker/test_mpi_piper.py',

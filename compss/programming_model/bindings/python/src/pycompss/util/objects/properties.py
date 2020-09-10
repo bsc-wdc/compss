@@ -172,91 +172,91 @@ def create_object_by_con_type(con_type):
 # These functions are not currently used within         #
 # PyCOMPSs, but they are kept just in case needed.      #
 #########################################################
-
-def get_defining_class(method):
-    # type: (...) -> ...
-    """ Get the class from the given a method.
-
-    :param method: Method to check its defining class.
-    :return: Class which method belongs. None if not found.
-    """
-    if inspect.ismethod(method):
-        for cls in inspect.getmro(method.__self__.__class__):
-            if cls.__dict__.get(method.__name__) is method:
-                return cls
-    if inspect.isfunction(method):
-        return getattr(inspect.getmodule(method),
-                       method.__qualname__.split('.<locals>',
-                                                 1)[0].rsplit('.', 1)[0])
-    # Return not required since None would have been implicitly returned anyway
-    return None
-
-
-def get_top_decorator(code, decorator_keys):
-    # type: (list, list) -> str
-    """ Retrieves the decorator which is on top of the current task decorators
-    stack.
-
-    :param code: Tuple which contains the task code to analyse and the number
-                 of lines of the code.
-    :param decorator_keys: Tuple which contains the available decorator keys
-    :return: the decorator name in the form "pycompss.api.__name__"
-    """
-    # Code has two fields:
-    # code[0] = the entire function code.
-    # code[1] = the number of lines of the function code.
-    func_code = code[0]
-    decorators = [code_line.strip() for code_line in
-                  func_code if code_line.strip().startswith('@')]
-    # Could be improved if it stops when the first line without @ is found,
-    # but we have to be care if a decorator is commented (# before @)
-    # The strip is due to the spaces that appear before functions definitions,
-    # such as class methods.
-    for dk in decorator_keys:
-        for d in decorators:
-            if d.startswith('@' + dk):
-                return 'pycompss.api.' + dk.lower()  # each decorator __name__
-    # If no decorator is found, the current decorator is the one to register
-    return __name__
-
-
-def get_wrapped_source_lines(f):
-    # type: (...) -> tuple
-    """ Gets a list of source lines and starting line number for the given
-    function.
-
-    :param f: Input function.
-    :return: Source lines.
-    """
-    if hasattr(f, '__wrapped__'):
-        # has __wrapped__, apply the same function to the wrapped content
-        return _get_wrapped_source_lines(f.__wrapped__)
-    else:
-        # Returning get_source_lines
-        try:
-            source_lines = inspect.getsourcelines(f)
-        except TypeError:
-            # This is a numba jit declared task
-            source_lines = inspect.getsourcelines(f.py_func)
-        return source_lines
-
-
-def _get_wrapped_source_lines(f):
-    # type: (...) -> tuple
-    """ Recursive function which gets a list of source lines and starting
-    line number for the given function.
-
-    :param f: Input function.
-    :return: Source lines.
-    """
-    if hasattr(f, "__wrapped__"):
-        # has __wrapped__, going deep
-        return _get_wrapped_source_lines(f.__wrapped__)
-    else:
-        # Returning get_source_lines
-        try:
-            source_lines = inspect.getsourcelines(f)
-        except TypeError:
-            # This is a numba jit declared task
-            source_lines = inspect.getsourcelines(f.py_func)
-        return source_lines
+#
+# def get_defining_class(method):
+#     # type: (...) -> ...
+#     """ Get the class from the given a method.
+#
+#     :param method: Method to check its defining class.
+#     :return: Class which method belongs. None if not found.
+#     """
+#     if inspect.ismethod(method):
+#         for cls in inspect.getmro(method.__self__.__class__):
+#             if cls.__dict__.get(method.__name__) is method:
+#                 return cls
+#     if inspect.isfunction(method):
+#         return getattr(inspect.getmodule(method),
+#                        method.__qualname__.split('.<locals>',
+#                                                  1)[0].rsplit('.', 1)[0])
+#     # Return not required since None would have been implicitly returned anyway
+#     return None
+#
+#
+# def get_top_decorator(code, decorator_keys):
+#     # type: (list, list) -> str
+#     """ Retrieves the decorator which is on top of the current task decorators
+#     stack.
+#
+#     :param code: Tuple which contains the task code to analyse and the number
+#                  of lines of the code.
+#     :param decorator_keys: Tuple which contains the available decorator keys
+#     :return: the decorator name in the form "pycompss.api.__name__"
+#     """
+#     # Code has two fields:
+#     # code[0] = the entire function code.
+#     # code[1] = the number of lines of the function code.
+#     func_code = code[0]
+#     decorators = [code_line.strip() for code_line in
+#                   func_code if code_line.strip().startswith('@')]
+#     # Could be improved if it stops when the first line without @ is found,
+#     # but we have to be care if a decorator is commented (# before @)
+#     # The strip is due to the spaces that appear before functions definitions,
+#     # such as class methods.
+#     for dk in decorator_keys:
+#         for d in decorators:
+#             if d.startswith('@' + dk):
+#                 return 'pycompss.api.' + dk.lower()  # each decorator __name__
+#     # If no decorator is found, the current decorator is the one to register
+#     return __name__
+#
+#
+# def get_wrapped_source_lines(f):
+#     # type: (...) -> tuple
+#     """ Gets a list of source lines and starting line number for the given
+#     function.
+#
+#     :param f: Input function.
+#     :return: Source lines.
+#     """
+#     if hasattr(f, '__wrapped__'):
+#         # has __wrapped__, apply the same function to the wrapped content
+#         return _get_wrapped_source_lines(f.__wrapped__)
+#     else:
+#         # Returning get_source_lines
+#         try:
+#             source_lines = inspect.getsourcelines(f)
+#         except TypeError:
+#             # This is a numba jit declared task
+#             source_lines = inspect.getsourcelines(f.py_func)
+#         return source_lines
+#
+#
+# def _get_wrapped_source_lines(f):
+#     # type: (...) -> tuple
+#     """ Recursive function which gets a list of source lines and starting
+#     line number for the given function.
+#
+#     :param f: Input function.
+#     :return: Source lines.
+#     """
+#     if hasattr(f, "__wrapped__"):
+#         # has __wrapped__, going deep
+#         return _get_wrapped_source_lines(f.__wrapped__)
+#     else:
+#         # Returning get_source_lines
+#         try:
+#             source_lines = inspect.getsourcelines(f)
+#         except TypeError:
+#             # This is a numba jit declared task
+#             source_lines = inspect.getsourcelines(f.py_func)
+#         return source_lines

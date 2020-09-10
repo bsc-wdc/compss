@@ -21,7 +21,7 @@ from pycompss.api.local import local
 import pycompss.util.context as context
 
 
-@local()
+@local
 def dummy_function(*args, **kwargs):  # noqa
     return sum(args)
 

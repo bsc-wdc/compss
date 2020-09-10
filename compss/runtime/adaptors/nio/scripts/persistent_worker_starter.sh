@@ -53,10 +53,11 @@
 
   # Prepare binding log files
   # TODO: avoid to create always these log files. Create and transfer only when needed.
-  touch $workingDir/log/binding_worker.out
-  touch $workingDir/log/binding_worker.err
+  touch "$workingDir/log/binding_worker.out"
+  touch "$workingDir/log/binding_worker.err"
 
-  $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err
+  export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
+  $cmd ${paramsToCOMPSsWorker} 1>"$workingDir/log/worker_${hostName}.out" 2>"$workingDir/log/worker_${hostName}.err"
 
   exitValue=$?
 

@@ -65,65 +65,60 @@
   WORKER_EVENTS=60000200
   MASTER_EVENTS=60000300
 
-  WORKER_RUNNING=1
-
-  #----------------------------------------------------------------------------------
   # Check that task-bindings events are present and the # is correct
 
   # GAT does not support task tracing
   if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
-      evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "evts_tasks: ${evts_tasks}"
-      evts_tasks_end=$(grep -c ":${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "evts_tasks_end: ${evts_tasks_end}"
+    evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "evts_tasks: ${evts_tasks}"
+    evts_tasks_end=$(grep -c ":${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "evts_tasks_end: ${evts_tasks_end}"
 
-      evts_tasks_running=$(grep -c ":${WORKER_EVENTS}:2:" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "evts_tasks_running: ${evts_tasks_runing}"
+    evts_tasks_running=$(grep -c ":${WORKER_EVENTS}:2" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "evts_tasks_running: ${evts_tasks_running}"
+    evts_worker_running=$(grep -c ":${WORKER_EVENTS}:1" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "evts_worker_running: ${evts_worker_running}"
 
-      evts_worker_running=$(grep -c ":${WORKER_EVENTS}:${WORKER_RUNNING}" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "evts_worker_running: ${evts_worker_running}"
+    sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "sync_evts_init: ${sync_evts_init}"
+    sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "sync_evts_end: ${sync_evts_end}"
 
-      sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "sync_evts_init: ${sync_evts_init}"
-      sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "sync_evts_end: ${sync_evts_end}"
+    master_evts_init=$(grep -c ":${MASTER_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "master_evts_init: ${master_evts_init}"
+    master_evts_end=$(grep -c ":${MASTER_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    echo "master_evts_end: ${master_evts_end}"
 
-      master_evts_init=$(grep -c ":${MASTER_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "master_evts_init: ${master_evts_init}"
-      master_evts_end=$(grep -c ":${MASTER_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      echo "master_evts_end: ${master_evts_end}"
+    if [ "${evts_tasks_end}" != "${evts_tasks}" ]; then
+      echo "[ERROR] Start and end events counts do not match. [${evts_tasks}/${evts_tasks_end}]" | tee -a "${output_file}"
+      exit 1
+    fi
 
-      if [ "${evts_tasks_end}" != "${evts_tasks}" ]; then
-         echo "[ERROR] Start and end events counts do not match. [${evts_tasks}/${evts_tasks_end}]" | tee -a "${output_file}"
-         exit 1
-      fi
+    if [ "${evts_tasks_running}" != "${number_of_tasks}" ]; then
+      echo "[ERROR] Running task events count does not match total tasks. [${evts_tasks_running}/${number_of_tasks}]" | tee -a "${output_file}"
+      exit 1
+    fi
 
-      if [ "${evts_tasks_running}" != "${number_of_tasks}" ]; then
-         echo "[ERROR] Running task events count does not match total tasks. [${evts_tasks_running}/${number_of_tasks}]" | tee -a "${output_file}"
-         exit 1
-      fi
+    if [ "${evts_worker_running}" != "1" ] ; then
+      echo "[ERROR] Number of worker start events different than actual number of workers [${evts_worker_running} != 1]" | tee -a "${output_file}"
+      exit 1
+    fi
 
-      if [ "${evts_worker_running}" != "1" ] ; then
-        echo "[ERROR] Number of worker start events different than actual number of workers [${evts_worker_running} != 1]" | tee -a "${output_file}"
-        exit 1
-      fi
+    # TODO: We look for at least 4 events because Extrae sometimes duplicates events
+    if [ "${sync_evts_init}" < "$((4 * number_of_workers))" ] || [ "${sync_evts_end}" < "$((4 * number_of_workers))" ]; then
+      echo "[ERROR] Number of start and end synchronization events are not 8 times the number of workers. Expected events: $((8 * number_of_workers)) != Found Events: [${sync_evts_init} + ${sync_evts_end}]" | tee -a "${output_file}"
+      exit 1
+    fi
 
-      if [ "${sync_evts_init}" != "$((4 * number_of_workers))" ] || [ "${sync_evts_end}" != "$((4 * number_of_workers))" ]; then
-        echo "[ERROR] Number of start and end synchronization events are not 8 times the number of workers.
-        Expected events: $((8 * number_of_workers)) != Found Events: [${sync_evts_init} + ${sync_evts_end}]" | tee -a "${output_file}"
-        exit 1
-      fi
-
-      if [ "${master_evts_init}" != "$number_of_master_events" ]; then
-        echo "[ERROR] Number of master events does not match the expected.
-        Expected events: $number_of_master_events != Found Events: ${master_evts_init}" | tee -a "${output_file}"
-        exit 1
-      fi
-      if [ "${master_evts_end}" != "$number_of_master_finish_events" ]; then
-        echo "[ERROR] Number of master finish (0) events does not match the expected.
-        Expected events: $number_of_master_finish_events != Found Events: ${master_evts_end}" | tee -a "${output_file}"
-        exit 1
-      fi
+    if [ "${master_evts_init}" != "$number_of_master_events" ]; then
+      echo "[ERROR] Number of master events does not match the expected. Expected events: $number_of_master_events != Found Events: ${master_evts_init}" | tee -a "${output_file}"
+      exit 1
+    fi
+    if [ "${master_evts_end}" != "$number_of_master_finish_events" ] && [ "${master_evts_end}" != "$number_of_master_events" ]; then
+      # In Python3 the final end event is registered so we can have 554 or 555 end events
+      echo "[ERROR] Number of master finish (0) events does not match the expected. Expected events: $number_of_master_finish_events != Found Events: ${master_evts_end}" | tee -a "${output_file}"
+      exit 1
+    fi
   fi
 
   # Exit value

@@ -51,8 +51,7 @@
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
       --resources="${base_app_dir}"/resources.xml \
-      --jvm_workers_opts=\"-Dcompss.worker.removeWD=false\" \
-      -g\
+      \
       --comm="$comm" \
       \
       --debug \

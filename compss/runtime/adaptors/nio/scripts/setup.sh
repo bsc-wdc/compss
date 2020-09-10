@@ -187,7 +187,7 @@
       export EXTRAE_LIB=${EXTRAE_HOME}/lib
       export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
       export EXTRAE_CONFIG_FILE=${extraeFile}
-      LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+      export AFTER_EXTRAE_LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
     fi  
   }
 
@@ -291,10 +291,7 @@ EOT
     if [ "${persistentBinding}" = "true" ]; then
     	export COMPSS_HOME=${SCRIPT_DIR}/../../../../../
     	export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib:${LD_LIBRARY_PATH}
-	export JVM_OPTIONS_FILE=${jvm_options_file}
-    fi
-    if [ "$tracing" -gt 0 ]; then
-      export LD_PRELOAD
+	    export JVM_OPTIONS_FILE=${jvm_options_file}
     fi
   }
 

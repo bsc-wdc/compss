@@ -113,6 +113,7 @@ INTEGRATION_WHITE_LIST = [
     'pycompss/tests/integration/test_launch_application.py',
     'pycompss/tests/integration/test_launch_synthetic_application.py',
     'pycompss/tests/integration/test_launch_functions.py',
+    'pycompss/tests/integration/test_launch_0_basic1.py',
 ]
 
 

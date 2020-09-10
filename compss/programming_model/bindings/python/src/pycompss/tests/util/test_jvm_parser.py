@@ -61,7 +61,7 @@ def test_jvm_parser():
             "-Dgat.debug": "true",
             "-Dgat.broker.adaptor": "sshtrilead",
             "-Dgat.file.adaptor": "sshtrilead",
-            "-Dcompss.worker.cp": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar",
+            "-Dcompss.worker.cp": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar",  # noqa
             "-Dcompss.worker.jvm_opts": "-Xms1024m,-Xmx1024m,-Xmn400m",
             "-Dcompss.worker.cpu_affinity": "automatic",
             "-Dcompss.worker.gpu_affinity": "automatic",
@@ -71,9 +71,9 @@ def test_jvm_parser():
             "-Dcompss.profile.output": None,
             "-Dcompss.scheduler.config": None,
             "-Dcompss.external.adaptation": "false",
-            "-Djava.class.path": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar",
-            "-Djava.library.path": "/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/usr/lib64/mpi/gcc/openmpi/lib64::/opt/COMPSs/Bindings/bindings-common/lib:/usr/lib64/jvm/java/jre/lib/amd64/server",
-            "-Dcompss.worker.pythonpath": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/home/user/gitlab/framework/compss/programming_model/bindings/python:.:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:",
+            "-Djava.class.path": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar",  # noqa
+            "-Djava.library.path": "/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/usr/lib64/mpi/gcc/openmpi/lib64::/opt/COMPSs/Bindings/bindings-common/lib:/usr/lib64/jvm/java/jre/lib/amd64/server",  # noqa
+            "-Dcompss.worker.pythonpath": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/home/user/gitlab/framework/compss/programming_model/bindings/python:.:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:",  # noqa
             "-Dcompss.python.interpreter": "python2",
             "-Dcompss.python.version": "2",
             "-Dcompss.python.virtualenvironment": "null",
@@ -139,7 +139,7 @@ def test_jvm_parser():
 -Dcompss.python.propagate_virtualenvironment=true
 -Dcompss.python.mpi_worker=false
 other
-"""
+"""  # noqa
         )
     result = convert_to_dict(jvm_opt_file)
     assert len(result) == len(jvm_expected_result), "The sizes of the dictionaries does not match"

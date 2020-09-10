@@ -68,7 +68,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/api/test_exceptions.py',
     'pycompss/tests/api/test_implement.py',
     'pycompss/tests/api/test_io.py',
-    'pycompss/tests/api/test_local.py',  # blacklisted
+    'pycompss/tests/api/test_local.py',  # blacklisted and omitted in sh scripts
     'pycompss/tests/api/test_mpi.py',
     'pycompss/tests/api/test_multinode.py',
     'pycompss/tests/api/test_ompss.py',

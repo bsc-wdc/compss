@@ -11,8 +11,9 @@
                  --source="src/pycompss" \
                  --omit="/usr/lib/*" \
                  --omit="src/pycompss/api/tests_parallel/*" \
-                 --omit="src/pycompss/util/objects/replace.py" \
+                 --omit="src/pycompss/api/local.py" \
                  --omit="src/pycompss/tests/api/test_local.py" \
+                 --omit="src/pycompss/util/objects/replace.py" \
                  nose_tests.py True
                  # --omit="src/pycompss/util/translators/*" \
     coverage report -m

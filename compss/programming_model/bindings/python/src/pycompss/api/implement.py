@@ -41,7 +41,7 @@ MANDATORY_ARGUMENTS = {'source_class',
                        'method'}
 SUPPORTED_ARGUMENTS = {'source_class',
                        'method'}
-DEPRECATED_ARGUMENTS = set()
+DEPRECATED_ARGUMENTS = {'sourceClass'}
 
 
 class Implement(PyCOMPSsDecorator):
@@ -126,7 +126,11 @@ class Implement(PyCOMPSsDecorator):
             logger.debug("Configuring @implement core element.")
 
         # Resolve @implement specific parameters
-        another_class = self.kwargs['source_class']
+        if 'sourceClass' in self.kwargs:
+            another_class = self.kwargs['sourceClass']
+            self.kwargs['source_class'] = self.kwargs.pop('sourceClass')
+        else:
+            another_class = self.kwargs['source_class']
         another_method = self.kwargs['method']
         ce_signature = '.'.join((another_class, another_method))
         impl_type = "METHOD"

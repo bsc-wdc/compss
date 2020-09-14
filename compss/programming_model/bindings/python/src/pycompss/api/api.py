@@ -161,7 +161,7 @@ if context.in_pycompss():
         __get_directory__(directory_name)
 
     def compss_delete_object(obj):
-        # type: (str) -> bool
+        # type: (...) -> bool
         """ Delete object.
 
         Removes a used object from the internal structures and calls the
@@ -314,9 +314,9 @@ else:
     # Hidden TaskGroup context manager
     from pycompss.api.dummy.api import TaskGroup  # noqa
 
-    def compss_start(log_level='off', interactive=False):
-        # type: (str, bool) -> None
-        __dummy_compss_start__(log_level, interactive)
+    def compss_start(log_level='off', tracing=0, interactive=False):
+        # type: (str, int, bool) -> None
+        __dummy_compss_start__(log_level, tracing, interactive)
 
     def compss_stop(code=0):
         # type: (int) -> None
@@ -343,7 +343,7 @@ else:
         __dummy_compss_wait_on_directory__(directory_name)
 
     def compss_delete_object(obj):
-        # type: (str) -> bool
+        # type: (...) -> bool
         return __dummy_compss_delete_object__(obj)
 
     def compss_barrier(no_more_tasks=False):

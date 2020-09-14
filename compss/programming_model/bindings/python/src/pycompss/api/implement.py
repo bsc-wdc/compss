@@ -128,6 +128,7 @@ class Implement(PyCOMPSsDecorator):
         # Resolve @implement specific parameters
         if 'sourceClass' in self.kwargs:
             another_class = self.kwargs['sourceClass']
+            self.kwargs['source_class'] = self.kwargs.pop('sourceClass')
         else:
             another_class = self.kwargs['source_class']
         another_method = self.kwargs['method']

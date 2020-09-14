@@ -10,6 +10,19 @@ source "${COMPSS_HOME}Runtime/scripts/system/runtime/streams.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/storage.sh"
 
+
+###############################################
+###############################################
+#     SIGNAL INTERCEPTION HANDLERS
+###############################################
+###############################################
+
+bus_handler() {
+  echo "ERROR: MASTER RUN OUT OF MEMORY"
+}
+trap bus_handler SIGBUS
+
+
 ###############################################
 ###############################################
 #            CONSTANTS DEFINITION

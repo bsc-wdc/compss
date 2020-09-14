@@ -27,8 +27,8 @@ PyCOMPSs Dummy API
 import os
 
 
-def compss_start(log_level='off', interactive=False):  # noqa
-    # type: (str, bool) -> None
+def compss_start(log_level='off', tracing=0, interactive=False):  # noqa
+    # type: (str, int, bool) -> None
     """ Dummy runtime start.
 
     Does nothing.

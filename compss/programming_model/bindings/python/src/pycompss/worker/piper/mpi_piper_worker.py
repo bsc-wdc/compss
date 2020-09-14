@@ -133,7 +133,10 @@ def compss_persistent_worker(config):
 
     for i in range(0, config.tasks_x_node):
         child_in_pipe = config.pipes[i].input_pipe
-        child_pid = pids[i + 1]
+        try:
+            child_pid = pids[i + 1]
+        except IndexError:
+            child_pid = pids[i]
         PROCESSES[child_in_pipe] = child_pid
 
     if __debug__:
@@ -248,8 +251,10 @@ def compss_persistent_executor(config):
 # Main -> Calls main method
 ############################
 
-if __name__ == '__main__':
+def main():
     # Configure the global tracing variable from the argument
+    global TRACING
+    global WORKER_CONF
     TRACING = (int(sys.argv[4]) > 0)
 
     # Configure the piper worker with the arguments
@@ -262,3 +267,7 @@ if __name__ == '__main__':
     else:
         with trace_mpi_executor() if TRACING else dummy_context():
             compss_persistent_executor(WORKER_CONF)
+
+
+if __name__ == '__main__':
+    main()

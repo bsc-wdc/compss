@@ -41,3 +41,4 @@ class Container(object):
 
 
 container = Container
+CONTAINER = Container

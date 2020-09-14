@@ -214,7 +214,9 @@ def compss_persistent_worker(config):
 # Main -> Calls main method
 ############################
 
-if __name__ == '__main__':
+def main():
+    global TRACING
+    global WORKER_CONF
     # Configure the global tracing variable from the argument
     TRACING = (int(sys.argv[4]) > 0)
 
@@ -224,3 +226,7 @@ if __name__ == '__main__':
         WORKER_CONF.update_params(sys.argv)
 
         compss_persistent_worker(WORKER_CONF)
+
+
+if __name__ == '__main__':
+    main()

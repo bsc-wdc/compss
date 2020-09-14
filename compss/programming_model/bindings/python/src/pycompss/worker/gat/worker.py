@@ -37,6 +37,7 @@ from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
+from pycompss.worker.gat.commons.constants import *  # noqa
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 

@@ -40,7 +40,7 @@ from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
-# TODO: Comments about exit value and return follwing values was
+# TODO: Comments about exit value and return following values was
 # in another branch need to be reviewed if it works in trunk
 # SUCCESS_SIG = 0
 # FAILURE_SIG = 1
@@ -98,7 +98,10 @@ def executor(process_name, command):
     logger = logging.getLogger("pycompss.worker.external.mpi_worker")
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
-    logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)  # noqa
+    try:
+        logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)  # noqa
+    except IndexError:
+        logger_formatter = None
 
     if __debug__:
         logger.debug("[PYTHON EXECUTOR] [%s] Starting process" %
@@ -146,6 +149,7 @@ def process_task(current_line,     # type: str
     # Process properties
     stdout = sys.stdout
     stderr = sys.stderr
+    job_id = None
 
     if __debug__:
         logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
@@ -349,8 +353,12 @@ def process_task(current_line,     # type: str
     #    return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)
 
 
-if __name__ == '__main__':
+def main():
     # Set the binding in worker mode
     context.set_pycompss_context(context.WORKER)
 
     executor("MPI Process-{0}".format(MPI.COMM_WORLD.rank), sys.argv[1])
+
+
+if __name__ == '__main__':
+    main()

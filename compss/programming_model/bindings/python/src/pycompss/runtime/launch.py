@@ -392,7 +392,7 @@ def launch_pycompss_application(app,
         return None
 
     # Prepare the environment
-    env_vars = prepare_environment(True, o_c, storage_impl, app,
+    env_vars = prepare_environment(False, o_c, storage_impl, app,
                                    debug, trace, mpi_worker)
     all_vars.update(env_vars)
 
@@ -426,7 +426,7 @@ def launch_pycompss_application(app,
     ##############################################################
 
     # Runtime start
-    compss_start(log_level, all_vars['trace'], False)
+    compss_start(log_level, all_vars['trace'], True)
 
     # Setup logging
     binding_log_path = get_log_path()

@@ -163,9 +163,10 @@ process_pipe_commands() {
                     bindingExecutable="${workerCMD%%"$delimiter"*}"
                     bindingArgs=${workerCMD#*"$delimiter"}
         
-                    # Get full path of the binary
-                    pythonInterpreter=$(which "${pythonInterpreter}")
-        
+                    # If not coverage, get full path of the binary
+		    if [[ "${pythonInterpreter}" != coverage* ]]; then
+                       pythonInterpreter=$(which "${pythonInterpreter}")
+                    fi
                     if [ "$tracing" -eq "-1" ]; then 
                         # scorep
                         echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
@@ -214,13 +215,14 @@ process_pipe_commands() {
                 # Add support for coverage-run command
                 if [ "$binding" == "PYTHON" ]; then
                     delimiter="${pythonInterpreter} -u"
-                    pythonInterpreter=$(which "${pythonInterpreter}")
                     if [[ "${pythonInterpreter}" = coverage* ]]; then
                         newInterpreter=$(echo "${pythonInterpreter}" | tr "#" " " )
                         newDelimiter=$(echo "${delimiter}")
                         echo "[BINDINGS PIPER] Changing Interpreter: ${newDelimiter} to ${newInterpreter}"
                         workerCMD=$(echo "${workerCMD}" | sed "s+${newDelimiter}+${newInterpreter}+")
-                    fi
+		    else
+			pythonInterpreter=$(which "${pythonInterpreter}")
+		    fi
                 fi
 
                 # INVOKE WORKER

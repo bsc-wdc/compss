@@ -92,6 +92,7 @@ class Loggers:
         class NewJob:
             label = "doSubmit"
             NEW = "New Job"
+            RESCHEDULED = "Rescheduled Job"
             TARGET_HOST = "Target host"
 
         class SubmittedJob:
@@ -209,6 +210,8 @@ class Parser:
         if logger == Loggers.JobManager.label:
             if method == Loggers.JobManager.NewJob.label:
                 if Loggers.JobManager.NewJob.NEW in message:
+                    event = CreateJobEvent(timestamp, message)
+                if Loggers.JobManager.NewJob.RESCHEDULED in message:
                     event = CreateJobEvent(timestamp, message)
                 if Loggers.JobManager.NewJob.TARGET_HOST in message:
                     event = SettingHostToJobEvent(timestamp, message)

@@ -63,7 +63,16 @@
       if [ -n "${EXTRAE_MPI_HEADERS}" ]; then
         argMpiHeaders="--with-mpi-headers=${EXTRAE_MPI_HEADERS}"
       else
-        argMpiHeaders="--with-mpi-headers=${mpiPath}/include"
+        if [ -d "${mpiPath}/include64" ]; then
+          argMpiHeaders="--with-mpi-headers=${mpiPath}/include64"
+        else
+          if [ -d "${mpiPath}/include" ]; then
+            argMpiHeaders="--with-mpi-headers=${mpiPath}/include"
+          else
+            echo "ERROR: Cannot automatically infer MPI include folder"
+            exit 1
+          fi
+        fi
       fi
     else
       argMpiHeaders=""

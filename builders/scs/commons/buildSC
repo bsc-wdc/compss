@@ -148,6 +148,11 @@
   SCauxScriptName=$(basename "${SCauxScript}")
   # shellcheck disable=2029
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "${PRELOAD_ENV} ${SCTMP_DIR}/${SCauxScriptName} ${SCtargetDir}"
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception raised executing auxiliar script"
+    exit 1
+  fi
 
   # ERASE TMP FILES
   echo "- Erase tmp files"

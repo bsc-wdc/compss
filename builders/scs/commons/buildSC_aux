@@ -177,7 +177,7 @@
   # IMPI
   if [ "${extrae_with_impi}" == "true" ]; then
     module load intel impi"${impi_version}"
-    ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae ${targetDir}/Dependencies/extrae-impi true
+    ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae "${targetDir}"/Dependencies/extrae-impi true
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install extrae impi dependency"

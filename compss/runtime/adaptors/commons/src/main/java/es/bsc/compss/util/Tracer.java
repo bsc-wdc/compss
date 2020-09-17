@@ -77,6 +77,8 @@ public abstract class Tracer {
     private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
     private static final String STORAGE_DESC = "Storage API";
     private static final String INSIDE_TASK_DESC = "Events inside tasks";
+    private static final String INSIDE_TASK_CPU_AFFINITY_DESC = "Tasks CPU affinity";
+    private static final String INSIDE_TASK_GPU_AFFINITY_DESC = "Tasks GPU affinity";
     private static final String INSIDE_WORKER_DESC = "Events inside worker";
     private static final String BINDING_MASTER_DESC = "Binding events";
     private static final String TASKTYPE_DESC = "Type of task";
@@ -102,6 +104,8 @@ public abstract class Tracer {
     protected static final int DISK_BW = 8_000_011;
     protected static final int SYNC_TYPE = 8_000_666;
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
+    protected static final int INSIDE_TASKS_CPU_AFFINITY_TYPE = 60_000_150;
+    protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160;
     protected static final int INSIDE_WORKER_TYPE = 60_000_200;
     protected static final int BINDING_MASTER_TYPE = 60_000_300;
 
@@ -341,6 +345,14 @@ public abstract class Tracer {
         return INSIDE_TASKS_TYPE;
     }
 
+    public static int getInsideTasksCpuAffinityEventsType() {
+        return INSIDE_TASKS_CPU_AFFINITY_TYPE;
+    }
+
+    public static int getInsideTasksGpu_AffinityEventsType() {
+        return INSIDE_TASKS_GPU_AFFINITY_TYPE;
+    }
+
     public static int getInsideWorkerEventsType() {
         return INSIDE_WORKER_TYPE;
     }
@@ -519,6 +531,8 @@ public abstract class Tracer {
         defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
         defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
         defineEventsForType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC);
+        defineEventsForType(INSIDE_TASKS_CPU_AFFINITY_TYPE, INSIDE_TASK_CPU_AFFINITY_DESC);
+        defineEventsForType(INSIDE_TASKS_GPU_AFFINITY_TYPE, INSIDE_TASK_GPU_AFFINITY_DESC);
         defineEventsForType(INSIDE_WORKER_TYPE, INSIDE_WORKER_DESC);
         defineEventsForType(BINDING_MASTER_TYPE, BINDING_MASTER_DESC);
         defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());

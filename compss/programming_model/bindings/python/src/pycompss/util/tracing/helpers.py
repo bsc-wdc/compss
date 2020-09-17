@@ -28,6 +28,8 @@ from functools import wraps
 from contextlib import contextmanager
 from pycompss.worker.commons.constants import SYNC_EVENTS
 from pycompss.worker.commons.constants import TASK_EVENTS
+from pycompss.worker.commons.constants import TASK_CPU_AFFINITY_EVENTS
+from pycompss.worker.commons.constants import TASK_GPU_AFFINITY_EVENTS
 from pycompss.worker.commons.constants import WORKER_EVENTS
 from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
 from pycompss.runtime.constants import MASTER_EVENTS
@@ -130,8 +132,9 @@ def emit_event(event_id, master=False):
 
 
 @contextmanager
-def event(event_id, master=False, inside=False):
-    # type: (int, bool, bool) -> None
+def event(event_id, master=False, inside=False,
+          cpu_affinity=False, gpu_affinity=False):
+    # type: (int or str, bool, bool, bool, bool) -> None
     """ Emits an event wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -139,35 +142,88 @@ def event(event_id, master=False, inside=False):
     :param event_id: Event identifier to emit.
     :param master: If the event is emitted as master.
     :param inside: If the event is produced inside the worker.
+    :param cpu_affinity: If the event is produced inside the worker for cpu affinity.
+    :param gpu_affinity: If the event is produced inside the worker for gpu affinity.
     :return: None
     """
-    if master:
-        event_group = MASTER_EVENTS
-    else:
-        if inside:
-            event_group = TASK_EVENTS
-        else:
-            event_group = WORKER_EVENTS
     if TRACING:
+        event_group, event_id = __get_proper_type_event(event_id,
+                                                        master,
+                                                        inside, cpu_affinity, gpu_affinity)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
     yield  # here the code runs
     if TRACING:
         PYEXTRAE.eventandcounters(event_group, 0)         # noqa
 
 
-def emit_manual_event(event_id, master=False):
-    # type: (int, bool) -> None
+def emit_manual_event(event_id, master=False, inside=False,
+                      cpu_affinity=False, gpu_affinity=False):
+    # type: (int or str, bool, bool, bool, bool) -> (int, int)
     """ Emits a single event with the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
     :param master: If the event is emitted as master.
+    :param inside: If the event is produced inside the worker.
+    :param cpu_affinity: If the event is produced inside the worker for cpu affinity.
+    :param gpu_affinity: If the event is produced inside the worker for gpu affinity.
     :return: None
     """
-    event_group = MASTER_EVENTS if master else WORKER_EVENTS
     if TRACING:
+        event_group, event_id = __get_proper_type_event(event_id,
+                                                        master,
+                                                        inside, cpu_affinity, gpu_affinity)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
+
+
+def __get_proper_type_event(event_id, master, inside,
+                            cpu_affinity, gpu_affinity):
+    # type: (int or str, bool, bool, bool, bool) -> (int, int)
+    """ Parses the flags to retrieve the appropriate event_group.
+    It also parses the event_id in case of affinity since it is received
+    as string.
+
+    :param event_id: Event identifier to emit.
+    :param master: If the event is emitted as master.
+    :param inside: If the event is produced inside the worker.
+    :param cpu_affinity: If the event is produced inside the worker for cpu affinity.
+    :param gpu_affinity: If the event is produced inside the worker for gpu affinity.
+    :return: Retrieves the appropriate event_group and event_id
+    """
+    if master:
+        event_group = MASTER_EVENTS
+    else:
+        if inside:
+            if cpu_affinity:
+                event_group = TASK_CPU_AFFINITY_EVENTS
+                event_id = __parse_affinity_event_id(event_id)
+            elif gpu_affinity:
+                event_group = TASK_GPU_AFFINITY_EVENTS
+                event_id = __parse_affinity_event_id(event_id)
+            else:
+                event_group = TASK_EVENTS
+        else:
+            event_group = WORKER_EVENTS
+    return event_group, event_id
+
+
+def __parse_affinity_event_id(event_id):
+    # type: (int or str) -> int
+    """ Parses the affinity event identifier.
+
+    :param event_id: Event identifier
+    :return: The parsed event identifier as integer
+    """
+    if isinstance(event_id, str):
+        try:
+            event_id = int(event_id)
+        except ValueError:
+            # The event_id is a string with multiple cores
+            # Get only the first core
+            event_id = int(event_id.split(',')[0].split('-')[0])
+        event_id += 1  # since it starts with 0
+    return event_id
 
 
 def enable_trace_master():

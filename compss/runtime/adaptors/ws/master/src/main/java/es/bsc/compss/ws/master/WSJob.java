@@ -171,7 +171,7 @@ public class WSJob extends Job<ServiceInstance> {
                     TaskDescription taskParams = job.taskParams;
                     ServiceImplementation service = (ServiceImplementation) job.impl;
                     for (Parameter par : taskParams.getParameters()) {
-                        if (par.getDirection() == Direction.IN) {
+                        if (par.getDirection() == Direction.IN || par.getDirection() == Direction.IN_DELETE) {
                             switch (par.getType()) {
                                 case OBJECT_T:
                                 case PSCO_T:

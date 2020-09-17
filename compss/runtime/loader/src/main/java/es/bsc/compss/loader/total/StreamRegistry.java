@@ -690,6 +690,7 @@ public class StreamRegistry {
             String renaming = null;
             switch (direction) {
                 case IN:
+                case IN_DELETE:
                 case CONCURRENT:
                     /*
                      * LEGACY CODE. The last version of the file must be transferred to a temp directory without the

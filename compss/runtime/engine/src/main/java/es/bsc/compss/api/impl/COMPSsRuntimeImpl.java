@@ -784,6 +784,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         int task = ap.newTask(app, monitor, namespace, service, port, operation, isPrioritary, hasTarget, numReturns,
             pars, onFailure, timeOut);
 
+        for (Parameter p : pars) {
+            if (p.getDirection().equals(Direction.IN_DELETE)) {
+                processDelete(app, p);
+            }
+        }
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK.getType());
         }
@@ -1264,6 +1269,32 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
     }
 
+    private void processDelete(Application app, Parameter p) {
+        switch (p.getType()) {
+            case DIRECTORY_T:
+                ap.markForDeletion(app, ((DirectoryParameter) p).getLocation(), false);
+                break;
+            case FILE_T:
+                ap.markForDeletion(app, ((FileParameter) p).getLocation(), false);
+                break;
+            case BINDING_OBJECT_T:
+                ap.markForBindingObjectDeletion(((BindingObjectParameter) p).getCode());
+                break;
+            case OBJECT_T:
+                oReg.delete(app.getId(), ((ObjectParameter) p).getValue());
+                break;
+            case COLLECTION_T:
+                for (Parameter sp : ((CollectionParameter) p).getParameters()) {
+                    processDelete(app, p);
+                }
+                break;
+            default:
+                break;
+
+        }
+
+    }
+
     @Override
     public Object getObject(Long appId, Object obj, int hashCode, String destDir) {
         Application app = Application.registerApplication(appId);
@@ -1376,6 +1407,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         AccessMode am = null;
         switch (mode) {
             case IN:
+            case IN_DELETE:
                 am = AccessMode.R;
                 break;
             case OUT:
@@ -1453,6 +1485,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         AccessMode am = null;
         switch (mode) {
             case IN:
+            case IN_DELETE:
                 am = AccessMode.R;
                 break;
             case OUT:
@@ -1525,6 +1558,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         AccessMode am = null;
         switch (mode) {
             case IN:
+            case IN_DELETE:
                 am = AccessMode.R;
                 break;
             case OUT:
@@ -1729,7 +1763,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             default:
                 // Basic types (including String)
                 // The only possible direction is IN, warn otherwise
-                if (direction != Direction.IN) {
+                if (direction != Direction.IN && direction != Direction.IN_DELETE) {
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }

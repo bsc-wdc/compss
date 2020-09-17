@@ -36,7 +36,8 @@
   py3_other_modules="ignore"
 
   # DEFINE CONFIGURATION PARAMETERS
-  additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/BSCTOOLS/deps/libxml/2.9.4/bin:$PATH"
+  # WARN: Add autotools and libxml from BSC_TOOLS due to compilation issues with Extrae
+  additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/BSCTOOLS/deps/libxml/2.9.4/bin:/apps/BSCTOOLS/deps/autotools/bin:$PATH"
   additional_module_use_folder="ignore"
   queues_cfg="mt.cfg"
   extrae_with_openmpi="false"

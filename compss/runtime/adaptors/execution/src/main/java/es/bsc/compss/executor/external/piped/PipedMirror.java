@@ -109,15 +109,13 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     }
 
     protected final void init(InvocationContext context) {
+        // Start monitor
         this.monitor.start();
 
+        // Configure PipeBuilder
         startPipeBuilder(context);
 
-        if (Tracer.extraeEnabled()) {
-            // long tracingHostId = context.getTracingHostID();
-            Tracer.emitEvent(this.size, Tracer.getSyncType());
-        }
-
+        // Start worker
         startWorker(context);
     }
 
@@ -146,9 +144,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
 
-            // Emit start host id event
+            // Emit event for worker initialisation
             if (Tracer.extraeEnabled()) {
-                // long tracingHostId = context.getTracingHostID();
                 Tracer.emitEvent(this.size, Tracer.getSyncType());
             }
 
@@ -311,12 +308,15 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             // Worker is already closed
         }
 
+        // Emit event for end worker
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             Tracer.emitEvent((long) timestamp.getTime(), Tracer.getSyncType());
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
         }
+
+        // Unregister worker and delete pipe
         this.monitor.unregisterWorker(this.mirrorId);
         this.pipeWorkerPipe.delete();
     }

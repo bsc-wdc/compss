@@ -95,6 +95,7 @@ def _synchronize(obj, mode):
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
             new_obj = get_by_id(file_name)
+            OT_stop_tracking(obj)
             return new_obj
 
     obj_id = OT_is_tracked(obj)

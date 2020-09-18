@@ -49,37 +49,39 @@
 
   echo ""
   echo "* Compiling sources..."
-  cd ${trunk_rel_path}
-  mvn -U -DskipTests clean install
-  cd -
+  (
+    cd ${trunk_rel_path}
+    mvn -U -DskipTests clean install
+  )
 
   # Compile streaming backend (kafka)
   echo ""
   echo "* Compiling Streaming Backend (Kafka)..."
   kafka=1 # 0 to skip kafka compilation
   if [ "$kafka" -ne 0 ]; then
-      cd "${trunk_rel_path}"/dependencies/kafka
-      if which gradle; then
-        gradle
+      (
+        cd "${trunk_rel_path}"/dependencies/kafka
+        if which gradle; then
+          gradle
+          ev=$?
+        elif [ -n "${GRADLE_HOME}" ]; then
+          "${GRADLE_HOME}"/bin/gradle
+          ev=$?
+        else
+           echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
+           exit 1
+        fi
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to compile Kafka dependency"
+          exit 1
+        fi
+        ./gradlew jar
         ev=$?
-      elif [ -n "${GRADLE_HOME}" ]; then
-        "${GRADLE_HOME}"/bin/gradle
-        ev=$?
-      else
-         echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
-         exit 1
-      fi
-      if [ $ev -ne 0 ]; then
-        echo "ERROR: Failed to compile Kafka dependency"
-        exit 1
-      fi
-      ./gradlew jar
-      ev=$?
-      if [ $ev -ne 0 ]; then
-        echo "ERROR: Failed to build Kafka dependency"
-        exit 1
-      fi
-      cd -
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to build Kafka dependency"
+          exit 1
+        fi
+      )
   fi
 
   echo ""
@@ -110,12 +112,8 @@
   cp ${trunk_rel_path}/RELEASE_NOTES ${COMPSs_target}
 
   # Dependencies
-  cp -r ${trunk_rel_path}/dependencies/JAVA_GAT ${COMPSs_target}/Dependencies/
+  cp -r ${trunk_rel_path}/dependencies/* ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/files/paraver ${COMPSs_target}/Dependencies/
-  cp -r ${trunk_rel_path}/dependencies/extrae ${COMPSs_target}/Dependencies/
-  cp -r ${trunk_rel_path}/dependencies/autoparallel ${COMPSs_target}/Dependencies/
-  cp -r ${trunk_rel_path}/dependencies/pluto ${COMPSs_target}/Dependencies/
-  cp -r ${trunk_rel_path}/dependencies/kafka ${COMPSs_target}/Dependencies/
 
   # Config
   cp -r ${trunk_rel_path}/compss/runtime/config/* ${COMPSs_target}/Runtime/configuration/
@@ -162,9 +160,10 @@
   echo "--- Copy storage implementations"
 
   echo "Dealing with Redis storage implementation..."
-  cd "${trunk_rel_path}/utils/storage/redisPSCO"
-  ./make_bundle.sh
-  cd -
+  (
+    cd "${trunk_rel_path}/utils/storage/redisPSCO"
+    ./make_bundle.sh
+  )
   cp -r "${trunk_rel_path}/utils/storage/redisPSCO/COMPSs-Redis-bundle" "${COMPSs_target}/Tools/storage/redis"
 
   #TODO: add other storage implementations (?)
@@ -191,10 +190,11 @@
   echo "--- Copy tools"
   TOMCAT_VER="7.0.65"
   TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
-  cd tmp/
-  wget $TOMCAT_URL
-  tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
-  cd -
+  (
+    cd tmp/
+    wget $TOMCAT_URL
+    tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
+  )
   mv tmp/apache-tomcat-$TOMCAT_VER ${COMPSs_target}/Tools/monitor/apache-tomcat/
   rm -rf ${COMPSs_target}/Tools/monitor/apache-tomcat/webapps/*
   rm -f ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/server.xml
@@ -222,9 +222,10 @@
   # Create TAR.GZ
   echo " "
   echo "* Packing files..."
-  cd tmp/
-  tar -czf COMPSs_"${COMPSs_version}".tar.gz COMPSs
-  cd -
+  (
+    cd tmp/
+    tar -czf COMPSs_"${COMPSs_version}".tar.gz COMPSs
+  )
 
   # Move to final location  
   echo " "

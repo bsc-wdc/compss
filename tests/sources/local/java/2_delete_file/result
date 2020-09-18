@@ -55,6 +55,15 @@
   elif [ -f "${base_app_dir}"/counter_INOUT ]; then
   	echo "ERROR WAS FOUND. counter_INOUT FILE STILL EXISTS." | tee -a "${output_file}"
     exit 3
+  elif [ -f "${base_app_dir}"/counter_IN_0 ]; then
+  	echo "ERROR WAS FOUND. counter_IN_0 FILE STILL EXISTS." | tee -a "${output_file}"
+    exit 4
+  elif [ -f "${base_app_dir}"/counter_IN_1 ]; then
+  	echo "ERROR WAS FOUND. counter_IN_1 FILE STILL EXISTS." | tee -a "${output_file}"
+    exit 4
+  elif [ -f "${base_app_dir}"/counter_IN_2 ]; then
+  	echo "ERROR WAS FOUND. counter_IN_2 FILE STILL EXISTS." | tee -a "${output_file}"
+    exit 4
   else
     echo "FILE HAS BEEN REMOVED." | tee -a "${output_file}"
   fi

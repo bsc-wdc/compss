@@ -1078,6 +1078,9 @@ public class AccessProcessor implements Runnable {
      * @param o Object to unregister.
      */
     public void deregisterObject(Object o) {
+        if (DEBUG) {
+            LOGGER.debug("Deregistering object " + o.hashCode());
+        }
         if (!this.requestQueue.offer(new DeregisterObject(o))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }

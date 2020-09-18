@@ -21,15 +21,19 @@ public class Simple {
         int initialValue = Integer.parseInt(args[0]);
 
         for (int i = 0; i < 3; i++) {
+            String counterNameIN2 = "counter_IN_" + i;
             // ------------------------------------------------------------------------
             // Write value
             FileOutputStream fos = null;
             FileOutputStream fos2 = null;
+            FileOutputStream fos3 = null;
             try {
                 fos = new FileOutputStream(counterName);
                 fos2 = new FileOutputStream(counterNameIN);
+                fos3 = new FileOutputStream(counterNameIN2);
                 fos.write(initialValue);
                 fos2.write(initialValue);
+                fos3.write(initialValue);
                 System.out.println("Initial counter value is " + initialValue);
             } catch (IOException ioe) {
                 ioe.printStackTrace();
@@ -47,11 +51,17 @@ public class Simple {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+                try {
+                    fos3.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
 
             // ------------------------------------------------------------------------
             // Execute increment
-            SimpleImpl.increment(counterName);
+            SimpleImpl.increment(counterName, counterNameIN2);
             SimpleImpl.increment2(counterNameIN, counterNameOUT);
             // ------------------------------------------------------------------------
             // Read new value

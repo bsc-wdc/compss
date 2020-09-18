@@ -6,7 +6,7 @@ public class ObjectDeregisterImpl {
         d1.setDummyNumber(n);
     }
 
-    public static void task2(int n, Dummy d2) { // Writes
+    public static void task2(int n, Dummy d2, Dummy dIn) { // Writes
         d2.setDummyNumber(n);
     }
 

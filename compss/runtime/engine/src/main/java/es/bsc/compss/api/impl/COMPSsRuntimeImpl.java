@@ -866,6 +866,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
             hasTarget, numReturns, pars, onFailure, timeOut);
 
+        for (Parameter p : pars) {
+            if (p.getDirection().equals(Direction.IN_DELETE)) {
+                processDelete(app, p);
+            }
+        }
+
         // End tracing event
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK.getType());
@@ -1273,15 +1279,24 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         switch (p.getType()) {
             case DIRECTORY_T:
                 ap.markForDeletion(app, ((DirectoryParameter) p).getLocation(), false);
+                // Java case where task files are stored in the registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(app.getId(), ((DirectoryParameter) p).getOriginalName());
+                }
                 break;
             case FILE_T:
                 ap.markForDeletion(app, ((FileParameter) p).getLocation(), false);
+                // Java case where task files are stored in the registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(app.getId(), ((FileParameter) p).getOriginalName());
+                }
                 break;
             case BINDING_OBJECT_T:
                 ap.markForBindingObjectDeletion(((BindingObjectParameter) p).getCode());
                 break;
             case OBJECT_T:
-                oReg.delete(app.getId(), ((ObjectParameter) p).getValue());
+                ObjectParameter op = (ObjectParameter) p;
+                oReg.delete(app.getId(), op.getValue());
                 break;
             case COLLECTION_T:
                 for (Parameter sp : ((CollectionParameter) p).getParameters()) {

@@ -72,6 +72,7 @@ jmethodID midNoMoreTasksIT;             /* ID of the noMoreTasks method in the e
 jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jobject jobjParDirIN; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
+jobject jobjParDirIN_DELETE;        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirOUT; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirINOUT; 	        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirCONCURRENT; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
@@ -427,6 +428,11 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     jobjParDirIN = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
     check_exception(status, "Cannot create global reference for Direction.IN object");
 
+    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("IN_DELETE"));
+    check_exception(status, "Cannot retrieve Direction.IN_DELETE object");
+    jobjParDirIN_DELETE = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, "Cannot create global reference for Direction.IN_DELETE object");
+
     objLocal =  status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("OUT"));
     check_exception(status, "Cannot retrieve Direction.OUT object");
     jobjParDirOUT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
@@ -707,6 +713,9 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
         case commutative_dir:
             status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCOMMUTATIVE);
             break;
+        case in_delete_dir:
+        	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN_DELETE);
+        	break;
         default:
             break;
     }

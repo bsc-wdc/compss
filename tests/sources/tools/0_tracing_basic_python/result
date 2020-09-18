@@ -104,8 +104,7 @@
       exit 1
     fi
 
-    # TODO: We look for at least 4 events because Extrae sometimes duplicates events
-    if [ "${sync_evts_init}" < "$((4 * number_of_workers))" ] || [ "${sync_evts_end}" < "$((4 * number_of_workers))" ]; then
+    if [ "${sync_evts_init}" -ne "$((4 * number_of_workers))" ] || [ "${sync_evts_end}" -ne "$((4 * number_of_workers))" ]; then
       echo "[ERROR] Number of start and end synchronization events are not 8 times the number of workers. Expected events: $((8 * number_of_workers)) != Found Events: [${sync_evts_init} + ${sync_evts_end}]" | tee -a "${output_file}"
       exit 1
     fi

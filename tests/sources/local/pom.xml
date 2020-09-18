@@ -12,7 +12,7 @@
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-trunk</artifactId>
         <version>2.7.rc2009</version>
-        <relativePath>../../</relativePath>
+	<relativePath>../../../</relativePath>
     </parent>
 
     <!-- PROJECT INFORMATION -->

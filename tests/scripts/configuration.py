@@ -311,7 +311,7 @@ def load_configuration_file(cfg_file):
     # Load default variables
     cfg_vars = {k: v for k, v in config.items("DEFAULT")}
 
-    _check_common_vars(cfg_vars)
+    _check_common_vars(cfg_vars, config)
 
     if __debug__:
         print("[DEBUG] Retrieved CFG variables: " + str(cfg_vars))

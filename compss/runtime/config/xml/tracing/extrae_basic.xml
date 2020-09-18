@@ -21,6 +21,8 @@
     </cpu>
   </counters>
 
+
+
   <storage enabled="no"/>
 
   <buffer enabled="yes">
@@ -38,6 +40,6 @@
 
   <input-output enabled="no"/>
 
-  <merge enabled="no"/> 
-  
+  <merge enabled="no"/>
+
 </trace>

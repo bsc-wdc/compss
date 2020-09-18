@@ -43,11 +43,11 @@
     mkdir -p "${specific_log_dir}"
 
     master_working_dir=${target_log_folder}
-    if [ "$exec_env" == 'gpfs' ]; then
+    if [ "$exec_env" == 'shared_disk' ]; then
         worker_working_dir=${specific_log_dir}
     fi
-    if [ "$exec_env" == 'scratch' ]; then
-        worker_working_dir="scratch"
+    if [ "$exec_env" == 'local_disk' ]; then
+        worker_working_dir="local_disk"
     fi
 
     expectedTime=5

@@ -3,6 +3,8 @@
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
+SHARED_DISK_NAME="shared_disk"
+LOCAL_DISK_NAME="local_disk"
 
 DEFAULT_SC_CFG="default"
 
@@ -46,7 +48,7 @@ DEFAULT_PYTHON_MEMORY_PROFILE=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_SHARED_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler"
-DEFAULT_SCRATCH_SCHEDULER="es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler"
+DEFAULT_LOCAL_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler"
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -157,7 +159,7 @@ show_opts() {
 
     --master_working_dir=<path>             Working directory of the application
                                             Default: ${DEFAULT_MASTER_WORKING_DIR}
-    --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
+    --worker_working_dir=<name | path>      Worker directory. Use: ${LOCAL_DISK_NAME} | ${SHARED_DISK_NAME} | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
 
     --worker_in_master_cpus=<int>           Maximum number of CPU computing units that the master node can run as worker. Cannot exceed cpus_per_node.
@@ -430,13 +432,13 @@ xml_project_setup() {
   # Shared disks information
   shared_disks_names=""
   shared_disks_info=""
-  if [ -n "${GPFS_PREFIX}" ]; then
-    shared_disks_names="gpfs"
-    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  if [ -n "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${SHARED_DISK_NAME}"
+    shared_disks_info="${SHARED_DISK_NAME}=${SHARED_DISK_PREFIX}"
   fi
-  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    shared_disks_names="${shared_disks_names} gpfs2"
-    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  if [ -n "${SHARED_DISK_2_PREFIX}" ] && [ "${SHARED_DISK_2_PREFIX}" != "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} ${SHARED_DISK_NAME}2"
+    shared_disks_info="${shared_disks_info} ${SHARED_DISK_NAME}2=${SHARED_DISK_2_PREFIX}"
   fi
 
   # Init project file
@@ -598,13 +600,13 @@ xml_resources_setup() {
   # Shared disks information
   shared_disks_names=""
   shared_disks_info=""
-  if [ -n "${GPFS_PREFIX}" ]; then
-    shared_disks_names="gpfs"
-    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  if [ -n "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${SHARED_DISK_NAME}"
+    shared_disks_info="${SHARED_DISK_NAME}=${SHARED_DISK_PREFIX}"
   fi
-  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    shared_disks_names="${shared_disks_names} gpfs2"
-    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  if [ -n "${SHARED_DISK_2_PREFIX}" ] && [ "${SHARED_DISK_2_PREFIX}" != "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} ${SHARED_DISK_NAME}2"
+    shared_disks_info="${shared_disks_info} ${SHARED_DISK_NAME}2=${SHARED_DISK_2_PREFIX}"
   fi
 
   # Init resources file
@@ -1453,15 +1455,15 @@ check_args() {
 
   if [ -z "${worker_working_dir}" ]; then
     worker_working_dir=${DEFAULT_WORKER_WORKING_DIR}
-  elif [ "${worker_working_dir}" != "scratch" ] && [ "${worker_working_dir}" != "gpfs" ] && [[ ${worker_working_dir} != /* ]]; then
+  elif [ "${worker_working_dir}" != "${LOCAL_DISK_NAME}" ] && [ "${worker_working_dir}" != "${SHARED_DISK_NAME}" ] && [[ ${worker_working_dir} != /* ]]; then
     display_error "${ERROR_WORKER_WD}"
   fi
 
   if [ -z "${scheduler}" ]; then
-    if [ "${worker_working_dir}" != "scratch" ]; then
+    if [ "${worker_working_dir}" != "$LOCAL_DISK_NAME" ]; then
         scheduler=${DEFAULT_SHARED_DISK_SCHEDULER}
     else
-	scheduler=${DEFAULT_SCRATCH_SCHEDULER}
+	scheduler=${DEFAULT_LOCAL_SCHEDULER}
     fi
     args_pass="--scheduler=${scheduler} ${args_pass}"
   fi
@@ -1608,10 +1610,10 @@ set_variables() {
   mkdir -p "${specific_log_dir}"
 
   # SharedDisk variables
-  if [ "${worker_working_dir}" == "gpfs" ]; then
-    worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
-  elif [ "${worker_working_dir}" == "scratch" ]; then
-    worker_working_dir=${SCRATCH_DIR}/${!ENV_VAR_JOB_ID}
+  if [ "${worker_working_dir}" == "${SHARED_DISK_NAME}" ]; then
+    worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}")
+  elif [ "${worker_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
+    worker_working_dir=${LOCAL_DISK_PREFIX}/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"
   else
     # The working dir is a custom absolute path, create tmp

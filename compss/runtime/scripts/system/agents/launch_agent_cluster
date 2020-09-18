@@ -3,6 +3,7 @@
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
+SHARED_DISK_NAME="shared_disk"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 generate_resources() {
@@ -164,13 +165,13 @@ xml_project_setup() {
   # Shared disks information
   shared_disks_names=""
   shared_disks_info=""
-  if [ -n "${GPFS_PREFIX}" ]; then
-    shared_disks_names="gpfs"
-    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  if [ -n "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${SHARED_DISK_NAME}"
+    shared_disks_info="${SHARED_DISK_NAME}=${SHARED_DISK_PREFIX}"
   fi
-  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    shared_disks_names="${shared_disks_names} gpfs2"
-    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  if [ -n "${SHARED_DISK_2_PREFIX}" ] && [ "${SHARED_DISK_2_PREFIX}" != "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} ${SHARED_DISK_NAME}2"
+    shared_disks_info="${shared_disks_info} ${SHARED_DISK_NAME}2=${SHARED_DISK_2_PREFIX}"
   fi
 
   # Init project file
@@ -214,13 +215,13 @@ xml_resources_setup() {
   # Shared disks information
   shared_disks_names=""
   shared_disks_info=""
-  if [ -n "${GPFS_PREFIX}" ]; then
-    shared_disks_names="gpfs"
-    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  if [ -n "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${SHARED_DISK_NAME}"
+    shared_disks_info="${SHARED_DISK_NAME}=${SHARED_DISK_PREFIX}"
   fi
-  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    shared_disks_names="${shared_disks_names} gpfs2"
-    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  if [ -n "${SHARED_DISK_2_PREFIX}" ] && [ "${SHARED_DISK_2_PREFIX}" != "${SHARED_DISK_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} ${SHARED_DISK_NAME}2"
+    shared_disks_info="${shared_disks_info} ${SHARED_DISK_NAME}2=${SHARED_DISK_2_PREFIX}"
   fi
 
   # Init resources file

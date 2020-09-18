@@ -3,6 +3,8 @@
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
+SHARED_DISK_NAME="shared_disk"
+LOCAL_DISK_NAME="local_disk"
 
 DEFAULT_SC_CFG="default"
 
@@ -152,7 +154,7 @@ show_opts() {
 
     --master_working_dir=<path>             Working directory of the application
                                             Default: ${DEFAULT_MASTER_WORKING_DIR}
-    --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
+    --worker_working_dir=<name | path>      Worker directory. Use: ${LOCAL_DISK_NAME} | ${SHARED_DISK_NAME} | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
 
     --worker_in_master_cpus=<int>           Maximum number of CPU computing units that the master node can run as worker. Cannot exceed cpus_per_node.
@@ -781,7 +783,7 @@ check_args() {
 
   if [ -z "${worker_working_dir}" ]; then
     worker_working_dir=${DEFAULT_WORKER_WORKING_DIR}
-  elif [ "${worker_working_dir}" != "scratch" ] && [ "${worker_working_dir}" != "gpfs" ] && [[ ${worker_working_dir} != /* ]]; then
+  elif [ "${worker_working_dir}" != "${LOCAL_DISK_NAME}" ] && [ "${worker_working_dir}" != "${SHARED_DISK_NAME}" ] && [[ ${worker_working_dir} != /* ]]; then
     display_error "${ERROR_WORKER_WD}"
   fi
 
@@ -909,10 +911,10 @@ set_variables() {
   mkdir -p "${specific_log_dir}"
 
   # SharedDisk variables
-  if [ "${worker_working_dir}" == "gpfs" ]; then
-    worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
-  elif [ "${worker_working_dir}" == "scratch" ]; then
-    worker_working_dir=${SCRATCH_DIR}/${!ENV_VAR_JOB_ID}
+  if [ "${worker_working_dir}" == "${SHARED_DISK_NAME}" ]; then
+    worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}")
+  elif [ "${worker_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
+    worker_working_dir=${LOCAL_DISK_PREFIX/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"
   else
     # The working dir is a custom absolute path, create tmp

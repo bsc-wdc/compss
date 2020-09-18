@@ -220,12 +220,15 @@ def execute_tests_sc(cmd_args, compss_cfg):
     remote_dir = os.path.join(compss_cfg.get_remote_working_dir(), DEFAULT_REL_TARGET_TESTS_DIR)
     exec_envs = compss_cfg.get_execution_envs_str()
     runcompss_opts = compss_cfg.get_runcompss_opts()
+    queue = compss_cfg.get_queue()
+    qos = compss_cfg.get_qos()
     if runcompss_opts is None:
         runcompss_opts = "none"
     runcompss_bin = "enqueue_compss"
     enqueue_tests_script = os.path.join(remote_dir,REMOTE_SCRIPTS_REL_PATH,"enqueue_tests.py")
     results_script = os.path.join(remote_dir,REMOTE_SCRIPTS_REL_PATH, "results.py")
-    remote_cmd = "python " + enqueue_tests_script + " " + remote_dir + " " + runcompss_bin + " " + comm + " " + runcompss_opts + " " + module + " " + exec_envs
+    #Add more parameters before exec_env. Let exec_envs for the last argument
+    remote_cmd = "python " + enqueue_tests_script + " " + remote_dir + " " + runcompss_bin + " " + comm + " " + runcompss_opts + " " + module + " " + queue + " " + qos + " " + exec_envs
     cmd = "ssh " + username + " " + "'" + remote_cmd + "'"
     print("Executing command:" + cmd)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -245,15 +248,43 @@ def execute_tests_sc(cmd_args, compss_cfg):
     cmd = "ssh "+username+" "+"'python " + results_script + " " + remote_dir+"'"
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = process.communicate()
+    is_failure=False
     if process.returncode != 0 :
-        print("[ERROR] Executing command: \nOUT:\n" + str(out) + "\nERR:\n" + str(err))
-        exit(1)
+        print("[ERROR] Failure in tests results \nOUT:\n" + str(out) + "\nERR:\n" + str(err))
+        is_failure=True
     cmd = "scp "+username+":"+os.path.join(remote_dir,"outs.csv")+" /tmp"
     subprocess.check_output(cmd, shell=True)
-    import pandas as pd
-    pd.set_option("display.colheader_justify", "left")
-    data = pd.read_csv("/tmp/outs.csv")
-    print(data)
+    # Process test results
+    headers = ["Test\nG. Id", " Test \nFamily", " Test  \nFam. Id", "Test Name", "Test Exec.\n  Folder", "Test \nJobID", " Test Exec.\nEnvironment", " Test\nResult"]
+    results_info = []
+    global_ev = ExitValue.OK
+
+    with open("/tmp/outs.csv",'r') as res_file:
+        for line in res_file:
+            test_dir, environment, job_id, exit_value = line.split(",")
+            if int(exit_value) == 0:
+                ev = ExitValue.OK
+            else:
+                ev = ExitValue.FAIL
+            # Update global exit value
+            global_ev = _merge_exit_values(global_ev, ev)
+            # Colour the test exit value
+            ev_color_str = str_exit_value_coloured(ev)
+            # Retrieve test information
+            test_global_num = int("".join(x for x in test_dir if x.isdigit()))
+            test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][test_global_num]
+            # Append all information for rendering
+            results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, job_id, environment, ev_color_str])
+
+    # Print result summary table
+    from tabulate import tabulate
+    print()
+    print("----------------------------------------")
+    print("TEST RESULTS SUMMARY:")
+    print()
+    print(tabulate(results_info, headers=headers))
+    print("----------------------------------------")
+    return global_ev
 
 
 ############################################

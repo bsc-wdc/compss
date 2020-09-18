@@ -2,7 +2,7 @@ import os
 import subprocess
 import shutil
 import sys
-import csv
+
 target_base_dir = sys.argv[1]
 tests_base_dir = os.path.join(target_base_dir,"apps")
 logs_base_dir = os.path.join(target_base_dir,"logs")
@@ -13,8 +13,7 @@ processes_apps = f.read(-1).split("\n")
 processes_apps.pop()
 
 with open(os.path.join(target_base_dir, "outs.csv"), "w") as file:
-    writer = csv.writer(file)
-    writer.writerow(["App Name", "Process ID", "Result"])
+    pass
 
 
 for log_dir in sorted(os.listdir(logs_base_dir)):
@@ -33,12 +32,7 @@ for log_dir in sorted(os.listdir(logs_base_dir)):
         process = subprocess.Popen(cmd)
         process.communicate()
         exit_value = process.returncode
-        if exit_value == 0:
-            exit_value = "\033[92m"+"OK"+"\033[0m"
-        else:
-            exit_value = "\033[91m"+"FAIL"+"\033[0m"
         with open(os.path.join(target_base_dir, "outs.csv"), "a") as file:
-            writer = csv.writer(file)
-            writer.writerow([l[1], l[0], exit_value])
+            file.write(str(l[1]) + "," + str(l[2])+","+ str(l[0])+","+ str(exit_value)+"\n")
 
 f.close()

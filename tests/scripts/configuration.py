@@ -221,9 +221,14 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         + type: String
     :attribute compss_module: COMPSs module used for tests
         + type: String
+    :attribute qos: Quality of Service for the execution of tests
+        + type: String
+    :attribute qos: Queue used for the execution of tests
+        + type: String
     """
 
-    def __init__(self, remote_working_dir=None, compss_module=DEFAULT_COMPSS_MODULE, user=None, java_home=None, compss_home=DEFAULT_COMPSS_HOME, target_base_dir=None,
+    def __init__(self, remote_working_dir=None, compss_module=DEFAULT_COMPSS_MODULE, queue='none', qos='none',
+                 user=None, java_home=None, compss_home=DEFAULT_COMPSS_HOME, target_base_dir=None,
                  comm=DEFAULT_COMM, runcompss_opts=None, execution_envs=DEFAULT_SC_EXECUTION_ENVS):
         COMPSsConfiguration.__init__(self, user, java_home, compss_home, target_base_dir, comm, runcompss_opts, execution_envs)
 
@@ -231,6 +236,8 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
                 raise ConfigurationError("[ERROR] Undefined variable remote_working_dir")
         self.remote_working_dir = remote_working_dir
         self.compss_module = compss_module
+        self.qos = qos
+        self.queue = queue
 
     def get_remote_working_dir(self):
         """
@@ -250,10 +257,33 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         """
         return self.compss_module
 
+    def get_qos(self):
+        """
+        Returns the Quality of Service used for the execution of tests
+
+        :return: The quality of service
+            + type: String
+        """
+        return self.qos
+
+    def get_queue(self):
+        """
+        Returns the queue used for the execution of tests
+
+        :return: The queue name
+            + type: String
+        """
+        return self.queue
+
     def print_vars(self):
+        """
+        Prints de configuration variables
+        """
         COMPSsConfiguration.print_vars(self)
         print("[INFO]   - compss_modules: " + str(self.compss_module))
         print("[INFO]   - remote_dir: " + str(self.remote_working_dir))
+        print("[INFO]   - queue: " + str(self.queue))
+        print("[INFO]   - qos: " + str(self.qos))
 
 ############################################
 # PUBLIC METHODS

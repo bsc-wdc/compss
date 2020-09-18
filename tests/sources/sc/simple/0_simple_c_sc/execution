@@ -1,0 +1,74 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  target_log_folder=$5
+  compss_module=$6
+  queue=$7
+  qos=$8
+  #Execution_envs should be the last parameter because it is a list
+  execution_envs=$9
+  if [ "$queue" != 'none' ]; then
+          runcompss_opts="${runcompss_opts} --queue=${queue}"
+  fi
+  if [ "$qos" != 'none' ]; then
+          runcompss_opts="${runcompss_opts} --qos=${qos}"
+  fi 
+
+  # Global variables
+  app_name="Simple"
+
+  #----------------------------------------------------------------------------------
+  # Load COMPSs module + application modules
+
+  module load ${compss_module}
+  # module load xxx
+  
+  #----------------------------------------------------------------------------------
+  # Compiling C app
+  echo
+  echo "*** COMPILING C APPLICATION SIMPLE"
+  cd "${base_app_dir}" || exit 1
+  compss_build_app "${app_name}"
+  ev=$?
+  if [ $ev -ne 0 ]; then
+     echo "[ERROR] Cannot compile C app. See errors above."
+     exit $ev
+  fi
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** RUNNING C APPLICATION SIMPLE"
+  for exec_env in ${execution_envs}; do
+    echo "- Running with Environment: ${exec_env}"
+    output_log="${target_log_folder}/simple_c_${exec_env}.outputlog"
+    error_log="${target_log_folder}/simple_c_${exec_env}.errorlog"
+    specific_log_dir="${target_log_folder}/simple_c_${exec_env}"
+    mkdir -p "${specific_log_dir}"
+    master_working_dir=${target_log_folder}
+    if [ "$exec_env" == 'gpfs' ]; then
+        worker_working_dir=${specific_log_dir}
+    fi
+    if [ "$exec_env" == 'scratch' ]; then
+        worker_working_dir="scratch"
+    fi
+
+    counterVal=1
+    expectedTime=5
+
+    "${COMPSs_exec}" --exec_time=${expectedTime} \
+     --num_nodes=1 \
+     --comm="$comm" \
+     --debug \
+     --worker_in_master_cpus=8 \
+     --master_working_dir=${master_working_dir} \
+     --worker_working_dir=${worker_working_dir} \
+     --base_log_dir=${target_log_folder} \
+     ${runcompss_opts} \
+     --appdir="${base_app_dir}" \
+     "${base_app_dir}/master/${app_name}" $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  
+  done 

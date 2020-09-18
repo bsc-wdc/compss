@@ -14,7 +14,9 @@ user_opts = sys.argv[4] # ' '
 if user_opts == "none" :
     user_opts=""
 module = sys.argv[5]
-execution_envs = sys.argv[6:] #python3
+queue = sys.argv[6]
+qos = sys.argv[7]
+execution_envs = sys.argv[8:] #python3
 #module = sys.argv[6] #COMPSs/2.6
 #master_working_dir = sys.argv[9]
 #worker_working_dir = sys.argv[10]
@@ -44,6 +46,8 @@ for test_dir in sorted(os.listdir(tests_apps_dir)):
            str(test_path),
            str(test_logs_path),
            str(module),
+           str(queue),
+           str(qos), #Add more parameters here. Let exec_envs for the last argument
            str(execution_envs_str)]
 
     #exec_env = os.environ.copy()
@@ -55,11 +59,15 @@ for test_dir in sorted(os.listdir(tests_apps_dir)):
             exit(1)
         out = out.split("\n")
         job_id = "-1"
+        environment = 'none'
         for x in out:
+            if x.startswith("- Running with Environment:"):
+                environment = x.split(" ")
+                environment = environment[-1]
             if x.startswith("Submitted batch job"):
                 job_id = x.split(" ")
                 job_id = job_id[-1]
-                f.write(job_id+" "+test_dir+"\n")
+                f.write(job_id + " " + test_dir + " " + environment + "\n")
                 #printing job_id for being caputured by the execute_sc_tests
                 print(job_id)
     except Exception as e:

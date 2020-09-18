@@ -326,7 +326,7 @@ worker_cmd() {
     streaming_master_port=44000
   fi
 
-  local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
+
   local maxSend=5
   local maxReceive=5
   local worker_port=${worker_min_port}
@@ -340,6 +340,13 @@ worker_cmd() {
   else
      WCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   fi
+
+  if [ ! -z "${NODE_NAME_XML}" ]; then
+     master_name=$(${NODE_NAME_XML} "${master_name}")
+     nodeName=$(${NODE_NAME_XML} "${nodeName}")
+  fi
+
+  local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
 
   WCMD="$WCMD ${library_path} \
             ${appdir} \
@@ -454,10 +461,10 @@ xml_project_add_worker_in_master() {
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
       if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
-         echo "[LAUNCH_COMPSS] Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+         echo "[LAUNCH_COMPSS] Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
       fi
       # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
+      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
@@ -482,10 +489,10 @@ xml_project_add_workers() {
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
       if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
-         echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+         echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
       fi
       # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
+      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
     fi
     # Add compute node
     worker_node_name=${worker_node_name}${network}

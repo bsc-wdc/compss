@@ -6,11 +6,11 @@
 
   # Copy Redis Storage jar
   (
-  cd "${source_base_dir}"/../../../../utils/storage/redisPSCO/
+  cd "${source_base_dir}"/../../../../../utils/storage/redisPSCO/
   mvn clean package
   )
   mkdir -p "${target_base_dir}"/jars/
-  cp "${source_base_dir}"/../../../../utils/storage/redisPSCO/target/compss-redisPSCO.jar "${target_base_dir}"/jars/compss-redisPSCO.jar
+  cp "${source_base_dir}"/../../../../../utils/storage/redisPSCO/target/compss-redisPSCO.jar "${target_base_dir}"/jars/compss-redisPSCO.jar
 
   # Now we download Redis source code from their official repo, compile it and use the redis-server executable
   cp "${source_base_dir}"/target/lib/jedis*.jar "${target_base_dir}"/jedis.jar

@@ -5,7 +5,7 @@
   target_base_dir=$2
 
   # Build Redis Bundle (we will copy it later)
-  bundle_path="${source_base_dir}"/../../../../utils/storage/redisPSCO/
+  bundle_path="${source_base_dir}"/../../../../../utils/storage/redisPSCO/
   bundle_name=COMPSs-Redis-bundle
 
   # Build the Redis bundle as a deploy step

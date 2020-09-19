@@ -6,11 +6,11 @@
   
   # Copy dummy Storage jar
   (
-  cd "${source_base_dir}"/../../../../utils/storage/dummyPSCO/
+  cd "${source_base_dir}"/../../../../../utils/storage/dummyPSCO/
   mvn clean package
   )
   mkdir -p "${target_base_dir}"/jars/
-  cp "${source_base_dir}"/../../../../utils/storage/dummyPSCO/target/compss-dummyPSCO.jar "${target_base_dir}"/jars/compss-dummyPSCO.jar
+  cp "${source_base_dir}"/../../../../../utils/storage/dummyPSCO/target/compss-dummyPSCO.jar "${target_base_dir}"/jars/compss-dummyPSCO.jar
 
   # Copy files
   app_name="2_dummy_streams_java"

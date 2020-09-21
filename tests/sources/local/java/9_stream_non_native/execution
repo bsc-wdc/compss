@@ -38,7 +38,7 @@
   export WRITE_BINARY="${base_app_dir}"/write_files.sh
 
   # shellcheck disable=SC2086
-  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+  timeout --signal=2 --kill-after=10s $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
      \

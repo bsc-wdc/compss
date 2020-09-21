@@ -19,7 +19,8 @@ from pycompss.api.api import compss_open
 from models import PersistentObject
 
 NUM_TASKS = 7
-TASK_SLEEP_TIME = 2
+TASK_SLEEP_TIME = 1
+OTHER_TASK_SLEEP_TIME = 0.5
 STORAGE_PATH = "/tmp/sharedDisk/"
 
 
@@ -67,12 +68,14 @@ def check_results(file_path):
     with open(file_path, 'w') as fos:
         fos.write(str(contents1 + contents2))
         print("Writen value is " + str(contents1 + contents2) )
+    time.sleep(OTHER_TASK_SLEEP_TIME)
 
 @task(file_path=FILE_IN)
 def check_results2(file_path):
     with open(file_path, 'r') as fis:
         contents1 = int(fis.readline())
         print("Contents1 value is " + str(contents1))
+    time.sleep(OTHER_TASK_SLEEP_TIME)
     return contents1
 
 @task(file_path=FILE_COMMUTATIVE)
@@ -84,6 +87,7 @@ def addOne_commutative(file_path):
     with open(file_path, 'w') as fos:
         fos.write(str(contents1 + 1))
         print("Writen value is " + str(contents1+1) )
+    time.sleep(OTHER_TASK_SLEEP_TIME)
 
 @task(file_path1=FILE_IN, file_path2=FILE_COMMUTATIVE)
 def accumulate_commutative(file_path1, file_path2):
@@ -96,6 +100,7 @@ def accumulate_commutative(file_path1, file_path2):
     with open(file_path2, 'w') as fos:
         fos.write(str(contents1 + contents2))
         print("Writen value is " + str(contents1 + contents2))
+    time.sleep(OTHER_TASK_SLEEP_TIME)
 
 
 

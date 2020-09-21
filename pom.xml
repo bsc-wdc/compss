@@ -192,7 +192,8 @@
     <modules>
         <module>maven-plugins</module>
         <module>compss</module>
-        <module>tests/sources</module>
+	<module>tests/sources/local</module>
+	<module>tests/sources/sc</module>
         <module>utils/storage</module>
         <module>performance_analysis/auto-cbm</module>
     </modules>

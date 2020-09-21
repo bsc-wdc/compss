@@ -11,8 +11,12 @@ import os
 from enum import Enum
 
 from constants import RUNCOMPSS_REL_PATH
+from constants import ENQUEUE_COMPSS_REL_PATH
+from constants import REMOTE_SCRIPTS_REL_PATH
 from constants import CLEAN_PROCS_REL_PATH
 from constants import JACOCO_LIB_REL_PATH
+from constants import SCRIPT_DIR
+from constants import DEFAULT_REL_TARGET_TESTS_DIR
 
 ############################################
 # ERROR CLASS
@@ -146,15 +150,15 @@ def execute_tests(cmd_args, compss_cfg):
     target_base_dir = compss_cfg.get_target_base_dir()
     execution_sanbdox = os.path.join(target_base_dir, "apps")
     coverage_path = os.path.join(target_base_dir, "coverage")
-    jaccoco_lib_path = compss_cfg.get_compss_home() + JACOCO_LIB_REL_PATH 
+    jaccoco_lib_path = compss_cfg.get_compss_home() + JACOCO_LIB_REL_PATH
 
     if cmd_args.coverage:
         print("[INFO] Coverage mode enabled")
         coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
-        #coverage_paths[2] = coverage_paths[2].replace("#","@")		
+        #coverage_paths[2] = coverage_paths[2].replace("#","@")
         #coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
         print("[INFO] Coverage expression: "+coverage_expression)
-        print("[INFO] File coverage_rc generated")   
+        print("[INFO] File coverage_rc generated")
     # Execute all the deployed tests
     results = []
     i=0
@@ -201,10 +205,85 @@ def execute_tests(cmd_args, compss_cfg):
     print()
     print(tabulate(results_info, headers=headers))
     print("----------------------------------------")
-    
+
     if cmd_args.coverage:
         generate_coverage_reports(jaccoco_lib_path, coverage_path)
     # Return if any test has failed
+    return global_ev
+
+def execute_tests_sc(cmd_args, compss_cfg):
+    import subprocess
+    import polling
+    username = compss_cfg.get_user()
+    module = compss_cfg.get_compss_module()
+    comm = compss_cfg.get_comm()
+    remote_dir = os.path.join(compss_cfg.get_remote_working_dir(), DEFAULT_REL_TARGET_TESTS_DIR)
+    exec_envs = compss_cfg.get_execution_envs_str()
+    runcompss_opts = compss_cfg.get_runcompss_opts()
+    queue = compss_cfg.get_queue()
+    qos = compss_cfg.get_qos()
+    if runcompss_opts is None:
+        runcompss_opts = "none"
+    runcompss_bin = "enqueue_compss"
+    enqueue_tests_script = os.path.join(remote_dir,REMOTE_SCRIPTS_REL_PATH,"enqueue_tests.py")
+    results_script = os.path.join(remote_dir,REMOTE_SCRIPTS_REL_PATH, "results.py")
+    #Add more parameters before exec_env. Let exec_envs for the last argument
+    remote_cmd = "python " + enqueue_tests_script + " " + remote_dir + " " + runcompss_bin + " " + comm + " " + runcompss_opts + " " + module + " " + queue + " " + qos + " " + exec_envs
+    cmd = "ssh " + username + " " + "'" + remote_cmd + "'"
+    print("Executing command:" + cmd)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    out, err = process.communicate()
+    if process.returncode != 0 :
+        print("[ERROR] Executing command: \nOUT:\n" + str(out) + "\nERR:\n" + str(err))
+        exit(1)
+    out = str(out)
+    print("[INFO] Executing tests on Supercomputer:")
+    jobs = out.split()
+    print("[INFO] Jobs: {}".format(str(jobs)))
+    for job in jobs:
+        print("[INFO] Waiting for job {}".format(job))
+        polling.poll(lambda: not subprocess.check_output('ssh {} "squeue -h -j {}"'.format(username, job), shell=True), step=2, poll_forever=True)
+    print("[INFO] All jobs finished")
+    print("[INFO] Checking results")
+    cmd = "ssh "+username+" "+"'python " + results_script + " " + remote_dir+"'"
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    out, err = process.communicate()
+    is_failure=False
+    if process.returncode != 0 :
+        print("[ERROR] Failure in tests results \nOUT:\n" + str(out) + "\nERR:\n" + str(err))
+        is_failure=True
+    cmd = "scp "+username+":"+os.path.join(remote_dir,"outs.csv")+" /tmp"
+    subprocess.check_output(cmd, shell=True)
+    # Process test results
+    headers = ["Test\nG. Id", " Test \nFamily", " Test  \nFam. Id", "Test Name", "Test Exec.\n  Folder", "Test \nJobID", " Test Exec.\nEnvironment", " Test\nResult"]
+    results_info = []
+    global_ev = ExitValue.OK
+
+    with open("/tmp/outs.csv",'r') as res_file:
+        for line in res_file:
+            test_dir, environment, job_id, exit_value = line.split(",")
+            if int(exit_value) == 0:
+                ev = ExitValue.OK
+            else:
+                ev = ExitValue.FAIL
+            # Update global exit value
+            global_ev = _merge_exit_values(global_ev, ev)
+            # Colour the test exit value
+            ev_color_str = str_exit_value_coloured(ev)
+            # Retrieve test information
+            test_global_num = int("".join(x for x in test_dir if x.isdigit()))
+            test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][test_global_num]
+            # Append all information for rendering
+            results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, job_id, environment, ev_color_str])
+
+    # Print result summary table
+    from tabulate import tabulate
+    print()
+    print("----------------------------------------")
+    print("TEST RESULTS SUMMARY:")
+    print()
+    print(tabulate(results_info, headers=headers))
+    print("----------------------------------------")
     return global_ev
 
 

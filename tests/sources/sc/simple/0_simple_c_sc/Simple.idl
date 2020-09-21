@@ -1,0 +1,3 @@
+interface Simple {
+	void increment(inout File filename);
+};

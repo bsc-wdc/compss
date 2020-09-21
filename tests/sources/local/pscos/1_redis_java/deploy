@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  source_base_dir=$1
+  target_base_dir=$2
+
+  # Copy Redis Storage jar
+  (
+  cd "${source_base_dir}"/../../../../../utils/storage/redisPSCO/
+  mvn clean package
+  )
+  mkdir -p "${target_base_dir}"/jars/
+  cp "${source_base_dir}"/../../../../../utils/storage/redisPSCO/target/compss-redisPSCO.jar "${target_base_dir}"/jars/compss-redisPSCO.jar
+
+  # Now we download Redis source code from their official repo, compile it and use the redis-server executable
+  cp "${source_base_dir}"/target/lib/jedis*.jar "${target_base_dir}"/jedis.jar
+  cp "${source_base_dir}"/REDIS-VERSION "${target_base_dir}"/REDIS-VERSION
+
+  # Copy files
+  app_name="1_redis_java"
+
+  cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
+
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result "${target_base_dir}"/result

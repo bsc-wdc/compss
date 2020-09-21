@@ -7,7 +7,6 @@ from __future__ import print_function
 
 # Imports
 import os
-from constants import TESTS_DIR
 
 
 ############################################
@@ -58,7 +57,7 @@ class TestDeploymentError(Exception):
 # PUBLIC METHODS
 ############################################
 
-def compile_and_deploy_tests(cmd_args, compss_cfg):
+def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
     """
     Compiles and deploys the required tests
 
@@ -119,12 +118,12 @@ def compile_and_deploy_tests(cmd_args, compss_cfg):
     except OSError:
         raise TestCompilationError("[ERROR] Cannot create log deployment directory: " + str(tests_logs))
     print("[INFO] Deployment structure created")
-    
+
     # Compile and deploy tests
     print()
     print("[INFO] Compiling and Deploying tests...")
     if cmd_args.tests is None or not cmd_args.tests:
-        _compile_and_deploy_all(cmd_args, compss_cfg)
+        _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir)
     else:
         _compile_and_deploy_specific(cmd_args, compss_cfg)
 
@@ -136,7 +135,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg):
 # INTERNAL METHODS
 ############################################
 
-def _compile_and_deploy_all(cmd_args, compss_cfg):
+def _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir):
     """
     Compiles and deploys all tests
 
@@ -152,7 +151,7 @@ def _compile_and_deploy_all(cmd_args, compss_cfg):
     print("[INFO] Compiling all test families...")
     for family in cmd_args.families:
         print("[INFO] Compiling all tests in family " + family)
-        family_path = os.path.join(TESTS_DIR, family)
+        family_path = os.path.join(tests_dir, family)
         _compile(family_path, compss_cfg)
     print("[INFO] Tests compiled")
 
@@ -360,6 +359,3 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
         if exit_value != 0:
             raise TestDeploymentError("[ERROR] Deployment command has failed with exit value: " + str(exit_value))
         print("[INFO] Deployment of " + str(source_path) + " completed")
-
-
-

@@ -36,7 +36,7 @@
   py3_other_modules="ignore"
 
   # DEFINE CONFIGURATION PARAMETERS
-  additionalExports=""
+  additionalExports="export PATH=/apps/BSCTOOLS/deps/libxml/2.9.4/bin:/apps/BSCTOOLS/deps/autotools/bin:$PATH"
   additional_module_use_folder="ignore"
   queues_cfg="nord.cfg"
   extrae_with_openmpi="true"

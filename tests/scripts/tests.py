@@ -8,7 +8,7 @@ from __future__ import print_function
 # Imports
 import time
 
-from arguments import get_args
+from arguments import get_local_args
 from arguments import ArgumentExit
 from arguments import ArgumentError
 
@@ -23,6 +23,8 @@ from execution import execute_tests
 from execution import TestExecutionError
 from execution import str_exit_value_coloured
 from execution import get_exit_code
+
+from constants import TESTS_DIR
 
 
 def launch_tests():
@@ -39,13 +41,13 @@ def launch_tests():
     :exit 0: This method exits when test numbering is provided
     """
     # Process command line arguments
-    cmd_args = get_args()
+    cmd_args = get_local_args()
 
     # Load configuration file
     compss_cfg = load_configuration_file(cmd_args.cfg_file)
 
     # Compile and Deploy tests
-    compile_and_deploy_tests(cmd_args, compss_cfg)
+    compile_and_deploy_tests(cmd_args, compss_cfg, TESTS_DIR)
 
     # Execute tests
     return execute_tests(cmd_args, compss_cfg)

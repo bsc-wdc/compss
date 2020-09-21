@@ -1,0 +1,71 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  target_log_folder=$5
+  compss_module=$6
+  queue=$7
+  qos=$8
+  #Execution_envs should be the last parameter because it is a list
+  execution_envs=$9
+  if [ "$queue" != 'none' ]; then
+          runcompss_opts="${runcompss_opts} --queue=${queue}"
+  fi
+  if [ "$qos" != 'none' ]; then
+          runcompss_opts="${runcompss_opts} --qos=${qos}"
+  fi
+
+
+  # Global variables
+  app_name="simple.py"
+
+  #----------------------------------------------------------------------------------
+  # Load COMPSs module + application
+  export COMPSS_PYTHON_VERSION=3-ML
+  module load ${compss_module}
+
+  # module load xxx
+
+
+
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** RUNNING PYTHON APPLICATION SIMPLE"
+  for exec_env in ${execution_envs}; do
+    echo "- Running with Environment: ${exec_env}"
+    output_log="${target_log_folder}/${app_name}_${exec_env}.outputlog"
+    error_log="${target_log_folder}/${app_name}_${exec_env}.errorlog"
+    specific_log_dir="${target_log_folder}/${app_name}_${exec_env}"
+    mkdir -p "${specific_log_dir}"
+
+    master_working_dir=${target_log_folder}
+    if [ "$exec_env" == 'shared_disk' ]; then
+        worker_working_dir=${specific_log_dir}
+    fi
+    if [ "$exec_env" == 'local_disk' ]; then
+        worker_working_dir="local_disk"
+    fi
+
+    expectedTime=5
+    # shellcheck disable=SC2086
+    "${COMPSs_exec}" --exec_time=${expectedTime} \
+      --num_nodes=1 \
+      --worker_in_master_cpus=8 \
+      --comm="$comm" \
+      --master_working_dir=${master_working_dir} \
+      --worker_working_dir=${worker_working_dir} \
+      --base_log_dir=${target_log_folder} \
+      --debug \
+      --summary \
+      ${runcompss_opts} \
+      --lang=python \
+      --pythonpath="${base_app_dir}" \
+      \
+      "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+
+  done

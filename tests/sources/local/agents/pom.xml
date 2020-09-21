@@ -32,12 +32,14 @@
 
 	<!-- SUB-MODULES -->
 	<modules>
-        <module>0_1_agent_deployment</module>
-        <module>1_1_agent_compss</module>
-        <module>2_multiple_agents</module>
-        <module>3_multiple_sources</module>
+		<module>0_1_agent_deployment</module>
+		<module>1_1_agent_compss</module>
+		<module>2_multiple_agents</module>
+		<module>3_multiple_sources</module>
 		<module>4_1_agent_nested</module>
+		<module>5_3_agents_nested_files</module>
 		<module>5_4_agent_nested</module>
-		<!-- Add new modules below -->
+		<module>5_4_agent_nested_inout_object</module>
+	<!-- Add new modules below -->
 	</modules>
 </project>

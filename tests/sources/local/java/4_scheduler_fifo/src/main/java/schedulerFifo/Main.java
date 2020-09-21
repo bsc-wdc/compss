@@ -25,11 +25,11 @@ public class Main {
         } catch (IOException ioe) {
             ioe.printStackTrace();
             System.exit(-1);
-        }
+        } // Se usa?
 
         MainImpl.increment(fileInout, fileIn);
         try {
-            Thread.sleep(200);
+            Thread.sleep(150);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -52,7 +52,7 @@ public class Main {
         // Check and get parameters
         if (args.length != 4) {
             System.out.println("[ERROR] Bad number of parameters");
-            System.out.println("    Usage: schedulers.Main <taskWidth> <taskDepth> <counterValue>");
+            System.out.println("    Usage: schedulers.Main <taskWidth> <taskDepth> <taskChilds> <counterValue>");
             System.exit(-1);
         }
         int taskWidth = Integer.parseInt(args[0]);

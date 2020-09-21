@@ -108,6 +108,7 @@ public class TestCommutativeImpl {
             e.printStackTrace();
         }
         return i + 1;
+
     }
 
     public static void writeFile(String fileName, String i) {
@@ -131,31 +132,6 @@ public class TestCommutativeImpl {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-    }
-
-    public static void writeFileCommutative(String fileName, String i) {
-        File f = new File(fileName);
-
-        BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(f, true));
-            writer.write(i);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                // Close the writer regardless of what happens
-                writer.close();
-            } catch (Exception e) {
-            }
-        }
-        try {
-            Thread.sleep(OTHER_TASK_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
     }
 
     public static int readFile(String fileName) {
@@ -180,7 +156,6 @@ public class TestCommutativeImpl {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         System.out.println(res);
         return res;
     }

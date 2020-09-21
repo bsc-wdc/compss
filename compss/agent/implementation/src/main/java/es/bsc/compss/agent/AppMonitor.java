@@ -104,6 +104,9 @@ public abstract class AppMonitor implements TaskMonitor {
 
     @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
+        ApplicationParameter originalParam = this.params[paramId];
+        String originalDataMgmtId = originalParam.getDataMgmtId();
+
         this.paramTypes[paramId] = paramType;
         if (paramType == DataType.OBJECT_T) {
             LogicalData ld = Comm.getData(dataId);
@@ -113,14 +116,13 @@ public abstract class AppMonitor implements TaskMonitor {
                 this.paramLocations[paramId] = targetURI.toString();
             } else {
                 this.paramTypes[paramId] = paramType;
-                this.paramLocations[paramId] = dataLocation.toString();
+                this.paramLocations[paramId] = originalDataMgmtId;
             }
         } else {
             this.paramTypes[paramId] = paramType;
             this.paramLocations[paramId] = dataLocation.toString();
         }
-        ApplicationParameter originalParam = this.params[paramId];
-        String originalDataMgmtId = originalParam.getDataMgmtId();
+
         if (dataId.compareTo(originalDataMgmtId) != 0) {
             try {
                 Comm.linkData(originalDataMgmtId, dataId);

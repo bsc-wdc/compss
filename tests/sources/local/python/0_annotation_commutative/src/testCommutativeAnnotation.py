@@ -19,7 +19,7 @@ from pycompss.api.api import compss_open
 from models import PersistentObject
 
 NUM_TASKS = 7
-TASK_SLEEP_TIME = 1
+TASK_SLEEP_TIME = 2
 STORAGE_PATH = "/tmp/sharedDisk/"
 
 

@@ -11,7 +11,7 @@ import java.lang.Thread;
 
 public class TestCommutativeImpl {
 
-    private static final int TASK_SLEEP_TIME = 1_000; // ms
+    private static final int TASK_SLEEP_TIME = 2_000; // ms
 
 
     public static void writeOne(String fileName) {

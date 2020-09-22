@@ -13,8 +13,8 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  jar_name="agent_compss_nested_count.jar"
-  app_name="4_1_agent_nested"
+  jar_name="5.1_3_agents_nested_files.jar"
+  app_name="5.1_3_agents_nested_files"
 
   # Traps and Handlers
   function kill_agents() {
@@ -67,7 +67,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo ""
-  echo "*** RUNNING AGENTS TEST: nested compss 1 agent"
+  echo "*** RUNNING AGENTS TEST: file management for nested compss on different agents"
   log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
   mkdir -p "${log_dir}"
   output_log="${log_dir}test.outputlog"
@@ -76,7 +76,7 @@
   touch "${error_log}"
 
   # Starting agent
-  for agent_id in $(seq 1 2); do
+  for agent_id in $(seq 1 3); do
     agent_log_dir="${log_dir}/agent${agent_id}/"
     mkdir -p "${agent_log_dir}" 
     agent_output_log="${log_dir}agent${agent_id}.outputlog"
@@ -88,7 +88,7 @@
 
     compss_agent_start \
       "--hostname=COMPSsWorker0${agent_id}" \
-      "--pythonpath=${base_app_dir}/src" \
+      "--classpath=${base_app_dir}/${jar_name}" \
       "--log_dir=${agent_log_dir}" \
       "--rest_port=46${agent_id}01" \
       "--comm_port=46${agent_id}02" \
@@ -100,7 +100,7 @@
       AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
   done
 
-  for agent_id in $(seq 1 2); do
+  for agent_id in $(seq 1 3); do
     agent_port=46${agent_id}01
     out_log_name=agent${agent_id}_output_log
     eval agent_output_log=${!out_log_name}
@@ -125,26 +125,26 @@
     sleep 2s
 
   done
- 
-  compss_agent_add_resources "--agent_node=127.0.0.1" "--agent_port=46101" "127.0.0.2" "Port=46202" > /dev/null 2>/dev/null
 
-
+  for agent_id in $(seq 1 2); do
+    agent_port=46${agent_id}01
+    compss_agent_add_resources "--agent_node=127.0.0.${agent_id}" "--agent_port=${agent_port}" "127.0.0.$(( agent_id + 1))" "Port=$((agent_port + 101 ))" > /dev/null 2>/dev/null
+  done
 
   # Invoking DemoFunction method
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
-   --lang="PYTHON" \
    --master_node="127.0.0.1" \
    --master_port="46101" \
-   --method_name="main" \
-   "simple" > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+    --cei=files.MainItf \
+    files.Main  > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
    ev=$?
 
    sleep 5s
    if [ "$ev" != "0" ]; then
-    echo "Could not invoke main method." > >(tee -a "${error_log}")
+    echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit $ev
   fi
-  echo "main function invoked" > >(tee -a "${output_log}")
+  echo "recursive.Count's main function invoked" > >(tee -a "${output_log}")
 
   retries="3"
   while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
@@ -152,55 +152,35 @@
     retries=$((retries - 1 ))
   done
   if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
-    echo "Could not invoke main method." > >(tee -a "${error_log}")
+    echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit 1
   fi
-  sleep 5
 
-  job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
+  job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3 )
   job1_method="${job1_method::-1}"
-  job2_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-  job2_method="${job2_method::-1}"
-
   if [ ! "${job1_method}" == "main" ]; then
-    echo "Unexpected method (${job1_method}) for job 1." > >(tee -a "${error_log}")
+    echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit 1
   fi
-  if [ ! "${job2_method}" == "increment" ]; then
-    echo "Unexpected method (${job2_method}) for job 2." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  job1_start=$(grep "hello main" "${agent1_log_dir}/jobs/job1_NEW.out")
-  job2_start=$(grep "hello increment" "${agent2_log_dir}/jobs/job1_NEW.out")
-  job2_in_value=$(echo "${job2_start}" | cut -d ' ' -f3)
-  job2_in_str=$(echo "${job2_start}" | cut -d ' ' -f4)
-  job1_end=$(grep "Updated object" "${agent1_log_dir}/jobs/job1_NEW.out")
-  job1_end_value=$(echo "${job1_end}" | cut -d ' ' -f3)
-  job1_end_str=$(echo "${job1_end}" | cut -d ' ' -f4)
+  echo  "recursive.Count's main method properly started" > >(tee -a "${output_log}")
 
-  if [ ! "${job1_start}" == "hello main" ]; then
-    echo "Main task didn't reach start point." > >(tee -a "${error_log}")
+  sleep 20s
+
+  created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
+  if [ ! "${created_jobs}" == "1" ]; then
+    echo "Agent1 has executed ${created_jobs} tasks and only 1 expected." > >(tee -a "${error_log}")
     exit 1
-  fi
-  job2_message=$(echo "${job2_start}" | awk '{print $1 " " $2}')
-  if [ ! "${job2_message}" == "hello increment" ]; then
-    echo "Increment task didn't reach start point." > >(tee -a "${error_log}")
+  fi 
+  created_jobs=$(ls "${agent2_log_dir}jobs" | grep -c NEW.out)
+  if [ ! "${created_jobs}" == "62" ]; then
+    echo "Agent2 has executed ${created_jobs} tasks and 62 expected." > >(tee -a "${error_log}")
     exit 1
-  fi
-  job1_message=$(echo "${job1_end}" | awk '{print $1 " " $2}')
-  if [ ! "${job1_message}" == "Updated object" ]; then
-    echo "Main task didn't reach start point." > >(tee -a "${error_log}")
+  fi 
+  created_jobs=$(ls "${agent3_log_dir}jobs" | grep -c NEW.out)
+  if [ ! "${created_jobs}" == "60" ]; then
+    echo "Agent3 has executed ${created_jobs} tasks and 60 expected." > >(tee -a "${error_log}")
     exit 1
-  fi
-  expected_value=$((job2_in_value + 1))
-  if [ ! "${job1_end_value}" == "${expected_value}" ]; then
-    echo "Unexpected integer value obtained from the test. Expecting ${expected_value} and ${job1_end_val} observed!" > >(tee -a "${error_log}")
-    exit 1
-  fi
-  if [ ! "${job1_end_str}" == "${job2_in_str}" ]; then
-    echo "Test modified the string value of the object and it shouldn't." > >(tee -a "${error_log}")
-    exit 1
-  fi
+  fi 
 
   echo "All task executed as expected and with the expected values." 
 
@@ -211,4 +191,3 @@
   #----------------------------------------------------------------------------------
   # Return execution status
   exit ${exit_value}
-

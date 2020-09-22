@@ -13,9 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  jar_name="agent_compss_nested_count.jar"
-  app_name="4_1_agent_nested"
-
+  
   # Traps and Handlers
   function kill_agents() {
     for pid in ${AGENT_PIDS}; do
@@ -67,7 +65,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo ""
-  echo "*** RUNNING AGENTS TEST: nested compss 1 agent"
+  echo "*** RUNNING AGENTS TEST: nested pycompss with 1 agent"
   log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
   mkdir -p "${log_dir}"
   output_log="${log_dir}test.outputlog"

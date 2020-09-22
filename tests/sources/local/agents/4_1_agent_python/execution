@@ -67,7 +67,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo ""
-  echo "*** RUNNING AGENTS TEST: nested compss 1 agent"
+  echo "*** RUNNING AGENTS TEST: nested pycompss with 1 agent"
   log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
   mkdir -p "${log_dir}"
   output_log="${log_dir}test.outputlog"

@@ -13,9 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  jar_name="agent_compss_nested_count.jar"
-  app_name="4_1_agent_nested"
-
+  
   # Traps and Handlers
   function kill_agents() {
     for pid in ${AGENT_PIDS}; do

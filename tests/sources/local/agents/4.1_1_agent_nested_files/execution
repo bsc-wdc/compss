@@ -13,8 +13,8 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  jar_name="agent_compss_nested_count.jar"
-  app_name="4_1_agent_nested"
+  jar_name="4.1_1_agent_nested_files.jar"
+  app_name="4.1_1_agent_nested_files"
 
   # Traps and Handlers
   function kill_agents() {
@@ -67,7 +67,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo ""
-  echo "*** RUNNING AGENTS TEST: nested compss 1 agent"
+  echo "*** RUNNING AGENTS TEST: file management for nested compss on different agents"
   log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
   mkdir -p "${log_dir}"
   output_log="${log_dir}test.outputlog"
@@ -76,71 +76,56 @@
   touch "${error_log}"
 
   # Starting agent
-  agent1_log_dir="${log_dir}/agent1/"
-  mkdir -p "${agent1_log_dir}" 
-  agent1_output_log="${log_dir}agent1.outputlog"
-  agent1_error_log="${log_dir}agent1.errorlog"
+  agent_log_dir="${log_dir}/agent1/"
+  mkdir -p "${agent_log_dir}" 
+  agent_output_log="${log_dir}agent1.outputlog"
+  agent_error_log="${log_dir}agent1.errorlog"
+
+  eval "agent1_log_dir=${agent_log_dir}"
+  eval "agent1_output_log=${agent_output_log}"
+  eval "agent1_errput_log=${agent_error_log}"
+
   compss_agent_start \
-   "--hostname=COMPSsWorker01" \
-   "--classpath=${base_app_dir}/${jar_name}" \
-   "--log_dir=${agent1_log_dir}" \
-   "--rest_port=46101" \
-   "--comm_port=46102" \
-   "-d" \
-   "--project=${base_app_dir}/project.xml" \
-   "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+    "--hostname=COMPSsWorker01" \
+    "--classpath=${base_app_dir}/${jar_name}" \
+    "--log_dir=${agent_log_dir}" \
+    "--rest_port=46101" \
+    "--comm_port=46102" \
+    "-d" \
+    "--project=${base_app_dir}/project.xml" \
+    "--resources=${base_app_dir}/resources.xml" 1>"${agent_output_log}" 2>"${agent_error_log}" &
 
   agent_pid="$!"
   AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
 
+  agent_port=46101
+  out_log_name=agent1_output_log
+  eval agent_output_log=${!out_log_name}
+
   retries="3"
-  curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+  curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
   ev=$?
   while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
     sleep 2s
     retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+    curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
     ev=$?
   done
 
-  RESULT=$(grep "test invoked" "${agent1_output_log}")
+  RESULT=$(grep "test invoked" "${agent_output_log}")
   if [ -z "${RESULT}" ]; then  
-     echo "Agent failed to start" > >(tee -a "${error_log}")
-     exit 1
+    echo "Agent failed to start" > >(tee -a "${error_log}")
+    exit 1
   fi
   echo "Agent started" > >(tee -a "${output_log}")
   sleep 2s
- 
-  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
-  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
-  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
-  if [ ! "${num_RESOURCES}" == "1" ]; then
-    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
-  if [ -z "${RESOURCE}" ]; then
-    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
-  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
-  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
-    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
-  if [ ! "${CPU_COUNT}" == "4" ]; then
-    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 4 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
 
   # Invoking DemoFunction method
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
    --master_node="127.0.0.1" \
    --master_port="46101" \
-   --cei="recursive.CountItf" \
-   "recursive.Count" 3 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+    --cei=files.MainItf \
+    files.Main  > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
    ev=$?
 
    sleep 5s
@@ -168,48 +153,13 @@
   fi
   echo  "recursive.Count's main method properly started" > >(tee -a "${output_log}")
 
-  sleep 1s
+  sleep 10s
 
   created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
-  if [ ! "${created_jobs}" == "4" ]; then
-    echo "COMPSs has generated ${created_jobs} tasks and only 4 expected." > >(tee -a "${error_log}")
+  if [ ! "${created_jobs}" == "123" ]; then
+    echo "Agent1 has executed ${created_jobs} tasks and 123 expected." > >(tee -a "${error_log}")
     exit 1
   fi 
-
-  job2_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
-  job2_method="${job2_method::-1}"
-  job3_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
-  job3_method="${job3_method::-1}"
-  job4_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
-  job4_method="${job4_method::-1}"
-
-  job2_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job2_NEW.out" | tail -n 1)
-  job3_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job3_NEW.out" | tail -n 1)
-  job4_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job4_NEW.out" | tail -n 1)
-  if [ ! "${job2_method}" == "count" ]; then
-    echo "Unexpected method (${job2_method}) for job 2." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  if [ ! "${job2_value}" == "3" ]; then
-    echo "Unexpected value (${job2_value}) for job 2." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  if [ ! "${job3_method}" == "count" ]; then
-    echo "Unexpected method (${job3_method}) for job 3." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  if [ ! "${job3_value}" == "2" ]; then
-    echo "Unexpected value (${job3_value}) for job 3." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  if [ ! "${job4_method}" == "count" ]; then
-    echo "Unexpected method (${job34_method}) for job 4." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  if [ ! "${job4_value}" == "1" ]; then
-    echo "Unexpected value (${job4_value}) for job 4." > >(tee -a "${error_log}")
-    exit 1
-  fi
   echo "All task executed as expected and with the expected values." 
 
   # Copy LOG files

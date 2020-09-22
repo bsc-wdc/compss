@@ -5,7 +5,7 @@
   target_base_dir=$2
   
   # Copy files
-  app_name="5_3_agent_nested_files"
+  app_name="5.1_3_agents_nested_files"
 
   cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
 

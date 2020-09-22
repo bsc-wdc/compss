@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>5_3_agent_nested_files</artifactId>
+	<artifactId>4.1_1_agent_nested_files</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>

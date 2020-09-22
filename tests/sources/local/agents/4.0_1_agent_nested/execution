@@ -13,8 +13,8 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  jar_name="5_4_agent_nested.jar"
-  app_name="5_4_agent_nested"
+  jar_name="4.0_1_agent_nested.jar"
+  app_name="4.0_1_agent_nested"
 
   # Traps and Handlers
   function kill_agents() {
@@ -67,7 +67,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo ""
-  echo "*** RUNNING AGENTS TEST: nested compss with multiple agents"
+  echo "*** RUNNING AGENTS TEST: nested compss 1 agent"
   log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
   mkdir -p "${log_dir}"
   output_log="${log_dir}test.outputlog"
@@ -76,60 +76,64 @@
   touch "${error_log}"
 
   # Starting agent
-  for agent_id in $(seq 1 4); do
-    agent_log_dir="${log_dir}/agent${agent_id}/"
-    mkdir -p "${agent_log_dir}" 
-    agent_output_log="${log_dir}agent${agent_id}.outputlog"
-    agent_error_log="${log_dir}agent${agent_id}.errorlog"
+  agent1_log_dir="${log_dir}/agent1/"
+  mkdir -p "${agent1_log_dir}" 
+  agent1_output_log="${log_dir}agent1.outputlog"
+  agent1_error_log="${log_dir}agent1.errorlog"
+  compss_agent_start \
+   "--hostname=COMPSsWorker01" \
+   "--classpath=${base_app_dir}/${jar_name}" \
+   "--log_dir=${agent1_log_dir}" \
+   "--rest_port=46101" \
+   "--comm_port=46102" \
+   "-d" \
+   "--project=${base_app_dir}/project.xml" \
+   "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
-    eval "agent${agent_id}_log_dir=${agent_log_dir}"
-    eval "agent${agent_id}_output_log=${agent_output_log}"
-    eval "agent${agent_id}_errput_log=${agent_error_log}"
+  agent_pid="$!"
+  AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
 
-    compss_agent_start \
-      "--hostname=COMPSsWorker0${agent_id}" \
-      "--classpath=${base_app_dir}/${jar_name}" \
-      "--log_dir=${agent_log_dir}" \
-      "--rest_port=46${agent_id}01" \
-      "--comm_port=46${agent_id}02" \
-      "-d" \
-      "--project=${base_app_dir}/project.xml" \
-      "--resources=${base_app_dir}/resources.xml" 1>"${agent_output_log}" 2>"${agent_error_log}" &
-
-      agent_pid="$!"
-      AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
-  done
-
-  for agent_id in $(seq 1 4); do
-    agent_port=46${agent_id}01
-    out_log_name=agent${agent_id}_output_log
-    eval agent_output_log=${!out_log_name}
-
-    retries="3"
-    curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
-    ev=$?
-    while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
-      sleep 2s
-      retries=$((retries - 1 ))
-      curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
-      ev=$?
-    done
-
-
-    RESULT=$(grep "test invoked" "${agent_output_log}")
-    if [ -z "${RESULT}" ]; then  
-      echo "Agent failed to start" > >(tee -a "${error_log}")
-      exit 1
-    fi
-    echo "Agent started" > >(tee -a "${output_log}")
+  retries="3"
+  curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+  ev=$?
+  while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
     sleep 2s
-
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+    ev=$?
   done
 
-  for agent_id in $(seq 1 3); do
-    agent_port=46${agent_id}01
-    compss_agent_add_resources "--agent_node=127.0.0.${agent_id}" "--agent_port=${agent_port}" "127.0.0.$(( agent_id + 1))" "Port=$((agent_port + 101 ))" > /dev/null 2>/dev/null
-  done
+  RESULT=$(grep "test invoked" "${agent1_output_log}")
+  if [ -z "${RESULT}" ]; then  
+     echo "Agent failed to start" > >(tee -a "${error_log}")
+     exit 1
+  fi
+  echo "Agent started" > >(tee -a "${output_log}")
+  sleep 2s
+ 
+  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "4" ]; then
+    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 4 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
 
   # Invoking DemoFunction method
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
@@ -167,37 +171,21 @@
   sleep 1s
 
   created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
-  if [ ! "${created_jobs}" == "1" ]; then
-    echo "Agent1 has executed ${created_jobs} tasks and only 1 expected." > >(tee -a "${error_log}")
+  if [ ! "${created_jobs}" == "4" ]; then
+    echo "COMPSs has generated ${created_jobs} tasks and only 4 expected." > >(tee -a "${error_log}")
     exit 1
   fi 
-  created_jobs=$(ls "${agent2_log_dir}jobs" | grep -c NEW.out)
-  if [ ! "${created_jobs}" == "1" ]; then
-    echo "Agent2 has executed ${created_jobs} tasks and only 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi 
-  created_jobs=$(ls "${agent3_log_dir}jobs" | grep -c NEW.out)
-  if [ ! "${created_jobs}" == "1" ]; then
-    echo "Agent3 has executed ${created_jobs} tasks and only 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi 
-  created_jobs=$(ls "${agent4_log_dir}jobs" | grep -c NEW.out)
-  if [ ! "${created_jobs}" == "1" ]; then
-    echo "Agent4 has executed ${created_jobs} tasks and only 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi 
-    
 
-  job2_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
+  job2_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
   job2_method="${job2_method::-1}"
-  job3_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
+  job3_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
   job3_method="${job3_method::-1}"
-  job4_method=$( grep "METHOD NAME" "${agent4_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
+  job4_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
   job4_method="${job4_method::-1}"
 
-  job2_value=$( grep -v "\[" "${agent2_log_dir}/jobs/job1_NEW.out" | tail -n 1)
-  job3_value=$( grep -v "\[" "${agent3_log_dir}/jobs/job1_NEW.out" | tail -n 1)
-  job4_value=$( grep -v "\[" "${agent4_log_dir}/jobs/job1_NEW.out" | tail -n 1)
+  job2_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job2_NEW.out" | tail -n 1)
+  job3_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job3_NEW.out" | tail -n 1)
+  job4_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job4_NEW.out" | tail -n 1)
   if [ ! "${job2_method}" == "count" ]; then
     echo "Unexpected method (${job2_method}) for job 2." > >(tee -a "${error_log}")
     exit 1
@@ -215,7 +203,7 @@
     exit 1
   fi
   if [ ! "${job4_method}" == "count" ]; then
-    echo "Unexpected method (${job4_method}) for job 4." > >(tee -a "${error_log}")
+    echo "Unexpected method (${job34_method}) for job 4." > >(tee -a "${error_log}")
     exit 1
   fi
   if [ ! "${job4_value}" == "1" ]; then

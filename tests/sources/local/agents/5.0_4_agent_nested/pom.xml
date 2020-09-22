@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>5_4_agent_nested_inout_object</artifactId>
+	<artifactId>5.0_4_agent_nested</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
@@ -14,8 +14,8 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>Test - Agents - Nested COMPSs Count and Append</name>
-	<description>Application counting recursively with inout objects</description>
+	<name>Test - Agents - Nested COMPSs Count</name>
+	<description>Application counting recursively </description>
 	<url>http://compss.bsc.es/projects/bar/wiki/java_api_calls</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
@@ -32,13 +32,13 @@
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-api</artifactId>
-        </dependency>    
-    </dependencies>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-api</artifactId>
+		</dependency>
+	</dependencies>
 
-    <!-- BUILD SETTINGS -->
-    <build>
+	<!-- BUILD SETTINGS -->
+	<build>
 		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>

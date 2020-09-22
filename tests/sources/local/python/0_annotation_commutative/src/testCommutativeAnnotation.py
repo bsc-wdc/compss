@@ -69,10 +69,6 @@ def check_results(file_path):
         fos.write(str(contents1 + contents2))
         print("Writen value is " + str(contents1 + contents2) )
     time.sleep(OTHER_TASK_SLEEP_TIME)
-<<<<<<< HEAD:tests/sources/local/python/0_annotation_commutative/src/testCommutativeAnnotation.py
-=======
-
->>>>>>>  reviewed commutative and schedulers tests:tests/sources/python/0_annotation_commutative/src/testCommutativeAnnotation.py
 
 @task(file_path=FILE_IN)
 def check_results2(file_path):

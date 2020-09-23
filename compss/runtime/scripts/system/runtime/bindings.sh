@@ -46,7 +46,7 @@ JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your 
 # CHECK BINDING-RELATED ENV VARIABLES
 #----------------------------------------------
 check_bindings_env() {
-  : 
+  :
 }
 
 
@@ -101,16 +101,16 @@ check_bindings_setup () {
   # Add application folder to PYTHONPATH
   module_name=$(basename "${fullAppPath}")
   if [ -e "${DEFAULT_APPDIR}/${module_name}" ]; then
-    pythonpath=${DEFAULT_APPDIR}:${pythonpath}
+    export PYTHONPATH=${DEFAULT_APPDIR}:${pythonpath}:${PYTHONPATH}
   else
     module_folder=$(readlink -f "${fullAppPath}" | xargs dirname)
-    pythonpath=${module_folder}:${pythonpath}
+    export PYTHONPATH=${module_folder}:${pythonpath}:${PYTHONPATH}
   fi
 
   if [ -z "$PyObject_serialize" ]; then
     PyObject_serialize="${DEFAULT_PyOBJECT_SERIALIZE}"
   fi
-  
+
   if [ -z "$python_interpreter" ]; then
     python_interpreter=$DEFAULT_PYTHON_INTERPRETER
     python_version=$DEFAULT_PYTHON_VERSION
@@ -152,7 +152,7 @@ check_bindings_setup () {
       export COMPSS_PERSISTENT_BINDING=0
     else
       display_warning "${WARN_INCOMPATIBLE_ADAPTOR_AND_PERSITENT_C}"
-      persistent_worker_c="false" 
+      persistent_worker_c="false"
     fi
   fi
 }

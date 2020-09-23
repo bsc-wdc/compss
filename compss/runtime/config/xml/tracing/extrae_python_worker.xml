@@ -21,7 +21,7 @@
     </cpu>
   </counters>
 
-  <cpu-events enabled="yes" frequency="100u" emit-always="no"/>
+  <cpu-events enabled="yes" frequency="10u" emit-always="no"/>
 
   <storage enabled="no"/>
 

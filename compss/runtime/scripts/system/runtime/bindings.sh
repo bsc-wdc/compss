@@ -105,39 +105,37 @@ check_bindings_setup () {
   if [ "${enable_python}" = "true" ]; then
     module_name=$(basename "${fullAppPath}")
     if [ -e "${DEFAULT_APPDIR}/${module_name}" ]; then
-            pythonpath=${DEFAULT_APPDIR}:${pythonpath}
+      export PYTHONPATH=${DEFAULT_APPDIR}:${pythonpath}:${PYTHONPATH}
     else
-            module_folder=$(readlink -f "${fullAppPath}" | xargs dirname)
-            pythonpath=${module_folder}:${pythonpath}
+      module_folder=$(readlink -f "${fullAppPath}" | xargs dirname)
+      export PYTHONPATH=${module_folder}:${pythonpath}:${PYTHONPATH}
     fi
 
-
     if [ -z "$PyObject_serialize" ]; then
-             PyObject_serialize="${DEFAULT_PyOBJECT_SERIALIZE}"
+       PyObject_serialize="${DEFAULT_PyOBJECT_SERIALIZE}"
     fi
 
     if [ -z "$python_interpreter" ]; then
-        python_interpreter=$DEFAULT_PYTHON_INTERPRETER
-        python_version=$DEFAULT_PYTHON_VERSION
-        if ! command_exists "${python_interpreter}" ; then
-           fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
-        fi
+      python_interpreter=$DEFAULT_PYTHON_INTERPRETER
+      python_version=$DEFAULT_PYTHON_VERSION
+      if ! command_exists "${python_interpreter}" ; then
+        fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
+      fi
     else
-        if [ "${coverage}" = "true" ]; then
-           echo "import sys; print(sys.version_info[:][0])" > .tmp.py
-           py_aux=$(echo ${python_interpreter} | tr "#" " ")
-           python_version=$(${py_aux} .tmp.py)
-           rm .tmp.py
-           if ! command_exists ${py_aux} ; then
-              fatal_error "ERROR: Python interpreter $py_aux does not exist." 1
-           fi
-
-        else
-	   python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
-           if ! command_exists "${python_interpreter}" ; then
-              fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
-           fi
-	fi
+      if [ "${coverage}" = "true" ]; then
+        echo "import sys; print(sys.version_info[:][0])" > .tmp.py
+        py_aux=$(echo ${python_interpreter} | tr "#" " ")
+        python_version=$(${py_aux} .tmp.py)
+        rm .tmp.py
+        if ! command_exists ${py_aux} ; then
+          fatal_error "ERROR: Python interpreter $py_aux does not exist." 1
+        fi
+      else
+  	    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
+        if ! command_exists "${python_interpreter}" ; then
+          fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
+        fi
+	    fi
     fi
 
     if [ -z "$python_propagate_virtual_environment" ]; then

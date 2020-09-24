@@ -63,6 +63,7 @@ import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.TimeOutTask;
+import es.bsc.wdc.affinity.ThreadAffinity;
 
 import java.io.File;
 import java.io.IOException;
@@ -119,6 +120,7 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
     private Timer timer;
+    protected InvocationResources previousAllocation;
 
 
     /**
@@ -265,6 +267,31 @@ public class Executor implements Runnable {
         boolean areResourcesAcquired = false;
         long timeUnbindOriginalFilesStart = 0L;
         try {
+            // Bind computing units
+            LOGGER.debug("Asssigning resources for Job " + jobId);
+            long timeAssignResourcesStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeAssignResourcesStart = System.nanoTime();
+            }
+            final InvocationResources assignedResources =
+                this.platform.acquireResources(jobId, invocation.getRequirements(), previousAllocation);
+            previousAllocation = assignedResources;
+            if (assignedResources.getAssignedCPUs() != null && assignedResources.getAssignedCPUs().length > 0) {
+                try {
+                    ThreadAffinity.setCurrentThreadAffinity(assignedResources.getAssignedCPUs());
+                } catch (Exception e) {
+                    LOGGER.warn("Error setting affinity for Job " + jobId, e);
+                }
+            }
+            areResourcesAcquired = true;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeAssignResourcesEnd = System.nanoTime();
+                final float timeAssignResourcesElapsed =
+                    (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER
+                    .debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+            }
+
             // Set the Task working directory
             LOGGER.debug("Creating task sandbox for Job " + jobId);
             long timeSandboxStart = 0L;
@@ -292,23 +319,6 @@ public class Executor implements Runnable {
                     (timeBindOriginalFilesEnd - timeBindOriginalFilesStart) / (float) NANO_TO_MS;
                 TIMER_LOGGER.debug(
                     "[TIMER] Bind original files for job " + jobId + ": " + timeBindOriginalFilesElapsed + " ms");
-            }
-
-            // Bind computing units
-            LOGGER.debug("Asssigning resources for Job " + jobId);
-            long timeAssignResourcesStart = 0L;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                timeAssignResourcesStart = System.nanoTime();
-            }
-            final InvocationResources assignedResources =
-                this.platform.acquireResources(jobId, invocation.getRequirements());
-            areResourcesAcquired = true;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeAssignResourcesEnd = System.nanoTime();
-                final float timeAssignResourcesElapsed =
-                    (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
-                TIMER_LOGGER
-                    .debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
             }
 
             // Execute task

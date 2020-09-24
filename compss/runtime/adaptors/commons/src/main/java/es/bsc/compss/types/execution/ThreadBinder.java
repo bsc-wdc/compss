@@ -26,14 +26,16 @@ public interface ThreadBinder {
 
 
     /**
-     * Binds @numCUs computing units of a @jobId.
+     * Binds @numCUs computing units of a @jobId. Tries to assign in the previous allocation.
      *
      * @param jobId job identifier requesting the assignment
      * @param numCUs number of computing units requested to be bound.
+     * @param previousAllocation Previous assignment of computing units
      * @return Assignment of computing cores to the job
      * @throws UnsufficientAvailableComputingUnitsException Error no enough computing available for the request
      */
-    public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException;
+    public int[] bindComputingUnits(int jobId, int numCUs, int[] previousAllocation)
+        throws UnsufficientAvailableComputingUnitsException;
 
     /**
      * Releases the computing units previously requested by the job @jobId.

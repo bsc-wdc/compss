@@ -45,10 +45,18 @@ public class BindToResource implements ThreadBinder {
     }
 
     @Override
-    public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
+    public int[] bindComputingUnits(int jobId, int numCUs, int[] previousAllocation)
+        throws UnsufficientAvailableComputingUnitsException {
+        if (previousAllocation != null && previousAllocation.length == numCUs) {
+            synchronized (this.bindedComputingUnits) {
+                if (isAllocationAvailable(previousAllocation)) {
+                    assignAllocation(previousAllocation, jobId);
+                    return previousAllocation;
+                }
+            }
+        }
         int[] assignedCoreUnits = new int[numCUs];
         int numAssignedCores = 0;
-
         // Assign free CUs to the job
         if (numCUs > 0) {
             synchronized (this.bindedComputingUnits) {
@@ -62,16 +70,30 @@ public class BindToResource implements ThreadBinder {
                         break;
                     }
                 }
-
-                // If the job doesn't have all the CUs it needs, it cannot run on occupied ones
-                // Raise exception
-                if (numAssignedCores != numCUs) {
-                    releaseComputingUnits(jobId);
-                    throw new UnsufficientAvailableComputingUnitsException(UNSUFFICIENT_CUS);
-                }
+            }
+            // If the job doesn't have all the CUs it needs, it cannot run on occupied ones
+            // Raise exception
+            if (numAssignedCores != numCUs) {
+                releaseComputingUnits(jobId);
+                throw new UnsufficientAvailableComputingUnitsException(UNSUFFICIENT_CUS);
             }
         }
         return assignedCoreUnits;
+    }
+
+    private void assignAllocation(int[] previousAllocation, int jobId) {
+        for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+            this.bindedComputingUnits[coreId] = jobId;
+        }
+    }
+
+    private boolean isAllocationAvailable(int[] previousAllocation) {
+        for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+            if (this.bindedComputingUnits[coreId] != -1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

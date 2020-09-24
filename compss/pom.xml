@@ -36,7 +36,7 @@
         <cepbatools-extrae.version>1.4</cepbatools-extrae.version>
         <comm.version>1.7-23</comm.version>
         <conn.version>1.6-47</conn.version>
-
+        <java-affinity.version>0.0.1-4</java-affinity.version>
         <!-- ZK version -->
         <zk.version>8.5.0</zk.version>
 

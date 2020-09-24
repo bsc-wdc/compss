@@ -42,7 +42,7 @@ public class BindToMap implements ThreadBinder {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private ArrayList<ArrayList<Integer>> idList = new ArrayList<>();
-    private ArrayList<ArrayList<Integer>> bindedCpus = new ArrayList<>();
+    private int[] bindedComputingUnits;
 
 
     /**
@@ -56,7 +56,7 @@ public class BindToMap implements ThreadBinder {
     public BindToMap(int numThreads, String socketString) {
         ArrayList<ArrayList<Integer>> computingUnitsIds = new ArrayList<>();
         int realAmountThreads = 0;
-
+        int maxThreadNum = 0;
         String[] slots = socketString.split("/");
         for (String availableCpus : slots) {
             String[] intervals = availableCpus.split(",");
@@ -70,6 +70,9 @@ public class BindToMap implements ThreadBinder {
                 } else {
                     upperBound = lowerBound;
                 }
+                if (upperBound > maxThreadNum) {
+                    maxThreadNum = upperBound;
+                }
                 realAmountThreads += (upperBound - lowerBound + 1);
                 for (int i = 0; i < (upperBound - lowerBound + 1); i++) {
                     currentIds.add(lowerBound + i);
@@ -77,7 +80,7 @@ public class BindToMap implements ThreadBinder {
             }
             computingUnitsIds.add(currentIds);
         }
-        auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads);
+        auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads, maxThreadNum);
     }
 
     /**
@@ -237,13 +240,20 @@ public class BindToMap implements ThreadBinder {
     }
 
     @Override
-    public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
+    public int[] bindComputingUnits(int jobId, int numCUs, int[] previousAllocation)
+        throws UnsufficientAvailableComputingUnitsException {
         int[] assignedCoreUnits = new int[numCUs];
         ArrayList<Integer> usedSockets;
 
         // Assign free CUs to the job
-        synchronized (this) {
 
+        synchronized (this) {
+            if (previousAllocation != null && previousAllocation.length == numCUs) {
+                if (isAllocationAvailable(previousAllocation)) {
+                    assignAllocation(previousAllocation, jobId);
+                    return previousAllocation;
+                }
+            }
             usedSockets = recursiveBindingComputingUnits(jobId, numCUs, 0);
 
             // If the job doesn't have all the CUs it needs, it cannot run on occupied ones
@@ -256,11 +266,12 @@ public class BindToMap implements ThreadBinder {
             // Handle assignedCoreUnits
             int numAssignedCores = 0;
             for (int socket : usedSockets) {
-                ArrayList<Integer> currentSocketThreads = this.bindedCpus.get(socket);
+                ArrayList<Integer> currentSocketThreads = this.idList.get(socket);
                 for (int i = 0; i < currentSocketThreads.size() && (numAssignedCores < numCUs); ++i) {
-                    if (currentSocketThreads.get(i) == -1) {
-                        currentSocketThreads.set(i, jobId);
-                        assignedCoreUnits[numAssignedCores] = this.idList.get(socket).get(i);
+                    int coreNum = currentSocketThreads.get(i);
+                    if (bindedComputingUnits[coreNum] == -1) {
+                        bindedComputingUnits[coreNum] = jobId;
+                        assignedCoreUnits[numAssignedCores] = coreNum;
                         ++numAssignedCores;
                         // this.availableSlots.set(socket, this.availableSlots.get(socket) - 1);
                     }
@@ -269,7 +280,7 @@ public class BindToMap implements ThreadBinder {
                     break;
                 }
             }
-            handleSlotsAdded();
+            updateSocketPriority();
         }
 
         if (DEBUG) {
@@ -288,40 +299,47 @@ public class BindToMap implements ThreadBinder {
     @Override
     public void releaseComputingUnits(int jobId) {
         synchronized (this) {
-            for (int i = 0; i < this.bindedCpus.size(); ++i) {
-                ArrayList<Integer> vector = this.bindedCpus.get(i);
-                for (int j = 0; j < vector.size(); ++j) {
-                    if (vector.get(j) == jobId) {
-                        vector.set(j, -1);
-                    }
+            for (int i = 0; i < this.bindedComputingUnits.length; ++i) {
+                if (bindedComputingUnits[i] == jobId) {
+                    bindedComputingUnits[i] = -1;
                 }
             }
-            handleSlotsFreeded();
+            updateSocketPriority();
         }
     }
 
+    private void assignAllocation(int[] previousAllocation, int jobId) {
+        for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+            this.bindedComputingUnits[coreId] = jobId;
+        }
+    }
+
+    private boolean isAllocationAvailable(int[] previousAllocation) {
+        for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+            if (this.bindedComputingUnits[coreId] != -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void auxiliarConstructor(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds,
-        int totalAmountThreads) {
+        int totalAmountThreads, int maxThreadNum) {
+
+        // Initialize binds ArrayList
+        this.bindedComputingUnits = new int[maxThreadNum + 1];
+        for (int i = 0; i <= maxThreadNum; i++) {
+            this.bindedComputingUnits[i] = -1;
+        }
 
         this.idList = computingUnitsIds;
-        // Initialize de binds ArrayList
-        for (ArrayList<Integer> currentSocket : this.idList) {
-            ArrayList<Integer> currentBounds = new ArrayList<>();
-            for (int i = 0; i < currentSocket.size(); ++i) {
-                currentBounds.add(-1);
-            }
-            this.bindedCpus.add(currentBounds);
-        }
+
         // Replicate socket structure
         for (int i = 0; i < this.idList.get(0).size() && (totalAmountThreads < numThreads); ++i) {
             for (int j = 0; j < this.idList.size() && (totalAmountThreads < numThreads); ++j) {
                 ArrayList<Integer> currentSocketIds = this.idList.get(j);
                 currentSocketIds.add(this.idList.get(j).get(i));
                 this.idList.set(j, currentSocketIds);
-                ArrayList<Integer> currentBinds = this.bindedCpus.get(j);
-                currentBinds.add(-1);
-                this.bindedCpus.set(j, currentBinds);
-                ++totalAmountThreads;
             }
         }
         if (DEBUG) {
@@ -330,8 +348,9 @@ public class BindToMap implements ThreadBinder {
                 StringBuilder sb = new StringBuilder("[ThreadBinderCPUs] Registered slots: ");
                 StringBuilder sb2 = new StringBuilder("[ThreadBinderCPUs] Registered ids: ");
                 for (int j = 0; j < this.idList.get(i).size(); ++j) {
-                    sb.append(this.bindedCpus.get(i).get(j)).append(" ");
-                    sb2.append(this.idList.get(i).get(j)).append(" ");
+                    int coreNum = this.idList.get(i).get(j);
+                    sb.append(this.bindedComputingUnits[coreNum]).append(" ");
+                    sb2.append(coreNum).append(" ");
                 }
                 LOGGER.debug(sb.toString());
                 LOGGER.debug(sb2.toString());
@@ -342,7 +361,7 @@ public class BindToMap implements ThreadBinder {
     private int getAvailableSlots(ArrayList<Integer> socket) {
         int counter = 0;
         for (int i : socket) {
-            if (i == -1) {
+            if (bindedComputingUnits[i] == -1) {
                 ++counter;
             }
         }
@@ -359,7 +378,7 @@ public class BindToMap implements ThreadBinder {
      */
     private ArrayList<Integer> recursiveBindingComputingUnits(int jobId, int amount, int index) {
         // With the current index, we can fulfill the thread requirements
-        int availableSlots = getAvailableSlots(this.bindedCpus.get(index));
+        int availableSlots = getAvailableSlots(this.idList.get(index));
         if (availableSlots >= amount) {
             ArrayList<Integer> socketUsed = new ArrayList<>();
             socketUsed.add(index);
@@ -382,9 +401,9 @@ public class BindToMap implements ThreadBinder {
         ArrayList<Integer> sockets = new ArrayList<>();
         ArrayList<Integer> availableSlots = new ArrayList<>();
 
-        for (int i = 0; i < this.bindedCpus.size(); ++i) {
+        for (int i = 0; i < this.idList.size(); ++i) {
             sockets.add(i);
-            availableSlots.add(getAvailableSlots(this.bindedCpus.get(i)));
+            availableSlots.add(getAvailableSlots(this.idList.get(i)));
         }
 
         Comparator<Integer> customComparator = new Comparator<Integer>() {
@@ -396,25 +415,12 @@ public class BindToMap implements ThreadBinder {
         };
         Collections.sort(sockets, customComparator);
         ArrayList<ArrayList<Integer>> newComputingUnitsIds = new ArrayList<>();
-        ArrayList<ArrayList<Integer>> newBindedComputingUnits = new ArrayList<>();
-        for (int i = 0; i < this.bindedCpus.size(); ++i) {
+        for (int i = 0; i < this.idList.size(); ++i) {
             int currentSocketIndex = sockets.get(i);
             newComputingUnitsIds.add(this.idList.get(currentSocketIndex));
-            newBindedComputingUnits.add(this.bindedCpus.get(currentSocketIndex));
+
         }
         this.idList = newComputingUnitsIds;
-        this.bindedCpus = newBindedComputingUnits;
-    }
-
-    private void handleSlotsAdded() {
-        // Update data structures in order to tune the behaviour of the binder
-        updateSocketPriority();
-    }
-
-    private void handleSlotsFreeded() {
-        // Rearrange the thread affinity to avoid the apparition of 'holes'
-        // Look up for a mechanism to obtain the PID of processes
-        updateSocketPriority();
     }
 
 }

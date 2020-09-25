@@ -309,13 +309,13 @@ public class BindToMap implements ThreadBinder {
     }
 
     private void assignAllocation(int[] previousAllocation, int jobId) {
-        for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+        for (int coreId : previousAllocation) {
             this.bindedComputingUnits[coreId] = jobId;
         }
     }
 
     private boolean isAllocationAvailable(int[] previousAllocation) {
-        for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+        for (int coreId : previousAllocation) {
             if (this.bindedComputingUnits[coreId] != -1) {
                 return false;
             }

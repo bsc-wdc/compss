@@ -114,7 +114,8 @@ public class ExecutorTest {
         }
 
         @Override
-        public InvocationResources acquireResources(int jobId, ResourceDescription requirements) {
+        public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
+            InvocationResources previousAllocation) {
             // No need to do anything
             return null;
         }

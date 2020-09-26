@@ -42,12 +42,12 @@
 
   #----------------------------------------------------------------------------------
   # Grep for unit test errors (ERROR or FAIL)
-  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
-  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
-  if [ "${errors}" == "" ] && [ "${fails}" == "" ]; then
-      echo "ERROR: UNIT TEST DID NOT RAISE AN ERROR." | tee -a "${output_file}"
-      exit 1
-  fi
+  #errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  #fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  #if [ "${errors}" == "" ] && [ "${fails}" == "" ]; then
+  #    echo "ERROR: UNIT TEST DID NOT RAISE AN ERROR." | tee -a "${output_file}"
+  #    exit 1
+  #fi
   #----------------------------------------------------------------------------------
 
   # Compute result status

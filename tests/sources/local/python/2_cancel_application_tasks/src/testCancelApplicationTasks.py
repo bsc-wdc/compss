@@ -44,7 +44,7 @@ def test_cancellation(file_name):
     time.sleep(30)
 
     compss_stop(1)
-    exit(1)
+    #exit(1)
 
 
 def main():

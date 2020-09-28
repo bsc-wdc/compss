@@ -384,8 +384,8 @@ get_args() {
           ;;
         lang=*)
           lang=${OPTARG//lang=/}
-          # Keep it for runcompss (to add them to master)
-          args_pass="$args_pass --$OPTARG"
+          # Keep it for Call  (to add them to master)
+          call_options="$call_options --$OPTARG"
           ;;
         streaming=*)
           streaming=${OPTARG//streaming=/}
@@ -914,7 +914,7 @@ set_variables() {
   if [ "${worker_working_dir}" == "${SHARED_DISK_NAME}" ]; then
     worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
-    worker_working_dir=${LOCAL_DISK_PREFIX/${!ENV_VAR_JOB_ID}
+    worker_working_dir=${LOCAL_DISK_PREFIX}/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"
   else
     # The working dir is a custom absolute path, create tmp
@@ -929,6 +929,7 @@ set_variables() {
   elif [ "${network}" == "data" ]; then
     network=${NETWORK_DATA_SUFFIX}
   fi
+
 
   # Memory variables
   if [ "${node_memory}" == "${DEFAULT_NODE_MEMORY}" ]; then
@@ -1070,7 +1071,7 @@ launch_agent () {
   "${master_node}" \
   "${workers_size}" \
   "${worker_nodes}" \
-  "${network}" \
+  "--network=${network}" \
   "${agents_hierarchy}" \
   "${specific_log_dir}${node_name}"\
   "${worker_in_master_cpus}" \
@@ -1162,10 +1163,14 @@ launch() {
     curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
   done
 
+  if [ "${lang}" == "java" || "${lang}" == "JAVA" ]; then 
+    cei="--cei=${fullAppPath}Itf"
+  fi
+
   echo "------ Launching Execution ------"
   # Calling main method of the application passing in a single parameter containing an array with the method arguments
-  echo ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${call_options} ${app_args}
-  ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${call_options} ${app_args}
+  echo ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 ${cei} ${call_options} ${app_args}
+  ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 ${cei} ${call_options} ${app_args}
 }
 
 ###############################################

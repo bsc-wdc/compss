@@ -25,9 +25,11 @@ PyCOMPSs API - MPI
     definition through the decorator.
 """
 
+import os
+import sys
+import subprocess
 from functools import wraps
 import pycompss.util.context as context
-from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -43,7 +45,6 @@ MANDATORY_ARGUMENTS = {'runner'}
 SUPPORTED_ARGUMENTS = {'binary',
                        'processes',
                        'working_dir',
-                       'binary',
                        'runner',
                        'flags',
                        'scale_by_cu',
@@ -120,7 +121,43 @@ class MPI(PyCOMPSsDecorator):
         @wraps(func)
         def mpi_f(*args, **kwargs):
             if not self.scope:
-                raise Exception(not_in_pycompss("mpi"))
+                # Execute the mpi as with PyCOMPSs so that sequential
+                # execution performs as parallel.
+                # To disable: raise Exception(not_in_pycompss("mpi"))
+                # TODO: Intercept the @task parameters to get stream redirection
+                cmd = [self.kwargs['runner']]
+                if 'processes' in self.kwargs:
+                    cmd += ['-np', self.kwargs['processes']]
+                elif 'computing_nodes' in self.kwargs:
+                    cmd += ['-np', self.kwargs['computing_nodes']]
+                elif 'computingNodes' in self.kwargs:
+                    cmd += ['-np', self.kwargs['computingNodes']]
+                else:
+                    pass
+                if 'flags' in self.kwargs:
+                    cmd += self.kwargs['flags'].split()
+                cmd += [self.kwargs['binary']]
+                if args:
+                    args = [str(a) for a in args]
+                    cmd += args
+                my_env = os.environ.copy()
+                if "working_dir" in self.kwargs:
+                    my_env["PATH"] = self.kwargs["working_dir"] + my_env["PATH"]
+                elif "workingDir" in self.kwargs:
+                    my_env["PATH"] = self.kwargs["workingDir"] + my_env["PATH"]
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env)  # noqa: E501
+                out, err = proc.communicate()
+                if sys.version_info[0] < 3:
+                    out_message = out.strip()
+                    err_message = err.strip()
+                else:
+                    out_message = out.decode().strip()
+                    err_message = err.decode().strip()
+                if out_message:
+                    print(out_message)
+                if err_message:
+                    sys.stderr.write(err_message + '\n')
+                return proc.returncode
 
             if __debug__:
                 logger.debug("Executing mpi_f wrapper.")

@@ -402,8 +402,9 @@ def process_task(current_line,             # type: list
     # CPU binding
     cpus = current_line[-3]
     if cpus != "-" and THREAD_AFFINITY:
-        emit_manual_event(0, inside=True, cpu_affinity=True)  # close previous
-        emit_manual_event(cpus, inside=True, cpu_affinity=True)
+        # This event is already emitted in Java
+        # emit_manual_event(0, inside=True, cpu_affinity=True)  # close previous
+        # emit_manual_event(cpus, inside=True, cpu_affinity=True)
         affinity_ok = bind_cpus(cpus, process_name, logger)
 
     # GPU binding
@@ -461,16 +462,18 @@ def process_task(current_line,             # type: list
         storage_logger.addHandler(err_file_handler)
 
     if __debug__:
-        logger.debug("Received task in process: %s" %
-                     str(process_name))
-        logger.debug(" - TASK CMD: %s" %
-                     str(current_line))
+        logger.debug("Received task in process: %s" % str(process_name))
+        logger.debug(" - TASK CMD: %s" % str(current_line))
 
     try:
         # Check thread affinity
-        if not affinity_ok and THREAD_AFFINITY:
-            logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
-                           thread_affinity.getaffinity())
+        if THREAD_AFFINITY:
+            cpus = str(thread_affinity.getaffinity()[0])  # get just the first id
+            emit_manual_event(0, inside=True, cpu_affinity=True)  # close previous
+            emit_manual_event(cpus, inside=True, cpu_affinity=True)
+            if not affinity_ok:
+                logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
+                               cpus)
 
         # Setup process environment
         cn = int(current_line[12])

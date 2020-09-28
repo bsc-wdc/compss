@@ -120,7 +120,7 @@ public class ContainerInvoker extends Invoker {
                 LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
                 if (lp instanceof PythonParams) {
                     PythonParams pp = (PythonParams) lp;
-                    pythonInterpreter = pp.getPythonInterpreter();
+                    pythonInterpreter = pp.checkCoverageAndGetPythonInterpreter();
                 }
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
@@ -168,7 +168,7 @@ public class ContainerInvoker extends Invoker {
         LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
         if (lp instanceof PythonParams) {
             PythonParams pp = (PythonParams) lp;
-            pythonInterpreter = pp.getPythonInterpreter();
+            pythonInterpreter = pp.checkCoverageAndGetPythonInterpreter();
             pythonVersion = pp.getPythonVersion();
             pythonPath = pp.getPythonPath();
         }

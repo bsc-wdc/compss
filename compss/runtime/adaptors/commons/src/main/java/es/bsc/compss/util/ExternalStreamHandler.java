@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.util;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.ExternalPropertyException;
 
 import java.io.BufferedReader;
@@ -38,6 +39,15 @@ public class ExternalStreamHandler {
      */
     public static String getExternalStreamProperty(String pythonInterpreter, String fileName, String property)
         throws ExternalPropertyException {
+
+        // Checking if running in coverage mode
+        if (pythonInterpreter.startsWith("coverage ") || pythonInterpreter.startsWith("coverage#")) {
+            pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+        } else if (pythonInterpreter.startsWith("coverage2")) {
+            pythonInterpreter = "python2";
+        } else if (pythonInterpreter.startsWith("coverage3")) {
+            pythonInterpreter = "python3";
+        }
 
         // Build Python call
         StringBuilder pythonCall = new StringBuilder();

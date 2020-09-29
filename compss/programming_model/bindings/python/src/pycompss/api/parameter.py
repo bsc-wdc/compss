@@ -27,6 +27,7 @@ PyCOMPSs API - Parameter
         - INOUT
         - CONCURRENT
         - COMMUTATIVE
+        - IN_DELETE
     2. TYPE.
         - FILE
         - BOOLEAN
@@ -66,6 +67,7 @@ class DIRECTION(object):
     INOUT = 2
     CONCURRENT = 3
     COMMUTATIVE = 4
+    IN_DELETE = 5
 
 
 # Numbers match both C and Java enums
@@ -101,6 +103,7 @@ OUT = _Param(_ParamAliasKeys.OUT)
 INOUT = _Param(_ParamAliasKeys.INOUT)
 CONCURRENT = _Param(_ParamAliasKeys.CONCURRENT)
 COMMUTATIVE = _Param(_ParamAliasKeys.COMMUTATIVE)
+IN_DELETE = _Param(_ParamAliasKeys.IN_DELETE)
 
 # Aliases for files with direction
 FILE = _Param(_ParamAliasKeys.FILE)

@@ -29,6 +29,9 @@ from modules.test_tasks import function_moduleObject, Foo
 from modules.test_tasks import create_block, update_block
 from modules.test_tasks import empty_string, char_to_int
 from modules.test_tasks import numpy_obj_creator
+from modules.test_tasks import increment_object_delete, modify_obj
+from modules.my_class import MyClass2
+from pycompss.runtime.management.object_tracker import OT
 from modules.test_tasks import mod_task, pass_task, mod_class
 
 
@@ -718,6 +721,7 @@ def test_character():
         print("- Test character: ERROR")
         assert result == ord(mychar)
 
+
 def test_numpy_type_assurance():
     # This test will fail if numpy save is used with other numpy types
     # rather than ndarray and matrix
@@ -729,6 +733,58 @@ def test_numpy_type_assurance():
     else:
         print("- Test numpy type assurance: ERROR")
         assert isinstance(value, numbers.Number)
+
+
+def testInDeleteObject():
+    obj_1 = [0]
+    obj_2 = increment_object_delete(obj_1)
+    obj_2 = compss_wait_on(obj_2)
+    obj_1_id = OT.get_object_id(obj_1)
+    if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) is None:
+        print("- Test 1 IN_DELETE object: OK")
+    else:
+        print("- Test 1 IN_DELETE object: ERROR")
+
+
+def testInDeleteObject2():
+    obj_1 = [0]
+    count = 0
+    for i in range(10):
+        obj_1[0] = i - 1
+        obj_2 = increment_object_delete(obj_1)
+        obj_2 = compss_wait_on(obj_2)
+        obj_1_id = OT.get_object_id(obj_1)
+        if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) is None and i == obj_2[0]:
+            count += 1
+    if count == 10:
+        print("- Test 2 IN_DELETE object: OK")
+    else:
+        print("- Test 2 IN_DELETE object: ERROR")
+
+
+def testInDeleteObject3():
+    obj_1 = [0]
+    obj_list = []
+    for i in range(10):
+        obj_1[0] = i - 1
+        obj_2 = increment_object_delete(obj_1)
+        obj_list.append(obj_2)
+    obj_list = compss_wait_on(obj_list)
+    if obj_list == [[i] for i in range(10)]:
+        print("- Test 3 IN_DELETE object: OK")
+    else:
+        print("- Test 3 IN_DELETE object: ERROR")
+
+
+def testInDeleteObject4():
+    obj_1 = MyClass2()
+    obj_2 = modify_obj(obj_1)
+    obj_2 = compss_wait_on(obj_2)
+    obj_1_id = OT.get_object_id(obj_1)
+    if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) is None:
+        print("- Test 4 IN_DELETE object: OK")
+    else:
+        print("- Test 4 IN_DELETE object: ERROR")
 
 
 def main_program():
@@ -779,6 +835,11 @@ def main_program():
     test_character()
 
     test_numpy_type_assurance()
+
+    testInDeleteObject()
+    testInDeleteObject2()
+    testInDeleteObject3()
+    testInDeleteObject4()
 
 
 if __name__ == "__main__":

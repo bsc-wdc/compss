@@ -37,6 +37,7 @@ from pycompss.runtime.management.object_tracker import OT_clean_object_tracker
 from pycompss.runtime.management.object_tracker import OT_enable_report
 from pycompss.runtime.management.object_tracker import OT_is_report_enabled
 from pycompss.runtime.management.object_tracker import OT_generate_report
+from pycompss.runtime.management.object_tracker import OT_clean_report
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import EmptyReturn

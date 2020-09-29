@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
 #
@@ -175,6 +176,9 @@ _param_conversion_dict_ = {
     },
     ParamAliasKeys.COMMUTATIVE: {
         ParamDictKeys.Direction: DIRECTION.COMMUTATIVE,
+    },
+    ParamAliasKeys.IN_DELETE: {
+        ParamDictKeys.Direction: DIRECTION.IN_DELETE,
     },
     ParamAliasKeys.FILE: {
         ParamDictKeys.Content_type: TYPE.FILE,

@@ -130,6 +130,12 @@ EOT
                                             Default: ${DEFAULT_CPUS_PER_TASK}
 EOT
   fi
+  if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
+    cat <<EOT
+    --nvram_options="<string>"              NVRAM options (e.g. "1LM:2000" | "2LM:1000")
+                                            Default: ${DEFAULT_NVRAM_OPTIONS}
+EOT
+  fi
     cat <<EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
@@ -229,7 +235,6 @@ log_args() {
   echo "GPUs per node:             ${gpus_per_node}"
   echo "Job dependency:            ${dependencyJob}"
   echo "Exec-Time:                 ${wc_limit}"
-  echo "NVRAM options:             ${nvram_options}"
 
   # Display optional arguments
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
@@ -249,6 +254,10 @@ log_args() {
 
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     echo "Constraints:               ${constraints}"
+  fi
+
+  if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
+    echo "NVRAM options:             ${nvram_options}"
   fi
 
   # Display storage arguments
@@ -864,10 +873,12 @@ EOT
 
   # Add NVRAM options if provided
   if [ "${nvram_options}" != "none" ]; then
+    if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} --nvram-options=${nvram_options}
 EOT
- fi
+    fi
+  fi
 }
 
 add_packjob_separator(){

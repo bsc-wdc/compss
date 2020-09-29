@@ -190,6 +190,8 @@
                 --enable-nanos \
                 --disable-smpss \
                 --disable-instrument-io \
+                --disable-pebs-sampling \
+                --disable-pthread-cond-calls \
                 --prefix="${extraeTarget}" \
                 --libdir="${extraeTarget}/lib"
     ev=$?

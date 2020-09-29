@@ -49,6 +49,7 @@ DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_SHARED_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler"
 DEFAULT_LOCAL_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler"
+DEFAULT_NVRAM_OPTIONS="none"
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -182,6 +183,8 @@ show_opts() {
                                             Default: 0
     --automatic_scaling=<bool>              Enable or disable the runtime automatic scaling (for elasticity)
                                             Default: ${DEFAULT_AUTOMATIC_SCALING}
+    --nvram_options="<string>"              NVRAM options (e.g. "1LM:2999" | "2LM:2999")
+                                            Default: ${DEFAULT_NVRAM_OPTIONS}
     --jupyter_notebook=<path>,              Swap the COMPSs master initialization with jupyter notebook from the specified path.
     --jupyter_notebook                      Default: ${DEFAULT_JUPYTER_NOTEBOOK}
 
@@ -1221,6 +1224,11 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
+        nvram_options=*)
+          # Added for NEXTGENIO prototype (could be used in any other NVRAM
+          # equipped supercomputer if slurm supports the flag --nvram_options)
+          nvram_options=${OPTARG//nvram_options=/}
+          ;;
         *)
           # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
@@ -1511,6 +1519,13 @@ check_args() {
   fi
 
   #
+  # Other Checks
+  #
+  if [ -z "${nvram_options}" ]; then
+    nvram_options=${DEFAULT_NVRAM_OPTIONS}
+  fi
+
+  #
   # Application Checks
   #
   # Lang
@@ -1732,6 +1747,7 @@ log_variables() {
   echo "Epilog:                    ${epilogActions[*]}"
   echo "Storage conf:              ${storage_conf}"
   echo "Task execution:            ${taskExecution}"
+  echo "NVRAM options:             ${nvram_options}"
   echo "To COMPSs:                 ${args_pass}"
   echo "-----------------------------------"
   echo " "
@@ -1798,9 +1814,14 @@ launch() {
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
+        if [ "${nvram_options}" != "none" ]; then
+            WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} --nvram-options=${nvram_options} ${WCMD}"
+        else
+            WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
+        fi
+
         if [ "${log_level}" != "off" ]; then
-	    echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: $WCMD"
+            echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: $WCMD"
         fi
         $WCMD&
         hostid=$((hostid+1))
@@ -1828,9 +1849,13 @@ launch() {
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
+        if [ "${nvram_options}" != "none" ]; then
+            WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} --nvram-options=${nvram_options} ${WCMD}"
+        else
+            WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
+        fi
         if [ "${log_level}" != "off" ]; then
-	    echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: $WCMD"
+            echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: $WCMD"
         fi
         $WCMD&
         hostid=$((hostid+1))

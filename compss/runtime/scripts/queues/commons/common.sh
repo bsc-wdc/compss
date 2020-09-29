@@ -10,6 +10,7 @@ DEFAULT_JOB_NAME="COMPSs"
 DEFAULT_CPUS_PER_TASK="false"
 DEFAULT_AGENTS_ENABLED="disabled"
 DEFAULT_AGENTS_HIERARCHY="tree"
+DEFAULT_NVRAM_OPTIONS="none"
 
 
 #---------------------------------------------------
@@ -228,6 +229,7 @@ log_args() {
   echo "GPUs per node:             ${gpus_per_node}"
   echo "Job dependency:            ${dependencyJob}"
   echo "Exec-Time:                 ${wc_limit}"
+  echo "NVRAM options:             ${nvram_options}"
 
   # Display optional arguments
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
@@ -240,7 +242,7 @@ log_args() {
   if [ -n "${ENABLE_PROJECT_NAME}" ] && [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     echo "Project name:              ${project_name}"
   fi
-  
+
   if [ -n "${ENABLE_FILE_SYSTEMS}" ] && [ "${ENABLE_FILE_SYSTEMS}" == "true" ]; then
     echo "File Systems:              ${file_systems}"
   fi
@@ -435,6 +437,11 @@ get_args() {
             # shellcheck disable=SC2034
             worker_types=${OPTARG//workers=/}
             ;;
+          nvram_options=*)
+            # Added for NEXTGENIO prototype (could be used in any other NVRAM
+            # equipped supercomputer if slurm supports the flag --nvram_options)
+            nvram_options=${OPTARG//nvram_options=/}
+            ;;
           uuid=*)
             echo "WARNING: uuid is automatically generated. Omitting parameter"
             ;;
@@ -561,7 +568,6 @@ check_args() {
     display_error "${ERROR_NO_ASK_SWITCHES}"
   fi
 
-
   # Network variable and modification
   if [ -z "${network}" ]; then
     network=${DEFAULT_NETWORK}
@@ -569,6 +575,11 @@ check_args() {
     network=${DEFAULT_NETWORK}
   elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
     display_error "${ERROR_NETWORK}"
+  fi
+
+  # NVRAM support
+  if [ -z "${nvram_options}" ]; then
+    nvram_options=${DEFAULT_NVRAM_OPTIONS}
   fi
 
   ###############################################################
@@ -832,7 +843,7 @@ EOT
 EOT
     fi
   fi
-  
+
   # Add file systems in queue system
   if [ -n "${ENABLE_FILE_SYSTEMS}" ] && [ "${ENABLE_FILE_SYSTEMS}" == "true" ]; then
     if [ -n "${QARG_FILE_SYSTEMS}" ] && [ -n "${file_systems}" ]; then
@@ -850,6 +861,13 @@ EOT
 EOT
     fi
   fi
+
+  # Add NVRAM options if provided
+  if [ "${nvram_options}" != "none" ]; then
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} --nvram-options=${nvram_options}
+EOT
+ fi
 }
 
 add_packjob_separator(){

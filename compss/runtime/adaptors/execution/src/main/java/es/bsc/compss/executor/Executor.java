@@ -166,6 +166,7 @@ public class Executor implements Runnable {
      */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
+        closeAssignedResourcesEvents();
         LOGGER.info("Executor finished");
         Collection<ExecutionPlatformMirror<?>> mirrors = platform.getMirrors();
         for (ExecutionPlatformMirror<?> mirror : mirrors) {
@@ -276,7 +277,11 @@ public class Executor implements Runnable {
             final InvocationResources assignedResources =
                 this.platform.acquireResources(jobId, invocation.getRequirements(), previousAllocation);
             previousAllocation = assignedResources;
+            if (Tracer.extraeEnabled()) {
+                emitAssignedResourcesEvents(assignedResources);
+            }
             if (assignedResources.getAssignedCPUs() != null && assignedResources.getAssignedCPUs().length > 0) {
+
                 try {
                     ThreadAffinity.setCurrentThreadAffinity(assignedResources.getAssignedCPUs());
                 } catch (Exception e) {
@@ -519,6 +524,27 @@ public class Executor implements Runnable {
             this.platform.unregisterRunningJob(invocation.getJobId());
             this.context.unregisterOutputs();
         }
+    }
+
+    private void emitAssignedResourcesEvents(InvocationResources assignedResources) {
+        if (assignedResources != null) {
+            int[] cpus = assignedResources.getAssignedCPUs();
+            if (cpus != null && cpus.length > 0) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+                Tracer.emitEvent(cpus[0] + 1, Tracer.getTasksCPUAffinityEventsType());
+            }
+            int[] gpus = assignedResources.getAssignedGPUs();
+            if (gpus != null && gpus.length > 0) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+                Tracer.emitEvent(gpus[0] + 1, Tracer.getTasksGPUAffinityEventsType());
+            }
+        }
+
+    }
+
+    private void closeAssignedResourcesEvents() {
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
     }
 
     /**

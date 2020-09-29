@@ -411,7 +411,7 @@ def process_task(current_line,             # type: list
     gpus = current_line[-2]
     if gpus != "-":
         emit_manual_event(0, inside=True, gpu_affinity=True)  # close previous
-        emit_manual_event(cpus, inside=True, gpu_affinity=True)
+        emit_manual_event(gpus, inside=True, gpu_affinity=True)
         bind_gpus(gpus, process_name, logger)
 
     # Remove the last elements: cpu and gpu bindings

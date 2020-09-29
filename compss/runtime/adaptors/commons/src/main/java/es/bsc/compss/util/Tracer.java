@@ -103,9 +103,11 @@ public abstract class Tracer {
     protected static final int MEMORY = 8_000_010;
     protected static final int DISK_BW = 8_000_011;
     protected static final int SYNC_TYPE = 8_000_666;
+    protected static final int TASKS_CPU_AFFINITY_TYPE = 8_000_150; // Java assignment
+    protected static final int TASKS_GPU_AFFINITY_TYPE = 8_000_160; // Java assignment
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
-    protected static final int INSIDE_TASKS_CPU_AFFINITY_TYPE = 60_000_150;
-    protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160;
+    protected static final int INSIDE_TASKS_CPU_AFFINITY_TYPE = 60_000_150; // Python view
+    protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160; // Python view
     protected static final int INSIDE_WORKER_TYPE = 60_000_200;
     protected static final int BINDING_MASTER_TYPE = 60_000_300;
 
@@ -345,11 +347,19 @@ public abstract class Tracer {
         return INSIDE_TASKS_TYPE;
     }
 
-    public static int getInsideTasksCpuAffinityEventsType() {
+    public static int getTasksCPUAffinityEventsType() {
+        return TASKS_CPU_AFFINITY_TYPE;
+    }
+
+    public static int getTasksGPUAffinityEventsType() {
+        return TASKS_GPU_AFFINITY_TYPE;
+    }
+
+    public static int getInsideTasksCPUAffinityEventsType() {
         return INSIDE_TASKS_CPU_AFFINITY_TYPE;
     }
 
-    public static int getInsideTasksGpu_AffinityEventsType() {
+    public static int getInsideTasksGPUAffinityEventsType() {
         return INSIDE_TASKS_GPU_AFFINITY_TYPE;
     }
 

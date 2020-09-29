@@ -20,10 +20,12 @@
       </set>
     </cpu>
   </counters>
-
+  
+  <!-- Commented cpu events
   <cpu-events enabled="yes" frequency="10u" emit-always="no"/>
-
-  <storage enabled="no"/>
+   -->
+  
+<storage enabled="no"/>
 
   <buffer enabled="yes">
     <size enabled="yes">100000</size>

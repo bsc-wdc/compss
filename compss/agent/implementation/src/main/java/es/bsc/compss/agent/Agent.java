@@ -225,7 +225,12 @@ public class Agent {
             LOGGER.debug("\t\tUsing value passed in as parameter");
             arguments[position] = param.getValueContent();
         } else {
-            Object stub = "app_" + appId + "_param" + position;
+            Object stub;
+            if (param.getType() == DataType.FILE_T) {
+                stub = param.getValueContent();
+            } else {
+                stub = "app_" + appId + "_param" + position;
+            }
             arguments[position] = stub;
             addRemoteData(remote);
             RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());

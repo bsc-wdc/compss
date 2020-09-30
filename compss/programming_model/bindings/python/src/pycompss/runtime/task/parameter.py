@@ -1,5 +1,4 @@
 #!/usr/bin/python
-#!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
 #

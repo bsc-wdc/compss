@@ -45,7 +45,7 @@
   #----------------------------------------------------------------------------------
   # Check whether we did our best removing references of the Dummy object
   coincidences=$(grep -c -E "deleteData.*Deleting data" "${runtime_log}")
-  num_tasks=13
+  num_tasks=23
   if [ "$coincidences" -ne "${num_tasks}" ]; then
 	echo "ERROR: THE OBJECTS WERE NOT DEREGISTERED PROPERLY." | tee -a "${output_file}"
     echo " - Coincidences: ${coincidences}" | tee -a "${output_file}"

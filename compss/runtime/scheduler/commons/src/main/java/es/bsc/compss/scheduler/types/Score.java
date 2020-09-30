@@ -251,6 +251,7 @@ public class Score implements Comparable<Score> {
                 DataInstanceId dId = null;
                 switch (dp.getDirection()) {
                     case IN:
+                    case IN_DELETE:
                     case CONCURRENT:
                         RAccessId raId = (RAccessId) dp.getDataAccessId();
                         dId = raId.getReadDataInstance();

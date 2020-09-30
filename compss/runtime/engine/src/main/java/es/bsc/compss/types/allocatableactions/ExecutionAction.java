@@ -612,6 +612,7 @@ public class ExecutionAction extends AllocatableAction {
             DataInstanceId dId = null;
             switch (p.getDirection()) {
                 case CONCURRENT:
+                case IN_DELETE:
                 case IN:
                     // FTM already knows about this datum
                     return null;
@@ -682,6 +683,7 @@ public class ExecutionAction extends AllocatableAction {
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (p.getDirection()) {
                     case IN:
+                    case IN_DELETE:
                     case CONCURRENT:
                     case COMMUTATIVE:
                     case INOUT:

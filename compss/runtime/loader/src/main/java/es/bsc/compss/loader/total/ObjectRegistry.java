@@ -234,10 +234,12 @@ public class ObjectRegistry {
      */
     public boolean delete(Long appId, Object o) {
         if (o == null) {
+            LOGGER.warn("Trying to remove a null object from the object registry");
             return false;
         }
         Integer hashCode = getObjectHashCode(appId, o);
         if (hashCode == null) {
+            LOGGER.warn("Trying to remove non task parameter object");
             return false; // Not a task parameter object
         }
 

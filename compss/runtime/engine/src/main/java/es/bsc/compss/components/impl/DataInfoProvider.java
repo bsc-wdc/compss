@@ -893,11 +893,14 @@ public class DataInfoProvider {
      * @return DataInfo associated with the given code.
      */
     public DataInfo deleteData(int code, boolean noReuse) {
-        LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
-
+        if (DEBUG) {
+            LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
+        }
         Integer id = this.codeToId.get(code);
         if (id == null) {
-            LOGGER.debug("No data id found for this data ");
+            if (DEBUG) {
+                LOGGER.debug("No data id found for data with code " + String.valueOf(code));
+            }
             return null;
         }
         DataInfo dataInfo = this.idToData.get(id);
@@ -908,7 +911,9 @@ public class DataInfoProvider {
             }
             return dataInfo;
         } else {
-            LOGGER.debug("No data info found for this data ");
+            if (DEBUG) {
+                LOGGER.debug("No data info found for data with code " + String.valueOf(code));
+            }
             return null;
         }
 

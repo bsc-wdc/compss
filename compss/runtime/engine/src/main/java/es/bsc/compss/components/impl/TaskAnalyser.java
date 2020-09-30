@@ -616,6 +616,7 @@ public class TaskAnalyser {
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
             case IN:
+            case IN_DELETE:
                 am = AccessMode.R;
                 break;
             case OUT:
@@ -1227,6 +1228,7 @@ public class TaskAnalyser {
                     DependencyParameter fp = (DependencyParameter) p;
                     switch (fp.getDirection()) {
                         case IN:
+                        case IN_DELETE:
                         case CONCURRENT:
                             break;
                         case COMMUTATIVE:

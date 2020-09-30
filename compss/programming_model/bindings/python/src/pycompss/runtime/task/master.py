@@ -59,6 +59,7 @@ from pycompss.runtime.management.object_tracker import OT_get_file_name
 from pycompss.runtime.management.object_tracker import OT_has_been_written
 from pycompss.runtime.management.object_tracker import OT_pop_written_obj
 from pycompss.runtime.management.object_tracker import OT_stop_tracking
+from pycompss.runtime.management.object_tracker import OT_not_track
 from pycompss.runtime.task.commons import TaskCommons
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.parameter import Parameter
@@ -1686,7 +1687,8 @@ def _serialize_object_into_file(name, p):
 
         p.content = new_object
         # Give this object an identifier inside the binding
-        _, _ = OT_track(p.content, collection=True)
+        if p.direction != DIRECTION.IN_DELETE:
+            _, _ = OT_track(p.content, collection=True)
     return p
 
 
@@ -1715,7 +1717,10 @@ def _turn_into_file(p, skip_creation=False):
     obj_id = OT_is_tracked(p.content)
     if obj_id is None:
         # This is the first time a task accesses this object
-        obj_id, file_name = OT_track(p.content)
+        if p.direction == DIRECTION.IN_DELETE:
+            obj_id, file_name = OT_not_track()
+        else:
+            obj_id, file_name = OT_track(p.content)
         if not skip_creation:
             serialize_to_file(p.content, file_name)
     else:

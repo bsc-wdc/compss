@@ -138,6 +138,7 @@ def function_files(fin, finout, fout):
 def par_func():
     print("- Function")
 
+
 # @task(o = Parameter(p_direction = Direction.INOUT))
 @task(o=INOUT, li=INOUT, dic=INOUT, tup=INOUT, cplx=INOUT)
 def function_objects(o, li, dic, tup, cplx, f):
@@ -418,6 +419,16 @@ def mod_task(o):
 @task(returns=1)
 def pass_task(o):
     return o
+
+
+@task(returns=list, x=IN_DELETE)
+def increment_object_delete(x):
+    return [x[0] + 1]
+
+
+@task(x=IN_DELETE)
+def modify_obj(x):
+    return x.get_test() + " adeu"
 
 
 class mod_class(object):

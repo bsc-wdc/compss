@@ -33,6 +33,7 @@ class ParamAliasKeys(object):
     INOUT = 'INOUT'
     CONCURRENT = 'CONCURRENT'
     COMMUTATIVE = 'COMMUTATIVE'
+    IN_DELETE = 'IN_DELETE'
 
     FILE = 'FILE'
     FILE_IN = 'FILE_IN'

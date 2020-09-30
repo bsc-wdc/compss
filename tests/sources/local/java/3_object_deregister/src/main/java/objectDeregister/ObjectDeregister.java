@@ -14,27 +14,32 @@ public class ObjectDeregister {
 
         int k;
         final int ITERATIONS = 10;
-
+        // Dummy inDelDummy = null;
         for (int i = 0; i < ITERATIONS; ++i) {
             Dummy d = new Dummy(i);
-
+            Dummy inDelDummy = new Dummy(i); // This object should be removed automatically
             ObjectDeregisterImpl.task1(i, d);
-            ObjectDeregisterImpl.task2(i + 1, d);
+            ObjectDeregisterImpl.task2(i + 1, d, inDelDummy);
             ObjectDeregisterImpl.task3(d);
+            // inDelDummy = null;
             // Allows garbage collector to delete the object from memory
             COMPSs.deregisterObject((Object) d);
         }
 
         COMPSs.barrier();
+        Thread.sleep(500);
         ObjectDeregisterImpl.task5();
         COMPSs.barrier();
         System.gc();
-        Thread.sleep(10000);
+        Thread.sleep(500);
+        System.gc();
+        System.out.println("GC performed");
+        Thread.sleep(20000);
 
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
-            System.out.println(
-                "[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
+            System.out.println("[ERROR] At the end in the MASTER 1, " + String.valueOf(k)
+                + " instances of the Dummy object were found");
             System.exit(-1);
         }
 
@@ -52,14 +57,15 @@ public class ObjectDeregister {
         BlackBox.method(dIn);
         COMPSs.deregisterObject((Object) dIn);
         dIn = null;
-        Thread.sleep(2000);
-        COMPSs.barrier();
-        System.gc();
 
+        COMPSs.barrier();
+        Thread.sleep(500);
+        System.gc();
+        Thread.sleep(1000);
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
-            System.out.println(
-                "[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
+            System.out.println("[ERROR] At the end in the MASTER 2, " + String.valueOf(k)
+                + " instances of the Dummy object were found");
             System.exit(-1);
         }
 
@@ -68,14 +74,14 @@ public class ObjectDeregister {
         BlackBox.method(dOut);
         COMPSs.deregisterObject((Object) dOut);
         dOut = null;
-        Thread.sleep(2000);
         COMPSs.barrier();
+        Thread.sleep(500);
         System.gc();
-
+        Thread.sleep(2000);
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
-            System.out.println(
-                "[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
+            System.out.println("[ERROR] At the end in the MASTER 3, " + String.valueOf(k)
+                + " instances of the Dummy object were found");
             System.exit(-1);
         }
 
@@ -85,10 +91,10 @@ public class ObjectDeregister {
         BlackBox.method(dInout);
         COMPSs.deregisterObject((Object) dInout);
         dInout = null;
-        Thread.sleep(2000);
         COMPSs.barrier();
+        Thread.sleep(500);
         System.gc();
-
+        Thread.sleep(1000);
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
             System.out.println(

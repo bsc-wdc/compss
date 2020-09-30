@@ -11,7 +11,8 @@ public interface SimpleItf {
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "deleteFile.SimpleImpl")
-    void increment(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file);
+    void increment(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file,
+        @Parameter(type = Type.FILE, direction = Direction.IN_DELETE) String file2);
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "deleteFile.SimpleImpl")

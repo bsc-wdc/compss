@@ -8,7 +8,7 @@ import java.io.FileNotFoundException;
 
 public class SimpleImpl {
 
-    public static void increment(String counterFile) {
+    public static void increment(String counterFile, String dummyFile) {
         try {
             FileInputStream fis = new FileInputStream(counterFile);
             int count = fis.read();

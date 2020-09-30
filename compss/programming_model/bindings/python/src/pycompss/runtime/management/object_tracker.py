@@ -116,7 +116,16 @@ class ObjectTracker(object):
         self.address_to_obj_id[address] = obj_id
         if self.reporting:
             self.report_now()
+        return obj_id, file_name
 
+    def not_track(self, collection=False):
+        if collection:
+            obj_id = '%s-%d' % (self.runtime_id, self.current_id)
+            file_name = None
+        else:
+            obj_id = '%s-%d' % (self.runtime_id, self.current_id)
+            file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
+        self.current_id += 1
         return obj_id, file_name
 
     def stop_tracking(self, obj, collection=False):
@@ -540,3 +549,5 @@ OT_clean_object_tracker = OT.clean_object_tracker
 OT_enable_report = OT.enable_report
 OT_is_report_enabled = OT.is_report_enabled
 OT_generate_report = OT.generate_report
+OT_not_track = OT.not_track
+OT_clean_report = OT.clean_report

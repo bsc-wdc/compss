@@ -176,6 +176,9 @@ _param_conversion_dict_ = {
     ParamAliasKeys.COMMUTATIVE: {
         ParamDictKeys.Direction: DIRECTION.COMMUTATIVE,
     },
+    ParamAliasKeys.IN_DELETE: {
+        ParamDictKeys.Direction: DIRECTION.IN_DELETE,
+    },
     ParamAliasKeys.FILE: {
         ParamDictKeys.Content_type: TYPE.FILE,
         ParamDictKeys.Keep_rename: False

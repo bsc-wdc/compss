@@ -10,6 +10,7 @@ DEFAULT_JOB_NAME="COMPSs"
 DEFAULT_CPUS_PER_TASK="false"
 DEFAULT_AGENTS_ENABLED="disabled"
 DEFAULT_AGENTS_HIERARCHY="tree"
+DEFAULT_NVRAM_OPTIONS="none"
 
 
 #---------------------------------------------------
@@ -129,6 +130,12 @@ EOT
                                             Default: ${DEFAULT_CPUS_PER_TASK}
 EOT
   fi
+  if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
+    cat <<EOT
+    --nvram_options="<string>"              NVRAM options (e.g. "1LM:2000" | "2LM:1000")
+                                            Default: ${DEFAULT_NVRAM_OPTIONS}
+EOT
+  fi
     cat <<EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
@@ -240,13 +247,17 @@ log_args() {
   if [ -n "${ENABLE_PROJECT_NAME}" ] && [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     echo "Project name:              ${project_name}"
   fi
-  
+
   if [ -n "${ENABLE_FILE_SYSTEMS}" ] && [ "${ENABLE_FILE_SYSTEMS}" == "true" ]; then
     echo "File Systems:              ${file_systems}"
   fi
 
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     echo "Constraints:               ${constraints}"
+  fi
+
+  if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
+    echo "NVRAM options:             ${nvram_options}"
   fi
 
   # Display storage arguments
@@ -435,6 +446,11 @@ get_args() {
             # shellcheck disable=SC2034
             worker_types=${OPTARG//workers=/}
             ;;
+          nvram_options=*)
+            # Added for NEXTGENIO prototype (could be used in any other NVRAM
+            # equipped supercomputer if slurm supports the flag --nvram_options)
+            nvram_options=${OPTARG//nvram_options=/}
+            ;;
           uuid=*)
             echo "WARNING: uuid is automatically generated. Omitting parameter"
             ;;
@@ -561,7 +577,6 @@ check_args() {
     display_error "${ERROR_NO_ASK_SWITCHES}"
   fi
 
-
   # Network variable and modification
   if [ -z "${network}" ]; then
     network=${DEFAULT_NETWORK}
@@ -569,6 +584,11 @@ check_args() {
     network=${DEFAULT_NETWORK}
   elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
     display_error "${ERROR_NETWORK}"
+  fi
+
+  # NVRAM support
+  if [ -z "${nvram_options}" ]; then
+    nvram_options=${DEFAULT_NVRAM_OPTIONS}
   fi
 
   ###############################################################
@@ -832,7 +852,7 @@ EOT
 EOT
     fi
   fi
-  
+
   # Add file systems in queue system
   if [ -n "${ENABLE_FILE_SYSTEMS}" ] && [ "${ENABLE_FILE_SYSTEMS}" == "true" ]; then
     if [ -n "${QARG_FILE_SYSTEMS}" ] && [ -n "${file_systems}" ]; then
@@ -847,6 +867,15 @@ EOT
     if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
        cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_CLUSTER}${QUEUE_SEPARATOR}${cluster}
+EOT
+    fi
+  fi
+
+  # Add NVRAM options if provided
+  if [ "${nvram_options}" != "none" ]; then
+    if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} --nvram-options=${nvram_options}
 EOT
     fi
   fi

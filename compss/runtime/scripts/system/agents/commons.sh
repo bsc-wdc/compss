@@ -149,7 +149,7 @@ get_parameters(){
   if [ "${lang}"  == "JAVA" ] || [ "${lang}"  == "java" ]; then  
     PARAMETERS="${PARAMETERS}${param}"
   elif [ "${lang}"  == "PYTHON" ] || [ "${lang}"  == "python" ]; then
-    encoded_value=$(python -c "import base64; print(base64.b64encode('#5'.encode()).decode())")
+    encoded_value=$(python -c "import base64; print( str(base64.b64encode(('#' +'${param}').encode()).decode()))")
     PARAMETERS="${PARAMETERS}${encoded_value}"
   elif [ "${lang}"  == "C" ] || [ "${lang}"  == "c" ]; then
     PARAMETERS="${PARAMETERS}${param}"
@@ -187,7 +187,7 @@ get_parameters_as_array(){
     if [ "${lang}"  == "JAVA" ] || [ "${lang}"  == "java" ]; then  
       PARAMETERS="${PARAMETERS}${param}"
     elif [ "${lang}"  == "PYTHON" ] || [ "${lang}"  == "python" ]; then
-      encoded_value=$(python -c "import base64; print(base64.b64encode('#5'.encode()).decode())")
+      encoded_value=$(python -c "import base64; print( str(base64.b64encode(('#' +'${param}').encode()).decode()))")
       PARAMETERS="${PARAMETERS}${encoded_value}"
     elif [ "${lang}"  == "C" ] || [ "${lang}"  == "c" ]; then
       PARAMETERS="${PARAMETERS}${param}"

@@ -33,6 +33,7 @@ import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.GetFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.NewBarrierPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.NoMoreTasksPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.OpenFilePipeCommand;
@@ -312,6 +313,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 break;
             case OPEN_FILE:
                 readCommand = new OpenFilePipeCommand(command);
+                break;
+            case GET_FILE:
+                readCommand = new GetFilePipeCommand(command);
                 break;
             case CLOSE_FILE:
                 readCommand = new CloseFilePipeCommand(command);

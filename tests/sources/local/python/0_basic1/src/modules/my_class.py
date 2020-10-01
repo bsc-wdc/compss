@@ -3,14 +3,17 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Testbench Tasks
+PyCOMPSs Testbench object
 ========================
 """
 
 
 class MyClass2(object):
     def __init__(self):
-        self.field = "hola"
+        self.test = "holala"
 
     def get_test(self):
-        return self.field
+        return self.test
+
+    def set_test(self, test):
+        self.test = test

@@ -110,6 +110,8 @@ class PyCOMPSsDecorator(object):
             elif isinstance(fail_by_ev, str):
                 # Accepted argument
                 pass
+            elif isinstance(fail_by_ev, int):
+                self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
             else:
                 raise Exception("Incorrect format for fail_by_exit_value property. "    # noqa: E501
                                 "It should be boolean or an environment variable")      # noqa: E501

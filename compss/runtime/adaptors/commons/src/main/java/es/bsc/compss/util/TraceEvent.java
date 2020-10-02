@@ -100,6 +100,7 @@ public enum TraceEvent {
     TD_SHUTDOWN(51, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), // Shutdown
     UPDATE_CEI_LOCAL(52, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), // Update CEI
     WORKER_UPDATE_REQUEST(53, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Worker update request"), // Update worker
+    CANCEL_TASKS(57, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Cancel tasks"), // Cancel tasks
 
     // Python Events Inside Worker
     WORKER_RUNNING(1, Tracer.INSIDE_WORKER_TYPE, "Worker running"), // Worker running

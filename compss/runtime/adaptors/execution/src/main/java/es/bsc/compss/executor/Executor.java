@@ -166,7 +166,9 @@ public class Executor implements Runnable {
      */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
-        closeAssignedResourcesEvents();
+        if (Tracer.extraeEnabled()) {
+            closeAssignedResourcesEvents();
+        }
         LOGGER.info("Executor finished");
         Collection<ExecutionPlatformMirror<?>> mirrors = platform.getMirrors();
         for (ExecutionPlatformMirror<?> mirror : mirrors) {

@@ -23,6 +23,7 @@ public class TestCommutative {
     public static final int N = 3;
     public static final int M = 4;
     public static final int MAX_AVAILABLE = 1;
+    public static final int SLEEP_BTW_TASKS = 50;
 
 
     public static void main(String[] args) throws Exception {
@@ -80,13 +81,14 @@ public class TestCommutative {
         // Launch 2 commutative tasks which write the sum of the numbers of the first two files to the third
         System.out.println("[LOG] Write commutative");
         TestCommutativeImpl.writeCommutative(FILE_NAME1, FILE_NAME2, FILE_NAME5);
+        Thread.sleep(SLEEP_BTW_TASKS);
         System.out.println("[LOG] Write commutative");
         TestCommutativeImpl.writeCommutative(FILE_NAME3, FILE_NAME4, FILE_NAME5);
-
+        Thread.sleep(SLEEP_BTW_TASKS);
         // Check results of file 5
         System.out.println("[LOG] Checking result");
         int result = TestCommutativeImpl.checkContents(FILE_NAME5);
-
+        Thread.sleep(SLEEP_BTW_TASKS);
         // Check result of file 5
         int M = 6;
         if (result != M) {
@@ -96,24 +98,30 @@ public class TestCommutative {
         // Launch 3 commutative tasks adding one to the number of files
         System.out.println("[LOG] Add one commutative");
         TestCommutativeImpl.addOneCommutative(FILE_NAME5);
+        Thread.sleep(SLEEP_BTW_TASKS);
         System.out.println("[LOG] Add one commutative");
         TestCommutativeImpl.addOneCommutative(FILE_NAME5);
+        Thread.sleep(SLEEP_BTW_TASKS);
         System.out.println("[LOG] Add one commutative");
         TestCommutativeImpl.addOneCommutative(FILE_NAME5);
-
+        Thread.sleep(SLEEP_BTW_TASKS);
         // Launch 3 commutative tasks to accumulate results between the two files
         System.out.println("[LOG] Accumulate commutative");
         TestCommutativeImpl.accumulateCommutative(FILE_NAME5, FILE_NAME6);
+        Thread.sleep(SLEEP_BTW_TASKS);
         System.out.println("[LOG] Accumulate commutative");
         TestCommutativeImpl.accumulateCommutative(FILE_NAME5, FILE_NAME6);
+        Thread.sleep(SLEEP_BTW_TASKS);
         System.out.println("[LOG] Accumulate commutative");
         TestCommutativeImpl.accumulateCommutative(FILE_NAME5, FILE_NAME6);
-
+        Thread.sleep(SLEEP_BTW_TASKS);
         // Launch 3 commutative tasks adding one to the number of files
         System.out.println("[LOG] Add one commutative");
         TestCommutativeImpl.addOneCommutative(FILE_NAME6);
+        Thread.sleep(SLEEP_BTW_TASKS);
         System.out.println("[LOG] Add one commutative");
         TestCommutativeImpl.addOneCommutative(FILE_NAME6);
+        Thread.sleep(SLEEP_BTW_TASKS);
         System.out.println("[LOG] Add one commutative");
         TestCommutativeImpl.addOneCommutative(FILE_NAME6);
 
@@ -139,6 +147,7 @@ public class TestCommutative {
 
         // Launch N tasks writing 3 (COMMUTATIVE)
         for (int i = 0; i < N; i++) {
+            Thread.sleep(SLEEP_BTW_TASKS);
             f.writeThree();
         }
 
@@ -172,6 +181,7 @@ public class TestCommutative {
         }
         // Launch N tasks writing 3 (COMMUTATIVE)
         for (int i = 0; i < N; i++) {
+            Thread.sleep(SLEEP_BTW_TASKS);
             f.writeThree();
         }
 

@@ -19,7 +19,7 @@ public class MyFile extends StorageObject implements Serializable {
     private static final long serialVersionUID = 3L;
 
     private static final String ERROR_PERSIST = "[ERROR] Cannot persist object";
-    private static final int TASK_SLEEP_TIME = 0_500; // ms
+    private static final int TASK_SLEEP_TIME = 1_000; // ms
 
     private String filePath;
 

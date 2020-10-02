@@ -11,7 +11,8 @@ import java.lang.Thread;
 
 public class TestCommutativeImpl {
 
-    private static final int TASK_SLEEP_TIME = 2_000; // ms
+    private static final int TASK_SLEEP_TIME = 1_000; // ms
+    private static final int OTHER_TASK_SLEEP = 500;
 
 
     public static void writeOne(String fileName) {
@@ -92,10 +93,20 @@ public class TestCommutativeImpl {
         result = result + param;
         System.out.println(result);
         writeFile(fileName, String.valueOf(result));
+        try {
+            Thread.sleep(OTHER_TASK_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println("Total result " + result);
     }
 
     public static Integer task(int i) {
+        try {
+            Thread.sleep(OTHER_TASK_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return i + 1;
     }
 
@@ -115,6 +126,12 @@ public class TestCommutativeImpl {
             } catch (Exception e) {
             }
         }
+        try {
+            Thread.sleep(OTHER_TASK_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public static void writeFileCommutative(String fileName, String i) {
@@ -133,6 +150,12 @@ public class TestCommutativeImpl {
             } catch (Exception e) {
             }
         }
+        try {
+            Thread.sleep(OTHER_TASK_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public static int readFile(String fileName) {
@@ -152,6 +175,12 @@ public class TestCommutativeImpl {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        try {
+            Thread.sleep(OTHER_TASK_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         System.out.println(res);
         return res;
     }
@@ -175,6 +204,11 @@ public class TestCommutativeImpl {
             }
 
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            Thread.sleep(OTHER_TASK_SLEEP);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         System.out.println(res);

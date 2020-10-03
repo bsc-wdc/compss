@@ -125,33 +125,40 @@ def test_direction_commutative(file_commons):
     write_one(files[4])
     print ("[LOG] Write one")
     write_one(files[5])
-
+    time.sleep(0.1)
     print ("[LOG] Write commutative")
     write_commutative(files[2], files[3], files[6])
+    time.sleep(0.1)
     print ("[LOG] Write commutative")
     write_commutative(files[4], files[5], files[6])
 
     print ("[LOG] Check results")
     check_results(files[6])
-
+    time.sleep(0.1)
     print("[LOG] AddOne commutative")
     addOne_commutative(files[6])
+    time.sleep(0.1)
     print("[LOG] AddOne commutative")
     addOne_commutative(files[6])
+    time.sleep(0.1)
     print("[LOG] AddOne commutative")
     addOne_commutative(files[6])
-
+    time.sleep(0.1)
     print("[LOG] Accumulate commutative")
     accumulate_commutative(files[6], files[1])
+    time.sleep(0.1)
     print("[LOG] Accumulate commutative")
     accumulate_commutative(files[6], files[1])
+    time.sleep(0.1)
     print("[LOG] Accumulate commutative")
     accumulate_commutative(files[6], files[1])
-
+    time.sleep(0.1)
     print("[LOG] AddOne commutative")
     addOne_commutative(files[1])
+    time.sleep(0.1)
     print("[LOG] AddOne commutative")
     addOne_commutative(files[1])
+    time.sleep(0.1)
     print("[LOG] AddOne commutative")
     addOne_commutative(files[1])
 
@@ -179,6 +186,7 @@ def test_psco_commutative():
     # Launch NUM_TASKS CONCURRENT
     for i in range(NUM_TASKS):
         # Execute increment
+        time.sleep(0.1)
         file_psco.write_three()
 
     # Synchronize

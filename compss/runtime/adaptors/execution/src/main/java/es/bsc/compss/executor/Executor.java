@@ -63,6 +63,7 @@ import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.TimeOutTask;
+import es.bsc.wdc.affinity.ThreadAffinity;
 
 import java.io.File;
 import java.io.IOException;
@@ -119,6 +120,7 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
     private Timer timer;
+    protected InvocationResources previousAllocation;
 
 
     /**
@@ -164,6 +166,9 @@ public class Executor implements Runnable {
      */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
+        if (Tracer.extraeEnabled()) {
+            closeAssignedResourcesEvents();
+        }
         LOGGER.info("Executor finished");
         Collection<ExecutionPlatformMirror<?>> mirrors = platform.getMirrors();
         for (ExecutionPlatformMirror<?> mirror : mirrors) {
@@ -265,6 +270,35 @@ public class Executor implements Runnable {
         boolean areResourcesAcquired = false;
         long timeUnbindOriginalFilesStart = 0L;
         try {
+            // Bind computing units
+            LOGGER.debug("Asssigning resources for Job " + jobId);
+            long timeAssignResourcesStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeAssignResourcesStart = System.nanoTime();
+            }
+            final InvocationResources assignedResources =
+                this.platform.acquireResources(jobId, invocation.getRequirements(), previousAllocation);
+            previousAllocation = assignedResources;
+            if (Tracer.extraeEnabled()) {
+                emitAssignedResourcesEvents(assignedResources);
+            }
+            if (assignedResources.getAssignedCPUs() != null && assignedResources.getAssignedCPUs().length > 0) {
+
+                try {
+                    ThreadAffinity.setCurrentThreadAffinity(assignedResources.getAssignedCPUs());
+                } catch (Exception e) {
+                    LOGGER.warn("Error setting affinity for Job " + jobId, e);
+                }
+            }
+            areResourcesAcquired = true;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeAssignResourcesEnd = System.nanoTime();
+                final float timeAssignResourcesElapsed =
+                    (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER
+                    .debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+            }
+
             // Set the Task working directory
             LOGGER.debug("Creating task sandbox for Job " + jobId);
             long timeSandboxStart = 0L;
@@ -292,23 +326,6 @@ public class Executor implements Runnable {
                     (timeBindOriginalFilesEnd - timeBindOriginalFilesStart) / (float) NANO_TO_MS;
                 TIMER_LOGGER.debug(
                     "[TIMER] Bind original files for job " + jobId + ": " + timeBindOriginalFilesElapsed + " ms");
-            }
-
-            // Bind computing units
-            LOGGER.debug("Asssigning resources for Job " + jobId);
-            long timeAssignResourcesStart = 0L;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                timeAssignResourcesStart = System.nanoTime();
-            }
-            final InvocationResources assignedResources =
-                this.platform.acquireResources(jobId, invocation.getRequirements());
-            areResourcesAcquired = true;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeAssignResourcesEnd = System.nanoTime();
-                final float timeAssignResourcesElapsed =
-                    (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
-                TIMER_LOGGER
-                    .debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
             }
 
             // Execute task
@@ -509,6 +526,27 @@ public class Executor implements Runnable {
             this.platform.unregisterRunningJob(invocation.getJobId());
             this.context.unregisterOutputs();
         }
+    }
+
+    private void emitAssignedResourcesEvents(InvocationResources assignedResources) {
+        if (assignedResources != null) {
+            int[] cpus = assignedResources.getAssignedCPUs();
+            if (cpus != null && cpus.length > 0) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+                Tracer.emitEvent(cpus[0] + 1, Tracer.getTasksCPUAffinityEventsType());
+            }
+            int[] gpus = assignedResources.getAssignedGPUs();
+            if (gpus != null && gpus.length > 0) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+                Tracer.emitEvent(gpus[0] + 1, Tracer.getTasksGPUAffinityEventsType());
+            }
+        }
+
+    }
+
+    private void closeAssignedResourcesEvents() {
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
     }
 
     /**

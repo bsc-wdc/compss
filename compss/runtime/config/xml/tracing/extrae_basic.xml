@@ -21,6 +21,10 @@
     </cpu>
   </counters>
 
+  <!-- comented cpu events for java threads (remove comments to activate
+  <cpu-events enabled="yes" frequency="10u" emit-always="no"/>
+  -->
+  
   <storage enabled="no"/>
 
   <buffer enabled="yes">
@@ -38,6 +42,6 @@
 
   <input-output enabled="no"/>
 
-  <merge enabled="no"/> 
-  
+  <merge enabled="no"/>
+
 </trace>

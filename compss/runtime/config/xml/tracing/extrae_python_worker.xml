@@ -7,7 +7,11 @@
 >
 
   <user-functions enabled="yes" list="{{PATH}}/function-list" exclude-automatic-functions="no">
-    </user-functions>
+  </user-functions>
+
+  <pthread enabled="no">
+    <counters enabled="yes" />
+  </pthread>
 
   <counters enabled="yes">
     <cpu enabled="yes" starting-set-distribution="1">
@@ -16,8 +20,12 @@
       </set>
     </cpu>
   </counters>
-
-  <storage enabled="no"/>
+  
+  <!-- Commented cpu events
+  <cpu-events enabled="yes" frequency="10u" emit-always="no"/>
+   -->
+  
+<storage enabled="no"/>
 
   <buffer enabled="yes">
     <size enabled="yes">100000</size>
@@ -29,6 +37,8 @@
   <others enabled="no"/>
 
   <sampling enabled="no"/>
+
+  <dynamic-memory enabled="no"/>
 
   <input-output enabled="no" />
 

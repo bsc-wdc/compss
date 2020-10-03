@@ -137,8 +137,8 @@ public class ResourceManager {
      * @return Assigned resources
      * @throws UnsufficientAvailableComputingUnitsException Not enough available computing units
      */
-    public InvocationResources acquireResources(int jobId, ResourceDescription rd)
-        throws UnsufficientAvailableComputingUnitsException {
+    public InvocationResources acquireResources(int jobId, ResourceDescription rd,
+        InvocationResources previousAllocation) throws UnsufficientAvailableComputingUnitsException {
 
         int cpus;
         int gpus;
@@ -154,9 +154,18 @@ public class ResourceManager {
             gpus = 0;
             fpgas = 0;
         }
-        int[] assignedCPUs = this.binderCPUs.bindComputingUnits(jobId, cpus);
-        int[] assignedGPUs = this.binderGPUs.bindComputingUnits(jobId, gpus);
-        int[] assignedFPGAs = this.binderFPGAs.bindComputingUnits(jobId, fpgas);
+        int[] assignedCPUs;
+        int[] assignedGPUs;
+        int[] assignedFPGAs;
+        if (previousAllocation != null) {
+            assignedCPUs = this.binderCPUs.bindComputingUnits(jobId, cpus, previousAllocation.getAssignedCPUs());
+            assignedGPUs = this.binderGPUs.bindComputingUnits(jobId, gpus, previousAllocation.getAssignedGPUs());
+            assignedFPGAs = this.binderFPGAs.bindComputingUnits(jobId, fpgas, previousAllocation.getAssignedFPGAs());
+        } else {
+            assignedCPUs = this.binderCPUs.bindComputingUnits(jobId, cpus, null);
+            assignedGPUs = this.binderGPUs.bindComputingUnits(jobId, gpus, null);
+            assignedFPGAs = this.binderFPGAs.bindComputingUnits(jobId, fpgas, null);
+        }
 
         return new InvocationResources(assignedCPUs, assignedGPUs, assignedFPGAs);
     }

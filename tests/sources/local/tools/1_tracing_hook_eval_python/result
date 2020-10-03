@@ -73,8 +73,9 @@
   fi
   # Check that ErrorManager has not generated any ERROR or FATAL message.
   if [ -f "${runtime_log_disabled}" ]; then
-    if cat "${output_file_disabled}" "${runtime_log_disabled}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"; then
-      echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a "${output_file_disabled}"
+    err=$(cat "${output_file_disabled}" "${runtime_log_disabled}" | tr '\n' ' ' | grep -E "[ERRMGR].*(ERROR|FATAL):.*.*Shutting" || true)
+    if [ "${err}" != "" ]; then
+      echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED.\n Err: ${err}" | tee -a "${output_file_disabled}"
       exit 1
     fi
   else

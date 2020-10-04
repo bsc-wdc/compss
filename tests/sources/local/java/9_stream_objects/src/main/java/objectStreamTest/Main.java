@@ -165,6 +165,12 @@ public class Main {
         Integer[] partialObjects = new Integer[MAX_ENTRIES];
         int pos = 0;
         while (!ods.isClosed()) {
+            // Sleep between polls
+            try {
+                Thread.sleep(consumerSleep);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             List<MyObject> newObjects = ods.poll();
             for (MyObject obj : newObjects) {
                 System.out.println(
@@ -173,12 +179,12 @@ public class Main {
                 pos = pos + 1;
             }
 
-            // Sleep between polls
-            try {
-                Thread.sleep(consumerSleep);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+        }
+        // Sleep between polls
+        try {
+            Thread.sleep(consumerSleep);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         // Although the stream is closed, there can still be pending events to process
         List<MyObject> newObjects = ods.poll();

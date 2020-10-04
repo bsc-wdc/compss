@@ -17,6 +17,12 @@ public class Tasks {
     public static void writeObjects(ObjectDistroStream<MyObject> ods, int sleepTime) throws BackendException {
         // Create several new files and add them to the stream when written
         for (int i = 0; i < Main.NUM_OBJECTS; ++i) {
+            // Sleep some time to delay production
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             // Create new object
             String name = BASE_NAME + UUID.randomUUID();
             MyObject obj = new MyObject(name, i);
@@ -27,12 +33,6 @@ public class Tasks {
             System.out.println(" - Value: " + obj.getValue());
             ods.publish(obj);
 
-            // Sleep some time to delay production
-            try {
-                Thread.sleep(sleepTime);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
         }
 
         // Send end event when finished
@@ -48,6 +48,12 @@ public class Tasks {
     public static void writeObjectList(ObjectDistroStream<MyObject> ods, int sleepTime) throws BackendException {
         // Create several new files and add them to the stream when written
         for (int i = 0; i < Main.NUM_BATCHES; ++i) {
+            // Sleep some time to delay production
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             // Create list of objects
             List<MyObject> objects = new ArrayList<>();
             for (int j = 0; j < Main.NUM_OBJECTS; ++j) {
@@ -65,12 +71,12 @@ public class Tasks {
             }
             ods.publish(objects);
 
-            // Sleep some time to delay production
-            try {
-                Thread.sleep(sleepTime);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+        }
+        // Sleep some time to delay production
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         // Send end event when finished
@@ -84,16 +90,21 @@ public class Tasks {
         // Process events until stream is closed
         Integer totalObjects = 0;
         while (!ods.isClosed()) {
-            System.out.println("Polling new objects");
-            Integer numNewObjects = pollObjects(ods);
-            totalObjects = totalObjects + numNewObjects;
-
             // Sleep between polls
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+            System.out.println("Polling new objects");
+            Integer numNewObjects = pollObjects(ods);
+            totalObjects = totalObjects + numNewObjects;
+        }
+        // Sleep between polls
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         // Although the stream is closed, there can still be pending events to process
         Integer numNewObjects = pollObjects(ods);
@@ -108,16 +119,22 @@ public class Tasks {
         // Process events until stream is closed
         Integer totalObjects = 0;
         while (!ods.isClosed()) {
-            System.out.println("Polling new objects");
-            Integer numNewObjects = pollWithTimeout(ods, timeout);
-            totalObjects = totalObjects + numNewObjects;
-
             // Sleep between polls
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+            System.out.println("Polling new objects");
+            Integer numNewObjects = pollWithTimeout(ods, timeout);
+            totalObjects = totalObjects + numNewObjects;
+
+        }
+        // Sleep between polls
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         // Although the stream is closed, there can still be pending events to process
         Integer numNewObjects = pollWithTimeout(ods, timeout);

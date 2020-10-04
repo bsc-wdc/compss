@@ -100,6 +100,12 @@ public class Main {
         Integer[] totalFiles = new Integer[MAX_ENTRIES];
         int pos = 0;
         while (!fds.isClosed()) {
+            // Sleep between polls
+            try {
+                Thread.sleep(consumerSleep);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             // Poll new files
             List<String> newFiles = fds.poll();
 
@@ -110,12 +116,12 @@ public class Main {
                 pos = pos + 1;
             }
 
-            // Sleep between polls
-            try {
-                Thread.sleep(consumerSleep);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+        }
+        // Sleep between polls
+        try {
+            Thread.sleep(consumerSleep);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         // Although the stream is closed, there can still be pending events to process

@@ -34,6 +34,12 @@ public class Tasks {
     public static void writeFilesToPath(String basePath, int sleepTime) {
         // Create several new files and add them to the stream when written
         for (int i = 0; i < Main.NUM_FILES; ++i) {
+            // Sleep some time to delay production
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             // File name
             String fileName = basePath + File.separator + Main.BASE_FILENAME + UUID.randomUUID();
             // Add content
@@ -45,13 +51,12 @@ public class Tasks {
                 fnfe.printStackTrace();
             }
             // Publish to stream is done automatically
-
-            // Sleep some time to delay production
-            try {
-                Thread.sleep(sleepTime);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+        }
+        // Sleep some time to delay production
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -59,15 +64,21 @@ public class Tasks {
         // Process events until stream is closed
         Integer totalFiles = 0;
         while (!fds.isClosed()) {
-            Integer numNewFiles = pollNewFiles(fds);
-            totalFiles = totalFiles + numNewFiles;
-
             // Sleep between polls
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+            Integer numNewFiles = pollNewFiles(fds);
+            totalFiles = totalFiles + numNewFiles;
+
+        }
+        // Sleep between polls
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         // Although the stream is closed, there can still be pending events to process
         Integer numNewFiles = pollNewFiles(fds);

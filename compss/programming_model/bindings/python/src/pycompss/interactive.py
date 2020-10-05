@@ -444,11 +444,18 @@ def stop(sync=False):
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
-                elif k not in reserved_names and \
-                        OT_is_pending_to_synchronize(obj_k):
-                    print("Found an object to synchronize: %s" % str(k))
-                    logger.debug("Found an object to synchronize: %s" % (k,))
-                    ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
+                elif k not in reserved_names:
+                    try:
+                        if OT_is_pending_to_synchronize(obj_k):
+                            print("Found an object to synchronize: %s" % str(k))
+                            logger.debug("Found an object to synchronize: %s" % (k,))
+                            ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
+                    except TypeError:
+                        # Unhashable type: List - could be a collection
+                        if isinstance(obj_k, list):
+                            print("Found a list to synchronize: %s" % str(k))
+                            logger.debug("Found a list to synchronize: %s" % (k,))
+                            ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
                 else:
                     pass
     else:

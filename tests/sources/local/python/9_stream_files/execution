@@ -35,7 +35,7 @@
       specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
       exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
       mkdir -p "${exec_target_log_folder}"
-      expectedTime=60s
+      expectedTime=80s
 
       # shellcheck disable=SC2086
       timeout --signal=2 --kill-after=10s $expectedTime "${COMPSs_exec}" \

@@ -179,21 +179,22 @@
       exit $ev
     fi
 
-    ./configure --enable-gettimeofday-clock \
-                --without-unwind \
-                --without-dyninst \
-                --without-binutils \
-                "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
-                "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
-                --with-java-jdk="${JAVA_HOME}" \
-                --disable-openmp \
-                --enable-nanos \
-                --disable-smpss \
-                --disable-instrument-io \
-                --disable-pebs-sampling \
-                --disable-pthread-cond-calls \
-                --prefix="${extraeTarget}" \
-                --libdir="${extraeTarget}/lib"
+    ./configure \
+      --disable-posix-clock \
+      --without-unwind \
+      --without-dyninst \
+      --without-binutils \
+      "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
+      "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
+      --with-java-jdk="${JAVA_HOME}" \
+      --disable-openmp \
+      --enable-nanos \
+      --disable-smpss \
+      --disable-instrument-io \
+      --disable-pebs-sampling \
+      --disable-pthread-cond-calls \
+      --prefix="${extraeTarget}" \
+      --libdir="${extraeTarget}/lib"
     ev=$?
     if [ "$ev" -ne 0 ]; then
       exit $ev

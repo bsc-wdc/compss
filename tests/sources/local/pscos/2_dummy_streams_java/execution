@@ -48,13 +48,13 @@ EOF
   echo "*** RUNNING JAVA APPLICATION PSCO Streams"
   output_log="${target_log_folder}/test_psco_streams_0${retry_num}.outputlog"
   error_log="${target_log_folder}/test_psco_streams_0${retry_num}.errorlog"
-  expectedTime=120s
+  expectedTime=150s
 
   # Add a little sleep to allow OS free Storage structures
   sleep 10s 
   
   # shellcheck disable=SC2086
-  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+  timeout --signal=2 --kill-after=10s $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
      \

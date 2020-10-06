@@ -258,7 +258,7 @@
             </goals>
 	    <configuration>
 		<dataFile>${jacoco.tests.reportPath}</dataFile>
-                <outputDirectory>${project.basedir}/../target/site/jacoco-aggregate</outputDirectory>
+                <outputDirectory>${project.build.directory}/site/jacoco-aggregate</outputDirectory>
             </configuration>
         </execution>
     </executions>

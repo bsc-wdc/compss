@@ -80,7 +80,8 @@ class Constraint(PyCOMPSsDecorator):
                     self.__configure_core_element__(kwargs)
             else:
                 # worker code
-                pass
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method

@@ -97,6 +97,8 @@ class MultiNode(PyCOMPSsDecorator):
                     self.__configure_core_element__(kwargs)
             else:
                 # worker code
+                if not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
                 set_slurm_environment()
 
             # Set the computing_nodes variable in kwargs for its usage

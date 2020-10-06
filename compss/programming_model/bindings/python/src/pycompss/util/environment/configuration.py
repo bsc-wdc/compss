@@ -111,17 +111,17 @@ def prepare_environment(interactive, o_c, storage_impl,
         os.environ['EXTRAE_HOME'] = extrae_home
     else:
         extrae_home = os.environ['EXTRAE_HOME']
+
     extrae_lib = extrae_home + '/lib'
-
-    # Include extrae into ld_library_path
     os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
+    os.environ['EXTRAE_USE_POSIX_CLOCK'] = '0'
 
+    # Add environment variable to get binding-commons debug information
     if debug:
-        # Add environment variable to get binding-commons debug information
         os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
+    # Force mpi worker if using ScoreP, ARM-MAP or ARM-DDT
     if trace == 'scorep' or trace == 'arm-map' or trace == 'arm-ddt':
-        # Force mpi worker if using ScoreP, ARM-MAP or ARM-DDT
         mpi_worker = True
 
     env_vars = {'compss_home': compss_home,

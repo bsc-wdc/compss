@@ -1,10 +1,14 @@
+# shellcheck source=../commons/logger.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+
 
 ###############################################
 ###############################################
 #            CONSTANTS DEFINITION
 ###############################################
 ###############################################
+
 #----------------------------------------------
 # DEFAULT VALUES
 #----------------------------------------------
@@ -20,7 +24,6 @@ DEFAULT_TRACING=${TRACING_DEACTIVATED}
 DEFAULT_TRACE_LABEL="None"
 DEFAULT_EXTRAE_CONFIG_FILE="null"
 
-
 #----------------------------------------------
 # ERROR MESSAGES
 #----------------------------------------------
@@ -31,6 +34,7 @@ DEFAULT_EXTRAE_CONFIG_FILE="null"
 #        STREAM HANDLING FUNCTIONS
 ###############################################
 ###############################################
+
 #----------------------------------------------
 # CHECK TRACING-RELATED ENV VARIABLES
 #----------------------------------------------
@@ -44,7 +48,6 @@ check_tracing_env() {
     EXTRAE_LIB=${EXTRAE_HOME}/lib
   fi
 }
-
 
 #----------------------------------------------
 # CHECK TRACING-RELATED SETUP values
@@ -79,6 +82,7 @@ check_tracing_setup () {
     export EXTRAE_HOME=${EXTRAE_HOME}
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
     export EXTRAE_CONFIG_FILE=${extraeFile}
+    export EXTRAE_USE_POSIX_CLOCK=0
   fi
 }
 
@@ -86,7 +90,8 @@ check_tracing_setup () {
 # GENERATE CONFIGURATION FILES
 #----------------------------------------------
 generate_tracing_config_files() {
-  : # no need to do anything. Config files available on the COMPSs distribution.
+  # No need to do anything. Config files available on the COMPSs distribution
+  :
 }
 
 #----------------------------------------------
@@ -125,5 +130,6 @@ stop_tracing() {
 # CLEAN ENV
 #----------------------------------------------
 clean_tracing_env () {
+  # No need to do anything
   :
 }

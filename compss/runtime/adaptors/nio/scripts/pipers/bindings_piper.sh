@@ -98,6 +98,7 @@ export_tracing() {
             
             # The LATER_* variables are used in the workerCMD built from the JAVA side (mpirun -X var=LATER_var)
             unset EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE
+            export EXTRAE_USE_POSIX_CLOCK=0
             export LATER_MPI_EXTRAE_CONFIG_FILE=${workerConfigFile}
             export LATER_MPI_LD_PRELOAD="${EXTRAE_HOME}/${libmpitrace}"
             export LATER_MPI_PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
@@ -105,6 +106,7 @@ export_tracing() {
             # Exporting variables for multi-processing Python worker
             unset EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE
             export EXTRAE_CONFIG_FILE=${workerConfigFile}
+            export EXTRAE_USE_POSIX_CLOCK=0
             export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
         fi
     

@@ -67,6 +67,7 @@ public abstract class Tracer {
     // Extrae environment flags
     public static final String LD_PRELOAD = "LD_PRELOAD";
     public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
+    public static final String EXTRAE_USE_POSIX_CLOCK = "EXTRAE_USE_POSIX_CLOCK";
 
     // Description tags for Paraver
     private static final String TASK_DESC = "Task";

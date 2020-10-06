@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -107,6 +109,11 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new OmpSsDefinition(this.getSignature(), binary, workingDir, failByEV, this.getRequirements());
     }
 
     @Override

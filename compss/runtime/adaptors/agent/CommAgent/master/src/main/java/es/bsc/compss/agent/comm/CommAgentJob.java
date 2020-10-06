@@ -26,6 +26,7 @@ import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.master.NIOJob;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -44,6 +45,7 @@ import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.util.CoreManager;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -87,11 +89,13 @@ class CommAgentJob extends NIOJob {
         // Compute the task parameters
         LinkedList<NIOParam> params = addParams();
         int numParams = params.size() - taskParams.getNumReturns();
-
-        CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, this.taskParams.getParallelismSource(),
-            this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, numParams,
-            absMethodImpl.getRequirements(), slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(), this.jobId,
-            this.history, this.transferId, this.getOnFailure(), this.getTimeOut(), CommAgentAdaptor.LOCAL_RESOURCE);
+        CoreElement ce = CoreManager.getCore(impl.getCoreId());
+        String ceSignature = ce.getSignature();
+        CommTask nt = new CommTask(this.getLang(), DEBUG, ceSignature, absMethodImpl,
+            this.taskParams.getParallelismSource(), this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(),
+            params, numParams, absMethodImpl.getRequirements(), slaveWorkersNodeNames, this.taskId,
+            this.impl.getTaskType(), this.jobId, this.history, this.transferId, this.getOnFailure(), this.getTimeOut(),
+            CommAgentAdaptor.LOCAL_RESOURCE);
 
         return nt;
     }

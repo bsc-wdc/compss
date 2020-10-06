@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -150,6 +152,12 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new DecafDefinition(this.getSignature(), dfScript, dfExecutor, dfLib, workingDir, mpiRunner, failByEV,
+            this.getRequirements());
     }
 
     @Override

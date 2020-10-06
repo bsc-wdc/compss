@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ContainerDefinition;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
@@ -156,6 +158,12 @@ public class ContainerImplementation extends AbstractMethodImplementation implem
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new ContainerDefinition(this.getSignature(), internalExecutionType, internalFunc, internalBinary,
+            workingDir, failByEV, container, this.getRequirements());
     }
 
     @Override

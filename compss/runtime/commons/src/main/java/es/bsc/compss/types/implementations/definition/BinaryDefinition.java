@@ -32,7 +32,16 @@ public class BinaryDefinition extends ImplementationDefinition<MethodResourceDes
     private final boolean failByEV;
 
 
-    protected BinaryDefinition(String signature, String binary, String workingDir, boolean failByEV,
+    /**
+     * Creates a new ImplementationDefinition to create a binary core element implementation.
+     *
+     * @param signature Binary signature.
+     * @param binary Binary path.
+     * @param workingDir Working directory.
+     * @param failByEV Flag to enable failure with EV.
+     * @param implConstraints Binary requirements.
+     */
+    public BinaryDefinition(String signature, String binary, String workingDir, boolean failByEV,
         MethodResourceDescription implConstraints) {
 
         super(signature, implConstraints);

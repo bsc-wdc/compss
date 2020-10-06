@@ -35,7 +35,23 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     private final CollectionLayout cl;
 
 
-    protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
+    /**
+     * Creates a new ImplementationDefinition to create a python MPI core element implementation.
+     *
+     * @param implSignature Method signature.
+     * @param declaringClass Method class.
+     * @param methodName Alternative method name.
+     * @param workingDir Binary working directory.
+     * @param mpiRunner Path to the MPI command.
+     * @param scaleByCU Scale by computing units property.
+     * @param failByEV Flag to enable failure with EV.
+     * @param paramName Name of the parameter for the collection layout.
+     * @param blockCount Collection Layout's Block count.
+     * @param blockLen Collection Layout's Block length.
+     * @param blockStride Collection Layout's Block Stride.
+     * @param implConstraints Collection Layout's Method requirements.
+     */
+    public PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
         String mpiRunner, String mpiFlags, boolean scaleByCU, boolean failByEV, String paramName, int blockCount,
         int blockLen, int blockStride, MethodResourceDescription implConstraints) {
 

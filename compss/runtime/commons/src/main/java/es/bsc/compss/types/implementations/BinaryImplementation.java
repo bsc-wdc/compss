@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.BinaryDefinition;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -108,6 +110,11 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new BinaryDefinition(this.getSignature(), binary, workingDir, failByEV, this.getRequirements());
     }
 
     @Override

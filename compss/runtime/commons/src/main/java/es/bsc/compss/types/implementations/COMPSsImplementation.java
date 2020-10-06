@@ -18,6 +18,8 @@ package es.bsc.compss.types.implementations;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -180,6 +182,12 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new COMPSsDefinition(this.getSignature(), runcompss, flags, appName, workerInMaster, workingDir,
+            failByEV, this.getRequirements());
     }
 
     @Override

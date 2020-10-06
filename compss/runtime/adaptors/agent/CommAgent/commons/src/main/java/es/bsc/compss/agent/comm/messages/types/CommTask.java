@@ -38,6 +38,7 @@ import java.util.List;
 public class CommTask extends NIOTask {
 
     private CommResource orchestrator;
+    private String ceSignature;
 
 
     public CommTask() {
@@ -49,6 +50,7 @@ public class CommTask extends NIOTask {
      *
      * @param lang Task language.
      * @param workerDebug Worker debug level.
+     * @param ceSignature Signature of the CE to execute.
      * @param impl Implementation to execute.
      * @param parallelismSource Interface class to parallelize the code
      * @param hasTarget Whether the task has a target object or not.
@@ -62,17 +64,19 @@ public class CommTask extends NIOTask {
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
+     * @param onFailure Behavior in case of execution failure.
      * @param timeOut Task Deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
-    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
-        boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
-        List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
-        int transferGroupId, OnFailure onFailure, long timeOut, CommResource orchestrator) {
+    public CommTask(Lang lang, boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
+        String parallelismSource, boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams,
+        MethodResourceDescription reqs, List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId,
+        JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut, CommResource orchestrator) {
         super(lang, workerDebug, impl, parallelismSource, hasTarget, numReturns, params, numParams, reqs,
             slaveWorkersNodeNames, taskId, taskType, jobId, hist, transferGroupId, onFailure, timeOut);
 
         this.orchestrator = orchestrator;
+        this.ceSignature = ceSignature;
     }
 
     /**
@@ -80,6 +84,7 @@ public class CommTask extends NIOTask {
      *
      * @param lang Task language.
      * @param workerDebug Worker debug level.
+     * @param ceSignature Signature of the CE to execute.
      * @param impl Implementation to execute.
      * @param parallelismSource Interface class to parallelize the code
      * @param arguments List of task's method arguments.
@@ -90,11 +95,12 @@ public class CommTask extends NIOTask {
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
+     * @param onFailure Behavior in case of execution failure.
      * @param timeOut Task deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
-    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
-        LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
+    public CommTask(Lang lang, boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
+        String parallelismSource, LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
         OnFailure onFailure, long timeOut, CommResource orchestrator) {
 
@@ -102,10 +108,15 @@ public class CommTask extends NIOTask {
             jobId, hist, transferGroupId, onFailure, timeOut);
 
         this.orchestrator = orchestrator;
+        this.ceSignature = ceSignature;
     }
 
     public CommResource getOrchestrator() {
         return this.orchestrator;
+    }
+
+    public String getCeSignature() {
+        return ceSignature;
     }
 
     @Override
@@ -113,6 +124,7 @@ public class CommTask extends NIOTask {
         super.readExternal(in);
 
         this.orchestrator = (CommResource) in.readObject();
+        this.ceSignature = in.readUTF();
     }
 
     @Override
@@ -120,6 +132,7 @@ public class CommTask extends NIOTask {
         super.writeExternal(out);
 
         out.writeObject(this.orchestrator);
+        out.writeUTF(ceSignature);
     }
 
 }

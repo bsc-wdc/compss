@@ -35,7 +35,18 @@ public class MPIDefinition extends ImplementationDefinition<MethodResourceDescri
     private final boolean failByEV;
 
 
-    protected MPIDefinition(String signature, String binary, String workingDir, String mpiRunner, String mpiFlags,
+    /**
+     * Creates a new ImplementationDefinition to create a MPI core element implementation.
+     * 
+     * @param binary MPI binary path.
+     * @param workingDir Binary working directory.
+     * @param mpiRunner Path to the MPI command.
+     * @param scaleByCU Scale by computing units property.
+     * @param failByEV Flag to enable failure with EV.
+     * @param signature MPI method signature.
+     * @param implConstraints MPI requirements.
+     */
+    public MPIDefinition(String signature, String binary, String workingDir, String mpiRunner, String mpiFlags,
         boolean scaleByCU, boolean failByEV, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;

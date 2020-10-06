@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -47,7 +49,7 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
 
     /**
      * Creates a new MultiNodeImplementation instance from the given parameters.
-     * 
+     *
      * @param methodClass Class name.
      * @param methodName Method name.
      * @param coreId Core Id.
@@ -65,7 +67,7 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the method declaring class.
-     * 
+     *
      * @return The method declaring class.
      */
     public String getDeclaringClass() {
@@ -74,7 +76,7 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the method name.
-     * 
+     *
      * @return The method name.
      */
     public String getMethodName() {
@@ -83,7 +85,7 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
 
     /**
      * Sets a new method name.
-     * 
+     *
      * @param methodName New method name.
      */
     public void setMethodName(String methodName) {
@@ -103,6 +105,11 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new MultiNodeDefinition(this.getSignature(), declaringClass, methodName, this.getRequirements());
     }
 
     @Override

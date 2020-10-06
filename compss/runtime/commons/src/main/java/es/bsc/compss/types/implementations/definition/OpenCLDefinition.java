@@ -31,7 +31,15 @@ public class OpenCLDefinition extends ImplementationDefinition<MethodResourceDes
     private final String workingDir;
 
 
-    protected OpenCLDefinition(String signature, String kernel, String workingDir,
+    /**
+     * Creates a new ImplementationDefinition to create an OpenCL core element implementation.
+     *
+     * @param signature Method signature.
+     * @param kernel Path to the OpenCL kernel.
+     * @param workingDir Binary working directory.
+     * @param implConstraints Method requirements.
+     */
+    public OpenCLDefinition(String signature, String kernel, String workingDir,
         MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.kernel = kernel;

@@ -32,7 +32,10 @@ import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
@@ -156,13 +159,8 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         Lang lang;
         lang = request.getLang();
 
-        MethodImplementation impl;
-        impl = (MethodImplementation) request.getMethodImplementation();
-
-        String className;
-        className = impl.getDeclaringClass();
-        String methodName;
-        methodName = impl.getAlternativeMethodName();
+        Implementation impl;
+        impl = request.getMethodImplementation();
 
         String ceiClass;
         ceiClass = request.getParallelismSource();
@@ -187,22 +185,19 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             paramId++;
         }
 
-        MethodResourceDescription requirements = request.getRequirements();
         CommResource orchestrator = request.getOrchestrator();
         AppMonitor monitor;
         monitor = new TaskMonitor(arguments, target, results, orchestrator, request);
 
-        startTask(lang, className, methodName, ceiClass, arguments, target, results, requirements, monitor);
-    }
-
-    private void startTask(Lang lang, String className, String methodName, String ceiClass,
-        ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
-        MethodResourceDescription requirements, AppMonitor monitor) {
+        CoreElementDefinition ced = new CoreElementDefinition();
+        ced.setCeSignature(request.getCeSignature());
+        ImplementationDefinition<?> implDef = impl.getDefinition();
+        ced.addImplementation(implDef);
 
         try {
-            Agent.runTask(lang, className, methodName, ceiClass, params, target, results, requirements, monitor);
-        } catch (AgentException ex) {
-            ex.printStackTrace();
+            Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor);
+        } catch (AgentException ae) {
+            monitor.onFailedExecution();
         }
     }
 

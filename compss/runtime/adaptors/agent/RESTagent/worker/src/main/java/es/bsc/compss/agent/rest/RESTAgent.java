@@ -29,12 +29,15 @@ import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.ReduceNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -318,9 +321,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         } catch (java.lang.IllegalArgumentException iae) {
             return Response.status(Response.Status.NOT_ACCEPTABLE).entity(UNSUPPORTED_LANGUAGE_MSG).build();
         }
-        String className = request.getClassName();
-        String methodName = request.getMethodName();
-        String ceiClass = request.getCeiClass();
+        String className;
+        className = request.getClassName();
+        String methodName;
+        methodName = request.getMethodName();
+        String ceiClass;
+        ceiClass = request.getCeiClass();
         ApplicationParameterImpl[] arguments = request.getParams();
         ApplicationParameterImpl target = request.getTarget();
         ApplicationParameterImpl[] results;
@@ -334,18 +340,39 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         }
         long appId;
         Orchestrator orchestrator = request.getOrchestrator();
-        // int numParams = arguments.length;
-        // if (target != null) {
-        // numParams++;
-        // }
-        // if (hasResult) {
-        // numParams++;
-        // }
         AppTaskMonitor monitor = new AppTaskMonitor(arguments, target, results, orchestrator);
 
+        // COMPUTE SIGNATURES
+        StringBuilder typesSB = new StringBuilder();
+
+        LOGGER.debug("Handles parameters:");
+        for (ApplicationParameter param : arguments) {
+            LOGGER.debug("\t Parameter:" + param.getParamName());
+            if (typesSB.length() > 0) {
+                typesSB.append(",");
+            }
+            if (param.getType() != DataType.PSCO_T) {
+                typesSB.append(param.getType().toString());
+            } else {
+                typesSB.append("OBJECT_T");
+            }
+        }
+
+        String paramsTypes = typesSB.toString();
+
+        String ceSignature = methodName + "(" + paramsTypes + ")";
+        String implSignature = methodName + "(" + paramsTypes + ")" + className;
+        String[] typeArgs = new String[] { className,
+            methodName };
+
+        MethodResourceDescription requirements = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS;
+        CoreElementDefinition ced = new CoreElementDefinition();
+        ced.setCeSignature(ceSignature);
+        ImplementationDefinition<?> implDef =
+            ImplementationDefinition.defineImplementation("METHOD", implSignature, requirements, typeArgs);
+        ced.addImplementation(implDef);
         try {
-            appId = Agent.runTask(lang, className, methodName, ceiClass, arguments, target, results,
-                MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
+            appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runTask : ", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();

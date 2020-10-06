@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.MPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -145,6 +147,12 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new MPIDefinition(this.getSignature(), binary, workingDir, mpiRunner, mpiFlags, scaleByCU, failByEV,
+            this.getRequirements());
     }
 
     @Override

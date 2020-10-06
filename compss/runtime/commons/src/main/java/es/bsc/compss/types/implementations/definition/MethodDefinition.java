@@ -30,7 +30,15 @@ public class MethodDefinition extends ImplementationDefinition<MethodResourceDes
     private final String methodName;
 
 
-    protected MethodDefinition(String implSignature, String declaringClass, String methodName,
+    /**
+     * Creates a new ImplementationDefinition to create a method core element implementation.
+     * 
+     * @param implSignature Method signature.
+     * @param declaringClass Method class.
+     * @param methodName Method name.
+     * @param implConstraints Method annotations.
+     */
+    public MethodDefinition(String implSignature, String declaringClass, String methodName,
         MethodResourceDescription implConstraints) {
         super(implSignature, implConstraints);
         this.declaringClass = declaringClass;

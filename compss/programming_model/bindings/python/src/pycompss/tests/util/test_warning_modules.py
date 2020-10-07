@@ -35,7 +35,7 @@ def test_show_optional_module_warning():
     import pycompss.util.warnings.modules as warn
     # Hack - Add non existing package
     warn.OPTIONAL_MODULES["non_existing_package"] = "this is the description"
-    stdout_backup = list(sys.stdout)
+    stdout_backup = sys.stdout
     out_file = "warning.out"
     fd = open(out_file, 'w')
     sys.stdout = fd

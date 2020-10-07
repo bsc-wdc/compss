@@ -123,11 +123,13 @@ public class Agent {
      * @param target paramter description of the task's callee
      * @param results paramter description of the task's results
      * @param monitor monitor to notify changes on the method execution
+     * @param onFailure behaviour in case of task execution failure
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
     public static long runTask(Lang lang, CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
-        ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor) throws AgentException {
+        ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
+        throws AgentException {
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
         LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
@@ -189,7 +191,7 @@ public class Agent {
             RUNTIME.executeTask(appId, // APP ID
                 monitor, // Corresponding task monitor
                 lang, true, null, null, ced.getCeSignature(), // Method to call
-                OnFailure.RETRY, // On failure behavior
+                onFailure, // On failure behavior
                 0, // Time out of the task
                 false, numNodes, false, false, // Scheduling information
                 target != null, null, paramsCount, // Parameter information

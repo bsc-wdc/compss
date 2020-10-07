@@ -36,6 +36,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.job.JobEndStatus;
@@ -372,7 +373,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             ImplementationDefinition.defineImplementation("METHOD", implSignature, requirements, typeArgs);
         ced.addImplementation(implDef);
         try {
-            appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor);
+            appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, OnFailure.FAIL);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runTask : ", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();

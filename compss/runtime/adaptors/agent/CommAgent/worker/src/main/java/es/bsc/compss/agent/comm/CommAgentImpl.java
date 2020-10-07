@@ -33,6 +33,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
@@ -194,8 +195,9 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         ImplementationDefinition<?> implDef = impl.getDefinition();
         ced.addImplementation(implDef);
 
+        OnFailure onFail = request.getOnFailure();
         try {
-            Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor);
+            Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, onFail);
         } catch (AgentException ae) {
             monitor.onFailedExecution();
         }

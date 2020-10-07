@@ -44,6 +44,11 @@
   pythonVersion=${invocation[4]}
   pythonVirtualEnvironment=${invocation[5]}
   pythonPropagateVirtualEnvironment=${invocation[6]}
+  
+  # Added to support coverage
+  if [[ "${pythonInterpreter}" = coverage* ]]; then
+	     pythonInterpreter=$(echo ${pythonInterpreter} | tr "#" " " )
+  fi
   if [ "${debug}" == "true" ]; then
     echo "[WORKER_PYTHON.SH] - pythonpath                         = $pythonpath"
     echo "[WORKER_PYTHON.SH] - pythonInterpreter                  = $pythonInterpreter"

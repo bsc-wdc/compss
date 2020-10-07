@@ -225,10 +225,20 @@ EOT
 
 
 prepare_coverage() {
-    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];
-        then jvm_master_opts="-javaagent:${jacoco_agent_expression}"
-        else jvm_master_opts+=", -javaagent:${jacoco_agent_expression}"
+    jacoco_master_expression=$(echo ${jacoco_agent_expression} | tr "#" "," | tr "@" ",")
+    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];then 
+	    jvm_master_opts="-javaagent:${jacoco_master_expression}"
+    else 
+	   if [[ $jvm_master_opts == *"-agentpath"* ]] || [[ $jvm_master_opts == *"-javaagent"* ]]; then
+		   echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
+	   else
+		   jvm_master_opts+=",-javaagent:"
+		   jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
+		   jvm_master_opts+=${jacoco_master_expression}
+	   fi
     fi
+
+    #Adding worker jacoco agent in jvm options
     IFS='#'
     aux=$jacoco_agent_expression
     read -ra ADDR <<< ${aux}
@@ -252,14 +262,17 @@ prepare_coverage() {
         final2+="${i},"
     done
     final2=${final2%?}
-    if [ -z "$options" ]
-    then
-        jvm_workers_opts+=",-javaagent:${final2}"
+    if [[ $jvm_worker_opts == *"-agentpath"* ]] || [[ $jvm_worker_opts == *"-javaagent"* ]]; then
+	    echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
     else
-        jvm_workers_opts+=",-javaagent:${final2}#${options}"
+	    if [ -z "$options" ]; then
+		    jvm_workers_opts+=",-javaagent:${final2}"
+	    else
+		    jvm_workers_opts+=",-javaagent:${final2}#${options}"
+    	    fi
     fi
-    jvm_master_opts=$(echo $jvm_master_opts | tr "#" ",")
-    jvm_master_opts=$(echo $jvm_master_opts | tr "@" ",")
+
+    #Adding coverage for python
     destfile=${location}
     IFS='='
     read -ra ADDR <<< ${location}
@@ -269,10 +282,11 @@ prepare_coverage() {
     IFS=' '
     final=""
     final=$(echo ${ADDR[0]} | rev | cut -d"/" -f2- | rev)
-    echo "[run]" > /tmp/coverage_rc
-    echo "parallel=true" >> /tmp/coverage_rc
-    echo "data_file=${final}/coverage" >> /tmp/coverage_rc
-    python_interpreter="coverage${python_version}#run#--rcfile=/tmp/coverage_rc"
+    #echo "[run]" > /tmp/coverage_rc
+    #echo "parallel=true" >> /tmp/coverage_rc
+    #echo "data_file=${final}/coverage" >> /tmp/coverage_rc
+    #python_interpreter="coverage${python_version}#run#--rcfile=/tmp/coverage_rc"
+    python_interpreter="coverage${python_version}#run#--rcfile=${final}/coverage_rc"
 }
 
 #----------------------------------------------
@@ -368,7 +382,8 @@ start_compss_app() {
   prepare_runtime_environment
 
   append_app_jvm_options_to_file "${jvm_options_file}"
-
+  echo "Options file: ${jvm_options_file}"
+  cat ${jvm_options_file}
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
  # Launch application execution

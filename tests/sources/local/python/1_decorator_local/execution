@@ -26,7 +26,10 @@
   # Run application
   echo
   echo "*** RUNNING PYTHON APPLICATION DECORATOR LOCAL"
-
+  if [[ $runcompss_opts == *"--coverage="* ]]; then
+    echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
+    runcompss_opts=${runcompss_opt/--coverage=*/}
+  fi  
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"

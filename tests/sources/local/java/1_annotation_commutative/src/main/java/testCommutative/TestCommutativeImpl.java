@@ -108,6 +108,7 @@ public class TestCommutativeImpl {
             e.printStackTrace();
         }
         return i + 1;
+
     }
 
     public static void writeFile(String fileName, String i) {
@@ -131,7 +132,6 @@ public class TestCommutativeImpl {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
     public static void writeFileCommutative(String fileName, String i) {
@@ -180,7 +180,6 @@ public class TestCommutativeImpl {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         System.out.println(res);
         return res;
     }

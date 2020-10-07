@@ -31,7 +31,7 @@ import es.bsc.compss.types.CoreElement;
  */
 public class TestCompatible {
 
-    private static final int WAIT_FOR_RUNTIME_TIME = 10_000; // ms
+    private static final int WAIT_FOR_RUNTIME_TIME = 20_000; // ms
 
     // Interface data
     private static int coreCount;

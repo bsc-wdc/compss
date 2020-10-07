@@ -151,7 +151,8 @@ public class MPIInvoker extends Invoker {
         LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
         if (lp instanceof PythonParams) {
             PythonParams pp = (PythonParams) lp;
-            pythonInterpreter = pp.getPythonInterpreter();
+            pythonInterpreter = pp.checkCoverageAndGetPythonInterpreter();
+
         }
 
         // Convert binary parameters and calculate binary-streams redirection

@@ -97,4 +97,18 @@ public class PythonParams implements LanguageParams {
         return this.pythonMpiWorker;
     }
 
+    /**
+     * Checks if python interpreter is a coverage stuff and converts to a normal coverage command string.
+     * 
+     * @return converted coverage command string.
+     */
+    public String checkCoverageAndGetPythonInterpreter() {
+        // Checking if running in coverage mode
+        if (this.pythonInterpreter.startsWith("coverage")) {
+            return this.pythonInterpreter.replace("#", " ");
+        } else {
+            return this.pythonInterpreter;
+        }
+    }
+
 }

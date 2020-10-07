@@ -33,7 +33,7 @@
   echo "*** RUNNING JAVA APPLICATION OBJECT STREAMS"
   output_log="${target_log_folder}/objectStreams_0${retry_num}.outputlog"
   error_log="${target_log_folder}/objectStreams_0${retry_num}.errorlog"
-  expectedTime=120s
+  expectedTime=150s
 
   # Add a little sleep to allow OS free Kafka ports
   sleep 10s

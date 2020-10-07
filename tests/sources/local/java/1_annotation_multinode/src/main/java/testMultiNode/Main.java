@@ -5,7 +5,7 @@ import es.bsc.compss.api.COMPSs;
 
 public class Main {
 
-    private static final int SLEEP_TIME = 5_000;
+    private static final int SLEEP_TIME = 10_000;
 
 
     public static void main(String[] args) {

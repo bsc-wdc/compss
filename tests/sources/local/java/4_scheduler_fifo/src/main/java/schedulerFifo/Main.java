@@ -9,7 +9,7 @@ public class Main {
 
     private static final String FILE_NAME = "counterFile_";
 
-    private static final int SLEEP_WAIT_FOR_RUNTIME = 10_000; // ms
+    private static final int SLEEP_WAIT_FOR_RUNTIME = 15_000; // ms
 
 
     private static void generateTree(int taskWidth, int taskChilds, String fileInout, String fileIn) {
@@ -25,11 +25,11 @@ public class Main {
         } catch (IOException ioe) {
             ioe.printStackTrace();
             System.exit(-1);
-        }
+        } // Se usa?
 
         MainImpl.increment(fileInout, fileIn);
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -52,7 +52,7 @@ public class Main {
         // Check and get parameters
         if (args.length != 4) {
             System.out.println("[ERROR] Bad number of parameters");
-            System.out.println("    Usage: schedulers.Main <taskWidth> <taskDepth> <counterValue>");
+            System.out.println("    Usage: schedulers.Main <taskWidth> <taskDepth> <taskChilds> <counterValue>");
             System.exit(-1);
         }
         int taskWidth = Integer.parseInt(args[0]);

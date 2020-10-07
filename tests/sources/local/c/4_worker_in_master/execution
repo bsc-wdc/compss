@@ -40,7 +40,7 @@
   output_log="${target_log_folder}/simple_c_0${retry_num}.outputlog"
   error_log="${target_log_folder}/simple_c_0${retry_num}.errorlog"
   counterVal=1
-  expectedTime=30s
+  expectedTime=60s
 
   # No lang flag to check if it is inferred
 

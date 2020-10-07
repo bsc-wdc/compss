@@ -116,7 +116,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
                 LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
                 if (lp instanceof PythonParams) {
                     PythonParams pp = (PythonParams) lp;
-                    pythonInterpreter = pp.getPythonInterpreter();
+                    pythonInterpreter = pp.checkCoverageAndGetPythonInterpreter();
                 }
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
@@ -156,13 +156,12 @@ public class PythonMPIInvoker extends ExternalInvoker {
         LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
         if (lp instanceof PythonParams) {
             PythonParams pp = (PythonParams) lp;
-            pythonInterpreter = pp.getPythonInterpreter();
+            pythonInterpreter = pp.checkCoverageAndGetPythonInterpreter();
+        } else {
+            LOGGER.error("Incorrect language parameters for PYTHON MPI task. No Python language parameters");
+            throw new InvokeExecutionException(
+                "Incorrect language parameters for PYTHON MPI task. No Python language parameters");
         }
-
-        // Convert binary parameters and calculate binary-streams redirection
-        StdIOStream streamValues = new StdIOStream();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-            this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // MPI Flags
         int numMPIFlags = 0;
@@ -172,8 +171,20 @@ public class PythonMPIInvoker extends ExternalInvoker {
             numMPIFlags = mpiflagsArray.length;
         }
 
+        String[] pythonInterpreterArray = null;
+        int interpreterflags = 0;
+        if (pythonInterpreter != null) {
+            pythonInterpreterArray = pythonInterpreter.split(" ");
+            interpreterflags = pythonInterpreterArray.length - 1;
+        }
+
         int numBasePythonMpiArgs = NUM_BASE_PYTHON_MPI_ARGS;
-        numBasePythonMpiArgs = numBasePythonMpiArgs + numMPIFlags;
+        numBasePythonMpiArgs = numBasePythonMpiArgs + numMPIFlags + interpreterflags;
+
+        // Convert binary parameters and calculate binary-streams redirection
+        StdIOStream streamValues = new StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+            this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // Prepare command
         String[] cmd = new String[numBasePythonMpiArgs + binaryParams.size()];
@@ -193,9 +204,15 @@ public class PythonMPIInvoker extends ExternalInvoker {
         for (int i = 0; i < numMPIFlags; ++i) {
             cmd[5 + i] = mpiflagsArray[i];
         }
-
-        cmd[numBasePythonMpiArgs - 3] =
-            ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonInterpreter();
+        // adding python interpreter (including when coverage is set)
+        if (pythonInterpreterArray != null || pythonInterpreterArray.length > 0) {
+            for (int i = 0; i < pythonInterpreterArray.length; i++) {
+                cmd[numBasePythonMpiArgs - (2 + pythonInterpreterArray.length - i)] = pythonInterpreterArray[i];
+            }
+        } else {
+            LOGGER.error("Incorrect python interpreter parameter");
+            throw new InvokeExecutionException("Incorrect python interpreter parameter");
+        }
         String installDir = this.context.getInstallDir();
         final String pycompssRelativePath = File.separator + "Bindings" + File.separator + "python";
         String pythonVersion =

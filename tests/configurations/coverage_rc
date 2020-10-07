@@ -1,0 +1,14 @@
+[run]
+parallel=true
+data_file=@TEST_OUTPUT_PATH@/coverage/coverage
+omit =
+    */site-packages/*
+    */distutils/*
+    @TEST_OUTPUT_PATH@/*
+[report]
+omit =
+    */site-packages/*
+    */distutils/*
+    @TEST_OUTPUT_PATH@/*
+[xml]
+output=@TEST_OUTPUT_PATH@/coverage/coverage.xml

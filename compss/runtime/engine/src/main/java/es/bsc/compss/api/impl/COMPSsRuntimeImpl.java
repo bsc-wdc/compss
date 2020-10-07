@@ -34,7 +34,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.DoNothingTaskMonitor;
-import es.bsc.compss.types.FatalErrorHandler;
+import es.bsc.compss.types.ErrorHandler;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -95,7 +95,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHandler {
+public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler {
 
     // Exception constants definition
     private static final String WARN_IT_FILE_NOT_READ = "WARNING: COMPSs Properties file could not be read";
@@ -1634,9 +1634,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * FatalErrorHandler INTERFACE
      * ************************************************************************************************************
      */
+
     @Override
-    public void fatalError() {
-        this.stopIT(true);
+    public boolean handleError() {
+        return handleFatalError();
+    }
+
+    @Override
+    public boolean handleFatalError() {
+        ErrorManager.info("Shutting down COMPSs...", null, System.err);
+        new Thread() {
+
+            public void run() {
+                ErrorManager.logError("Error detected. Shutting down COMPSs", null);
+                COMPSsRuntimeImpl.this.stopIT(true);
+                System.err.println("Shutting down the running process");
+                System.exit(1);
+            }
+        }.start();
+        return true;
     }
 
     /*

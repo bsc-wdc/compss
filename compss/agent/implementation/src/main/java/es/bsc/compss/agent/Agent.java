@@ -30,6 +30,7 @@ import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.ErrorHandler;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -97,6 +98,22 @@ public class Agent {
         }
 
         RUNTIME = new COMPSsRuntimeImpl();
+        ErrorHandler feh = new ErrorHandler() {
+
+            @Override
+            public boolean handleError() {
+                LOGGER.info("Error raised. Please, check runtime.log");
+                return false;
+            }
+
+            @Override
+            public boolean handleFatalError() {
+                LOGGER.info("Fatal error for an application raised. Please, check runtime.log");
+                return false;
+            }
+
+        };
+        ErrorManager.init(feh);
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
         RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
 

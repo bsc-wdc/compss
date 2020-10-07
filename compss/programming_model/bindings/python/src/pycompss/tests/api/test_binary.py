@@ -43,17 +43,18 @@ def test_binary_call():
         "Wrong expected result (should be 1)."
 
 
-def test_binary_call_outside():
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
-    my_bin = Binary(binary="date")
-    f = my_bin(dummy_function)
-    thrown = False
-    try:
-        _ = f()
-    except Exception:  # noqa
-        thrown = True  # this is OK!
-    assert thrown, \
-        "The binary decorator did not raise an exception when invoked out of scope."  # noqa: E501
+# # Disabled due to support of dummy @binary
+# def test_binary_call_outside():
+#     context.set_pycompss_context(context.OUT_OF_SCOPE)
+#     my_bin = Binary(binary="date")
+#     f = my_bin(dummy_function)
+#     thrown = False
+#     try:
+#         _ = f()
+#     except Exception:  # noqa
+#         thrown = True  # this is OK!
+#     assert thrown, \
+#         "The binary decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_binary_engine_parameter():

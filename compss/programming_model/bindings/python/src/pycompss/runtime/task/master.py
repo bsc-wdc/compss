@@ -774,15 +774,15 @@ class TaskMaster(TaskCommons):
         default = 'METHOD'
         if ce_type is None:
             ce_type = default
-        if ce_type == default:
+
+        if ce_type == default or ce_type == "PYTHON_MPI" or ce_type == "MULTI_NODE":
             code_strings = True
-        elif ce_type == "PYTHON_MPI":
-            code_strings = True
-        elif ce_type == "MPI":
-            code_strings = False
         else:
+            # MPI, BINARY, CONTAINER
             code_strings = False
+
         f.__code_strings__ = code_strings
+
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" %
                          (self.function_name, self.module_name, str(ce_type)))

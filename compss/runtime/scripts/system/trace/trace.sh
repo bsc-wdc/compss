@@ -59,7 +59,7 @@
             "${extraeDir}"/bin/mpi2prv -f ./python/TRACE.mpits -no-syn -o "./${hostID}_python_trace.prv"
             files+=" ${hostID}_python_trace.*"
         else
-            mv ./python ./python_${node}
+            mv "./python" "./python_${node}"
             files+=" ./python_${node}"
         fi
     fi
@@ -68,7 +68,7 @@
     fi
     # shellcheck disable=SC2086
     tar czf "${node}_compss_trace.tar.gz" ${files}
-    echo "Package created $(ls -la  ${node}_compss_trace.tar.gz)"
+    echo "Package created $(ls -la  "${node}_compss_trace.tar.gz")"
     endCode=$?
     # shellcheck disable=SC2086
     rm -rf ${files}
@@ -87,12 +87,12 @@
             # TODO: remove this if block when the issue is fixed.
             rm -f ./python/core*
         fi
-        mv ./python ./python_${node}
+        mv "./python" "./python_${node}"
         files+=" ./python_${node}"
     fi
     # shellcheck disable=SC2086
     tar czf "${node}_compss_trace.tar.gz" ${files}
-    echo "Package created $(ls -la  ${node}_compss_trace.tar.gz)"
+    echo "Package created $(ls -la  "${node}_compss_trace.tar.gz")"
     endCode=$?
     # shellcheck disable=SC2086
     rm -rf ${files}
@@ -107,12 +107,12 @@
         if [ -f ./python/pycompss.log ]; then
             rm -f ./python/pycompss.log
         fi
-        mv ./python ./python_${node}
+        mv "./python" "./python_${node}"
         files+=" ./python_${node}"
     fi
     # shellcheck disable=SC2086
     tar czf "${node}_compss_trace.tar.gz" ${files}
-    echo "Package created $(ls -la  ${node}_compss_trace.tar.gz)"
+    echo "Package created $(ls -la  "${node}_compss_trace.tar.gz")"
     endCode=$?
     # shellcheck disable=SC2086
     rm -rf ${files}
@@ -166,7 +166,9 @@
     numberOfResources=$2
 
     # We require otf2-merger module loaded
-    source ${SCRIPT_DIR}/trace/scorep-merger.sh
+    # shellcheck source=./trace/scorep-merger.sh
+    # shellcheck disable=SC1091
+    source "${SCRIPT_DIR}"/trace/scorep-merger.sh
 
     # Unpack the tar.gz of each worker
     traceFiles=$(find trace/*_compss_trace.tar.gz)
@@ -182,7 +184,8 @@
         params+=" --traceFile $trace"
     done
     # Example: otf2-merger --traceFile /path/to/trace/A.otf2 --traceFile /path/to/trace/B.otf2 --traceFile /path/to/trace/C.otf2 --outputPath /path/to/output/dir
-    otf2-merger $params --outputPath ./trace/${appName}_scorep_trace
+    # shellcheck disable=SC2086
+    otf2-merger $params --outputPath "./trace/${appName}_scorep_trace"
     endCode=$?
 
     # Clean the temporary directory

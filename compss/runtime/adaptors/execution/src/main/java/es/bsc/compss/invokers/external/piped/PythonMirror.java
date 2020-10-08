@@ -103,6 +103,7 @@ public class PythonMirror extends PipedMirror {
             cmd.append("-x").append(TOKEN_SEP).append("LD_PRELOAD=$LATER_MPI_LD_PRELOAD").append(TOKEN_SEP);
             cmd.append("-x").append(TOKEN_SEP).append("EXTRAE_CONFIG_FILE=$LATER_MPI_EXTRAE_CONFIG_FILE")
                 .append(TOKEN_SEP);
+            cmd.append("-x").append(TOKEN_SEP).append("EXTRAE_USE_POSIX_CLOCK=0").append(TOKEN_SEP);
             cmd.append("-x").append(TOKEN_SEP).append("PYTHONPATH=$LATER_MPI_PYTHONPATH:$PYTHONPATH").append(TOKEN_SEP);
         }
 

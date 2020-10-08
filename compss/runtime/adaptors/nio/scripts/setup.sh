@@ -58,9 +58,9 @@
     done
     #Changed to support Coverage mode
     uuid=$(uuidgen) 
-    jvmFlags=$(echo $jvmFlags | tr "#" ",")
-    jvmFlags=$(echo $jvmFlags | tr "@" ",")
-    jvmFlags=$(echo "${jvmFlags/ffff/$uuid}")
+    jvmFlags=$(echo "$jvmFlags" | tr "#" ",")
+    jvmFlags=$(echo "$jvmFlags" | tr "@" ",")
+    jvmFlags="${jvmFlags/ffff/$uuid}"
 
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((5 + numJvmFlags))
@@ -187,6 +187,7 @@
       export EXTRAE_LIB=${EXTRAE_HOME}/lib
       export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
       export EXTRAE_CONFIG_FILE=${extraeFile}
+      export EXTRAE_USE_POSIX_CLOCK=0
       export AFTER_EXTRAE_LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
     fi  
   }

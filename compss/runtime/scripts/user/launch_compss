@@ -285,10 +285,10 @@ load_tracing_env() {
      impi=$(grep -i "impi" "${module_tmp}" | cat)
      openmpi=$(grep -i "openmpi" "${module_tmp}" | cat)
 
-     if [ ! -z "$impi" ]; then
+     if [ ! -z "$impi" ] && [ -d "${COMPSS_HOME}/Dependencies/extrae-impi/" ]; then
        # Load Extrae IMPI
        export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-impi/
-     elif [ ! -z "$openmpi" ]; then
+     elif [ ! -z "$openmpi" ] && [ -d "${COMPSS_HOME}/Dependencies/extrae-openmpi/" ]; then
        # Load Extrae OpenMPI
        export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-openmpi/
      else
@@ -296,6 +296,7 @@ load_tracing_env() {
        export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae/
      fi
   fi
+
   # Clean tmp file
   rm -f "${module_tmp}"
 }

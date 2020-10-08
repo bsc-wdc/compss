@@ -20,6 +20,10 @@ package es.bsc.compss.types.request.td;
  * Task Dispatcher requests type.
  */
 public enum TDRequestType {
+    /*
+     * WARNING: THESE EVENTS MUST ALSO BE DEFINED IN TraceEvent.java FOR TRACING
+     */
+
     ACTION_UPDATE, // Update action
     CANCEL_TASKS, // Cancel a task
     CE_REGISTRATION, // Register new coreElement

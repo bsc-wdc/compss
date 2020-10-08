@@ -143,6 +143,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().put("EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE", "1");
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
+            pb.environment().remove(Tracer.EXTRAE_USE_POSIX_CLOCK);
 
             // Emit event for worker initialisation
             if (Tracer.extraeEnabled()) {

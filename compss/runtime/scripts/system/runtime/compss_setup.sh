@@ -185,8 +185,6 @@ check_compss_setup () {
   check_storage_setup
 
   check_tracing_setup
-
-
 }
 
 #----------------------------------------------
@@ -382,8 +380,9 @@ start_compss_app() {
   prepare_runtime_environment
 
   append_app_jvm_options_to_file "${jvm_options_file}"
-  echo "Options file: ${jvm_options_file}"
-  cat ${jvm_options_file}
+  #echo "Options file: ${jvm_options_file}"
+  #cat ${jvm_options_file}
+
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
  # Launch application execution

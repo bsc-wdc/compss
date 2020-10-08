@@ -42,14 +42,15 @@ public enum TraceEvent {
     CREATING_TASK_SANDBOX(54, Tracer.RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
     REMOVING_TASK_SANDBOX(55, Tracer.RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
     FETCH_PARAM(60, Tracer.RUNTIME_EVENTS, "Fetch task parameter"), // Fetching new task param
-    REMOVE_OBSOLETES(61, Tracer.RUNTIME_EVENTS, "Remove Obsoletes"),
+    REMOVE_OBSOLETES(61, Tracer.RUNTIME_EVENTS, "Remove Obsoletes"), // Remove obsoletes
     BIND_ORIG_NAME(62, Tracer.RUNTIME_EVENTS, "Bind Original File names To Renames.."), // Link to original name
-    UNBIND_ORIG_NAME(63, Tracer.RUNTIME_EVENTS, "Unbind Original File names To Renames.."),
-    CHECK_OUT_PARAM(64, Tracer.RUNTIME_EVENTS, "Check OUT parameters."),
+    UNBIND_ORIG_NAME(63, Tracer.RUNTIME_EVENTS, "Unbind Original File names To Renames.."), // Unbind
+    CHECK_OUT_PARAM(64, Tracer.RUNTIME_EVENTS, "Check OUT parameters."), // Check out params
 
     // Runtime FS Events
-    INIT_FS(65, Tracer.RUNTIME_EVENTS, "Init Thread for synch file system operations"),
-    LOCAL_COPY(66, Tracer.RUNTIME_EVENTS, "Local copy"), LOCAL_MOVE(67, Tracer.RUNTIME_EVENTS, "Local move"),
+    INIT_FS(65, Tracer.RUNTIME_EVENTS, "Init Thread for synch file system operations"), // Init fs
+    LOCAL_COPY(66, Tracer.RUNTIME_EVENTS, "Local copy"), // Local copy
+    LOCAL_MOVE(67, Tracer.RUNTIME_EVENTS, "Local move"), // Local move
 
     // Access Processor Events which are not in the API
     DEBUG(17, Tracer.RUNTIME_EVENTS, "Access Processor: Debug"), // Debug
@@ -73,6 +74,11 @@ public enum TraceEvent {
     TASKSTATE(35, Tracer.RUNTIME_EVENTS, "Access Processor: Taskstate"), // Task state
     DELETE_FILE(36, Tracer.RUNTIME_EVENTS, "Access Processor: Delete file"), // Delete file
     FINISH_DATA_ACCESS(37, Tracer.RUNTIME_EVENTS, "Access Processor: Finish access to file"), // Finish access to file
+    REGISTER_REMOTE_OBJECT(38, Tracer.RUNTIME_EVENTS, "Access Processor: Register remote object access"), // Remote o
+    REGISTER_REMOTE_FILE(39, Tracer.RUNTIME_EVENTS, "Access Processor: Resgister remote file access"), // Remote f
+    DEREGISTER_OBJECT(40, Tracer.RUNTIME_EVENTS, "Access Processor: Deregister object"), // Deregister obj
+    CANCEL_TASK_GROUP(41, Tracer.RUNTIME_EVENTS, "Access Processor: Cancel task group"), // Cancel task group
+    REMOVE_APP_DATA(42, Tracer.RUNTIME_EVENTS, "Access Processor: Remove application data"), // Remove data
     CANCEL_ALL_TASKS(56, Tracer.RUNTIME_EVENTS, "Acces Processor: Cancel all tasks"),
 
     // Storage Events
@@ -94,6 +100,7 @@ public enum TraceEvent {
     TD_SHUTDOWN(51, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), // Shutdown
     UPDATE_CEI_LOCAL(52, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), // Update CEI
     WORKER_UPDATE_REQUEST(53, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Worker update request"), // Update worker
+    CANCEL_TASKS(57, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Cancel tasks"), // Cancel tasks
 
     // Python Events Inside Worker
     WORKER_RUNNING(1, Tracer.INSIDE_WORKER_TYPE, "Worker running"), // Worker running
@@ -106,8 +113,8 @@ public enum TraceEvent {
     STOP_STORAGE(6, Tracer.INSIDE_WORKER_TYPE, "Stop storage"), // Stop storage
     INIT_STORAGE_WORKER(7, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker"), // Init storage at worker
     STOP_STORAGE_WORKER(8, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker"), // Stop storage at worker
-    INIT_STORAGE_WORKER_PROCESS(9, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker process"),
-    STOP_STORAGE_WORKER_PROCESS(10, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker process"),
+    INIT_STORAGE_WORKER_PROCESS(9, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker process"), // Init storage py
+    STOP_STORAGE_WORKER_PROCESS(10, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker process"), // Stop storage py
 
     // Python Events Inside Tasks
     CPU_BINDING_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "CPU binding"), // CPU binding
@@ -159,9 +166,9 @@ public enum TraceEvent {
     // Internal events
     PYTHON_TASK_INSTANTIATION(2000, Tracer.BINDING_MASTER_TYPE, "Task instantiation"), // Task instantiation
     PYTHON_EXTRACT_CORE_ELEMENT(2001, Tracer.BINDING_MASTER_TYPE, "Extract core element"), // Extract core element
-    PYTHON_INSPECT_FUNCTION_ARGUMENTS(2002, Tracer.BINDING_MASTER_TYPE, "Inspect function arguments"),
-    PYTHON_PROCESS_PARAMETERS(2003, Tracer.BINDING_MASTER_TYPE, "Process function parameters"),
-    PYTHON_GET_FUNCTION_INFORMATION(2004, Tracer.BINDING_MASTER_TYPE, "Get function information"),
+    PYTHON_INSPECT_FUNCTION_ARGUMENTS(2002, Tracer.BINDING_MASTER_TYPE, "Inspect function arguments"), // Inspect
+    PYTHON_PROCESS_PARAMETERS(2003, Tracer.BINDING_MASTER_TYPE, "Process function parameters"), // Process params
+    PYTHON_GET_FUNCTION_INFORMATION(2004, Tracer.BINDING_MASTER_TYPE, "Get function information"), // Get info
     PYTHON_PREPARE_CORE_ELEMENT(2005, Tracer.BINDING_MASTER_TYPE, "Prepare Core Element"), // Prepare Core Element
     PYTHON_GET_FUNCTION_SIGNATURE(2006, Tracer.BINDING_MASTER_TYPE, "Check function signature"),
     PYTHON_UPDATE_CORE_ELEMENT(2007, Tracer.BINDING_MASTER_TYPE, "Update Core Element"), // Update Core Element
@@ -170,7 +177,7 @@ public enum TraceEvent {
     PYTHON_PROCESS_OTHER_ARGUMENTS(2010, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
     PYTHON_BUILD_RETURN_OBJECTS(2011, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
     PYTHON_SERIALIZE_OBJECTS(2012, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
-    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(2013, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"),
+    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(2013, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
     PYTHON_ATTRIBUTES_CLEANUP(2014, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
 
     // Other

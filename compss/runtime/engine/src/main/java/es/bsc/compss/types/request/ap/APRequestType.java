@@ -20,6 +20,10 @@ package es.bsc.compss.types.request.ap;
  * Contains the different types of request that the Access Processor can response.
  */
 public enum APRequestType {
+    /*
+     * WARNING: THESE EVENTS MUST ALSO BE DEFINED IN TraceEvent.java FOR TRACING
+     */
+
     ANALYSE_TASK, // Analyse a new task
     UPDATE_GRAPH, // Update task graph
     WAIT_FOR_TASK, // Waits for task completion

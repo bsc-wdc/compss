@@ -34,7 +34,7 @@ def test_decorator_core_element_exception():
     my_deco = PyCOMPSsDecorator(decorator_name="@decorator")
     raised = False
     try:
-        my_deco.__configure_core_element__(dict())
+        my_deco.__configure_core_element__(dict(), None)
     except MissingImplementedException:  # noqa
         raised = True  # expected exception caught
     assert raised, "Expected MissingImplementedException but not raised."

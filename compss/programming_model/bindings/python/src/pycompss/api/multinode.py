@@ -108,7 +108,7 @@ class MultiNode(PyCOMPSsDecorator):
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             if context.in_worker():
                 reset_slurm_environment()

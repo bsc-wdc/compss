@@ -97,7 +97,7 @@ class OpenCL(PyCOMPSsDecorator):
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 

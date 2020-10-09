@@ -110,9 +110,9 @@ class CommAgentJob extends NIOJob {
                 case EXTERNAL_PSCO_T:
                 case BINDING_OBJECT_T:
                     commParam = buildCommParamFromDependencyParameter((DependencyParameter) param);
-
                     break;
                 case COLLECTION_T:
+                case DICT_COLLECTION_T:
                     throw new UnsupportedOperationException();
                     // break;
                 default:

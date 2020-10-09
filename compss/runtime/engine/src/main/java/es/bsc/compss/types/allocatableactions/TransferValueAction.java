@@ -38,6 +38,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
@@ -48,6 +49,7 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -119,6 +121,17 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
             for (Parameter p : cp.getParameters()) {
                 DependencyParameter dp = (DependencyParameter) p;
                 transferData(dp, listener);
+            }
+        }
+        if (dataToTransfer.getType() == DataType.DICT_COLLECTION_T) {
+            DictCollectionParameter dcp = (DictCollectionParameter) dataToTransfer;
+            JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
+            // TODO: Handle basic data types
+            for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                DependencyParameter dpKey = (DependencyParameter) entry.getKey();
+                transferData(dpKey, listener);
+                DependencyParameter dpValue = (DependencyParameter) entry.getValue();
+                transferData(dpValue, listener);
             }
         }
 

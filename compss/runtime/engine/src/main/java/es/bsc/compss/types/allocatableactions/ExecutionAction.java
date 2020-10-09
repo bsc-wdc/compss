@@ -53,6 +53,7 @@ import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -66,6 +67,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -261,6 +263,25 @@ public class ExecutionAction extends AllocatableAction {
                 // Send the collection parameter itself
                 transferSingleParameter(param, listener);
                 break;
+            case DICT_COLLECTION_T:
+                DictCollectionParameter dcp = (DictCollectionParameter) param;
+                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
+                // Recursively send all the dictionary collection parameters
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    Parameter k = entry.getKey();
+                    if (k instanceof DependencyParameter) {
+                        DependencyParameter dpKey = (DependencyParameter) k;
+                        transferJobData(dpKey, listener);
+                    }
+                    Parameter v = entry.getValue();
+                    if (v instanceof DependencyParameter) {
+                        DependencyParameter dpValue = (DependencyParameter) v;
+                        transferJobData(dpValue, listener);
+                    }
+                }
+                // Send the collection parameter itself
+                transferSingleParameter(param, listener);
+                break;
             case STREAM_T:
             case EXTERNAL_STREAM_T:
                 // Stream stubs are always transferred independently of their access
@@ -428,6 +449,23 @@ public class ExecutionAction extends AllocatableAction {
                     if (p instanceof DependencyParameter) {
                         DependencyParameter dp = (DependencyParameter) p;
                         removeTmpData(dp);
+                    }
+                }
+            }
+            if (param.getType() == DataType.DICT_COLLECTION_T) {
+                DictCollectionParameter dcp = (DictCollectionParameter) param;
+                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
+                // Recursively send all the dictionary collection parameters
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    Parameter k = entry.getKey();
+                    if (k instanceof DependencyParameter) {
+                        DependencyParameter dpKey = (DependencyParameter) k;
+                        removeTmpData(dpKey);
+                    }
+                    Parameter v = entry.getValue();
+                    if (v instanceof DependencyParameter) {
+                        DependencyParameter dpValue = (DependencyParameter) v;
+                        removeTmpData(dpValue);
                     }
                 }
             }
@@ -650,6 +688,22 @@ public class ExecutionAction extends AllocatableAction {
                     storeOutputParameter(job, w, elemOutRename, (DependencyParameter) elem);
                 }
             }
+        }
+        if (dp.getType() == DataType.DICT_COLLECTION_T) {
+            DictCollectionParameter dcp = (DictCollectionParameter) p;
+            for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                Parameter k = entry.getKey();
+                String elemKeyOutRename = getOuputRename(k);
+                if (elemKeyOutRename != null) {
+                    storeOutputParameter(job, w, elemKeyOutRename, (DependencyParameter) k);
+                }
+                Parameter v = entry.getValue();
+                String elemValueOutRename = getOuputRename(v);
+                if (elemValueOutRename != null) {
+                    storeOutputParameter(job, w, elemValueOutRename, (DependencyParameter) v);
+                }
+            }
+
         }
         // Request transfer
         DataLocation outLoc = null;

@@ -24,9 +24,11 @@ import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
+import es.bsc.compss.nio.NIOParamDictCollection;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
+import es.bsc.compss.nio.listeners.DictCollectionFetchOperationsListener;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -51,6 +53,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -272,6 +275,9 @@ public class DataManagerImpl implements DataManager {
             case COLLECTION_T:
                 fetchCollection(param, paramIdx, tt);
                 break;
+            case DICT_COLLECTION_T:
+                fetchDictCollection(param, paramIdx, tt);
+                break;
             case OBJECT_T:
             case STREAM_T:
                 fetchObject(param, paramIdx, tt);
@@ -357,6 +363,29 @@ public class DataManagerImpl implements DataManager {
                 subIndex++;
             }
             cfol.enable();
+        } catch (Exception e) {
+            listener.errorFetchingValue(param.getDataMgmtId(), e);
+        }
+    }
+
+    private void fetchDictCollection(InvocationParam param, int index, FetchDataListener listener) {
+        try {
+            NIOParamDictCollection npdc = (NIOParamDictCollection) param;
+            Map<NIOParam, NIOParam> elements = npdc.getDictCollectionParameters();
+            WORKER_LOGGER.info("Checking NIOParamDictCollection (received " + elements.size() + " entries)");
+            int subIndex = 0;
+            DictCollectionFetchOperationsListener dcfol =
+                new DictCollectionFetchOperationsListener(param.getDataMgmtId(), listener);
+            for (Map.Entry<NIOParam, NIOParam> subNioEntry : npdc.getDictCollectionParameters().entrySet()) {
+                dcfol.addOperation();
+                WORKER_LOGGER.info("Fetching key: " + subNioEntry.getKey());
+                fetchParam(subNioEntry.getKey(), subIndex, dcfol);
+                dcfol.addOperation();
+                WORKER_LOGGER.info("Fetching value: " + subNioEntry.getValue());
+                fetchParam(subNioEntry.getValue(), subIndex, dcfol);
+                subIndex++;
+            }
+            dcfol.enable();
         } catch (Exception e) {
             listener.errorFetchingValue(param.getDataMgmtId(), e);
         }
@@ -712,6 +741,7 @@ public class DataManagerImpl implements DataManager {
                 loadObject(param);
                 break;
             case COLLECTION_T: // value corresponds to the collection ID
+            case DICT_COLLECTION_T: // value corresponds to the dictionary collection ID
             case FILE_T: // value already contains the path
             case EXTERNAL_STREAM_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)

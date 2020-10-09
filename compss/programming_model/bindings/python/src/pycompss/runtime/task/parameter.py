@@ -42,6 +42,7 @@ from pycompss.api.parameter import Weight
 from pycompss.api.parameter import Keep_rename
 from pycompss.api.parameter import _Param as Param  # noqa
 from pycompss.util.objects.properties import is_basic_iterable
+from pycompss.util.objects.properties import is_dict
 from pycompss.util.storages.persistent import has_id
 from pycompss.util.storages.persistent import get_id
 
@@ -79,8 +80,8 @@ class Parameter(object):
 
     __slots__ = ['name', 'content', 'content_type', 'direction', 'stream',
                  'prefix', 'file_name', 'is_future', 'is_file_collection',
-                 'collection_content', 'depth', 'extra_content_type',
-                 'weight', 'keep_rename']
+                 'collection_content', 'dict_collection_content',
+                 'depth', 'extra_content_type', 'weight', 'keep_rename']
 
     def __init__(self,
                  name=None,
@@ -93,6 +94,7 @@ class Parameter(object):
                  is_future=False,
                  is_file_collection=False,
                  collection_content=None,
+                 dict_collection_content=None,
                  depth=1,
                  extra_content_type=UNDEFINED_CONTENT_TYPE,
                  weight="1.0",
@@ -107,6 +109,7 @@ class Parameter(object):
         self.is_future = is_future
         self.is_file_collection = is_file_collection
         self.collection_content = collection_content
+        self.dict_collection_content = dict_collection_content
         self.depth = depth  # Recursive depth for collections
         self.extra_content_type = extra_content_type
         self.weight = weight
@@ -345,6 +348,21 @@ _param_conversion_dict_ = {
         ParamDictKeys.Content_type: TYPE.COLLECTION,
         ParamDictKeys.Direction: DIRECTION.OUT,
     },
+    ParamAliasKeys.DICT_COLLECTION: {
+        ParamDictKeys.Content_type: TYPE.DICT_COLLECTION,
+    },
+    ParamAliasKeys.DICT_COLLECTION_IN: {
+        ParamDictKeys.Content_type: TYPE.DICT_COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.IN,
+    },
+    ParamAliasKeys.DICT_COLLECTION_INOUT: {
+        ParamDictKeys.Content_type: TYPE.DICT_COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.INOUT,
+    },
+    ParamAliasKeys.DICT_COLLECTION_OUT: {
+        ParamDictKeys.Content_type: TYPE.DICT_COLLECTION,
+        ParamDictKeys.Direction: DIRECTION.OUT,
+    },
     ParamAliasKeys.STREAM_IN: {
         ParamDictKeys.Content_type: TYPE.EXTERNAL_STREAM,
         ParamDictKeys.Direction: DIRECTION.IN
@@ -525,6 +543,8 @@ def get_compss_type(value, depth=0):
             return TYPE.DOUBLE
     elif depth > 0 and is_basic_iterable(value):
         return TYPE.COLLECTION
+    elif depth > 0 and is_dict(value):
+        return TYPE.DICT_COLLECTION
     else:
         # Default type
         return TYPE.OBJECT

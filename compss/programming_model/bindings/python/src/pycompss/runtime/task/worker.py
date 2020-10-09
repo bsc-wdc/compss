@@ -38,6 +38,7 @@ from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import serialize_to_file_mpienv
 from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
+from pycompss.util.objects.util import group_iterable
 from pycompss.worker.commons.worker import build_task_parameter
 
 import logging
@@ -265,6 +266,7 @@ class TaskWorker(TaskCommons):
         type_directory = parameter.TYPE.DIRECTORY
         type_external_stream = parameter.TYPE.EXTERNAL_STREAM
         type_collection = parameter.TYPE.COLLECTION
+        type_dict_collection = parameter.TYPE.DICT_COLLECTION
         type_external_psco = parameter.TYPE.EXTERNAL_PSCO
 
         if content_type == type_file:
@@ -406,7 +408,89 @@ class TaskWorker(TaskCommons):
                     else:
                         argument.content.append(content_file)
                     argument.collection_content.append(content_file)
+        elif content_type == type_dict_collection:
+            argument.content = {}
+            # This field is exclusive for DICT_COLLECTION_T parameters, so
+            # make sure you have checked this parameter is a dictionary
+            # collection before consulting it
+            argument.dict_collection_content = {}
+            dict_col_f_name = argument.file_name.split(':')[-1]
+            # print("Dictionary file name: " + str(dict_col_f_name))
+            # print("Dictionary file contents:")
+            # with open(dict_col_f_name, 'r') as f:
+            #     print(f.read())
 
+            # maybe it is an inner-dict-collection..
+            _dec_arg = self.decorator_arguments.get(argument.name, None)
+            _dict_col_dir = _dec_arg.direction if _dec_arg else None
+            _dict_col_dep = _dec_arg.depth if _dec_arg else depth
+
+            with open(dict_col_f_name, 'r') as dict_file:
+                lines = dict_file.readlines()
+            entries = group_iterable(lines, 2)
+            i = 0
+            for entry in entries:
+                k = entry[0]
+                v = entry[1]
+                data_type_key, content_file_key, content_type_key = k.strip().split()  # noqa: E501
+                data_type_value, content_file_value, content_type_value = v.strip().split()  # noqa: E501
+                # Same naming convention as in COMPSsRuntimeImpl.java
+                sub_name_key = "%s.%d" % (argument.name, i)
+                sub_name_value = "%s.%d" % (argument.name, i)
+                if name_prefix:
+                    sub_name_key = "%s.%s" % (name_prefix, argument.name)
+                    sub_name_value = "%s.%s" % (name_prefix, argument.name)
+                else:
+                    sub_name_key = "@key%s" % sub_name_key
+                    sub_name_value = "@value%s" % sub_name_value
+
+                sub_arg_key, _ = build_task_parameter(int(data_type_key),
+                                                      parameter.IOSTREAM.UNSPECIFIED,
+                                                      "",
+                                                      sub_name_key,
+                                                      content_file_key,
+                                                      argument.content_type)
+                sub_arg_value, _ = build_task_parameter(int(data_type_value),  # noqa: E501
+                                                        parameter.IOSTREAM.UNSPECIFIED,
+                                                        "",
+                                                        sub_name_value,
+                                                        content_file_value,
+                                                        argument.content_type)
+
+                # if direction of the dictionary collection is 'out', it
+                # means we haven't received serialized objects from the
+                # Master (even though parameters have 'file_name', those
+                # files haven't been created yet). plus, inner dictionary
+                # collections of dict_col_out params do NOT have
+                # 'direction', we identify them by 'depth'..
+                if _dict_col_dir == parameter.DIRECTION.OUT or \
+                        ((_dict_col_dir is None) and _dict_col_dep > 0):
+
+                    # if we are at the last level of DICT_COL_OUT param,
+                    # create 'empty' instances of elements
+                    if _dict_col_dep == 1:
+                        temp_k = create_object_by_con_type(content_type_key)    # noqa: E501
+                        temp_v = create_object_by_con_type(content_type_value)  # noqa: E501
+                        sub_arg_key.content = temp_k
+                        sub_arg_value.content = temp_v
+                        argument.content[sub_arg_key.content] = sub_arg_value.content  # noqa: E501
+                        argument.dict_collection_content[sub_arg_key] = sub_arg_value  # noqa: E501
+                    else:
+                        self.retrieve_content(sub_arg_key, sub_name_key,
+                                              None, None,
+                                              depth=_dict_col_dep - 1)
+                        self.retrieve_content(sub_arg_value, sub_name_value,
+                                              None, None,
+                                              depth=_dict_col_dep - 1)
+                        argument.content[sub_arg_key.content] = sub_arg_value.content  # noqa: E501
+                        argument.dict_collection_content[sub_arg_key] = sub_arg_value  # noqa: E501
+                else:
+                    # Recursively call the retrieve method, fill the
+                    # content field in our new taskParameter object
+                    self.retrieve_content(sub_arg_key, sub_name_key, None, None)
+                    self.retrieve_content(sub_arg_value, sub_name_value, None, None)
+                    argument.content[sub_arg_key.content] = sub_arg_value.content  # noqa: E501
+                    argument.dict_collection_content[sub_arg_key] = sub_arg_value  # noqa: E501
         elif not self.storage_supports_pipelining() and \
                 content_type == type_external_psco:
             if __debug__:
@@ -613,19 +697,39 @@ class TaskWorker(TaskCommons):
             _is_col_out = (arg.content_type == parameter.TYPE.COLLECTION and
                            param.direction == parameter.DIRECTION.OUT)
 
+            _is_dict_col_out = (arg.content_type == parameter.TYPE.DICT_COLLECTION and
+                                param.direction == parameter.DIRECTION.OUT)
+
             _is_inout = (param.direction == parameter.DIRECTION.INOUT or
                          param.direction == parameter.DIRECTION.COMMUTATIVE)
 
-            if not (_is_inout or _is_col_out):
+            if not (_is_inout or _is_col_out or _is_dict_col_out):
                 continue
 
-            # Now it's 'INOUT' or 'COLLLECTION_OUT' object param, serialize
-            # to a file.
+            # Now it is 'INOUT' or 'COLLECTION_OUT' or 'DICT_COLLECTION_OUT'
+            # object param, serialize to a file.
             if arg.content_type == parameter.TYPE.COLLECTION:
                 if __debug__:
                     logger.debug("Serializing collection: " + str(arg.name))
                 # handle collections recursively
                 for (content, elem) in __get_collection_objects__(arg.content, arg):  # noqa: E501
+                    if elem.file_name:
+                        f_name = __get_file_name__(elem.file_name)
+                        if __debug__:
+                            logger.debug("\t - Serializing element: " +
+                                         str(arg.name) + " to " + str(f_name))
+                        if python_mpi:
+                            serialize_to_file_mpienv(content, f_name, False)
+                        else:
+                            serialize_to_file(content, f_name)
+                    else:
+                        # It is None --> PSCO
+                        pass
+            elif arg.content_type == parameter.TYPE.DICT_COLLECTION:
+                if __debug__:
+                    logger.debug("Serializing dictionary collection: " + str(arg.name))
+                # handle dictionary collections recursively
+                for (content, elem) in __get_dict_collection_objects__(arg.content, arg):  # noqa: E501
                     if elem.file_name:
                         f_name = __get_file_name__(elem.file_name)
                         if __debug__:
@@ -709,6 +813,7 @@ class TaskWorker(TaskCommons):
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
             annotated = [parameter.TYPE.COLLECTION,
+                         parameter.TYPE.DICT_COLLECTION,
                          parameter.TYPE.EXTERNAL_STREAM,
                          None]
             return self.decorator_arguments[original_name].content_type in annotated  # noqa: E501
@@ -886,6 +991,23 @@ def __get_collection_objects__(content, argument):
         for (new_con, _elem) in zip(argument.content,
                                     argument.collection_content):
             for sub_el in __get_collection_objects__(new_con, _elem):
+                yield sub_el
+    else:
+        yield content, argument
+
+
+def __get_dict_collection_objects__(content, argument):
+    """ Retrieve dictionary collection objects recursively generator. """
+    if argument.content_type == parameter.TYPE.DICT_COLLECTION:
+        elements = []
+        for k, v in argument.content.items():
+            elements.extend([k, v])
+        elements_parameters = []
+        for k, v in argument.dict_collection_content.items():
+            elements_parameters.extend([k, v])
+        for (new_con, _elem) in zip(elements,
+                                    elements_parameters):
+            for sub_el in __get_dict_collection_objects__(new_con, _elem):
                 yield sub_el
     else:
         yield content, argument

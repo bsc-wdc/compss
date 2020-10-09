@@ -26,10 +26,12 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.Worker;
 
+import java.util.Map;
 import java.util.Set;
 
 
@@ -224,14 +226,20 @@ public class Score implements Comparable<Score> {
             // Obtain the scores for the host: number of task parameters that
             // are located in the host
             for (Parameter p : params.getParameters()) {
-                if (p.getType() != DataType.COLLECTION_T) {
-                    resourceScore = resourceScore + calculateParameterScore(p, w);
-                } else {
+                if (p.getType() == DataType.COLLECTION_T) {
                     CollectionParameter cp = (CollectionParameter) p;
                     for (Parameter par : cp.getParameters()) {
                         resourceScore = resourceScore + calculateParameterScore(par, w);
                     }
-
+                } else if (p.getType() == DataType.DICT_COLLECTION_T) {
+                    DictCollectionParameter dcp = (DictCollectionParameter) p;
+                    for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                        long keyScore = calculateParameterScore(entry.getKey(), w);
+                        long valueScore = calculateParameterScore(entry.getValue(), w);
+                        resourceScore = resourceScore + keyScore + valueScore;
+                    }
+                } else {
+                    resourceScore = resourceScore + calculateParameterScore(p, w);
                 }
             }
         }
@@ -245,6 +253,13 @@ public class Score implements Comparable<Score> {
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter par : cp.getParameters()) {
                     resourceScore = resourceScore + calculateParameterScore(par, w);
+                }
+            } else if (p.getType() == DataType.DICT_COLLECTION_T) {
+                DictCollectionParameter dcp = (DictCollectionParameter) p;
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    long keyScore = calculateParameterScore(entry.getKey(), w);
+                    long valueScore = calculateParameterScore(entry.getValue(), w);
+                    resourceScore = resourceScore + keyScore + valueScore;
                 }
             } else {
                 DependencyParameter dp = (DependencyParameter) p;

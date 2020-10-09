@@ -87,6 +87,7 @@ from pycompss.util.objects.properties import get_module_name
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.objects.properties import is_basic_iterable
+from pycompss.util.objects.properties import is_dict
 from pycompss.util.objects.properties import get_wrapped_source
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
@@ -1684,7 +1685,37 @@ def _serialize_object_into_file(name, p):
                 )
                 for x in p.content
             ]
-
+        p.content = new_object
+        # Give this object an identifier inside the binding
+        if p.direction != DIRECTION.IN_DELETE:
+            _, _ = OT_track(p.content, collection=True)
+    elif p.content_type == TYPE.DICT_COLLECTION:
+        # Just make contents available as serialized files (or objects)
+        # We will build the value field later
+        # (which will be used to reconstruct the collection in the worker)
+        new_object = {}
+        for k, v in p.content.items():
+            key = _serialize_object_into_file(
+                name,
+                Parameter(
+                    content=k,
+                    content_type=get_compss_type(k, p.depth - 1),
+                    direction=p.direction,
+                    depth=p.depth - 1,
+                    extra_content_type=str(type(p).__name__)
+                )
+            )
+            value = _serialize_object_into_file(
+                name,
+                Parameter(
+                    content=v,
+                    content_type=get_compss_type(v, p.depth - 1),
+                    direction=p.direction,
+                    depth=p.depth - 1,
+                    extra_content_type=str(type(v).__name__)
+                )
+            )
+            new_object[key] = value
         p.content = new_object
         # Give this object an identifier inside the binding
         if p.direction != DIRECTION.IN_DELETE:
@@ -1816,6 +1847,50 @@ def _extract_parameter(param, code_strings, collection_depth=0):
                 param.depth - 1
             )
             value += ' %s %s %s' % (x_type, x_value, x_con_type)
+    elif param.content_type == TYPE.DICT_COLLECTION or \
+            (collection_depth > 0 and is_dict(param.content)):
+        # An object will be considered a dictionary collection if at least one
+        # of the following is true:
+        #     1) We said it is a dictionary collection in the task decorator
+        #     2) It is part of some collection object, it is dict and we
+        #        are inside the specified depth radius
+        #
+        # The content of a dictionary collection is sent via JNI to the master,
+        # and the format is:
+        # dictCollectionId numberOfEntries dictCollectionPyContentType
+        #     type1(key)   Id1(key)   pyType1(key)
+        #     type1(value) Id1(value) pyType1(value)
+        #     type2(key)   Id2(key)   pyType2(key)
+        #     type2(value) Id2(value) pyType2(value)
+        #     ...
+        #     typeN(value) IdN(value) pyTypeN(value)
+        _class_name = str(param.content.__class__.__name__)
+        con_type = EXTRA_CONTENT_TYPE_FORMAT.format("dict_collection", _class_name)
+        value = "{} {} {}".format(OT_is_tracked(param.content),
+                                  len(param.content), con_type)
+        OT_stop_tracking(param.content, collection=True)
+        typ = TYPE.DICT_COLLECTION
+        for k, v in param.content.items():  # noqa
+            k_value, k_type, _, _, _, k_con_type, _, _ = _extract_parameter(
+                k,
+                code_strings,
+                param.depth - 1
+            )
+            if k_con_type != con_type:
+                value += ' %s %s %s' % (k_type, k_value, k_con_type)
+            else:
+                # remove last dict_collection._classname if key is a dict_collection  # noqa: E501
+                value += ' %s %s' % (k_type, k_value)
+            v_value, v_type, _, _, _, v_con_type, _, _ = _extract_parameter(
+                v,
+                code_strings,
+                param.depth - 1
+            )
+            if v_con_type != con_type:
+                value += ' %s %s %s' % (v_type, v_value, v_con_type)
+            else:
+                # remove last dict_collection._classname if value is a dict_collection  # noqa: E501
+                value += ' %s %s' % (v_type, v_value)
     else:
         # Keep the original value and type
         value = param.content

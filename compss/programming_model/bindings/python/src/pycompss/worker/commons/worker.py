@@ -75,7 +75,7 @@ def build_task_parameter(p_type,      # type: int
     """
     num_substrings = 0
     if p_type in [parameter.TYPE.FILE, parameter.TYPE.DIRECTORY,
-                  parameter.TYPE.COLLECTION]:
+                  parameter.TYPE.COLLECTION, parameter.TYPE.DICT_COLLECTION]:
         # Maybe the file is a object, we do not care about this here
         # We will decide whether to deserialize or to forward the value
         # when processing parameters in the task decorator

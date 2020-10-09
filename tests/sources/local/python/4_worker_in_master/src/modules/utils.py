@@ -22,3 +22,8 @@ def verify_line(obtained, expected):
         if expected:
             sys.stderr.write("Expecting:\n" + expected + "\n and obtained\n" + obtained)
             raise Exception("Unexpected file content.")
+
+
+class wrapper(object):
+    def __init__(self, content):
+        self.content = content

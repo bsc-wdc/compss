@@ -153,7 +153,7 @@ def _wait_on_iterable(iter_obj, compss_mode):
             return [_wait_on_iterable(x, compss_mode)
                     for x in iter_obj]
         elif type(iter_obj) == dict:
-            return {k: _wait_on_iterable(v, compss_mode)
+            return {_wait_on_iterable(k, compss_mode): _wait_on_iterable(v, compss_mode)
                     for k, v in iter_obj.items()}
         else:
             return _synchronize(iter_obj, compss_mode)

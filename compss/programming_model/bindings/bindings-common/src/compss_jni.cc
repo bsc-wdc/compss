@@ -667,13 +667,22 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
             check_exception(status, "Exception calling string constructor (for binding object)");
             break;
         case collection_dt:
-            jobjParVal = globalJniEnv -> NewStringUTF(*(char **)parVal);
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for collection)");
 
             debug_printf ("[BINDING-COMMONS] - @process_param - Collection: %s\n", *(char **)parVal);
 
             jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("COLLECTION_T"));
             check_exception(status, "Exception calling string constructor (for collection)");
+            break;
+        case dict_collection_dt:
+            jobjParVal = globalJniEnv -> NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object (for dictionary collection)");
+
+            debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Dictionary Collection: %s\n", *(char **)parVal);
+
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("DICT_COLLECTION_T"));
+            check_exception(status, "Exception calling string constructor (for dictionary collection)");
             break;
         case null_dt:
             jobjParVal = globalJniEnv -> NewStringUTF("NULL");

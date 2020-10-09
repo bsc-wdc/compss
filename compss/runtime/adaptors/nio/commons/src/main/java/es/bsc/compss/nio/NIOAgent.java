@@ -261,6 +261,7 @@ public abstract class NIOAgent {
                     case OBJECT_T:
                     case STREAM_T:
                     case COLLECTION_T:
+                    case DICT_COLLECTION_T:
                     case EXTERNAL_PSCO_T:
                     case PSCO_T:
                     default:

@@ -27,6 +27,8 @@ PyCOMPSs Util - Object properties
 import os
 import sys
 import inspect
+from collections import OrderedDict
+
 from pycompss.runtime.commons import IS_PYTHON3
 
 if IS_PYTHON3:
@@ -120,7 +122,18 @@ def is_basic_iterable(obj):
     :param obj: Object to be analysed.
     :return: True if obj is a basic iterable (see list below). False otherwise.
     """
-    return isinstance(obj, (list, tuple, bytearray, set, frozenset, dict))
+    return isinstance(obj, (list, tuple, bytearray, set, frozenset))
+
+
+def is_dict(obj):
+    # type: (object) -> bool
+    """
+    Checks if an object is a dictionary.
+
+    :param obj: Object to be analysed
+    :return: True if obj is of dict type. False otherwise
+    """
+    return isinstance(obj, (dict, OrderedDict))
 
 
 def object_belongs_to_module(obj, module_name):

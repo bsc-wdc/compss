@@ -43,6 +43,7 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.DirectoryParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
@@ -695,6 +696,19 @@ public class TaskAnalyser {
                 DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
                 deleteData(ci);
                 break;
+            case DICT_COLLECTION_T:
+                DictCollectionParameter dcp = (DictCollectionParameter) p;
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    boolean hasDictCollectionParamEdgeKey =
+                        registerParameterAccessAndAddDependencies(app, currentTask, entry.getKey(), isConstraining);
+                    boolean hasDictCollectionParamEdgeValue =
+                        registerParameterAccessAndAddDependencies(app, currentTask, entry.getValue(), isConstraining);
+                    hasParamEdge = hasParamEdge || hasDictCollectionParamEdgeKey || hasDictCollectionParamEdgeValue;
+                }
+                daId = dip.registerDictCollectionAccess(app, am, dcp);
+                DataInfo dci = dip.deleteDictCollection(dcp.getDictCollectionId(), true);
+                deleteData(dci);
+                break;
             default:
                 // This is a basic type, there are no accesses to register
                 daId = null;
@@ -1067,8 +1081,16 @@ public class TaskAnalyser {
                 updateLastWritters(task, sp);
             }
         }
+        if (type == DataType.DICT_COLLECTION_T) {
+            DictCollectionParameter dcp = (DictCollectionParameter) p;
+            for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                updateLastWritters(task, entry.getKey());
+                updateLastWritters(task, entry.getValue());
+            }
+        }
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
+            || type == DataType.DICT_COLLECTION_T) {
             DependencyParameter dp = (DependencyParameter) p;
             int dataId = dp.getDataAccessId().getDataId();
             if (DEBUG) {
@@ -1132,9 +1154,17 @@ public class TaskAnalyser {
             }
         }
 
+        if (type == DataType.DICT_COLLECTION_T) {
+            for (Map.Entry<Parameter, Parameter> entry : ((DictCollectionParameter) p).getParameters().entrySet()) {
+                updateParameterAccess(t, entry.getKey());
+                updateParameterAccess(t, entry.getValue());
+            }
+        }
+
         if (type == DataType.FILE_T || type == DataType.DIRECTORY_T || type == DataType.OBJECT_T
             || type == DataType.PSCO_T || type == DataType.STREAM_T || type == DataType.EXTERNAL_STREAM_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
+            || type == DataType.DICT_COLLECTION_T) {
 
             DependencyParameter dPar = (DependencyParameter) p;
             DataAccessId dAccId = dPar.getDataAccessId();

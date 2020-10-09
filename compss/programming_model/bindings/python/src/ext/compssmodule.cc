@@ -210,6 +210,7 @@ static void* _get_void_pointer_to_content(PyObject* val, int type, int size) {
         case external_psco_dt:
         case string_dt:
         case collection_dt:
+        case dict_collection_dt:
             *(char**)ret = _pystring_to_char(val);
             break;
         case int_dt:

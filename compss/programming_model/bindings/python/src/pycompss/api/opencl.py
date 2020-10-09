@@ -71,13 +71,13 @@ class OpenCL(PyCOMPSsDecorator):
                             list(kwargs.keys()),
                             decorator_name)
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the opencl parameters within the task core element.
 
-        :param func: Function to decorate.
+        :param user_function: Function to decorate.
         :return: Decorated function.
         """
-        @wraps(func)
+        @wraps(user_function)
         def opencl_f(*args, **kwargs):
             if not self.scope:
                 raise Exception(not_in_pycompss("opencl"))
@@ -88,7 +88,7 @@ class OpenCL(PyCOMPSsDecorator):
             if context.in_master():
                 # master code
                 if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
             else:
                 # worker code
                 if context.is_nesting_enabled() and \
@@ -101,16 +101,17 @@ class OpenCL(PyCOMPSsDecorator):
 
             return ret
 
-        opencl_f.__doc__ = func.__doc__
+        opencl_f.__doc__ = user_function.__doc__
         return opencl_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """ Include the registering info related to @opencl.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

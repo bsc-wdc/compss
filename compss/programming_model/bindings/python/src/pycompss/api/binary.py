@@ -137,13 +137,13 @@ class Binary(PyCOMPSsDecorator):
         return binary_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict) -> None
+        # type: (dict, ...) -> None
         """ Include the registering info related to @binary.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
-        :param user_function: Function to decorate
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

@@ -47,6 +47,7 @@ def local(input_function):
             return input_function(*args, **kwargs)
 
         return wrapped_function
+
     else:
 
         def sync_if_needed(obj):

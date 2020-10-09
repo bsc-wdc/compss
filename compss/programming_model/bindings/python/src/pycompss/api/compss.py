@@ -84,13 +84,13 @@ class COMPSs(PyCOMPSsDecorator):
         else:
             pass
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the compss parameters within the task core element.
 
-        :param func: Function to decorate.
+        :param user_function: Function to decorate.
         :return: Decorated function.
         """
-        @wraps(func)
+        @wraps(user_function)
         def compss_f(*args, **kwargs):
             if not self.scope:
                 raise Exception(not_in_pycompss("compss"))
@@ -101,7 +101,7 @@ class COMPSs(PyCOMPSsDecorator):
             if context.in_master():
                 # master code
                 if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
             else:
                 # worker code
                 if context.is_nesting_enabled() and \
@@ -114,20 +114,21 @@ class COMPSs(PyCOMPSsDecorator):
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        compss_f.__doc__ = func.__doc__
+        compss_f.__doc__ = user_function.__doc__
         return compss_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """ Include the registering info related to @compss.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

@@ -61,13 +61,14 @@ class PyCOMPSsDecorator(object):
             if __debug__:
                 logger.debug("Init " + decorator_name + " decorator...")
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """
         Include the registering info related to the decorator which inherits
 
         :param kwargs: Current keyword arguments to be updated with the core
-                       element information
+                       element information.
+        :param user_function: Decorated function.
         :return: None
         """
         raise MissingImplementedException("__configure_core_element__")

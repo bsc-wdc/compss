@@ -111,14 +111,14 @@ class MPI(PyCOMPSsDecorator):
         else:
             pass
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the mpi parameters within the task core element.
 
-        :param func: Function to decorate.
+        :param user_function: Function to decorate.
         :return: Decorated function.
         """
 
-        @wraps(func)
+        @wraps(user_function)
         def mpi_f(*args, **kwargs):
             if not self.scope:
                 # Execute the mpi as with PyCOMPSs so that sequential
@@ -165,7 +165,7 @@ class MPI(PyCOMPSsDecorator):
             if context.in_master():
                 # master code
                 if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
             else:
                 # worker code
                 if context.is_nesting_enabled() and \
@@ -187,7 +187,7 @@ class MPI(PyCOMPSsDecorator):
 
             return ret
 
-        mpi_f.__doc__ = func.__doc__
+        mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
     def __resolve_collection_layout_params__(self):
@@ -220,13 +220,14 @@ class MPI(PyCOMPSsDecorator):
 
         return [param_name, str(block_count), str(block_length), str(stride)]
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """ Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

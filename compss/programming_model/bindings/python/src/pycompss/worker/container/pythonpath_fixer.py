@@ -16,46 +16,41 @@
 #
 
 """
-PyCOMPSs Pythonpath Fixer
-=======================
-    Fixes the Pythonpath for Container environments.
+PyCOMPSs PYTHONPATH Fixer
+=========================
+    Fixes the PYTHONPATH for Container environments.
 """
 
 import sys
 
 
-#
-# Fixer method
-#
 def fix_pythonpath():
     # type: (...) -> None
-    """ Resets the pythonpath for clean container environments
+    """ Resets the PYTHONPATH for clean container environments
 
     :return: None
     """
-
     # Default Python installation in Docker containers
     default_container_pythonpath = ['/usr/lib/python2.7', '/usr/lib/python2.7/plat-x86_64-linux-gnu',
                                     '/usr/lib/python2.7/lib-tk', '/usr/lib/python2.7/lib-old',
                                     '/usr/lib/python2.7/lib-dynload', '/usr/local/lib/python2.7/dist-packages',
                                     '/usr/lib/python2.7/dist-packages']
 
-    # Build new Pythonpath
+    # Build new PYTHONPATH
     new_pythonpath = []
 
-    # - Add entries not inherited by user's system default (application pythonpath only)
+    # Add entries not inherited by user's system default (application pythonpath only)
     for pp in sys.path:
-        if pp.startswith("/apps/COMPSs/") or not (pp.startswith("/apps/") or pp.startswith("/gpfs/apps/")):
+        if pp.startswith("/apps/COMPSs/") \
+                or not (pp.startswith("/apps/") or pp.startswith("/gpfs/apps/")):
             new_pythonpath.append(pp)
 
-    # - Add default entries (at the end)
+    # Add default entries (at the end)
     new_pythonpath.extend(default_container_pythonpath)
 
-    # Reset pythonpath
+    # Reset PYTHONPATH
     sys.path = new_pythonpath
 
 
-#
-# Entry point
-#
+# Fix on this module import
 fix_pythonpath()

@@ -198,7 +198,7 @@ def get_task_params(num_params, logger, args):  # noqa
     """
     pos = 0
     ret = []
-    for i in range(0, num_params):
+    for _ in range(0, num_params):
         p_type = int(args[pos])
         p_stream = int(args[pos + 1])
         p_prefix = args[pos + 2]

@@ -157,12 +157,12 @@ def process_task(current_line,     # type: str
 
     current_line = current_line.split()
     if current_line[0] == EXECUTE_TASK_TAG:
-        hasCollectionParams = int(current_line[-1])
-        if hasCollectionParams != 0:
-            collections_layouts = current_line[hasCollectionParams*-5:-1]
+        has_collection_params = int(current_line[-1])
+        if has_collection_params != 0:
+            collections_layouts = current_line[has_collection_params*-5:-1]
             itr = 1
             while itr < len(collections_layouts):
-                collections_layouts[itr] = int(collections_layouts[itr])
+                collections_layouts[itr] = int(collections_layouts[itr])  # noqa
                 itr += 1
         else:
             collections_layouts = None

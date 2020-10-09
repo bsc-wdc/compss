@@ -18,7 +18,8 @@
 """
 PyCOMPSs Worker for Containers
 =======================
-    This file contains the code of a fake worker to execute Python tasks inside containers.
+    This file contains the code of a fake worker to execute Python tasks
+inside containers.
 """
 
 # Fix PYTHONPATH setup
@@ -97,9 +98,9 @@ def main():
                           execute_task_params,
                           tracing,
                           LOGGER,
-                          log_files,
+                          log_files,           # noqa
                           python_mpi,
-                          collections_layouts
+                          collections_layouts  # noqa
                           )
     exit_value, new_types, new_values, timed_out, except_msg = result
 
@@ -122,13 +123,13 @@ def main():
             LOGGER.debug("DONE Building return parameters")
     elif exit_value == 2:
         # Task has finished with a COMPSs Exception
-        except_msg = except_msg.replace(" ", "_")
         if __debug__:
+            except_msg = except_msg.replace(" ", "_")
             LOGGER.debug("Registered COMPSs Exception: " + str(except_msg))
     else:
         # An exception has been raised in task
-        except_msg = except_msg.replace(" ", "_")
         if __debug__:
+            except_msg = except_msg.replace(" ", "_")
             LOGGER.debug("Registered Exception in task execution" + str(except_msg))
 
     # Return

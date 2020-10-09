@@ -118,7 +118,7 @@ def get_serializers():
 
 
 def serialize_to_handler(obj, handler):
-    # type: (object, Iterator) -> None
+    # type: (object, ...) -> None
     """ Serialize an object to a handler.
 
     :param obj: Object to be serialized.

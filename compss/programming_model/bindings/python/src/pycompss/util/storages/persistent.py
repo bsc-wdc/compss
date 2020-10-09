@@ -158,7 +158,7 @@ def init_storage(storage_conf, logger):  # noqa
     return __init_storage__(storage_conf, logger)
 
 
-def __init_storage__(storage_conf, logger):
+def __init_storage__(storage_conf, logger):  # noqa
     # type: (str, ...) -> bool
     """ Call to init storage.
 
@@ -205,7 +205,7 @@ def stop_storage(logger):
     __stop_storage__(logger)
 
 
-def __stop_storage__(logger):
+def __stop_storage__(logger):  # noqa
     # type: (...) -> None
     """ Stops the persistent storage.
 

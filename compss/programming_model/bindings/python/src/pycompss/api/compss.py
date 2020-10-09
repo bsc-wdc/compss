@@ -104,7 +104,9 @@ class COMPSs(PyCOMPSsDecorator):
                     self.__configure_core_element__(kwargs)
             else:
                 # worker code
-                pass
+                if context.is_nesting_enabled() and \
+                        not self.core_element_configured:
+                    self.__configure_core_element__(kwargs)
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator

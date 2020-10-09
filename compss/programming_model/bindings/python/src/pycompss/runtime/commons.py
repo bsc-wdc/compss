@@ -120,13 +120,14 @@ def get_temporary_directory():
 
 
 def set_temporary_directory(folder, create_tmpdir=True):
-    # type: (str) -> None
+    # type: (str, bool) -> None
     """ Set the temporary directory.
 
     Creates the temporary directory from the folder parameter and
     sets the temporary directory variable.
 
     :param folder: Temporary directory path
+    :param create_tmpdir: Create temporary directory within folder.
     :return: None
     """
     global _TEMP_DIR

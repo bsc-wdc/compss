@@ -16,10 +16,11 @@
  */
 package es.bsc.compss.util;
 
-import es.bsc.compss.types.CoreElement;
-import es.bsc.compss.types.CoreElementDefinition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.CoreElementDefinition;
 
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;

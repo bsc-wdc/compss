@@ -68,7 +68,7 @@ public class LoaderConstants {
     public static final String STR_COMPSS_APP_ID = "AppId";
 
     // Supported Stream Types
-    public static final List<String> SUPPORTED_STREAM_TYPES = Arrays.asList("FileInputStream", // 58,700
+    private static final List<String> SUPPORTED_STREAM_TYPES = Arrays.asList("FileInputStream", // 58,700
         "FileOutputStream", // 57,700
         "InputStreamReader", // 61,200
         "BufferedReader", // 36,400
@@ -90,5 +90,15 @@ public class LoaderConstants {
     // Total loader names
     public static final String LOADER_INTERNAL_PREFIX = "es.bsc.compss.";
     public static final String LOADER_IO_PREFIX = "java.io.";
+
+
+    /**
+     * Get the supported File streams.
+     * 
+     * @return list of supported file streams.
+     */
+    public static List<String> getSupportedStreamTypes() {
+        return SUPPORTED_STREAM_TYPES;
+    }
 
 }

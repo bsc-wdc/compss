@@ -247,7 +247,7 @@ public class Task extends AbstractTask {
      */
     public String getDotDescription() {
         int monitorTaskId = taskDescription.getCoreElement().getCoreId() + 1; // Coherent with Trace.java
-        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
+        ColorNode color = ColorConfiguration.getColors()[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
         String shape;
         if (taskDescription.getType() == TaskType.METHOD) {
@@ -302,7 +302,7 @@ public class Task extends AbstractTask {
      */
     public String getColor() {
         int monitorTaskId = this.taskDescription.getCoreElement().getCoreId() + 1; // Coherent with Trace.java
-        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
+        ColorNode color = ColorConfiguration.getColors()[monitorTaskId % ColorConfiguration.NUM_COLORS];
         return color.getFillColor();
     }
 

@@ -408,7 +408,7 @@ public class LoaderUtils {
             String fullName = mc.getClassName();
             if (fullName.startsWith("java.io.")) {
                 String className = fullName.substring(8);
-                if (LoaderConstants.SUPPORTED_STREAM_TYPES.contains(className)) {
+                if (LoaderConstants.getSupportedStreamTypes().contains(className)) {
                     return true;
                 }
             }

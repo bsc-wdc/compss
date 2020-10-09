@@ -347,7 +347,7 @@ public class ITAppEditor extends ExprEditor {
 
         // $$ = pars separated by commas, $args = pars in an array of objects
         boolean found = false;
-        for (String streamClass : LoaderConstants.SUPPORTED_STREAM_TYPES) {
+        for (String streamClass : LoaderConstants.getSupportedStreamTypes()) {
             if (className.equals(streamClass)) {
                 modifiedExpr = "$_ = " + CallGenerator.newStreamClass(itSRVar, itAppIdVar, streamClass, callPars);
                 found = true;

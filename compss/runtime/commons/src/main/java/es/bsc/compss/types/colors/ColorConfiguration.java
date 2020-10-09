@@ -24,7 +24,7 @@ public class ColorConfiguration {
     /**
      * Array containing the Paraver task colors.
      */
-    public static final ColorNode[] COLORS = new ColorNode[] { // Paraver colors
+    private static final ColorNode[] COLORS = new ColorNode[] { // Paraver colors
         new ColorNode(Colors.COLOR_0, Colors.WHITE), // Paraver 0
         new ColorNode(Colors.COLOR_1, Colors.WHITE), // Paraver 1
         new ColorNode(Colors.COLOR_2, Colors.BLACK), // Paraver 2
@@ -54,7 +54,7 @@ public class ColorConfiguration {
     /**
      * Total number of colors.
      */
-    public static final int NUM_COLORS = COLORS.length;
+    public static final int NUM_COLORS = getColors().length;
 
 
     /**
@@ -62,6 +62,10 @@ public class ColorConfiguration {
      */
     private ColorConfiguration() {
         throw new NonInstantiableException("ColorConfiguration should not be instantiated");
+    }
+
+    public static ColorNode[] getColors() {
+        return COLORS;
     }
 
 }

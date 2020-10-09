@@ -56,6 +56,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -118,12 +119,16 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
      */
     public final void delete() {
         File f = new File(this.pipePath + ".inbound");
-        if (f.exists()) {
-            f.delete();
+        try {
+            Files.delete(f.toPath());
+        } catch (IOException e) {
+            LOGGER.warn("Inbound pipe can not be removed: " + e.getMessage());
         }
         f = new File(this.pipePath + ".outbound");
-        if (f.exists()) {
-            f.delete();
+        try {
+            Files.delete(f.toPath());
+        } catch (IOException e) {
+            LOGGER.warn("Outbound pipe can not be removed: " + e.getMessage());
         }
     }
 

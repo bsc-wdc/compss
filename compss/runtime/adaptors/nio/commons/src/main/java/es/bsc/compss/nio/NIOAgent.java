@@ -824,7 +824,7 @@ public abstract class NIOAgent {
             Enumeration<ZipEntry> zipFileEntries = (Enumeration<ZipEntry>) zip.entries();
             while (zipFileEntries.hasMoreElements()) {
                 // Grab a zip file entry
-                ZipEntry entry = zipFileEntries.nextElement();
+                ZipEntry entry = zipFileEntries.nextElement(); // NOSONAR extracted folder is ziped by COMPSs
                 String currentEntry = entry.getName();
 
                 File destFile = new File(destination, currentEntry);

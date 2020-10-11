@@ -26,6 +26,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
+import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
@@ -72,6 +73,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.NIOAdaptorProperties;
 import es.bsc.compss.types.project.jaxb.PropertyAdaptorType;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -79,22 +81,24 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
 import es.bsc.conn.types.StarterCommand;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -127,8 +131,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + File.separator;
 
     private static final String TERM_ERR = "Error terminating";
-    // private static final String SER_RCV_ERR =
-    // "Error serializing received object";
 
     private static final Set<NIOWorkerNode> NODES = new HashSet<>();
 
@@ -153,7 +155,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         if (masterPortProp != null && !masterPortProp.isEmpty()) {
             masterPort = Integer.valueOf(masterPortProp);
         } else {
-            int random = new Random().nextInt(MAX_RANDOM_VALUE);
+            int random = new SecureRandom().nextInt(MAX_RANDOM_VALUE);
             masterPort = BASE_MASTER_PORT + random;
         }
         MASTER_PORT = masterPort;
@@ -220,46 +222,57 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
         Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
+        if (projectProperties == null) {
+            throw new ConstructConfigurationException("Project Properties map is null");
+        } else if (resourcesProperties == null) {
+            throw new ConstructConfigurationException("Resources Properties map is null");
+        }
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
+        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject =
+            loadProjectProperties(projectProperties, config);
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources =
+            loadResourcesProperties(resourcesProperties, config);
 
-        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject = null;
-        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources = null;
+        getPorts(propsProject, propsResources, config);
+        getRemoteExecutionCommand(propsResources, config);
 
-        if (resourcesProperties != null) {
-            propsResources =
-                (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties.get("Ports");
+        return config;
+    }
 
-            ResourcesExternalAdaptorProperties reap =
-                (ResourcesExternalAdaptorProperties) resourcesProperties.get("Properties");
-            if (reap != null) {
-                for (ResourcesPropertyAdaptorType prop : reap.getProperty()) {
-                    config.addProperty(prop.getName(), prop.getValue());
-                }
-            }
-        }
-        if (projectProperties != null) {
-            propsProject = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties.get("Ports");
-            ExternalAdaptorProperties eap = (ExternalAdaptorProperties) projectProperties.get(ProjectFile.PROPERTIES);
-            if (eap != null) {
-                for (PropertyAdaptorType prop : eap.getProperty()) {
-                    config.addProperty(prop.getName(), prop.getValue());
-                }
-            }
+    private void getRemoteExecutionCommand(ResourcesNIOAdaptorProperties propsResources, NIOConfiguration config)
+        throws ConstructConfigurationException {
+        String remoteExecutionCommand = propsResources.getRemoteExecutionCommand();
+        if (remoteExecutionCommand == null || remoteExecutionCommand.isEmpty()) {
+            remoteExecutionCommand = NIOConfiguration.DEFAULT_REMOTE_EXECUTION_COMMAND;
         }
 
+        if (!NIOConfiguration.getAvailableRemoteExecutionCommands().contains(remoteExecutionCommand)) {
+            throw new ConstructConfigurationException("Invalid remote execution command on resources file");
+        }
+        config.setRemoteExecutionCommand(remoteExecutionCommand);
+
+    }
+
+    private void getPorts(NIOAdaptorProperties propsProject, ResourcesNIOAdaptorProperties propsResources,
+        NIOConfiguration config) throws ConstructConfigurationException {
         // Get ports
-        int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
-        int minResources = -1;
-        if (propsResources != null) {
-            minResources = propsResources.getMinPort();
-        } else {
-            // MinPort on resources is mandatory
+        if (propsResources == null) {
             throw new ConstructConfigurationException("Resources file doesn't contain a minimum port value");
         }
+        int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
+        int minResources = propsResources.getMinPort();
         int maxProject = (propsProject != null) ? propsProject.getMaxPort() : -1;
-        int maxResources = (propsResources != null) ? propsResources.getMaxPort() : -1;
+        int maxResources = propsResources.getMaxPort();
+        int minFinal = calculateMinPort(minProject, minResources);
+        int maxFinal = calculateMaxPort(maxProject, maxResources);
+        LOGGER.info("NIO Min Port: " + minFinal);
+        LOGGER.info("NIO MAX Port: " + maxFinal);
+        config.setMinPort(minFinal);
+        config.setMaxPort(maxFinal);
 
-        // Merge port ranges
+    }
+
+    private int calculateMinPort(int minProject, int minResources) {
         int minFinal = -1;
         if (minProject < 0) {
             minFinal = minResources;
@@ -271,7 +284,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 minFinal = minProject;
             }
         }
+        return minFinal;
+    }
 
+    private int calculateMaxPort(int maxProject, int maxResources) {
         int maxFinal = -1;
         if (maxProject < 0) {
             if (maxResources < 0) {
@@ -294,24 +310,42 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 }
             }
         }
+        return maxFinal;
 
-        LOGGER.info("NIO Min Port: " + minFinal);
-        LOGGER.info("NIO MAX Port: " + maxFinal);
-        config.setMinPort(minFinal);
-        config.setMaxPort(maxFinal);
+    }
 
-        // Add remote execution command
-        String remoteExecutionCommand = propsResources.getRemoteExecutionCommand();
-        if (remoteExecutionCommand == null || remoteExecutionCommand.isEmpty()) {
-            remoteExecutionCommand = NIOConfiguration.DEFAULT_REMOTE_EXECUTION_COMMAND;
+    private ResourcesNIOAdaptorProperties loadResourcesProperties(Map<String, Object> resourcesProperties,
+        NIOConfiguration config) throws ConstructConfigurationException {
+        if (resourcesProperties == null) {
+            throw new ConstructConfigurationException("Resources Properties map is null");
         }
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources =
+            (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties.get("Ports");
 
-        if (!NIOConfiguration.getAvailableRemoteExecutionCommands().contains(remoteExecutionCommand)) {
-            throw new ConstructConfigurationException("Invalid remote execution command on resources file");
+        ResourcesExternalAdaptorProperties reap =
+            (ResourcesExternalAdaptorProperties) resourcesProperties.get("Properties");
+        if (reap != null) {
+            for (ResourcesPropertyAdaptorType prop : reap.getProperty()) {
+                config.addProperty(prop.getName(), prop.getValue());
+            }
         }
-        config.setRemoteExecutionCommand(remoteExecutionCommand);
+        return propsResources;
+    }
 
-        return config;
+    private NIOAdaptorProperties loadProjectProperties(Map<String, Object> projectProperties, NIOConfiguration config)
+        throws ConstructConfigurationException {
+        if (projectProperties == null) {
+            throw new ConstructConfigurationException("Project Properties map is null");
+        }
+        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject =
+            (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties.get("Ports");
+        ExternalAdaptorProperties eap = (ExternalAdaptorProperties) projectProperties.get(ProjectFile.PROPERTIES);
+        if (eap != null) {
+            for (PropertyAdaptorType prop : eap.getProperty()) {
+                config.addProperty(prop.getName(), prop.getValue());
+            }
+        }
+        return propsProject;
     }
 
     @Override
@@ -367,7 +401,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         LOGGER.debug("NIO Adaptor stop completed!");
     }
 
-    protected static void submitTask(NIOJob job) throws Exception {
+    protected static void submitTask(NIOJob job) throws UnstartedNodeException {
         int transferGroupId = job.getTransferGroupId();
         TransferGroup group = PENDING_TRANSFER_GROUPS.get(transferGroupId);
         if (group == null) {
@@ -389,7 +423,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         worker.submitTask(job, obsoleteRenamings);
     }
 
-    protected static void cancelTask(NIOJob job) throws Exception {
+    protected static void cancelTask(NIOJob job) throws UnstartedNodeException {
         LOGGER.debug("NIO cancelling running job " + job.getJobId());
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
@@ -476,7 +510,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         c.finishConnection();
     }
 
-    private void produceFailOnTask(NIOTask task, List<String> obsolete) {
+    private void produceFailOnTask(NIOTask task) {
         int jobId = task.getJobId();
 
         if (LOGGER.isDebugEnabled()) {
@@ -486,7 +520,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Update running jobs
         NIOJob nj = RUNNING_JOBS.remove(jobId);
         if (nj != null) {
-            int taskId = nj.getTaskId();
 
             // Update NIO Job
             // Mark task as finished and release waiters
@@ -494,13 +527,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             nj.taskFinished(false, null);
 
             // Retrieve files if required
-            generateFailedJobFiles(jobId, taskId, prevJobHistory, "Error sending new task command");
+            generateFailedJobFiles(jobId, prevJobHistory, "Error sending new task command");
 
         }
 
     }
 
-    private void generateFailedJobFiles(int jobId, int taskId, JobHistory history, String message) {
+    private void generateFailedJobFiles(int jobId, JobHistory history, String message) {
         String jobOut = JOBS_DIR + "job" + jobId + "_" + history + ".out";
         String jobErr = JOBS_DIR + "job" + jobId + "_" + history + ".err";
         writeJobFile(jobOut, message);
@@ -512,7 +545,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         if (!taskFile.exists()) {
             try (FileOutputStream stream = new FileOutputStream(taskFile)) {
                 stream.write(message.getBytes());
-                stream.close();
             } catch (IOException ioe) {
                 LOGGER.error("IOException writing file: " + taskFile, ioe);
             }
@@ -679,7 +711,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             c.end(OperationEndState.OP_OK);
         }
 
-        if (NIOTracer.extraeEnabled()) {
+        if (Tracer.extraeEnabled()) {
             NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
         }
     }
@@ -702,29 +734,29 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             DataLocation actualLocation = c.getSourceData().finishedCopy(c);
             if (actualLocation != null) {
                 LOGGER.debug("Actual Location " + actualLocation.getPath());
+                LogicalData tgtData = c.getTargetData();
+                if (tgtData != null) {
+                    LOGGER.debug("targetData is not null");
+                    switch (actualLocation.getType()) {
+                        case PERSISTENT:
+                            LOGGER.debug("Persistent location no need to update location for " + tgtData.getName());
+                            break;
+                        case BINDING:
+                        case PRIVATE:
+                            LOGGER.debug("Adding location:" + actualLocation.getPath() + " to " + tgtData.getName());
+                            tgtData.addLocation(actualLocation);
+                            break;
+                        case SHARED:
+                            LOGGER.debug("Shared location no need to update location for " + tgtData.getName());
+                            break;
+                    }
+                    LOGGER.debug("Locations for " + tgtData.getName() + " are: " + tgtData.getURIs());
+
+                } else {
+                    LOGGER.warn("No target Data defined for copy " + c.getName());
+                }
             } else {
                 LOGGER.debug("Actual Location is null");
-            }
-            LogicalData tgtData = c.getTargetData();
-            if (tgtData != null) {
-                LOGGER.debug("targetData is not null");
-                switch (actualLocation.getType()) {
-                    case PERSISTENT:
-                        LOGGER.debug("Persistent location no need to update location for " + tgtData.getName());
-                        break;
-                    case BINDING:
-                    case PRIVATE:
-                        LOGGER.debug("Adding location:" + actualLocation.getPath() + " to " + tgtData.getName());
-                        tgtData.addLocation(actualLocation);
-                        break;
-                    case SHARED:
-                        LOGGER.debug("Shared location no need to update location for " + tgtData.getName());
-                        break;
-                }
-                LOGGER.debug("Locations for " + tgtData.getName() + " are: " + tgtData.getURIs());
-
-            } else {
-                LOGGER.warn("No target Data defined for copy " + c.getName());
             }
         }
         group.notifyGroupEnd();
@@ -733,7 +765,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     // Return the data that a worker should be obtaining and has not yet confirmed
     @Override
     public List<DataOperation> getPending() {
-        return new LinkedList<DataOperation>();
+        return new LinkedList<>();
     }
 
     @Override
@@ -865,6 +897,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             tracingGeneration.acquire();
         } catch (InterruptedException ex) {
             LOGGER.error("Error waiting for package generation");
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
         }
 
     }
@@ -880,6 +914,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             workersDebugInfo.acquire();
         } catch (InterruptedException ex) {
             LOGGER.error("Error waiting for package generation");
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
         }
 
     }
@@ -1019,7 +1055,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             commandNewTask.increaseRetries();
             resendCommand((NIONode) c.getNode(), commandNewTask);
         } else {
-            produceFailOnTask(commandNewTask.getTask(), commandNewTask.getObsolete());
+            produceFailOnTask(commandNewTask.getTask());
         }
 
     }

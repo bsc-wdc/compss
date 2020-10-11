@@ -1011,7 +1011,7 @@ public class Executor implements Runnable {
                 if (!f.exists()) {
                     out.println("[EXECUTOR] executeTask - Creating a new blank file");
                     try {
-                        f.createNewFile();
+                        f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
                     } catch (IOException e) {
                         System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
                     }

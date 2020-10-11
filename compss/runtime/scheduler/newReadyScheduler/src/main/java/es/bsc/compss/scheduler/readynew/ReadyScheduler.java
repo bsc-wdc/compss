@@ -214,9 +214,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
             try {
                 resourceToken.get();
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                LOGGER.fatal("Unexpected thread interruption");
-                ErrorManager.fatal("Unexpected thread interruption");
+                LOGGER.fatal("Unexpected thread interruption", e);
+                ErrorManager.fatal("Unexpected thread interruption", e);
             }
         }
         for (ObjectValue<AllocatableAction> actionObject : actionList) {
@@ -279,9 +278,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
                     try {
                         token.get();
                     } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                        LOGGER.fatal("Unexpected thread interruption");
-                        ErrorManager.fatal("Unexpected thread interruption");
+                        LOGGER.fatal("Unexpected thread interruption", e);
+                        ErrorManager.fatal("Unexpected thread interruption", e);
                     }
                 }
                 addActionToResource(currentEntry, action);
@@ -300,9 +298,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
                     try {
                         token.get();
                     } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                        LOGGER.fatal("Unexpected thread interruption");
-                        ErrorManager.fatal("Unexpected thread interruption");
+                        LOGGER.fatal("Unexpected thread interruption", e);
+                        ErrorManager.fatal("Unexpected thread interruption", e);
                     }
                 }
                 removeActionFromResource(currentEntry, action);
@@ -458,9 +455,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
             try {
                 lastToken.get();
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                LOGGER.fatal("Unexpected thread interruption");
-                ErrorManager.fatal("Unexpected thread interruption");
+                LOGGER.fatal("Unexpected thread interruption", e);
+                ErrorManager.fatal("Unexpected thread interruption", e);
             }
         }
         this.resourceTokens.put(resource, null);

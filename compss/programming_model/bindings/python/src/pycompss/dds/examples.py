@@ -25,7 +25,7 @@ from pycompss.dds import DDS
 
 def inside(_):
     import random
-    x, y = random.random(), random.random()
+    x, y = random.random(), random.random() # NOSONAR
     if (x * x) + (y * y) < 1:
         return True
 

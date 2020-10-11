@@ -56,7 +56,7 @@ public class TraceMerger {
 
     // could be wrong this regex (designed for matching tasks not workers)
     private static final String WORKER_THREAD_INFO_REGEX = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
-    private static final Pattern WORKER_THREAD_INFO_PATTERN = Pattern.compile(WORKER_THREAD_INFO_REGEX);
+    private static final Pattern WORKER_THREAD_INFO_PATTERN = Pattern.compile(WORKER_THREAD_INFO_REGEX); // NOSONAR
     private static final Integer STATE_TYPE = 1;
     private static final Integer WORKER_THREAD_ID = 2;
     private static final Integer WORKER_TIMESTAMP = 6;

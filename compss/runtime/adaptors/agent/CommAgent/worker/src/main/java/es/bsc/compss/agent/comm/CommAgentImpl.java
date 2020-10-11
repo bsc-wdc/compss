@@ -75,7 +75,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
                 throw new AgentException("Invalid port number for Comm agent's interface.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Error configuring agent", e);
             throw new AgentException(e);
         }
         return conf;

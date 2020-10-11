@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.ui;
 
+import java.security.SecureRandom;
 import java.util.Random;
 import java.util.Vector;
 
@@ -208,7 +209,7 @@ public class StateData {
      * @return The total CPU consumption.
      */
     public int getTotalCPUConsumption() {
-        float op1 = new Random().nextFloat() * Float.valueOf(this.totalCPU); // TODO
+        float op1 = new SecureRandom().nextFloat() * Float.valueOf(this.totalCPU); // TODO
         float op2 = Float.valueOf(this.totalCPU);
 
         // Protection
@@ -227,7 +228,7 @@ public class StateData {
      * @return The total memory consumption.
      */
     public float getTotalMemoryConsumption() {
-        float op1 = new Random().nextFloat() * this.totalMemory; // TODO
+        float op1 = new SecureRandom().nextFloat() * this.totalMemory; // TODO
 
         // Protection
         if (this.totalMemory == Float.valueOf(0)) {
@@ -388,7 +389,7 @@ public class StateData {
 
         public int getCPUConsumption() {
             if (type.equals("WORKER")) {
-                float op1 = new Random().nextFloat() * Float.valueOf(this.cpu); // TODO
+                float op1 = new SecureRandom().nextFloat() * Float.valueOf(this.cpu); // TODO
                 float op2 = Float.valueOf(this.cpu);
 
                 // Protection
@@ -406,7 +407,7 @@ public class StateData {
 
         public float getMemoryConsumption() {
             if (type.equals("WORKER")) {
-                float op1 = new Random().nextFloat() * this.memory; // TODO
+                float op1 = new SecureRandom().nextFloat() * this.memory; // TODO
 
                 // Protection
                 if (this.memory == Float.valueOf(0)) {

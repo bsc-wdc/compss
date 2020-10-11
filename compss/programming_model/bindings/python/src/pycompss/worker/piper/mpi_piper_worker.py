@@ -171,7 +171,7 @@ def compss_persistent_worker(config):
                 pid = PROCESSES.get(in_pipe)
                 logger.debug(HEADER + "Signaling process with PID " +
                              pid + " to cancel a task")
-                os.kill(int(pid), signal.SIGUSR2)
+                os.kill(int(pid), signal.SIGUSR2) # NOSONAR cancellation produced by COMPSs
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)

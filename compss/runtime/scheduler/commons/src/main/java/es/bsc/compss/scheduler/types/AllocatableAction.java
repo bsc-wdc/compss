@@ -972,7 +972,7 @@ public abstract class AllocatableAction {
                 this.state = State.CANCELLING;
                 stopAction();
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.error("Exception stoping action.", e);
             }
         } else {
             if (this.state == State.CANCELLING) {

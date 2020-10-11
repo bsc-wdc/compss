@@ -280,8 +280,8 @@ public abstract class ExternalInvoker extends Invoker {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.error("Error writting collection to file");
-                e.printStackTrace();
+                LOGGER.error("Error writting collection to file", e);
+                e.printStackTrace(); // NOSONAR need to print in the job out/err
             }
         }
     }

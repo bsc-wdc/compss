@@ -587,10 +587,10 @@ public class BinaryRunner {
                     Field f = this.process.getClass().getDeclaredField("pid");
                     f.setAccessible(true);
                     int pid = f.getInt(this.process);
-                    System.out.println("Killing process " + pid);
+                    System.out.println("Killing process " + pid); // NOSONAR need to be printed in job out/err
                     Runtime.getRuntime().exec("kill -" + PB_KILL_SIGNAL + " " + pid);
                 } catch (Throwable e) {
-                    System.err.println("Error geting pid");
+                    System.err.println("Error geting pid." + e.getMessage());
                 }
             } else {
                 this.process.destroy();
@@ -647,7 +647,7 @@ public class BinaryRunner {
                 outputGobbler.join();
             } catch (InterruptedException e) {
                 errLog.println("Error waiting for output gobbler to end");
-                e.printStackTrace();
+                e.printStackTrace(errLog);
             }
         }
         outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
@@ -656,7 +656,7 @@ public class BinaryRunner {
                 errorGobbler.join();
             } catch (InterruptedException e) {
                 errLog.println("Error waiting for error gobbler to end");
-                e.printStackTrace();
+                e.printStackTrace(errLog);
             }
         }
         errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");

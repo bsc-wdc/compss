@@ -794,7 +794,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                                 Path fileDest = tgtPath.resolve(copyPath.relativize(source));
                                                 Files.copy(source, fileDest, StandardCopyOption.REPLACE_EXISTING);
                                             } catch (IOException e) {
-                                                e.printStackTrace();
+                                                LOGGER.error("Exception copying file " + source + " to " + tgtPath);
                                             }
                                         });
                                     }

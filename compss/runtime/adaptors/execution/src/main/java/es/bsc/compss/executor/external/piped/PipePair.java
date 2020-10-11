@@ -402,7 +402,8 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                     fos.write(message.getBytes());
                     fos.flush();
                 } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                    LOGGER.error("Error: writting message to pipe", ioe);
+                    ioe.printStackTrace(); // NOSONAR need to print in job out/err
                 }
             }
         }

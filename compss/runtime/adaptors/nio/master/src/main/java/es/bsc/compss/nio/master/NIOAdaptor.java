@@ -221,12 +221,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
         Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
-
-        if (projectProperties == null) {
-            throw new ConstructConfigurationException("Project Properties map is null");
-        } else if (resourcesProperties == null) {
-            throw new ConstructConfigurationException("Resources Properties map is null");
-        }
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
         es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject =
             loadProjectProperties(projectProperties, config);
@@ -317,7 +311,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private ResourcesNIOAdaptorProperties loadResourcesProperties(Map<String, Object> resourcesProperties,
         NIOConfiguration config) throws ConstructConfigurationException {
         if (resourcesProperties == null) {
-            throw new ConstructConfigurationException("Resources Properties map is null");
+            return null;
         }
         es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources =
             (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties.get("Ports");
@@ -335,7 +329,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private NIOAdaptorProperties loadProjectProperties(Map<String, Object> projectProperties, NIOConfiguration config)
         throws ConstructConfigurationException {
         if (projectProperties == null) {
-            throw new ConstructConfigurationException("Project Properties map is null");
+            return null;
         }
         es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject =
             (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties.get("Ports");

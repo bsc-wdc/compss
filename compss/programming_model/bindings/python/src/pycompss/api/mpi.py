@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from _ast import If
 
 # -*- coding: utf-8 -*-
 
@@ -80,14 +79,15 @@ class MPI(PyCOMPSsDecorator):
                 logger.debug("Init @mpi decorator...")
 
             layout_nums = 0
-            # TODO: Maybe add here the collection layout to avoid iterate twice per elements
+            # noqa TODO: Maybe add here the collection layout to avoid iterate twice per elements
             # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
             for key in self.kwargs.keys():
                 if "_layout" in key:
                     layout_nums += 1
                     SUPPORTED_ARGUMENTS.add(key)
             if layout_nums > 1:
-                raise Exception("More than one layout definition is not yet supported!")
+                msg = "More than one layout definition is not yet supported!"
+                raise Exception(msg)
 
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -103,8 +103,10 @@ class MPI(PyCOMPSsDecorator):
             if 'processes' not in self.kwargs:
                 self.kwargs['processes'] = 1
 
-            # The processes parameter will have to go down until the execution is invoked.
-            # WARNING: processes can be an int, a env string, a str with dynamic variable name.
+            # The processes parameter will have to go down until the execution
+            # is invoked.
+            # WARNING: processes can be an int, a env string, a str with
+            #          dynamic variable name.
             if __debug__:
                 logger.debug("This MPI task will have " +
                              str(self.kwargs['processes']) + " processes.")
@@ -124,7 +126,7 @@ class MPI(PyCOMPSsDecorator):
                 # Execute the mpi as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss("mpi"))
-                # TODO: Intercept the @task parameters to get stream redirection
+                # TODO: Intercept @task parameters to get stream redirection
                 cmd = [self.kwargs['runner']]
                 if 'processes' in self.kwargs:
                     cmd += ['-np', self.kwargs['processes']]
@@ -141,11 +143,15 @@ class MPI(PyCOMPSsDecorator):
                     args = [str(a) for a in args]
                     cmd += args
                 my_env = os.environ.copy()
+                env_path = my_env["PATH"]
                 if "working_dir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["working_dir"] + my_env["PATH"]
+                    my_env["PATH"] = self.kwargs["working_dir"] + env_path
                 elif "workingDir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["workingDir"] + my_env["PATH"]
-                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env)  # noqa: E501
+                    my_env["PATH"] = self.kwargs["workingDir"] + env_path
+                proc = subprocess.Popen(cmd,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
+                                        env=my_env)
                 out, err = proc.communicate()
                 if sys.version_info[0] < 3:
                     out_message = out.strip()
@@ -215,8 +221,10 @@ class MPI(PyCOMPSsDecorator):
                 else:
                     stride = -1
 
-                if (block_length != -1 and block_count == -1) or (stride != -1 and block_count == -1):
-                    raise Exception("Error: collection_layout must contain block_count!")
+                if (block_length != -1 and block_count == -1) or \
+                        (stride != -1 and block_count == -1):
+                    msg = "Error: collection_layout must contain block_count!"
+                    raise Exception(msg)
 
         return [param_name, str(block_count), str(block_length), str(stride)]
 

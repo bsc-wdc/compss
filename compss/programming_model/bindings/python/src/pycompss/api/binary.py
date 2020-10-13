@@ -90,17 +90,21 @@ class Binary(PyCOMPSsDecorator):
                 # Execute the binary as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss("binary"))
-                # TODO: Intercept the @task parameters to get stream redirection
+                # TODO: Intercept @task parameters to get stream redirection
                 cmd = [self.kwargs['binary']]
                 if args:
                     args = [str(a) for a in args]
                     cmd += args
                 my_env = os.environ.copy()
+                env_path = my_env["PATH"]
                 if "working_dir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["working_dir"] + my_env["PATH"]
+                    my_env["PATH"] = self.kwargs["working_dir"] + env_path
                 elif "workingDir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["workingDir"] + my_env["PATH"]
-                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env)  # noqa: E501
+                    my_env["PATH"] = self.kwargs["workingDir"] + env_path
+                proc = subprocess.Popen(cmd,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
+                                        env=my_env)
                 out, err = proc.communicate()
                 if sys.version_info[0] < 3:
                     out_message = out.strip()
@@ -160,7 +164,8 @@ class Binary(PyCOMPSsDecorator):
         # Resolve binary
         _binary = str(self.kwargs['binary'])
 
-        if CORE_ELEMENT_KEY in kwargs and kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
+        if CORE_ELEMENT_KEY in kwargs and \
+                kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
             # @container decorator sits on top of @binary decorator
             # Note: impl_type and impl_signature are NOT modified
             # ('CONTAINER' and 'CONTAINER.function_name' respectively)
@@ -192,8 +197,8 @@ class Binary(PyCOMPSsDecorator):
                          _fail_by_ev]  # fail_by_ev
 
             if CORE_ELEMENT_KEY in kwargs:
-                # Core element has already been created in a higher level decorator
-                # (e.g. @constraint)
+                # Core element has already been created in a higher level
+                # decorator (e.g. @constraint)
                 kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
                 kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)

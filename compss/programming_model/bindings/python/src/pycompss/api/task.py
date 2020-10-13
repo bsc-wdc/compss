@@ -74,10 +74,11 @@ class Task(PyCOMPSsDecorator):
     TaskWorker.call() and self._sequential_call()
     """
 
-    __slots__ = ['task_type', 'decorator_arguments', 'user_function',
-                 'registered', 'signature',
-                 'interactive', 'module', 'function_arguments',
-                 'function_name', 'module_name', 'function_type', 'class_name', 'hints']
+    __slots__ = ["task_type", "decorator_arguments", "user_function",
+                 "registered", "signature",
+                 "interactive", "module", "function_arguments",
+                 "function_name", "module_name", "function_type", "class_name",
+                 "hints"]
 
     @staticmethod
     def _get_default_decorator_values():
@@ -92,22 +93,22 @@ class Task(PyCOMPSsDecorator):
                  decorator fields.
         """
         return {
-            'target_direction': parameter.INOUT,
-            'returns': False,
-            'priority': False,
-            'on_failure': 'RETRY',
-            'time_out': 0,
-            'is_replicated': False,
-            'is_distributed': False,
-            'computing_nodes': 1,
-            'is_reduce': False,
-            'chunk_size': 0,
-            'tracing_hook': False,
-            'numba': False,  # numba mode (jit, vectorize, guvectorize)
-            'numba_flags': {},  # user defined extra numba flags
-            'numba_signature': None,  # vectorize and guvectorize signature
-            'numba_declaration': None,  # guvectorize declaration
-            'varargs_type': parameter.IN  # Here for legacy purposes
+            "target_direction": parameter.INOUT,
+            "returns": False,
+            "priority": False,
+            "on_failure": "RETRY",
+            "time_out": 0,
+            "is_replicated": False,
+            "is_distributed": False,
+            "computing_nodes": 1,
+            "is_reduce": False,
+            "chunk_size": 0,
+            "tracing_hook": False,
+            "numba": False,  # numba mode (jit, vectorize, guvectorize)
+            "numba_flags": {},  # user defined extra numba flags
+            "numba_signature": None,  # vectorize and guvectorize signature
+            "numba_declaration": None,  # guvectorize declaration
+            "varargs_type": parameter.IN  # Here for legacy purposes
         }
 
     def __init__(self, *args, **kwargs):  # noqa
@@ -160,10 +161,10 @@ class Task(PyCOMPSsDecorator):
             #   pass
             # Transform this dictionary to a Parameter object
             if isinstance(value, dict):
-                if key not in ['numba',
-                               'numba_flags',
-                               'numba_signature',
-                               'numba_declaration']:
+                if key not in ["numba",
+                               "numba_flags",
+                               "numba_signature",
+                               "numba_declaration"]:
                     # Perform user -> instance substitution
                     # param = self.decorator_arguments[key][parameter.Type]
                     # Replace the whole dict by a single parameter object
@@ -239,7 +240,7 @@ class Task(PyCOMPSsDecorator):
                 del master
                 return fo
             elif context.in_worker():
-                if 'compss_key' in kwargs.keys():
+                if "compss_key" in kwargs.keys():
                     # @task being executed in the worker
                     with event(WORKER_TASK_INSTANTIATION,
                                master=False, inside=True):
@@ -314,24 +315,26 @@ class Task(PyCOMPSsDecorator):
         :param user_function: User function
         :return: None (updates the Core Element of the given kwargs)
         """
-        if CORE_ELEMENT_KEY in kwargs and kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
+        if CORE_ELEMENT_KEY in kwargs and \
+                kwargs[CORE_ELEMENT_KEY].get_impl_type() == "CONTAINER":
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
             _type = impl_args[2]
-            if _type == '[unassigned]':
+            if _type == "[unassigned]":
                 # The task is not invoking a binary
                 _engine = impl_args[0]
                 _image = impl_args[1]
-                _type = 'CET_PYTHON'
-                _func_complete = str(user_function.__module__) + '&' + str(user_function.__name__)
+                _type = "CET_PYTHON"
+                _func_complete = "%s&%s" % (str(user_function.__module__),
+                                            str(user_function.__name__))
 
                 impl_args = [_engine,  # engine
                              _image,  # image
                              _type,  # internal_type
-                             '[unassigned]',  # internal_binary
+                             "[unassigned]",  # internal_binary
                              _func_complete,  # internal_func
-                             '[unassigned]',  # working_dir
-                             '[unassigned]']  # fail_by_ev
+                             "[unassigned]",  # working_dir
+                             "[unassigned]"]  # fail_by_ev
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
 
 

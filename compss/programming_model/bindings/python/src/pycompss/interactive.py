@@ -31,7 +31,7 @@ import time
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize        # noqa: E501
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
@@ -40,7 +40,7 @@ from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
 from pycompss.util.environment.configuration import updated_variables_in_sc
 from pycompss.util.environment.configuration import prepare_tracing_environment
-from pycompss.util.environment.configuration import check_infrastructure_variables  # noqa: E501
+from pycompss.util.environment.configuration import check_infrastructure_variables         # noqa: E501
 from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
@@ -64,11 +64,16 @@ from pycompss.streams.environment import stop_streaming
 APP_PATH = INTERACTIVE_FILE_NAME
 PERSISTENT_STORAGE = False
 STREAMING = False
-LOG_PATH = '/tmp/'
+LOG_PATH = "/tmp/"
 GRAPHING = False
 
+# LONG DEFAULTS
+DEFAULT_SCHED = "es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
+DEFAULT_CONN = "es.bsc.compss.connectors.DefaultSSHConnector"
+DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
 
-def start(log_level='off',                     # type: str
+
+def start(log_level="off",                     # type: str
           debug=False,                         # type: bool
           o_c=False,                           # type: bool
           graph=False,                         # type: bool
@@ -77,7 +82,7 @@ def start(log_level='off',                     # type: str
           project_xml=None,                    # type: str
           resources_xml=None,                  # type: str
           summary=False,                       # type: bool
-          task_execution='compss',             # type: str
+          task_execution="compss",             # type: str
           storage_impl=None,                   # type: str
           storage_conf=None,                   # type: str
           streaming_backend=None,              # type: str
@@ -89,19 +94,19 @@ def start(log_level='off',                     # type: str
           base_log_dir=None,                   # type: str
           specific_log_dir=None,               # type: str
           extrae_cfg=None,                     # type: str
-          comm='NIO',                          # type: str
-          conn='es.bsc.compss.connectors.DefaultSSHConnector',  # type: str
-          master_name='',                      # type: str
-          master_port='',                      # type: str
-          scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # type: str  # noqa: E501
-          jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',  # type: str
-          cpu_affinity='automatic',            # type: str
-          gpu_affinity='automatic',            # type: str
-          fpga_affinity='automatic',           # type: str
-          fpga_reprogram='',                   # type: str
-          profile_input='',                    # type: str
-          profile_output='',                   # type: str
-          scheduler_config='',                 # type: str
+          comm="NIO",                          # type: str
+          conn=DEFAULT_CONN,                   # type: str
+          master_name="",                      # type: str
+          master_port="",                      # type: str
+          scheduler=DEFAULT_SCHED,             # type: str
+          jvm_workers=DEFAULT_JVM_WORKERS,     # type: str
+          cpu_affinity="automatic",            # type: str
+          gpu_affinity="automatic",            # type: str
+          fpga_affinity="automatic",           # type: str
+          fpga_reprogram="",                   # type: str
+          profile_input="",                    # type: str
+          profile_output="",                   # type: str
+          scheduler_config="",                 # type: str
           external_adaptation=False,           # type: bool
           propagate_virtual_environment=True,  # type: bool
           mpi_worker=False,                    # type: bool
@@ -110,15 +115,15 @@ def start(log_level='off',                     # type: str
     # type: (...) -> None
     """ Start the runtime in interactive mode.
 
-    :param log_level: Logging level [ 'trace'|'debug'|'info'|'api'|'off' ]
-                      (default: 'off')
+    :param log_level: Logging level [ "trace"|"debug"|"info"|"api"|"off" ]
+                      (default: "off")
     :param debug: Debug mode [ True | False ]
                   (default: False) (overrides log-level)
     :param o_c: Objects to string conversion [ True|False ]
                 (default: False)
     :param graph: Generate graph [ True|False ]
                   (default: False)
-    :param trace: Generate trace [ True|False|'scorep'|'arm-map'|'arm-ddt' ]
+    :param trace: Generate trace [ True|False|"scorep"|"arm-map"|"arm-ddt" ]
                   (default: False)
     :param monitor: Monitor refresh rate
                     (default: None)
@@ -129,7 +134,7 @@ def start(log_level='off',                     # type: str
     :param summary: Execution summary [ True | False ]
                     (default: False)
     :param task_execution: Task execution
-                           (default: 'compss')
+                           (default: "compss")
     :param storage_impl: Storage implementation path
                          (default: None)
     :param storage_conf: Storage configuration file path
@@ -157,30 +162,30 @@ def start(log_level='off',                     # type: str
     :param conn: Connector
                  (default: DefaultSSHConnector)
     :param master_name: Master Name
-                        (default: '')
+                        (default: "")
     :param master_port: Master port
-                        (default: '')
+                        (default: "")
     :param scheduler: Scheduler (see runcompss)
-                      (default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)  # noqa
+                      (default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)  # noqa: E501
     :param jvm_workers: Java VM parameters
-                        (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
+                        (default: "-Xms1024m,-Xmx1024m,-Xmn400m")
     :param cpu_affinity: CPU Core affinity
-                         (default: 'automatic')
+                         (default: "automatic")
     :param gpu_affinity: GPU affinity
-                         (default: 'automatic')
+                         (default: "automatic")
     :param fpga_affinity: FPGA affinity
-                          (default: 'automatic')
+                          (default: "automatic")
     :param fpga_reprogram: FPGA repogram command
-                           (default: '')
+                           (default: "")
     :param profile_input: Input profile
-                          (default: '')
+                          (default: "")
     :param profile_output: Output profile
-                           (default: '')
+                           (default: "")
     :param scheduler_config: Scheduler configuration
-                             (default: '')
+                             (default: "")
     :param external_adaptation: External adaptation [ True|False ]
                                 (default: False)
-    :param propagate_virtual_environment: Propagate virtual environment [ True|False ]  # noqa
+    :param propagate_virtual_environment: Propagate virtual environment [ True|False ]  # noqa: E501
                                           (default: False)
     :param mpi_worker: Use the MPI worker [ True|False ]
                        (default: False)
@@ -209,43 +214,43 @@ def start(log_level='off',                     # type: str
     ##############################################################
 
     # Initial dictionary with the user defined parameters
-    all_vars = {'log_level': log_level,
-                'debug': debug,
-                'o_c': o_c,
-                'graph': graph,
-                'trace': trace,
-                'monitor': monitor,
-                'project_xml': project_xml,
-                'resources_xml': resources_xml,
-                'summary': summary,
-                'task_execution': task_execution,
-                'storage_impl': storage_impl,
-                'storage_conf': storage_conf,
-                'streaming_backend': streaming_backend,
-                'streaming_master_name': streaming_master_name,
-                'streaming_master_port': streaming_master_port,
-                'task_count': task_count,
-                'app_name': app_name,
-                'uuid': uuid,
-                'base_log_dir': base_log_dir,
-                'specific_log_dir': specific_log_dir,
-                'extrae_cfg': extrae_cfg,
-                'comm': comm,
-                'conn': conn,
-                'master_name': master_name,
-                'master_port': master_port,
-                'scheduler': scheduler,
-                'jvm_workers': jvm_workers,
-                'cpu_affinity': cpu_affinity,
-                'gpu_affinity': gpu_affinity,
-                'fpga_affinity': fpga_affinity,
-                'fpga_reprogram': fpga_reprogram,
-                'profile_input': profile_input,
-                'profile_output': profile_output,
-                'scheduler_config': scheduler_config,
-                'external_adaptation': external_adaptation,
-                'propagate_virtual_environment': propagate_virtual_environment,
-                'mpi_worker': mpi_worker}
+    all_vars = {"log_level": log_level,
+                "debug": debug,
+                "o_c": o_c,
+                "graph": graph,
+                "trace": trace,
+                "monitor": monitor,
+                "project_xml": project_xml,
+                "resources_xml": resources_xml,
+                "summary": summary,
+                "task_execution": task_execution,
+                "storage_impl": storage_impl,
+                "storage_conf": storage_conf,
+                "streaming_backend": streaming_backend,
+                "streaming_master_name": streaming_master_name,
+                "streaming_master_port": streaming_master_port,
+                "task_count": task_count,
+                "app_name": app_name,
+                "uuid": uuid,
+                "base_log_dir": base_log_dir,
+                "specific_log_dir": specific_log_dir,
+                "extrae_cfg": extrae_cfg,
+                "comm": comm,
+                "conn": conn,
+                "master_name": master_name,
+                "master_port": master_port,
+                "scheduler": scheduler,
+                "jvm_workers": jvm_workers,
+                "cpu_affinity": cpu_affinity,
+                "gpu_affinity": gpu_affinity,
+                "fpga_affinity": fpga_affinity,
+                "fpga_reprogram": fpga_reprogram,
+                "profile_input": profile_input,
+                "profile_output": profile_output,
+                "scheduler_config": scheduler_config,
+                "external_adaptation": external_adaptation,
+                "propagate_virtual_environment": propagate_virtual_environment,
+                "mpi_worker": mpi_worker}
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)
@@ -255,7 +260,7 @@ def start(log_level='off',                     # type: str
 
     # Prepare the environment
     env_vars = prepare_environment(True, o_c, storage_impl,
-                                   'undefined', debug, trace, mpi_worker)
+                                   "undefined", debug, trace, mpi_worker)
     all_vars.update(env_vars)
 
     # Update the log level and graph values if monitoring is enabled
@@ -271,43 +276,43 @@ def start(log_level='off',                     # type: str
         updated_vars = updated_variables_in_sc()
         if verbose:
             print("- Overridden project xml with: %s" %
-                  updated_vars['project_xml'])
+                  updated_vars["project_xml"])
             print("- Overridden resources xml with: %s" %
-                  updated_vars['resources_xml'])
+                  updated_vars["resources_xml"])
             print("- Overridden master name with: %s" %
-                  updated_vars['master_name'])
+                  updated_vars["master_name"])
             print("- Overridden master port with: %s" %
-                  updated_vars['master_port'])
+                  updated_vars["master_port"])
             print("- Overridden uuid with: %s" %
-                  updated_vars['uuid'])
+                  updated_vars["uuid"])
             print("- Overridden base log dir with: %s" %
-                  updated_vars['base_log_dir'])
+                  updated_vars["base_log_dir"])
             print("- Overridden specific log dir with: %s" %
-                  updated_vars['specific_log_dir'])
+                  updated_vars["specific_log_dir"])
             print("- Overridden storage conf with: %s" %
-                  updated_vars['storage_conf'])
+                  updated_vars["storage_conf"])
             print("- Overridden log level with: %s" %
-                  str(updated_vars['log_level']))
+                  str(updated_vars["log_level"]))
             print("- Overridden debug with: %s" %
-                  str(updated_vars['debug']))
+                  str(updated_vars["debug"]))
             print("- Overridden trace with: %s" %
-                  str(updated_vars['trace']))
+                  str(updated_vars["trace"]))
         all_vars.update(updated_vars)
 
     # Update the tracing environment if set and set the appropriate trace
     # integer value
-    tracing_vars = prepare_tracing_environment(all_vars['trace'],
-                                               all_vars['extrae_lib'],
-                                               all_vars['ld_library_path'])
-    all_vars['trace'], all_vars['ld_library_path'] = tracing_vars
+    tracing_vars = prepare_tracing_environment(all_vars["trace"],
+                                               all_vars["extrae_lib"],
+                                               all_vars["ld_library_path"])
+    all_vars["trace"], all_vars["ld_library_path"] = tracing_vars
 
     # Update the infrastructure variables if necessary
-    inf_vars = check_infrastructure_variables(all_vars['project_xml'],
-                                              all_vars['resources_xml'],
-                                              all_vars['compss_home'],
-                                              all_vars['app_name'],
-                                              all_vars['file_name'],
-                                              all_vars['external_adaptation'])
+    inf_vars = check_infrastructure_variables(all_vars["project_xml"],
+                                              all_vars["resources_xml"],
+                                              all_vars["compss_home"],
+                                              all_vars["app_name"],
+                                              all_vars["file_name"],
+                                              all_vars["external_adaptation"])
     all_vars.update(inf_vars)
 
     # With all this information, create the configuration file for the
@@ -320,7 +325,7 @@ def start(log_level='off',                     # type: str
 
     print("* - Starting COMPSs runtime...                       *")
     sys.stdout.flush()  # Force flush
-    compss_start(log_level, all_vars['trace'], True)
+    compss_start(log_level, all_vars["trace"], True)
 
     global LOG_PATH
     LOG_PATH = get_log_path()
@@ -329,11 +334,11 @@ def start(log_level='off',                     # type: str
 
     # Setup logging
     binding_log_path = get_log_path()
-    log_path = os.path.join(all_vars['compss_home'],
-                            'Bindings',
-                            'python',
-                            str(all_vars['major_version']),
-                            'log')
+    log_path = os.path.join(all_vars["compss_home"],
+                            "Bindings",
+                            "python",
+                            str(all_vars["major_version"]),
+                            "log")
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
@@ -346,13 +351,13 @@ def start(log_level='off',                     # type: str
 
     logger.debug("Starting storage")
     global PERSISTENT_STORAGE
-    PERSISTENT_STORAGE = master_init_storage(all_vars['storage_conf'], logger)
+    PERSISTENT_STORAGE = master_init_storage(all_vars["storage_conf"], logger)
 
     logger.debug("Starting streaming")
     global STREAMING
-    STREAMING = init_streaming(all_vars['streaming_backend'],
-                               all_vars['streaming_master_name'],
-                               all_vars['streaming_master_port'])
+    STREAMING = init_streaming(all_vars["streaming_backend"],
+                               all_vars["streaming_master_name"],
+                               all_vars["streaming_master_port"])
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -404,7 +409,7 @@ def __print_setup__(verbose, all_vars):
     output += "******************************************************\n"
     output += " CONFIGURATION: \n"
     for k, v in sorted(all_vars.items()):
-        output += '  - {0:20} : {1} \n'.format(k, v)
+        output += "  - {0:20} : {1} \n".format(k, v)
     output += "******************************************************"
     if verbose:
         print(output)
@@ -433,31 +438,31 @@ def stop(sync=False):
         logger.debug(sync_msg)
         from pycompss.api.api import compss_wait_on
 
-        ipython = globals()['__builtins__']['get_ipython']()
+        ipython = globals()["__builtins__"]["get_ipython"]()
         # import pprint
         # pprint.pprint(ipython.__dict__, width=1)
-        reserved_names = ('quit', 'exit', 'get_ipython',
-                          'APP_PATH', 'ipycompss', 'In', 'Out')
-        raw_code = ipython.__dict__['user_ns']
+        reserved_names = ("quit", "exit", "get_ipython",
+                          "APP_PATH", "ipycompss", "In", "Out")
+        raw_code = ipython.__dict__["user_ns"]
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith('_'):   # not internal objects
                 if type(obj_k) == Future:
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
-                    ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
+                    ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
                 elif k not in reserved_names:
                     try:
                         if OT_is_pending_to_synchronize(obj_k):
-                            print("Found an object to synchronize: %s" % str(k))
-                            logger.debug("Found an object to synchronize: %s" % (k,))
-                            ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
+                            print("Found an object to synchronize: %s" % str(k))       # noqa: E501
+                            logger.debug("Found an object to synchronize: %s" % (k,))  # noqa: E501
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)     # noqa: E501
                     except TypeError:
                         # Unhashable type: List - could be a collection
                         if isinstance(obj_k, list):
                             print("Found a list to synchronize: %s" % str(k))
-                            logger.debug("Found a list to synchronize: %s" % (k,))
-                            ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
+                            logger.debug("Found a list to synchronize: %s" % (k,))     # noqa: E501
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)     # noqa: E501
                 else:
                     pass
     else:
@@ -497,11 +502,11 @@ def __show_current_graph__(fit=False):
     :return: None
     """
     if GRAPHING:
-        return __show_graph__(name='current_graph', fit=fit)
+        return __show_graph__(name="current_graph", fit=fit)
     else:
-        print('Oops! Graph is not enabled in this execution.')
-        print('      Please, enable it by setting the graph flag when' +
-              ' starting PyCOMPSs.')
+        print("Oops! Graph is not enabled in this execution.")
+        print("      Please, enable it by setting the graph flag when" +
+              " starting PyCOMPSs.")
 
 
 def __show_complete_graph__(fit=False):
@@ -512,35 +517,35 @@ def __show_complete_graph__(fit=False):
     :return: None
     """
     if GRAPHING:
-        return __show_graph__(name='complete_graph', fit=fit)
+        return __show_graph__(name="complete_graph", fit=fit)
     else:
-        print('Oops! Graph is not enabled in this execution.')
-        print('      Please, enable it by setting the graph flag when' +
-              ' starting PyCOMPSs.')
+        print("Oops! Graph is not enabled in this execution.")
+        print("      Please, enable it by setting the graph flag when" +
+              " starting PyCOMPSs.")
         return None
 
 
-def __show_graph__(name='complete_graph', fit=False):
+def __show_graph__(name="complete_graph", fit=False):
     # type: (str, bool) -> ...
     """ Show graph.
 
-    :param name: Graph to show (default: 'complete_graph')
+    :param name: Graph to show (default: "complete_graph")
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
     try:
         from graphviz import Source  # noqa
     except ImportError:
-        print('Oops! graphviz is not available.')
+        print("Oops! graphviz is not available.")
         return None
-    monitor_file = open(LOG_PATH + '/monitor/' + name + '.dot', 'r')
+    monitor_file = open(LOG_PATH + "/monitor/" + name + ".dot", 'r')
     text = monitor_file.read()
     monitor_file.close()
     if fit:
         try:
             # Convert to png and show full picture
-            filename = LOG_PATH + '/monitor/' + name
-            extension = 'png'
+            filename = LOG_PATH + "/monitor/" + name
+            extension = "png"
             import os
             if os.path.exists(filename + '.' + extension):
                 os.remove(filename + '.' + extension)
@@ -550,7 +555,7 @@ def __show_graph__(name='complete_graph', fit=False):
             image = Image(filename=filename + '.' + extension)
             return image
         except Exception:
-            print('Oops! Failed rendering the graph.')
+            print("Oops! Failed rendering the graph.")
             raise
     else:
         return Source(text)
@@ -574,19 +579,19 @@ def __export_globals__():
     # need to access the same information.
     # if the file is created per task, the constraint will not be able to work.
     # Get ipython globals
-    ipython = globals()['__builtins__']['get_ipython']()
+    ipython = globals()["__builtins__"]["get_ipython"]()
     # import pprint
     # pprint.pprint(ipython.__dict__, width=1)
     # Extract user globals from ipython
-    user_globals = ipython.__dict__['ns_table']['user_global']
+    user_globals = ipython.__dict__["ns_table"]["user_global"]
     # Inject APP_PATH variable to user globals so that task and constraint
     # decorators can get it.
     temp_app_filename = "".join((os.path.join(os.getcwd(),
                                               INTERACTIVE_FILE_NAME),
                                  '_',
-                                 str(time.strftime('%d%m%y_%H%M%S')),
-                                 '.py'))
-    user_globals['APP_PATH'] = temp_app_filename
+                                 str(time.strftime("%d%m%y_%H%M%S")),
+                                 ".py"))
+    user_globals["APP_PATH"] = temp_app_filename
     APP_PATH = temp_app_filename
 
 

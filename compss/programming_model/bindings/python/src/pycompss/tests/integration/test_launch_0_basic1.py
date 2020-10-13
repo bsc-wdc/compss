@@ -26,9 +26,9 @@ def test_launch_test_0_basic1():
         from pycompss.runtime.launch import launch_pycompss_application
 
         current_path = os.path.dirname(os.path.abspath(__file__))
-        app_path = os.path.join(current_path, "..", "..", "..", "..", "..", "..",
-                                "..", "..", "tests", "sources", "local", "python",
-                                "0_basic1", "src")
+        app_path = os.path.join(current_path, "..", "..", "..", "..", "..",
+                                "..", "..", "..", "tests", "sources", "local",
+                                "python", "0_basic1", "src")
         app = os.path.join(app_path, "test_mp.py")
         sys.path.insert(0, app_path)
         launch_pycompss_application(app,

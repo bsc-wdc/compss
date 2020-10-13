@@ -25,34 +25,34 @@ from pycompss.api.commons.error_msgs import wrong_value
 
 def test_err_msgs_not_in_pycompss():
     decorator_name = "@unittest"
-    expected = "The %s decorator only works within PyCOMPSs framework." % \
-               decorator_name
+    expected = (
+        "The %s decorator only works within PyCOMPSs framework."
+        % decorator_name
+    )
     error = not_in_pycompss(decorator_name=decorator_name)
-    assert error == expected,\
-        "Received wrong error message."
+    assert error == expected, "Received wrong error message."
 
 
 def test_err_msgs_cast_env_to_int_error():
     what = "@unittest"
     expected = "ERROR: %s value cannot be cast from ENV variable to int" % what
     error = cast_env_to_int_error(what=what)
-    assert error == expected,\
-        "Received wrong error message."
+    assert error == expected, "Received wrong error message."
 
 
 def test_err_msgs_cast_string_to_int_error():
     what = "@unittest"
     expected = "ERROR: %s value cannot be cast from string to int" % what
     error = cast_string_to_int_error(what=what)
-    assert error == expected,\
-        "Received wrong error message."
+    assert error == expected, "Received wrong error message."
 
 
 def test_err_msgs_wrong_value():
     value_name = "unittest"
     decorator_name = "@unittest"
-    expected = "ERROR: Wrong %s value at %s decorator." % (value_name,
-                                                           decorator_name)
+    expected = "ERROR: Wrong %s value at %s decorator." % (
+        value_name,
+        decorator_name,
+    )
     error = wrong_value(value_name=value_name, decorator_name=decorator_name)
-    assert error == expected,\
-        "Received wrong error message."
+    assert error == expected, "Received wrong error message."

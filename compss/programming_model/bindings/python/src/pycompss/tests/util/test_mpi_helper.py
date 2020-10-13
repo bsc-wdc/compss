@@ -20,6 +20,7 @@
 
 def test_mpi_helper():
     from pycompss.util.mpi.helper import rank_distributor
+
     result = rank_distributor((2, 3, 4))
     expected_result = [0, 1, 2, 4, 5, 6]
     assert result == expected_result, "Unexpected rank distributor result"

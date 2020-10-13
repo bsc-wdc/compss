@@ -20,11 +20,13 @@
 
 def test_information_available_decorators():
     from pycompss.api.commons.information import available_decorators
+
     assert isinstance(available_decorators, tuple)
     assert len(available_decorators) >= 13
 
 
 def test_information_non_worker_decorators():
     from pycompss.api.commons.information import non_worker_decorators
+
     assert isinstance(non_worker_decorators, tuple)
     assert len(non_worker_decorators) >= 7

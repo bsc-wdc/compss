@@ -30,8 +30,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_mpi_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_mpi = MPI(runner="mpirun")
-    assert my_mpi.decorator_name == "@mpi", \
-        "The decorator name must be @mpi."
+    assert my_mpi.decorator_name == "@mpi", "The decorator name must be @mpi."
 
 
 def test_mpi_call():
@@ -39,8 +38,7 @@ def test_mpi_call():
     my_mpi = MPI(runner="mpirun")
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 # # Disabled due to support of dummy @binary
@@ -63,8 +61,9 @@ def test_mpi_layout_empty_parameter():
     my_mpi = MPI(runner="mpirun", _layout={"_layout": layout})
     f = my_mpi(dummy_function)
     _ = f()
-    assert "_layout" in my_mpi.kwargs, \
-        "_layout is not defined in kwargs dictionary."
+    assert (
+        "_layout" in my_mpi.kwargs
+    ), "_layout is not defined in kwargs dictionary."
 
 
 def test_mpi_layout_parameter_exception():
@@ -72,11 +71,16 @@ def test_mpi_layout_parameter_exception():
     layout = 2
     exception = False
     try:
-        _ = MPI(_layout={"_layout": layout}, _layout2={"_layout": layout}, runner="mpirun")  # noqa: E501
+        _ = MPI(
+            _layout={"_layout": layout},
+            _layout2={"_layout": layout},
+            runner="mpirun",
+        )  # noqa: E501
     except Exception:  # noqa
         exception = True  # Ok - Exception expected.
-    assert exception, \
-        "Expected exception due to multiple layouts has not been raised"
+    assert (
+        exception
+    ), "Expected exception due to multiple layouts has not been raised"
 
 
 def test_mpi_binary():
@@ -84,35 +88,37 @@ def test_mpi_binary():
     my_mpi = MPI(runner="mpirun", binary="date", flags="flags")
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_mpi_binary_scale_bool_true():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu=True)  # noqa: E501
+    my_mpi = MPI(
+        runner="mpirun", binary="date", flags="flags", scale_by_cu=True
+    )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_mpi_binary_scale_bool_false():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu=False)  # noqa: E501
+    my_mpi = MPI(
+        runner="mpirun", binary="date", flags="flags", scale_by_cu=False
+    )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_mpi_binary_scale_str():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu="ENV_VAR")  # noqa: E501
+    my_mpi = MPI(
+        runner="mpirun", binary="date", flags="flags", scale_by_cu="ENV_VAR"
+    )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_mpi_binary_scale_incorrect():
@@ -124,8 +130,7 @@ def test_mpi_binary_scale_incorrect():
         _ = f()
     except Exception:  # noqa
         exception = True
-    assert exception, \
-        "Unsupported scale_by_cu value exception not raised."
+    assert exception, "Unsupported scale_by_cu value exception not raised."
 
 
 def test_mpi_existing_core_element():
@@ -134,5 +139,6 @@ def test_mpi_existing_core_element():
     f = my_mpi(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    assert CORE_ELEMENT_KEY not in my_mpi.kwargs, \
-           "Core Element is not defined in kwargs dictionary."
+    assert (
+        CORE_ELEMENT_KEY not in my_mpi.kwargs
+    ), "Core Element is not defined in kwargs dictionary."

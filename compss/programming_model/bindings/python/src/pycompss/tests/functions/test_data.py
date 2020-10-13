@@ -20,12 +20,15 @@
 
 def test_data_chunks():
     from pycompss.functions.data import chunks
+
     data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     expected_unbalanced = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]
     chunked_unbalanced = list(chunks(data, 3, balanced=False))
-    assert expected_unbalanced == chunked_unbalanced, \
-        "ERROR: Got unexpected unbalanced chunking."
+    assert (
+        expected_unbalanced == chunked_unbalanced
+    ), "ERROR: Got unexpected unbalanced chunking."
     expected_balanced = [[0, 1, 2, 3], [4, 5, 6], [7, 8, 9]]
     chunked_balanced = list(chunks(data, 3, balanced=True))
-    assert expected_balanced == chunked_balanced, \
-        "ERROR: Got unexpected balanced chunking."
+    assert (
+        expected_balanced == chunked_balanced
+    ), "ERROR: Got unexpected balanced chunking."

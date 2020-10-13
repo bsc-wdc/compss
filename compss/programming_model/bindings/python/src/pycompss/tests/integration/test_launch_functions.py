@@ -26,9 +26,8 @@ def test_launch_application():
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         app = os.path.join(current_path, "..", "resources", "functions.py")
-        launch_pycompss_application(app,
-                                    "main",
-                                    debug=True,
-                                    app_name="functions")
+        launch_pycompss_application(
+            app, "main", debug=True, app_name="functions"
+        )
     else:
         raise Exception("COMPSs is not installed")

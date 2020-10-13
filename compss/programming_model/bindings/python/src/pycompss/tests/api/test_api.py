@@ -46,14 +46,14 @@ def test_dummy_api():
     obj = [1, 2, 3]
     num_resources = 1
 
-    with open(file_name, 'w') as f:
+    with open(file_name, "w") as f:
         f.write("some content")
     os.mkdir(directory_name)
 
-    compss_start(log_level='off', interactive=False)
+    compss_start(log_level="off", interactive=False)
     compss_stop(code=0)
     compss_file_exists(file_name)
-    compss_open(file_name, mode='r')
+    compss_open(file_name, mode="r")
     compss_delete_file(file_name)
     compss_wait_on_file(file_name)
     compss_wait_on_directory(directory_name)

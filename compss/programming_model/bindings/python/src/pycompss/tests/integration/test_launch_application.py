@@ -26,9 +26,8 @@ def test_launch_application():
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         app = os.path.join(current_path, "..", "resources", "increment.py")
-        launch_pycompss_application(app,
-                                    "main",
-                                    debug=True,
-                                    app_name="increment")
+        launch_pycompss_application(
+            app, "main", debug=True, app_name="increment"
+        )
     else:
         raise Exception("COMPSs is not installed")

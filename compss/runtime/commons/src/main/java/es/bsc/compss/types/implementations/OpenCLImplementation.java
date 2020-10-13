@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -48,7 +50,7 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
 
     /**
      * Creates a new OpenCLImplementation instance from the given parameters.
-     * 
+     *
      * @param kernel Path to the OpenCL kernel.
      * @param workingDir Binary working directory.
      * @param coreId Core Id.
@@ -67,7 +69,7 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
 
     /**
      * Returns the path to the OpenCL kernel.
-     * 
+     *
      * @return The path to the OpenCL kernel.
      */
     public String getKernel() {
@@ -76,7 +78,7 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
 
     /**
      * Returns the binary working directory.
-     * 
+     *
      * @return The binary working directory.
      */
     public String getWorkingDir() {
@@ -95,6 +97,11 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
         sb.append("]");
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new OpenCLDefinition(this.getSignature(), kernel, workingDir, this.getRequirements());
     }
 
     @Override

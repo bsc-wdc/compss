@@ -30,12 +30,12 @@ import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.ErrorHandler;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
@@ -98,6 +98,22 @@ public class Agent {
         }
 
         RUNTIME = new COMPSsRuntimeImpl();
+        ErrorHandler feh = new ErrorHandler() {
+
+            @Override
+            public boolean handleError() {
+                LOGGER.info("Error raised. Please, check runtime.log");
+                return false;
+            }
+
+            @Override
+            public boolean handleFatalError() {
+                LOGGER.info("Fatal error for an application raised. Please, check runtime.log");
+                return false;
+            }
+
+        };
+        ErrorManager.init(feh);
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
         RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
 
@@ -117,28 +133,26 @@ public class Agent {
      * Requests the execution of a method as a task.
      *
      * @param lang programming language of the method
-     * @param className name of the class containing the method to execute
-     * @param methodName name of the method to execute
+     * @param ced Definition of the Core Element to execute
      * @param ceiClass Core Element interface to detect nested tasks in the code. If null, no nested parallelism will be
      *            detected
      * @param arguments parameter description of the task's arguments
      * @param target paramter description of the task's callee
      * @param results paramter description of the task's results
-     * @param requirements requirements to run the task
      * @param monitor monitor to notify changes on the method execution
+     * @param onFailure behaviour in case of task execution failure
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
-    public static long runTask(Lang lang, String className, String methodName, String ceiClass,
-        ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
-        MethodResourceDescription requirements, AppMonitor monitor) throws AgentException {
-        LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
+    public static long runTask(Lang lang, CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
+        ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
+        throws AgentException {
+        LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
         LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {
             LOGGER.debug("\t* " + param);
         }
-        LOGGER.debug("The task requires " + requirements);
 
         Long appId = RUNTIME.registerApplication(ceiClass);
         monitor.setAppId(appId);
@@ -189,24 +203,15 @@ public class Agent {
                 position += PARAM_LENGTH;
             }
 
-            String paramsTypes = typesSB.toString();
-
-            String ceSignature = methodName + "(" + paramsTypes + ")";
-            String implSignature = methodName + "(" + paramsTypes + ")" + className;
-            CoreElementDefinition ced = new CoreElementDefinition();
-            ced.setCeSignature(ceSignature);
-            ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation("METHOD", implSignature,
-                requirements, className, methodName);
-            ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
-
+            int numNodes = 1;
             RUNTIME.executeTask(appId, // APP ID
                 monitor, // Corresponding task monitor
-                lang, className, methodName, // Method to call
-                false, 1, false, false, // Scheduling information
-                target != null, paramsCount, // Parameter information
-                OnFailure.RETRY, // On failure behavior
+                lang, true, null, null, ced.getCeSignature(), // Method to call
+                onFailure, // On failure behavior
                 0, // Time out of the task
+                false, numNodes, false, false, // Scheduling information
+                target != null, null, paramsCount, // Parameter information
                 params // Parameter values
             );
 

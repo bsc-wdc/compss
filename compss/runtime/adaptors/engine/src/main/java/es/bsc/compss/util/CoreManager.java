@@ -23,6 +23,7 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 

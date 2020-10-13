@@ -31,7 +31,15 @@ public class MultiNodeDefinition extends ImplementationDefinition<MethodResource
     private final String multiNodeName;
 
 
-    protected MultiNodeDefinition(String signature, String multiNodeClass, String multiNodeName,
+    /**
+     * Creates a new ImplementationDefinition to create a multinode core element implementation.
+     *
+     * @param signature Method signature.
+     * @param multiNodeClass Class name.
+     * @param multiNodeName Method name.
+     * @param implConstraints OmpSs method requirements.
+     */
+    public MultiNodeDefinition(String signature, String multiNodeClass, String multiNodeName,
         MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.multiNodeClass = multiNodeClass;

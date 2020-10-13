@@ -34,7 +34,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.DoNothingTaskMonitor;
-import es.bsc.compss.types.FatalErrorHandler;
+import es.bsc.compss.types.ErrorHandler;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -95,7 +95,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHandler {
+public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler {
 
     // Exception constants definition
     private static final String WARN_IT_FILE_NOT_READ = "WARNING: COMPSs Properties file could not be read";
@@ -617,7 +617,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
-        boolean implisIO = (implIO.compareTo("True") == 0);
+        boolean implisIO = Boolean.parseBoolean(implIO);
 
         if (implisIO) {
             if (LOGGER.isDebugEnabled()) {
@@ -642,7 +642,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             int implId = 0;
             for (ImplementationDefinition<?> implDef : ced.getImplementations()) {
                 LOGGER.debug("\t - Implementation " + implId + ":");
-                LOGGER.debug(implDef.toString());
+                try {
+                    LOGGER.debug(implDef.toString());
+                } catch (Exception e) {
+                    LOGGER.debug("Error printing implDef", e);
+                }
             }
         }
 
@@ -895,7 +899,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     /**
      * Notifies the runtime that an application will not produce more tasks.
-     * 
+     *
      * @param app Application that finished generating tasks
      */
     public void noMoreTasks(Application app) {
@@ -1408,7 +1412,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     /**
      * Main code opens a file version that the runtime may need to fetch.
-     * 
+     *
      * @param app Application opening the file
      * @param fileName location of the file
      * @param mode access mode
@@ -1485,7 +1489,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     /**
      * Main code opens a directory that the runtime may need to fetch.
-     * 
+     *
      * @param app application accessing the data.
      * @param dirName Directory name.
      * @param mode Access mode.
@@ -1568,7 +1572,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
         // TraceEvent.CLOSE_FILE.getType());
         // }
-
         LOGGER.info("Closing " + fileName + " in mode " + mode);
 
         // Parse arguments to internal structures
@@ -1631,9 +1634,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * FatalErrorHandler INTERFACE
      * ************************************************************************************************************
      */
+
     @Override
-    public void fatalError() {
-        this.stopIT(true);
+    public boolean handleError() {
+        return handleFatalError();
+    }
+
+    @Override
+    public boolean handleFatalError() {
+        ErrorManager.info("Shutting down COMPSs...", null, System.err);
+        new Thread() {
+
+            public void run() {
+                ErrorManager.logError("Error detected. Shutting down COMPSs", null);
+                COMPSsRuntimeImpl.this.stopIT(true);
+                System.err.println("Shutting down the running process");
+                System.exit(1);
+            }
+        }.start();
+        return true;
     }
 
     /*

@@ -35,7 +35,19 @@ public class DecafDefinition extends ImplementationDefinition<MethodResourceDesc
     private final boolean failByEV;
 
 
-    protected DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir,
+    /**
+     * Creates a new ImplementationDefinition to create a Decaf core element implementation.
+     * 
+     * @param signature Decaf operation signature.
+     * @param dfScript Path to df script.
+     * @param dfExecutor Path to df executor.
+     * @param dfLib Path to df library.
+     * @param workingDir Working directory.
+     * @param mpiRunner Path to MPI binary command.
+     * @param failByEV Flag to enable failure with EV.
+     * @param implConstraints Decaf operation requirements.
+     */
+    public DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir,
         String mpiRunner, boolean failByEV, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.dfScript = dfScript;

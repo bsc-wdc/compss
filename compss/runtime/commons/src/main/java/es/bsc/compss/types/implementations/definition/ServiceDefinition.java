@@ -33,7 +33,16 @@ public class ServiceDefinition extends ImplementationDefinition<ServiceResourceD
     private final String port;
 
 
-    protected ServiceDefinition(String signature, String namespace, String serviceName, String operation, String port) {
+    /**
+     * Creates a new ImplementationDefinition to create a service core element implementation.
+     * 
+     * @param signature Service operation signature.
+     * @param namespace Service namespace.
+     * @param serviceName Service name.
+     * @param port Service port.
+     * @param operation Service operation.
+     */
+    public ServiceDefinition(String signature, String namespace, String serviceName, String operation, String port) {
         super(signature, null);
         this.namespace = namespace;
         this.serviceName = serviceName;

@@ -19,11 +19,20 @@ package es.bsc.compss.types;
 /**
  * Handler invoked by the ErrorManager whenever a fatal error raises and needs to stop the whole system.
  */
-public interface FatalErrorHandler {
+public interface ErrorHandler {
+
+    /**
+     * Notifies an error to be handled.
+     * 
+     * @return {@literal true} if the error handling shuts down COMPSs.
+     */
+    public boolean handleError();
 
     /**
      * Notifies a fatal error to be handled.
+     * 
+     * @return {@literal true} if the error handling shuts down COMPSs.
      */
-    public void fatalError();
+    public boolean handleFatalError();
 
 }

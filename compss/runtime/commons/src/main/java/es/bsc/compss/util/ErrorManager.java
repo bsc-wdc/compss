@@ -17,7 +17,7 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.FatalErrorHandler;
+import es.bsc.compss.types.ErrorHandler;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -40,35 +40,12 @@ public final class ErrorManager {
     private static final String PREFIX_WARNING = PREFIX_ERRMGR + "WARNING: ";
     private static final String PREFIX_ERROR = PREFIX_ERRMGR + "ERROR:   ";
     private static final String PREFIX_FATAL = PREFIX_ERRMGR + "FATAL:   ";
-    private static final String SUFFIX_SHUTTING_DOWN = PREFIX_ERRMGR + "Shutting down COMPSs...";
-
-    private static final Integer REQUEST_ERROR = 1;
-    private static final Integer REQUEST_FATAL = 2;
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.ERROR_MANAGER);
 
-    private static FatalErrorHandler handler = null;
-    private static Integer errorRequest = -1;
+    private static ErrorHandler handler = null;
 
     private static boolean stopping = false;
-
-    /**
-     * It handles ERROR and FATAL messages asynchronously.
-     */
-    private static Runnable errorRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-            if (errorRequest == REQUEST_ERROR || errorRequest == REQUEST_FATAL) {
-                if (handler != null) {
-                    LOGGER.error(PREFIX_ERRMGR + "Error detected. Shutting down COMPSs");
-                    handler.fatalError();
-                }
-                System.err.println("Shutting down the running process");
-                System.exit(1);
-            }
-        }
-    };
 
 
     /**
@@ -76,7 +53,7 @@ public final class ErrorManager {
      *
      * @param handler Class to invoke on a fatal error case.
      */
-    public static void init(FatalErrorHandler handler) {
+    public static void init(ErrorHandler handler) {
         ErrorManager.handler = handler;
     }
 
@@ -125,11 +102,7 @@ public final class ErrorManager {
     public static synchronized void error(String msg, Exception e) {
         if (!stopping) {
             prettyPrint(PREFIX_ERROR, msg, e, System.err);
-            prettyPrint("", SUFFIX_SHUTTING_DOWN, null, System.err);
-
-            stopping = true;
-            errorRequest = REQUEST_ERROR;
-            new Thread(errorRunnable, "ErrorManager Error Thread").start();
+            stopping = handler.handleError();
         }
 
         if (LOGGER != null) {
@@ -166,11 +139,8 @@ public final class ErrorManager {
     public static synchronized void fatal(String msg, Exception e) {
         if (!stopping) {
             prettyPrint(PREFIX_FATAL, msg, e, System.err);
-            prettyPrint("", SUFFIX_SHUTTING_DOWN, null, System.err);
 
-            stopping = true;
-            errorRequest = REQUEST_FATAL;
-            new Thread(errorRunnable, "ErrorManager Fatal Thread").start();
+            stopping = handler.handleFatalError();
         }
 
         if (LOGGER != null) {
@@ -196,6 +166,37 @@ public final class ErrorManager {
      */
     public static void fatal(String msg) {
         fatal(msg, null);
+    }
+
+    /**
+     * Prints an information message through the ErrorManager.
+     *
+     * @param message Message to print
+     * @param e Exception causing the message
+     * @param channel Stream where to print the message
+     */
+    public static void info(String message, Exception e, PrintStream channel) {
+        prettyPrint(PREFIX_ERRMGR, message, e, channel);
+    }
+
+    /**
+     * Prints an information message through the ErrorManager on through its logger.
+     *
+     * @param message Message to print
+     * @param e Exception causing the message
+     */
+    public static void logInfo(String message, Exception e) {
+        LOGGER.info(PREFIX_ERRMGR + message, e);
+    }
+
+    /**
+     * Prints an information message through the ErrorManager on through its logger.
+     *
+     * @param message Message to print
+     * @param e Exception causing the message
+     */
+    public static void logError(String message, Exception e) {
+        LOGGER.error(PREFIX_ERRMGR + message, e);
     }
 
     /*

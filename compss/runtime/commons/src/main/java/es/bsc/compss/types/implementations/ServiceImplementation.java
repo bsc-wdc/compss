@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.ServiceDefinition;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.ServiceResourceDescription;
 
@@ -117,6 +119,15 @@ public class ServiceImplementation extends Implementation implements Externaliza
     @Override
     public ServiceResourceDescription getRequirements() {
         return (ServiceResourceDescription) this.requirements;
+    }
+
+    @Override
+    public ImplementationDefinition<ServiceResourceDescription> getDefinition() {
+        String namespace = this.getRequirements().getNamespace();
+        String serviceName = this.getRequirements().getServiceName();
+        String port = this.getRequirements().getPort();
+
+        return new ServiceDefinition(this.signature, namespace, serviceName, this.operation, port);
     }
 
     @Override

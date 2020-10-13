@@ -35,7 +35,19 @@ public class COMPSsDefinition extends ImplementationDefinition<MethodResourceDes
     private final boolean failByEV;
 
 
-    protected COMPSsDefinition(String signature, String runcompss, String flags, String appName, String workerInMaster,
+    /**
+     * Creates a new ImplementationDefinition to create a COMPSs core element implementation.
+     *
+     * @param signature Method signature.
+     * @param runcompss Runcompss binary path.
+     * @param flags Runcompss user flags.
+     * @param appName Application name.
+     * @param workerInMaster Whether the nested COMPSs execution should spawn a worker in the master node or not.
+     * @param workingDir The nested COMPSs working directory.
+     * @param failByEV Flag to enable failure with EV.
+     * @param implConstraints Method annotations.
+     */
+    public COMPSsDefinition(String signature, String runcompss, String flags, String appName, String workerInMaster,
         String workingDir, boolean failByEV, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.runcompss = runcompss;

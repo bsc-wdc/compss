@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -125,6 +127,11 @@ public class MethodImplementation extends AbstractMethodImplementation implement
         super.writeExternal(out);
         out.writeObject(this.declaringClass);
         out.writeObject(this.alternativeMethod);
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new MethodDefinition(this.getSignature(), declaringClass, alternativeMethod, this.getRequirements());
     }
 
 }

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.io.Externalizable;
@@ -119,6 +120,13 @@ public abstract class Implementation implements Externalizable {
      */
     public abstract TaskType getTaskType();
 
+    /**
+     * Returns an ImplementationDefinition describing the implementation.
+     *
+     * @return description of the implementation.
+     */
+    public abstract ImplementationDefinition<?> getDefinition();
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Implementation ").append(this.implementationId);
@@ -133,6 +141,7 @@ public abstract class Implementation implements Externalizable {
         this.implementationId = (Integer) in.readObject();
         this.signature = in.readUTF();
         this.io = (boolean) in.readObject();
+        this.requirements = (WorkerResourceDescription) in.readObject();
     }
 
     @Override
@@ -141,6 +150,7 @@ public abstract class Implementation implements Externalizable {
         out.writeObject(this.implementationId);
         out.writeUTF(signature);
         out.writeObject(this.io);
+        out.writeObject(this.requirements);
     }
 
 }

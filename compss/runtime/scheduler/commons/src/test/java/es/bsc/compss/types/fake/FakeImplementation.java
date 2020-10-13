@@ -18,6 +18,7 @@ package es.bsc.compss.types.fake;
 
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 
 
 public class FakeImplementation extends Implementation {
@@ -25,6 +26,11 @@ public class FakeImplementation extends Implementation {
     @Override
     public TaskType getTaskType() {
         return TaskType.METHOD;
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return null;
     }
 
 }

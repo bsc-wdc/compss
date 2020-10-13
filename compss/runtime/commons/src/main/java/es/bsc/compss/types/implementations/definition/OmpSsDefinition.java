@@ -32,7 +32,16 @@ public class OmpSsDefinition extends ImplementationDefinition<MethodResourceDesc
     private final boolean failByEV;
 
 
-    protected OmpSsDefinition(String signature, String binary, String workingDir, boolean failByEV,
+    /**
+     * Creates a new ImplementationDefinition to create an OMPSs core element implementation.
+     * 
+     * @param signature OmpSs operation signature.
+     * @param binary Path to the OmpSs binary.
+     * @param workingDir Binary working directory.
+     * @param failByEV Flag to enable failure with EV.
+     * @param implConstraints OmpSs method requirements.
+     */
+    public OmpSsDefinition(String signature, String binary, String workingDir, boolean failByEV,
         MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;

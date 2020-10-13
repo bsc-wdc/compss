@@ -38,7 +38,19 @@ public class ContainerDefinition extends ImplementationDefinition<MethodResource
     private final ContainerDescription container;
 
 
-    protected ContainerDefinition(String signature, ContainerExecutionType internalExecutionType, String internalFunc,
+    /**
+     * Creates a new ImplementationDefinition to create a container core element implementation.
+     * 
+     * @param signature Binary signature.
+     * @param internalExecutionType ContainerExecutionType "PYTHON"/"BINARY"
+     * @param internalFunc Python function path.
+     * @param internalBinary Binary path.
+     * @param workingDir Working directory.
+     * @param failByEV Flag to enable failure with EV.
+     * @param container Container Description.
+     * @param implConstraints Binary requirements.
+     */
+    public ContainerDefinition(String signature, ContainerExecutionType internalExecutionType, String internalFunc,
         String internalBinary, String workingDir, boolean failByEV, ContainerDescription container,
         MethodResourceDescription implConstraints) {
 

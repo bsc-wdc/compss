@@ -17,6 +17,8 @@
 package es.bsc.compss.types.implementations;
 
 import es.bsc.compss.types.CollectionLayout;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -49,7 +51,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Creates a new Python MPI Implementation.
-     * 
+     *
      * @param methodClass Method class.
      * @param altMethodName Alternative method name.
      * @param workingDir Binary working directory.
@@ -80,7 +82,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the method declaring class.
-     * 
+     *
      * @return The method declaring class.
      */
     public String getDeclaringClass() {
@@ -89,7 +91,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the alternative method name.
-     * 
+     *
      * @return The alternative method name.
      */
     public String getAlternativeMethodName() {
@@ -98,7 +100,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Sets a new alternative method name.
-     * 
+     *
      * @param alternativeMethod The new alternative method name.
      */
     public void setAlternativeMethodName(String alternativeMethod) {
@@ -107,7 +109,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the binary working directory.
-     * 
+     *
      * @return The binary working directory.
      */
     public String getWorkingDir() {
@@ -116,7 +118,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the path to the MPI command.
-     * 
+     *
      * @return The path to the MPI command.
      */
     public String getMpiRunner() {
@@ -125,7 +127,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the flags for the MPI command.
-     * 
+     *
      * @return Flags for the MPI command.
      */
     public String getMpiFlags() {
@@ -134,7 +136,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the scale by computing units property.
-     * 
+     *
      * @return scale by computing units property value.
      */
     public boolean getScaleByCU() {
@@ -143,7 +145,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Check if fail by exit value is enabled.
-     * 
+     *
      * @return True is fail by exit value is enabled.
      */
     public boolean isFailByEV() {
@@ -152,7 +154,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     /**
      * Returns the collection layout.
-     * 
+     *
      * @return The collection layout.
      */
     public CollectionLayout getCollectionLayout() {
@@ -176,6 +178,13 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         sb.append(", Collection Layouts: ").append(this.cl);
 
         return sb.toString();
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new PythonMPIDefinition(this.getSignature(), declaringClass, alternativeMethod, workingDir, mpiRunner,
+            mpiFlags, scaleByCU, failByEV, cl.getParamName(), cl.getBlockCount(), cl.getBlockLen(), cl.getBlockStride(),
+            this.getRequirements());
     }
 
     @Override

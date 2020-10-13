@@ -75,7 +75,7 @@ COMPSs options:
 
   --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
                                           Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
-  --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
+  --python_propagate_virtual_environment=<true>   Propagate the master virtual environment to the workers (true/false).
                                                   Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
   --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
                                           Default: $DEFAULT_PYTHON_MPI_WORKER
@@ -133,13 +133,13 @@ arguments_error() {
 ###############################################
 display_settings () {
   display_info "Options setup: 
-        AGENT NAME: ${master_name} 
-        AGENT REST PORT: ${agent_rest_port} 
-        AGENT COMM PORT: ${agent_comm_port} 
+        AGENT NAME: ${master_name}
+        AGENT REST PORT: ${agent_rest_port}
+        AGENT COMM PORT: ${agent_comm_port}
         
-        RESOURCES FILE: ${resFile} 
-        PROJECT FILE: ${projFile} 
-        COMM ADAPTOR: ${comm} 
+        RESOURCES FILE: ${resFile}
+        PROJECT FILE: ${projFile}
+        COMM ADAPTOR: ${comm}
         
         DEBUG: ${log_level}
         PYTHON INTERPRETER: ${python_interpreter}
@@ -196,6 +196,10 @@ parse_options() {
           comm_port=*)
             agent_comm_port=${OPTARG//comm_port=/}
             export COMM_AGENT_PORT=${agent_comm_port};
+            ;;
+          coverage=*)
+            jacoco_agent_expression=${OPTARG//coverage=/}
+            coverage=true
             ;;
           debug)
             # Enable debug in log level

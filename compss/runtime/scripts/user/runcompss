@@ -420,9 +420,9 @@ get_args() {
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             external_debugger_port=${OPTARG//external_debugger=/}
             ;;
-	  coverage=*)
+          coverage=*)
             jacoco_agent_expression=${OPTARG//coverage=/}
-	    coverage=true
+            coverage=true
             ;;
           external_debugger)
             # Enable default external debugger

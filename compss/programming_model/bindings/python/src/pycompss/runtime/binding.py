@@ -708,8 +708,8 @@ def process_task(signature,             # type: str
     # Check that there is the same amount of values as their types, as well
     # as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) ==
-            len(compss_streams) == len(compss_prefixes) == len(content_types) ==
-            len(weights) == len(keep_renames))
+            len(compss_streams) == len(compss_prefixes) ==
+            len(content_types) == len(weights) == len(keep_renames))
 
     # Submit task to the runtime (call to the C extension):
     # Parameters:

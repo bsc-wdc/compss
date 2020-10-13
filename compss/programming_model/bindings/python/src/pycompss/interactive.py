@@ -33,6 +33,9 @@ import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize        # noqa: E501
 from pycompss.runtime.management.classes import Future
+from pycompss.runtime.commons import DEFAULT_SCHED
+from pycompss.runtime.commons import DEFAULT_CONN
+from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import set_temporary_directory
@@ -66,11 +69,6 @@ PERSISTENT_STORAGE = False
 STREAMING = False
 LOG_PATH = "/tmp/"
 GRAPHING = False
-
-# LONG DEFAULTS
-DEFAULT_SCHED = "es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
-DEFAULT_CONN = "es.bsc.compss.connectors.DefaultSSHConnector"
-DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
 
 
 def start(log_level="off",                     # type: str

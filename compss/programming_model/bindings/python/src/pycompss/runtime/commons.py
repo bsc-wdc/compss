@@ -79,6 +79,11 @@ EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
 # Interactive mode file name
 INTERACTIVE_FILE_NAME = 'InteractiveMode'
 
+# LONG DEFAULTS
+DEFAULT_SCHED = "es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
+DEFAULT_CONN = "es.bsc.compss.connectors.DefaultSSHConnector"
+DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
+
 #####################################################
 # Builtin functions depending on the python version #
 #####################################################

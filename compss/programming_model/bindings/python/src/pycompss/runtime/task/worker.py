@@ -199,7 +199,8 @@ class TaskWorker(TaskCommons):
         :param logger: Logger (shadows outer logger since this is only used
                                in the worker to reveal the parameter objects).
         :param python_mpi: If the task is python MPI.
-        :param collections_layouts: Layouts of collections params for python MPI tasks.
+        :param collections_layouts: Layouts of collections params for python
+                                    MPI tasks.
         :return: None
         """
         if self.storage_supports_pipelining():
@@ -248,7 +249,8 @@ class TaskWorker(TaskCommons):
         :param argument: Argument.
         :param name_prefix: Name prefix.
         :param python_mpi: If the task is python MPI.
-        :param collections_layouts: Layouts of collections params for python MPI tasks.
+        :param collections_layouts: Layouts of collections params for python
+                                    MPI tasks.
         :param depth: Collection depth (0 if not a collection).
         :return: None
         """
@@ -684,7 +686,8 @@ class TaskWorker(TaskCommons):
 
             # Skip psco: since param.content_type has the old type, we can
             # not use:  param.content_type != parameter.TYPE.EXTERNAL_PSCO
-            _is_psco_true = (arg.content_type == parameter.TYPE.EXTERNAL_PSCO or
+            _is_psco_true = (arg.content_type ==
+                             parameter.TYPE.EXTERNAL_PSCO or
                              is_psco(arg.content))
             if _is_psco_true:
                 continue
@@ -777,7 +780,8 @@ class TaskWorker(TaskCommons):
             # returns matches the number of return parameters
             for (obj, param) in zip(user_returns, ret_params):
                 # If the object is a PSCO, do not serialize to file
-                if param.content_type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
+                if param.content_type == parameter.TYPE.EXTERNAL_PSCO \
+                        or is_psco(obj):
                     continue
                 # Serialize the object
                 # Note that there is no "command line optimization" in the
@@ -877,14 +881,22 @@ class TaskWorker(TaskCommons):
                 if isinstance(_elem, str):
                     coll.append((parameter.TYPE.FILE, 'null'))
                 else:
-                    if _elem.content_type == parameter.TYPE.COLLECTION:
-                        coll.append(build_collection_types_values(_cont, _elem, direction))  # noqa
-                    elif _elem.content_type == parameter.TYPE.EXTERNAL_PSCO and \
-                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
+                    if _elem.content_type == \
+                            parameter.TYPE.COLLECTION:
+                        coll.append(build_collection_types_values(_cont,
+                                                                  _elem,
+                                                                  direction))
+                    elif _elem.content_type == \
+                            parameter.TYPE.EXTERNAL_PSCO \
+                            and is_psco(_cont) \
+                            and direction != parameter.DIRECTION.IN:
                         coll.append((_elem.content_type, _cont.getID()))
-                    elif _elem.content_type == parameter.TYPE.FILE and \
-                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
-                        coll.append((parameter.TYPE.EXTERNAL_PSCO, _cont.getID()))   # noqa
+                    elif _elem.content_type == \
+                            parameter.TYPE.FILE \
+                            and is_psco(_cont) \
+                            and direction != parameter.DIRECTION.IN:
+                        coll.append((parameter.TYPE.EXTERNAL_PSCO,
+                                     _cont.getID()))
                     else:
                         coll.append((_elem.content_type, 'null'))
             return coll

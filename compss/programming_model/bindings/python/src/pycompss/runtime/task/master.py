@@ -52,7 +52,8 @@ from pycompss.runtime.constants import SERIALIZE_OBJECTS
 from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
 from pycompss.runtime.management.object_tracker import OT_track
-from pycompss.runtime.management.object_tracker import OT_set_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import \
+    OT_set_pending_to_synchronize
 from pycompss.runtime.management.object_tracker import OT_is_tracked
 from pycompss.runtime.management.object_tracker import OT_get_file_name
 from pycompss.runtime.management.object_tracker import OT_has_been_written
@@ -110,11 +111,11 @@ if IS_PYTHON3:
                          # types.ClassType: TYPE.OBJECT,
                          # The type of modules
                          # types.ModuleType: TYPE.OBJECT,
-                         # The type of tuples (e.g. (1, 2, 3, 'Spam'))
+                         # The type of tuples (e.g. (1, 2, 3, "Spam"))
                          tuple: TYPE.OBJECT,
                          # The type of lists (e.g. [0, 1, 2, 3])
                          list: TYPE.OBJECT,
-                         # The type of dictionaries (e.g. {'Bacon':1,'Ham':0})
+                         # The type of dictionaries (e.g. {"Bacon":1,"Ham":0})
                          dict: TYPE.OBJECT,
                          # The type of generic objects
                          object: TYPE.OBJECT
@@ -134,11 +135,11 @@ else:
                          # types.ClassType: TYPE.OBJECT,
                          # The type of modules
                          # types.ModuleType: TYPE.OBJECT,
-                         # The type of tuples (e.g. (1, 2, 3, 'Spam'))
+                         # The type of tuples (e.g. (1, 2, 3, "Spam"))
                          types.TupleType: TYPE.OBJECT,     # noqa
                          # The type of lists (e.g. [0, 1, 2, 3])
                          types.ListType: TYPE.OBJECT,
-                         # The type of dictionaries (e.g. {'Bacon':1,'Ham':0})
+                         # The type of dictionaries (e.g. {"Bacon":1,"Ham":0})
                          types.DictType: TYPE.OBJECT,
                          # The type of generic objects
                          types.ObjectType: TYPE.OBJECT     # noqa
@@ -148,43 +149,43 @@ MANDATORY_ARGUMENTS = {}
 # List since the parameter names are included before checking for unexpected
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
-SUPPORTED_ARGUMENTS = ['returns',
-                       'priority',
-                       'on_failure',
-                       'time_out',
-                       'is_replicated',
-                       'is_distributed',
-                       'varargs_type',
-                       'target_direction',
-                       'computing_nodes',
-                       'is_reduce',
-                       'chunk_size',
-                       'numba',
-                       'numba_flags',
-                       'numba_signature',
-                       'numba_declaration',
-                       'tracing_hook']
+SUPPORTED_ARGUMENTS = ["returns",
+                       "priority",
+                       "on_failure",
+                       "time_out",
+                       "is_replicated",
+                       "is_distributed",
+                       "varargs_type",
+                       "target_direction",
+                       "computing_nodes",
+                       "is_reduce",
+                       "chunk_size",
+                       "numba",
+                       "numba_flags",
+                       "numba_signature",
+                       "numba_declaration",
+                       "tracing_hook"]
 # Deprecated arguments. Still supported but shows a message when used.
-DEPRECATED_ARGUMENTS = ['isReplicated',
-                        'isDistributed',
-                        'varargsType',
-                        'targetDirection']
+DEPRECATED_ARGUMENTS = ["isReplicated",
+                        "isDistributed",
+                        "varargsType",
+                        "targetDirection"]
 # All supported arguments
 ALL_SUPPORTED_ARGUMENTS = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS
 # Some attributes cause memory leaks, we must delete them from memory after
 # master call
-ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
-                            'param_args',
-                            'param_varargs',
-                            'param_defaults',
-                            'first_arg_name',
-                            'parameters',
-                            # 'function_name',
-                            # 'module_name',
-                            # 'function_type',
-                            # 'class_name',
-                            'returns',
-                            'multi_return']
+ATTRIBUTES_TO_BE_REMOVED = ["decorator_arguments",
+                            "param_args",
+                            "param_varargs",
+                            "param_defaults",
+                            "first_arg_name",
+                            "parameters",
+                            # "function_name",
+                            # "module_name",
+                            # "function_type",
+                            # "class_name",
+                            "returns",
+                            "multi_return"]
 
 # This lock allows tasks to be launched with the Threading module while
 # ensuring that no attribute is overwritten
@@ -199,13 +200,13 @@ class TaskMaster(TaskCommons):
     runtime.
     """
 
-    __slots__ = ['param_defaults',
-                 'first_arg_name', 'computing_nodes', 'parameters',
-                 'function_name', 'module_name', 'function_type', 'class_name',
-                 'returns', 'multi_return',
-                 'core_element', 'registered', 'signature',
-                 'chunk_size', 'is_reduce',
-                 'interactive', 'module', 'function_arguments', 'hints']
+    __slots__ = ["param_defaults",
+                 "first_arg_name", "computing_nodes", "parameters",
+                 "function_name", "module_name", "function_type", "class_name",
+                 "returns", "multi_return",
+                 "core_element", "registered", "signature",
+                 "chunk_size", "is_reduce",
+                 "interactive", "module", "function_arguments", "hints"]
 
     def __init__(self,
                  decorator_arguments,
@@ -289,20 +290,20 @@ class TaskMaster(TaskCommons):
         # values to them if necessary
         with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
             if not self.function_arguments:
-                self.function_arguments = self.inspect_user_function_arguments()
+                self.function_arguments = self.inspect_user_function_arguments()                   # noqa: E501
             self.param_args, self.param_varargs, _, self.param_defaults = self.function_arguments  # noqa: E501
             # TODO: Why this fails with first python test?
-            # It will be easier to deal with functions if we pretend that all have
-            # the signature f(positionals, *variadic, **named). This is why we are
-            # substituting Nones with default stuff.
+            # It will be easier to deal with functions if we pretend that all
+            # have the signature f(positionals, *variadic, **named). This is
+            # why we are substituting Nones with default stuff.
             # As long as we remember what was the users original intention with
-            # the parameters we can internally mess with his signature as much as
-            # we want. There is no need to add self-imposed constraints here.
-            # Also, the very nature of decorators are a huge hint about how we
-            # should treat user functions, as most wrappers return a function
-            # f(*a, **k)
+            # the parameters we can internally mess with his signature as much
+            # as we want. There is no need to add self-imposed constraints
+            # here. Also, the very nature of decorators are a huge hint about
+            # how we should treat user functions, as most wrappers return a
+            # function f(*a, **k)
             if self.param_varargs is None:
-                self.param_varargs = 'varargs_type'
+                self.param_varargs = "varargs_type"
             if self.param_defaults is None:
                 self.param_defaults = ()
 
@@ -377,11 +378,11 @@ class TaskMaster(TaskCommons):
 
         # Signature and other parameters:
         # Get path
-        if self.class_name == '':
+        if self.class_name == "":
             path = self.module_name
         else:
             path = ".".join((self.module_name, self.class_name))
-        signature = '.'.join((path, self.function_name))
+        signature = ".".join((path, self.function_name))
 
         if __debug__:
             logger.debug("TASK: %s of type %s, in module %s, in class %s" %
@@ -443,8 +444,8 @@ class TaskMaster(TaskCommons):
         mod = inspect.getmodule(self.user_function)
         module_name = mod.__name__
         if context.in_pycompss() and \
-                (module_name == '__main__' or
-                 module_name == 'pycompss.runtime.launch'):
+                (module_name == "__main__" or
+                 module_name == "pycompss.runtime.launch"):
             # 1.- The runtime is running.
             # 2.- The module where the function is defined was run as __main__.
             return True, mod
@@ -466,12 +467,12 @@ class TaskMaster(TaskCommons):
         # variable
         # It is guaranteed that this variable will always exist because
         # this code is only executed when we know we are in the master
-        path = getattr(mod, 'APP_PATH')
+        path = getattr(mod, "APP_PATH")
         # Get the file name
         file_name = os.path.splitext(os.path.basename(path))[0]
         # Do any necessary pre processing action before executing any code
         if file_name.startswith(INTERACTIVE_FILE_NAME) and not self.registered:
-            # If the file_name starts with 'InteractiveMode' means that
+            # If the file_name starts with "InteractiveMode" means that
             # the user is using PyCOMPSs from jupyter-notebook.
             # Convention between this file and interactive.py
             # In this case it is necessary to do a pre-processing step
@@ -564,12 +565,11 @@ class TaskMaster(TaskCommons):
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
-        self.computing_nodes = kwargs.pop('computing_nodes', 1)
+        self.computing_nodes = kwargs.pop("computing_nodes", 1)
         # We take the reduce and chunk size set for the reduce decorator,
         # otherwise we set them to 0.
-        self.is_reduce = kwargs.pop('is_reduce', False)
-        self.chunk_size = kwargs.pop('chunk_size', 0)
-
+        self.is_reduce = kwargs.pop("is_reduce", False)
+        self.chunk_size = kwargs.pop("chunk_size", 0)
         # It is important to know the name of the first argument to determine
         # if we are dealing with a class or instance method (i.e: first
         # argument is named self)
@@ -724,20 +724,20 @@ class TaskMaster(TaskCommons):
         # where the class is defined, instead of the one where the task is
         # defined.
         # This avoids conflicts with task inheritance.
-        if self.first_arg_name == 'self':
-            mod = inspect.getmodule(type(self.parameters['self'].content))
+        if self.first_arg_name == "self":
+            mod = inspect.getmodule(type(self.parameters["self"].content))
             self.module_name = mod.__name__
-        elif self.first_arg_name == 'cls':
-            self.module_name = self.parameters['cls'].content.__module__
-        if self.module_name == '__main__' or \
-                self.module_name == 'pycompss.runtime.launch':
+        elif self.first_arg_name == "cls":
+            self.module_name = self.parameters["cls"].content.__module__
+        if self.module_name == "__main__" or \
+                self.module_name == "pycompss.runtime.launch":
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name
             # Get the real module name from our launch.py APP_PATH global
             # variable
             # It is guaranteed that this variable will always exist because
             # this code is only executed when we know we are in the master
-            path = getattr(mod, 'APP_PATH')
+            path = getattr(mod, "APP_PATH")
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module
@@ -759,13 +759,13 @@ class TaskMaster(TaskCommons):
         # Everything is still a function here, can't distinguish yet
         # with inspect.ismethod or isfunction
         self.function_type = FunctionType.FUNCTION
-        self.class_name = ''
-        if self.first_arg_name == 'self':
+        self.class_name = ""
+        if self.first_arg_name == "self":
             self.function_type = FunctionType.INSTANCE_METHOD
-            self.class_name = type(self.parameters['self'].content).__name__
-        elif self.first_arg_name == 'cls':
+            self.class_name = type(self.parameters["self"].content).__name__
+        elif self.first_arg_name == "cls":
             self.function_type = FunctionType.CLASS_METHOD
-            self.class_name = self.parameters['cls'].content.__name__
+            self.class_name = self.parameters["cls"].content.__name__
         # Finally, check if the function type is really a module function or
         # a static method.
         # Static methods are ONLY supported with Python 3 due to __qualname__
@@ -793,11 +793,13 @@ class TaskMaster(TaskCommons):
         :param ce_type: Core element implementation type.
         :return: None
         """
-        default = 'METHOD'
+        default = "METHOD"
         if ce_type is None:
             ce_type = default
 
-        if ce_type == default or ce_type == "PYTHON_MPI" or ce_type == "MULTI_NODE":
+        if ce_type == default or \
+                ce_type == "PYTHON_MPI" or \
+                ce_type == "MULTI_NODE":
             code_strings = True
         else:
             # MPI, BINARY, CONTAINER
@@ -833,7 +835,7 @@ class TaskMaster(TaskCommons):
                 # but it is more efficient since it does only get the needed
                 # information.
                 frame_name = frame.f_code.co_name
-                if frame_name == 'compss_main':
+                if frame_name == "compss_main":
                     break
                 app_frames.append(frame_name)
                 frame = frame.f_back
@@ -994,7 +996,7 @@ class TaskMaster(TaskCommons):
                         parsed_computing_nodes = int(os.environ[env_var])
                     except ValueError:
                         raise Exception(
-                            cast_env_to_int_error('ComputingNodes')
+                            cast_env_to_int_error("ComputingNodes")
                         )
                 else:
                     # Dynamic global variable
@@ -1103,32 +1105,32 @@ class TaskMaster(TaskCommons):
         :return: The value of all possible hints.
         """
         deco_arg_getter = self.decorator_arguments.get
-        if 'isReplicated' in self.decorator_arguments:
-            is_replicated = deco_arg_getter('isReplicated')
+        if "isReplicated" in self.decorator_arguments:
+            is_replicated = deco_arg_getter("isReplicated")
             logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
         else:
-            is_replicated = deco_arg_getter('is_replicated')
+            is_replicated = deco_arg_getter("is_replicated")
         # Get is distributed
-        if 'isDistributed' in self.decorator_arguments:
-            is_distributed = deco_arg_getter('isDistributed')
+        if "isDistributed" in self.decorator_arguments:
+            is_distributed = deco_arg_getter("isDistributed")
             logger.warning(
                 "Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
         else:
-            is_distributed = deco_arg_getter('is_distributed')
+            is_distributed = deco_arg_getter("is_distributed")
         # Get on failure
-        if 'onFailure' in self.decorator_arguments:
-            on_failure = deco_arg_getter('onFailure')
+        if "onFailure" in self.decorator_arguments:
+            on_failure = deco_arg_getter("onFailure")
             logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
         else:
-            on_failure = deco_arg_getter('on_failure')
+            on_failure = deco_arg_getter("on_failure")
         # Get time out
-        if 'timeOut' in self.decorator_arguments:
-            time_out = deco_arg_getter('timeOut')
+        if "timeOut" in self.decorator_arguments:
+            time_out = deco_arg_getter("timeOut")
             logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
         else:
-            time_out = deco_arg_getter('time_out')
+            time_out = deco_arg_getter("time_out")
         # Get priority
-        has_priority = deco_arg_getter('priority')
+        has_priority = deco_arg_getter("priority")
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
 
@@ -1143,15 +1145,15 @@ class TaskMaster(TaskCommons):
         """
         self.returns = OrderedDict()
 
-        _returns = self.decorator_arguments['returns']
-        # Note that 'returns' is by default False
+        _returns = self.decorator_arguments["returns"]
+        # Note that "returns" is by default False
         if not _returns:
             return 0
 
         # A return statement can be the following:
-        # 1) A type. This means 'this task returns an object of this type'
-        # 2) An integer N. This means 'this task returns N objects'
-        # 3) A basic iterable (tuple, list...). This means 'this task
+        # 1) A type. This means "this task returns an object of this type"
+        # 2) An integer N. This means "this task returns N objects"
+        # 3) A basic iterable (tuple, list...). This means "this task
         #    returns an iterable with the indicated elements inside
         # We are returning multiple objects until otherwise proven
         # It is important to know because this will determine if we will
@@ -1214,7 +1216,7 @@ class TaskMaster(TaskCommons):
         else:
             ret_type = TYPE.OBJECT
             self.returns = {get_return_name(i): Parameter(content=None,
-                                                          content_type=ret_type,
+                                                          content_type=ret_type,  # noqa: E501
                                                           direction=ret_dir)
                             for i in range(to_return)}
         # Hopefully, an exception have been thrown if some invalid
@@ -1243,9 +1245,9 @@ class TaskMaster(TaskCommons):
         if IS_PYTHON3:
             from typing import get_type_hints
             type_hints = get_type_hints(f)
-            if 'return' in type_hints:
+            if "return" in type_hints:
                 # There is a return defined as type-hint
-                ret = type_hints['return']
+                ret = type_hints["return"]
                 try:
                     num_returns = len(ret)
                 except TypeError:
@@ -1272,8 +1274,8 @@ class TaskMaster(TaskCommons):
         # It is python2 or could not find type-hinting
         source_code = get_wrapped_source(f).strip()
 
-        if self.first_arg_name == 'self' or \
-                source_code.startswith('@classmethod'):
+        if self.first_arg_name == "self" or \
+                source_code.startswith("@classmethod"):
             # It is a task defined within a class (can not parse the code
             # with ast since the class does not exist yet).
             # Alternatively, the only way I see is to parse it manually
@@ -1281,7 +1283,7 @@ class TaskMaster(TaskCommons):
             ret_mask = []
             code = source_code.split('\n')
             for line in code:
-                if 'return ' in line:
+                if "return " in line:
                     ret_mask.append(True)
                 else:
                     ret_mask.append(False)
@@ -1293,8 +1295,8 @@ class TaskMaster(TaskCommons):
             has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
-            if self.first_arg_name == 'self' or \
-                    source_code.startswith('@classmethod'):
+            if self.first_arg_name == "self" or \
+                    source_code.startswith("@classmethod"):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement):
                     v = ast.parse(statement.strip())
@@ -1304,7 +1306,7 @@ class TaskMaster(TaskCommons):
                         else:
                             return False
                     except (KeyError, AttributeError):
-                        # KeyError: 'elts' means that it is a multiple return.
+                        # KeyError: "elts" means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         return False
 
@@ -1322,13 +1324,13 @@ class TaskMaster(TaskCommons):
                 # Parse code AST (it is not a task defined within a class)
                 for i in lines:
                     try:
-                        if 'elts' in code[i].value.__dict__:  # noqa
+                        if "elts" in code[i].value.__dict__:  # noqa
                             has_multireturn = True
-                            num_returns = len(code[i].value.__dict__['elts'])  # noqa
+                            num_returns = len(code[i].value.__dict__["elts"])  # noqa
                             if num_returns > max_num_returns:
                                 max_num_returns = num_returns
                     except (KeyError, AttributeError):
-                        # KeyError: 'elts' means that it is a multiple return.
+                        # KeyError: "elts" means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         pass
             if has_multireturn:
@@ -1403,19 +1405,21 @@ class TaskMaster(TaskCommons):
                     foe = Future()  # primitives, string, dic, list, tuple
                 elif inspect.isclass(v.content):
                     # For objects:
-                    # type of future has to be specified to allow o = func; o.func
+                    # type of future has to be specified to allow:
+                    # o = func; o.func
                     try:
                         foe = v.content()
                     except TypeError:
                         logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
-                            str(v['Value']))
+                            str(v["Value"]))
                         foe = Future()
                 else:
                     foe = Future()  # modules, functions, methods
                 fo.append(foe)
                 obj_id, ret_filename = OT_track(foe)
                 # Once determined the filename where the returns are going to
-                # be stored, create a new Parameter object for each return object
+                # be stored, create a new Parameter object for each return
+                # object
                 return_k = self.returns[k]
                 return_k.content_type = TYPE.FILE
                 return_k.prefix = '#'
@@ -1428,8 +1432,8 @@ class TaskMaster(TaskCommons):
 
         WARNING: Updates self.parameters dictionary.
 
-        :return: Tuple of task_kwargs updated and a dictionary containing if the
-                 objects are future elements.
+        :return: Tuple of task_kwargs updated and a dictionary containing
+                 if the objects are future elements.
         """
         max_obj_arg_size = 320000
         for k in self.parameters:
@@ -1441,7 +1445,7 @@ class TaskMaster(TaskCommons):
                 if get_object_conversion():
                     p, written_bytes = _convert_parameter_obj_to_string(p,
                                                                         max_obj_arg_size,     # noqa: E501
-                                                                        policy='objectSize')  # noqa: E501
+                                                                        policy="objectSize")  # noqa: E501
                     max_obj_arg_size -= written_bytes
                 else:
                     # Serialize objects into files
@@ -1542,7 +1546,7 @@ class TaskMaster(TaskCommons):
     @staticmethod
     def _convert_parameter_obj_to_string(p,
                                          max_obj_arg_size,
-                                         policy='objectSize'):
+                                         policy="objectSize"):
         # type: (Parameter, int, str) -> (Parameter, int)
         """ Convert object to string.
 
@@ -1552,8 +1556,8 @@ class TaskMaster(TaskCommons):
         :param p: Parameter.
         :param max_obj_arg_size: max size of the object to be converted.
         :param policy: policy to use:
-                       - 'objectSize' for considering the size of the object.
-                       - 'serializedSize' for considering the size of the
+                       - "objectSize" for considering the size of the object.
+                       - "serializedSize" for considering the size of the
                          object serialized.
         :return: the object possibly converted to string and it size in bytes.
         """
@@ -1565,14 +1569,16 @@ class TaskMaster(TaskCommons):
             base_string = basestring  # noqa
 
         num_bytes = 0
-        if policy == 'objectSize':
+        if policy == "objectSize":
             # Check if the object is small in order to serialize it.
             # This alternative evaluates the size of the object before
             # serializing the object.
             # Warning: calculate the size of a python object can be difficult
             # in terms of time and precision
-            if (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING) \
-                    and not is_future and p.direction == DIRECTION.IN:
+            if (p.content_type == TYPE.OBJECT or
+                p.content_type == TYPE.STRING) \
+                    and not is_future \
+                    and p.direction == DIRECTION.IN:
                 if not isinstance(p.content, base_string) and \
                         isinstance(p.content,
                                    (list, dict, tuple, deque, set, frozenset)):
@@ -1586,7 +1592,7 @@ class TaskMaster(TaskCommons):
 
                     if num_bytes < max_obj_arg_size:
                         # be careful... more than this value produces:
-                        # Cannot run program '/bin/bash'...: error=7, \
+                        # Cannot run program "/bin/bash"...: error=7, \
                         # The arguments list is too long
                         if __debug__:
                             logger.debug("The object size is less than 320 kb.")  # noqa: E501
@@ -1605,22 +1611,25 @@ class TaskMaster(TaskCommons):
                     else:
                         p.content_type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug("Inferred type reestablished to Object.")
-                            # if the parameter converts to an object, release the
-                            # size to be used for converted objects?
+                            logger.debug("Inferred type reestablished to Object.")  # noqa: E501
+                            # if the parameter converts to an object, release
+                            # the size to be used for converted objects?
                             # No more objects can be converted
                             # max_obj_arg_size += _bytes
                             # if max_obj_arg_size > 320000:
                             #     max_obj_arg_size = 320000
-        elif policy == 'serializedSize':
+        elif policy == "serializedSize":
             if IS_PYTHON3:
                 from pickle import PicklingError
             else:
                 from cPickle import PicklingError  # noqa
             # Check if the object is small in order to serialize it.
-            # This alternative evaluates the size after serializing the parameter
-            if (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING) \
-                    and not is_future and p.direction == DIRECTION.IN:
+            # This alternative evaluates the size after serializing the
+            # parameter
+            if (p.content_type == TYPE.OBJECT or
+                p.content_type == TYPE.STRING) \
+                    and not is_future \
+                    and p.direction == DIRECTION.IN:
                 if not isinstance(p.content, base_string):
                     real_value = p.content
                     try:
@@ -1634,10 +1643,10 @@ class TaskMaster(TaskCommons):
                                          (num_bytes, megabytes))
                         if num_bytes < max_obj_arg_size:
                             # be careful... more than this value produces:
-                            # Cannot run program '/bin/bash'...: error=7,
+                            # Cannot run program "/bin/bash"...: error=7,
                             # arguments list too long error.
                             if __debug__:
-                                logger.debug("The object size is less than 320 kb")
+                                logger.debug("The object size is less than 320 kb")  # noqa: E501
                             p.content = v
                             p.content_type = TYPE.STRING
                             if __debug__:
@@ -1647,8 +1656,9 @@ class TaskMaster(TaskCommons):
                             p.content_type = TYPE.OBJECT
                             if __debug__:
                                 logger.debug("Inferred type reestablished to Object.")  # noqa: E501
-                                # if the parameter converts to an object, release
-                                # the size to be used for converted objects?
+                                # if the parameter converts to an object,
+                                # release the size to be used for converted
+                                # objects?
                                 # No more objects can be converted
                                 # max_obj_arg_size += _bytes
                                 # if max_obj_arg_size > 320000:
@@ -1660,7 +1670,7 @@ class TaskMaster(TaskCommons):
                             logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
         else:
             if __debug__:
-                logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")
+                logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")  # noqa: E501
             raise Exception("Wrong convert_objects_to_strings policy.")
 
         return p, num_bytes
@@ -1671,8 +1681,6 @@ def _manage_persistent_object(p):
     """ Manage a persistent object within a Parameter.
 
     Does the necessary actions over a persistent object used as task parameter.
-    Check if the object has already been used (indexed in the obj_id_to_filename
-    dictionary).
     In particular, saves the object id provided by the persistent storage
     (getID()) into the pending_to_synchronize dictionary.
 
@@ -1707,7 +1715,7 @@ def _serialize_object_into_file(name, p):
                 if any(isinstance(v, Future) for v in p.content):
                     if __debug__:
                         logger.debug("Found a list that contains future objects - synchronizing...")  # noqa: E501
-                    mode = get_compss_direction('in')
+                    mode = get_compss_direction("in")
                     p.content = list(map(synchronize,
                                          p.content,
                                          [mode] * len(p.content)))
@@ -1721,7 +1729,7 @@ def _serialize_object_into_file(name, p):
                                                exc_value,
                                                exc_traceback)
             logger.exception("Pickling error exception: non-serializable object found as a parameter.")  # noqa: E501
-            logger.exception(''.join(line for line in lines))
+            logger.exception("".join(line for line in lines))
             print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")  # noqa: E501
             print("[ ERROR ]: Object: %s" % p.content)
             # Raise the exception up tu launch.py in order to point where the
@@ -1747,7 +1755,7 @@ def _serialize_object_into_file(name, p):
             # Strings can be empty. If a string is empty their base64 encoding
             # will be empty.
             # So we add a leading character to it to make it non empty
-            p.content = '#%s' % p.content
+            p.content = "#%s" % p.content
     elif p.content_type == TYPE.COLLECTION:
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
@@ -1828,10 +1836,10 @@ def _turn_into_file(p, skip_creation=False):
     :param skip_creation: Skips the serialization to file.
     :return: None
     """
-    # print('p           : ', p)
-    # print('p.content    : ', p.content)
-    # print('p.content_type      : ', p.content_type)
-    # print('p.direction : ', p.direction)
+    # print("p           : ", p)
+    # print("p.content    : ", p.content)
+    # print("p.content_type      : ", p.content_type)
+    # print("p.direction : ", p.direction)
     # if p.direction == DIRECTION.OUT:
     #     # If the parameter is out, infer the type and create an empty
     #     # instance of the same type as the original parameter:
@@ -1856,7 +1864,7 @@ def _turn_into_file(p, skip_creation=False):
             compss_file = OT_pop_written_obj(obj_id)
             if __debug__:
                 logger.debug("Serializing object %s to file %s" % (obj_id,
-                                                                   compss_file))
+                                                                   compss_file))  # noqa: E501
             if not skip_creation:
                 serialize_to_file(p.content, compss_file)
     # Set file name in Parameter object
@@ -1902,7 +1910,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         try:
             _mf = sys.modules[param.content.__class__.__module__].__file__
         except AttributeError:
-            # 'builtin' modules do not have __file__ attribute!
+            # "builtin" modules do not have __file__ attribute!
             _mf = "builtins"
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(_mf, _class_name)

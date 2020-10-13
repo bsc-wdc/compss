@@ -93,7 +93,7 @@ class OpenCL(PyCOMPSsDecorator):
                 # worker code
                 if context.is_nesting_enabled() and \
                         not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method

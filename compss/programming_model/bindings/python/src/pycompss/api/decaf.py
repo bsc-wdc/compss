@@ -107,7 +107,7 @@ class Decaf(PyCOMPSsDecorator):
                 # worker code
                 if context.is_nesting_enabled() and \
                         not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+                    self.__configure_core_element__(kwargs, user_function)
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator

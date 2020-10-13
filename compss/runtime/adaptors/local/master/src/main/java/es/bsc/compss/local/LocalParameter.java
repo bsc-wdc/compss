@@ -75,6 +75,7 @@ public class LocalParameter implements InvocationParam {
             case FILE_T:
             case OBJECT_T:
             case COLLECTION_T:
+            case DICT_COLLECTION_T:
             case STREAM_T:
             case PSCO_T:
             case EXTERNAL_STREAM_T:
@@ -103,10 +104,10 @@ public class LocalParameter implements InvocationParam {
                     RWAccessId rwaId = (RWAccessId) faId;
                     this.sourceDataMgmtId = rwaId.getReadDataInstance().getRenaming();
                     this.dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-                    if (type != DataType.FILE_T && type != DataType.COLLECTION_T) {
+                    if (type != DataType.FILE_T && type != DataType.COLLECTION_T
+                        && type != DataType.DICT_COLLECTION_T) {
                         this.value = "tmp" + this.value;
                     }
-
                 } else if (faId instanceof RAccessId) {
                     // Read only mode
                     RAccessId raId = (RAccessId) faId;

@@ -25,6 +25,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
+import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
@@ -40,6 +41,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 public abstract class ExternalInvoker extends Invoker {
@@ -244,8 +246,14 @@ public abstract class ExternalInvoker extends Invoker {
                 }
                 break;
             case COLLECTION_T:
-                InvocationParamCollection<InvocationParam> icp = (InvocationParamCollection<InvocationParam>) np;
-                writeCollection(icp);
+                InvocationParamCollection<InvocationParam> ipc = (InvocationParamCollection<InvocationParam>) np;
+                writeCollection(ipc);
+                paramArgs.add(np.getValue().toString());
+                break;
+            case DICT_COLLECTION_T:
+                InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc =
+                    (InvocationParamDictCollection<InvocationParam, InvocationParam>) np;
+                writeDictCollection(ipdc);
                 paramArgs.add(np.getValue().toString());
                 break;
             default:
@@ -255,22 +263,58 @@ public abstract class ExternalInvoker extends Invoker {
     }
 
     @SuppressWarnings("unchecked")
-    private static void writeCollection(InvocationParamCollection<InvocationParam> icp) {
-        String pathToWrite = (String) icp.getValue();
+    private static void writeCollection(InvocationParamCollection<InvocationParam> ipc) {
+        String pathToWrite = (String) ipc.getValue();
         LOGGER.debug("Writting Collection file " + pathToWrite + " ");
         if (new File(pathToWrite).exists()) {
             LOGGER.debug("Collection file " + pathToWrite + " already written");
         } else {
             try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
-                for (InvocationParam subParam : icp.getCollectionParameters()) {
+                for (InvocationParam subParam : ipc.getCollectionParameters()) {
                     writer.println(
                         subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
                     if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
+                    } else if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
                     }
                 }
             } catch (Exception e) {
                 LOGGER.error("Error writting collection to file");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void writeDictCollection(InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc) {
+        String pathToWrite = (String) ipdc.getValue();
+        LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
+        if (new File(pathToWrite).exists()) {
+            LOGGER.debug("Dictionary Collection file " + pathToWrite + " already written");
+        } else {
+            try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
+                for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictCollectionParameters()
+                    .entrySet()) {
+                    InvocationParam subParam = entry.getKey();
+                    writer.println(
+                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
+                    if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                    } else if (subParam.getType() == DataType.COLLECTION_T) {
+                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
+                    }
+                    subParam = entry.getValue();
+                    writer.println(
+                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
+                    if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                    } else if (subParam.getType() == DataType.COLLECTION_T) {
+                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error writting dictionary collection to file");
                 e.printStackTrace();
             }
         }

@@ -12,6 +12,7 @@ import unittest
 import numpy as np
 
 from modules.utils import verify_line
+from modules.utils import wrapper
 
 from pycompss.api.api import compss_open
 from pycompss.api.api import compss_delete_file
@@ -22,6 +23,8 @@ from pycompss.api.task import task
 from pycompss.api.parameter import FILE_OUT
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import COLLECTION_INOUT
+from pycompss.api.parameter import DICT_COLLECTION_IN
+from pycompss.api.parameter import DICT_COLLECTION_INOUT
 
 
 @task(filepath=FILE_OUT)
@@ -64,6 +67,21 @@ def test_collection_in(coll_arg):
 def test_collection_inout(c):
     for elem in c:
         elem += 1.0
+
+
+@task(dict_coll_arg=DICT_COLLECTION_IN, returns=1)
+def test_dict_collection_in(dict_coll_arg):
+    assert dict_coll_arg == {1:2, 3:4, 5:6}
+    return dict_coll_arg
+
+
+@task(d=DICT_COLLECTION_INOUT)
+def test_dict_collection_inout(d):
+    for i in d.keys():
+        result = []
+        for j in d[i]:
+            result.append(j + 1.0)
+        d[i] = result
 
 
 class TestBasicTypes(unittest.TestCase):
@@ -141,4 +159,43 @@ class TestBasicTypes(unittest.TestCase):
         for elem in expected:
             elem += 1.0
         assert np.array_equal(c_arg, expected)
+        print("\t OK")
+
+    def test_dict_collection_in(self):
+        """
+        Tries DICT_COLLECTION_IN parameter passing.
+        """
+        print("Running dictionary collection in task")
+        d_arg = {1: 2, 3: 4, 5: 6}
+        result = test_dict_collection_in(d_arg)
+        result = compss_wait_on(result)
+        assert result == d_arg
+        print("\t OK")
+
+    def test_dict_collection_inout(self):
+        """
+        Tries DICT_COLLECTION_INOUT parameter passing.
+        """
+        print("Running dictionary collection inout task")
+        d_arg = {wrapper(1): np.zeros(1), wrapper(3): np.zeros(3), wrapper(5): np.zeros(5)}
+        test_dict_collection_inout(d_arg)
+        d_arg = compss_wait_on(d_arg)
+        # not exactly the expected since we will check the key from the
+        # d_arg[].content
+        expected = {1: np.zeros(1), 3: np.zeros(3), 5: np.zeros(5)}
+        for i in expected.keys():
+            result = []
+            for j in expected[i]:
+                result.append(j + 1.0)
+            expected[i] = result
+        # Check keys
+        dkeys = []
+        for i in d_arg.keys():
+            dkeys.append(i.content)
+        ekeys = expected.keys()
+        assert sorted(dkeys) == sorted(ekeys)
+        # Check contents
+        print(str(d_arg.items()))
+        for k, v in d_arg.items():
+            assert expected[k.content] == v
         print("\t OK")

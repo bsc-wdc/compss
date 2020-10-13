@@ -28,6 +28,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
+import es.bsc.compss.types.data.DictCollectionInfo;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ObjectInfo;
@@ -50,6 +51,7 @@ import es.bsc.compss.types.data.operation.ObjectTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.uri.MultiURI;
@@ -939,6 +941,25 @@ public class DataInfoProvider {
     }
 
     /**
+     * Deletes a dictionary collection.
+     *
+     * @param dictCollectionId Dictionary Collection identifier
+     * @param noReuse no reuse flag
+     * @return DataInfo
+     */
+    public DataInfo deleteDictCollection(String dictCollectionId, boolean noReuse) {
+        Integer oId = this.collectionToId.get(dictCollectionId);
+        DataInfo dataInfo = this.idToData.get(oId);
+
+        // We delete the data associated with all the versions of the same object
+        if (dataInfo.delete(noReuse)) {
+            removeDataFromInternalStructures(dataInfo);
+        }
+
+        return dataInfo;
+    }
+
+    /**
      * Transfers the value of an object.
      *
      * @param toRequest Transfer object request.
@@ -1191,6 +1212,41 @@ public class DataInfoProvider {
             }
         } else {
             cInfo = (CollectionInfo) this.idToData.get(oId);
+        }
+        return willAccess(am, cInfo);
+    }
+
+    /**
+     * Registers the access to a dictionary collection.
+     *
+     * @param app Id of the application accessing the collection
+     * @param am AccesMode.
+     * @param dcp DictCollectionParameter.
+     * @return DataAccessId Representation of the access to the collection.
+     */
+    public DataAccessId registerDictCollectionAccess(Application app, AccessMode am, DictCollectionParameter dcp) {
+        String dictCollectionId = dcp.getDictCollectionId();
+        Integer oId = this.collectionToId.get(dictCollectionId);
+        DictCollectionInfo cInfo;
+        if (oId == null) {
+            cInfo = new DictCollectionInfo(app, dictCollectionId);
+            oId = cInfo.getDataId();
+            this.collectionToId.put(dictCollectionId, oId);
+            this.idToData.put(oId, cInfo);
+            // Serialize this first version of the object to a file
+            DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+            // Inform the File Transfer Manager about the new file containing the object
+            if (am != AccessMode.W) {
+                if (DEBUG) {
+                    LOGGER.debug("Dictionary Collection " + dictCollectionId + " contains " + dcp.getParameters().size()
+                        + " accesses");
+                }
+                // Null until the two-step transfer method is implemented
+                Comm.registerCollection(renaming, null);
+            }
+        } else {
+            cInfo = (DictCollectionInfo) this.idToData.get(oId);
         }
         return willAccess(am, cInfo);
     }

@@ -153,11 +153,15 @@ void process_param(void** params, int i, stringstream& ss) {
             ss << *(char**)parVal << " ";
             break;
         case binding_object_dt:
-            debug_printf ("[BINDING-COMMONS] - @process_param - BindingObject: %s\n", *(char **)parVal);
+            debug_printf ("[BINDING-COMMONS] - @process_param - Binding Object: %s\n", *(char **)parVal);
             ss << *(char**)parVal << " ";
             break;
         case collection_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Collection: %s\n", *(char **)parVal);
+            ss << *(char**)parVal << " ";
+            break;
+				case dict_collection_dt:
+            debug_printf ("[BINDING-COMMONS] - @process_param - Dict Collection: %s\n", *(char **)parVal);
             ss << *(char**)parVal << " ";
             break;
         case null_dt:
@@ -177,7 +181,7 @@ void process_param(void** params, int i, stringstream& ss) {
             ss << "ERROR ";
             break;
     }
-    
+
     // Add parameter type
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DATA_TYPE: %d\n", (enum datatype) parType);
     ss << parType << " ";

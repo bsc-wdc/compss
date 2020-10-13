@@ -48,6 +48,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
+import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
@@ -76,6 +77,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Timer;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -744,6 +746,14 @@ public class Executor implements Runnable {
             for (InvocationParam p : cp.getCollectionParameters()) {
                 bindOriginalFilenameToRenames(p, sandbox);
             }
+        } else if (param.getType().equals(DataType.DICT_COLLECTION_T)) {
+            @SuppressWarnings("unchecked")
+            InvocationParamDictCollection<InvocationParam, InvocationParam> dcp =
+                (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
+            for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
+                bindOriginalFilenameToRenames(entry.getKey(), sandbox);
+                bindOriginalFilenameToRenames(entry.getValue(), sandbox);
+            }
         } else {
             if (param.getType().equals(DataType.FILE_T)) {
                 String renamedFilePath = (String) param.getValue();
@@ -855,6 +865,14 @@ public class Executor implements Runnable {
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
             for (InvocationParam p : cp.getCollectionParameters()) {
                 unbindOriginalFilenameToRename(p, invocation);
+            }
+        } else if (param.getType().equals(DataType.DICT_COLLECTION_T)) {
+            @SuppressWarnings("unchecked")
+            InvocationParamDictCollection<InvocationParam, InvocationParam> dcp =
+                (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
+            for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
+                unbindOriginalFilenameToRename(entry.getKey(), invocation);
+                unbindOriginalFilenameToRename(entry.getValue(), invocation);
             }
         } else {
             if (param.getType().equals(DataType.FILE_T)) {

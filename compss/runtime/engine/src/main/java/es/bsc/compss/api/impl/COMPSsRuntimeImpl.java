@@ -52,6 +52,7 @@ import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.DirectoryParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
@@ -85,7 +86,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -710,6 +714,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case COLLECTION_T:
                 throw new UnsupportedOperationException("Not implemented yet.");
+            case DICT_COLLECTION_T:
+                throw new UnsupportedOperationException("Not implemented yet.");
             default:
                 // Basic types (including String)
                 // Already passed in as a value
@@ -1300,14 +1306,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
             case COLLECTION_T:
                 for (Parameter sp : ((CollectionParameter) p).getParameters()) {
-                    processDelete(app, p);
+                    processDelete(app, sp);
+                }
+                break;
+            case DICT_COLLECTION_T:
+                for (Map.Entry<Parameter, Parameter> sp : ((DictCollectionParameter) p).getParameters().entrySet()) {
+                    processDelete(app, sp.getKey());
+                    processDelete(app, sp.getValue());
                 }
                 break;
             default:
                 break;
-
         }
-
     }
 
     @Override
@@ -1775,6 +1785,97 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 }
                 pars.add(cp);
                 return ret;
+            case DICT_COLLECTION_T:
+                // TODO: Simplify this case.
+                // A dictionary collection value contains the file of the dictionary collection object
+                // and the dictionary collection elements, separated by spaces
+                String[] values1 = vals == null ? ((String) content).split(" ") : vals;
+                String dictCollectionId = values1[offset];
+                int numOfEntries = Integer.parseInt(values1[offset + 1]);
+                String dictColPyType = values1[offset + 2];
+                // Each element is defined by TYPE VALUE PYTHON_CONTENT_TYPE. Also note the +3 offset!
+                ArrayList<Parameter> dictCollectionParametersKeys = new ArrayList<>();
+                ArrayList<Parameter> dictCollectionParametersValues = new ArrayList<>();
+                // dret = number of read elements by this recursive step (atm 3: id + numOfEntries + pyContentType)
+                int pointer = 3;
+                for (int j = 0; j < numOfEntries; ++j) {
+                    // First element is the type, translate it to the corresponding DataType field by direct indexing
+                    int idKey = Integer.parseInt(values1[offset + pointer]);
+                    DataType dataTypeKey = DataType.values()[idKey];
+                    // Second element is the content
+                    String contentKey = values1[offset + pointer + 1];
+                    // Third element is the Python type of the object
+                    final String elemPyTypeKey = values1[offset + pointer + 2];
+
+                    // N/A to non-direct parameters
+                    final StdIOStream elemStreamKey = StdIOStream.UNSPECIFIED;
+                    final String elemPrefixKey = Constants.PREFIX_EMPTY;
+
+                    String elemNameKey = name + "." + j;
+                    // Add @key only for the first time - as in collections
+                    if (!elemNameKey.startsWith("@key")) {
+                        elemNameKey = "@key" + elemNameKey;
+                    }
+                    Direction elemDirKey = direction;
+
+                    // Key element recursive call
+                    Object elemContentKey = contentKey;
+                    int extraKey = 2;
+                    if (dataTypeKey == DataType.DICT_COLLECTION_T || dataTypeKey == DataType.COLLECTION_T) {
+                        elemContentKey = values1;
+                        pointer += 1;
+                        extraKey = 0;
+                    }
+                    int kDret = addParameter(app, elemContentKey, dataTypeKey, elemDirKey, elemStreamKey, elemPrefixKey,
+                        elemNameKey, elemPyTypeKey, weight, keepRename, dictCollectionParametersKeys, offset + pointer,
+                        values1) + extraKey;
+                    pointer += kDret;
+
+                    // Next three elements correspond to the VALUE
+                    // First element is the type, translate it to the corresponding DataType field by direct indexing
+                    int idValue = Integer.parseInt(values1[offset + pointer]);
+                    DataType dataTypeValue = DataType.values()[idValue];
+                    // Second element is the content
+                    String contentValue = values1[offset + pointer + 1];
+                    // Third element is the Python type of the object
+                    final String elemPyTypeValue = values1[offset + pointer + 2];
+
+                    // N/A to non-direct parameters
+                    final StdIOStream elemStreamValue = StdIOStream.UNSPECIFIED;
+                    final String elemPrefixValue = Constants.PREFIX_EMPTY;
+
+                    String elemNameValue = name + "." + j;
+                    // Add @key only for the first time - as in collections
+                    if (!elemNameValue.startsWith("@value")) {
+                        elemNameValue = "@value" + elemNameKey;
+                    }
+                    Direction elemDirValue = direction;
+
+                    // Value element recursive call
+                    Object elemContentValue = contentValue;
+                    int extraValue = 2;
+                    if (dataTypeValue == DataType.DICT_COLLECTION_T || dataTypeValue == DataType.COLLECTION_T) {
+                        elemContentValue = values1;
+                        pointer += 1;
+                        extraValue = 0;
+                    }
+                    int vDret = addParameter(app, elemContentValue, dataTypeValue, elemDirValue, elemStreamValue,
+                        elemPrefixValue, elemNameValue, elemPyTypeValue, weight, keepRename,
+                        dictCollectionParametersValues, offset + pointer, values1) + extraValue;
+                    pointer += vDret;
+                }
+                Map<Parameter, Parameter> dictCollectionParams =
+                    IntStream.range(0, dictCollectionParametersKeys.size()).boxed().collect(
+                        Collectors.toMap(dictCollectionParametersKeys::get, dictCollectionParametersValues::get));
+                DictCollectionParameter dcp = new DictCollectionParameter(dictCollectionId, dictCollectionParams,
+                    direction, stream, prefix, name, dictColPyType, weight, keepRename);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getParameters().size()
+                        + " entries");
+                    LOGGER.debug(dcp.toString());
+                }
+                pars.add(dcp);
+                return pointer;
             default:
                 // Basic types (including String)
                 // The only possible direction is IN, warn otherwise
@@ -1814,7 +1915,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             // This function call is isolated for better readability and to easily
             // allow recursion in the case of collections
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + i + " has type " + type.name());
+                LOGGER.debug(" Parameter " + i + " has type " + type.name());
             }
             addParameter(app, content, type, direction, stream, prefix, name, null, weight, keepRename, pars, 0, null);
         }

@@ -979,7 +979,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
             }
 
-            if (reason != null && reason.getType().equals(DataType.COLLECTION_T)) {
+            if (reason != null && (reason.getType().equals(DataType.COLLECTION_T)
+                || reason.getType().equals(DataType.DICT_COLLECTION_T))) {
                 String targetPath;
                 if (target != null) {
                     targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
@@ -993,9 +994,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             "No target location neither target data available. Setting targetPath to " + ld.getName());
                     }
                 }
-                LOGGER
-                    .debug("Data " + ld.getName() + "is COLLECTION_T nothing to tranfer. Elements already transferred."
-                        + "Setting target path to " + targetPath);
+                LOGGER.debug("Data " + ld.getName()
+                    + "is COLLECTION_T/DICT_COLLECTION_T nothing to tranfer. Elements already transferred."
+                    + "Setting target path to " + targetPath);
                 reason.setDataTarget(targetPath);
                 listener.notifyEnd(null);
                 return;
@@ -1082,6 +1083,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case COLLECTION_T:
+                path = ProtocolType.OBJECT_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                break;
+            case DICT_COLLECTION_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case STREAM_T:
@@ -1415,6 +1419,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         Parameter param = localParam.getParam();
         switch (param.getType()) {
             case COLLECTION_T:
+            case DICT_COLLECTION_T:
             case FILE_T:
             case EXTERNAL_STREAM_T:
                 // No need to store anything. Already stored on disk

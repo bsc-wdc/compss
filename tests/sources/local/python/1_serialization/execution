@@ -25,7 +25,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING PYTHON APPLICATION COLLECTION IN"
+  echo "*** RUNNING PYTHON APPLICATION SERIALIZATION"
 
   tf="true false"
 

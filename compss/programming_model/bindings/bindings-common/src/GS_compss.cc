@@ -42,33 +42,32 @@ void GS_set_pipes(char* comPipe, char* resPipe){
 }
 
 void GS_On(AbstractCache* absCache) {
-    init_data_manager(absCache);
-    GS_On();
+  init_data_manager(absCache);
+  GS_On();
 }
 
 
 void GS_On() {
-    if (PIPES){
-    	PIPE_On();
-    }else{
-    	JNI_On();
-    }
+  if (PIPES){
+  	PIPE_On();
+  }else{
+  	JNI_On();
+  }
 }
 
 
 void GS_Off(int code) {
-    if (PIPES) {
-    	PIPE_Off(code);
-    } else {
-    	JNI_Off(code);
-    }
-
+  if (PIPES) {
+  	PIPE_Off(code);
+  } else {
+  	JNI_Off(code);
+  }
 }
 
 
 void GS_Cancel_Application_Tasks(long appId) {
 	if (PIPES) {
-	    PIPE_Cancel_Application_Tasks(appId);
+    PIPE_Cancel_Application_Tasks(appId);
 	}else{
 		JNI_Cancel_Application_Tasks(appId);
 	}
@@ -91,7 +90,6 @@ void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, c
 	} else {
 		JNI_ExecuteTask(appId, className, onFailure, timeout, methodName, priority, hasTarget, numReturns, numParams, params);
 	}
-
 }
 
 
@@ -102,8 +100,8 @@ void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout
 	} else {
 		JNI_ExecuteTaskNew(appId, signature, onFailure, timeout, priority, numNodes, replicated, distributed, hasTarget, numReturns, numParams, params);
 	}
-
 }
+
 
 void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, int numArgs, char** implTypeArgs) {
 	if (PIPES) {
@@ -113,6 +111,7 @@ void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints
 	}
 }
 
+
 int GS_Accessed_File(long appId, char* fileName){
 	if (PIPES) {
 		return PIPE_Accessed_File(appId, fileName);
@@ -120,6 +119,7 @@ int GS_Accessed_File(long appId, char* fileName){
 		return JNI_Accessed_File(appId, fileName);
 	}
 }
+
 
 void GS_Open_File(long appId, char* fileName, int mode, char** buf) {
 	if (PIPES) {
@@ -156,6 +156,7 @@ void GS_Get_File(long appId, char* fileName) {
 	}
 }
 
+
 void GS_Get_Directory(long appId, char* dirName) {
 	if (PIPES) {
 		PIPE_Get_Directory(appId, dirName);
@@ -163,6 +164,7 @@ void GS_Get_Directory(long appId, char* dirName) {
 		JNI_Get_Directory(appId, dirName);
 	}
 }
+
 
 void GS_Get_Object(long appId, char* fileName, char** buf) {
 	if (PIPES) {
@@ -244,6 +246,7 @@ int GS_GetNumberOfResources(long appId) {
 	}
 }
 
+
 void GS_RequestResources(long appId, int numResources, char* groupName) {
 	if (PIPES) {
 		PIPE_RequestResources(appId, numResources, groupName);
@@ -251,6 +254,7 @@ void GS_RequestResources(long appId, int numResources, char* groupName) {
 		JNI_RequestResources(appId, numResources, groupName);
 	}
 }
+
 
 void GS_FreeResources(long appId, int numResources, char* groupName) {
 	if (PIPES) {

@@ -180,6 +180,10 @@ public class BinaryRunner {
                     // TODO: Handle collections instead of passing the collection dXvY
                     binaryParamFields.add(param.getPrefix() + String.valueOf(param.getValue()));
                     break;
+                case DICT_COLLECTION_T:
+                    // TODO: Handle dictionary collections instead of passing the dictionary collection dXvY
+                    binaryParamFields.add(param.getPrefix() + String.valueOf(param.getValue()));
+                    break;
                 case STREAM_T:
                     // No need to check prefix
                     DistroStream<?> ds = (DistroStream<?>) param.getValue();
@@ -225,6 +229,10 @@ public class BinaryRunner {
                     break;
                 case COLLECTION_T:
                     // TODO: Handle collections instead of passing the collection dXvY
+                    binaryParamFields.add(String.valueOf(param.getValue()));
+                    break;
+                case DICT_COLLECTION_T:
+                    // TODO: Handle dictionary collections instead of passing the dictionary collection dXvY
                     binaryParamFields.add(String.valueOf(param.getValue()));
                     break;
                 case STREAM_T:

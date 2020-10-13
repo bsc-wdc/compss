@@ -40,8 +40,7 @@ from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
-# TODO: Comments about exit value and return following values was
-# in another branch need to be reviewed if it works in trunk
+# noqa TODO: Comments about exit value and return following values was in another branch need to be reviewed if it works in trunk
 # SUCCESS_SIG = 0
 # FAILURE_SIG = 1
 # UNEXPECTED_SIG = 2
@@ -256,7 +255,9 @@ def process_task(current_line,     # type: str
             out.close()
             err.close()
 
-            # global_exit_value = MPI.COMM_WORLD.reduce(exit_value, op=MPI.SUM, root=0)
+            # global_exit_value = MPI.COMM_WORLD.reduce(exit_value,
+            #                                           op=MPI.SUM,
+            #                                           root=0)
             # message = ""
 
             # if MPI.COMM_WORLD.rank == 0 and global_exit_value == 0:
@@ -338,7 +339,8 @@ def process_task(current_line,     # type: str
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s" %
                          (str(process_name), str(job_id)))
-        # return SUCCESS_SIG, "{0} -- Task Ended Successfully!".format(str(process_name))
+        # return SUCCESS_SIG,
+        #        "{0} -- Task Ended Successfully!".format(str(process_name))
 
     else:
         if __debug__:

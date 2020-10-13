@@ -402,9 +402,9 @@ def process_task(current_line,             # type: list
     # CPU binding
     cpus = current_line[-3]
     if cpus != "-" and THREAD_AFFINITY:
-        # This event is already emitted in Java
-        # emit_manual_event(0, inside=True, cpu_affinity=True)  # close previous
-        # emit_manual_event(cpus, inside=True, cpu_affinity=True)
+        # The cpu affinity event is already emitted in Java.
+        # Instead of emitting what we receive, we are emitting what whe check
+        # after setting the affinity.
         affinity_ok = bind_cpus(cpus, process_name, logger)
 
     # GPU binding
@@ -468,8 +468,11 @@ def process_task(current_line,             # type: list
     try:
         # Check thread affinity
         if THREAD_AFFINITY:
-            cpus = str(thread_affinity.getaffinity()[0])  # get just the first id
-            emit_manual_event(0, inside=True, cpu_affinity=True)  # close previous
+            # The cpu affinity can be long if multiple cores have been
+            # assigned. To avoid issues, we get just the first id.
+            cpus = str(thread_affinity.getaffinity()[0])
+            # Close previous emitted event since this is the moment we update
+            emit_manual_event(0, inside=True, cpu_affinity=True)
             emit_manual_event(cpus, inside=True, cpu_affinity=True)
             if not affinity_ok:
                 logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
@@ -619,8 +622,9 @@ def process_quit(logger, process_name):  # noqa
     """
     if __debug__:
         logger.debug(HEADER + "[%s] Received quit." % str(process_name))
-    emit_manual_event(0, inside=True, cpu_affinity=True)  # close last cpu affinity
-    emit_manual_event(0, inside=True, gpu_affinity=True)  # close last gpu affinity
+    # Close last cpu and gpu affinity events
+    emit_manual_event(0, inside=True, cpu_affinity=True)
+    emit_manual_event(0, inside=True, gpu_affinity=True)
     return False
 
 

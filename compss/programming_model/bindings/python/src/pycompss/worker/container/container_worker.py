@@ -69,7 +69,8 @@ def main():
     num_params = int(sys.argv[6])
     func_params = sys.argv[7:]
 
-    execute_task_params = [func_file_path, func_name, num_slaves, timeout, cus, has_target, return_type,
+    execute_task_params = [func_file_path, func_name, num_slaves,
+                           timeout, cus, has_target, return_type,
                            return_length, num_params] + func_params
 
     if __debug__:
@@ -125,16 +126,18 @@ def main():
         # Task has finished with a COMPSs Exception
         if __debug__:
             except_msg = except_msg.replace(" ", "_")
-            LOGGER.debug("Registered COMPSs Exception: " + str(except_msg))
+            LOGGER.debug("Registered COMPSs Exception: %s" %
+                         str(except_msg))
     else:
         # An exception has been raised in task
         if __debug__:
             except_msg = except_msg.replace(" ", "_")
-            LOGGER.debug("Registered Exception in task execution" + str(except_msg))
+            LOGGER.debug("Registered Exception in task execution %s" %
+                         str(except_msg))
 
     # Return
     if exit_value != 0:
-        LOGGER.debug("ERROR: Task execution finished with non-zero exit value (" + str(exit_value) + " != 0)")
+        LOGGER.debug("ERROR: Task execution finished with non-zero exit value (%s != 0)" % str(exit_value))  # noqa: E501
     else:
         LOGGER.debug("Task execution finished SUCCESSFULLY!")
     return exit_value

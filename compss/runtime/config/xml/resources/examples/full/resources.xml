@@ -70,6 +70,8 @@
         </Adaptors>
         <Storage>
             <Size>2000.0</Size>
+            <Type>persistent</Type>
+            <Bandwidth>20</Bandwidth>
         </Storage>
         <SharedDisks>
             <AttachedDisk Name="DiskFull">
@@ -314,7 +316,12 @@
                 </Memory>
                 <Storage>
                     <Size>2000.0</Size>
+                    <Type>persistent</Type>
                 </Storage>
+                <Price>
+                    <TimeUnit>100</TimeUnit>
+                    <PricePerUnit>36.0</PricePerUnit>
+                </Price>
             </InstanceType>
             <InstanceType Name="Instance_empty">
                 <Processor Name="P1">

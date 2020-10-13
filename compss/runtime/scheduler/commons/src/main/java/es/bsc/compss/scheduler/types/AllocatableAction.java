@@ -226,7 +226,7 @@ public abstract class AllocatableAction {
      * @return The stream consumers.
      */
     public final List<AllocatableAction> getStreamDataConsumers() {
-        return this.streamDataProducers;
+        return this.streamDataConsumers;
     }
 
     /**

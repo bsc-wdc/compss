@@ -709,7 +709,7 @@ public class TaskAnalyser {
                         registerParameterAccessAndAddDependencies(app, currentTask, entry.getValue(), isConstraining);
                     hasParamEdge = hasParamEdge || hasDictCollectionParamEdgeKey || hasDictCollectionParamEdgeValue;
                 }
-                daId = dip.registerDictCollectionAccess(app, am, dcp);
+                daId = dip.registerDictCollectionAccess(app, am, dcp, readerData);
                 DataInfo dci = dip.deleteDictCollection(dcp.getDictCollectionId(), true);
                 deleteData(dci);
                 break;

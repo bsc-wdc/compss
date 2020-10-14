@@ -390,7 +390,7 @@ public class Comm {
         LOGGER.debug("  * Location: " + location);
         LogicalData logicalData = DATA.get(dataId);
         logicalData.addLocation(location);
-        
+
         return logicalData;
     }
 

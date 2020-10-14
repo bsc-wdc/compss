@@ -1061,13 +1061,13 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         this.schedule(actionScore, candidates);
-        
+
     }
 
     private <T extends WorkerResourceDescription> void schedule(Score actionScore,
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
         throws BlockedActionException, UnassignedActionException {
-        
+
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         ResourceScheduler<? extends WorkerResourceDescription> bestWorker = null;
@@ -1123,7 +1123,7 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         schedule(bestWorker, bestImpl);
-        
+
     }
 
     @Override

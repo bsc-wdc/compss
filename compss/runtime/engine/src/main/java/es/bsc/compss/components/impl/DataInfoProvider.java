@@ -1265,9 +1265,11 @@ public class DataInfoProvider {
      * @param app Id of the application accessing the collection
      * @param am AccesMode.
      * @param dcp DictCollectionParameter.
+     * @param readerData Information about the reader.
      * @return DataAccessId Representation of the access to the collection.
      */
-    public DataAccessId registerDictCollectionAccess(Application app, AccessMode am, DictCollectionParameter dcp) {
+    public DataAccessId registerDictCollectionAccess(Application app, AccessMode am, DictCollectionParameter dcp,
+        ReadersInfo readerData) {
         String dictCollectionId = dcp.getDictCollectionId();
         Integer oId = this.collectionToId.get(dictCollectionId);
         DictCollectionInfo cInfo;
@@ -1291,7 +1293,7 @@ public class DataInfoProvider {
         } else {
             cInfo = (DictCollectionInfo) this.idToData.get(oId);
         }
-        return willAccess(am, cInfo);
+        return willAccess(am, cInfo, readerData);
     }
 
     /**

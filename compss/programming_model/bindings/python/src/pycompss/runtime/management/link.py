@@ -190,8 +190,8 @@ def establish_link(logger=None):  # noqa
     return compss
 
 
-def establish_interactive_link(redirect_std=False):
-    # type: (bool) -> ...
+def establish_interactive_link(logger=None, redirect_std=False):  # noqa
+    # type: (..., bool) -> ...
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
@@ -199,6 +199,7 @@ def establish_interactive_link(redirect_std=False):
     redirect_std is False. Otherwise, returns the names which are the
     current process pid followed by the out/err extension.
 
+    :param logger: Use this logger instead of the module logger.
     :param redirect_std: Decide whether to store the stdout and stderr into
                          files or not.
     :return: The COMPSs C extension link, stdout file name and stderr file

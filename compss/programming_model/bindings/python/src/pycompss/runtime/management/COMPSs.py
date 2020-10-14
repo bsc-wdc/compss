@@ -61,7 +61,7 @@ def load_runtime(external_process=False, _logger=None):
     if external_process:
         # For interactive python environments
         from pycompss.runtime.management.link import establish_interactive_link
-        _COMPSs = establish_interactive_link(_logger)
+        _COMPSs, _STDOUT, _STDERR = establish_interactive_link(_logger, True)
     else:
         # Normal python environments
         from pycompss.runtime.management.link import establish_link

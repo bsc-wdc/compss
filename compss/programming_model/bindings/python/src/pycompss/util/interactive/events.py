@@ -25,8 +25,13 @@ PyCOMPSs Util - Interactive Events
 """
 
 import sys
+
 from pycompss.util.interactive.outwatcher import STDW
 import pycompss.util.context as context
+
+# IPython imports
+from IPython.display import display
+from IPython.display import Javascript
 
 
 #######################################
@@ -35,7 +40,7 @@ import pycompss.util.context as context
 
 def __pre_execute__():
     # type: () -> None
-    """Fires prior to interactive execution.
+    """ Fires prior to interactive execution.
 
     :return: None
     """
@@ -51,7 +56,42 @@ def __pre_run_cell__():
 
     :return: None
     """
-    print("pre_run_cell")
+    messages = STDW.get_messages()
+    runtime_crashed = False
+    if messages:
+        for message in messages:
+            if message == '[ERRMGR]  -  Shutting down COMPSs...':
+                # A critical error occurred --> notify that COMPSs runtime
+                # stopped working to avoid issues when running any PyCOMPSs
+                # function.
+                runtime_crashed = True
+        if runtime_crashed:
+            error_messages = "\n".join(messages)
+            # Display popup with the error messages
+            display((Javascript("""
+            require(
+                ["base/js/dialog"],
+                function(dialog) {
+                    dialog.modal({
+                        title: '%s',
+                        body: '%s',
+                        buttons: {
+                            'Ok': {}
+                        }
+                    });
+                }
+            );
+            """ % ("COMPSs Runtime Crashed!",
+                   error_messages)),))
+            context.set_pycompss_context(context.OUT_OF_SCOPE)
+    # if messages:
+    #     for message in messages:
+    #         sys.stderr.write("".join((message, '\n')))
+    #         if message == '[ERRMGR]  -  Shutting down COMPSs...':
+    #             # A critical error occurred --> notify that COMPSs runtime
+    #             # stopped working to avoid issues when running any PyCOMPSs
+    #             # function.
+    #             context.set_pycompss_context(context.OUT_OF_SCOPE)
 
 
 def __post_execute__():
@@ -72,15 +112,7 @@ def __post_run_cell__():
 
     :return: None
     """
-    messages = STDW.get_messages()
-    if messages:
-        for message in messages:
-            sys.stderr.write("".join((message, '\n')))
-            if message == '[ERRMGR]  -  Shutting down COMPSs...':
-                # A critical error occurred --> notify that COMPSs runtime
-                # stopped working to avoid issues when running any PyCOMPSs
-                # function.
-                context.set_pycompss_context(context.OUT_OF_SCOPE)
+    print("post_run_cell")
 
 
 #######################################
@@ -94,10 +126,10 @@ def setup_event_manager(ipython):
     :param ipython: IPython instance where to register the event manager.
     :return: None
     """
-    # ipython.events.register('pre_execute', __pre_execute__)    # Not used
-    # ipython.events.register('pre_run_cell', __pre_run_cell__)  # Not used
-    # ipython.events.register('post_execute', __post_execute__)  # Not used
-    ipython.events.register('post_run_cell', __post_run_cell__)  # Used
+    # ipython.events.register('pre_execute', __pre_execute__)
+    ipython.events.register('pre_run_cell', __pre_run_cell__)
+    # ipython.events.register('post_execute', __post_execute__)
+    # ipython.events.register('post_run_cell', __post_run_cell__)
 
 
 def release_event_manager(ipython):
@@ -108,10 +140,10 @@ def release_event_manager(ipython):
     :return: None
     """
     try:
-        # ipython.events.unregister('pre_execute', __pre_execute__)    # Not used
-        # ipython.events.unregister('pre_run_cell', __pre_run_cell__)  # Not used
-        # ipython.events.unregister('post_execute', __post_execute__)  # Not used
-        ipython.events.unregister('post_run_cell', __post_run_cell__)  # Used
+        # ipython.events.unregister('pre_execute', __pre_execute__)
+        ipython.events.unregister('pre_run_cell', __pre_run_cell__)
+        # ipython.events.unregister('post_execute', __post_execute__)
+        # ipython.events.unregister('post_run_cell', __post_run_cell__)
     except ValueError:
         # The event was already unregistered
         pass

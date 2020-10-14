@@ -180,7 +180,7 @@
     fi
 
     ./configure \
-      --disable-posix-clock \
+      --enable-gettimeofday-clock \
       --without-unwind \
       --without-dyninst \
       --without-binutils \

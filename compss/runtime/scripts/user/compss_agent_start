@@ -38,73 +38,82 @@ Usage: $0 [OPTION]...
 
 COMPSs options:
   
-  --appdir=<path>                    Path for the application class folder.
-                                     Default: ${DEFAULT_APPDIR}
+  --appdir=<path>                         Path for the application class folder.
+                                          Default: ${DEFAULT_APPDIR}
 
-  --classpath=<path>                 Path for the application classes / modules
-                                     Default: Working Directory
+  --classpath=<path>                      Path for the application classes / modules
+                                          Default: Working Directory
 
-  --comm=<className>                 Class that implements the adaptor for communications with other nodes
-                                     Supported adaptors:
-                                          ├── ${NIO_ADAPTOR}
-                                          ├── ${GAT_ADAPTOR}
-                                          ├── ${REST_AGENT_ADAPTOR}
-                                          └── ${COMM_AGENT_ADAPTOR}
-                                     Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
+  --comm=<className>                      Class that implements the adaptor for communications with other nodes
+                                          Supported adaptors:
+                                              ├── ${NIO_ADAPTOR}
+                                              ├── ${GAT_ADAPTOR}
+                                              ├── ${REST_AGENT_ADAPTOR}
+                                              └── ${COMM_AGENT_ADAPTOR}
+                                          Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
 
-  --comm_port=<int>                  Port on which the agent sets up a Comm interface. (<=0: Disabled)
+  --comm_port=<int>                       Port on which the agent sets up a Comm interface. (<=0: Disabled)
 
-  -d, --debug                        Enable debug. (Default: disabled)
+  -d, --debug                             Enable debug. (Default: disabled)
 
-  --hostname                         Name with which itself and other agents will identify the agent.
+  --hostname                              Name with which itself and other agents will identify the agent.
   
-  --library_path=<path>              Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
-                                     Default: Working Directory
+  --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
+                                          Default: Working Directory
 
-  --log_dir=<path>                   Log directory. (Default: /tmp/${app_uuid})
+  --log_dir=<path>                        Log directory. (Default: /tmp/${app_uuid})
 
-  --log_level=<level>                Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
-                                     Default: ${DEFAULT_LOG_LEVEL}
+  --log_level=<level>                     Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
+                                          Default: ${DEFAULT_LOG_LEVEL}
 
-  --master_port=<int>                Port to run the COMPSs master communications. 
-                                     (Only when ${NIO_ADAPTOR} is used. The value is overriden by the comm_port value.)
-                                     Default: ${DEFAULT_MASTER_PORT}
+  --master_port=<int>                     Port to run the COMPSs master communications. 
+                                          (Only when ${NIO_ADAPTOR} is used. The value is overriden by the comm_port value.)
+                                          Default: ${DEFAULT_MASTER_PORT}
 
-  --pythonpath=<path>                Additional folders or paths to add to the PYTHONPATH
-                                     Default: ${DEFAULT_PYTHONPATH}
+  --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
+                                          Default: ${DEFAULT_PYTHONPATH}
 
-  --project=<path>                   Path of the project file 
-                                     (Default: ${DEFAULT_PROJECT})
+  --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
+                                          Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
+  --python_propagate_virtual_environment=<true>   Propagate the master virtual environment to the workers (true/false).
+                                                  Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
+  --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
+                                          Default: $DEFAULT_PYTHON_MPI_WORKER
+  --python_memory_profile                 Generate a memory profile of the master.
+                                          Default: $DEFAULT_PYTHON_MEMORY_PROFILE
 
-  --resources=<path>                 Path of the resources file 
-                                     (Default: ${DEFAULT_RESOURCES})
+  --project=<path>                        Path of the project file 
+                                          (Default: ${DEFAULT_PROJECT})
 
-  --rest_port=<int>                  Port on which the agent sets up a REST interface. (<=0: Disabled)
+  --resources=<path>                      Path of the resources file 
+                                          (Default: ${DEFAULT_RESOURCES})
 
-  --scheduler=<className>            Class that implements the Scheduler for COMPSs
-                                     Supported schedulers: 
-                                          ├── ${DATA_SCHEDULER}
-                                          ├── ${FIFO_SCHEDULER}
-                                          ├── ${FIFO_DATA_SCHEDULER}
-                                          ├── ${LIFO_SCHEDULER}
-                                          ├── ${BASE_SCHEDULER}
-                                          └── ${LOAD_BALANCING_SCHEDULER}
-                                     Default: ${DEFAULT_SCHEDULER}
+  --rest_port=<int>                     Port on which the agent sets up a REST interface. (<=0: Disabled)
 
-  --scheduler_config_file=<path>     Path to the file which contains the scheduler configuration.
-                                     Default: Empty
+  --scheduler=<className>                  Class that implements the Scheduler for COMPSs
+                                           Supported schedulers: 
+                                              ├── ${DATA_SCHEDULER}
+                                              ├── ${FIFO_SCHEDULER}
+                                              ├── ${FIFO_DATA_SCHEDULER}
+                                              ├── ${LIFO_SCHEDULER}
+                                              ├── ${BASE_SCHEDULER}
+                                              └── ${LOAD_BALANCING_SCHEDULER}
+                                           Default: ${DEFAULT_SCHEDULER}
 
-  --input_profile=<path>             Path to the file which stores the input application profile
-                                     Default: Empty
+  --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
+                                          Default: Empty
 
-  --output_profile=<path>            Path to the file to store the application profile at the end of the execution
-                                     Default: Empty
+  --input_profile=<path>                  Path to the file which stores the input application profile
+                                          Default: Empty
 
-  --summary                          Displays a task execution summary at the end of the application execution
-                                     Default: ${DEFAULT_SUMMARY}
+  --output_profile=<path>                 Path to the file to store the application profile at the end of the execution
+                                          Default: Empty
+
+  --summary                               Displays a task execution summary at the end of the application execution
+                                          Default: ${DEFAULT_SUMMARY}
 
 Other options:
-  --help                    prints this message
+  --help                                  prints this message
 
 EOF
 }
@@ -124,15 +133,17 @@ arguments_error() {
 ###############################################
 display_settings () {
   display_info "Options setup: 
-        AGENT NAME: ${master_name} 
-        AGENT REST PORT: ${agent_rest_port} 
-        AGENT COMM PORT: ${agent_comm_port} 
+        AGENT NAME: ${master_name}
+        AGENT REST PORT: ${agent_rest_port}
+        AGENT COMM PORT: ${agent_comm_port}
         
-        RESOURCES FILE: ${resFile} 
-        PROJECT FILE: ${projFile} 
-        COMM ADAPTOR: ${comm} 
+        RESOURCES FILE: ${resFile}
+        PROJECT FILE: ${projFile}
+        COMM ADAPTOR: ${comm}
         
-        DEBUG: ${DEBUG}"
+        DEBUG: ${log_level}
+        PYTHON INTERPRETER: ${python_interpreter}
+        MPI PYTHON: ${python_mpi_worker}"
 
 }
 
@@ -186,6 +197,10 @@ parse_options() {
             agent_comm_port=${OPTARG//comm_port=/}
             export COMM_AGENT_PORT=${agent_comm_port};
             ;;
+          coverage=*)
+            jacoco_agent_expression=${OPTARG//coverage=/}
+            coverage=true
+            ;;
           debug)
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
@@ -217,6 +232,22 @@ parse_options() {
           pythonpath=*)
             # Additional pythonpath
             pythonpath=${OPTARG//pythonpath=/}
+            ;;
+          python_interpreter=*)
+            # Specify the python interpreter to use
+            python_interpreter=${OPTARG//python_interpreter=/}
+            ;;
+          python_propagate_virtual_environment=*)
+            # Enable or disable the virtual environment propagation
+            python_propagate_virtual_environment=${OPTARG//python_propagate_virtual_environment=/}
+            ;;
+          python_mpi_worker=*)
+            # Enable or disable the virtual environment propagation
+            python_mpi_worker=${OPTARG//python_mpi_worker=/}
+            ;;
+          python_memory_profile)
+            # Enable or disable the master memory profiling
+            python_memory_profile=true
             ;;
           project=*)
 	          # Custom project file

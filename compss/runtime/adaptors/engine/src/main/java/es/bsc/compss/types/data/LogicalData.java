@@ -325,7 +325,9 @@ public class LogicalData {
         }
         if (this.dataVersions != null) {
             for (DataVersion dataVersion : this.dataVersions) {
-                dataVersion.addLocation(loc);
+                if (dataVersion != null) {
+                    dataVersion.addLocation(loc);
+                }
             }
         }
         this.isBeingSaved = false;

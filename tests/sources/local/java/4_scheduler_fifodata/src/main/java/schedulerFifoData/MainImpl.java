@@ -8,7 +8,7 @@ import java.io.FileNotFoundException;
 
 public class MainImpl {
 
-    private static final int SLEEP_TASK = 1_500; // ms
+    private static final int SLEEP_TASK = 3_000; // ms
 
 
     public static void increment(String fileInOut, String fileIn) {

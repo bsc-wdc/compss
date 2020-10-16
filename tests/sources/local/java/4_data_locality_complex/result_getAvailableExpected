@@ -33,16 +33,16 @@
     while [ $i -lt 4 ]; do
       read -r resource
       # Get scores 
-      resourceId=$(echo "$resource" | tr " " "\\t" | awk '{ print $2 }')
-      actionScore=$(echo "$resource" | tr " " "\\t" | awk '{ print $6 }')
+      resourceId=$(echo "$resource" | tr " " "\\t" | awk '{ print $4 }')
+      actionScore=$(echo "$resource" | tr " " "\\t" | awk '{ print $8 }')
       resourceScore=0
       waitingScore=0
       implScore=0
       if [ "$actionScore" != "null" ] && [ "$actionScore" != "" ]; then
-        actionScore=$(echo "$resource" | tr "," " " | tr " " "\\t"  | awk '{ print $9 }')
-        resourceScore=$(echo "$resource" | tr "," " " | tr " " "\\t"  | awk '{ print $13 }')
-        waitingScore=$(echo "$resource" | tr "," " " | tr " " "\\t"  | awk '{ print $15 }')
-        implScore=$(echo "$resource" | tr "," " " | tr "]" " " | tr " " "\\t"  | awk '{ print $17 }')
+        actionScore=$(echo "$resource" | tr "," " " | tr " " "\\t"  | awk '{ print $11 }')
+        resourceScore=$(echo "$resource" | tr "," " " | tr " " "\\t"  | awk '{ print $15 }')
+        waitingScore=$(echo "$resource" | tr "," " " | tr " " "\\t"  | awk '{ print $17 }')
+        implScore=$(echo "$resource" | tr "," " " | tr "]" " " | tr " " "\\t"  | awk '{ print $19 }')
       fi
       
       # Update best

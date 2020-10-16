@@ -79,7 +79,7 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         // Computes the resource waiting score
         long waitingScore = -action.getId();
         // Computes the priority of the resource
-        long resourceScore = calculateResourceScore(params);
+        long resourceScore = calculateResourceScore(params, action);
         // Computes the priority of the implementation (should not be computed)
         long implementationScore = -100;
 
@@ -92,14 +92,14 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         return score;
     }
 
-    private long calculateResourceScore(TaskDescription params) {
+    private long calculateResourceScore(TaskDescription params, AllocatableAction action) {
         long resourceScore = 0;
         if (params != null) {
             List<Parameter> parameters = params.getParameters();
             if (parameters.isEmpty()) {
                 resourceScore = 0;
             } else {
-                resourceScore = 200 * Score.calculateDataLocalityScore(params, myWorker);
+                resourceScore = 200 * (long) action.getSchedulingInfo().getScore(myWorker);
             }
         }
 

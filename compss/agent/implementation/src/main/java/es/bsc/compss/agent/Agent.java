@@ -292,7 +292,7 @@ public class Agent {
 
         if (ld == null) {
             if (otherNamedLocalData == null) {
-                ld = Comm.registerData(remote.getRenaming());
+                ld = Comm.registerData(remote.getRenaming(), null);
             } else {
                 try {
                     Comm.linkData(otherNamedLocalData.getName(), remote.getRenaming());

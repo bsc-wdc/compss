@@ -24,6 +24,7 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
+import es.bsc.compss.types.ReadersInfo;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskGroup;
@@ -634,6 +635,8 @@ public class TaskAnalyser {
                 break;
         }
 
+        ReadersInfo readerData = new ReadersInfo(p, currentTask);
+
         // First DataAccess registered on a commutative group
         DataAccessId firstRegistered = null;
 
@@ -644,30 +647,31 @@ public class TaskAnalyser {
             case DIRECTORY_T:
                 DirectoryParameter dp = (DirectoryParameter) p;
                 // register file access for now, and directory will be accessed as a file
-                daId = this.dip.registerFileAccess(app, am, dp.getLocation());
+                daId = this.dip.registerFileAccess(app, am, dp.getLocation(), readerData);
                 break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                daId = this.dip.registerFileAccess(app, am, fp.getLocation());
+                daId = this.dip.registerFileAccess(app, am, fp.getLocation(), readerData);
                 break;
             case PSCO_T:
                 ObjectParameter pscop = (ObjectParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 pscop.setType(DataType.PSCO_T);
-                daId = this.dip.registerObjectAccess(app, am, pscop.getValue(), pscop.getCode());
+                daId = this.dip.registerObjectAccess(app, am, pscop.getValue(), pscop.getCode(), readerData);
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                daId = dip.registerExternalPSCOAccess(app, am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                daId = dip.registerExternalPSCOAccess(app, am, externalPSCOparam.getId(), externalPSCOparam.getCode(),
+                    readerData);
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
                 // Check if its Binding OBJ and register its access
                 bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
                 daId = dip.registerBindingObjectAccess(app, am, bindingObjectparam.getBindingObject(),
-                    bindingObjectparam.getCode());
+                    bindingObjectparam.getCode(), readerData);
                 break;
             case OBJECT_T:
                 ObjectParameter op = (ObjectParameter) p;
@@ -675,15 +679,15 @@ public class TaskAnalyser {
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.dip.registerObjectAccess(app, am, op.getValue(), op.getCode());
+                daId = this.dip.registerObjectAccess(app, am, op.getValue(), op.getCode(), readerData);
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
-                daId = this.dip.registerStreamAccess(app, am, sp.getValue(), sp.getCode());
+                daId = this.dip.registerStreamAccess(app, am, sp.getValue(), sp.getCode(), readerData);
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                daId = this.dip.registerExternalStreamAccess(app, am, esp.getLocation());
+                daId = this.dip.registerExternalStreamAccess(app, am, esp.getLocation(), readerData);
                 break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
@@ -692,7 +696,7 @@ public class TaskAnalyser {
                         registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
-                daId = dip.registerCollectionAccess(app, am, cp);
+                daId = dip.registerCollectionAccess(app, am, cp, readerData);
                 DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
                 deleteData(ci);
                 break;
@@ -705,7 +709,7 @@ public class TaskAnalyser {
                         registerParameterAccessAndAddDependencies(app, currentTask, entry.getValue(), isConstraining);
                     hasParamEdge = hasParamEdge || hasDictCollectionParamEdgeKey || hasDictCollectionParamEdgeValue;
                 }
-                daId = dip.registerDictCollectionAccess(app, am, dcp);
+                daId = dip.registerDictCollectionAccess(app, am, dcp, readerData);
                 DataInfo dci = dip.deleteDictCollection(dcp.getDictCollectionId(), true);
                 deleteData(dci);
                 break;
@@ -1180,10 +1184,10 @@ public class TaskAnalyser {
                     }
                 }
             }
-
+            ReadersInfo readerData = new ReadersInfo(p, t);
             if (t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
                 && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED) || canceledByException) {
-                this.dip.dataAccessHasBeenCanceled(dAccId);
+                this.dip.dataAccessHasBeenCanceled(dAccId, readerData);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);
             }

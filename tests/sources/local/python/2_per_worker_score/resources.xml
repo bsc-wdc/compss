@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+    <ComputeNode Name="COMPSsWorker01">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Software>
+           <Application>App1</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker02">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Software>
+           <Application>App2</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43011</MinPort>
+                    <MaxPort>43012</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker03">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43021</MinPort>
+                    <MaxPort>43022</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker04">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43031</MinPort>
+                    <MaxPort>43032</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker05">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43041</MinPort>
+                    <MaxPort>43042</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker06">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43051</MinPort>
+                    <MaxPort>43052</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker07">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43061</MinPort>
+                    <MaxPort>43062</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <!-- <ComputeNode Name="COMPSsWorker08">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43071</MinPort>
+                    <MaxPort>43072</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker09">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43081</MinPort>
+                    <MaxPort>43082</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker10">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43091</MinPort>
+                    <MaxPort>43092</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker11">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43101</MinPort>
+                    <MaxPort>43102</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker12">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43111</MinPort>
+                    <MaxPort>43112</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker13">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43121</MinPort>
+                    <MaxPort>43122</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker14">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43131</MinPort>
+                    <MaxPort>43132</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker15">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43141</MinPort>
+                    <MaxPort>43142</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker16">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43151</MinPort>
+                    <MaxPort>43152</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker17">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43161</MinPort>
+                    <MaxPort>43162</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker18">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43171</MinPort>
+                    <MaxPort>43172</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker19">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43181</MinPort>
+                    <MaxPort>43182</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker20">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43191</MinPort>
+                    <MaxPort>43192</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode> -->
+</ResourcesList>

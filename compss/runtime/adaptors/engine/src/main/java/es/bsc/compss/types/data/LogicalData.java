@@ -84,6 +84,9 @@ public class LogicalData {
     private boolean isBeingSaved;
     private boolean isBindingData;
 
+    // Data Version with which the logicalData is linked
+    private LinkedList<DataVersion> dataVersions;
+
 
     /*
      * Constructors
@@ -93,7 +96,7 @@ public class LogicalData {
      *
      * @param name Data name
      */
-    public LogicalData(String name) {
+    public LogicalData(String name, LinkedList<DataVersion> versions) {
         this.name = name;
         this.knownAlias.add(name);
         this.value = null;
@@ -102,6 +105,7 @@ public class LogicalData {
         this.isBeingSaved = false;
         this.isBindingData = false;
         this.size = 0;
+        this.dataVersions = versions;
     }
 
     /**
@@ -178,6 +182,8 @@ public class LogicalData {
                 ld2.bindingId = bindingId;
                 ld.locations.addAll(ld2.locations);
                 ld2.locations = ld.locations;
+                ld.dataVersions.addAll(ld2.dataVersions);
+                ld2.dataVersions = ld.dataVersions;
                 ld.inProgress.addAll(ld2.inProgress);
                 ld2.inProgress = ld.inProgress;
             }
@@ -253,7 +259,7 @@ public class LogicalData {
                 SimpleURI uri = new SimpleURI(targetPath);
                 for (Resource res : this.getAllHosts()) {
                     try {
-                        LogicalData ld = new LogicalData(alias);
+                        LogicalData ld = new LogicalData(alias, this.dataVersions);
                         DataLocation loc = DataLocation.createLocation(res, uri);
                         ld.addLocation(loc);
                         this.locations.remove(loc);
@@ -315,6 +321,13 @@ public class LogicalData {
                 return;
             } catch (Exception e) {
                 ErrorManager.error("ERROR generating a new location for the object in memory for data " + this.name, e);
+            }
+        }
+        if (this.dataVersions != null) {
+            for (DataVersion dataVersion : this.dataVersions) {
+                if (dataVersion != null) {
+                    dataVersion.addLocation(loc);
+                }
             }
         }
         this.isBeingSaved = false;
@@ -432,11 +445,12 @@ public class LogicalData {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
         }
 
-        Object val = this.value;
-        this.value = null;
         // Removes only the memory location (no need to check private, shared,
         // persistent)
         this.locations.remove(loc);
+
+        Object val = this.value;
+        this.value = null;
 
         return val;
     }

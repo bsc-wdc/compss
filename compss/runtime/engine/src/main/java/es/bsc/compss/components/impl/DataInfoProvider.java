@@ -23,6 +23,7 @@ import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.ReadersInfo;
 import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
@@ -201,13 +202,15 @@ public class DataInfoProvider {
      * @param app application accessing the file
      * @param mode File Access Mode.
      * @param location File location.
+     * @param readerData Information about the reader.
      * @return The registered access Id.
      */
-    public DataAccessId registerFileAccess(Application app, AccessMode mode, DataLocation location) {
+    public DataAccessId registerFileAccess(Application app, AccessMode mode, DataLocation location,
+        ReadersInfo readerData) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
         Integer fileId = app.getFileDataId(locationKey);
-
+        DataAccessId id;
         // First access to this file
         if (fileId == null) {
             if (DEBUG) {
@@ -222,9 +225,14 @@ public class DataInfoProvider {
             this.idToData.put(fileId, fileInfo);
 
             // Register the initial location of the file
-            if (mode != AccessMode.W) {
+            if (mode == AccessMode.W) {
+                id = willAccess(mode, fileInfo, readerData);
+            } else {
                 DataInstanceId lastDID = fileInfo.getCurrentDataVersion().getDataInstanceId();
                 String renaming = lastDID.getRenaming();
+                // With the scores updates. Access function which creates the logical data must be invoked
+                // before registering the location when a new data is accessed (except W access)
+                id = willAccess(mode, fileInfo, readerData);
                 Comm.registerLocation(renaming, location);
             }
         } else {
@@ -233,10 +241,11 @@ public class DataInfoProvider {
                 LOGGER.debug("Another access to file " + location.getLocationKey());
             }
             fileInfo = this.idToData.get(fileId);
+            id = willAccess(mode, fileInfo, readerData);
         }
 
         // Version management
-        return willAccess(mode, fileInfo);
+        return id;
     }
 
     /**
@@ -246,11 +255,14 @@ public class DataInfoProvider {
      * @param mode Object access mode.
      * @param value Object value.
      * @param code Object hashcode.
+     * @param readerData reader information.
      * @return The registered access Id.
      */
-    public DataAccessId registerObjectAccess(Application app, AccessMode mode, Object value, int code) {
+    public DataAccessId registerObjectAccess(Application app, AccessMode mode, Object value, int code,
+        ReadersInfo readerData) {
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
+        DataAccessId id;
 
         // First access to this datum
         if (aoId == null) {
@@ -264,26 +276,28 @@ public class DataInfoProvider {
             aoId = oInfo.getDataId();
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
-
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
-
+            // With the scores updates. Access function which creates the logical data must be invoked
+            // before registering the location when a new data is accessed (except W access)
+            id = willAccess(mode, oInfo, readerData);
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
                 Comm.registerValue(renaming, value);
             }
+
         } else {
             // The datum has already been accessed
             if (DEBUG) {
                 LOGGER.debug("Another access to object " + code);
             }
-
             oInfo = this.idToData.get(aoId);
+            id = willAccess(mode, oInfo, readerData);
         }
 
         // Version management
-        return willAccess(mode, oInfo);
+        return id;
     }
 
     /**
@@ -293,11 +307,14 @@ public class DataInfoProvider {
      * @param mode Stream access mode.
      * @param value Stream object value.
      * @param code Stream hashcode.
+     * @param readerData Information about the reader.
      * @return The registered access Id.
      */
-    public DataAccessId registerStreamAccess(Application app, AccessMode mode, Object value, int code) {
+    public DataAccessId registerStreamAccess(Application app, AccessMode mode, Object value, int code,
+        ReadersInfo readerData) {
         DataInfo oInfo;
         Integer aoId = this.codeToId.get(code);
+        DataAccessId id;
 
         // First access to this datum
         if (aoId == null) {
@@ -315,7 +332,9 @@ public class DataInfoProvider {
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
-
+            // With the scores updates. Access function which creates the logical data must be invoked
+            // before registering the location when a new data is accessed (except W access)
+            id = willAccess(mode, oInfo, readerData);
             // Inform the File Transfer Manager about the new file containing the object
             Comm.registerValue(renaming, value);
         } else {
@@ -325,6 +344,7 @@ public class DataInfoProvider {
             }
 
             oInfo = this.idToData.get(aoId);
+            id = willAccess(mode, oInfo, readerData);
         }
 
         // Inform the StreamClient
@@ -340,7 +360,7 @@ public class DataInfoProvider {
         }
 
         // Version management
-        return willAccess(mode, oInfo);
+        return id;
     }
 
     /**
@@ -349,12 +369,15 @@ public class DataInfoProvider {
      * @param app Id of the application accessing the external stream
      * @param mode File Access Mode.
      * @param location File location.
+     * @param readerData Information about the reader.
      * @return The registered access Id.
      */
-    public DataAccessId registerExternalStreamAccess(Application app, AccessMode mode, DataLocation location) {
+    public DataAccessId registerExternalStreamAccess(Application app, AccessMode mode, DataLocation location,
+        ReadersInfo readerData) {
         DataInfo externalStreamInfo;
         int locationKey = location.getLocationKey().hashCode();
         Integer externalStreamId = this.codeToId.get(locationKey);
+        DataAccessId id;
 
         // First access to this file
         if (externalStreamId == null) {
@@ -372,6 +395,9 @@ public class DataInfoProvider {
             // Register the initial location of the stream
             DataInstanceId lastDID = externalStreamInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
+            // With the scores updates. Access function which creates the logical data must be invoked
+            // before registering the location when a new data is accessed (except W access)
+            id = willAccess(mode, externalStreamInfo, readerData);
             Comm.registerLocation(renaming, location);
         } else {
             // The external stream has already been accessed, all location are already registered
@@ -379,6 +405,7 @@ public class DataInfoProvider {
                 LOGGER.debug("Another access to external stream " + locationKey);
             }
             externalStreamInfo = this.idToData.get(externalStreamId);
+            id = willAccess(mode, externalStreamInfo, readerData);
         }
 
         // Inform the StreamClient
@@ -403,7 +430,7 @@ public class DataInfoProvider {
         }
 
         // Version management
-        return willAccess(mode, externalStreamInfo);
+        return id;
     }
 
     /**
@@ -413,11 +440,13 @@ public class DataInfoProvider {
      * @param mode Binding Object access mode.
      * @param bo Binding Object.
      * @param code Binding Object hashcode.
+     * @param readerData Information about the reader.
      * @return The registered access Id.
      */
-    public DataAccessId registerBindingObjectAccess(Application app, AccessMode mode, BindingObject bo, int code) {
+    public DataAccessId registerBindingObjectAccess(Application app, AccessMode mode, BindingObject bo, int code,
+        ReadersInfo readerData) {
         DataInfo oInfo;
-
+        DataAccessId id;
         Integer aoId = this.codeToId.get(code);
 
         // First access to this datum
@@ -437,6 +466,7 @@ public class DataInfoProvider {
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
 
+            id = willAccess(mode, oInfo, readerData);
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
                 Comm.registerBindingObject(renaming, bo);
@@ -448,10 +478,12 @@ public class DataInfoProvider {
             }
 
             oInfo = this.idToData.get(aoId);
+
+            id = willAccess(mode, oInfo, readerData);
         }
 
         // Version management
-        return willAccess(mode, oInfo);
+        return id;
     }
 
     /**
@@ -461,12 +493,14 @@ public class DataInfoProvider {
      * @param mode PSCO Access Mode.
      * @param pscoId PSCO Id.
      * @param code PSCO hashcode.
+     * @param readerData Information about the reader.
      * @return The registered access Id.
      */
-    public DataAccessId registerExternalPSCOAccess(Application app, AccessMode mode, String pscoId, int code) {
+    public DataAccessId registerExternalPSCOAccess(Application app, AccessMode mode, String pscoId, int code,
+        ReadersInfo readerData) {
         DataInfo oInfo;
         Integer aoId = this.codeToId.get(code);
-
+        DataAccessId id;
         // First access to this datum
         if (aoId == null) {
             if (DEBUG) {
@@ -483,7 +517,7 @@ public class DataInfoProvider {
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
-
+            id = willAccess(mode, oInfo, readerData);
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
                 Comm.registerExternalPSCO(renaming, pscoId);
@@ -495,10 +529,11 @@ public class DataInfoProvider {
             }
 
             oInfo = this.idToData.get(aoId);
+            id = willAccess(mode, oInfo, readerData);
         }
 
         // Version management
-        return willAccess(mode, oInfo);
+        return id;
     }
 
     /**
@@ -554,13 +589,13 @@ public class DataInfoProvider {
 
     }
 
-    private DataAccessId willAccess(AccessMode mode, DataInfo di) {
+    private DataAccessId willAccess(AccessMode mode, DataInfo di, ReadersInfo readerData) {
         // Version management
         DataAccessId daId = null;
         switch (mode) {
             case C:
             case R:
-                di.willBeRead();
+                di.willBeRead(readerData);
                 daId = new RAccessId(di.getCurrentDataVersion());
                 if (DEBUG) {
                     StringBuilder sb = new StringBuilder("");
@@ -587,7 +622,7 @@ public class DataInfoProvider {
 
             case CV:
             case RW:
-                di.willBeRead();
+                di.willBeRead(readerData);
                 DataVersion readInstance = di.getCurrentDataVersion();
                 di.willBeWritten();
                 DataVersion writtenInstance = di.getCurrentDataVersion();
@@ -641,7 +676,7 @@ public class DataInfoProvider {
      *
      * @param dAccId DataAccessId.
      */
-    public void dataAccessHasBeenCanceled(DataAccessId dAccId) {
+    public void dataAccessHasBeenCanceled(DataAccessId dAccId, ReadersInfo readerData) {
         Integer dataId = dAccId.getDataId();
         DataInfo di = this.idToData.get(dataId);
         if (di != null) {
@@ -652,12 +687,12 @@ public class DataInfoProvider {
                 case C:
                 case R:
                     rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
-                    deleted = di.canceledReadVersion(rVersionId);
+                    deleted = di.canceledReadVersion(rVersionId, readerData);
                     break;
                 case CV:
                 case RW:
                     rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                    di.canceledReadVersion(rVersionId);
+                    di.canceledReadVersion(rVersionId, readerData);
                     // read and write data version can be removed
                     // di.canceledVersion(rVersionId);
                     wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
@@ -693,12 +728,12 @@ public class DataInfoProvider {
             case C:
             case R:
                 rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
-                deleted = di.versionHasBeenRead(rVersionId);
+                deleted = di.versionHasBeenRead(rVersionId, null);
                 break;
             case CV:
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                di.versionHasBeenRead(rVersionId);
+                di.versionHasBeenRead(rVersionId, null);
                 // read data version can be removed
                 di.tryRemoveVersion(rVersionId);
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
@@ -1188,11 +1223,14 @@ public class DataInfoProvider {
      * @param app application accessing the collection
      * @param am AccesMode.
      * @param cp CollectionParameter.
+     * @param readerData Information about the reader.
      * @return DataAccessId Representation of the access to the collection.
      */
-    public DataAccessId registerCollectionAccess(Application app, AccessMode am, CollectionParameter cp) {
+    public DataAccessId registerCollectionAccess(Application app, AccessMode am, CollectionParameter cp,
+        ReadersInfo readerData) {
         String collectionId = cp.getCollectionId();
         Integer oId = this.collectionToId.get(collectionId);
+        DataAccessId id;
         CollectionInfo cInfo;
         if (oId == null) {
             cInfo = new CollectionInfo(app, collectionId);
@@ -1202,6 +1240,8 @@ public class DataInfoProvider {
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
+
+            id = willAccess(am, cInfo, readerData);
             // Inform the File Transfer Manager about the new file containing the object
             if (am != AccessMode.W) {
                 if (DEBUG) {
@@ -1212,8 +1252,9 @@ public class DataInfoProvider {
             }
         } else {
             cInfo = (CollectionInfo) this.idToData.get(oId);
+            id = willAccess(am, cInfo, readerData);
         }
-        return willAccess(am, cInfo);
+        return id;
     }
 
     /**
@@ -1222,11 +1263,14 @@ public class DataInfoProvider {
      * @param app Id of the application accessing the collection
      * @param am AccesMode.
      * @param dcp DictCollectionParameter.
+     * @param readerData Information about the reader.
      * @return DataAccessId Representation of the access to the collection.
      */
-    public DataAccessId registerDictCollectionAccess(Application app, AccessMode am, DictCollectionParameter dcp) {
+    public DataAccessId registerDictCollectionAccess(Application app, AccessMode am, DictCollectionParameter dcp,
+        ReadersInfo readerData) {
         String dictCollectionId = dcp.getDictCollectionId();
         Integer oId = this.collectionToId.get(dictCollectionId);
+        DataAccessId id;
         DictCollectionInfo cInfo;
         if (oId == null) {
             cInfo = new DictCollectionInfo(app, dictCollectionId);
@@ -1236,6 +1280,7 @@ public class DataInfoProvider {
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
+            id = willAccess(am, cInfo, readerData);
             // Inform the File Transfer Manager about the new file containing the object
             if (am != AccessMode.W) {
                 if (DEBUG) {
@@ -1247,8 +1292,9 @@ public class DataInfoProvider {
             }
         } else {
             cInfo = (DictCollectionInfo) this.idToData.get(oId);
+            id = willAccess(am, cInfo, readerData);
         }
-        return willAccess(am, cInfo);
+        return id;
     }
 
     /**
@@ -1271,4 +1317,5 @@ public class DataInfoProvider {
             app.removeData(di);
         }
     }
+
 }

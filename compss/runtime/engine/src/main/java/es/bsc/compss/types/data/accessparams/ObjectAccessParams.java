@@ -66,7 +66,7 @@ public class ObjectAccessParams extends AccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerObjectAccess(this.app, this.mode, this.value, this.hashCode);
+        return dip.registerObjectAccess(this.app, this.mode, this.value, this.hashCode, null);
     }
 
     @Override

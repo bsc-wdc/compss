@@ -37,6 +37,7 @@ import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -247,13 +248,15 @@ public class TaskScheduler {
      *
      * @param <T> WorkerResourceDescription.
      * @param rs Associated ResourceScheduler.
+     * @param params List of parameters of the task.
+     * @param coreId Core element id.
      * @return An empty Scheduling Information.
      */
     public <T extends WorkerResourceDescription> SchedulingInformation generateSchedulingInformation(
-        ResourceScheduler<T> rs) {
+        ResourceScheduler<T> rs, List<Parameter> params, Integer coreId) {
 
         // LOGGER.info("[TaskScheduler] Generate empty scheduling information");
-        return new SchedulingInformation(rs);
+        return new SchedulingInformation(rs, params, coreId);
     }
 
     /**
@@ -798,7 +801,7 @@ public class TaskScheduler {
      * @param ui ResourceScheduler whose worker is to contextualize.
      */
     private <T extends WorkerResourceDescription> void startWorker(ResourceScheduler<T> ui) {
-        StartWorkerAction<T> action = new StartWorkerAction<>(generateSchedulingInformation(ui), ui, this);
+        StartWorkerAction<T> action = new StartWorkerAction<>(generateSchedulingInformation(ui, null, null), ui, this);
         try {
             action.schedule(ui, (Score) null);
             action.tryToLaunch();
@@ -824,7 +827,7 @@ public class TaskScheduler {
     private <T extends WorkerResourceDescription> void reduceWorkerResources(ResourceScheduler<T> worker,
         ResourceUpdate<T> modification) {
         worker.pendingModification(modification);
-        SchedulingInformation schedInfo = generateSchedulingInformation(worker);
+        SchedulingInformation schedInfo = generateSchedulingInformation(worker, null, null);
         ReduceWorkerAction<T> action = new ReduceWorkerAction<>(schedInfo, worker, this, modification);
         try {
             action.schedule(worker, (Score) null);
@@ -905,7 +908,8 @@ public class TaskScheduler {
             LOGGER.info("Starting stop process for worker " + worker.getName());
             workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
             StopWorkerAction action;
-            action = new StopWorkerAction(generateSchedulingInformation(worker), worker, this, modification);
+            action = new StopWorkerAction(generateSchedulingInformation(worker, null, null), worker, 
+                     this, modification);
             try {
                 action.schedule((ResourceScheduler<WorkerResourceDescription>) worker, (Score) null);
                 action.tryToLaunch();

@@ -39,7 +39,7 @@ public class FakeSI extends SchedulingInformation {
      * @param enforcedTargetResource Enforced Target resource.
      */
     public <T extends WorkerResourceDescription> FakeSI(ResourceScheduler<T> enforcedTargetResource) {
-        super(enforcedTargetResource);
+        super(enforcedTargetResource, null, null);
         this.resourcePredecessors = new LinkedList<>();
         this.resourceSuccessors = new LinkedList<>();
     }

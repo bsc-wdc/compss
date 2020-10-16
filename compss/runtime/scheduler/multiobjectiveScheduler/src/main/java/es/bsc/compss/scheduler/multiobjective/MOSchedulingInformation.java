@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.multiobjective.types.Gap;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.Iterator;
@@ -58,8 +59,9 @@ public class MOSchedulingInformation extends SchedulingInformation {
      * 
      * @param enforcedTargetResource Enforced target resource.
      */
-    public <T extends WorkerResourceDescription> MOSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
-        super(enforcedTargetResource);
+    public <T extends WorkerResourceDescription> MOSchedulingInformation(ResourceScheduler<T> enforcedTargetResource,
+        List<Parameter> params, Integer coreId) {
+        super(enforcedTargetResource, params, coreId);
         this.resourcePredecessors = new LinkedList<>();
         this.resourceSuccessors = new LinkedList<>();
 

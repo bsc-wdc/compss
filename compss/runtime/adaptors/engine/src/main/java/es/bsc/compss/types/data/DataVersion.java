@@ -68,7 +68,9 @@ public class DataVersion {
     public void willBeRead(LocationMonitor readerData) {
         this.readers++;
         if (readerData != null) {
-            this.readersData.add(readerData);
+            synchronized (this.readersData) {
+                this.readersData.add(readerData);
+            }
         }
     }
 
@@ -109,8 +111,9 @@ public class DataVersion {
                 s.release();
             }
         }
-        this.readersData.remove(readData);
-
+        synchronized (this.readersData) {
+            this.readersData.remove(readData);
+        }
         return checkDeletion();
     }
 
@@ -221,9 +224,11 @@ public class DataVersion {
      * @param loc Location to add.
      */
     public void addLocation(DataLocation loc) {
-        for (LocationMonitor readerData : this.readersData) {
-            List<Resource> resources = loc.getHosts();
-            readerData.addLocation(resources, readerData.getParameter());
+        synchronized (this.readersData) {
+            for (LocationMonitor readerData : this.readersData) {
+                List<Resource> resources = loc.getHosts();
+                readerData.addLocation(resources, readerData.getParameter());
+            }
         }
     }
 }

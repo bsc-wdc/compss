@@ -47,6 +47,7 @@ DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_PYTHON_MEMORY_PROFILE=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
+DEFAULT_IPYTHON=false
 DEFAULT_SHARED_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler"
 DEFAULT_LOCAL_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler"
 
@@ -184,6 +185,9 @@ show_opts() {
                                             Default: ${DEFAULT_AUTOMATIC_SCALING}
     --jupyter_notebook=<path>,              Swap the COMPSs master initialization with jupyter notebook from the specified path.
     --jupyter_notebook                      Default: ${DEFAULT_JUPYTER_NOTEBOOK}
+    --ipython                               Swap the COMPSs master initialization with ipython.
+                                            Default: empty
+
 
   Runcompss configuration:
 
@@ -1210,6 +1214,9 @@ get_args() {
           jupyter_notebook=true
           jupyter_notebook_path=${OPTARG//jupyter_notebook=/}
           ;;
+        ipython)
+          ipython=true
+          ;;
         xmls_phase=*)
           # Added for heterogeneity
           xmls_phase=${OPTARG//xmls_phase=/}
@@ -1509,6 +1516,10 @@ check_args() {
   if [ -z "${jupyter_notebook}" ]; then
     jupyter_notebook=${DEFAULT_JUPYTER_NOTEBOOK}
     jupyter_notebook_path=${DEFAULT_JUPYTER_NOTEBOOK_PATH}
+  fi
+
+  if [ -z "${ipython}" ]; then
+    ipython=${DEFAULT_IPYTHON}
   fi
 
   #
@@ -1860,7 +1871,7 @@ launch() {
   # Launching the master
   if [ ! -z "${master_node}" ]; then
     # Launch master
-    if [ "${jupyter_notebook}" = false ]; then
+    if [ "${jupyter_notebook}" = false ] && [ "${ipython}" = false ]; then
       master_cmd "${master_node}${network}"
       MCMD="${MCMD} ${args_pass}"
       if [ "${log_level}" != "off" ]; then
@@ -1872,6 +1883,29 @@ launch() {
         echo "Master execution failed. Exiting job."
         exit $ev
       fi
+    elif [ "${ipython}" = true ]; then
+      # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
+      export PYTHONPATH=${pythonpath}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
+      # JAVA_HOME variable must exist
+      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
+      unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
+      export COMPSS_LOG_LEVEL=${log_level}
+      export COMPSS_TRACING=${tracing}
+      if [ -v "$tracing" ] && [ $tracing != "false" ]; then
+        load_tracing_env
+      fi
+      # Export project and resources xmls as environment variables to be used from PyCOMPSs binding
+      # Also export the master name, master port, and worker nodes to be used from PyCOMPSs binding
+      export COMPSS_PROJECT_XML=${PROJECT_FILE}
+      export COMPSS_RESOURCES_XML=${RESOURCES_FILE}
+      export COMPSS_MASTER_NODE=${master_node}
+      export COMPSS_MASTER_PORT=${master_port}
+      export COMPSS_WORKER_NODES=${worker_nodes}
+      export COMPSS_UUID=${uuid}
+      export COMPSS_BASE_LOG_DIR=${base_log_dir}
+      export COMPSS_SPECIFIC_LOG_DIR=${specific_log_dir}
+      export COMPSS_STORAGE_CONF=${storage_conf}
+      ipython
     else
       # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
       export PYTHONPATH=${jupyter_notebook_path}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH

@@ -36,7 +36,8 @@
   py3_other_modules="ignore"
 
   # DEFINE CONFIGURATION PARAMETERS
-  additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/usr/include/libxml:$PATH"
+  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/usr/include/libxml:\$PATH"
   additional_module_use_folder="ignore"
   queues_cfg="knl.cfg"
   extrae_with_openmpi="false"

@@ -4,11 +4,9 @@
   # HELPER FUNCTIONS
   #
 
-  export COVERAGE_PROCESS_START=$(pwd)/coverage.cfg
-
   # Run a coverage report for a module
   run() {
-    coverage run --rcfile=$(pwd)/coverage.cfg nose_tests.py False
+    coverage run --rcfile=${SCRIPT_DIR}/coverage.cfg nose_tests.py False
                  # --source="src/pycompss" \
                  # --omit="/usr/lib/*" \
                  # --omit="src/pycompss/api/tests_parallel/*" \
@@ -22,6 +20,9 @@
   #
   # MAIN
   #
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  cd ${SCRIPT_DIR}
+  export COVERAGE_PROCESS_START=$(pwd)/coverage.cfg
 
   # Run coverage on pycompss folder
   run

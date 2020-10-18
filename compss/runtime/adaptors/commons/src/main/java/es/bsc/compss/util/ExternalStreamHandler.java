@@ -92,6 +92,7 @@ public class ExternalStreamHandler {
         } catch (IOException ioe) {
             throw new ExternalPropertyException(ioe);
         } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
             throw new ExternalPropertyException(ie);
         }
 

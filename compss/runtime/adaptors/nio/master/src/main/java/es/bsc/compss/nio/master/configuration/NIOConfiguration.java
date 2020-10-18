@@ -30,7 +30,7 @@ public class NIOConfiguration extends MethodConfiguration {
     public static final String BLAUNCH_REMOTE_EXECUTION_COMMAND = "blaunch";
     public static final String QRSH_REMOTE_EXECUTION_COMMAND = "qrsh";
     public static final String NO_REMOTE_EXECUTION_COMMAND = "none";
-    public static final List<String> AVAILABLE_REMOTE_EXECUTION_COMMANDS =
+    private static final List<String> AVAILABLE_REMOTE_EXECUTION_COMMANDS =
         Arrays.asList(new String[] { SSH_REMOTE_EXECUTION_COMMAND, // SSH
             SRUN_REMOTE_EXECUTION_COMMAND, // SRUN
             BLAUNCH_REMOTE_EXECUTION_COMMAND, // BLAUNCH
@@ -123,6 +123,10 @@ public class NIOConfiguration extends MethodConfiguration {
      */
     public void setRemoteExecutionCommand(String remoteExecutionCommand) {
         this.remoteExecutionCommand = remoteExecutionCommand;
+    }
+
+    public static List<String> getAvailableRemoteExecutionCommands() {
+        return AVAILABLE_REMOTE_EXECUTION_COMMANDS;
     }
 
 }

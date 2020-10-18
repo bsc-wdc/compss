@@ -37,6 +37,7 @@
   #py3_other_modules="Python/3.7.0-foss-2018b"
 
   # DEFINE CONFIGURATION PARAMETERS
+  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
   # additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
   # additionalExports="export PATH=$PATH:/apps/JDK/SRC/jdk1.9.0_131 JAVA_HOME=/apps/JDK/SRC/jdk1.9.0_131"
   additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.66.0/include"

@@ -23,6 +23,8 @@ import es.bsc.compss.ui.Properties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,6 +71,8 @@ public class MonitorXmlParser {
         // Compute attribute
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            docFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            docFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             docFactory.setNamespaceAware(true);
             Document resourcesDoc = docFactory.newDocumentBuilder().parse(monitorLocation);
             NodeList nl = resourcesDoc.getChildNodes();
@@ -116,6 +120,8 @@ public class MonitorXmlParser {
         // Compute attributes
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            docFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            docFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             docFactory.setNamespaceAware(true);
             Document resourcesDoc = docFactory.newDocumentBuilder().parse(monitorLocation);
             NodeList nl = resourcesDoc.getChildNodes();
@@ -148,7 +154,7 @@ public class MonitorXmlParser {
     }
 
     /**
-     * TODO: javadoc.
+     * Parse statistic from a default monitor XML path.
      */
     public static void parseStatistics() {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
@@ -162,6 +168,8 @@ public class MonitorXmlParser {
         // Compute attribute
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            docFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            docFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             docFactory.setNamespaceAware(true);
             Document resourcesDoc = docFactory.newDocumentBuilder().parse(monitorLocation);
             NodeList nl = resourcesDoc.getChildNodes();

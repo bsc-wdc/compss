@@ -55,12 +55,7 @@ public class CommandCancelTask extends RetriableCommand {
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        try {
-            this.jobId = (int) in.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+        this.jobId = (int) in.readObject();
     }
 
     @Override

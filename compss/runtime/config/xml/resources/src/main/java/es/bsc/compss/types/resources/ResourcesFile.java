@@ -489,7 +489,7 @@ public class ResourcesFile {
                 if (obj instanceof ComputeNodeType) {
                     ComputeNodeType cn = (ComputeNodeType) obj;
                     HashMap<String, String> disks = getSharedDisks(cn);
-                    if (disks.containsKey(diskName)) {
+                    if (disks != null && disks.containsKey(diskName)) {
                         mountPoints.put(cn.getName(), disks.get(diskName));
                     }
                 }
@@ -1214,14 +1214,9 @@ public class ResourcesFile {
      * @return
      */
     public String getOperatingSystemType(ComputeNodeType c) {
-        List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof OSType) {
-                    OSType os = ((OSType) obj);
-                    return getOperatingSystemType(os);
-                }
-            }
+        OSType os = getOperatingSystem(c);
+        if (os != null) {
+            return getOperatingSystemType(os);
         }
 
         return null;
@@ -1477,27 +1472,43 @@ public class ResourcesFile {
     }
 
     /**
+     * Returns the AttacSharedDisks of a given ComputeNode.
+     *
+     * @param c Compute node description object
+     * @return
+     */
+    private static AttachedDisksListType getAttachedSharedDisks(ComputeNodeType c) {
+        List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof AttachedDisksListType) {
+                    return (AttachedDisksListType) obj;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the SharedDisks (name, mountpoint) of a given ComputeNode.
      *
      * @param c Compute node description object
      * @return
      */
     public HashMap<String, String> getSharedDisks(ComputeNodeType c) {
-        List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof AttachedDisksListType) {
-                    AttachedDisksListType disks = (AttachedDisksListType) obj;
-                    HashMap<String, String> disksInformation = new HashMap<>();
-                    for (AttachedDiskType disk : disks.getAttachedDisk()) {
-                        disksInformation.put(disk.getName(), disk.getMountPoint());
-                    }
-                    return disksInformation;
-                }
+
+        AttachedDisksListType disks = getAttachedSharedDisks(c);
+        if (disks != null) {
+            HashMap<String, String> disksInformation = new HashMap<>();
+            for (AttachedDiskType disk : disks.getAttachedDisk()) {
+                disksInformation.put(disk.getName(), disk.getMountPoint());
             }
+            return disksInformation;
         }
 
         return null;
+
     }
 
     /**
@@ -1522,25 +1533,6 @@ public class ResourcesFile {
                     } else {
                         return null;
                     }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the AttacSharedDisks of a given ComputeNode.
-     *
-     * @param c Compute node description object
-     * @return
-     */
-    private static AttachedDisksListType getAttachedSharedDisks(ComputeNodeType c) {
-        List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof AttachedDisksListType) {
-                    return (AttachedDisksListType) obj;
                 }
             }
         }
@@ -1590,27 +1582,10 @@ public class ResourcesFile {
      */
     public List<String> getAdaptorQueues(ImageType image, String adaptorName) {
         List<String> adaptorQueues = new ArrayList<>();
-
-        List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
-        if (objList != null) {
-            // Loop for adaptors tag
-            for (Object obj : objList) {
-                if (obj instanceof AdaptorsListType) {
-                    List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
-                    if (adaptors != null) {
-                        // Loop for specific adaptor name
-                        for (AdaptorType adaptor : adaptors) {
-                            if (adaptor.getName().equals(adaptorName)) {
-                                return getAdaptorQueues(adaptor);
-                            }
-                        }
-                    } else {
-                        return adaptorQueues; // Empty
-                    }
-                }
-            }
+        AdaptorType adaptor = getAdaptor(image, adaptorName);
+        if (adaptor != null) {
+            return getAdaptorQueues(adaptor);
         }
-
         return adaptorQueues; // Empty
     }
 
@@ -1657,92 +1632,6 @@ public class ResourcesFile {
      * Returns the declared properties of a given Adaptor within a given ComputeNode.
      *
      * @param cn Compute node description object
-     * @param adaptorName Adaptor name
-     * @return
-     */
-    public Map<String, Object> getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
-        List<Object> objList = cn.getProcessorOrAdaptorsOrMemory();
-        if (objList != null) {
-            // Loop for adaptors tag
-            for (Object obj : objList) {
-                if (obj instanceof AdaptorsListType) {
-                    List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
-                    if (adaptors != null) {
-                        // Loop for specific adaptor name
-                        for (AdaptorType adaptor : adaptors) {
-                            if (adaptor.getName().equals(adaptorName)) {
-                                return getAdaptorProperties(adaptor);
-                            }
-                        }
-                    } else {
-                        return null;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the declared properties of a given Adaptor within a given Image.
-     *
-     * @param image Image description
-     * @param adaptorName Adaptor name
-     * @return
-     */
-    public Map<String, Object> getAdaptorProperties(ImageType image, String adaptorName) {
-        List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
-        if (objList != null) {
-            // Loop for adaptors tag
-            for (Object obj : objList) {
-                if (obj instanceof AdaptorsListType) {
-                    List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
-                    if (adaptors != null) {
-                        // Loop for specific adaptor name
-                        for (AdaptorType adaptor : adaptors) {
-                            if (adaptor.getName().equals(adaptorName)) {
-                                return getAdaptorProperties(adaptor);
-                            }
-                        }
-                    } else {
-                        return null;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the adaptor properties.
-     *
-     * @param adaptor Adaptor description
-     * @return
-     */
-    public Map<String, Object> getAdaptorProperties(AdaptorType adaptor) {
-        HashMap<String, Object> properties = new HashMap<String, Object>();
-        List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
-        if (innerElements != null) {
-            // Loop for submission system
-            for (JAXBElement<?> adaptorElement : innerElements) {
-                if (adaptorElement.getName().equals(new QName("Ports"))
-                    || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
-                    || adaptorElement.getName().equals(new QName("Properties"))) {
-
-                    properties.put(adaptorElement.getName().getLocalPart(), (Object) adaptorElement.getValue());
-                }
-            }
-        }
-
-        return properties;
-    }
-
-    /**
-     * Returns the declared properties of a given Adaptor within a given ComputeNode.
-     *
-     * @param cn Compute node description object
      * @param adaptorName Adaptor Name
      * @return
      */
@@ -1768,6 +1657,93 @@ public class ResourcesFile {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the declared properties of a given Adaptor within a given ImageType.
+     *
+     * @param im Image description object
+     * @param adaptorName Adaptor Name
+     * @return
+     */
+    public AdaptorType getAdaptor(ImageType im, String adaptorName) {
+        List<Object> objList = im.getAdaptorsOrOperatingSystemOrSoftware();
+        if (objList != null) {
+            // Loop for adaptors tag
+            for (Object obj : objList) {
+                if (obj instanceof AdaptorsListType) {
+                    List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
+                    if (adaptors != null) {
+                        // Loop for specific adaptor name
+                        for (AdaptorType adaptor : adaptors) {
+                            if (adaptor.getName().equals(adaptorName)) {
+                                return adaptor;
+                            }
+                        }
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the declared properties of a given Adaptor within a given ComputeNode.
+     *
+     * @param cn Compute node description object
+     * @param adaptorName Adaptor name
+     * @return
+     */
+    public Map<String, Object> getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
+
+        AdaptorType adaptor = getAdaptor(cn, adaptorName);
+        if (adaptor != null) {
+            return getAdaptorProperties(adaptor);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the declared properties of a given Adaptor within a given Image.
+     *
+     * @param image Image description
+     * @param adaptorName Adaptor name
+     * @return
+     */
+    public Map<String, Object> getAdaptorProperties(ImageType image, String adaptorName) {
+        AdaptorType adaptor = getAdaptor(image, adaptorName);
+        if (adaptor != null) {
+            return getAdaptorProperties(adaptor);
+        }
+        return null;
+    }
+
+    /**
+     * Returns the adaptor properties.
+     *
+     * @param adaptor Adaptor description
+     * @return
+     */
+    public Map<String, Object> getAdaptorProperties(AdaptorType adaptor) {
+        HashMap<String, Object> properties = new HashMap<String, Object>();
+        List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
+        if (innerElements != null) {
+            // Loop for submission system
+            for (JAXBElement<?> adaptorElement : innerElements) {
+                if (adaptorElement.getName().equals(new QName("Ports"))
+                    || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
+                    || adaptorElement.getName().equals(new QName("Properties"))) {
+
+                    properties.put(adaptorElement.getName().getLocalPart(), (Object) adaptorElement.getValue());
+                }
+            }
+        }
+
+        return properties;
     }
 
     /**
@@ -2695,52 +2671,6 @@ public class ResourcesFile {
         }
 
         return this.addCloudProvider(name, endpoint, imagesList, instancesList);
-    }
-
-    /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider.
-     *
-     * @param name Cloud provider name
-     * @param endpoint Cloud provider endpoint
-     * @param images Cloud images list
-     * @param instances Cloud instance list
-     * @return Added Cloud provider
-     * @throws InvalidElementException Error invalid data
-     */
-    public CloudProviderType addCloudProvider(String name, EndpointType endpoint, ImagesType images,
-        List<InstanceTypeType> instances) throws InvalidElementException {
-
-        InstanceTypesType instancesList = new InstanceTypesType();
-        if (instances != null) {
-            for (InstanceTypeType ins : instances) {
-                instancesList.getInstanceType().add(ins);
-            }
-        }
-
-        return this.addCloudProvider(name, endpoint, images, instancesList);
-    }
-
-    /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider.
-     *
-     * @param name Cloud provider name
-     * @param endpoint Cloud provider endpoint
-     * @param images Cloud images list
-     * @param instances Cloud instance list
-     * @return Added Cloud provider
-     * @throws InvalidElementException Error invalid data
-     */
-    public CloudProviderType addCloudProvider(String name, EndpointType endpoint, List<ImageType> images,
-        InstanceTypesType instances) throws InvalidElementException {
-
-        ImagesType imagesList = new ImagesType();
-        if (images != null) {
-            for (ImageType im : images) {
-                imagesList.getImage().add(im);
-            }
-        }
-
-        return this.addCloudProvider(name, endpoint, imagesList, instances);
     }
 
     /**

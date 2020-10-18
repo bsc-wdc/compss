@@ -58,7 +58,7 @@ public class MirrorMonitor {
                 try {
                     monitor();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Error: exception in monitor", e);
                 }
                 synchronized (MirrorMonitor.this) {
                     stopped = true;

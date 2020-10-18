@@ -71,13 +71,8 @@ public class CommandNewTask extends RetriableCommand {
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        try {
-            this.obsolete = (List<String>) in.readObject();
-            this.task = (NIOTask) in.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+        this.obsolete = (List<String>) in.readObject();
+        this.task = (NIOTask) in.readObject();
     }
 
     @Override

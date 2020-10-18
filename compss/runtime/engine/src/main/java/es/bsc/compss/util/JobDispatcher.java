@@ -85,8 +85,8 @@ public class JobDispatcher {
                      * System err is added because in GAT tests when time-out loggers are stopped earlier than the rest
                      * of the runtime and the stack trace give information about what is happening
                      */
-                    System.err.println(SUBMISSION_ERROR + job.getJobId());
-                    ex.printStackTrace();
+                    System.err.println(SUBMISSION_ERROR + job.getJobId()); // NOSONAR
+                    ex.printStackTrace(); // NOSONAR
                     if (ex instanceof COMPSsException) {
                         job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED, (COMPSsException) ex);
                     } else {

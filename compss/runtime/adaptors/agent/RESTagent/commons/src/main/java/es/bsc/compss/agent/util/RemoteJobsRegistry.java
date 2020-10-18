@@ -28,7 +28,7 @@ import java.util.HashMap;
  */
 public class RemoteJobsRegistry {
 
-    public static final HashMap<String, RemoteJobListener> REGISTERED_JOBS = new HashMap<>();
+    protected static final HashMap<String, RemoteJobListener> REGISTERED_JOBS = new HashMap<>();
 
 
     /**

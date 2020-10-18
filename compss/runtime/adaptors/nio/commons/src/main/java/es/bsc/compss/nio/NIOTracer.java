@@ -166,7 +166,7 @@ public class NIOTracer extends Tracer {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e1) {
-                e1.printStackTrace();
+                // Nothing to do
             }
             Tracer.stopWrapper();
             mode = "package";

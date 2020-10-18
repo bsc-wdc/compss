@@ -154,7 +154,7 @@ public class IDLParser {
                                             structureString = new StringBuilder(line);
                                             type = CodeRegion.IMPLEMENTATION;
                                         } else {
-                                            if (line.matches(".*[(].*[)];")) {
+                                            if (line.matches(".*[(].*[)];")) { // NOSONAR safe regex.
                                                 // Line contains a function
                                                 LOGGER.debug("[IDL Parser] Loading function: " + line + " constraint:"
                                                     + currConstraints);
@@ -165,7 +165,7 @@ public class IDLParser {
                                                 currConstraints = new MethodResourceDescription(defaultCtr);
                                                 implementation = null;
                                             } else {
-                                                if (line.matches(".*[(].*")) {
+                                                if (line.matches(".*[(].*")) { // NOSONAR safe regex.
                                                     // Line starts a function region
                                                     isReadingCodeRegion = true;
                                                     structureString = new StringBuilder(line);
@@ -214,9 +214,7 @@ public class IDLParser {
 
         final StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         final StringBuilder implementationSignatureBuffer = new StringBuilder();
-        // TODO: Check isStatic and hasReturn information
-        // boolean isStatic = false;
-        // boolean hasReturn = false;
+
         if (line.startsWith("static ")) {
             // isStatic = true;
             line = line.replace("static ", "");
@@ -239,20 +237,6 @@ public class IDLParser {
         }
         implementationSignatureBuffer.append(methodName).append("(");
 
-        /*
-         * if (declaringClass != "NULL" && !isStatic){
-         * implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
-         * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(","); }
-         */
-        /*
-         * if (hasReturn) { implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
-         * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(",");
-         */
-        /*
-         * OLD Binding Objects as FILE implementedTaskSignatureBuffer.append("FILE_T").append(",");
-         * implementationSignatureBuffer.append("FILE_T").append(",");
-         */
-        // }
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
@@ -354,9 +338,9 @@ public class IDLParser {
 
     private static MethodResourceDescription loadCConstraints(String line) {
         line = line.substring(CONSTRAINT_IDL.length() + 1);
-        String proc = new String();
+        String proc = "";
 
-        if (line.matches(".*" + PROCESSOR_IDL + ".*")) {
+        if (line.matches(".*" + PROCESSOR_IDL + ".*")) { // NOSONAR safe regex.
             int procStart = line.indexOf("{");
             int procEnd = line.indexOf("}");
             proc = line.substring(procStart, procEnd + 1);
@@ -370,9 +354,7 @@ public class IDLParser {
         line = line.replaceAll("[() ;\n\t]", "");
         String[] constraints = line.split(",");
 
-        MethodResourceDescription mrd = new MethodResourceDescription(constraints, proc);
-        // logger.debug("New Constraints detected: " + mrd);
-        return mrd;
+        return new MethodResourceDescription(constraints, proc);
     }
 
 

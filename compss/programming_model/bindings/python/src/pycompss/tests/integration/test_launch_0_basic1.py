@@ -27,7 +27,7 @@ def test_launch_test_0_basic1():
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         app_path = os.path.join(current_path, "..", "..", "..", "..", "..", "..",
-                                "..", "..", "tests", "sources", "python",
+                                "..", "..", "tests", "sources", "local", "python",
                                 "0_basic1", "src")
         app = os.path.join(app_path, "test_mp.py")
         sys.path.insert(0, app_path)

@@ -107,7 +107,7 @@
   originalPath=$PATH
 
   # Load additional exports
-  ${additionalExports}
+  eval ${additionalExports}
   echo "NEW PATH=$PATH"
 
   # Use external modules

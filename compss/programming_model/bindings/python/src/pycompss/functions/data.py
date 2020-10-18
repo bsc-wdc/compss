@@ -70,7 +70,7 @@ def _gen_random(size, frag_size, seed):
     """
 
     random.seed(seed)
-    return [[random.random() for _ in range(size)] for _ in range(frag_size)]
+    return [[random.random() for _ in range(size)] for _ in range(frag_size)] # NOSONAR
 
 
 @task(returns=list)

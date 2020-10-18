@@ -286,7 +286,7 @@ public class Agent {
                 locations.add(dl);
             } catch (AgentException | IOException e) {
                 // Do nothing. Ignore location
-                e.printStackTrace();
+                LOGGER.warn("Exception adding remote data", e);
             }
         }
 

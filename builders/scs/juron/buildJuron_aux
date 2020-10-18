@@ -35,8 +35,9 @@
   py3_modules="python/3.6.1"
   py3_other_modules="ignore"
 
-  # DEFINE CONFIGURATION PARAMETERS
-  additionalExports="export PATH=${PATH}:${HOME}/.local/bin; export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/.local/lib; export ACLOCAL_PATH=${LD_LIBRARY_PATH}:${HOME}/.local/share/aclocal:${ACLOCAL_PATH}"
+  # DEFINE CONFIGURATION PARAMETERS 
+  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  additionalExports="export PATH=\${PATH}:\${HOME}/.local/bin; export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:\${HOME}/.local/lib; export ACLOCAL_PATH=\${LD_LIBRARY_PATH}:\${HOME}/.local/share/aclocal:\${ACLOCAL_PATH}"
   additional_module_use_folder="ignore"
   queues_cfg="juron.cfg"
   extrae_with_openmpi="false"

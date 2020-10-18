@@ -151,8 +151,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 try {
                     setPropertiesFromRuntime(new RuntimeConfigManager(stream));
                 } catch (Exception e) {
-                    System.err.println(WARN_IT_FILE_NOT_READ);
-                    e.printStackTrace();
+                    System.err.println(WARN_IT_FILE_NOT_READ); // NOSONAR
+                    e.printStackTrace();// NOSONAR
                 }
             } else {
                 setDefaultProperties();
@@ -161,8 +161,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             try {
                 setPropertiesFromRuntime(new RuntimeConfigManager(propertiesLoc));
             } catch (Exception e) {
-                System.err.println(WARN_IT_FILE_NOT_READ);
-                e.printStackTrace();
+                System.err.println(WARN_IT_FILE_NOT_READ); // NOSONAR
+                e.printStackTrace(); // NOSONAR
             }
         }
 
@@ -296,8 +296,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 setDefaultProperties();
             }
         } catch (Exception e) {
-            System.err.println(WARN_IT_FILE_NOT_READ);
-            e.printStackTrace();
+            System.err.println(WARN_IT_FILE_NOT_READ); // NOSONAR
+            e.printStackTrace();// NOSONAR
         }
     }
 

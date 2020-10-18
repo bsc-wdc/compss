@@ -50,7 +50,7 @@
      -tg \
      ${runcompss_opts} \
      \
-     --scheduler=es.bsc.compss.scheduler.fifodata.FIFODataScheduler \
+     --scheduler=es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler \
      --classpath="${base_app_dir}/${jar_name}" \
      \
      "${app_name}" ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)

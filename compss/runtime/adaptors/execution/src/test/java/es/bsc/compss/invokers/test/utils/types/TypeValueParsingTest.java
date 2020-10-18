@@ -17,13 +17,13 @@
 
 package es.bsc.compss.invokers.test.utils.types;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
+
+import es.bsc.compss.invokers.types.ExternalTaskStatus;
 
 import java.util.List;
 
 import org.junit.Test;
-
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
 
 
 public class TypeValueParsingTest {
@@ -31,7 +31,11 @@ public class TypeValueParsingTest {
     @Test
     public void testCollectionParsing() {
         String message =
-            "END_TASK 11 0 1 26 [(12,3a3bfeb3-b1a8-4576-aba9-656843e475dc),(12,062f4afa-f4a9-4c1e-8925-3388baef3379),(12,3a095734-ec8a-4794-9f6d-49a5446783d8),(12,8d9bfd63-c83b-4e51-b1e6-163e044355ed),(12,41d6558f-9700-44a7-a7d0-6cc92172ace0),(12,c9a2c121-654a-4627-a64c-43d94e9afd9e),(12,b5b47cd4-1312-4677-88cf-10759ec64cb1),(12,331ee170-cd53-4592-b609-cc0ae98db4d8),(12,dc6cbde3-70b8-4510-a4bd-75f4a358deda),(12,e7494c6a-d770-48d1-9705-e594076fc7c3)]";
+            "END_TASK 11 0 1 26 [(12,3a3bfeb3-b1a8-4576-aba9-656843e475dc),(12,062f4afa-f4a9-4c1e-8925-3388baef3379),"
+                + "(12,3a095734-ec8a-4794-9f6d-49a5446783d8),(12,8d9bfd63-c83b-4e51-b1e6-163e044355ed),"
+                + "(12,41d6558f-9700-44a7-a7d0-6cc92172ace0),(12,c9a2c121-654a-4627-a64c-43d94e9afd9e),"
+                + "(12,b5b47cd4-1312-4677-88cf-10759ec64cb1),(12,331ee170-cd53-4592-b609-cc0ae98db4d8),"
+                + "(12,dc6cbde3-70b8-4510-a4bd-75f4a358deda),(12,e7494c6a-d770-48d1-9705-e594076fc7c3)]";
         String[] line = message.split(" ");
         ExternalTaskStatus ets = new ExternalTaskStatus(line);
         if (ets.getNumParameters() != 1) {
@@ -46,7 +50,8 @@ public class TypeValueParsingTest {
     @SuppressWarnings("unchecked")
     public void testCollectionInCollectionParsing() {
         String message =
-            "END_TASK 5 0 1 26 [[(12,aecc04a4-c842-4ce5-9ed6-661a47de776e),(12,aecc04a4-c842-4ce5-9ed6-661a47de776e)],[(12,aecc04a4-c842-4ce5-9ed6-661a47de776e),(12,aecc04a4-c842-4ce5-9ed6-661a47de776e)]]";
+            "END_TASK 5 0 1 26 [[(12,aecc04a4-c842-4ce5-9ed6-661a47de776e),(12,aecc04a4-c842-4ce5-9ed6-661a47de776e)]"
+                + ",[(12,aecc04a4-c842-4ce5-9ed6-661a47de776e),(12,aecc04a4-c842-4ce5-9ed6-661a47de776e)]]";
         String[] line = message.split(" ");
         ExternalTaskStatus ets = new ExternalTaskStatus(line);
         System.out.println(ets.getNumParameters());

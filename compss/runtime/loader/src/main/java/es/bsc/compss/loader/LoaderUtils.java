@@ -49,6 +49,7 @@ import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.ErrorManager;
 import java.lang.reflect.InvocationTargetException;
+import java.security.SecureRandom;
 import java.util.Random;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -67,7 +68,7 @@ public class LoaderUtils {
     public static final String BINARY_SIGNATURE = BinaryImplementation.SIGNATURE;
     public static final String MPI_SIGNATURE = MPIImplementation.SIGNATURE;
     public static final String DECAF_SIGNATURE = DecafImplementation.SIGNATURE;
-    public static final String COMPSs_SIGNATURE = COMPSsImplementation.SIGNATURE;
+    public static final String COMPSS_SIGNATURE = COMPSsImplementation.SIGNATURE;
     public static final String OMPSS_SIGNATURE = OmpSsImplementation.SIGNATURE;
     public static final String OPENCL_SIGNATURE = OpenCLImplementation.SIGNATURE;
 
@@ -145,7 +146,7 @@ public class LoaderUtils {
             }
             if (remoteMethod.isAnnotationPresent(COMPSs.class)) {
                 // COMPSs
-                if (isSelectedNonNativeMethod(method, remoteMethod, COMPSs_SIGNATURE)) {
+                if (isSelectedNonNativeMethod(method, remoteMethod, COMPSS_SIGNATURE)) {
                     return remoteMethod;
                 }
             }
@@ -215,7 +216,7 @@ public class LoaderUtils {
             }
             if (remoteMethod.isAnnotationPresent(MultiCOMPSs.class)) {
                 // MULTI-COMPSs
-                if (isSelectedNonNativeMethod(method, remoteMethod, COMPSs_SIGNATURE)) {
+                if (isSelectedNonNativeMethod(method, remoteMethod, COMPSS_SIGNATURE)) {
                     return remoteMethod;
                 }
             }
@@ -408,7 +409,7 @@ public class LoaderUtils {
             String fullName = mc.getClassName();
             if (fullName.startsWith("java.io.")) {
                 String className = fullName.substring(8);
-                if (LoaderConstants.SUPPORTED_STREAM_TYPES.contains(className)) {
+                if (LoaderConstants.getSupportedStreamTypes().contains(className)) {
                     return true;
                 }
             }
@@ -430,7 +431,7 @@ public class LoaderUtils {
             return prefix;
         }
 
-        Random r = new Random();
+        Random r = new SecureRandom();
         StringBuilder buffer = new StringBuilder();
         int gap = ('9' + 1) - '0';
 

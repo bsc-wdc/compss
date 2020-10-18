@@ -19,6 +19,7 @@ package es.bsc.compss.types;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.DataInfo;
 
+import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class Application {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 
-    private static final Random APP_ID_GENERATOR = new Random();
+    private static final Random APP_ID_GENERATOR = new SecureRandom();
 
     private static final TreeMap<Long, Application> APPLICATIONS = new TreeMap<>();
     private static final Application NO_APPLICATION = new Application(null, null);
@@ -146,7 +147,7 @@ public class Application {
     public static Application registerApplication(Long appId, String parallelismSource) {
         Application app;
         if (appId == null) {
-            new Exception().printStackTrace();
+            LOGGER.error("No application id", new Exception("Application id is null"));
             app = NO_APPLICATION;
         } else {
             synchronized (APPLICATIONS) {

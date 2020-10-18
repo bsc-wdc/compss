@@ -226,7 +226,7 @@ public abstract class AllocatableAction {
      * @return The stream consumers.
      */
     public final List<AllocatableAction> getStreamDataConsumers() {
-        return this.streamDataProducers;
+        return this.streamDataConsumers;
     }
 
     /**
@@ -972,7 +972,7 @@ public abstract class AllocatableAction {
                 this.state = State.CANCELLING;
                 stopAction();
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.error("Exception stoping action.", e);
             }
         } else {
             if (this.state == State.CANCELLING) {

@@ -481,17 +481,21 @@ public abstract class NIOAgent {
         try {
             p = Files.createFile(Paths.get(zipFilePath));
         } catch (FileAlreadyExistsException fae) {
-            // todo: what to do with the old zip?
             File oldZipFile = new File(zipFilePath);
-            oldZipFile.delete();
+            try {
+                Files.delete(oldZipFile.toPath());
+            } catch (IOException e) {
+                LOGGER.error("Error removing old zip file " + zipFilePath, e);
+                return false;
+            }
             try {
                 p = Files.createFile(Paths.get(zipFilePath));
             } catch (IOException e) {
-                LOGGER.error(e);
+                LOGGER.error("Error creating zip file " + zipFilePath, e);
                 return false;
             }
         } catch (IOException e) {
-            LOGGER.error(e);
+            LOGGER.error("Error creating zip file " + zipFilePath, e);
             return false;
         }
 
@@ -505,7 +509,7 @@ public abstract class NIOAgent {
                     Files.copy(path, zs);
                     zs.closeEntry();
                 } catch (IOException e) {
-                    LOGGER.error(e);
+                    LOGGER.error("Error adding zip entry", e);
                 }
             });
             LOGGER.debug("zip file of the directory '" + sourceDirPath + "' has been created");
@@ -820,7 +824,7 @@ public abstract class NIOAgent {
             Enumeration<ZipEntry> zipFileEntries = (Enumeration<ZipEntry>) zip.entries();
             while (zipFileEntries.hasMoreElements()) {
                 // Grab a zip file entry
-                ZipEntry entry = zipFileEntries.nextElement();
+                ZipEntry entry = zipFileEntries.nextElement(); // NOSONAR extracted folder is ziped by COMPSs
                 String currentEntry = entry.getName();
 
                 File destFile = new File(destination, currentEntry);

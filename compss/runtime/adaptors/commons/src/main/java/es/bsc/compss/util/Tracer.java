@@ -51,10 +51,13 @@ public abstract class Tracer {
         "Cannot locate master tracing package " + "on working directory";
 
     // Tracing script and file paths
-    protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
-        + File.separator + "system" + File.separator + "trace" + File.separator + "trace.sh";
-    protected static final String TRACE_OUT_RELATIVE_PATH = File.separator + "trace" + File.separator + "tracer.out";
-    protected static final String TRACE_ERR_RELATIVE_PATH = File.separator + "trace" + File.separator + "tracer.err";
+    private static final String MASTER_TRACE_FILE = "master_compss_trace.tar.gz";
+    private static final String RUNTIME = "Runtime";
+    protected static final String TRACE_PATH = File.separator + "trace" + File.separator;
+    protected static final String TRACE_SCRIPT_PATH =
+        File.separator + RUNTIME + File.separator + "scripts" + File.separator + "system" + TRACE_PATH + "trace.sh";
+    protected static final String TRACE_OUT_RELATIVE_PATH = TRACE_PATH + "tracer.out";
+    protected static final String TRACE_ERR_RELATIVE_PATH = TRACE_PATH + "tracer.err";
 
     // Extrae loaded properties
     private static final boolean IS_CUSTOM_EXTRAE_FILE =
@@ -72,7 +75,7 @@ public abstract class Tracer {
     // Description tags for Paraver
     private static final String TASK_DESC = "Task";
     private static final String API_DESC = "API";
-    private static final String RUNTIME_DESC = "Runtime";
+    private static final String RUNTIME_DESC = RUNTIME;
     private static final String TASKID_DESC = "Task IDs";
     private static final String DATA_TRANSFERS_DESC = "Data Transfers";
     private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
@@ -152,16 +155,12 @@ public abstract class Tracer {
 
         if (Tracer.extraeEnabled()) {
             setUpWrapper(0, 1);
-        } else {
+        } else if (DEBUG) {
             if (Tracer.scorepEnabled()) {
-                if (DEBUG) {
-                    LOGGER.debug("Initializing scorep.");
-                }
+                LOGGER.debug("Initializing scorep.");
             } else {
                 if (Tracer.mapEnabled()) {
-                    if (DEBUG) {
-                        LOGGER.debug("Initializing arm-map.");
-                    }
+                    LOGGER.debug("Initializing arm-map.");
                 }
             }
         }
@@ -493,10 +492,8 @@ public abstract class Tracer {
                 cleanMasterPackage();
             } else if (scorepEnabled()) {
                 // No master ScoreP trace - only Python Workers
-                // generateMasterPackage("package-scorep");
-                // transferMasterPackage();
                 generateTrace("gentrace-scorep");
-                // cleanMasterPackage();
+
             }
         }
     }
@@ -518,7 +515,7 @@ public abstract class Tracer {
     }
 
     private static List<TraceEvent> getEventsByType(int eventsType) {
-        LinkedList<TraceEvent> eventsList = new LinkedList<TraceEvent>();
+        LinkedList<TraceEvent> eventsList = new LinkedList<>();
         for (TraceEvent traceEvent : TraceEvent.values()) {
             if (traceEvent.getType() == eventsType) {
                 eventsList.add(traceEvent);
@@ -571,7 +568,7 @@ public abstract class Tracer {
         descriptionValues[0] = "End";
         int i = 1;
         for (MethodType tp : types) {
-            values[i] = tp.ordinal() + 1;
+            values[i] = tp.ordinal() + 1L;
             descriptionValues[i] = tp.name();
             ++i;
         }
@@ -590,7 +587,7 @@ public abstract class Tracer {
         for (Entry<String, Integer> entry : runtimeEvents.entrySet()) {
             String signature = entry.getKey();
             Integer methodId = entry.getValue();
-            values[i] = methodId + 1;
+            values[i] = methodId + 1L;
             LOGGER.debug("Tracing debug: " + signature);
             String methodName = signature.substring(signature.indexOf('.') + 1, signature.length());
             String mN = methodName.replace("(", "([").replace(")", "])");
@@ -669,6 +666,7 @@ public abstract class Tracer {
             }
         } catch (InterruptedException e) {
             ErrorManager.warn("Error generating master package (interruptedException)", e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -681,7 +679,7 @@ public abstract class Tracer {
             LOGGER.debug("Tracing: Transferring master package");
         }
 
-        String filename = ProtocolType.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
+        String filename = ProtocolType.FILE_URI.getSchema() + MASTER_TRACE_FILE;
         String filePath = "";
         try {
             SimpleURI uri = new SimpleURI(filename);
@@ -693,7 +691,7 @@ public abstract class Tracer {
 
         try {
             Path source = Paths.get(filePath);
-            Path target = Paths.get(traceDirPath + "master_compss_trace.tar.gz");
+            Path target = Paths.get(traceDirPath + MASTER_TRACE_FILE);
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ioe) {
             ErrorManager.error("Could not copy the master trace package into " + traceDirPath, ioe);
@@ -740,6 +738,7 @@ public abstract class Tracer {
             }
         } catch (InterruptedException e) {
             ErrorManager.warn("Error generating trace (interruptedException)", e);
+            Thread.currentThread().interrupt();
         }
 
         String lang = System.getProperty(COMPSsConstants.LANG);
@@ -759,7 +758,7 @@ public abstract class Tracer {
      */
     private static void cleanMasterPackage() {
 
-        String filename = ProtocolType.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
+        String filename = ProtocolType.FILE_URI.getSchema() + MASTER_TRACE_FILE;
         String filePath = "";
         try {
             SimpleURI uri = new SimpleURI(filename);

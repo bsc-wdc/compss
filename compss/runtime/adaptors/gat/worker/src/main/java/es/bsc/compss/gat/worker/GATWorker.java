@@ -176,7 +176,7 @@ public class GATWorker implements InvocationContext {
                 StorageItf.finish();
             } catch (StorageException se) {
                 System.err.println(ERROR_STORAGE_CONF_FINISH);
-                se.printStackTrace();
+                se.printStackTrace(); // NOSONAR need to be printed in job out/err
             }
         }
 

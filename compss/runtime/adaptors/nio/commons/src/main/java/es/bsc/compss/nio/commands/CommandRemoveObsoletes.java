@@ -58,12 +58,7 @@ public class CommandRemoveObsoletes extends RetriableCommand {
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        try {
-            this.obsolete = (List<String>) in.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+        this.obsolete = (List<String>) in.readObject();
     }
 
     @Override

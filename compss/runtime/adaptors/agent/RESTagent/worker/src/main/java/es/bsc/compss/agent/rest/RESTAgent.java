@@ -89,14 +89,14 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         try {
             String portSTR = confJSON.getString("PORT");
             portSTR = EnvironmentLoader.loadFromEnvironment(portSTR);
-            int port = Integer.valueOf(portSTR);
+            int port = Integer.parseInt(portSTR);
             if (port > 0) {
                 conf = new RESTAgentConf(this, port);
             } else {
                 throw new AgentException("Invalid port number for REST agent's interface.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Error configuring agent", e);
             throw new AgentException(e);
         }
         return conf;

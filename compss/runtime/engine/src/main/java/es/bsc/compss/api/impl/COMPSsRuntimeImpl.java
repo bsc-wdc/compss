@@ -2032,10 +2032,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Check if fileName contains schema
         SimpleURI uri = new SimpleURI(fileName);
         if (uri.getSchema().isEmpty()) {
-            if(fileName.startsWith("/")){
+            if (fileName.startsWith("/")) {
                 // todo: make pretty and sure it works
                 uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + fileName);
-            } else{
+            } else {
                 // Add default File scheme and wrap local paths
                 String canonicalPath = new File(fileName).getCanonicalPath();
                 uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);

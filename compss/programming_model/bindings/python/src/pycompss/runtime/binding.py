@@ -763,5 +763,5 @@ def _clean_temps():
     rmtree(temp_directory, True)
     cwd = os.getcwd()
     for f in os.listdir(cwd):
-        if re.search(r'd\d+v\d+_\d+\.IT', f): # NOSONAR
+        if re.search(r'd\d+v\d+_\d+\.IT', f):  # NOSONAR
             os.remove(os.path.join(cwd, f))

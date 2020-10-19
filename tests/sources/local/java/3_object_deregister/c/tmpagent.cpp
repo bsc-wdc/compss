@@ -41,6 +41,10 @@ JNICALL jint objectCountingCallback(jlong class_tag, jlong size, jlong* tag_ptr,
 extern "C"
 JNIEXPORT jint JNICALL Java_ObjectDeregister_countInstances(JNIEnv *env, jclass thisClass, jclass klass) {
 	int count = 0;
+        printf("force garbage collection\n");
+        gdata->jvmti->ForceGarbageCollection();
+        sleep(2);
+
 	jvmtiHeapCallbacks callbacks;
 	(void)memset(&callbacks, 0, sizeof(callbacks));
 	callbacks.heap_iteration_callback = &objectCountingCallback; //We activate the heap iteration callback with the function defined above

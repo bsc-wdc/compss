@@ -13,6 +13,7 @@ import unittest
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import *
 from pycompss.api.task import task
+from pycompss.runtime.management.classes import Future
 
 from my_class import wrapper
 import numpy as np
@@ -45,6 +46,31 @@ def test_dict_collection_out(d):
     d[3] = np.zeros(3)
     d[5] = np.zeros(5)
 
+
+@task(returns=1)
+def increment(v):
+    return v + 1
+
+@task(returns=1)
+def increment_wrapper(v):
+    return wrapper(v.content + 1)
+
+@task(returns=1, d=DICT_COLLECTION_IN)
+def check_collection(d):
+    result = True
+    if d['a'] != 2:
+        result = False
+    if d['b'] != 3:
+        result = False
+    if d['c'] != 4:
+        result = False
+    return result
+
+
+@task(d=DICT_COLLECTION_INOUT)
+def increment_collection(d):
+    for k in d.keys():
+        d[k].content += 1
 
 
 class testDictCollectionFunctions(unittest.TestCase):
@@ -110,3 +136,26 @@ class testDictCollectionFunctions(unittest.TestCase):
         d_arg = compss_wait_on(d_arg)
         print(d_arg)
         # TODO: add d_arg check
+
+    def test_dependencies_1(self):
+        data = {'a': 1, 'b': 2, 'c': 3}
+        for k, v in data.items():
+            data[k] = increment(v)
+            assert isinstance(data[k], Future)
+        result = check_collection(data)
+        assert result, "Received unexpected parameters checking the collection."
+
+    def test_dependencies_2(self):
+        data1 = {'a': wrapper(1), 'b': wrapper(2), 'c': wrapper(3)}
+        for k, v in data1.items():
+            data1[k] = increment_wrapper(v)
+        data2 = {'d': wrapper(4), 'a': wrapper(5), 'b': wrapper(6)}  # reuses a and  b
+        for k, v in data2.items():
+            data2[k] = increment_wrapper(v)
+        data1.update(data2)  # join two dicts
+        increment_collection(data1)
+        result = compss_wait_on(data1)
+        processed_result = {}
+        for k, v in result.items():
+            processed_result[k] = v.content
+        assert processed_result == {'a': 7, 'b': 8, 'c': 5, 'd': 6}, "Unexpected result."

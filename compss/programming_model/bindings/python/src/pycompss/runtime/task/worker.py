@@ -1002,9 +1002,17 @@ def __get_dict_collection_objects__(content, argument):
         elements = []
         for k, v in argument.content.items():
             elements.extend([k, v])
-        elements_parameters = []
+        # Prepare dict_collection_content per key
+        element_parameters_preproc = {}
         for k, v in argument.dict_collection_content.items():
-            elements_parameters.extend([k, v])
+            element_parameters_preproc[k.content] = [k, v]
+        # Ensure that the element parameters are in the same order as
+        # argument.content
+        elements_parameters = []
+        for k in argument.content.keys():
+            elements_parameters.extend([element_parameters_preproc[k][0],
+                                        element_parameters_preproc[k][1]])
+        # Loop recursively
         for (new_con, _elem) in zip(elements,
                                     elements_parameters):
             for sub_el in __get_dict_collection_objects__(new_con, _elem):

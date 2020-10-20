@@ -211,7 +211,9 @@ public class Agent {
                 lang, true, null, null, ced.getCeSignature(), // Method to call
                 onFailure, // On failure behavior
                 0, // Time out of the task
-                false, numNodes, false, false, // Scheduling information
+                false, // isPriority
+                numNodes, false, 0, // Reduce information
+                false, false, // Scheduling information (isDistributed, isReplicated)
                 target != null, null, paramsCount, // Parameter information
                 params // Parameter values
             );

@@ -32,7 +32,15 @@ public class ReduceDefinition extends ImplementationDefinition<MethodResourceDes
     private final String reduceName;
 
 
-    protected ReduceDefinition(String signature, String reduceClass, String reduceName,
+    /**
+     * Creates a new ImplementationDefinition to create a multinode core element implementation.
+     *
+     * @param signature Method signature.
+     * @param reduceClass Class name.
+     * @param reduceName Method name.
+     * @param implConstraints Method requirements.
+     */
+    public ReduceDefinition(String signature, String reduceClass, String reduceName,
         MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.reduceClass = reduceClass;

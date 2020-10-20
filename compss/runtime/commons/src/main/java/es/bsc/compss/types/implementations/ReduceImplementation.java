@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.ReduceDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -124,6 +126,11 @@ public class ReduceImplementation extends AbstractMethodImplementation implement
         super.writeExternal(out);
         out.writeObject(this.declaringClass);
         out.writeObject(this.methodName);
+    }
+
+    @Override
+    public ImplementationDefinition<?> getDefinition() {
+        return new ReduceDefinition(this.getSignature(), declaringClass, methodName, this.getRequirements());
     }
 
 }

@@ -170,14 +170,16 @@ public class ExecuteTasksRequest extends TDRequest {
 
         if (this.task instanceof ReduceTask) {
             LOGGER.debug("Scheduling request for reduce task " + this.task.getId() + " treated " + "as singleTask");
-            ReduceExecutionAction action = new ReduceExecutionAction(ts.generateSchedulingInformation(specificResource, 
-				    this.task.getTaskDescription().getParameters(), this.task.getTaskDescription().getCoreElement().getCoreId()),
+            ReduceExecutionAction action = new ReduceExecutionAction(
+                ts.generateSchedulingInformation(specificResource, this.task.getTaskDescription().getParameters(),
+                    this.task.getTaskDescription().getCoreElement().getCoreId()),
                 ts.getOrchestrator(), this.ap, (ReduceTask) this.task, ts);
             ts.newAllocatableAction(action);
         } else {
             LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
-            ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource, 
-				    this.task.getTaskDescription().getParameters(), this.task.getTaskDescription().getCoreElement().getCoreId() ),
+            ExecutionAction action = new ExecutionAction(
+                ts.generateSchedulingInformation(specificResource, this.task.getTaskDescription().getParameters(),
+                    this.task.getTaskDescription().getCoreElement().getCoreId()),
                 ts.getOrchestrator(), this.ap, (Task) this.task);
             ts.newAllocatableAction(action);
         }

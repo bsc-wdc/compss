@@ -35,6 +35,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
@@ -222,13 +223,13 @@ public class ReduceExecutionAction extends ExecutionAction {
         Task finishedTask = ((ExecutionAction) finishedAction).getTask();
         Parameter params;
         boolean partial = false;
-        if (!(finishedTask.getTaskDescription().getName() == this.task.getTaskDescription().getName())) {
+        if (!finishedTask.getTaskDescription().getName().equals(this.task.getTaskDescription().getName())) {
             params = this.getTask().getDependencyParameters(finishedTask);
             originalParameters = originalParameters + 1;
         } else {
             partial = true;
             params = this.partialParameters.get(finishedAction);
-            List actions = this.executingInResource.get(resource);
+            List<AllocatableAction> actions = this.executingInResource.get(resource);
             actions.remove(finishedAction);
         }
 
@@ -262,8 +263,7 @@ public class ReduceExecutionAction extends ExecutionAction {
                 this.parametersInResource.put(resource, new ArrayList<>());
 
             }
-
-            if (!(this.initialCollection == null)
+            if (this.initialCollection != null
                 && this.originalParameters == this.initialCollection.getParameters().size()) {
 
                 if (this.executingInResource.get(resource).isEmpty()) {
@@ -337,15 +337,17 @@ public class ReduceExecutionAction extends ExecutionAction {
             td.getNumNodes(), td.isReplicated(), td.isDistributed(), td.hasTargetObject(), td.getNumReturns(), taskP,
             this.task.getTaskMonitor(), td.getOnFailure(), td.getTimeOut());
 
-        ResourceScheduler partialReduceScheduler = ts.getWorkers().iterator().next();
-        for (ResourceScheduler rs : ts.getWorkers()) {
+        ResourceScheduler<? extends WorkerResourceDescription> partialReduceScheduler =
+            ts.getWorkers().iterator().next();
+        for (ResourceScheduler<? extends WorkerResourceDescription> rs : ts.getWorkers()) {
             if (rs.getResource() == resource) {
                 partialReduceScheduler = rs;
                 break;
             }
         }
-        ExecutionAction partialReduceAction = new ExecutionAction(
-            ts.generateSchedulingInformation(partialReduceScheduler), this.orchestrator, this.ap, partialTask);
+        ExecutionAction partialReduceAction =
+            new ExecutionAction(ts.generateSchedulingInformation(partialReduceScheduler, td.getParameters(),
+                td.getCoreElement().getCoreId()), this.orchestrator, this.ap, partialTask);
         addDataPredecessor(partialReduceAction);
         partialParameters.put(partialReduceAction, partialIn);
         ts.newAllocatableAction(partialReduceAction);
@@ -353,7 +355,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     }
 
     private void addExecutingToResource(AllocatableAction partialReduceAction, Resource resource) {
-        List actions;
+        List<AllocatableAction> actions;
         if (!this.executingInResource.containsKey(resource)) {
             actions = new ArrayList<>();
             this.executingInResource.put(resource, actions);

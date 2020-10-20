@@ -258,7 +258,7 @@ public class ReduceTask extends Task {
     @Override
     public String getColor() {
         int monitorTaskId = this.getTaskDescription().getCoreElement().getCoreId() + 1; // Coherent with Trace.java
-        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % (ColorConfiguration.NUM_COLORS + 1)];
+        ColorNode color = ColorConfiguration.getColors()[monitorTaskId % (ColorConfiguration.NUM_COLORS + 1)];
         return color.getFillColor();
     }
 }

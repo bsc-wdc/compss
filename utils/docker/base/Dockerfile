@@ -1,4 +1,5 @@
-FROM ubuntu:20.04
+#FROM ubuntu:20.04
+FROM ubuntu:18.04
 MAINTAINER COMPSs Support <support-compss@bsc.es>
 
 # =============================================================================
@@ -44,17 +45,28 @@ RUN apt-get update && \
     rm get-pip.py && \
     python2 -m pip install --upgrade pip && \
     python3 -m pip install --upgrade pip && \
-    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy decorator mpi4py && \
-    pip3 install --no-cache-dir wheel numpy==1.15.4 dill decorator mpi4py && \
+    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy decorator mpi4py==1.3.1 && \
+    pip3 install --no-cache-dir wheel numpy==1.15.4 dill decorator mpi4py==3.0.1 && \
+#Ubuntu:20    
+#    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy decorator mpi4py && \
+#    pip3 install --no-cache-dir wheel numpy==1.15.4 dill decorator mpi4py && \
+
 # Python-redis dependencies
     pip2 install --no-cache-dir redis==2.10.6 redis-py-cluster && \
     pip3 install --no-cache-dir redis==2.10.6 redis-py-cluster && \
 # pycompsslib dependencies
-    pip2 install --no-cache-dir scipy scikit-learn pandas && \
-    pip3 install --no-cache-dir scipy scikit-learn pandas && \
+    pip2 install --no-cache-dir scipy==1.0.0 scikit-learn==0.19.1 pandas==0.23.1 && \
+    pip3 install --no-cache-dir scipy==1.0.0 scikit-learn==0.19.1 pandas==0.23.1 && \
+#Ubuntu:20
+#    pip2 install --no-cache-dir scipy scikit-learn pandas && \
+#    pip3 install --no-cache-dir scipy scikit-learn pandas && \
+
 # AutoParallel dependencies
     pip2 install --no-cache-dir astor sympy enum34 islpy && \
-    
+
+# Pycodestyle
+    pip2 --no-cache-dir install install pycodestyle && \
+    pip3 --no-cache-dir install install pycodestyle && \
 
 # Streaming dependencies
     wget https://services.gradle.org/distributions/gradle-5.4.1-bin.zip && \

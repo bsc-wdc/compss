@@ -3,7 +3,8 @@
 dh_username=$1
 dh_password=$2
 
-base_name=base20
+base_name=base18
+#base_name=base20
 BASE_VERSION=$(date -u +%y%m%d-%H%M%S)
 
 docker build -t compss/${base_name}:${BASE_VERSION} .

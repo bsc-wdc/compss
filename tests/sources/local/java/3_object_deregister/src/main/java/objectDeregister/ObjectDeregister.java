@@ -27,14 +27,14 @@ public class ObjectDeregister {
         }
 
         COMPSs.barrier();
-        Thread.sleep(500);
+        Thread.sleep(2000);
         ObjectDeregisterImpl.task5();
         COMPSs.barrier();
         System.gc();
-        Thread.sleep(500);
+        Thread.sleep(2000);
         System.gc();
         System.out.println("GC performed");
-        Thread.sleep(20000);
+        Thread.sleep(4000);
 
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
@@ -59,9 +59,10 @@ public class ObjectDeregister {
         dIn = null;
 
         COMPSs.barrier();
-        Thread.sleep(500);
         System.gc();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
+        System.gc();
+        Thread.sleep(4000);
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
             System.out.println("[ERROR] At the end in the MASTER 2, " + String.valueOf(k)
@@ -75,9 +76,10 @@ public class ObjectDeregister {
         COMPSs.deregisterObject((Object) dOut);
         dOut = null;
         COMPSs.barrier();
-        Thread.sleep(500);
         System.gc();
         Thread.sleep(2000);
+        System.gc();
+        Thread.sleep(4000);
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
             System.out.println("[ERROR] At the end in the MASTER 3, " + String.valueOf(k)
@@ -92,13 +94,14 @@ public class ObjectDeregister {
         COMPSs.deregisterObject((Object) dInout);
         dInout = null;
         COMPSs.barrier();
-        Thread.sleep(500);
         System.gc();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
+        System.gc();
+        Thread.sleep(4000);
         k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
-            System.out.println(
-                "[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
+            System.out.println("[ERROR] At the end in the MASTER 4, " + String.valueOf(k)
+                + " instances of the Dummy object were found");
             System.exit(-1);
         }
     }

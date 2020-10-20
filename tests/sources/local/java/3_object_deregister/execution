@@ -31,7 +31,7 @@
   echo "*** RUNNING JAVA APPLICATION OBJECT DEREGISTER"
   output_log="${target_log_folder}/objectDeregister_0${retry_num}.outputlog"
   error_log="${target_log_folder}/objectDeregister_0${retry_num}.errorlog"
-  expectedTime=3600s
+  expectedTime=120s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
@@ -53,6 +53,7 @@
      "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # For checking JVM: 
+     #--jmx_port=9011
      #--jvm_master_opts="-Dcom.sun.management.jmxremote,\
      #-Dcom.sun.management.jmxremote.port=9011,-Dcom.sun.management.jmxremote.local.only=false,\
      #-Dcom.sun.management.jmxremote.authenticate=false,-Dcom.sun.management.jmxremote.ssl=false"\

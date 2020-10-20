@@ -2,6 +2,7 @@
 #include <string.h>
 #include <iostream>
 #include <stdlib.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -43,7 +44,11 @@ extern "C"
 JNIEXPORT jint JNICALL Java_objectDeregister_ClassInstanceTest_countInstances(JNIEnv *env, jclass thisClass, jclass klass) 
 {
 	int count = 0;
-  	jvmtiHeapCallbacks callbacks;
+	printf("force garbage collection\n");
+        gdata->jvmti->ForceGarbageCollection();
+	sleep(2);
+  	printf("Getting objects\n");
+	jvmtiHeapCallbacks callbacks;
   	(void)memset(&callbacks, 0, sizeof(callbacks));
 	callbacks.heap_iteration_callback = &objectCountingCallback;
 	jvmtiError error = gdata->jvmti->IterateThroughHeap(0, klass, &callbacks, &count);

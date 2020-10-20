@@ -346,6 +346,9 @@ def launch_pycompss_application(app,
     # INITIALIZATION
     ##############################################################
 
+    if debug:
+        log_level = "debug"
+
     # Initial dictionary with the user defined parameters
     all_vars = {'log_level': log_level,
                 'debug': debug,

@@ -61,14 +61,12 @@ import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
@@ -105,8 +103,6 @@ public class TaskAnalyser {
     // Tasks that are accessed commutatively and are pending to be drawn in graph. Map: commutative group identifier ->
     // list of tasks from group
     private Map<String, LinkedList<Task>> pendingToDrawCommutative;
-    // Registered task groups
-    private Map<Long, Stack<TaskGroup>> currentTaskGroups;
     // List of submitted reduce tasks
     private List<String> reduceTasksNames;
 
@@ -126,7 +122,6 @@ public class TaskAnalyser {
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
-        this.currentTaskGroups = new HashMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
         this.reduceTasksNames = new ArrayList<>();
@@ -197,25 +192,32 @@ public class TaskAnalyser {
         }
 
         if (currentTask instanceof ReduceTask) {
+            // If it a reduce task. It is dynamically decomposed in a set of partial reduce tasks.
+            // These tasks are using IN and OUT temporal collection parameters.
+            // In this part of code we register this parameters in order to be managed when tasks are finishing.
             this.reduceTasksNames.add(((ReduceTask) currentTask).getTaskDescription().getName());
+            // Register partial output parameters
             List<Parameter> reducePartialsOut = ((ReduceTask) currentTask).getIntermediateOutParameters();
             for (int paramIdx = 0; paramIdx < reducePartialsOut.size(); paramIdx++) {
                 boolean isConstraining = paramIdx == constrainingParam;
                 registerParameterAccessAndAddDependencies(app, currentTask, reducePartialsOut.get(paramIdx),
                     isConstraining);
             }
+            // Register partial tasks input parameters
             List<Parameter> reducePartialsIn = ((ReduceTask) currentTask).getIntermediateInParameters();
             for (int paramIdx = 0; paramIdx < reducePartialsIn.size(); paramIdx++) {
                 boolean isConstraining = paramIdx == constrainingParam;
                 registerParameterAccessAndAddDependencies(app, currentTask, reducePartialsIn.get(paramIdx),
                     isConstraining);
             }
+            // Register partial task collections
             List<CollectionParameter> reduceCollections = ((ReduceTask) currentTask).getIntermediateCollections();
             for (int paramIdx = 0; paramIdx < reduceCollections.size(); paramIdx++) {
                 boolean isConstraining = paramIdx == constrainingParam;
                 registerParameterAccessAndAddDependencies(app, currentTask, reduceCollections.get(paramIdx),
                     isConstraining);
             }
+            // Final reduce task collection
             CollectionParameter finalCollection = ((ReduceTask) currentTask).getFinalCollection();
             boolean isConstraining = false;
             registerParameterAccessAndAddDependencies(app, currentTask, finalCollection, isConstraining);
@@ -351,6 +353,7 @@ public class TaskAnalyser {
             }
 
             if (task instanceof ReduceTask) {
+                // When a reduce task end we have to "deregister/remove" not used parameters
                 List<Parameter> paramList = ((ReduceTask) task).getUnusedParameters();
                 for (Parameter param : paramList) {
                     updateParameterAccess(task, param);
@@ -380,7 +383,7 @@ public class TaskAnalyser {
             LOGGER.debug("Releasing data dependant tasks for task " + taskId);
         }
 
-        // Release data dependent tasks
+        // Release data dependent tasks. If it a partial reduce, it does not have to release data dependent tasks.
         boolean successorIsReduce = false;
         for (AbstractTask t : aTask.getSuccessors()) {
             if (this.reduceTasksNames.contains(((Task) t).getTaskDescription().getName())) {
@@ -460,16 +463,6 @@ public class TaskAnalyser {
         } else {
             LOGGER.warn("Writters info for data " + dataId + " not found.");
         }
-    }
-
-    /**
-     * Returns whether a given application has groups registered or not.
-     *
-     * @param appId Application Id.
-     * @return {@literal true} if the application has registered groups, {@literal false} otherwise.
-     */
-    public boolean applicationHasGroups(Long appId) {
-        return this.currentTaskGroups.containsKey(appId);
     }
 
     /**

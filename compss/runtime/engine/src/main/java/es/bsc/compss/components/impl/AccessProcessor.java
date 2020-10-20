@@ -27,7 +27,6 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -84,7 +83,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -224,7 +222,7 @@ public class AccessProcessor implements Runnable {
             currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
                 numReturns, parameters, monitor, onFailure, timeOut);
         }
-        TaskMonitor registeredMonitor = ((Task) currentTask).getTaskMonitor();
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
 
         LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
@@ -259,11 +257,11 @@ public class AccessProcessor implements Runnable {
         Task currentTask = new Task(app, namespace, service, port, operation, priority, hasTarget, numReturns,
             parameters, monitor, onFailure, timeOut);
 
-        TaskMonitor registeredMonitor = ((Task) currentTask).getTaskMonitor();
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
 
         LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
-        if (!this.requestQueue.offer(new TaskAnalysisRequest(((Task) currentTask)))) {
+        if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
         }
 
@@ -574,7 +572,6 @@ public class AccessProcessor implements Runnable {
     }
 
     private String obtainBindingObject(RAccessId oaId) {
-        // String lastRenaming = (oaId).getReadDataInstance().getRenaming();
         // TODO: Add transfer request similar than java object
         LOGGER.debug("[AccessProcessor] Obtaining binding object with id " + oaId);
         // Ask for the object
@@ -605,13 +602,9 @@ public class AccessProcessor implements Runnable {
         }
 
         // Tell the DIP that the application wants to access an object
-        // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
-        // hashCode);
         BindingObjectAccessParams oap = new BindingObjectAccessParams(app, AccessMode.R, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
-        // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
-        // String wRename = wId.getRenaming();
         // Wait until the last writer task for the object has finished
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId());
@@ -626,8 +619,6 @@ public class AccessProcessor implements Runnable {
                 this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
             }
         }
-        // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
-        // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
         finishDataAccess(oap);
@@ -910,7 +901,7 @@ public class AccessProcessor implements Runnable {
         // Wait for response
         sem.acquireUninterruptibly();
 
-        return (String) request.getResponse();
+        return request.getResponse();
     }
 
     /**

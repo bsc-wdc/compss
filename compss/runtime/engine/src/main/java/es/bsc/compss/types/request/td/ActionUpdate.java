@@ -19,7 +19,6 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -31,7 +30,7 @@ public class ActionUpdate extends TDRequest {
     /**
      * Possible Updates applied to the action.
      */
-    public static enum Update {
+    public enum Update {
         RUNNING, // The action has begin to run
         ERROR, // There has been an error during the execution
         COMPLETED, // The action execution has succeeded.

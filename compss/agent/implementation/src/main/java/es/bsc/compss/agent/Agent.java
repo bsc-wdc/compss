@@ -21,7 +21,6 @@ import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
-import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
@@ -212,7 +211,8 @@ public class Agent {
                 onFailure, // On failure behavior
                 0, // Time out of the task
                 false, // isPriority
-                numNodes, false, 0, // Reduce information
+                numNodes, // Number of nodes
+                false, 0, // Reduce information
                 false, false, // Scheduling information (isDistributed, isReplicated)
                 target != null, null, paramsCount, // Parameter information
                 params // Parameter values

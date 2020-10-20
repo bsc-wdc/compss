@@ -16,18 +16,10 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.log.Loggers;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-
 public class ObjectValue<T> implements Comparable<ObjectValue<T>> {
 
     private final T obj;
     private final Score value;
-
-    // Logger
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
 
     public ObjectValue(T o, Score value) {

@@ -20,7 +20,6 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.allocatableactions.ReduceExecutionAction;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -50,11 +49,15 @@ public class ReduceTask extends Task {
 
     private int chunkSize;
     private double totalOperations;
-
+    // Available Input parameters for partial tasks
     private final List<Parameter> partialsIn;
+    // Input parameters already used by generated partial tasks.
     private final List<Parameter> usedPartialsIn;
+    // Available Output parameters for partial task
     private final List<Parameter> partialsOut;
+    // Input parameters already used by generated partial tasks
     private final List<Parameter> usedPartialsOut;
+    // Available Collection parameters for partial task
     private final List<CollectionParameter> intermediateCollections;
     private CollectionParameter finalCol;
 

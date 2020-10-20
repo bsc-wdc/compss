@@ -133,12 +133,6 @@ public class ExecuteTasksRequest extends TDRequest {
 
             this.task.setExecutionCount(numNodes);
             submitTask(ts, numNodes, selectedResource);
-            /*
-             * } else if (this.task instanceof ReduceTask) { Collection<ResourceScheduler<? extends
-             * WorkerResourceDescription>> resources = ts.getWorkers(); this.task.setExecutionCount(resources.size() *
-             * numNodes); for (ResourceScheduler<? extends WorkerResourceDescription> rs : resources) { submitTask(ts,
-             * numNodes, rs); }
-             */
         } else {
             // Normal task
             if (DEBUG) {

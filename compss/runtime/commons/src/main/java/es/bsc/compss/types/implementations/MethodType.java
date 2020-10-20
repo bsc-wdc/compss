@@ -29,6 +29,5 @@ public enum MethodType {
     MULTI_NODE, // For native multi-node methods
     OMPSS, // For OmpSs methods
     OPENCL, // For OpenCL methods
-    CONTAINER, // For container methods
-    REDUCE // For Reduce methods
+    CONTAINER // For container methods
 }

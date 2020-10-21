@@ -17,6 +17,9 @@
 
 # -*- coding: utf-8 -*-
 
+import shutil
+import tempfile
+
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.util.exceptions import MissingImplementedException
 import pycompss.util.context as context
@@ -43,7 +46,7 @@ def test_decorator_core_element_exception():
 
 def test_decorator_resolve_working_dir():
     context.set_pycompss_context(context.MASTER)
-    working_dir = "/tmp"
+    working_dir = tempfile.mkdtemp()
     my_deco = PyCOMPSsDecorator(
         decorator_name="@decorator", working_dir=working_dir
     )
@@ -51,11 +54,12 @@ def test_decorator_resolve_working_dir():
     assert (
         my_deco.kwargs["working_dir"] == working_dir
     ), "Wrong working directory."
+    shutil.rmtree(working_dir)
 
 
 def test_decorator_resolve_workingDir():  # noqa
     context.set_pycompss_context(context.MASTER)
-    working_dir = "/tmp"
+    working_dir = tempfile.mkdtemp()
     my_deco = PyCOMPSsDecorator(
         decorator_name="@decorator", workingDir=working_dir
     )
@@ -63,6 +67,7 @@ def test_decorator_resolve_workingDir():  # noqa
     assert (
         my_deco.kwargs["working_dir"] == working_dir
     ), "Wrong working directory."
+    shutil.rmtree(working_dir)
 
 
 def test_decorator_resolve_fail_by_exit_value_bool_true():

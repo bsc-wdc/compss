@@ -20,6 +20,8 @@
 import os
 import sys
 import time
+import tempfile
+import shutil
 import multiprocessing
 from pycompss.util.serialization.serializer import deserialize_from_file
 
@@ -52,9 +54,15 @@ def test_piper_worker():
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
 
+    temp_folder = tempfile.mkdtemp()
+    executor_outbound = tempfile.mktemp()
+    executor_inbound = tempfile.mktemp()
+    control_worker_outbound = tempfile.mktemp()
+    control_worker_inbound = tempfile.mktemp()
+
     sys.argv = [
         "piper_worker.py",
-        "/tmp/",
+        temp_folder,
         "false",
         "true",
         0,
@@ -63,10 +71,10 @@ def test_piper_worker():
         "localhost",
         "49049",
         "1",
-        "/tmp/pipe_-504901196_executor0.outbound",
-        "/tmp/pipe_-504901196_executor0.inbound",
-        "/tmp/pipe_-504901196_control_worker.outbound",
-        "/tmp/pipe_-504901196_control_worker.inbound",
+        executor_outbound,
+        executor_inbound,
+        control_worker_outbound,
+        control_worker_inbound,
     ]  # noqa: E501
     pipes = sys.argv[-4:]
     # Create pipes
@@ -92,8 +100,8 @@ def test_piper_worker():
     print("Waiting 2 seconds to send a task request")
     time.sleep(2)
     # Run a simple task
-    job1_out = "/tmp/job1_NEW.out"
-    job1_err = "/tmp/job1_NEW.err"
+    job1_out = tempfile.mktemp()
+    job1_err = tempfile.mktemp()
     simple_task_message = [
         "EXECUTE_TASK",
         "1",
@@ -123,9 +131,9 @@ def test_piper_worker():
     os.write(executor_out, simple_task_message_str + "\n")  # noqa
     time.sleep(2)
     # Run a increment task
-    job2_out = "/tmp/job2_NEW.out"
-    job2_err = "/tmp/job2_NEW.err"
-    job2_result = "/tmp/job2.IT"
+    job2_out = tempfile.mktemp()
+    job2_err = tempfile.mktemp()
+    job2_result = tempfile.mktemp()
     increment_task_message = [
         "EXECUTE_TASK",
         "2",
@@ -217,6 +225,15 @@ def test_piper_worker():
         os.remove(current_path + "/../../../../std.out")
     if os.path.isfile(current_path + "/../../../../std.err"):
         os.remove(current_path + "/../../../../std.err")
+    shutil.rmtree(temp_folder)
+    if os.path.isfile(executor_outbound):
+        os.remove(executor_outbound)
+    if os.path.isfile(executor_inbound):
+        os.remove(executor_inbound)
+    if os.path.isfile(control_worker_outbound):
+        os.remove(control_worker_outbound)
+    if os.path.isfile(control_worker_inbound):
+        os.remove(control_worker_inbound)
     # Restore sys.argv and sys.path
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup

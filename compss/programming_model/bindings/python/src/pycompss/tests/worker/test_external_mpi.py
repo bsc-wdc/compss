@@ -19,6 +19,7 @@
 
 import os
 import sys
+import tempfile
 
 from pycompss.worker.external.mpi_executor import main
 from pycompss.api.task import task
@@ -38,8 +39,8 @@ def test_external_mpi_worker_simple_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
-    job1_out = "/tmp/job1_NEW.out"
-    job1_err = "/tmp/job1_NEW.err"
+    job1_out = tempfile.mktemp()
+    job1_err = tempfile.mktemp()
     sys.argv = [
         "test_external_mpi.py",
         " ".join(
@@ -83,9 +84,9 @@ def test_external_mpi_worker_increment_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
-    job2_out = "/tmp/job2_NEW.out"
-    job2_err = "/tmp/job2_NEW.err"
-    job2_result = "/tmp/job2.IT"
+    job2_out = tempfile.mktemp()
+    job2_err = tempfile.mktemp()
+    job2_result = tempfile.mktemp()
     sys.argv = [
         "test_external_mpi.py",
         " ".join(

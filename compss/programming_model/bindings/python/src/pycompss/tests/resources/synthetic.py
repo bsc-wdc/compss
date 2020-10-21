@@ -16,31 +16,35 @@
 #
 
 import os
+import tempfile
+import shutil
+
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.binary import binary
 from pycompss.api.ompss import ompss
 from pycompss.api.mpi import mpi
-from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_open
 from pycompss.api.api import compss_wait_on_file
 
+TEMPORARY_DIRECTORY = tempfile.mkdtemp()
 
-@binary(binary="date", working_dir="/tmp")
+
+@binary(binary="date", working_dir=TEMPORARY_DIRECTORY)
 @task(result={Type: FILE_OUT_STDOUT})
-def check_binary(result):
+def check_binary(result):  # noqa
     pass
 
 
-@mpi(binary="date", working_dir="/tmp", runner="mpirun")
+@mpi(binary="date", working_dir=TEMPORARY_DIRECTORY, runner="mpirun")
 @task(result={Type: FILE_OUT_STDOUT})
-def check_mpi(result):
+def check_mpi(result):  # noqa
     pass
 
 
-@ompss(binary="date", working_dir="/tmp")
+@ompss(binary="date", working_dir=TEMPORARY_DIRECTORY)
 @task(result={Type: FILE_OUT_STDOUT})
-def check_ompss(result):
+def check_ompss(result):  # noqa
     pass
 
 
@@ -59,17 +63,19 @@ def check_decorators():
     mpi_result_fd = compss_open(mpi_result)
     ompss_result_fd = compss_open(ompss_result)
 
-    binary_content = binary_result_fd.readlines()
-    mpi_content = mpi_result_fd.readlines()
-    ompss_content = ompss_result_fd.readlines()
+    binary_content = binary_result_fd.readlines()  # noqa
+    mpi_content = mpi_result_fd.readlines()        # noqa
+    ompss_content = ompss_result_fd.readlines()    # noqa
 
-    binary_result_fd.close()
-    mpi_result_fd.close()
-    ompss_result_fd.close()
+    binary_result_fd.close()  # noqa
+    mpi_result_fd.close()     # noqa
+    ompss_result_fd.close()   # noqa
 
     os.remove(binary_result)
     os.remove(mpi_result)
     os.remove(ompss_result)
+
+    shutil.rmtree(TEMPORARY_DIRECTORY)
 
     assert len(binary_content) == 1
     assert len(mpi_content) == 1

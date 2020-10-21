@@ -18,12 +18,15 @@
 # -*- coding: utf-8 -*-
 
 import os
+import tempfile
+import shutil
 
 
 def test_jvm_parser():
     from pycompss.util.jvm.parser import convert_to_dict
 
-    jvm_opt_file = "/tmp/sample_jvm_opt_file.cfg"
+    jvm_opt_file = tempfile.mktemp()
+    temp_folder = tempfile.mkdtemp()
     jvm_expected_result = {
         "+PerfDisableSharedMem": True,
         "-UsePerfData": True,
@@ -48,7 +51,7 @@ def test_jvm_parser():
         "-Dcompss.uuid": "dc126fe7-1b0a-4360-80f2-55c815e2e604",
         "-Dcompss.baseLogDir": None,
         "-Dcompss.specificLogDir": None,
-        "-Dcompss.appLogDir": "/tmp/dc126fe7-1b0a-4360-80f2-55c815e2e604/",
+        "-Dcompss.appLogDir": temp_folder,
         "-Dcompss.graph": "false",
         "-Dcompss.monitor": "0",
         "-Dcompss.tracing": "0",
@@ -107,7 +110,7 @@ def test_jvm_parser():
 -Dcompss.uuid=dc126fe7-1b0a-4360-80f2-55c815e2e604
 -Dcompss.baseLogDir=
 -Dcompss.specificLogDir=
--Dcompss.appLogDir=/tmp/dc126fe7-1b0a-4360-80f2-55c815e2e604/
+-Dcompss.appLogDir={0}
 -Dcompss.graph=false
 -Dcompss.monitor=0
 -Dcompss.tracing=0
@@ -140,7 +143,7 @@ def test_jvm_parser():
 -Dcompss.python.propagate_virtualenvironment=true
 -Dcompss.python.mpi_worker=false
 other
-"""  # noqa
+""".format(temp_folder)  # noqa
         )
     result = convert_to_dict(jvm_opt_file)
     assert len(result) == len(
@@ -157,3 +160,4 @@ other
         result == jvm_expected_result
     ), "The jvm opts file has not been parsed as expected"
     os.remove(jvm_opt_file)
+    shutil.rmtree(temp_folder)

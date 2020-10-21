@@ -19,6 +19,7 @@
 
 import os
 import sys
+import tempfile
 
 from pycompss.worker.gat.worker import main
 from pycompss.api.task import task
@@ -69,6 +70,7 @@ def test_gat_worker_increment_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
+    temp_file = tempfile.mktemp()
     sys.argv = [
         "worker.py",
         "false",
@@ -99,10 +101,11 @@ def test_gat_worker_increment_task():
         "#",
         "$return_0",
         "null",
-        "/tmp/d1v1_1234.IT",
+        temp_file,
     ]
     current_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(current_path)
     main()
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup
+    os.remove(temp_file)

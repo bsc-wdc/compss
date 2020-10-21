@@ -57,41 +57,72 @@ def __pre_run_cell__():
     :return: None
     """
     messages = STDW.get_messages()
+    found_errors = False
     runtime_crashed = False
     if messages:
         for message in messages:
-            if message == '[ERRMGR]  -  Shutting down COMPSs...':
+            if message.startswith("[ERRMGR]"):
+                found_errors = True
+                # Errors found, but maybe not critical, like for example
+                # tasks that failed but recovered.
+            if message == "[ERRMGR]  -  Shutting down COMPSs...":
                 # A critical error occurred --> notify that COMPSs runtime
                 # stopped working to avoid issues when running any PyCOMPSs
                 # function.
                 runtime_crashed = True
         if runtime_crashed:
-            error_messages = "\n".join(messages)
             # Display popup with the error messages
-            display((Javascript("""
-            require(
-                ["base/js/dialog"],
-                function(dialog) {
-                    dialog.modal({
-                        title: '%s',
-                        body: '%s',
-                        buttons: {
-                            'Ok': {}
-                        }
-                    });
-                }
-            );
-            """ % ("COMPSs Runtime Crashed!",
-                   error_messages)),))
+            header = ["<h4><u><strong>OUTPUT MESSAGES:</u></strong></h4>"]
+            footer = ["",
+                      "<h4><u><strong>IMPORTANT!</strong></u></h4>",
+                      "<strong>The execution will continue without COMPSs.</strong>"]  # noqa: E501
+            popup_body = header + messages + footer
+            error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
+            error_messages_html = error_messages_html.replace("'", "")
+            popup_title_html = "ERROR: COMPSs Runtime Crashed!"
+            popup_code = """require(["base/js/dialog"],
+                                    function(dialog) OPENBRACKET
+                                        dialog.modal(OPENBRACKET
+                                            title: '{0}',
+                                            body: $('{1}'),
+                                            buttons: OPENBRACKET
+                                                'Ok': OPENBRACKET CLOSEBRACKET
+                                            CLOSEBRACKET
+                                        CLOSEBRACKET);
+                                    CLOSEBRACKET
+                            );""".format(popup_title_html, error_messages_html)
+            popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')  # noqa: E501
+            popup = Javascript(popup_js)
+            display(popup)  # noqa
             context.set_pycompss_context(context.OUT_OF_SCOPE)
-    # if messages:
-    #     for message in messages:
-    #         sys.stderr.write("".join((message, '\n')))
-    #         if message == '[ERRMGR]  -  Shutting down COMPSs...':
-    #             # A critical error occurred --> notify that COMPSs runtime
-    #             # stopped working to avoid issues when running any PyCOMPSs
-    #             # function.
-    #             context.set_pycompss_context(context.OUT_OF_SCOPE)
+        elif found_errors:
+            # Display popup with the warning messages
+            header = ["<h4><u><strong>OUTPUT MESSAGES:</u></strong></h4>", ""]
+            footer = ["",
+                      "<h4><u><strong>IMPORTANT!</strong></u></h4>",
+                      "<strong>This is just a warning. The tasks that failed have been recovered.</strong>"]  # noqa: E501
+            popup_body = header + messages + footer
+            error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
+            error_messages_html = error_messages_html.replace("'", "")
+            popup_title_html = "WARNING: some tasks may have failed!"
+            popup_code = """require(["base/js/dialog"],
+                                    function(dialog) OPENBRACKET
+                                        dialog.modal(OPENBRACKET
+                                            title: '{0}',
+                                            body: $('{1}'),
+                                            buttons: OPENBRACKET
+                                                'Ok': OPENBRACKET CLOSEBRACKET
+                                            CLOSEBRACKET
+                                        CLOSEBRACKET);
+                                    CLOSEBRACKET
+                            );""".format(popup_title_html, error_messages_html)
+            popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')  # noqa: E501
+            popup = Javascript(popup_js)
+            display(popup)  # noqa
+        else:
+            # No issue
+            pass
+
 
 
 def __post_execute__():

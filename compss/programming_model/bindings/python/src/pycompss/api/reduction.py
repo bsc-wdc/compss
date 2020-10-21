@@ -46,7 +46,7 @@ SUPPORTED_ARGUMENTS = {'chunk_size',
 DEPRECATED_ARGUMENTS = set()
 
 
-class Reduce(PyCOMPSsDecorator):
+class Reduction(PyCOMPSsDecorator):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on Reduce task creation.
@@ -88,14 +88,6 @@ class Reduce(PyCOMPSsDecorator):
 
             if __debug__:
                 logger.debug("Executing reduce_f wrapper.")
-
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
-            else:
-                # worker code
-                pass
 
             # Set the chunk size and is_reduce variables in kwargs for their
             # usage in @task decorator
@@ -158,39 +150,10 @@ class Reduce(PyCOMPSsDecorator):
         self.kwargs['chunk_size'] = chunk_size
         self.kwargs['is_reduce'] = is_reduce
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
-        """ Include the registering info related to @binary.
-
-        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
-
-        :param kwargs: Keyword arguments received from call.
-        :return: None
-        """
-        if __debug__:
-            logger.debug("Configuring @reduce core element.")
-
-        impl_type = 'REDUCE'
-
-        if CORE_ELEMENT_KEY in kwargs:
-            # Core element has already been created in a higher level decorator
-            # (e.g. @constraint)
-            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
-        else:
-            # @reduce is in the top of the decorators stack.
-            # Instantiate a new core element object, update it and include
-            # it into kwarg
-            core_element = CE()
-            core_element.set_impl_type(impl_type)
-            kwargs[CORE_ELEMENT_KEY] = core_element
-
-        # Set as configured
-        self.core_element_configured = True
 
 
 # ########################################################################### #
-# ################### REDUCE DECORATOR ALTERNATIVE NAME ##################### #
+# ################### REDUCTION DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
-
-reduce = Reduce
-REDUCE = Reduce
+reduction = Reduction
+REDUCTION = Reduction

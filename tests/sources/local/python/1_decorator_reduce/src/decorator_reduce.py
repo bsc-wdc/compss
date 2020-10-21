@@ -14,13 +14,13 @@ import os
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_barrier, compss_open, compss_wait_on
-from pycompss.api.reduce import reduce
+from pycompss.api.reduction import reduction
 from pycompss.api.constraint import constraint
 
 NUM_TASKS = 5
 
 
-@reduce(chunk_size="2")
+@reduction(chunk_size="2")
 @task(returns=1, col=COLLECTION_IN)
 def myreduction(col):
     r = 0

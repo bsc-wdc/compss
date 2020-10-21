@@ -318,7 +318,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find getApplicationDirectory method");
 
     // executeTask method - C binding
-    midExecute = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    midExecute = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     check_exception(status, "Cannot find executeTask C");
 
     // executeTask method - Python binding
@@ -975,8 +975,8 @@ void JNI_Get_AppDir(char** buf) {
 }
 
 
-void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority,
-    int hasTarget, int numReturns, int numParams, void** params) {
+void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
+		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTask - Processing task execution in bindings-common.\n");
 
@@ -985,6 +985,15 @@ void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, 
 
     bool _priority = false;
     if (priority != 0) _priority = true;
+
+    bool _reduce = false;
+    if (reduce != 0) _reduce = true;
+
+    bool _replicated = false;
+    if (replicated != 0) _replicated = true;
+
+    bool _distributed = false;
+    if (distributed != 0) _distributed = true;
 
     bool _hasTarget = false;
     if (hasTarget != 0) _hasTarget = true;
@@ -1012,6 +1021,11 @@ void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, 
                               timeout,
                               status->localJniEnv->NewStringUTF(methodName),
                               _priority,
+							  numNodes,
+							  _reduce,
+							  reduceChunkSize,
+							  _replicated,
+							  _distributed,
                               _hasTarget,
                               numReturnsInteger,
                               numParams,

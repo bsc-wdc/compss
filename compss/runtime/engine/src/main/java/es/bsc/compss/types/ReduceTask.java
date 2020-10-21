@@ -99,25 +99,27 @@ public class ReduceTask extends Task {
         LOGGER.debug("[REDUCE-TASK] The REDUCE task has been created with chunk size " + this.chunkSize);
 
         try {
-            registerPartials(parameters);
+            createPartialParameters(parameters);
         } catch (IOException e) {
             LOGGER.debug("Exception detected when creating location for partials");
         }
     }
 
     /**
-     * Registers the parameters to be fulfilled by the reduce tasks.
+     * Creates the parameters to be fulfilled by the reduce tasks.
      *
      * @param parameters Task parameter values.
      * @throws IOException Error while creating the data location.
      */
-    public void registerPartials(List<Parameter> parameters) throws IOException {
+    public void createPartialParameters(List<Parameter> parameters) throws IOException {
         if (parameters.size() == 2) {
             // 0 --> collection || 1 --> result
             CollectionParameter p = (CollectionParameter) parameters.get(0);
             Parameter finalParameter = parameters.get(1);
             if (p.getType() == DataType.COLLECTION_T) {
                 List<Parameter> colList = p.getParameters();
+                
+                // Calculate maximum number of operations
                 double completeOperations = 0;
                 this.totalOperations = 0;
                 double intermediateResults = 0;
@@ -128,7 +130,7 @@ public class ReduceTask extends Task {
                     accum = completeOperations + intermediateResults;
                     this.totalOperations = this.totalOperations + accum;
                 }
-
+                
                 for (int i = 0; i < (int) totalOperations; i++) {
                     String partialId = "reduce" + i + "PartialResultTask" + this.getId();
                     String canonicalPath = new File(partialId).getCanonicalPath();
@@ -264,4 +266,15 @@ public class ReduceTask extends Task {
         ColorNode color = ColorConfiguration.getColors()[monitorTaskId % (ColorConfiguration.NUM_COLORS + 1)];
         return color.getFillColor();
     }
+    
+    @Override
+    public List<Parameter> getParameterDataToRemove() {
+        List<Parameter> dataToRemove = new LinkedList<>();
+        dataToRemove.addAll(getIntermediateInParameters());
+        dataToRemove.addAll(getIntermediateOutParameters());
+        dataToRemove.addAll(getIntermediateCollections());
+        dataToRemove.add(getFinalCollection());
+        return dataToRemove;
+    }
+    
 }

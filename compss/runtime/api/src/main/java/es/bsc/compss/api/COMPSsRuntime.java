@@ -148,6 +148,11 @@ public interface COMPSsRuntime {
      * @param timeOut Amount of time for an application time out.
      * @param methodName The method name.
      * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
      * @param hasTarget Whether the task has a target parameter or not.
      * @param numReturns The number of return values of the method.
      * @param parameterCount The number of parameters of the method.
@@ -155,7 +160,8 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
-        boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
+        boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding.

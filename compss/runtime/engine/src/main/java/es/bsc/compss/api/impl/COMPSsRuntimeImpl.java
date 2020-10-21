@@ -730,10 +730,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // C
     @Override
     public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
-        boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
-
-        boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
-        boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
+        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
+        boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         return executeTask(appId, null, Lang.C, false, methodClass, methodName, null, OnFailure.valueOf(onFailure),
             timeOut, isPrioritary, Constants.SINGLE_NODE, false, 0, isReplicated, isDistributed, hasTarget, numReturns,

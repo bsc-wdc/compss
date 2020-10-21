@@ -57,7 +57,8 @@
       \
       --debug \
       ${runcompss_opts} \
-      -g\
+      -g \
+      --summary \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
       ${python_mpi_worker} \

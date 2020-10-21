@@ -53,10 +53,16 @@ import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
+import es.bsc.compss.types.parameter.DirectoryParameter;
+import es.bsc.compss.types.parameter.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
+import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.uri.MultiURI;
@@ -1328,17 +1334,53 @@ public class DataInfoProvider {
      * @param task Reduce task to be removed of.
      */
     public void removeTaskData(Task task) {
-        if (task instanceof ReduceTask) {
-            for (Parameter p : ((ReduceTask) task).getIntermediateInParameters()) {
-                deleteData(task.getApplication(), ((FileParameter) p).getLocation(), true);
-            }
-            for (Parameter p : ((ReduceTask) task).getIntermediateOutParameters()) {
-                deleteData(task.getApplication(), ((FileParameter) p).getLocation(), true);
-            }
-            for (Parameter p : ((ReduceTask) task).getIntermediateCollections()) {
-                deleteCollection(((CollectionParameter) p).getCollectionId(), true);
-            }
+        for (Parameter p : task.getParameterDataToRemove()) {
+            deleteParameterData(task.getApplication(), p, true);
         }
+    }
 
+    private void deleteParameterData(Application app, Parameter p, boolean noReuse) {
+        switch (p.getType()) {
+            case DIRECTORY_T:
+                DirectoryParameter dp = (DirectoryParameter) p;
+                deleteData(app,  dp.getLocation(), noReuse);
+                break;
+            case FILE_T:
+                FileParameter fp = (FileParameter) p;
+                deleteData(app,  fp.getLocation(), noReuse);
+                break;
+            case OBJECT_T:
+            case PSCO_T:
+                ObjectParameter op = (ObjectParameter) p;
+                deleteData(op.getCode(), noReuse);
+                break;
+            case EXTERNAL_PSCO_T:
+                ExternalPSCOParameter epscop = (ExternalPSCOParameter) p;
+                deleteData(epscop.getCode(), noReuse);
+                break;
+            case BINDING_OBJECT_T:
+                BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
+                deleteData(bindingObjectparam.getCode(), noReuse);
+                break;
+            case STREAM_T:
+                StreamParameter sp = (StreamParameter) p;
+                deleteData(sp.getCode(), noReuse);
+                break;
+            case EXTERNAL_STREAM_T:
+                ExternalStreamParameter esp = (ExternalStreamParameter) p;
+                deleteData(app, esp.getLocation(), noReuse);
+                break;
+            case COLLECTION_T:
+                CollectionParameter cp = (CollectionParameter) p;
+                DataInfo ci = deleteCollection(cp.getCollectionId(), true);
+                break;
+            case DICT_COLLECTION_T:
+                DictCollectionParameter dcp = (DictCollectionParameter) p;
+                deleteDictCollection(dcp.getDictCollectionId(), true);
+                break;
+            default:
+                // This is a basic type nothing to delete
+        }
+        
     }
 }

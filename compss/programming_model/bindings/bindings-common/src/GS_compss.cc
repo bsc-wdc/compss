@@ -82,12 +82,12 @@ void GS_Get_AppDir(char** buf) {
 }
 
 
-void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority,
-    int hasTarget, int numReturns, int numParams, void** params) {
+void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
+		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 	if (PIPES) {
-		PIPE_ExecuteTask(appId, className, onFailure, timeout, methodName, priority, hasTarget, numReturns, numParams, params);
+		PIPE_ExecuteTask(appId, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 	} else {
-		JNI_ExecuteTask(appId, className, onFailure, timeout, methodName, priority, hasTarget, numReturns, numParams, params);
+		JNI_ExecuteTask(appId, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 	}
 }
 

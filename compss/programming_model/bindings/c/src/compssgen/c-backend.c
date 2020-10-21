@@ -1363,20 +1363,24 @@ static void generate_parameter_marshalling(FILE *outFile, function *func, Types 
  */
 static void generate_execute_task_call(FILE *outFile, function *func) {
     char *class_name = strdup("NULL");
-    char *hasTarget = strdup("false");
     char *on_failure = strdup("RETRY");
-
+    int time_out = 0;
+    int priority = 0; //default false
+    int num_nodes = 1;
+    int is_reduce = 0; // default false
+    int reduce_chunk = 0;
+    int is_replicated = 0; // default false
+    int is_distributed = 0; // default false 
+    int has_target = 0; //default false
     int arg_count = func->argument_count;
-    int num_returns = 0;
-
     if ( func->classname != NULL ) {
         class_name = func->classname;
         if (func->access_static == 0) {
             arg_count++;
-            hasTarget = strdup("true");
+            has_target = 1; //set true
         }
     }
-
+    int num_returns = 0;
     if (func->return_type == int_dt) {
         printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
     }
@@ -1386,7 +1390,9 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     }
 
     fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
-    fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", \"%s\", 0, method_name, 0, %s, %d, %d, (void**)arrayObjs);\n", class_name, on_failure, hasTarget, num_returns, arg_count);
+    //ExecuteTask params: appId, className, onFailure, timeout,  method_name, priority, num_nodes, is_reduce, reduce_chunk, is_replicated, is_distributed, has_target,  num_returns, num_params params
+    fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", \"%s\", %d, method_name, %d, %d, %d, %d, %d, %d, %d, %d, %d, (void**)arrayObjs);\n", 
+		    class_name, on_failure, time_out, priority, num_nodes, is_reduced, reduce_chunk, is_replicated, is_distributed, has_target, num_returns, arg_count);
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Task submited in the runtime\\n\", method_name);\n");
     fprintf(outFile, "\n");
     

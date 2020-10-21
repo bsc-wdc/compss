@@ -396,4 +396,8 @@ public class Task extends AbstractTask {
         return buffer.toString();
     }
 
+    public List<Parameter> getParameterDataToRemove() {
+        return new LinkedList<>();
+    }
+
 }

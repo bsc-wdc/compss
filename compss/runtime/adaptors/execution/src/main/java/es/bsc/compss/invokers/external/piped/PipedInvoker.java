@@ -118,14 +118,13 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             if (this.appId == null) {
                                 this.appId = this.context.getRuntimeAPI().registerApplication();
                             }
-
+                            int numNodes = entpc.getNumNodes();
+                            boolean isReduce = entpc.isReduce();
+                            int reduceChunkSize = entpc.getReduceChunkSize();
+                            boolean isReplicated = entpc.isReplicated();
+                            boolean isDistributed = entpc.isDistributed();
                             if (entryPoint == ExecuteNestedTaskPipeCommand.EntryPoint.SIGNATURE) {
                                 String signature = entpc.getSignature();
-                                int numNodes = entpc.getNumNodes();
-                                boolean isReduce = entpc.isReduce();
-                                int reduceChunkSize = entpc.getReduceChunkSize();
-                                boolean isReplicated = entpc.isReplicated();
-                                boolean isDistributed = entpc.isDistributed();
 
                                 this.context.getRuntimeAPI().executeTask(this.appId, signature, onFailure, timeOut,
                                     isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed,
@@ -135,7 +134,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 String methodClass = entpc.getMethodClass();
                                 String methodName = entpc.getMethodName();
                                 this.context.getRuntimeAPI().executeTask(this.appId, methodClass, onFailure, timeOut,
-                                    methodName, isPrioritary, hasTarget, numReturns, parameterCount, parameters);
+                                    methodName, isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated,
+                                    isDistributed, hasTarget, numReturns, parameterCount, parameters);
                             }
 
                         }

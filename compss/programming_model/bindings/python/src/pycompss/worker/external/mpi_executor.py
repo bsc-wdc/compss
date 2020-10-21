@@ -37,6 +37,7 @@ from pycompss.util.tracing.helpers import emit_event
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
+from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 

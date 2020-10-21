@@ -24,8 +24,6 @@ PyCOMPSs Util - Interactive Events
     callbacks.
 """
 
-import sys
-
 from pycompss.util.interactive.outwatcher import STDW
 import pycompss.util.context as context
 

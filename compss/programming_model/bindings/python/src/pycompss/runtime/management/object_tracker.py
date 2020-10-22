@@ -119,11 +119,10 @@ class ObjectTracker(object):
         return obj_id, file_name
 
     def not_track(self, collection=False):
+        obj_id = "%s-%d" % (self.runtime_id, self.current_id)
         if collection:
-            obj_id = "%s-%d" % (self.runtime_id, self.current_id)
             file_name = None
         else:
-            obj_id = "%s-%d" % (self.runtime_id, self.current_id)
             file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
         self.current_id += 1
         return obj_id, file_name

@@ -37,7 +37,7 @@ from pycompss.runtime.management.object_tracker import \
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
-from pycompss.util.serialization.serializer import *
+from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.runtime.commons import LIST_TYPE
 from pycompss.runtime.commons import DICT_TYPE
 
@@ -93,8 +93,8 @@ def _synchronize(obj, mode):
             file_path = COMPSs.open_file(app_id,
                                          "".join(("storage://", str(obj_id))),
                                          mode)
-            # TODO: Add switch on protocol
-            protocol, file_name = file_path.split("://")
+            # TODO: Add switch on protocol (first parameter returned currently ignored)
+            _, file_name = file_path.split("://")
             new_obj = get_by_id(file_name)
             OT_stop_tracking(obj)
             return new_obj

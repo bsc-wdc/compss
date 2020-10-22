@@ -45,8 +45,8 @@ else:
     import types
     STR_ESCAPE = 'string_escape'
     IS_PYTHON3 = False
-    LIST_TYPE = types.ListType
-    DICT_TYPE = types.DictType
+    LIST_TYPE = types.ListType  # noqa
+    DICT_TYPE = types.DictType  # noqa
 
 # Determine the environment
 ENVIRONMENT = 'terminal'

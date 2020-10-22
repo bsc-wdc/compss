@@ -96,8 +96,8 @@ class Binary(PyCOMPSsDecorator):
             if __debug__:
                 logger.debug("Executing binary_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) and \
-                not self.core_element_configured:
+            if (context.in_master() or context.is_nesting_enabled()) \
+                    and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs, user_function)
 

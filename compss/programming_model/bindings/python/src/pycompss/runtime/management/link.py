@@ -28,6 +28,9 @@ PyCOMPSs Binding - Link
 
 import multiprocessing
 
+from pycompss.util.exceptions import PyCOMPSsException
+
+
 # Global variables
 LINK_PROCESS = multiprocessing.Process()
 IN_QUEUE = multiprocessing.Queue()
@@ -145,7 +148,7 @@ def c_extension_link(in_queue, out_queue):
         elif command == SET_WALL_CLOCK:
             compss.set_wall_clock(*parameters)
         else:
-            raise Exception("Unknown link command")
+            raise PyCOMPSsException("Unknown link command")
 
 
 def establish_link(logger=None):  # noqa
@@ -248,9 +251,6 @@ class COMPSs(object):
 
     IMPORTANT: methods must be exactly the same.
     """
-
-    def __init__(self):
-        pass
 
     @staticmethod
     def start_runtime():
@@ -395,7 +395,7 @@ class COMPSs(object):
                      content_types,      # type: list
                      weights,            # type: list
                      keep_renames        # type: list
-                     ):
+                     ):  # NOSONAR
         # type: (...) -> None
         IN_QUEUE.put((PROCESS_TASK,
                       app_id,

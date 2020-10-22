@@ -644,7 +644,7 @@ def process_task(signature,             # type: str
                  distributed,           # type: bool
                  on_failure,            # type: str
                  time_out,              # type: int
-                 ):
+                 ):  # NOSONAR
     # type: (...) -> None
     """ Submit a task to the runtime.
 

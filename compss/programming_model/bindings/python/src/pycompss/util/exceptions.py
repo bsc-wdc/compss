@@ -32,6 +32,7 @@ class PyCOMPSsException(Exception):
     def __init__(self, message):
         super(PyCOMPSsException, self).__init__(message)
 
+
 class NotInPyCOMPSsException(Exception):
     """
     Not within PyCOMPSs scope exception.

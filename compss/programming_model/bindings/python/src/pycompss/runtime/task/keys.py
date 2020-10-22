@@ -91,13 +91,13 @@ class ParamDictKeys(object):
     Strings used in Parameter definition as dictionary
     """
     # Exposed to the user (see api/parameter.py)
-    Type = 'type'
-    Direction = 'direction'
-    StdIOStream = 'stream'
-    Prefix = 'prefix'
-    Depth = 'depth'
-    Weight = 'weight'
-    Keep_rename = 'keep_rename'
+    TYPE = 'type'
+    DIRECTION = 'direction'
+    STDIOSTREAM = 'stream'
+    PREFIX = 'prefix'
+    DEPTH = 'depth'
+    WEIGHT = 'weight'
+    KEEP_RENAME = 'keep_rename'
     # Private (see task/parameter.py)
-    Content_type = 'content_type'
-    Is_file_collection = 'is_file_collection'
+    CONTENT_TYPE = 'content_type'
+    IS_FILE_COLLECTION = 'is_file_collection'

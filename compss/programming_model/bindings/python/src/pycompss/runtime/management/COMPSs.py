@@ -311,7 +311,7 @@ def process_task(app_id,             # type: int
                  content_types,      # type: list
                  weights,            # type: list
                  keep_renames        # type: list
-                 ):
+                 ):  # NOSONAR
     # type: (...) -> None
     """ Call to process_task.
 

@@ -31,6 +31,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
+from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import IS_PYTHON3  # noqa
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
@@ -51,6 +52,7 @@ from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
 from pycompss.runtime.constants import SERIALIZE_OBJECTS
 from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
+from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.object_tracker import OT_track
 from pycompss.runtime.management.object_tracker import \
     OT_set_pending_to_synchronize
@@ -79,6 +81,7 @@ from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.interactive.helpers import update_tasks_code_file
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -180,10 +183,6 @@ ATTRIBUTES_TO_BE_REMOVED = ["decorator_arguments",
                             "param_defaults",
                             "first_arg_name",
                             "parameters",
-                            # "function_name",
-                            # "module_name",
-                            # "function_type",
-                            # "class_name",
                             "returns",
                             "multi_return"]
 
@@ -224,8 +223,8 @@ class TaskMaster(TaskCommons):
                  hints
                  ):
         # Initialize TaskCommons
-        super(self.__class__, self).__init__(decorator_arguments,
-                                             user_function)
+        super(TaskMaster, self).__init__(decorator_arguments,
+                                         user_function)
         # Add more argument related attributes that will be useful later
         self.param_defaults = None
         # Add function related attributed that will be useful later
@@ -253,10 +252,6 @@ class TaskMaster(TaskCommons):
         self.interactive = interactive
         self.module = module
         self.function_arguments = function_arguments
-        # self.function_name = function_name
-        # self.module_name = module_name
-        # self.function_type = function_type
-        # self.class_name = class_name
         self.hints = hints
 
     def call(self, *args, **kwargs):
@@ -862,8 +857,7 @@ class TaskMaster(TaskCommons):
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular
                 # frames are included, but not class names found.
-                impl_signature = ".".join((self.module_name,
-                                           self.function_name))
+                impl_signature = ".".join((self.module_name, self.function_name))
                 impl_type_args = [self.module_name, self.function_name]
 
         return impl_signature, impl_type_args
@@ -932,10 +926,10 @@ class TaskMaster(TaskCommons):
                 param_name = get_impl_type_args()[-4].strip()
                 if param_name:
                     if param_name in self.parameters:
-                        if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:  # noqa: E501
-                            raise Exception("Parameter %s is not a collection!" % param_name)      # noqa: E501
+                        if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:      # noqa: E501
+                            raise PyCOMPSsException("Parameter %s is not a collection!" % param_name)  # noqa: E501
                     else:
-                        raise Exception("Parameter %s does not exist!" % param_name)               # noqa: E501
+                        raise PyCOMPSsException("Parameter %s does not exist!" % param_name)           # noqa: E501
                 set_impl_signature(".".join(("MPI", impl_signature)))
                 set_impl_type_args(impl_type_args + get_impl_type_args()[1:])
             if get_impl_io() is None:
@@ -995,7 +989,7 @@ class TaskMaster(TaskCommons):
                     try:
                         parsed_computing_nodes = int(os.environ[env_var])
                     except ValueError:
-                        raise Exception(
+                        raise PyCOMPSsException(
                             cast_env_to_int_error("ComputingNodes")
                         )
                 else:
@@ -1019,7 +1013,7 @@ class TaskMaster(TaskCommons):
                             # raise the exception
                             pass
         if parsed_computing_nodes is None:
-            raise Exception("ERROR: Wrong Computing Nodes value.")
+            raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
         if parsed_computing_nodes <= 0:
             logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa
                            str(parsed_computing_nodes))
@@ -1389,7 +1383,7 @@ class TaskMaster(TaskCommons):
                     fo = Future()
             else:
                 fo = Future()  # modules, functions, methods
-            obj_id, ret_filename = OT_track(fo)
+            _, ret_filename = OT_track(fo)
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
             single_return.prefix = '#'
@@ -1416,7 +1410,7 @@ class TaskMaster(TaskCommons):
                 else:
                     foe = Future()  # modules, functions, methods
                 fo.append(foe)
-                obj_id, ret_filename = OT_track(foe)
+                _, ret_filename = OT_track(foe)
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return
                 # object
@@ -1443,9 +1437,9 @@ class TaskMaster(TaskCommons):
                 # Convert small objects to string if OBJECT_CONVERSION enabled
                 # Check if the object is small in order not to serialize it.
                 if get_object_conversion():
-                    p, written_bytes = _convert_parameter_obj_to_string(p,
-                                                                        max_obj_arg_size,     # noqa: E501
-                                                                        policy="objectSize")  # noqa: E501
+                    p, written_bytes = self._convert_parameter_obj_to_string(p,
+                                                                             max_obj_arg_size,     # noqa: E501
+                                                                             policy="objectSize")  # noqa: E501
                     max_obj_arg_size -= written_bytes
                 else:
                     # Serialize objects into files
@@ -1575,49 +1569,47 @@ class TaskMaster(TaskCommons):
             # serializing the object.
             # Warning: calculate the size of a python object can be difficult
             # in terms of time and precision
-            if (p.content_type == TYPE.OBJECT or
-                p.content_type == TYPE.STRING) \
+            if (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING) \
                     and not is_future \
-                    and p.direction == DIRECTION.IN:
-                if not isinstance(p.content, base_string) and \
-                        isinstance(p.content,
-                                   (list, dict, tuple, deque, set, frozenset)):
-                    # check object size - The following line does not work
-                    # properly with recursive objects
-                    # bytes = sys.getsizeof(p.content)
-                    num_bytes = total_sizeof(p.content)
-                    if __debug__:
-                        megabytes = num_bytes / 1000000  # truncate
-                        logger.debug("Object size %d bytes (%d Mb)." % (num_bytes, megabytes))  # noqa: E501
+                    and p.direction == DIRECTION.IN \
+                    and not isinstance(p.content, base_string) \
+                    and isinstance(p.content, (list, dict, tuple, deque, set, frozenset)):  # noqa: E501
+                # check object size - The following line does not work
+                # properly with recursive objects
+                # bytes = sys.getsizeof(p.content)
+                num_bytes = total_sizeof(p.content)
+                if __debug__:
+                    megabytes = num_bytes / 1000000  # truncate
+                    logger.debug("Object size %d bytes (%d Mb)." % (num_bytes, megabytes))  # noqa: E501
 
-                    if num_bytes < max_obj_arg_size:
-                        # be careful... more than this value produces:
-                        # Cannot run program "/bin/bash"...: error=7, \
-                        # The arguments list is too long
+                if num_bytes < max_obj_arg_size:
+                    # be careful... more than this value produces:
+                    # Cannot run program "/bin/bash"...: error=7, \
+                    # The arguments list is too long
+                    if __debug__:
+                        logger.debug("The object size is less than 320 kb.")  # noqa: E501
+                    real_value = p.content
+                    try:
+                        v = serialize_to_string(p.content)
+                        p.content = v.encode(STR_ESCAPE)  # noqa
+                        p.content_type = TYPE.STRING
                         if __debug__:
-                            logger.debug("The object size is less than 320 kb.")  # noqa: E501
-                        real_value = p.content
-                        try:
-                            v = serialize_to_string(p.content)
-                            p.content = v.encode(STR_ESCAPE)  # noqa
-                            p.content_type = TYPE.STRING
-                            if __debug__:
-                                logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
-                        except SerializerException:
-                            p.content = real_value
-                            p.content_type = TYPE.OBJECT
-                            if __debug__:
-                                logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
-                    else:
+                            logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
+                    except SerializerException:
+                        p.content = real_value
                         p.content_type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug("Inferred type reestablished to Object.")  # noqa: E501
-                            # if the parameter converts to an object, release
-                            # the size to be used for converted objects?
-                            # No more objects can be converted
-                            # max_obj_arg_size += _bytes
-                            # if max_obj_arg_size > 320000:
-                            #     max_obj_arg_size = 320000
+                            logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
+                else:
+                    p.content_type = TYPE.OBJECT
+                    if __debug__:
+                        logger.debug("Inferred type reestablished to Object.")  # noqa: E501
+                        # if the parameter converts to an object, release
+                        # the size to be used for converted objects?
+                        # No more objects can be converted
+                        # max_obj_arg_size += _bytes
+                        # if max_obj_arg_size > 320000:
+                        #     max_obj_arg_size = 320000
         elif policy == "serializedSize":
             if IS_PYTHON3:
                 from pickle import PicklingError
@@ -1626,52 +1618,51 @@ class TaskMaster(TaskCommons):
             # Check if the object is small in order to serialize it.
             # This alternative evaluates the size after serializing the
             # parameter
-            if (p.content_type == TYPE.OBJECT or
-                p.content_type == TYPE.STRING) \
+            if (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING) \
                     and not is_future \
-                    and p.direction == DIRECTION.IN:
-                if not isinstance(p.content, base_string):
-                    real_value = p.content
-                    try:
-                        v = serialize_to_string(p.content)
-                        v = v.encode(STR_ESCAPE)  # noqa
-                        # check object size
-                        num_bytes = sys.getsizeof(v)
+                    and p.direction == DIRECTION.IN \
+                    and not isinstance(p.content, base_string):
+                real_value = p.content
+                try:
+                    v = serialize_to_string(p.content)
+                    v = v.encode(STR_ESCAPE)  # noqa
+                    # check object size
+                    num_bytes = sys.getsizeof(v)
+                    if __debug__:
+                        megabytes = num_bytes / 1000000  # truncate
+                        logger.debug("Object size %d bytes (%d Mb)." %
+                                     (num_bytes, megabytes))
+                    if num_bytes < max_obj_arg_size:
+                        # be careful... more than this value produces:
+                        # Cannot run program "/bin/bash"...: error=7,
+                        # arguments list too long error.
                         if __debug__:
-                            megabytes = num_bytes / 1000000  # truncate
-                            logger.debug("Object size %d bytes (%d Mb)." %
-                                         (num_bytes, megabytes))
-                        if num_bytes < max_obj_arg_size:
-                            # be careful... more than this value produces:
-                            # Cannot run program "/bin/bash"...: error=7,
-                            # arguments list too long error.
-                            if __debug__:
-                                logger.debug("The object size is less than 320 kb")  # noqa: E501
-                            p.content = v
-                            p.content_type = TYPE.STRING
-                            if __debug__:
-                                logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
-                        else:
-                            p.content = real_value
-                            p.content_type = TYPE.OBJECT
-                            if __debug__:
-                                logger.debug("Inferred type reestablished to Object.")  # noqa: E501
-                                # if the parameter converts to an object,
-                                # release the size to be used for converted
-                                # objects?
-                                # No more objects can be converted
-                                # max_obj_arg_size += _bytes
-                                # if max_obj_arg_size > 320000:
-                                #     max_obj_arg_size = 320000
-                    except PicklingError:
+                            logger.debug("The object size is less than 320 kb")  # noqa: E501
+                        p.content = v
+                        p.content_type = TYPE.STRING
+                        if __debug__:
+                            logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
+                    else:
                         p.content = real_value
                         p.content_type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
+                            logger.debug("Inferred type reestablished to Object.")  # noqa: E501
+                            # if the parameter converts to an object,
+                            # release the size to be used for converted
+                            # objects?
+                            # No more objects can be converted
+                            # max_obj_arg_size += _bytes
+                            # if max_obj_arg_size > 320000:
+                            #     max_obj_arg_size = 320000
+                except PicklingError:
+                    p.content = real_value
+                    p.content_type = TYPE.OBJECT
+                    if __debug__:
+                        logger.debug("The object cannot be converted due to: not serializable.")  # noqa: E501
         else:
             if __debug__:
                 logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")  # noqa: E501
-            raise Exception("Wrong convert_objects_to_strings policy.")
+            raise PyCOMPSsException("Wrong convert_objects_to_strings policy.")
 
         return p, num_bytes
 
@@ -1710,15 +1701,14 @@ def _serialize_object_into_file(name, p):
         # future (object)
         try:
             val_type = type(p.content)
-            if isinstance(val_type, list):
+            if isinstance(val_type, list) and any(isinstance(v, Future) for v in p.content):
                 # Is there a future object within the list?
-                if any(isinstance(v, Future) for v in p.content):
-                    if __debug__:
-                        logger.debug("Found a list that contains future objects - synchronizing...")  # noqa: E501
-                    mode = get_compss_direction("in")
-                    p.content = list(map(synchronize,
-                                         p.content,
-                                         [mode] * len(p.content)))
+                if __debug__:
+                    logger.debug("Found a list that contains future objects - synchronizing...")  # noqa: E501
+                mode = get_compss_direction("in")
+                p.content = list(map(wait_on,
+                                     p.content,
+                                     [mode] * len(p.content)))
             _skip_file_creation = (p.direction == DIRECTION.OUT and
                                    p.content_type != TYPE.EXTERNAL_STREAM)
             _turn_into_file(p, skip_creation=_skip_file_creation)
@@ -1836,15 +1826,6 @@ def _turn_into_file(p, skip_creation=False):
     :param skip_creation: Skips the serialization to file.
     :return: None
     """
-    # print("p           : ", p)
-    # print("p.content    : ", p.content)
-    # print("p.content_type      : ", p.content_type)
-    # print("p.direction : ", p.direction)
-    # if p.direction == DIRECTION.OUT:
-    #     # If the parameter is out, infer the type and create an empty
-    #     # instance of the same type as the original parameter:
-    #     t = type(p.content)
-    #     p.content = t()
     obj_id = OT_is_tracked(p.content)
     if obj_id is None:
         # This is the first time a task accesses this object

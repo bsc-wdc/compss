@@ -20,7 +20,7 @@
 """
 PyCOMPSs runtime - MPI - Keys
 ============================
-    This file contains the MPI Collectio layout keys.
+    This file contains the MPI Collection layout keys.
 """
 
 
@@ -28,6 +28,6 @@ class MPILayoutKeys(object):
     """
     Strings used in MPI layout for collections
     """
-    Block_count = 'block_count'
-    Block_length = 'block_length'
-    Stride = 'stride'
+    block_count = 'block_count'
+    block_length = 'block_length'
+    stride = 'stride'

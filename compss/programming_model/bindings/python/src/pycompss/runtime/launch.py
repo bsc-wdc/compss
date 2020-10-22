@@ -218,11 +218,12 @@ def compss_main():
 
         # MAIN EXECUTION
         with event(APPLICATION_RUNNING_EVENT, master=True):
+            # MAIN EXECUTION
             if IS_PYTHON3:
                 with open(APP_PATH) as f:
                     exec(compile(f.read(), APP_PATH, "exec"), globals())
             else:
-                execfile(APP_PATH, globals())  # MAIN EXECUTION
+                execfile(APP_PATH, globals())  # noqa
 
         # End
         if __debug__:
@@ -303,7 +304,7 @@ def launch_pycompss_application(app,
                                 propagate_virtual_environment=True,  # noqa type: bool
                                 mpi_worker=False,                 # type: bool
                                 *args, **kwargs
-                                ):
+                                ):  # NOSONAR
     # type: (...) -> None
     """ Launch PyCOMPSs application from function.
 

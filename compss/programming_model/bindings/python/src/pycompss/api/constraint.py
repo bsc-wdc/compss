@@ -54,8 +54,8 @@ class Constraint(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', Constraint.__name__.lower()))
+        super(Constraint, self).__init__(decorator_name, *args, **kwargs)
 
     def __call__(self, user_function):
         """ Parse and set the constraints within the task core element.
@@ -74,15 +74,10 @@ class Constraint(PyCOMPSsDecorator):
             if __debug__:
                 logger.debug("Executing constrained_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
+            if (context.in_master() or context.is_nesting_enabled()) and \
+                not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method

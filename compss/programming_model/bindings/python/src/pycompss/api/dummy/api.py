@@ -237,7 +237,9 @@ class TaskGroup(object):
         pass
 
     def __enter__(self):
+        # Dummy: do nothing
         pass
 
     def __exit__(self, type, value, traceback):  # noqa
+        # Dummy: do nothing
         pass

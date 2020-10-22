@@ -27,6 +27,7 @@ from contextlib import contextmanager
 
 import pycompss.util.context as context
 from pycompss.util.exceptions import MissingImplementedException
+from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
@@ -57,9 +58,9 @@ class PyCOMPSsDecorator(object):
         # import inspect
         # self.source_frame_info = inspect.getframeinfo(inspect.stack()[1][0])
 
-        if self.scope:
-            if __debug__:
-                logger.debug("Init " + decorator_name + " decorator...")
+        if __debug__ and self.scope:
+            # Log only in the master
+            logger.debug("Init " + decorator_name + " decorator...")
 
     def __configure_core_element__(self, kwargs, user_function):
         # type: (dict, ...) -> None
@@ -114,8 +115,8 @@ class PyCOMPSsDecorator(object):
             elif isinstance(fail_by_ev, int):
                 self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
             else:
-                raise Exception("Incorrect format for fail_by_exit_value property. "    # noqa: E501
-                                "It should be boolean or an environment variable")      # noqa: E501
+                raise PyCOMPSsException("Incorrect format for fail_by_exit_value property. "    # noqa: E501
+                                        "It should be boolean or an environment variable")      # noqa: E501
         else:
             self.kwargs['fail_by_exit_value'] = 'false'
 
@@ -123,7 +124,7 @@ class PyCOMPSsDecorator(object):
         # type: (str) -> None
         """
         Processes the computing_nodes from the decorator.
-        We only ensure that the corect self.kwargs entry exists since its value
+        We only ensure that the correct self.kwargs entry exists since its value
         will be parsed and resolved by the master.process_computing_nodes.
         Used in decorators:
             - mpi

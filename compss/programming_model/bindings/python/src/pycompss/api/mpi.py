@@ -72,8 +72,8 @@ class MPI(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         self.task_type = "mpi"
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', MPI.__name__.lower()))
+        super(MPI, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
@@ -110,8 +110,6 @@ class MPI(PyCOMPSsDecorator):
             if __debug__:
                 logger.debug("This MPI task will have " +
                              str(self.kwargs['processes']) + " processes.")
-        else:
-            pass
 
     def __call__(self, user_function):
         """ Parse and set the mpi parameters within the task core element.
@@ -127,56 +125,15 @@ class MPI(PyCOMPSsDecorator):
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss("mpi"))
                 # TODO: Intercept @task parameters to get stream redirection
-                cmd = [self.kwargs['runner']]
-                if 'processes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['processes']]
-                elif 'computing_nodes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['computing_nodes']]
-                elif 'computingNodes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['computingNodes']]
-                else:
-                    pass
-                if 'flags' in self.kwargs:
-                    cmd += self.kwargs['flags'].split()
-                cmd += [self.kwargs['binary']]
-                if args:
-                    args = [str(a) for a in args]
-                    cmd += args
-                my_env = os.environ.copy()
-                env_path = my_env["PATH"]
-                if "working_dir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["working_dir"] + env_path
-                elif "workingDir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["workingDir"] + env_path
-                proc = subprocess.Popen(cmd,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE,
-                                        env=my_env)
-                out, err = proc.communicate()
-                if sys.version_info[0] < 3:
-                    out_message = out.strip()
-                    err_message = err.strip()
-                else:
-                    out_message = out.decode().strip()
-                    err_message = err.decode().strip()
-                if out_message:
-                    print(out_message)
-                if err_message:
-                    sys.stderr.write(err_message + '\n')
-                return proc.returncode
+                return self.__run_mpi__(args, kwargs)
 
             if __debug__:
                 logger.debug("Executing mpi_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
+            if (context.in_master() or context.is_nesting_enabled()) and \
+                not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
@@ -196,7 +153,58 @@ class MPI(PyCOMPSsDecorator):
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
+    def __run_mpi__(self, *args, **kwargs):
+        # type: (list, dict) -> int
+        """ Runs the mpi binary defined in the decorator when used as dummy.
+
+        :param args: Arguments received from call.
+        :param kwargs: Keyword arguments received from call.
+        :return: Execution return code.
+        """
+        cmd = [self.kwargs['runner']]
+        if 'processes' in self.kwargs:
+            cmd += ['-np', self.kwargs['processes']]
+        elif 'computing_nodes' in self.kwargs:
+            cmd += ['-np', self.kwargs['computing_nodes']]
+        elif 'computingNodes' in self.kwargs:
+            cmd += ['-np', self.kwargs['computingNodes']]
+        else:
+            pass
+        if 'flags' in self.kwargs:
+            cmd += self.kwargs['flags'].split()
+        cmd += [self.kwargs['binary']]
+        if args:
+            args = [str(a) for a in args]
+            cmd += args
+        my_env = os.environ.copy()
+        env_path = my_env["PATH"]
+        if "working_dir" in self.kwargs:
+            my_env["PATH"] = self.kwargs["working_dir"] + env_path
+        elif "workingDir" in self.kwargs:
+            my_env["PATH"] = self.kwargs["workingDir"] + env_path
+        proc = subprocess.Popen(cmd,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                env=my_env)
+        out, err = proc.communicate()
+        if sys.version_info[0] < 3:
+            out_message = out.strip()
+            err_message = err.strip()
+        else:
+            out_message = out.decode().strip()
+            err_message = err.decode().strip()
+        if out_message:
+            print(out_message)
+        if err_message:
+            sys.stderr.write(err_message + '\n')
+        return proc.returncode
+
     def __resolve_collection_layout_params__(self):
+        # type: () -> list
+        """ Resolve the collection layout, such as blocks, strides, etc.
+
+        :return: list(param_name, block_count, block_length, stride)
+        """
         param_name = ""
         block_count = -1
         block_length = -1

@@ -28,6 +28,7 @@ from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -69,8 +70,8 @@ class COMPSs(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', COMPSs.__name__.lower()))
+        super(COMPSs, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -81,8 +82,6 @@ class COMPSs(PyCOMPSsDecorator):
 
             # Get the computing nodes
             self.__process_computing_nodes__(decorator_name)
-        else:
-            pass
 
     def __call__(self, user_function):
         """ Parse and set the compss parameters within the task core element.
@@ -93,20 +92,15 @@ class COMPSs(PyCOMPSsDecorator):
         @wraps(user_function)
         def compss_f(*args, **kwargs):
             if not self.scope:
-                raise Exception(not_in_pycompss("compss"))
+                raise NotInPyCOMPSsException(not_in_pycompss("compss"))
 
             if __debug__:
                 logger.debug("Executing compss_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
+            if (context.in_master() or context.is_nesting_enabled()) and \
+                not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator

@@ -67,8 +67,8 @@ class Binary(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', Binary.__name__.lower()))
+        super(Binary, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -91,45 +91,15 @@ class Binary(PyCOMPSsDecorator):
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss("binary"))
                 # TODO: Intercept @task parameters to get stream redirection
-                cmd = [self.kwargs['binary']]
-                if args:
-                    args = [str(a) for a in args]
-                    cmd += args
-                my_env = os.environ.copy()
-                env_path = my_env["PATH"]
-                if "working_dir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["working_dir"] + env_path
-                elif "workingDir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["workingDir"] + env_path
-                proc = subprocess.Popen(cmd,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE,
-                                        env=my_env)
-                out, err = proc.communicate()
-                if sys.version_info[0] < 3:
-                    out_message = out.strip()
-                    err_message = err.strip()
-                else:
-                    out_message = out.decode().strip()
-                    err_message = err.decode().strip()
-                if out_message:
-                    print(out_message)
-                if err_message:
-                    sys.stderr.write(err_message + '\n')
-                return proc.returncode
+                return self.__run_binary__(args, kwargs)
 
             if __debug__:
                 logger.debug("Executing binary_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
+            if (context.in_master() or context.is_nesting_enabled()) and \
+                not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -139,6 +109,41 @@ class Binary(PyCOMPSsDecorator):
 
         binary_f.__doc__ = user_function.__doc__
         return binary_f
+
+    def __run_binary__(self, *args, **kwargs):
+        # type: (list, dict) -> int
+        """ Runs the binary defined in the decorator when used as dummy.
+
+        :param args: Arguments received from call.
+        :param kwargs: Keyword arguments received from call.
+        :return: Execution return code.
+        """
+        cmd = [self.kwargs['binary']]
+        if args:
+            args = [str(a) for a in args]
+            cmd += args
+        my_env = os.environ.copy()
+        env_path = my_env["PATH"]
+        if "working_dir" in self.kwargs:
+            my_env["PATH"] = self.kwargs["working_dir"] + env_path
+        elif "workingDir" in self.kwargs:
+            my_env["PATH"] = self.kwargs["workingDir"] + env_path
+        proc = subprocess.Popen(cmd,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                env=my_env)
+        out, err = proc.communicate()
+        if sys.version_info[0] < 3:
+            out_message = out.strip()
+            err_message = err.strip()
+        else:
+            out_message = out.decode().strip()
+            err_message = err.decode().strip()
+        if out_message:
+            print(out_message)
+        if err_message:
+            sys.stderr.write(err_message + '\n')
+        return proc.returncode
 
     def __configure_core_element__(self, kwargs, user_function):
         # type: (dict, ...) -> None

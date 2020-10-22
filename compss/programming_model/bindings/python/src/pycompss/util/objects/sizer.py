@@ -71,7 +71,6 @@ def total_sizeof(o, handlers=None, verbose=False):
     :param verbose: Verbose mode [ True | False ] (default: False).
     :return: Total size of the object.
     """
-    # dict_handler = lambda d: chain.from_iterable(d.items())
     all_handlers = {tuple: iter,
                     list: iter,
                     deque: iter,

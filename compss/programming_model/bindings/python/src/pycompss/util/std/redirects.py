@@ -104,25 +104,21 @@ def std_redirector(out_filename, err_filename):
     # Save a copy of the original stdout and stderr
     stdout_fd_backup = os.dup(stdout_fd)
     stderr_fd_backup = os.dup(stderr_fd)
-    try:
-        f_out = open(out_filename, 'ab')
-        _redirect_stdout(f_out.fileno())
-        f_err = open(err_filename, 'ab')
-        _redirect_stderr(f_err.fileno())
-    except Exception as e:
-        raise e
+
+    f_out = open(out_filename, 'ab')
+    _redirect_stdout(f_out.fileno())
+    f_err = open(err_filename, 'ab')
+    _redirect_stderr(f_err.fileno())
+
     # Yield to caller
     yield
-    try:
-        # Then redirect stdout and stderr back to the backup file descriptors
-        _redirect_stdout(stdout_fd_backup)
-        f_out.flush()
-        _redirect_stderr(stderr_fd_backup)
-        f_err.flush()
-    except Exception as e:
-        raise e
-    finally:
-        f_out.close()
-        os.close(stdout_fd_backup)
-        f_err.close()
-        os.close(stderr_fd_backup)
+
+    # Then redirect stdout and stderr back to the backup file descriptors
+    _redirect_stdout(stdout_fd_backup)
+    f_out.flush()
+    _redirect_stderr(stderr_fd_backup)
+    f_err.flush()
+    f_out.close()
+    os.close(stdout_fd_backup)
+    f_err.close()
+    os.close(stderr_fd_backup)

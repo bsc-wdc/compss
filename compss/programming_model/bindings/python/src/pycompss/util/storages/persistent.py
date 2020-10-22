@@ -23,6 +23,8 @@ PyCOMPSs Utils - External Storage
     This file contains the methods required to manage PSCOs.
     Isolates the API signature calls.
 """
+
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import emit_event
 from pycompss.runtime.constants import INIT_STORAGE_EVENT as MASTER_INIT_STORAGE_EVENT  # noqa: E501
 from pycompss.runtime.constants import STOP_STORAGE_EVENT as MASTER_STOP_STORAGE_EVENT  # noqa: E501
@@ -31,10 +33,10 @@ from pycompss.worker.commons.constants import STOP_STORAGE_EVENT
 
 try:
     # Try to import the external storage API module methods
-    from storage.api import init         # noqa
-    from storage.api import finish       # noqa
-    from storage.api import getByID      # noqa
-    from storage.api import TaskContext  # noqa
+    from storage.api import init                               # noqa
+    from storage.api import finish                             # noqa
+    from storage.api import getByID as get_by_id_from_storage  # noqa
+    from storage.api import TaskContext                        # noqa
     print("INFO: Storage API successfully imported.")
 except ImportError as e:
     # print("INFO: No storage API defined.")
@@ -43,17 +45,17 @@ except ImportError as e:
 
     def init(config_file_path=None):  # noqa
         # type: (str) -> None
-        raise Exception('Unexpected call to init from storage. Reason: %s' %
-                        ERROR_MSG)
+        raise PyCOMPSsException('Unexpected call to init from storage. Reason: %s' %
+                                ERROR_MSG)
 
     def finish():
         # type: () -> None
-        raise Exception('Unexpected call to finish from storage. Reason: %s' %
-                        ERROR_MSG)
+        raise PyCOMPSsException('Unexpected call to finish from storage. Reason: %s' %
+                                ERROR_MSG)
 
-    def getByID(id):  # noqa
+    def get_by_id_from_storage(id):  # noqa
         # type: (str) -> None
-        raise Exception('Unexpected call to getByID. Reason: %s' % ERROR_MSG)
+        raise PyCOMPSsException('Unexpected call to getByID. Reason: %s' % ERROR_MSG)
 
     class TaskContext(object):
         """
@@ -66,19 +68,19 @@ except ImportError as e:
             self.logger.error(err_msg)
             self.values = values
             self.config_file_path = config_file_path
-            raise Exception(err_msg)
+            raise PyCOMPSsException(err_msg)
 
         def __enter__(self):
             # Ready to start the task
             err_msg = 'Unexpected call to dummy storage task context __enter__'
             self.logger.error(err_msg)
-            raise Exception(err_msg)
+            raise PyCOMPSsException(err_msg)
 
         def __exit__(self, type, value, traceback):
             # Task finished
             err_msg = 'Unexpected call to dummy storage task context __exit__'
             self.logger.error(err_msg)
-            raise Exception(err_msg)
+            raise PyCOMPSsException(err_msg)
 
 storage_task_context = TaskContext  # Renamed for importing it from the worker
 
@@ -127,7 +129,7 @@ def get_by_id(identifier):
     :param identifier: Persistent object identifier.
     :return: The object that corresponds to the id.
     """
-    return getByID(identifier)
+    return get_by_id_from_storage(identifier)
 
 
 @emit_event(MASTER_INIT_STORAGE_EVENT, master=True)

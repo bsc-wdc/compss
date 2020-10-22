@@ -28,6 +28,7 @@ import os
 import sys
 from tempfile import mkstemp
 import pycompss.runtime.binding as binding
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.supercomputer.scs import get_master_node
 from pycompss.util.supercomputer.scs import get_master_port
 from pycompss.util.supercomputer.scs import get_xmls
@@ -229,7 +230,7 @@ def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
     else:
         msg = "ERROR: Wrong tracing parameter " + \
               "( [ True | basic ] | advanced | False)"
-        raise Exception(msg)
+        raise PyCOMPSsException(msg)
     return trace_value, ld_library_path
 
 
@@ -322,7 +323,7 @@ def create_init_config_file(compss_home,                    # type: str
                             propagate_virtual_environment,  # type: bool
                             mpi_worker,                     # type: bool
                             **kwargs        # noqa          # type: dict
-                            ):
+                            ):  # NOSONAR
     # type: (...) -> None
     """
     Creates the initialization files for the runtime start (java options file).
@@ -397,16 +398,17 @@ def create_init_config_file(compss_home,                    # type: str
     jvm_options_file.write('-XX:+UseG1GC\n')
     jvm_options_file.write('-XX:+UseThreadPriorities\n')
     jvm_options_file.write('-XX:ThreadPriorityPolicy=42\n')
+    conf_file_key = '-Dlog4j.configurationFile='
     if debug or log_level == 'debug':
-        jvm_options_file.write('-Dlog4j.configurationFile=' +
+        jvm_options_file.write(conf_file_key +
                                compss_home + DEFAULT_LOG_PATH +
                                'COMPSsMaster-log4j.debug\n')  # DEBUG
     elif monitor is not None or log_level == 'info':
-        jvm_options_file.write('-Dlog4j.configurationFile=' +
+        jvm_options_file.write(conf_file_key +
                                compss_home + DEFAULT_LOG_PATH +
                                'COMPSsMaster-log4j.info\n')   # INFO
     else:
-        jvm_options_file.write('-Dlog4j.configurationFile=' +
+        jvm_options_file.write(conf_file_key +
                                compss_home + DEFAULT_LOG_PATH +
                                'COMPSsMaster-log4j\n')        # NO DEBUG
     jvm_options_file.write('-Dcompss.to.file=false\n')
@@ -590,5 +592,5 @@ def create_init_config_file(compss_home,                    # type: str
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path
 
-    # print("Uncomment if you want to check the configuration file path.")
+    # Uncomment if you want to check the configuration file path:
     # print("JVM_OPTIONS_FILE: %s" % temp_path)

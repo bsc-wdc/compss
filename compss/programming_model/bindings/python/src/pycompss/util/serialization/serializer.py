@@ -166,10 +166,6 @@ def serialize_to_handler(obj, handler):
                 success = True
             except Exception:  # noqa
                 success = False
-                # if __debug__:
-                #    traceback.print_exc()  # No need to show all stack traces
-                #    print('WARNING! Serialization with %s failed.' %
-                #          str(serializer))
         i += 1
 
     if DISABLE_GC:

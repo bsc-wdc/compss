@@ -28,6 +28,8 @@ from __future__ import print_function
 import sys
 import re
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 def check_arguments(mandatory_arguments, deprecated_arguments,
                     supported_arguments, argument_names, decorator):
@@ -39,23 +41,24 @@ def check_arguments(mandatory_arguments, deprecated_arguments,
 
     :param mandatory_arguments: Set of mandatory argument names
     :param deprecated_arguments: Set of deprecated argument names
-    :param supported_arguments: Seto of supported argument names
+    :param supported_arguments: Set of supported argument names
     :param argument_names: List of argument names to check
     :param decorator: String - Decorator name
     :return: None
     """
+    decorator_str = decorator + " decorator"
     # Look for mandatory arguments
     check_mandatory_arguments(mandatory_arguments,
                               argument_names,
-                              decorator + " decorator")
+                              decorator_str)
     # Look for deprecated arguments
     check_deprecated_arguments(deprecated_arguments,
                                argument_names,
-                               decorator + " decorator")
+                               decorator_str)
     # Look for unexpected arguments
     check_unexpected_arguments(supported_arguments,
                                argument_names,
-                               decorator + " decorator")
+                               decorator_str)
 
 
 def check_mandatory_arguments(mandatory_arguments, arguments, where):
@@ -92,10 +95,10 @@ def error_mandatory_argument(argument, decorator):
     :param argument: Argument name
     :param decorator: Decorator name
     :return: None
-    :raise Exception: With the decorator and argument that produced the error
+    :raise PyCOMPSsException: With the decorator and argument that produced the error
     """
-    raise Exception("The argument " + str(argument) +
-                    " is mandatory in the " + str(decorator) + " decorator.")
+    raise PyCOMPSsException("The argument " + str(argument) +
+                            " is mandatory in the " + str(decorator) + " decorator.")
 
 
 def check_deprecated_arguments(deprecated_arguments, arguments, where):
@@ -107,6 +110,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
     :param arguments: List of arguments to check
     :param where: Location of the argument
     :return: None
+    :raise PyCOMPSsException: With the unsupported argument
     """
     for argument in arguments:
         if argument == 'isModifier':
@@ -114,7 +118,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
                       str(where) + ".\n" + \
                       "       Please, use: target_direction"
             print(message, file=sys.stderr)  # also show the warn in stderr
-            raise Exception("Unsupported argument: " + str(argument))
+            raise PyCOMPSsException("Unsupported argument: " + str(argument))
 
         if argument in deprecated_arguments:
             current_argument = re.sub('([A-Z]+)', r'_\1', argument).lower()

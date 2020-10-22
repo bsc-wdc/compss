@@ -69,6 +69,7 @@ PERSISTENT_STORAGE = False
 STREAMING = False
 LOG_PATH = "/tmp/"
 GRAPHING = False
+LINE_SEPARATOR = "******************************************************"
 
 
 def start(log_level="off",                     # type: str
@@ -109,7 +110,7 @@ def start(log_level="off",                     # type: str
           propagate_virtual_environment=True,  # type: bool
           mpi_worker=False,                    # type: bool
           verbose=False                        # type: bool
-          ):
+          ):  # NOSONAR
     # type: (...) -> None
     """ Start the runtime in interactive mode.
 
@@ -360,7 +361,7 @@ def start(log_level="off",                     # type: str
     # MAIN EXECUTION
     # let the user write an interactive application
     print("* - PyCOMPSs Runtime started... Have fun!            *")
-    print("******************************************************")
+    print(LINE_SEPARATOR)
 
     # Emit the application start event (the 0 is in the stop function)
     emit_manual_event(APPLICATION_RUNNING_EVENT)
@@ -372,26 +373,26 @@ def __show_flower__():
 
     :return: None
     """
-    print("******************************************************")  # noqa
-    print("*************** PyCOMPSs Interactive *****************")  # noqa
-    print("******************************************************")  # noqa
-    print("*          .-~~-.--.           _____       _______   *")  # noqa
-    print("*         :         )         |____ \     /  ___  \  *")  # noqa
-    print("*   .~ ~ -.\       /.- ~~ .     ___) |    | (___) |  *")  # noqa
-    print("*   >       `.   .'       <    / ___/      > ___ <   *")  # noqa
-    print("*  (         .- -.         )  | |___   _  | (___) |  *")  # noqa
-    print("*   `- -.-~  `- -'  ~-.- -'   |_____| |_| \_______/  *")  # noqa
-    print("*     (        :        )           _ _ .-:          *")  # noqa
-    print("*      ~--.    :    .--~        .-~  .-~  }          *")  # noqa
-    print("*          ~-.-^-.-~ \_      .~  .-~   .~            *")  # noqa
-    print("*                   \ \ '     \ '_ _ -~              *")  # noqa
-    print("*                    \`.\`.    //                    *")  # noqa
-    print("*           . - ~ ~-.__\`.\`-.//                     *")  # noqa
-    print("*       .-~   . - ~  }~ ~ ~-.~-.                     *")  # noqa
-    print("*     .' .-~      .-~       :/~-.~-./:               *")  # noqa
-    print("*    /_~_ _ . - ~                 ~-.~-._            *")  # noqa
-    print("*                                     ~-.<           *")  # noqa
-    print("******************************************************")  # noqa
+    print(LINE_SEPARATOR)                                            # NOSONAR # noqa
+    print("*************** PyCOMPSs Interactive *****************")  # NOSONAR # noqa
+    print(LINE_SEPARATOR)                                            # NOSONAR # noqa
+    print("*          .-~~-.--.           _____       _______   *")  # NOSONAR # noqa
+    print("*         :         )         |____ \     /  ___  \  *")  # NOSONAR # noqa
+    print("*   .~ ~ -.\       /.- ~~ .     ___) |    | (___) |  *")  # NOSONAR # noqa
+    print("*   >       `.   .'       <    / ___/      > ___ <   *")  # NOSONAR # noqa
+    print("*  (         .- -.         )  | |___   _  | (___) |  *")  # NOSONAR # noqa
+    print("*   `- -.-~  `- -'  ~-.- -'   |_____| |_| \_______/  *")  # NOSONAR # noqa
+    print("*     (        :        )           _ _ .-:          *")  # NOSONAR # noqa
+    print("*      ~--.    :    .--~        .-~  .-~  }          *")  # NOSONAR # noqa
+    print("*          ~-.-^-.-~ \_      .~  .-~   .~            *")  # NOSONAR # noqa
+    print("*                   \ \ '     \ '_ _ -~              *")  # NOSONAR # noqa
+    print("*                    \`.\`.    //                    *")  # NOSONAR # noqa
+    print("*           . - ~ ~-.__\`.\`-.//                     *")  # NOSONAR # noqa
+    print("*       .-~   . - ~  }~ ~ ~-.~-.                     *")  # NOSONAR # noqa
+    print("*     .' .-~      .-~       :/~-.~-./:               *")  # NOSONAR # noqa
+    print("*    /_~_ _ . - ~                 ~-.~-._            *")  # NOSONAR # noqa
+    print("*                                     ~-.<           *")  # NOSONAR # noqa
+    print(LINE_SEPARATOR)                                            # NOSONAR # noqa
 
 
 def __print_setup__(verbose, all_vars):
@@ -404,11 +405,11 @@ def __print_setup__(verbose, all_vars):
     """
     logger = logging.getLogger(__name__)
     output = ""
-    output += "******************************************************\n"
+    output += LINE_SEPARATOR + "\n"
     output += " CONFIGURATION: \n"
     for k, v in sorted(all_vars.items()):
         output += "  - {0:20} : {1} \n".format(k, v)
-    output += "******************************************************"
+    output += LINE_SEPARATOR
     if verbose:
         print(output)
     logger.debug(output)
@@ -424,9 +425,9 @@ def stop(sync=False):
     """
     from pycompss.api.api import compss_stop
 
-    print("****************************************************")
+    print(LINE_SEPARATOR)
     print("*************** STOPPING PyCOMPSs ******************")
-    print("****************************************************")
+    print(LINE_SEPARATOR)
 
     logger = logging.getLogger(__name__)
 
@@ -437,8 +438,6 @@ def stop(sync=False):
         from pycompss.api.api import compss_wait_on
 
         ipython = globals()["__builtins__"]["get_ipython"]()
-        # import pprint
-        # pprint.pprint(ipython.__dict__, width=1)
         reserved_names = ("quit", "exit", "get_ipython",
                           "APP_PATH", "ipycompss", "In", "Out")
         raw_code = ipython.__dict__["user_ns"]
@@ -461,8 +460,6 @@ def stop(sync=False):
                             print("Found a list to synchronize: %s" % str(k))
                             logger.debug("Found a list to synchronize: %s" % (k,))     # noqa: E501
                             ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)     # noqa: E501
-                else:
-                    pass
     else:
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
@@ -486,7 +483,7 @@ def stop(sync=False):
     # Let the Python binding know we are not at master anymore
     context.set_pycompss_context(context.OUT_OF_SCOPE)
 
-    print("****************************************************")
+    print(LINE_SEPARATOR)
     logger.debug("--- END ---")
 
     # --- Execution finished ---

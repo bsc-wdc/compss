@@ -512,10 +512,10 @@ def execute_task(process_name,     # type: str
     arg_position = 4 + num_slaves
 
     args = params[arg_position:]
-    cus = args[0]          # noqa
+    cus = args[0]  # noqa
     args = args[1:]
     has_target = args[0]
-    return_type = args[1]  # noqa
+    # Next parameter: return_type = args[1]
     return_length = int(args[2])
     num_params = int(args[3])
 
@@ -567,6 +567,7 @@ def execute_task(process_name,     # type: str
         logger.debug("\t- Method/function name: %s" % method_name)
         logger.debug("\t- Has target: %s" % str(has_target))
         logger.debug("\t- # parameters: %s" % str(num_params))
+        # Next parameters are the values:
         # logger.debug("\t- Values:")
         # for v in values:
         #     logger.debug("\t\t %r" % v)
@@ -601,7 +602,7 @@ def execute_task(process_name,     # type: str
         exit_code = result[0]
         new_types = result[1]
         new_values = result[2]
-        # target_direction = result[3]
+        # Next result: target_direction = result[3]
         timed_out = result[4]
         except_msg = result[5]
 
@@ -710,7 +711,6 @@ def execute_task(process_name,     # type: str
                     if __debug__:
                         logger.debug("The changes on the PSCO must have been" +
                                      " automatically updated by the storage.")
-                    pass
                 else:
                     if __debug__:
                         logger.debug("Serializing self to file: %s" %
@@ -748,7 +748,7 @@ def execute_task(process_name,     # type: str
             exit_code = result[0]
             new_types = result[1]
             new_values = result[2]
-            # target_direction = result[3]
+            # Next return: target_direction = result[3]
             timed_out = result[4]
             except_msg = result[5]
 

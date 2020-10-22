@@ -32,6 +32,7 @@ import sys
 from mpi4py import MPI
 
 import pycompss.util.context as context
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import emit_event
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
@@ -56,7 +57,7 @@ def shutdown_handler(signal, frame):  # noqa
     :param frame: Frame
     :return: None
     """
-    raise Exception("Received SIGTERM")
+    raise PyCOMPSsException("Received SIGTERM")
 
 
 ######################
@@ -113,6 +114,7 @@ def executor(process_name, command):
                             logger_handlers,
                             logger_level,
                             logger_formatter)
+    # Signal expected management:
     # if sig == FAILURE_SIG:
     #     raise Exception("Task execution failed!", msg)
     # elif sig == UNEXPECTED_SIG:
@@ -256,6 +258,7 @@ def process_task(current_line,     # type: str
             out.close()
             err.close()
 
+            # To reduce if necessary:
             # global_exit_value = MPI.COMM_WORLD.reduce(exit_value,
             #                                           op=MPI.SUM,
             #                                           root=0)
@@ -286,7 +289,6 @@ def process_task(current_line,     # type: str
                 message = " ".join((END_TASK_TAG,
                                     str(job_id),
                                     str(exit_value) + "\n"))
-                # return FAILURE_SIG, except_msg
 
             if __debug__:
                 logger.debug("%s - END TASK MESSAGE: %s" % (str(process_name),
@@ -321,7 +323,6 @@ def process_task(current_line,     # type: str
             message = " ".join((END_TASK_TAG,
                                 str(job_id),
                                 str(exit_value) + "\n"))
-            # return FAILURE_SIG, e
 
         # Clean environment variables
         if __debug__:
@@ -353,7 +354,6 @@ def process_task(current_line,     # type: str
                             str(exit_value) + "\n"))
 
     return exit_value, message
-    #    return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)
 
 
 def main():

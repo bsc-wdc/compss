@@ -37,7 +37,12 @@ from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.gat.commons.constants import *  # noqa
+from pycompss.worker.gat.commons.constants import PROCESS_CREATION
+from pycompss.worker.gat.commons.constants import PARAMETER_PROCESSING
+from pycompss.worker.gat.commons.constants import LOGGING
+from pycompss.worker.gat.commons.constants import MODULES_IMPORT
+from pycompss.worker.gat.commons.constants import WORKER_END
+from pycompss.worker.gat.commons.constants import PROCESS_DESTRUCTION
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
@@ -77,7 +82,9 @@ def compss_worker(tracing, task_id, storage_conf, params):
                           logger,
                           (),
                           False)
-    exit_code, new_types, new_values, timed_out, except_msg = result
+    # Result contains:
+    # exit_code, new_types, new_values, timed_out, except_msg = result
+    exit_code, _, _, _, _ = result
 
     if __debug__:
         logger.debug("Finishing Worker")
@@ -101,8 +108,9 @@ def main():
     stream_backend = sys.argv[5]
     stream_master_name = sys.argv[6]
     stream_master_port = sys.argv[7]
-    # method_type = sys.argv[8]
+    # Next: method_type = sys.argv[8]
     params = sys.argv[9:]
+    # Next parameters:
     # class_name = sys.argv[9]
     # method_name = sys.argv[10]
     # num_slaves = sys.argv[11]

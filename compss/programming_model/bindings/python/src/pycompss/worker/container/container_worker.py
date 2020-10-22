@@ -23,7 +23,7 @@ inside containers.
 """
 
 # Fix PYTHONPATH setup
-import pythonpath_fixer  # noqa
+import pycompss.worker.container.pythonpath_fixer  # noqa
 
 # Regular imports
 import sys
@@ -103,7 +103,8 @@ def main():
                           python_mpi,
                           collections_layouts  # noqa
                           )
-    exit_value, new_types, new_values, timed_out, except_msg = result
+    # The ignored result is time out
+    exit_value, new_types, new_values, _, except_msg = result
 
     if __debug__:
         LOGGER.debug("DONE Processing task")

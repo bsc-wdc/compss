@@ -72,7 +72,7 @@
 
     timeout --signal=2 $expectedTime \
       jupyter nbconvert \
-      --to=script \
+      --to=html \
       --ExecutePreprocessor.kernel_name=${kernel} \
       --execute "${base_app_dir}/src/${app_ipynb}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 

@@ -194,6 +194,8 @@ def start(log_level='off',                     # type: str
     __export_globals__()
 
     interactive_helpers.DEBUG = debug
+    if debug:
+        log_level = "debug"
 
     __show_flower__()
 

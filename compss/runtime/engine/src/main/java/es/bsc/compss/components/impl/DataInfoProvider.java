@@ -1343,11 +1343,11 @@ public class DataInfoProvider {
         switch (p.getType()) {
             case DIRECTORY_T:
                 DirectoryParameter dp = (DirectoryParameter) p;
-                deleteData(app,  dp.getLocation(), noReuse);
+                deleteData(app, dp.getLocation(), noReuse);
                 break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                deleteData(app,  fp.getLocation(), noReuse);
+                deleteData(app, fp.getLocation(), noReuse);
                 break;
             case OBJECT_T:
             case PSCO_T:
@@ -1381,6 +1381,6 @@ public class DataInfoProvider {
             default:
                 // This is a basic type nothing to delete
         }
-        
+
     }
 }

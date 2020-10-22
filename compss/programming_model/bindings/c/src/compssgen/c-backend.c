@@ -1392,7 +1392,7 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
     //ExecuteTask params: appId, className, onFailure, timeout,  method_name, priority, num_nodes, is_reduce, reduce_chunk, is_replicated, is_distributed, has_target,  num_returns, num_params params
     fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", \"%s\", %d, method_name, %d, %d, %d, %d, %d, %d, %d, %d, %d, (void**)arrayObjs);\n", 
-		    class_name, on_failure, time_out, priority, num_nodes, is_reduced, reduce_chunk, is_replicated, is_distributed, has_target, num_returns, arg_count);
+		    class_name, on_failure, time_out, priority, num_nodes, is_reduce, reduce_chunk, is_replicated, is_distributed, has_target, num_returns, arg_count);
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Task submited in the runtime\\n\", method_name);\n");
     fprintf(outFile, "\n");
     

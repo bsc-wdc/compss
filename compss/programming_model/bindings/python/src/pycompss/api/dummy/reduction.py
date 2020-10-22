@@ -18,15 +18,15 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Dummy API - Reduce
+PyCOMPSs Dummy API - Reduction
 ===============================
-    This file contains the dummy class reduce used as decorator.
+    This file contains the dummy class reduction used as decorator.
 """
 
 
-class Reduce(object):
+class Reduction(object):
     """
-    Dummy Reduce class (decorator style)
+    Dummy Reduction class (decorator style)
     """
 
     def __init__(self, *args, **kwargs):
@@ -40,4 +40,4 @@ class Reduce(object):
         return wrapped_f
 
 
-reduce = Reduce
+reduction = Reduction

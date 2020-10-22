@@ -413,7 +413,6 @@ public class ITAppEditor extends ExprEditor {
         OnFailure onFailure = OnFailure.RETRY;
         int timeOut = 0;
         int numNodes = Constants.SINGLE_NODE;
-
         // Scheduler hints values
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
@@ -494,6 +493,9 @@ public class ITAppEditor extends ExprEditor {
         // Add scheduler common values
         executeTask.append(isPrioritary).append(',');
         executeTask.append(numNodes).append(",");
+        // Default reduce params (Not supported yet in Java)
+        executeTask.append(false).append(','); // isReduce
+        executeTask.append(0).append(','); // reduceChunkSize
         executeTask.append(isReplicated).append(',');
         executeTask.append(isDistributed).append(',');
 

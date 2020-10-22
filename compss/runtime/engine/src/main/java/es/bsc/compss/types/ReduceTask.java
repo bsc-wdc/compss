@@ -118,7 +118,7 @@ public class ReduceTask extends Task {
             Parameter finalParameter = parameters.get(1);
             if (p.getType() == DataType.COLLECTION_T) {
                 List<Parameter> colList = p.getParameters();
-                
+
                 // Calculate maximum number of operations
                 double completeOperations = 0;
                 this.totalOperations = 0;
@@ -130,7 +130,7 @@ public class ReduceTask extends Task {
                     accum = completeOperations + intermediateResults;
                     this.totalOperations = this.totalOperations + accum;
                 }
-                
+
                 for (int i = 0; i < (int) totalOperations; i++) {
                     String partialId = "reduce" + i + "PartialResultTask" + this.getId();
                     String canonicalPath = new File(partialId).getCanonicalPath();
@@ -266,15 +266,14 @@ public class ReduceTask extends Task {
         ColorNode color = ColorConfiguration.getColors()[monitorTaskId % (ColorConfiguration.NUM_COLORS + 1)];
         return color.getFillColor();
     }
-    
+
     @Override
     public List<Parameter> getParameterDataToRemove() {
         List<Parameter> dataToRemove = new LinkedList<>();
         dataToRemove.addAll(getIntermediateInParameters());
         dataToRemove.addAll(getIntermediateOutParameters());
         dataToRemove.addAll(getIntermediateCollections());
-        dataToRemove.add(getFinalCollection());
         return dataToRemove;
     }
-    
+
 }

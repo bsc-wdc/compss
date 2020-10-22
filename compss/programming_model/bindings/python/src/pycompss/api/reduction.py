@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Reduce
+PyCOMPSs API - Reduction
 ==================
-    This file contains the class Reduce, needed for the reduction
+    This file contains the class Reduction, needed for the reduction
     of data elements.
 """
 
@@ -49,7 +49,7 @@ DEPRECATED_ARGUMENTS = set()
 class Reduction(PyCOMPSsDecorator):
     """
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on Reduce task creation.
+    __call__ methods, useful on Reduction task creation.
     """
 
     def __init__(self, *args, **kwargs):
@@ -84,7 +84,7 @@ class Reduction(PyCOMPSsDecorator):
         @wraps(func)
         def reduce_f(*args, **kwargs):
             if not self.scope:
-                raise Exception(not_in_pycompss("reduce"))
+                raise Exception(not_in_pycompss("reduction"))
 
             if __debug__:
                 logger.debug("Executing reduce_f wrapper.")
@@ -105,7 +105,7 @@ class Reduction(PyCOMPSsDecorator):
 
     def __process_reduction_params__(self):
         # type: () -> None
-        """ Processes the chunk size and is reduce  from the decorator.
+        """ Processes the chunk size and is reduce from the decorator.
 
         :return: None
         """
@@ -135,7 +135,7 @@ class Reduction(PyCOMPSsDecorator):
                     except ValueError:
                         raise Exception(cast_string_to_int_error('chunk_size'))
             else:
-                raise Exception("ERROR: Wrong chunk_size value at @reduce decorator.")  # noqa: E501
+                raise Exception("ERROR: Wrong chunk_size value at @reduction decorator.")  # noqa: E501
 
         if 'is_reduce' not in self.kwargs:
             is_reduce = True
@@ -144,16 +144,16 @@ class Reduction(PyCOMPSsDecorator):
 
         if __debug__:
             logger.debug("The task is_reduce flag is set to: %s" % str(is_reduce))  # noqa: E501
-            logger.debug("This Reduce task will have %s sized chunks" % str(chunk_size))  # noqa: E501
+            logger.debug("This Reduction task will have %s sized chunks" % str(chunk_size))  # noqa: E501
 
         # Set the chunk_size variable in kwargs for its usage in @task
         self.kwargs['chunk_size'] = chunk_size
         self.kwargs['is_reduce'] = is_reduce
 
 
-
 # ########################################################################### #
 # ################### REDUCTION DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
+
 reduction = Reduction
 REDUCTION = Reduction

@@ -192,11 +192,12 @@ class DDS(object):
         >>> first.union(second).count()
         10
         """
-
+        current = list(self.collect(future_objects=True))
         for dds in args:
-            self.partitions.extend(dds.partitions)
+            temp = list(dds.collect(future_objects=True))
+            current.extend(temp)
 
-        return self
+        return DDS().load(current, num_of_parts=-1)
 
     def num_of_partitions(self):
         """ Get the total amount of partitions
@@ -408,7 +409,8 @@ class DDS(object):
         >>> DDS().load(range(3), 2).count()
         3
         """
-        return self.map(lambda x: 1).sum()
+        return self.map_partitions(lambda i: [sum(1 for _ in i)]).sum()
+        # return self.map(lambda x: 1).sum()
 
     def foreach(self, f):
         """
@@ -607,6 +609,36 @@ class DDS(object):
 
         return self.map_and_flatten(dummy)
 
+    def join(self, other, num_of_partitions=-1):
+        """
+        :param other: another dds object
+        :param num_of_partitions:
+        :return:
+
+        >>> x = DDS().load([("a", 1), ("b", 3)])
+        >>> y = DDS().load([("a", 2), ("b", 4)])
+        >>> sorted(x.join(y).collect())
+        [('a', (1, 2)), ('b', (3, 4))]
+        """
+
+        def dispatch(seq):
+            buf_1, buf_2 = [], []
+            for (n, v) in seq:
+                if n == 1:
+                    buf_1.append(v)
+                elif n == 2:
+                    buf_2.append(v)
+            return [(v, w) for v in buf_1 for w in buf_2]
+
+        nop = len(self.partitions) if num_of_partitions == -1 \
+            else num_of_partitions
+
+        buf_a = self.map_values(lambda v: (1, v))
+        buf_b = other.map_values(lambda y: (2, y))
+
+        return buf_a.union(buf_b).group_by_key(num_of_parts=nop)\
+            .flatten_by_key(lambda x: dispatch(x.__iter__()))
+
     def combine_by_key(self, creator_func, combiner_func, merger_function,
                        total_parts=-1):
         """
@@ -727,6 +759,54 @@ class DDS(object):
 
         partitioned = DDS().load(col_parts, -1).partition_by(range_partitioner)
         return partitioned.map_partitions(sort_partition)
+
+    def group_by_key(self, num_of_parts=-1):
+        """
+        Group values of each key in a single list. A special and most used case
+        of 'combine_by_key'
+
+
+        >>> x = DDS().load([("a", 1), ("b", 2), ("a", 2), ("b", 4)])
+        >>> sorted(x.group_by_key().collect())
+        [('a', [1, 2]), ('b', [2, 4])]
+        """
+        def _create(x):
+            return [x]
+
+        def _merge(xs, x):
+            xs.append(x)
+            return xs
+
+        def _combine(a, b):
+            a.extend(b)
+            return a
+
+        return self.combine_by_key(_create, _merge, _combine,
+                                   total_parts=num_of_parts)
+
+    def take(self, num):
+        """
+        The first num elements of DDS.
+        :param num: number of elements to be retrieved.
+        :return:
+
+        """
+        items = []
+        partitions = self.collect(future_objects=True)
+        taken = 0
+
+        for part in partitions:
+            _p = iter(cwo(part))
+            while taken < num:
+                try:
+                    items.append(next(_p))
+                    taken += 1
+                except StopIteration:
+                    break
+            if taken >= num:
+                break
+
+        return items[:num]
 
 
 class ChildDDS(DDS):

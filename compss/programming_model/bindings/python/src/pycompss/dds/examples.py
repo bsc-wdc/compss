@@ -30,6 +30,20 @@ def inside(_):
         return True
 
 
+def _generate_graph():
+    num_edges = 10
+    num_vertices = 5
+    rand = Random(42)
+
+    edges = set()
+    while len(edges) < num_edges:
+        src = rand.randrange(0, num_vertices)
+        dst = rand.randrange(0, num_vertices)
+        if src != dst:
+            edges.add((src, dst))
+    return edges
+
+
 def files_to_pairs(element):
     tuples = list()
     lines = element[1].split("\n")
@@ -47,20 +61,6 @@ def _invert_files(pair):
     for word in pair[1].split():
         res[word] = [pair[0]]
     return list(res.items())
-
-
-def _generate_graph():
-    num_edges = 10
-    num_vertices = 5
-    rand = Random(42)
-
-    edges = set()
-    while len(edges) < num_edges:
-        src = rand.randrange(0, num_vertices)
-        dst = rand.randrange(0, num_vertices)
-        if src != dst:
-            edges.add((src, dst))
-    return edges
 
 
 def word_count():

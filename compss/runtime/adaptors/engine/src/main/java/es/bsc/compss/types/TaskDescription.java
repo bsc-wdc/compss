@@ -34,6 +34,7 @@ public class TaskDescription {
     private final CoreElement coreElement;
 
     private final boolean priority;
+    private final boolean reduction;
     private final int numNodes;
     private final boolean mustReplicate;
     private final boolean mustDistribute;
@@ -56,6 +57,7 @@ public class TaskDescription {
      * @param parallelismSource Identifier of the interface to use for detecting parallelism within the invocation.
      * @param isPrioritary Whether the method is prioritary or not.
      * @param numNodes Number of nodes required for the method execution.
+     * @param isReduction Whether the method is reduce or not.
      * @param isReplicated Whether the method is replicated or not.
      * @param isDistributed Whether the method is distributed or not.
      * @param hasTarget Whether the method has a target parameter or not.
@@ -65,8 +67,9 @@ public class TaskDescription {
      * @param parameters Number of parameters.
      */
     public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement,
-        String parallelismSource, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-        boolean hasTarget, int numReturns, OnFailure onFailure, long timeOut, List<Parameter> parameters) {
+        String parallelismSource, boolean isPrioritary, int numNodes, boolean isReduction, boolean isReplicated,
+        boolean isDistributed, boolean hasTarget, int numReturns, OnFailure onFailure, long timeOut,
+        List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;
@@ -76,6 +79,7 @@ public class TaskDescription {
 
         this.priority = isPrioritary;
         this.numNodes = numNodes;
+        this.reduction = isReduction;
         this.mustReplicate = isReplicated;
         this.mustDistribute = isDistributed;
 
@@ -141,6 +145,15 @@ public class TaskDescription {
      */
     public boolean hasPriority() {
         return this.priority;
+    }
+
+    /**
+     * Returns whether the task has the priority flag enabled or not.
+     *
+     * @return {@code true} if the priority flag is enabled, {@code false} otherwise.
+     */
+    public boolean isReduction() {
+        return this.reduction;
     }
 
     /**

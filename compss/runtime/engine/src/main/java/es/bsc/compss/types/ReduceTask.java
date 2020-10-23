@@ -74,6 +74,7 @@ public class ReduceTask extends Task {
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of nodes used by the task.
      * @param reduceChunkSize Size of the chunks to execute the reduce.
+     * @param isReduction Whether the task must be replicated or not.
      * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed round-robin or not.
      * @param numReturns Number of returns of the task.
@@ -84,11 +85,12 @@ public class ReduceTask extends Task {
      * @param timeOut Time for a task time out.
      */
     public ReduceTask(Application app, Lang lang, String signature, boolean isPrioritary, int numNodes,
-        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
-        List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
-        super(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
-            parameters, monitor, onFailure, timeOut);
-        this.tasks = new LinkedList<Task>();
+        boolean isReduction, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+        int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
+
+        super(app, lang, signature, isPrioritary, numNodes, isReduction, isReplicated, isDistributed, hasTarget,
+            numReturns, parameters, monitor, onFailure, timeOut);
+        this.tasks = new LinkedList<>();
         this.chunkSize = reduceChunkSize;
         this.totalOperations = 0;
         this.partialsIn = new ArrayList<>();
@@ -241,12 +243,8 @@ public class ReduceTask extends Task {
         this.intermediateCollections.clear();
     }
 
-    /**
-     * Returns the list of unused parameters.
-     * 
-     * @return The list of IN and OUT unused parameters.
-     */
-    public List<Parameter> getUnusedParameters() {
+    @Override
+    public List<Parameter> getUnusedIntermediateParameters() {
         this.partialsIn.addAll(this.partialsOut);
         return partialsIn;
     }
@@ -274,6 +272,17 @@ public class ReduceTask extends Task {
         dataToRemove.addAll(getIntermediateOutParameters());
         dataToRemove.addAll(getIntermediateCollections());
         return dataToRemove;
+    }
+
+    @Override
+    public List<Parameter> getIntermediateParameters() {
+        List<Parameter> interParams = new LinkedList<>();
+        // The order matters
+        interParams.addAll(getIntermediateOutParameters());
+        interParams.addAll(getIntermediateInParameters());
+        interParams.addAll(getIntermediateCollections());
+        interParams.add(finalCol);
+        return interParams;
     }
 
 }

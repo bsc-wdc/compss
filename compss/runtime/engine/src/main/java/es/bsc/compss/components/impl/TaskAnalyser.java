@@ -25,7 +25,6 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.ReadersInfo;
-import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskGroup;
@@ -158,8 +157,8 @@ public class TaskAnalyser {
      * @param currentTask Task.
      */
     public void processTask(Task currentTask) {
-        TaskDescription params = currentTask.getTaskDescription();
-        LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName()
+        TaskDescription description = currentTask.getTaskDescription();
+        LOGGER.info("New " + description.getType().toString().toLowerCase() + " task: Name:" + description.getName()
             + "), ID = " + currentTask.getId());
 
         if (IS_DRAW_GRAPH) {
@@ -171,8 +170,8 @@ public class TaskAnalyser {
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
-        if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
-            constrainingParam = params.getParameters().size() - 1 - params.getNumReturns();
+        if (description.getType() == TaskType.SERVICE && description.hasTargetObject()) {
+            constrainingParam = description.getParameters().size() - 1 - description.getNumReturns();
         }
 
         // Add task to the groups
@@ -181,8 +180,25 @@ public class TaskAnalyser {
             group.addTask(currentTask);
         }
 
+        // Add reduction task to reduce task list
+        if (description.isReduction()) {
+            this.reduceTasksNames.add(description.getName());
+        }
+
         // Process parameters
-        List<Parameter> parameters = params.getParameters();
+        boolean taskHasEdge = processTaskParameters(app, currentTask, constrainingParam);
+        registerIntermediateParameter(app, currentTask);
+        markIntermediateParametersToDelete(app, currentTask);
+
+        if (IS_DRAW_GRAPH && !taskHasEdge) {
+            // If the graph must be written and the task has no edge due to its parameters,
+            // add a direct dependency from last sync to task.
+            addEdgeFromMainToTask(currentTask);
+        }
+    }
+
+    private boolean processTaskParameters(Application app, Task currentTask, int constrainingParam) {
+        List<Parameter> parameters = currentTask.getParameters();
         boolean taskHasEdge = false;
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             boolean isConstraining = paramIdx == constrainingParam;
@@ -190,46 +206,64 @@ public class TaskAnalyser {
                 registerParameterAccessAndAddDependencies(app, currentTask, parameters.get(paramIdx), isConstraining);
             taskHasEdge = taskHasEdge || paramHasEdge;
         }
+        return taskHasEdge;
+    }
 
-        if (currentTask instanceof ReduceTask) {
-            // If it a reduce task. It is dynamically decomposed in a set of partial reduce tasks.
-            // These tasks are using IN and OUT temporal collection parameters.
-            // In this part of code we register this parameters in order to be managed when tasks are finishing.
-            this.reduceTasksNames.add(((ReduceTask) currentTask).getTaskDescription().getName());
-            // Register partial output parameters
-            List<Parameter> reducePartialsOut = ((ReduceTask) currentTask).getIntermediateOutParameters();
-            for (int paramIdx = 0; paramIdx < reducePartialsOut.size(); paramIdx++) {
-                boolean isConstraining = paramIdx == constrainingParam;
-                registerParameterAccessAndAddDependencies(app, currentTask, reducePartialsOut.get(paramIdx),
-                    isConstraining);
-            }
-            // Register partial tasks input parameters
-            List<Parameter> reducePartialsIn = ((ReduceTask) currentTask).getIntermediateInParameters();
-            for (int paramIdx = 0; paramIdx < reducePartialsIn.size(); paramIdx++) {
-                boolean isConstraining = paramIdx == constrainingParam;
-                registerParameterAccessAndAddDependencies(app, currentTask, reducePartialsIn.get(paramIdx),
-                    isConstraining);
-            }
-            // Register partial task collections
-            List<CollectionParameter> reduceCollections = ((ReduceTask) currentTask).getIntermediateCollections();
-            for (int paramIdx = 0; paramIdx < reduceCollections.size(); paramIdx++) {
-                boolean isConstraining = paramIdx == constrainingParam;
-                registerParameterAccessAndAddDependencies(app, currentTask, reduceCollections.get(paramIdx),
-                    isConstraining);
-            }
-            // Final reduce task collection
-            CollectionParameter finalCollection = ((ReduceTask) currentTask).getFinalCollection();
-            boolean isConstraining = false;
-            registerParameterAccessAndAddDependencies(app, currentTask, finalCollection, isConstraining);
+    private void markIntermediateParametersToDelete(Application app, Task task) {
+        for (Parameter p : task.getParameterDataToRemove()) {
+            markParameterToDelete(app, p, true);
+        }
+    }
+
+    private void registerIntermediateParameter(Application app, Task task) {
+        for (Parameter p : task.getIntermediateParameters()) {
+            registerParameterAccessAndAddDependencies(app, task, p, false);
+        }
+    }
+
+    private void markParameterToDelete(Application app, Parameter p, boolean noReuse) {
+        switch (p.getType()) {
+            case DIRECTORY_T:
+                DirectoryParameter dp = (DirectoryParameter) p;
+                dip.deleteData(app, dp.getLocation(), noReuse);
+                break;
+            case FILE_T:
+                FileParameter fp = (FileParameter) p;
+                dip.deleteData(app, fp.getLocation(), noReuse);
+                break;
+            case OBJECT_T:
+            case PSCO_T:
+                ObjectParameter op = (ObjectParameter) p;
+                dip.deleteData(op.getCode(), noReuse);
+                break;
+            case EXTERNAL_PSCO_T:
+                ExternalPSCOParameter epscop = (ExternalPSCOParameter) p;
+                dip.deleteData(epscop.getCode(), noReuse);
+                break;
+            case BINDING_OBJECT_T:
+                BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
+                dip.deleteData(bindingObjectparam.getCode(), noReuse);
+                break;
+            case STREAM_T:
+                StreamParameter sp = (StreamParameter) p;
+                dip.deleteData(sp.getCode(), noReuse);
+                break;
+            case EXTERNAL_STREAM_T:
+                ExternalStreamParameter esp = (ExternalStreamParameter) p;
+                dip.deleteData(app, esp.getLocation(), noReuse);
+                break;
+            case COLLECTION_T:
+                CollectionParameter cp = (CollectionParameter) p;
+                dip.deleteCollection(cp.getCollectionId(), true);
+                break;
+            case DICT_COLLECTION_T:
+                DictCollectionParameter dcp = (DictCollectionParameter) p;
+                dip.deleteDictCollection(dcp.getDictCollectionId(), true);
+                break;
+            default:
+                // This is a basic type nothing to delete
         }
 
-        if (IS_DRAW_GRAPH) {
-            if (!taskHasEdge) {
-                // If the graph must be written and the task has no edge due to its parameters,
-                // add a direct dependency from last sync to task.
-                addEdgeFromMainToTask(currentTask);
-            }
-        }
     }
 
     /**
@@ -352,13 +386,11 @@ public class TaskAnalyser {
                 updateLastWritters(task, param);
             }
 
-            if (task instanceof ReduceTask) {
-                // When a reduce task end we have to "deregister/remove" not used parameters
-                List<Parameter> paramList = ((ReduceTask) task).getUnusedParameters();
-                for (Parameter param : paramList) {
-                    updateParameterAccess(task, param);
-                    updateLastWritters(task, param);
-                }
+            // When a task can have internal temporal parameters,
+            // the not used ones have to be updated to perform the data delete
+            for (Parameter param : task.getUnusedIntermediateParameters()) {
+                updateParameterAccess(task, param);
+                updateLastWritters(task, param);
             }
 
             // Check if the finished task was the last writer of a file, but only if task generation has finished
@@ -382,17 +414,8 @@ public class TaskAnalyser {
         if (DEBUG) {
             LOGGER.debug("Releasing data dependant tasks for task " + taskId);
         }
+        aTask.releaseDataDependents();
 
-        // Release data dependent tasks. If it a partial reduce, it does not have to release data dependent tasks.
-        boolean successorIsReduce = false;
-        for (AbstractTask t : aTask.getSuccessors()) {
-            if (this.reduceTasksNames.contains(((Task) t).getTaskDescription().getName())) {
-                successorIsReduce = true;
-            }
-        }
-        if (!successorIsReduce) {
-            aTask.releaseDataDependents();
-        }
         if (DEBUG) {
             long time = System.currentTimeMillis() - start;
             LOGGER.debug("Task " + taskId + " end message processed in " + time + " ms.");

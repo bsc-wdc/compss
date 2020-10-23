@@ -103,6 +103,15 @@ public class SchedulingInformation {
     }
 
     /**
+     * Creates an empty Scheduling Information.
+     */
+    public SchedulingInformation() {
+        this.constrainingPredecessors = new LinkedList<>();
+        this.perResourceScore = new HashMap<>();
+        this.enforcedTargetResource = null;
+    }
+
+    /**
      * Creates a new Scheduling Information instance.
      * 
      * @param enforcedTargetResource Enforced resource.
@@ -111,16 +120,13 @@ public class SchedulingInformation {
         List<Parameter> params, Integer coreId) {
         this.constrainingPredecessors = new LinkedList<>();
         this.enforcedTargetResource = enforcedTargetResource;
-        this.perResourceScore = new HashMap<Resource, Double>();
-        if (enforcedTargetResource == null) {
-            if (coreId != null) {
-                List<ResourceScheduler<? extends WorkerResourceDescription>> res = getCoreElementExecutors(coreId);
-
-                if (params != null) {
-                    for (ResourceScheduler<? extends WorkerResourceDescription> rs : res) {
-                        double initialScore = (double) Score.calculateDataLocalityScore(params, rs.getResource());
-                        perResourceScore.put(rs.getResource(), initialScore);
-                    }
+        this.perResourceScore = new HashMap<>();
+        if (enforcedTargetResource == null && coreId != null) {
+            List<ResourceScheduler<? extends WorkerResourceDescription>> res = getCoreElementExecutors(coreId);
+            if (params != null) {
+                for (ResourceScheduler<? extends WorkerResourceDescription> rs : res) {
+                    double initialScore = (double) Score.calculateDataLocalityScore(params, rs.getResource());
+                    perResourceScore.put(rs.getResource(), initialScore);
                 }
             }
         }

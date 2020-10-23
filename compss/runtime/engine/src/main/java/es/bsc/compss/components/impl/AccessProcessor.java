@@ -216,11 +216,11 @@ public class AccessProcessor implements Runnable {
         Task currentTask;
 
         if (isReduce) {
-            currentTask = new ReduceTask(app, lang, signature, isPrioritary, numNodes, reduceChunkSize, isReplicated,
-                isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+            currentTask = new ReduceTask(app, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
+                isReplicated, isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
         } else {
-            currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
-                numReturns, parameters, monitor, onFailure, timeOut);
+            currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReduce, isReplicated, isDistributed,
+                hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
         }
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
@@ -260,9 +260,9 @@ public class AccessProcessor implements Runnable {
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
 
-        LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
+        LOGGER.debug("Requesting analysis of new service Task " + currentTask.getId());
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
+            ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
         }
 
         return currentTask.getId();

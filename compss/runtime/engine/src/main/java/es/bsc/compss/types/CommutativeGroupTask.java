@@ -17,6 +17,7 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.parameter.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -222,12 +223,27 @@ public class CommutativeGroupTask extends AbstractTask {
      * @return {@literal true} if the group is executing the given task, {@literal false} otherwise.
      */
     public boolean processingExecution(int taskId) {
-        if (this.currentlyExecuting) {
-            if (taskId == this.taskExecuting) {
-                return false;
-            }
+        if (this.currentlyExecuting && taskId == this.taskExecuting) {
+            return false;
         }
         return this.currentlyExecuting;
+    }
+
+    public List<Parameter> getParameterDataToRemove() {
+        return new LinkedList<>();
+    }
+
+    public List<Parameter> getIntermediateParameters() {
+        return new LinkedList<>();
+    }
+
+    public List<Parameter> getUnusedIntermediateParameters() {
+        return new LinkedList<>();
+    }
+
+    @Override
+    public boolean isReduction() {
+        return false;
     }
 
     /**
@@ -253,4 +269,5 @@ public class CommutativeGroupTask extends AbstractTask {
     public String getColor() {
         return null;
     }
+
 }

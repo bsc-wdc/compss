@@ -60,7 +60,6 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
@@ -126,9 +125,8 @@ public class ExecutionAction extends AllocatableAction {
                         if (e != null && e.isPending()) {
                             addDataPredecessor(e);
                         } else {
-                            if (this instanceof ReduceExecutionAction) {
-                                ((ReduceExecutionAction) this).addAlreadyDoneAction(e);
-                            }
+                            addAlreadyDoneAction(e);
+
                         }
                     }
                 } else {

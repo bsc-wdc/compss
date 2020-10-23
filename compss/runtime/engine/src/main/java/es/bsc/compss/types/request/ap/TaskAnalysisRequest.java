@@ -77,7 +77,7 @@ public class TaskAnalysisRequest extends APRequest {
             ta.processTask(this.task);
         }
 
-        dip.removeTaskData(this.task);
+        // dip.removeTaskData(this.task);
 
         // Send request to schedule task
         td.executeTask(ap, this.task);

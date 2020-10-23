@@ -33,55 +33,65 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
         this.entryPoint = EntryPoint.valueOf(command[1]);
 
         switch (this.entryPoint) {
-            case SIGNATURE: {
-                // EXECUTE_NESTED_TASK "SIGNATURE" SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES IS_REPLICATED
-                // IS_DISTRIBUTED HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
-                this.signature = command[2];
-                this.onFailure = command[3];
-                this.timeout = Integer.parseInt(command[4]);
-                this.prioritary = Boolean.parseBoolean(command[5]);
-                this.numNodes = Integer.parseInt(command[6]);
-                this.reduce = Boolean.parseBoolean(command[7]);
-                this.reduceChunkSize = Integer.parseInt(command[8]);
-                this.isReplicated = Boolean.parseBoolean(command[9]);
-                this.isDistributed = Boolean.parseBoolean(command[10]);
-                this.hasTarget = Boolean.parseBoolean(command[11]);
-                this.numReturns = Integer.parseInt(command[12]);
-                this.parameterCount = Integer.parseInt(command[13]);
-                String[] params = new String[command.length - 14];
-                if (command.length > 14) {
-                    System.arraycopy(command, 14, params, 0, params.length);
-                }
-                this.parameters = processParameters(params);
+            case SIGNATURE:
+                loadWithSignature(command);
                 break;
-            }
-            case CLASS_METHOD: {
-                // EXECUTE_NESTED_TASK "CLASS_METHOD" METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME IS_PRIORITARY
-                // HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
-                this.methodClass = command[2];
-                this.onFailure = command[3];
-                this.timeout = Integer.parseInt(command[4]);
-                this.methodName = command[5];
-                this.prioritary = Boolean.parseBoolean(command[6]);
-                this.numNodes = Integer.parseInt(command[7]);
-                this.reduce = Boolean.parseBoolean(command[8]);
-                this.reduceChunkSize = Integer.parseInt(command[9]);
-                this.isReplicated = Boolean.parseBoolean(command[10]);
-                this.isDistributed = Boolean.parseBoolean(command[11]);
-                this.hasTarget = Boolean.parseBoolean(command[12]);
-                this.numReturns = Integer.parseInt(command[13]);
-                this.parameterCount = Integer.parseInt(command[14]);
-                String[] params = new String[command.length - 15];
-                if (command.length > 15) {
-                    System.arraycopy(command, 15, params, 0, params.length);
-                }
-                this.parameters = processParameters(params);
+            case CLASS_METHOD:
+                loadWithClassAndMethod(command);
                 break;
-            }
             default:
                 // Nothing to do
                 break;
         }
+    }
+
+    private void loadWithClassAndMethod(String[] command) {
+        // EXECUTE_NESTED_TASK "CLASS_METHOD" METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME
+        // IS_PRIORITARY NUM_NODES IS_REDUCE REDUCE_CHUNK IS_REPLICATED IS_DISTRIBUTED
+        // HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
+        this.methodClass = command[2];
+        this.onFailure = command[3];
+        this.timeout = Integer.parseInt(command[4]);
+        this.methodName = command[5];
+        this.prioritary = Boolean.parseBoolean(command[6]);
+        this.numNodes = Integer.parseInt(command[7]);
+        this.reduce = Boolean.parseBoolean(command[8]);
+        this.reduceChunkSize = Integer.parseInt(command[9]);
+        this.isReplicated = Boolean.parseBoolean(command[10]);
+        this.isDistributed = Boolean.parseBoolean(command[11]);
+        this.hasTarget = Boolean.parseBoolean(command[12]);
+        this.numReturns = Integer.parseInt(command[13]);
+        this.parameterCount = Integer.parseInt(command[14]);
+        String[] params = new String[command.length - 15];
+        if (command.length > 15) {
+            System.arraycopy(command, 15, params, 0, params.length);
+        }
+        this.parameters = processParameters(params);
+
+    }
+
+    private void loadWithSignature(String[] command) {
+        // EXECUTE_NESTED_TASK "SIGNATURE" SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES
+        // IS_REDUCE REDUCE_CHUNK IS_REPLICATED IS_DISTRIBUTED HAS_TARGET NUM_RETURNS
+        // PARAMETER_COUNT PARAMENTERS
+        this.signature = command[2];
+        this.onFailure = command[3];
+        this.timeout = Integer.parseInt(command[4]);
+        this.prioritary = Boolean.parseBoolean(command[5]);
+        this.numNodes = Integer.parseInt(command[6]);
+        this.reduce = Boolean.parseBoolean(command[7]);
+        this.reduceChunkSize = Integer.parseInt(command[8]);
+        this.isReplicated = Boolean.parseBoolean(command[9]);
+        this.isDistributed = Boolean.parseBoolean(command[10]);
+        this.hasTarget = Boolean.parseBoolean(command[11]);
+        this.numReturns = Integer.parseInt(command[12]);
+        this.parameterCount = Integer.parseInt(command[13]);
+        String[] params = new String[command.length - 14];
+        if (command.length > 14) {
+            System.arraycopy(command, 14, params, 0, params.length);
+        }
+        this.parameters = processParameters(params);
+
     }
 
     @Override

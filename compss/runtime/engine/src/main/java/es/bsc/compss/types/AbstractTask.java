@@ -16,29 +16,21 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 
 /**
  * Representation of a Task.
  */
 public abstract class AbstractTask implements Comparable<AbstractTask> {
-
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
 
     // Task ID management
     private static final int FIRST_TASK_ID = 1;
@@ -123,12 +115,18 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
      */
     public void releaseDataDependents() {
         for (AbstractTask t : this.successors) {
-            synchronized (t) {
-                t.removePredecessor(this);
+            // We do not have to remove predecessor for reduces
+            // to avoid uncontrolled executions of the reduce action
+            if (!t.isReduction()) {
+                synchronized (t) {
+                    t.removePredecessor(this);
+                }
             }
         }
         this.successors.clear();
     }
+
+    public abstract boolean isReduction();
 
     /**
      * Remove the task from the predecessor's list of successors.
@@ -272,6 +270,27 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     public List<AllocatableAction> getExecutions() {
         return this.executions;
     }
+
+    /**
+     * Returns the parameters to mark to remove.
+     * 
+     * @return list of parameters to mark to remove.
+     */
+    public abstract List<Parameter> getParameterDataToRemove();
+
+    /**
+     * Returns the temporal intermediate parameters.
+     *
+     * @return list of intermediate parameters.
+     */
+    public abstract List<Parameter> getIntermediateParameters();
+
+    /**
+     * Returns the task's intermediate parameters not used during the execution.
+     * 
+     * @return The list of unused parameters.
+     */
+    public abstract List<Parameter> getUnusedIntermediateParameters();
 
     /**
      * Returns the DOT description of the task (only for monitoring).

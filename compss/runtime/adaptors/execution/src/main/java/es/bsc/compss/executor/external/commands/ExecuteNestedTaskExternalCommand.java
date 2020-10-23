@@ -36,7 +36,7 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
 
-    public static enum EntryPoint {
+    public enum EntryPoint {
         SIGNATURE, CLASS_METHOD
     }
 

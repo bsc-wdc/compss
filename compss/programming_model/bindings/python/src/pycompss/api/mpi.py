@@ -34,6 +34,8 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 if __debug__:
     import logging
@@ -87,7 +89,7 @@ class MPI(PyCOMPSsDecorator):
                     SUPPORTED_ARGUMENTS.add(key)
             if layout_nums > 1:
                 msg = "More than one layout definition is not yet supported!"
-                raise Exception(msg)
+                raise PyCOMPSsException(msg)
 
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -168,11 +170,11 @@ class MPI(PyCOMPSsDecorator):
             cmd += ['-np', self.kwargs['computing_nodes']]
         elif 'computingNodes' in self.kwargs:
             cmd += ['-np', self.kwargs['computingNodes']]
-        else:
-            pass
+
         if 'flags' in self.kwargs:
             cmd += self.kwargs['flags'].split()
         cmd += [self.kwargs['binary']]
+
         if args:
             args = [str(a) for a in args]
             cmd += args
@@ -204,6 +206,7 @@ class MPI(PyCOMPSsDecorator):
         """ Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(param_name, block_count, block_length, stride)
+        :raises PyCOMPSsException: If the collection layout does not contain block_count.
         """
         param_name = ""
         block_count = -1
@@ -214,27 +217,53 @@ class MPI(PyCOMPSsDecorator):
             if "_layout" in key:
                 param_name = key.split("_layout")[0]
                 collection_layout = value
-                if "block_count" in collection_layout:
-                    block_count = collection_layout["block_count"]
-                else:
-                    block_count = -1
 
-                if "block_length" in collection_layout:
-                    block_length = collection_layout["block_length"]
-                else:
-                    block_length = -1
-
-                if "stride" in collection_layout:
-                    stride = collection_layout["stride"]
-                else:
-                    stride = -1
+                block_count = self.__get_block_count__(collection_layout)
+                block_length = self.__get_block_length__(collection_layout)
+                stride = self.__get_stride__(collection_layout)
 
                 if (block_length != -1 and block_count == -1) or \
                         (stride != -1 and block_count == -1):
                     msg = "Error: collection_layout must contain block_count!"
-                    raise Exception(msg)
+                    raise PyCOMPSsException(msg)
 
         return [param_name, str(block_count), str(block_length), str(stride)]
+
+    def __get_block_count__(self, collection_layout):
+        # type: (dict) -> int
+        """ Get the block count from the given collection layout.
+
+        :param collection_layout: Collection layout.
+        :return: Block count value.
+        """
+        if "block_count" in collection_layout:
+            return collection_layout["block_count"]
+        else:
+            return -1
+
+    def __get_block_length__(self, collection_layout):
+        # type: (dict) -> int
+        """ Get the block length from the given collection layout.
+
+        :param collection_layout: Collection layout.
+        :return: Block length value.
+        """
+        if "block_length" in collection_layout:
+            return collection_layout["block_length"]
+        else:
+            return -1
+
+    def __get_stride__(self, collection_layout):
+        # type: (dict) -> int
+        """ Get the stride from the given collection layout.
+
+        :param collection_layout: Collection layout.
+        :return: Stride value.
+        """
+        if "stride" in collection_layout:
+            return collection_layout["stride"]
+        else:
+            return -1
 
     def __configure_core_element__(self, kwargs, user_function):
         # type: (dict, ...) -> None
@@ -265,20 +294,8 @@ class MPI(PyCOMPSsDecorator):
         else:
             flags = '[unassigned]'  # Empty or '[unassigned]'
 
-        if 'scale_by_cu' in self.kwargs:
-            scale_by_cu = self.kwargs['scale_by_cu']
-            if isinstance(scale_by_cu, bool):
-                if scale_by_cu:
-                    scale_by_cu_str = 'true'
-                else:
-                    scale_by_cu_str = 'false'
-            elif isinstance(scale_by_cu, str):
-                scale_by_cu_str = scale_by_cu
-            else:
-                raise Exception("Incorrect format for scale_by_cu property. "
-                                "It should be boolean or an environment variable")  # noqa: E501
-        else:
-            scale_by_cu_str = 'false'
+        # Check if scale by cu is defined
+        scale_by_cu_str = self.__resolve_scale_by_cu__()
 
         # Resolve the working directory
         self.__resolve_working_dir__()
@@ -321,6 +338,29 @@ class MPI(PyCOMPSsDecorator):
 
         # Set as configured
         self.core_element_configured = True
+
+    def __resolve_scale_by_cu__(self):
+        # type: () -> str
+        """ Checks if scale_by_cu is defined and process it.
+
+        :return: Scale by cu value as string.
+        :raises PyCOMPSsException: If scale_by_cu is not bool or string.
+        """
+        if 'scale_by_cu' in self.kwargs:
+            scale_by_cu = self.kwargs['scale_by_cu']
+            if isinstance(scale_by_cu, bool):
+                if scale_by_cu:
+                    scale_by_cu_str = 'true'
+                else:
+                    scale_by_cu_str = 'false'
+            elif isinstance(scale_by_cu, str):
+                scale_by_cu_str = scale_by_cu
+            else:
+                raise PyCOMPSsException("Incorrect format for scale_by_cu property. "
+                                        "It should be boolean or an environment variable")  # noqa: E501
+        else:
+            scale_by_cu_str = 'false'
+        return scale_by_cu_str
 
 
 # ########################################################################### #

@@ -89,7 +89,7 @@ class PREFIX(object):
     """
     Used as enum for prefix
     """
-    PREFIX = 'null'
+    PREFIX = 'null'  # NOSONAR
 
 
 class _Param(object):

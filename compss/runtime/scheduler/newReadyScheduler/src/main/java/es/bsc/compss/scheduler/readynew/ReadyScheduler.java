@@ -26,7 +26,6 @@ import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,13 +66,12 @@ public abstract class ReadyScheduler extends TaskScheduler {
      */
     public ReadyScheduler() {
         super();
-        this.unassignedReadyActions = new HashMap<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>();
-        this.addedActions = new HashMap<AllocatableAction, ObjectValue<AllocatableAction>>();
-        this.resourceTokens = new HashMap<ResourceScheduler<?>, Future<?>>();
-        this.availableWorkers = new HashSet<ResourceScheduler<?>>();
+        this.unassignedReadyActions = new HashMap<>();
+        this.addedActions = new HashMap<>();
+        this.resourceTokens = new HashMap<>();
+        this.availableWorkers = new HashSet<>();
         this.amountOfWorkers = 0;
-        this.schedulerExecutor =
-            new ThreadPoolExecutor(15, 40, 180, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        this.schedulerExecutor = new ThreadPoolExecutor(15, 40, 180, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         this.schedulerExecutor.allowCoreThreadTimeOut(true);
     }
 
@@ -93,17 +91,19 @@ public abstract class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
+    public void shutdown() {
+        schedulerExecutor.shutdown();
+        super.shutdown();
+    }
+
+    @Override
     protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
         super.workerDetected(resource);
-        this.availableWorkers.add(resource);
-        this.resourceTokens.put(resource, null);
-        this.amountOfWorkers += 1;
         if (unassignedReadyActions.size() > 0) {
-            TreeSet<ObjectValue<AllocatableAction>> orderedActions = new TreeSet<ObjectValue<AllocatableAction>>();
+            TreeSet<ObjectValue<AllocatableAction>> orderedActions = new TreeSet<>();
             Iterator<Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>> iter =
                 unassignedReadyActions.entrySet().iterator();
-            TreeSet<ObjectValue<AllocatableAction>> actionList =
-                (TreeSet<ObjectValue<AllocatableAction>>) iter.next().getValue();
+            TreeSet<ObjectValue<AllocatableAction>> actionList = iter.next().getValue();
             for (ObjectValue<AllocatableAction> actionValue : actionList) {
                 AllocatableAction action = actionValue.getObject();
                 Score actionScore = generateActionScore(action);
@@ -113,9 +113,12 @@ public abstract class ReadyScheduler extends TaskScheduler {
             }
             this.unassignedReadyActions.put(resource, orderedActions);
         } else {
-            TreeSet<ObjectValue<AllocatableAction>> orderedActions = new TreeSet<ObjectValue<AllocatableAction>>();
+            TreeSet<ObjectValue<AllocatableAction>> orderedActions = new TreeSet<>();
             this.unassignedReadyActions.put(resource, orderedActions);
         }
+        this.availableWorkers.add(resource);
+        this.resourceTokens.put(resource, null);
+        this.amountOfWorkers += 1;
     }
 
     @Override
@@ -207,11 +210,10 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
     @Override
     public List<AllocatableAction> getUnassignedActions() {
-        LinkedList<AllocatableAction> unassigned = new LinkedList<AllocatableAction>();
+        LinkedList<AllocatableAction> unassigned = new LinkedList<>();
         Iterator<Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>> iter =
             unassignedReadyActions.entrySet().iterator();
-        TreeSet<ObjectValue<AllocatableAction>> actionList =
-            (TreeSet<ObjectValue<AllocatableAction>>) iter.next().getValue();
+        TreeSet<ObjectValue<AllocatableAction>> actionList = iter.next().getValue();
         @SuppressWarnings("unchecked")
         ResourceScheduler<?> resource =
             ((Map.Entry<ResourceScheduler<?>, HashSet<ObjectValue<AllocatableAction>>>) iter).getKey();
@@ -249,62 +251,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
         ResourceScheduler<T> resource) {
     }
 
-    private void addActionToResource(Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry,
-        AllocatableAction action) {
-        TreeSet<ObjectValue<AllocatableAction>> actionList =
-            (TreeSet<ObjectValue<AllocatableAction>>) currentEntry.getValue();
-        ObjectValue<AllocatableAction> obj = addedActions.get(action);
-        actionList.add(obj);
-    }
-
-    private void removeActionFromResource(
-        Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry, AllocatableAction action) {
-        currentEntry.getKey();
-        TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
-        ObjectValue<AllocatableAction> obj = addedActions.get(action);
-        actionList.remove(obj);
-    }
-
-    private Runnable createAddRunnable(
-        final Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry,
-        final AllocatableAction action, final Future<?> token) {
-        Runnable addRunnable = new Runnable() {
-
-            public void run() {
-                if (token != null) {
-                    try {
-                        token.get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        LOGGER.fatal("Unexpected thread interruption", e);
-                        ErrorManager.fatal("Unexpected thread interruption", e);
-                    }
-                }
-                addActionToResource(currentEntry, action);
-            }
-        };
-        return addRunnable;
-    }
-
-    private Runnable createRemoveRunnable(
-        final Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry,
-        final AllocatableAction action, final Future<?> token) {
-        Runnable removeRunnable = new Runnable() {
-
-            public void run() {
-                if (token != null) {
-                    try {
-                        token.get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        LOGGER.fatal("Unexpected thread interruption", e);
-                        ErrorManager.fatal("Unexpected thread interruption", e);
-                    }
-                }
-                removeActionFromResource(currentEntry, action);
-            }
-        };
-        return removeRunnable;
-    }
-
     private void addActionToSchedulerStructures(AllocatableAction action) {
 
         if (!this.unassignedReadyActions.isEmpty()) {
@@ -325,8 +271,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 Iterator<Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>> iter =
                     unassignedReadyActions.entrySet().iterator();
                 Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
-                TreeSet<ObjectValue<AllocatableAction>> actionList =
-                    (TreeSet<ObjectValue<AllocatableAction>>) currentEntry.getValue();
+                TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
 
                 ResourceScheduler<?> resource = currentEntry.getKey();
 
@@ -341,23 +286,12 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
                 while (iter.hasNext()) {
                     currentEntry = iter.next();
-
                     resource = currentEntry.getKey();
                     Future<?> lastToken = this.resourceTokens.get(resource);
                     this.resourceTokens.put(resource,
-                        schedulerExecutor.submit(createAddRunnable(currentEntry, action, lastToken)));
+                        schedulerExecutor.submit(new AddRunnable(currentEntry, action, lastToken)));
                 }
             }
-            /*
-             * for (Future<?> currentExecution: futureList) { try { currentExecution.get(); } catch
-             * (InterruptedException | ExecutionException e) { e.printStackTrace();
-             * LOGGER.fatal("Unexpected thread interruption"); ErrorManager.fatal("Unexpected thread interruption"); } }
-             */
-            /*
-             * schedulerExecutor.shutdown(); //while(!schedulerExecutor.isTerminated()) { try {
-             * schedulerExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); } catch (InterruptedException
-             * e) { // I'm not gonna interrupt this thread }
-             */
 
         } else {
             if (DEBUG) {
@@ -378,53 +312,26 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 ResourceScheduler<?> resource = action.getEnforcedTargetResource();
                 TreeSet<ObjectValue<AllocatableAction>> actionList = this.unassignedReadyActions.get(resource);
                 ObjectValue<AllocatableAction> obj = addedActions.get(action);
-                if (!actionList.remove(obj)) {
-                    return;
-                }
+                actionList.remove(obj);
             } else {
                 Iterator<Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>> iter =
                     unassignedReadyActions.entrySet().iterator();
                 Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
-                ResourceScheduler<?> resource = currentEntry.getKey();
                 TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
                 ObjectValue<AllocatableAction> obj = addedActions.get(action);
 
                 if (!actionList.remove(obj)) {
                     return;
                 }
-                // this.schedulerExecutor = (ThreadPoolExecutor)
-                // Executors.newCachedThreadPool();
+
                 while (iter.hasNext()) {
                     currentEntry = iter.next();
-                    /*
-                     * currentEntry.getKey(); actionList = currentEntry.getValue(); lastScore =
-                     * action.getLastScore(resource); obj = new ObjectValue<>(action, lastScore);
-                     * actionList.remove(obj);
-                     */
-
-                    resource = currentEntry.getKey();
+                    ResourceScheduler<?> resource = currentEntry.getKey();
                     Future<?> lastToken = this.resourceTokens.get(resource);
                     this.resourceTokens.put(resource,
-                        schedulerExecutor.submit(createRemoveRunnable(currentEntry, action, lastToken)));
-                    // futureList.add(schedulerExecutor.submit(createRemoveRunnable(currentEntry,
-                    // action)));
-                    // schedulerExecutor.execute(createRemoveRunnable(currentEntry, action));
-                    // removeActionFromResource(currentEntry, action);
+                        schedulerExecutor.submit(new RemoveRunnable(currentEntry, action, lastToken)));
                 }
             }
-            /*
-             * for (Future<?> currentExecution: futureList) { try { currentExecution.get(); } catch
-             * (InterruptedException | ExecutionException e) { e.printStackTrace();
-             * LOGGER.fatal("Unexpected thread interruption"); ErrorManager.fatal("Unexpected thread interruption"); } }
-             */
-            // schedulerExecutor.shutdown();
-            // while(!schedulerExecutor.isTerminated()) {
-            // try {
-            // schedulerExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            // } catch (InterruptedException e) {
-            // I'm not gonna interrupt this thread
-            // }
-            // }
         }
     }
 
@@ -443,7 +350,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
             }
             addActionToSchedulerStructures(freeAction);
         }
-        dataFreeActions = new LinkedList<AllocatableAction>();
 
         // Resource free actions should always be empty in this scheduler
         for (AllocatableAction freeAction : resourceFreeActions) {
@@ -453,7 +359,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
             }
             addActionToSchedulerStructures(freeAction);
         }
-        resourceFreeActions = new LinkedList<AllocatableAction>();
 
         // Only in case there are actions that have entered the scheduler without having
         // available resources -> They were in the blocked list
@@ -463,7 +368,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
             }
             addActionToSchedulerStructures(freeAction);
         }
-        blockedCandidates = new LinkedList<AllocatableAction>();
 
         Future<?> lastToken = this.resourceTokens.get(resource);
         if (lastToken != null) {
@@ -478,7 +382,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
         TreeSet<ObjectValue<AllocatableAction>> unassignedActions = this.unassignedReadyActions.get(resource);
         if (unassignedActions != null) {
             Iterator<ObjectValue<AllocatableAction>> executableActionsIterator = unassignedActions.iterator();
-            HashSet<ObjectValue<AllocatableAction>> objectValueToErase = new HashSet<ObjectValue<AllocatableAction>>();
+            HashSet<ObjectValue<AllocatableAction>> objectValueToErase = new HashSet<>();
             while (executableActionsIterator.hasNext() && !this.availableWorkers.isEmpty()) {
                 ObjectValue<AllocatableAction> obj = executableActionsIterator.next();
                 AllocatableAction freeAction = obj.getObject();
@@ -487,7 +391,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
                     List<ResourceScheduler<?>> uselessWorkers = null;
                     if (freeAction.isTargetResourceEnforced()) {
                         if (resource.canRunSomething()) {
-                            HashSet<ResourceScheduler<?>> resourceSet = new HashSet<ResourceScheduler<?>>();
+                            HashSet<ResourceScheduler<?>> resourceSet = new HashSet<>();
                             resourceSet.add(resource);
                             uselessWorkers = freeAction.tryToSchedule(generateActionScore(freeAction), resourceSet);
                         } else {
@@ -526,6 +430,84 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 removeActionFromSchedulerStructures(action);
             }
         }
+    }
+
+
+    private class RemoveRunnable implements Runnable {
+
+        private Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry;
+        private AllocatableAction action;
+        private Future<?> token;
+
+
+        public RemoveRunnable(Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry,
+            AllocatableAction action, Future<?> token) {
+            this.currentEntry = currentEntry;
+            this.action = action;
+            this.token = token;
+        }
+
+        public void run() {
+            if (token != null) {
+                try {
+                    token.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.fatal("Unexpected thread interruption", e);
+                    ErrorManager.fatal("Unexpected thread interruption", e);
+                    // Restore interrupted state.
+                    Thread.currentThread().interrupt();
+
+                }
+            }
+            removeActionFromResource(currentEntry, action);
+        }
+
+        private void removeActionFromResource(
+            Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry,
+            AllocatableAction action) {
+            currentEntry.getKey();
+            TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
+            ObjectValue<AllocatableAction> obj = addedActions.get(action);
+            actionList.remove(obj);
+        }
+    }
+
+    private class AddRunnable implements Runnable {
+
+        private Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry;
+        private AllocatableAction action;
+        private Future<?> token;
+
+
+        public AddRunnable(Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry,
+            AllocatableAction action, Future<?> token) {
+            this.currentEntry = currentEntry;
+            this.action = action;
+            this.token = token;
+        }
+
+        public void run() {
+            if (token != null) {
+                try {
+                    token.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.fatal("Unexpected thread interruption", e);
+                    ErrorManager.fatal("Unexpected thread interruption", e);
+                    // Restore interrupted state.
+                    Thread.currentThread().interrupt();
+                }
+            }
+            addActionToResource(currentEntry, action);
+        }
+
+        private void addActionToResource(
+            Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry,
+            AllocatableAction action) {
+            TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
+            ObjectValue<AllocatableAction> obj = addedActions.get(action);
+            actionList.add(obj);
+        }
+
     }
 
 }

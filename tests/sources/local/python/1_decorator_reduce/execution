@@ -59,6 +59,7 @@
       ${runcompss_opts} \
       -g \
       --summary \
+      --scheduler=es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
       ${python_mpi_worker} \

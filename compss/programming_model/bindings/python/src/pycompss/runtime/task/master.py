@@ -45,8 +45,6 @@ from pycompss.runtime.constants import GET_FUNCTION_INFORMATION
 from pycompss.runtime.constants import PREPARE_CORE_ELEMENT
 from pycompss.runtime.constants import GET_FUNCTION_SIGNATURE
 from pycompss.runtime.constants import UPDATE_CORE_ELEMENT
-from pycompss.runtime.constants import GET_COMPUTING_NODES
-from pycompss.runtime.constants import GET_REDUCE_PARAMETERS
 from pycompss.runtime.constants import PROCESS_RETURN
 from pycompss.runtime.constants import PROCESS_OTHER_ARGUMENTS
 from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
@@ -345,17 +343,13 @@ class TaskMaster(TaskCommons):
                     self.function_arguments, self.function_name,
                     self.module_name, self.function_type, self.class_name,
                     self.hints)
-        # Deal with dynamic computing nodes
-        with event(GET_COMPUTING_NODES, master=True):
-            computing_nodes = self.process_computing_nodes()
 
-        # Deal with reductions
-        with event(GET_REDUCE_PARAMETERS, master=True):
-            is_reduction, chunk_size = self.process_reduction()
-
-        # Get other arguments if exist
-        # Get is replicated
         with event(PROCESS_OTHER_ARGUMENTS, master=True):
+            # Deal with dynamic computing nodes
+            computing_nodes = self.process_computing_nodes()
+            # Deal with reductions
+            is_reduction, chunk_size = self.process_reduction()
+            # Get other arguments if exist
             if not self.hints:
                 self.hints = self.check_task_hints()
             is_replicated, is_distributed, on_failure, time_out, has_priority, has_target = self.hints  # noqa: E501

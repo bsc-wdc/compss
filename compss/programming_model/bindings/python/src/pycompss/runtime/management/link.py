@@ -377,6 +377,8 @@ class COMPSs(object):
                      time_out,           # type: int
                      has_priority,       # type: bool
                      num_nodes,          # type: int
+                     reduction,          # type: bool
+                     chunk_size,         # type: int
                      replicated,         # type: bool
                      distributed,        # type: bool
                      has_target,         # type: bool
@@ -399,6 +401,8 @@ class COMPSs(object):
                       time_out,
                       has_priority,
                       num_nodes,
+                      reduction,
+                      chunk_size,
                       replicated,
                       distributed,
                       has_target,

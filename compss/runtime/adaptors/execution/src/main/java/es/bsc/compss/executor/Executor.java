@@ -478,6 +478,7 @@ public class Executor implements Runnable {
             Invoker invoker = null;
             switch (invocation.getMethodImplementation().getMethodType()) {
                 case METHOD:
+                case MULTI_NODE:
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case CONTAINER:
@@ -497,9 +498,6 @@ public class Executor implements Runnable {
                     break;
                 case DECAF:
                     invoker = new DecafInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case MULTI_NODE:
-                    invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case OMPSS:
                     invoker = new OmpSsInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
@@ -590,10 +588,6 @@ public class Executor implements Runnable {
                 specificWD = compssImpl.getWorkingDir() + File.separator + compssImpl.getParentAppId() + File.separator
                     + "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
                 break;
-            case MULTI_NODE:
-                // It is executed as a regular native method
-                specificWD = null;
-                break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) invocation.getMethodImplementation();
                 specificWD = decafImpl.getWorkingDir();
@@ -607,6 +601,7 @@ public class Executor implements Runnable {
                 specificWD = openclImpl.getWorkingDir();
                 break;
             case METHOD:
+            case MULTI_NODE: // It is executed as a regular native method
                 specificWD = null;
                 break;
         }

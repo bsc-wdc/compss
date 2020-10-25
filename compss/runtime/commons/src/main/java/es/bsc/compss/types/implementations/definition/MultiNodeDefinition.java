@@ -37,7 +37,7 @@ public class MultiNodeDefinition extends ImplementationDefinition<MethodResource
      * @param signature Method signature.
      * @param multiNodeClass Class name.
      * @param multiNodeName Method name.
-     * @param implConstraints OmpSs method requirements.
+     * @param implConstraints Method requirements.
      */
     public MultiNodeDefinition(String signature, String multiNodeClass, String multiNodeName,
         MethodResourceDescription implConstraints) {

@@ -20,6 +20,8 @@ __copyright__ = '2018 Barcelona Supercomputing Center (BSC-CNS)'
 import numpy as np
 import time
 import unittest
+
+from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
 
@@ -109,7 +111,6 @@ def merge_reduce(data, chunk=50):
         data = data[chunk:]
         data.append(merge_reduce_task(*dataToReduce))
     return data[0]
-
 
 # Main implementation functions
 

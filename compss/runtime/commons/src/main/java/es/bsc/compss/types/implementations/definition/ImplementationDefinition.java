@@ -308,8 +308,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     id = (ImplementationDefinition<T>) new MultiNodeDefinition(implSignature, multiNodeClass,
                         multiNodeName, (MethodResourceDescription) implConstraints);
                     break;
-            }
 
+            }
         }
         return id;
     }

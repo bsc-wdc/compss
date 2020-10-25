@@ -67,6 +67,7 @@ public class Task extends AbstractTask {
      * @param signature Task signature.
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of nodes used by the task.
+     * @param isReduction Whether the task must be replicated or not.
      * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed round-robin or not.
      * @param numReturns Number of returns of the task.
@@ -76,15 +77,16 @@ public class Task extends AbstractTask {
      * @param onFailure On failure mechanisms.
      * @param timeOut Time for a task time out.
      */
-    public Task(Application app, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-        boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
-        OnFailure onFailure, long timeOut) {
+    public Task(Application app, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReduction,
+        boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
+        TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
         super(app);
         CoreElement core = CoreManager.getCore(signature);
         String parallelismSource = app.getParallelismSource();
-        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, core, parallelismSource,
-            isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
+        this.taskDescription =
+            new TaskDescription(TaskType.METHOD, lang, signature, core, parallelismSource, isPrioritary, numNodes,
+                isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
         this.taskMonitor = monitor;
         this.commutativeGroup = new TreeMap<>();
         this.taskGroups = new LinkedList<>();
@@ -118,9 +120,11 @@ public class Task extends AbstractTask {
         int numNodes = Constants.SINGLE_NODE;
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
+        boolean isReduction = false;
         String parallelismSource = app.getParallelismSource();
         this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core, parallelismSource,
-            isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
+            isPrioritary, numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut,
+            parameters);
         this.taskMonitor = monitor;
         this.commutativeGroup = new TreeMap<>();
         this.taskGroups = new LinkedList<>();
@@ -394,6 +398,27 @@ public class Task extends AbstractTask {
         buffer.append(", ").append(getTaskDescription().toString()).append("]");
 
         return buffer.toString();
+    }
+
+    public List<Parameter> getParameterDataToRemove() {
+        return new LinkedList<>();
+    }
+
+    public List<Parameter> getIntermediateParameters() {
+        return new LinkedList<>();
+    }
+
+    public List<Parameter> getUnusedIntermediateParameters() {
+        return new LinkedList<>();
+    }
+
+    public List<Parameter> getParameters() {
+        return this.taskDescription.getParameters();
+    }
+
+    @Override
+    public boolean isReduction() {
+        return this.taskDescription.isReduction();
     }
 
 }

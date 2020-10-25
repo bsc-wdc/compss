@@ -238,8 +238,6 @@ public class TaskScheduler {
      */
     public <T extends WorkerResourceDescription> ResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
         JSONObject defaultResources, JSONObject defaultImplementations) {
-
-        // LOGGER.info("[TaskScheduler] Generate scheduler for resource " + w.getName());
         return new ResourceScheduler<>(w, defaultResources, defaultImplementations);
     }
 
@@ -254,8 +252,6 @@ public class TaskScheduler {
      */
     public <T extends WorkerResourceDescription> SchedulingInformation generateSchedulingInformation(
         ResourceScheduler<T> rs, List<Parameter> params, Integer coreId) {
-
-        // LOGGER.info("[TaskScheduler] Generate empty scheduling information");
         return new SchedulingInformation(rs, params, coreId);
     }
 
@@ -266,7 +262,6 @@ public class TaskScheduler {
      * @return An scheduling action score.
      */
     public Score generateActionScore(AllocatableAction action) {
-        // LOGGER.debug("[TaskScheduler] Generate priority action score");
         return new Score(action.getPriority(), action.getGroupPriority(), 0, 0, 0);
     }
 
@@ -455,7 +450,7 @@ public class TaskScheduler {
         LOGGER.info("[TaskScheduler] Action completed " + action);
         // Mark action as finished
         removeFromReady(action);
-
+        
         ResourceScheduler<WorkerResourceDescription> resource;
         resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
         List<AllocatableAction> resourceFree;
@@ -465,20 +460,23 @@ public class TaskScheduler {
             // Once the action starts running should cannot be moved from the resource
             resourceFree = new LinkedList<>();
         }
-
+        
+        action.relaseResourcesAndLaunchBlockedActions();
+        
+        // We update the worker load
+        workerLoadUpdate(resource);
+        
         // Get the data free actions and mark them as ready
         List<AllocatableAction> dataFreeActions = action.completed();
         for (AllocatableAction dataFreeAction : dataFreeActions) {
             addToReady(dataFreeAction);
         }
 
-        // We update the worker load
-        workerLoadUpdate(resource);
-
         // Schedule data free actions
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
         // and those that remain unassigned must be added to the unassigned list
+        
         handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
             if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
@@ -590,17 +588,12 @@ public class TaskScheduler {
 
         workerLoadUpdate(resource);
 
-        if (action.getOnFailure() == OnFailure.RETRY) {
-            if (!failed) {
+        if (action.getOnFailure() == OnFailure.RETRY && !failed) {
+            if (DEBUG) {
                 LOGGER.debug("Adding action " + action + " to data Free actions.");
-                dataFreeActions.add(action);
-                // Try to re-schedule the action
-                /*
-                 * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
-                 * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
-                 * addToBlocked(action); }
-                 */
             }
+            dataFreeActions.add(action);
+
         }
 
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
@@ -620,9 +613,7 @@ public class TaskScheduler {
         try {
             LOGGER.debug("[TaskScheduler] Trying to launch" + action);
             action.tryToLaunch();
-            // LOGGER.debug("[TaskScheduler] Exited from tryToLaunch without exception");
         } catch (InvalidSchedulingException ise) {
-            // LOGGER.debug("[TaskScheduler] There was a bad scheduling" + action);
             // Unschedule the task from that resource
             List<AllocatableAction> resourceFree = new LinkedList<>();
             ResourceScheduler<?> resource = action.getAssignedResource();
@@ -671,7 +662,6 @@ public class TaskScheduler {
     protected <T extends WorkerResourceDescription> void handleDependencyFreeActions(
         List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
         List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
-
         LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies

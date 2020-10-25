@@ -95,7 +95,7 @@ public abstract class ExternalInvoker extends Invoker {
 
     private static ArrayList<String> addArguments(InvocationContext context, Invocation invocation)
         throws JobExecutionException {
-        // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
+        // The implementation to execute externally can only be METHOD, MULTI_NODE or PYTHON_MPI but we double check it
         if (invocation.getMethodImplementation().getMethodType() != MethodType.METHOD
             && invocation.getMethodImplementation().getMethodType() != MethodType.MULTI_NODE
             && invocation.getMethodImplementation().getMethodType() != MethodType.PYTHON_MPI) {

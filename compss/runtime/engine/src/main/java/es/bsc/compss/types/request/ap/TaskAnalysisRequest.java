@@ -23,6 +23,8 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 
 import org.apache.logging.log4j.LogManager;
@@ -58,7 +60,7 @@ public class TaskAnalysisRequest extends APRequest {
      * 
      * @return The task to analyze.
      */
-    public Task getTask() {
+    public AbstractTask getTask() {
         return this.task;
     }
 
@@ -74,6 +76,8 @@ public class TaskAnalysisRequest extends APRequest {
         } else {
             ta.processTask(this.task);
         }
+
+        // dip.removeTaskData(this.task);
 
         // Send request to schedule task
         td.executeTask(ap, this.task);

@@ -36,7 +36,7 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
 
-    public static enum EntryPoint {
+    public enum EntryPoint {
         SIGNATURE, CLASS_METHOD
     }
 
@@ -51,6 +51,8 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
     protected int numReturns;
     protected boolean hasTarget;
     protected int numNodes;
+    protected boolean reduce;
+    protected int reduceChunkSize;
     protected boolean isReplicated;
     protected boolean isDistributed;
     protected String methodName;
@@ -106,6 +108,14 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
 
     public int getNumNodes() {
         return this.numNodes;
+    }
+
+    public boolean isReduce() {
+        return this.reduce;
+    }
+
+    public int getReduceChunkSize() {
+        return this.reduceChunkSize;
     }
 
     public boolean isReplicated() {

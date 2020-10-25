@@ -25,6 +25,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
@@ -196,6 +197,8 @@ public class AccessProcessor implements Runnable {
      * @param signature Task signature.
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of nodes.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The size of the chunks to be reduced.
      * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed round-robin or not.
      * @param numReturns Number of task returns.
@@ -205,13 +208,20 @@ public class AccessProcessor implements Runnable {
      * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
+
     public int newTask(Application app, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary,
-        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
-        List<Parameter> parameters, OnFailure onFailure, long timeOut) {
+        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure, long timeOut) {
 
-        Task currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
-            hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+        Task currentTask;
 
+        if (isReduce) {
+            currentTask = new ReduceTask(app, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
+                isReplicated, isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+        } else {
+            currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReduce, isReplicated, isDistributed,
+                hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+        }
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
 
@@ -219,6 +229,7 @@ public class AccessProcessor implements Runnable {
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
         }
+
         return currentTask.getId();
     }
 
@@ -240,8 +251,9 @@ public class AccessProcessor implements Runnable {
      * @return Task Id.
      */
     public int newTask(Application app, TaskMonitor monitor, String namespace, String service, String port,
-        String operation, boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters,
-        OnFailure onFailure, long timeOut) {
+        String operation, boolean priority, boolean isReduce, int reduceChunkSize, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, OnFailure onFailure, long timeOut) {
+
         Task currentTask = new Task(app, namespace, service, port, operation, priority, hasTarget, numReturns,
             parameters, monitor, onFailure, timeOut);
 
@@ -252,6 +264,7 @@ public class AccessProcessor implements Runnable {
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
         }
+
         return currentTask.getId();
     }
 
@@ -559,7 +572,6 @@ public class AccessProcessor implements Runnable {
     }
 
     private String obtainBindingObject(RAccessId oaId) {
-        // String lastRenaming = (oaId).getReadDataInstance().getRenaming();
         // TODO: Add transfer request similar than java object
         LOGGER.debug("[AccessProcessor] Obtaining binding object with id " + oaId);
         // Ask for the object
@@ -590,13 +602,9 @@ public class AccessProcessor implements Runnable {
         }
 
         // Tell the DIP that the application wants to access an object
-        // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
-        // hashCode);
         BindingObjectAccessParams oap = new BindingObjectAccessParams(app, AccessMode.R, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
-        // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
-        // String wRename = wId.getRenaming();
         // Wait until the last writer task for the object has finished
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId());
@@ -611,8 +619,6 @@ public class AccessProcessor implements Runnable {
                 this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
             }
         }
-        // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
-        // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
         finishDataAccess(oap);
@@ -895,7 +901,7 @@ public class AccessProcessor implements Runnable {
         // Wait for response
         sem.acquireUninterruptibly();
 
-        return (String) request.getResponse();
+        return request.getResponse();
     }
 
     /**

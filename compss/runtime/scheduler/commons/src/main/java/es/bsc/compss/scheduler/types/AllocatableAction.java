@@ -289,6 +289,10 @@ public abstract class AllocatableAction {
         }
     }
 
+    public void addAlreadyDoneAction(AllocatableAction predecessor) {
+        // Nothing to do by default. Has different implementations.
+    }
+
     /**
      * Adds a stream producer.
      * 
@@ -330,7 +334,7 @@ public abstract class AllocatableAction {
      *
      * @param finishedAction Finished Allocatable Action.
      */
-    private void dataPredecessorDone(AllocatableAction finishedAction) {
+    protected void dataPredecessorDone(AllocatableAction finishedAction) {
         Iterator<AllocatableAction> it = this.dataPredecessors.iterator();
         while (it.hasNext()) {
             AllocatableAction aa = it.next();
@@ -793,10 +797,8 @@ public abstract class AllocatableAction {
             }
             this.treatDependencyFreeAction(freeTasks);
         }
-
         if (dataSuccessors.isEmpty()) {
             this.treatDependencyFreeAction(freeTasks);
-
         }
 
         this.dataSuccessors.clear();
@@ -829,17 +831,22 @@ public abstract class AllocatableAction {
     public final List<AllocatableAction> completed() {
         // Mark as finished
         this.state = State.FINISHED;
+        List<AllocatableAction> freeActions = releaseDataSuccessors();
+        // Action notification
+        doCompleted();
+        return freeActions;
+    }
 
+    /**
+     * Operations to perform for releasing the resources.
+     */
+    public void relaseResourcesAndLaunchBlockedActions() {
         if (this.getAssignedResource() != null) {
             // Release resources and run tasks blocked on the resource
             releaseResources();
             selectedResource.unhostAction(this);
             selectedResource.tryToLaunchBlockedActions();
         }
-
-        // Action notification
-        doCompleted();
-        return releaseDataSuccessors();
     }
 
     protected abstract void treatDependencyFreeAction(List<AllocatableAction> freeTasks);

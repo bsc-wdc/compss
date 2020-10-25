@@ -30,7 +30,7 @@ public class ActionUpdate extends TDRequest {
     /**
      * Possible Updates applied to the action.
      */
-    public static enum Update {
+    public enum Update {
         RUNNING, // The action has begin to run
         ERROR, // There has been an error during the execution
         COMPLETED, // The action execution has succeeded.

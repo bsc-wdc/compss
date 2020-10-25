@@ -82,9 +82,9 @@ RUN apt-get update && \
     pip2 --no-cache-dir install llvmlite==0.31.0 numba && \
     pip3 --no-cache-dir install llvmlite>=0.31.0 numba && \
 # Jupyter dependencies
-    pip2 --no-cache-dir install jupyter ipykernel && \
+    pip2 --no-cache-dir install jupyter ipykernel nbconvert==5.6.1 && \
     python2 -m ipykernel install && \
-    pip3 --no-cache-dir install jupyter ipykernel && \
+    pip3 --no-cache-dir install jupyter ipykernel nbconvert==5.6.1 && \
     python3 -m ipykernel install && \
 
 # Create Jenkins User for CI/CD

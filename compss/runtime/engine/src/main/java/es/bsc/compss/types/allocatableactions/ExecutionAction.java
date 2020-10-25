@@ -122,7 +122,7 @@ public class ExecutionAction extends AllocatableAction {
             // Register stream producers
             registerStreamProducers();
         }
-        
+
         // Scheduling constraints
         // Restricted resource
         Task resourceConstraintTask = this.task.getEnforcingTask();
@@ -141,7 +141,7 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
         }
-        
+
     }
 
     private void registerDataDependencies() {
@@ -153,7 +153,7 @@ public class ExecutionAction extends AllocatableAction {
                 treatCommutativePredecessor(predecessor);
             }
         }
-        
+
     }
 
     private void treatCommutativePredecessor(AbstractTask predecessor) {
@@ -166,7 +166,7 @@ public class ExecutionAction extends AllocatableAction {
                     this.addDataPredecessor(com);
                 }
             }
-        }     
+        }
     }
 
     private void treatStandardPredecessor(AbstractTask predecessor) {
@@ -178,7 +178,7 @@ public class ExecutionAction extends AllocatableAction {
 
             }
         }
-        
+
     }
 
     /**

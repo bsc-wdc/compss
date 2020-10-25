@@ -116,51 +116,69 @@ public class ExecutionAction extends AllocatableAction {
         // Add execution to task
         this.task.addExecution(this);
 
-        // Register data dependencies
         synchronized (this.task) {
-            List<AbstractTask> predecessors = this.task.getPredecessors();
-            for (AbstractTask predecessor : predecessors) {
-                if (!(predecessor instanceof CommutativeGroupTask)) {
-                    for (AllocatableAction e : predecessor.getExecutions()) {
-                        if (e != null && e.isPending()) {
-                            addDataPredecessor(e);
-                        } else {
-                            addAlreadyDoneAction(e);
-
-                        }
-                    }
-                } else {
-                    LOGGER.debug("Task has a commutative group as a predecessor");
-                    for (Task t : ((CommutativeGroupTask) predecessor).getCommutativeTasks()) {
-                        for (AllocatableAction com : t.getExecutions()) {
-                            if (!com.getDataPredecessors().contains(this)) {
-                                this.addDataPredecessor(com);
-                            }
-                        }
-                    }
-                }
-            }
+            // Register data dependencies
+            registerDataDependencies();
+            // Register stream producers
+            registerStreamProducers();
         }
-
-        // Register stream producers
-        synchronized (this.task) {
-            for (AbstractTask predecessor : this.task.getStreamProducers()) {
-                for (AllocatableAction e : ((Task) predecessor).getExecutions()) {
-                    if (e != null && e.isPending()) {
-                        addStreamProducer(e);
-                    }
-                }
-            }
-        }
-
+        
         // Scheduling constraints
         // Restricted resource
         Task resourceConstraintTask = this.task.getEnforcingTask();
         if (resourceConstraintTask != null) {
             for (AllocatableAction e : resourceConstraintTask.getExecutions()) {
-                addResourceConstraint((ExecutionAction) e);
+                addResourceConstraint(e);
             }
         }
+    }
+
+    private void registerStreamProducers() {
+        for (AbstractTask predecessor : this.task.getStreamProducers()) {
+            for (AllocatableAction e : ((Task) predecessor).getExecutions()) {
+                if (e != null && e.isPending()) {
+                    addStreamProducer(e);
+                }
+            }
+        }
+        
+    }
+
+    private void registerDataDependencies() {
+        List<AbstractTask> predecessors = this.task.getPredecessors();
+        for (AbstractTask predecessor : predecessors) {
+            if (!(predecessor instanceof CommutativeGroupTask)) {
+                treatStandardPredecessor(predecessor);
+            } else {
+                treatCommutativePredecessor(predecessor);
+            }
+        }
+        
+    }
+
+    private void treatCommutativePredecessor(AbstractTask predecessor) {
+        if (DEBUG) {
+            LOGGER.debug("Task has a commutative group as a predecessor");
+        }
+        for (Task t : ((CommutativeGroupTask) predecessor).getCommutativeTasks()) {
+            for (AllocatableAction com : t.getExecutions()) {
+                if (!com.getDataPredecessors().contains(this)) {
+                    this.addDataPredecessor(com);
+                }
+            }
+        }     
+    }
+
+    private void treatStandardPredecessor(AbstractTask predecessor) {
+        for (AllocatableAction e : predecessor.getExecutions()) {
+            if (e != null && e.isPending()) {
+                addDataPredecessor(e);
+            } else {
+                addAlreadyDoneAction(e);
+
+            }
+        }
+        
     }
 
     /**
@@ -212,12 +230,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
-        if (aa instanceof ExecutionAction) {
-            if (((ExecutionAction) aa).getTask().getStatus() == TaskState.CANCELED) {
-                return true;
-            }
-        }
-        return false;
+        return (aa instanceof ExecutionAction) && (((ExecutionAction) aa).getTask().getStatus() == TaskState.CANCELED);
     }
 
     private void doInputTransfers() {
@@ -300,17 +313,6 @@ public class ExecutionAction extends AllocatableAction {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof WAccessId) {
-            /*
-             * String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
-             *
-             * // Workaround for return objects in bindings converted to PSCOs inside tasks DataType type =
-             * param.getType(); if (type.equals(DataType.EXTERNAL_PSCO_T)) { ExternalPSCOParameter epp =
-             * (ExternalPSCOParameter) param; tgtName = epp.getId(); } if (DEBUG) {
-             * JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName)); }
-             * JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
-             * param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName).getPath());
-             */
-
             String dataTarget =
                 w.getOutputDataTargetPath(((WAccessId) access).getWrittenDataInstance().getRenaming(), param);
             param.setDataTarget(dataTarget);
@@ -994,9 +996,7 @@ public class ExecutionAction extends AllocatableAction {
     @Override
     public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
         Score actionScore) {
-        Score computedScore = targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
-        // LOGGER.debug("Scheduling Score " + computedScore);
-        return computedScore;
+        return targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
     }
 
     @SuppressWarnings("unchecked")

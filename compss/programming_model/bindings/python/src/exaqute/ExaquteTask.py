@@ -65,7 +65,7 @@ def from_args_to_vector(obj):
 def from_vector_to_args(obj):
     new_vector = []
     new_vector.extend(obj[0])
-    for i in range(1, len(obj)):
+    for _ in range(1, len(obj)):
         new_vector.append("#")
         new_vector.extend(obj[1])
     return new_vector

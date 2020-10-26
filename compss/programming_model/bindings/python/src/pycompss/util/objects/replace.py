@@ -78,7 +78,7 @@ def _replace_attribute(source, rel, new):
             return
     try:
         setattr(source, rel, new)
-    except TypeError as exc:
+    except TypeError as exc:  # NOSONAR
         print("Unknown R_ATTRIBUTE (read-only):", rel, type(source))
 
 
@@ -136,17 +136,17 @@ def replace(old, new):
 
 
 # -----------------------------------------------------------------------------
-class A(object):
-    def func(self):
-        return self
+class A(object):     # NOSONAR
+    def func(self):  # NOSONAR
+        return self  # NOSONAR
 
 
-class B(object):
-    pass
+class B(object):  # NOSONAR
+    pass          # NOSONAR
 
 
-class X(object):
-    pass
+class X(object):  # NOSONAR
+    pass          # NOSONAR
 
 
 def sure(obj):
@@ -161,24 +161,24 @@ def gen(obj):
         yield obj
 
 
-class S(object):
-    __slots__ = ("p", "q")
+class S(object):            # NOSONAR
+    __slots__ = ("p", "q")  # NOSONAR
 
 
-class T(object):
-    __slots__ = ("p", "q")
+class T(object):            # NOSONAR
+    __slots__ = ("p", "q")  # NOSONAR
 
 
-class U(object):
-    pass
+class U(object):  # NOSONAR
+    pass          # NOSONAR
 
 
-class V(object):
-    pass
+class V(object):  # NOSONAR
+    pass          # NOSONAR
 
 
-class W(U):
-    pass
+class W(U):  # NOSONAR
+    pass     # NOSONAR
 
 
 # -----------------------------------------------------------------------------

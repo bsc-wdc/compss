@@ -49,13 +49,20 @@ def compute(obj):  # Submit task
     return obj
 
 
-class implement(object):
+class Implement(object):
 
     def __call__(self, f):
         return f
 
 
-class constraint(object):
+class Constraint(object):
 
     def __call__(self, f):
         return f
+
+
+# Enable lower and capital decorators naming:
+implement = Implement
+IMPLEMENT = Implement
+constraint = Constraint
+CONSTRAINT = Constraint

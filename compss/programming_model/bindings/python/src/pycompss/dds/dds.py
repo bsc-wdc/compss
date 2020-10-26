@@ -421,7 +421,6 @@ class DDS(object):
         self.map(f)
         # Wait for all the tasks to finish
         compss_barrier()
-        return
 
     def collect(self, keep_partitions=False, future_objects=False):
         """

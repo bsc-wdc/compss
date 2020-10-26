@@ -59,16 +59,16 @@ def test_compss_call_outside():
 
 def test_compss_appName_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
-    appName = "my_appName"  # noqa
-    my_compss = COMPSs(app_name="date", appName=appName)
+    app_name = "my_appName"  # noqa
+    my_compss = COMPSs(app_name="date", appName=app_name)
     f = my_compss(dummy_function)
     _ = f()
     assert (
         "appName" in my_compss.kwargs
-    ), "Image is not defined in kwargs dictionary."
+    ), "appName is not defined in kwargs dictionary."
     assert (
-        appName == my_compss.kwargs["appName"]
-    ), "Image parameter has not been initialized."
+        app_name == my_compss.kwargs["appName"]
+    ), "appName parameter has not been initialized."
 
 
 def test_compss_runcompss_parameter():
@@ -115,15 +115,15 @@ def test_compss_worker_in_master_parameter():
 
 def test_compss_workerInMaster_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
-    workerInMaster = "my_workerInMaster"  # noqa
-    my_compss = COMPSs(app_name="date", workerInMaster=workerInMaster)
+    worker_in_master = "my_workerInMaster"  # noqa
+    my_compss = COMPSs(app_name="date", workerInMaster=worker_in_master)
     f = my_compss(dummy_function)
     _ = f()
     assert (
         "workerInMaster" in my_compss.kwargs
     ), "workerInMaster is not defined in kwargs dictionary."
     assert (
-        workerInMaster == my_compss.kwargs["workerInMaster"]
+        worker_in_master == my_compss.kwargs["workerInMaster"]
     ), "workerInMaster parameter has not been initialized."
 
 

@@ -14,13 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from exaqute.ExaquteTask import *
 
 
 class ExaquteTask(object):
-
-    def __init__(self, *args, **kwargs):
-        pass
 
     def __call__(self, f):
         def g(*args, **kwargs):
@@ -55,17 +51,11 @@ def compute(obj):  # Submit task
 
 class implement(object):
 
-    def __init__(self, *args, **kwargs):
-        pass
-
     def __call__(self, f):
         return f
 
 
 class constraint(object):
-
-    def __init__(self, *args, **kwargs):
-        pass
 
     def __call__(self, f):
         return f

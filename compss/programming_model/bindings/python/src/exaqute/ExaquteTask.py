@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from exaqute.ExaquteParameter import *
 
 
 class ExaquteTask(object):
@@ -51,7 +50,7 @@ def from_args_to_vector(obj):
     print(list(enumerate(obj)))
     if len(index) == 0:
         return obj
-    new_vector = []
+    new_vector = list()
     new_vector.append(list(obj[0:index[0]]))
     for i in range(len(index) - 1):
         new_vector.append(list(obj[(index[i] + 1):index[i + 1]]))

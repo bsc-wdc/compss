@@ -115,25 +115,11 @@ class Reduction(PyCOMPSsDecorator):
         else:
             chunk_size = self.kwargs['chunk_size']
             if isinstance(chunk_size, int):
-                # Nothing to do
+                # Nothing to do, it is already an integer
                 pass
             elif isinstance(chunk_size, str):
-                # Check if it is an environment variable to be loaded
-                if chunk_size.strip().startswith('$'):
-                    # Chunk size is an ENV variable, load it
-                    env_var = chunk_size.strip()[1:]  # Remove $
-                    if env_var.startswith('{'):
-                        env_var = env_var[1:-1]  # remove brackets
-                    try:
-                        chunk_size = int(os.environ[env_var])
-                    except ValueError:
-                        raise Exception(cast_env_to_int_error('chunk_size'))
-                else:
-                    # ChunkSize is in string form, cast it
-                    try:
-                        chunk_size = int(chunk_size)
-                    except ValueError:
-                        raise Exception(cast_string_to_int_error('chunk_size'))
+                # Convert string to int
+                chunk_size = self.__parse_chunk_size__(chunk_size)
             else:
                 raise Exception("ERROR: Wrong chunk_size value at @reduction decorator.")  # noqa: E501
 
@@ -149,6 +135,33 @@ class Reduction(PyCOMPSsDecorator):
         # Set the chunk_size variable in kwargs for its usage in @task
         self.kwargs['chunk_size'] = chunk_size
         self.kwargs['is_reduce'] = is_reduce
+
+    @staticmethod
+    def __parse_chunk_size__(chunk_size):
+        # type: (str) -> int
+        """ Parses chunk size as string and returns its value as integer.
+
+        :param chunk_size: Chunk size as string.
+        :return: Chunk size as integer.
+        :raises Exception: Can not cast string to int error.
+        """
+        # Check if it is an environment variable to be loaded
+        if chunk_size.strip().startswith('$'):
+            # Chunk size is an ENV variable, load it
+            env_var = chunk_size.strip()[1:]  # Remove $
+            if env_var.startswith('{'):
+                env_var = env_var[1:-1]  # remove brackets
+            try:
+                chunk_size = int(os.environ[env_var])
+            except ValueError:
+                raise Exception(cast_env_to_int_error('chunk_size'))
+        else:
+            # ChunkSize is in string form, cast it
+            try:
+                chunk_size = int(chunk_size)
+            except ValueError:
+                raise Exception(cast_string_to_int_error('chunk_size'))
+        return chunk_size
 
 
 # ########################################################################### #

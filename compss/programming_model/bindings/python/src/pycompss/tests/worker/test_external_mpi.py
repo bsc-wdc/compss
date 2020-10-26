@@ -27,6 +27,7 @@ from pycompss.api.task import task
 
 @task()
 def simple():
+    # Do nothing task
     pass
 
 

@@ -52,6 +52,9 @@ PSCO = "PSCO"
 AT_MOST_ONCE = "AT_MOST_ONCE"
 AT_LEAST_ONCE = "AT_LEAST_ONCE"
 
+# Common messages
+POLLING_MSG = "Polling new stream items..."
+
 
 def str2bool(val):
     return val.lower() in ("yes", "true", "t", "1")
@@ -312,7 +315,7 @@ class FileDistroStream(DistroStreamImpl):
         logger.warning("WARN: Unnecessary call on publish on FileDistroStream")
 
     def poll(self, timeout=None):
-        logger.info("Polling new stream items...")
+        logger.info(POLLING_MSG)
 
         # Send request to server
         req = PollRequest(self.id)
@@ -435,7 +438,7 @@ class ObjectDistroStream(DistroStreamImpl):
         logger.info("Published new List of objects")
 
     def poll(self, timeout=DEFAULT_KAFKA_TIMEOUT):
-        logger.info("Polling new stream items...")
+        logger.info(POLLING_MSG)
 
         self._register_consumer()
         return self.consumer.poll(timeout)
@@ -508,7 +511,7 @@ class PscoDistroStream(DistroStreamImpl):
             logger.debug("Publish stream answer: " + str(answer))
 
     def poll(self, timeout=None):
-        logger.info("Polling new stream items...")
+        logger.info(POLLING_MSG)
 
         # Send request to server
         req = PollRequest(self.id)

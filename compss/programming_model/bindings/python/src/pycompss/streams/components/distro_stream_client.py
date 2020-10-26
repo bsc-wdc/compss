@@ -254,8 +254,16 @@ class TestDistroStreamClient(unittest.TestCase):
             DistroStreamClientHandler.init_and_start(master_ip="localhost",
                                                      master_port=master_port)
 
+            # Usual messages
+            send_request = "Send request"
+            wait_response = "Wait response"
+            received = "Received: "
+            error_code = " - Error Code    : "
+            error_message = " - Error Message : "
+            response = " - Response      : "
+
             # Send request
-            print("Send request")
+            print(send_request)
             temp_folder = tempfile.mkdtemp()
             req = RegisterStreamRequest(None,
                                         FILE,
@@ -264,45 +272,45 @@ class TestDistroStreamClient(unittest.TestCase):
             DistroStreamClientHandler.request(req)
 
             # Wait response
-            print("Wait response")
+            print(wait_response)
             req.wait_processed()
 
             # Process response
-            print("Received: ")
-            print(" - Error Code    : " + str(req.get_error_code()))
-            print(" - Error Message : " + str(req.get_error_msg()))
-            print(" - Response      : " + str(req.get_response_msg()))
+            print(received)
+            print(error_code + str(req.get_error_code()))
+            print(error_message + str(req.get_error_msg()))
+            print(response + str(req.get_response_msg()))
             stream_id = uuid.UUID(req.get_response_msg())
 
             # Send request
-            print("Send request")
+            print(send_request)
             req = StreamStatusRequest(stream_id)
             DistroStreamClientHandler.request(req)
 
             # Wait response
-            print("Wait response")
+            print(wait_response)
             req.wait_processed()
 
             # Process response
-            print("Received: ")
-            print(" - Error Code    : " + str(req.get_error_code()))
-            print(" - Error Message : " + str(req.get_error_msg()))
-            print(" - Response      : " + str(req.get_response_msg()))
+            print(received)
+            print(error_code + str(req.get_error_code()))
+            print(error_message + str(req.get_error_msg()))
+            print(response + str(req.get_response_msg()))
 
             # Send request
-            print("Send request")
+            print(send_request)
             req = CloseStreamRequest(stream_id)
             DistroStreamClientHandler.request(req)
 
             # Wait response
-            print("Wait response")
+            print(wait_response)
             req.wait_processed()
 
             # Process response
-            print("Received: ")
-            print(" - Error Code    : " + str(req.get_error_code()))
-            print(" - Error Message : " + str(req.get_error_msg()))
-            print(" - Response      : " + str(req.get_response_msg()))
+            print(received)
+            print(error_code + str(req.get_error_code()))
+            print(error_message + str(req.get_error_msg()))
+            print(response + str(req.get_response_msg()))
         finally:
             DistroStreamClientHandler.set_stop()
 

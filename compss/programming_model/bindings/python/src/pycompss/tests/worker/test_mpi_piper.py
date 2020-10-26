@@ -29,8 +29,14 @@ import subprocess
 from pycompss.api.task import task
 
 
+STD_OUT_FILE = "/../../../../std.out"
+STD_ERR_FILE = "/../../../../std.err"
+ERROR_MESSAGE = "An error happened. Please check: "
+
+
 @task()
 def simple():
+    # Do nothing task
     pass
 
 
@@ -45,8 +51,8 @@ def worker_thread(argv, current_path):
     # Start the piper worker
     sys.argv = argv
     sys.path.append(current_path)
-    sys.stdout = open(current_path + "/../../../../std.out", "w")
-    sys.stderr = open(current_path + "/../../../../std.err", "w")
+    sys.stdout = open(current_path + STD_OUT_FILE, "w")
+    sys.stderr = open(current_path + STD_ERR_FILE, "w")
     p = subprocess.Popen(
         " ".join(argv),
         shell=True,
@@ -209,12 +215,12 @@ def test_piper_worker():
     out_log = "log/binding_worker.out"
     err_log = "log/binding_worker.err"
     if os.path.exists(err_log):
-        raise Exception("An error happened. Please check " + err_log)
+        raise Exception(ERROR_MESSAGE + err_log)
     with open(out_log, "r") as f:
         if "ERROR" in f.read():
-            raise Exception("An error happened. Please check " + out_log)
+            raise Exception(ERROR_MESSAGE + out_log)
         if "Traceback" in f.read():
-            raise Exception("An error happened. Please check " + out_log)
+            raise Exception(ERROR_MESSAGE + out_log)
     # Check task 1
     check_task(job1_out, job1_err)
     # Check task 2
@@ -236,10 +242,10 @@ def test_piper_worker():
         os.remove(err_log)
     if os.path.isfile(out_log):
         os.remove(out_log)
-    if os.path.isfile(current_path + "/../../../../std.out"):
-        os.remove(current_path + "/../../../../std.out")
-    if os.path.isfile(current_path + "/../../../../std.err"):
-        os.remove(current_path + "/../../../../std.err")
+    if os.path.isfile(current_path + STD_OUT_FILE):
+        os.remove(current_path + STD_OUT_FILE)
+    if os.path.isfile(current_path + STD_ERR_FILE):
+        os.remove(current_path + STD_ERR_FILE)
     shutil.rmtree(temp_folder)
     if os.path.isfile(executor_outbound):
         os.remove(executor_outbound)

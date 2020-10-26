@@ -22,6 +22,9 @@ from pycompss.runtime.task.core_element import CE
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 import pycompss.util.context as context
 
+MPI_RUNNER = "mpirun"
+ERROR_EXPECTED_1 = "Wrong expected result (should be 1)."
+
 
 def dummy_function(*args, **kwargs):  # noqa
     return 1
@@ -29,22 +32,22 @@ def dummy_function(*args, **kwargs):  # noqa
 
 def test_mpi_instantiation():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun")
+    my_mpi = MPI(runner=MPI_RUNNER)
     assert my_mpi.decorator_name == "@mpi", "The decorator name must be @mpi."
 
 
 def test_mpi_call():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun")
+    my_mpi = MPI(runner=MPI_RUNNER)
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 # # Disabled due to support of dummy @binary
 # def test_mpi_call_outside():
 #     context.set_pycompss_context(context.OUT_OF_SCOPE)
-#     my_mpi = MPI(runner="mpirun")
+#     my_mpi = MPI(runner=MPI_RUNNER)
 #     f = my_mpi(dummy_function)
 #     thrown = False
 #     try:
@@ -58,7 +61,7 @@ def test_mpi_call():
 def test_mpi_layout_empty_parameter():
     context.set_pycompss_context(context.MASTER)
     layout = dict()
-    my_mpi = MPI(runner="mpirun", _layout={"_layout": layout})
+    my_mpi = MPI(runner=MPI_RUNNER, _layout={"_layout": layout})
     f = my_mpi(dummy_function)
     _ = f()
     assert (
@@ -74,7 +77,7 @@ def test_mpi_layout_parameter_exception():
         _ = MPI(
             _layout={"_layout": layout},
             _layout2={"_layout": layout},
-            runner="mpirun",
+            runner=MPI_RUNNER,
         )  # noqa: E501
     except Exception:  # noqa
         exception = True  # Ok - Exception expected.
@@ -85,45 +88,45 @@ def test_mpi_layout_parameter_exception():
 
 def test_mpi_binary():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags")
+    my_mpi = MPI(runner=MPI_RUNNER, binary="date", flags="flags")
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_bool_true():
     context.set_pycompss_context(context.MASTER)
     my_mpi = MPI(
-        runner="mpirun", binary="date", flags="flags", scale_by_cu=True
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=True
     )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_bool_false():
     context.set_pycompss_context(context.MASTER)
     my_mpi = MPI(
-        runner="mpirun", binary="date", flags="flags", scale_by_cu=False
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=False
     )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_str():
     context.set_pycompss_context(context.MASTER)
     my_mpi = MPI(
-        runner="mpirun", binary="date", flags="flags", scale_by_cu="ENV_VAR"
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="ENV_VAR"
     )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_incorrect():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu=1)
+    my_mpi = MPI(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=1)
     f = my_mpi(dummy_function)
     exception = False
     try:
@@ -135,7 +138,7 @@ def test_mpi_binary_scale_incorrect():
 
 def test_mpi_existing_core_element():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun")
+    my_mpi = MPI(runner=MPI_RUNNER)
     f = my_mpi(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())

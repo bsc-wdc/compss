@@ -228,7 +228,7 @@ def compss_main():
         # End
         if __debug__:
             LOGGER.debug('--- END ---')
-    except SystemExit as e:
+    except SystemExit as e:  # NOSONAR - reraising would not allow to stop the runtime gracefully.
         if e.code != 0:
             print("[ ERROR ]: User program ended with exitcode %s." % e.code)
             print("\t\tShutting down runtime...")

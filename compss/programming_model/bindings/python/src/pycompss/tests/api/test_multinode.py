@@ -24,6 +24,9 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 import pycompss.util.context as context
 
 
+ERROR_EXPECTED_1 = "Wrong expected result (should be 1)."
+
+
 def dummy_function(*args, **kwargs):  # noqa
     return 1
 
@@ -55,7 +58,7 @@ def test_multinode_call_master():
     my_multinode = MultiNode()
     f = my_multinode(dummy_function)
     result = f()
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_multinode_call_worker():
@@ -73,7 +76,7 @@ def test_multinode_call_worker():
     del os.environ["COMPSS_NUM_THREADS"]
     del os.environ["COMPSS_HOSTNAMES"]
     # Check result
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_multinode_call_worker_with_slurm():
@@ -103,7 +106,7 @@ def test_multinode_call_worker_with_slurm():
     del os.environ["SLURM_MEM_PER_NODE"]
     del os.environ["SLURM_MEM_PER_CPU"]
     # Check result
-    assert result == 1, "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_multinode_existing_core_element():

@@ -22,6 +22,9 @@ import sys
 from pycompss.__main__ import main
 
 
+MAIN_NAME = "__main__.py"
+
+
 def check_output(stdout, stderr, error_expected=False):
     if (os.path.exists(stderr) and
             os.path.getsize(stderr) > 0 and
@@ -40,7 +43,7 @@ def call_main(main_py, stdout, stderr):
     f_err = open(stderr, "a")
     sys.stdout = f_out
     sys.stderr = f_err
-    sys.argv = [main_py + "__main__.py"]
+    sys.argv = [main_py + MAIN_NAME]
     main()
     f_out.close()
     f_err.close()
@@ -55,7 +58,7 @@ def call_main_run(stdout, stderr):
     f_err = open(stderr, "a")
     sys.stdout = f_out
     sys.stderr = f_err
-    sys.argv = ["__main__.py", "run"]
+    sys.argv = [MAIN_NAME, "run"]
     main()
     f_out.close()
     f_err.close()
@@ -70,7 +73,7 @@ def call_main_enqueue(stdout, stderr):
     f_err = open(stderr, "a")
     sys.stdout = f_out
     sys.stderr = f_err
-    sys.argv = ["__main__.py", "enqueue"]
+    sys.argv = [MAIN_NAME, "enqueue"]
     main()
     f_out.close()
     f_err.close()

@@ -27,6 +27,7 @@ import os
 import sys
 import logging
 import time
+import tempfile
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
@@ -67,7 +68,7 @@ from pycompss.streams.environment import stop_streaming
 APP_PATH = INTERACTIVE_FILE_NAME
 PERSISTENT_STORAGE = False
 STREAMING = False
-LOG_PATH = "/tmp/"
+LOG_PATH = tempfile.mkdtemp()
 GRAPHING = False
 LINE_SEPARATOR = "******************************************************"
 

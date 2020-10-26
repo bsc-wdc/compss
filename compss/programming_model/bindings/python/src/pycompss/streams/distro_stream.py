@@ -602,7 +602,6 @@ class TestDistroStream(unittest.TestCase):
 #
 
 if __name__ == '__main__':
-    log_format = "%(asctime)s | %(levelname)s | %(name)s - %(message)s"
-    logging.basicConfig(level=logging.DEBUG,
-                        format=log_format)  # NOSONAR
+    log_format = "%(asctime)s | %(levelname)s | %(name)s - %(message)s"  # NOSONAR
+    logging.basicConfig(level=logging.DEBUG, format=log_format)          # NOSONAR
     unittest.main()

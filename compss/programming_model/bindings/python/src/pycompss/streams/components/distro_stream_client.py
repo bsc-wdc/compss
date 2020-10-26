@@ -24,6 +24,7 @@ from __future__ import print_function
 import unittest
 import logging
 import socket
+import tempfile
 from threading import Thread
 
 try:
@@ -255,10 +256,11 @@ class TestDistroStreamClient(unittest.TestCase):
 
             # Send request
             print("Send request")
+            temp_folder = tempfile.mkdtemp()
             req = RegisterStreamRequest(None,
                                         FILE,
                                         AT_MOST_ONCE,
-                                        ["/tmp/file_stream_python/"])
+                                        [temp_folder])
             DistroStreamClientHandler.request(req)
 
             # Wait response
@@ -335,7 +337,6 @@ class TestDistroStreamClient(unittest.TestCase):
 #
 
 if __name__ == "__main__":
-    log_format = "%(asctime)s | %(levelname)s | %(name)s - %(message)s"
-    logging.basicConfig(level=logging.DEBUG,
-                        format=log_format)  # NOSONAR
+    log_format = "%(asctime)s | %(levelname)s | %(name)s - %(message)s"  # NOSONAR
+    logging.basicConfig(level=logging.DEBUG, format=log_format)          # NOSONAR
     unittest.main()

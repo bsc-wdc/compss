@@ -39,8 +39,8 @@ def test_external_mpi_worker_simple_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
-    job1_out = tempfile.mktemp()
-    job1_err = tempfile.mktemp()
+    job1_out = tempfile.NamedTemporaryFile(delete=False).name
+    job1_err = tempfile.NamedTemporaryFile(delete=False).name
     sys.argv = [
         "test_external_mpi.py",
         " ".join(
@@ -84,9 +84,9 @@ def test_external_mpi_worker_increment_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
-    job2_out = tempfile.mktemp()
-    job2_err = tempfile.mktemp()
-    job2_result = tempfile.mktemp()
+    job2_out = tempfile.NamedTemporaryFile(delete=False).name
+    job2_err = tempfile.NamedTemporaryFile(delete=False).name
+    job2_result = tempfile.NamedTemporaryFile(delete=False).name
     sys.argv = [
         "test_external_mpi.py",
         " ".join(

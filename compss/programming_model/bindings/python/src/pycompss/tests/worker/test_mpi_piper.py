@@ -66,10 +66,10 @@ def test_piper_worker():
         current_path + "/../../tests/worker/:" + os.environ["PYTHONPATH"]
     )
     temp_folder = tempfile.mkdtemp()
-    executor_outbound = tempfile.mktemp()
-    executor_inbound = tempfile.mktemp()
-    control_worker_outbound = tempfile.mktemp()
-    control_worker_inbound = tempfile.mktemp()
+    executor_outbound = tempfile.NamedTemporaryFile(delete=False).name
+    executor_inbound = tempfile.NamedTemporaryFile(delete=False).name
+    control_worker_outbound = tempfile.NamedTemporaryFile(delete=False).name
+    control_worker_inbound = tempfile.NamedTemporaryFile(delete=False).name
     sys.argv = [
         "mpirun",
         "-np",
@@ -115,8 +115,8 @@ def test_piper_worker():
     print("Waiting 2 seconds to send a task request")
     time.sleep(2)
     # Run a simple task
-    job1_out = tempfile.mktemp()
-    job1_err = tempfile.mktemp()
+    job1_out = tempfile.NamedTemporaryFile(delete=False).name
+    job1_err = tempfile.NamedTemporaryFile(delete=False).name
     simple_task_message = [
         "EXECUTE_TASK",
         "1",
@@ -146,9 +146,9 @@ def test_piper_worker():
     os.write(executor_out, simple_task_message_str + "\n")  # noqa
     time.sleep(2)
     # Run a increment task
-    job2_out = tempfile.mktemp()
-    job2_err = tempfile.mktemp()
-    job2_result = tempfile.mktemp()
+    job2_out = tempfile.NamedTemporaryFile(delete=False).name
+    job2_err = tempfile.NamedTemporaryFile(delete=False).name
+    job2_result = tempfile.NamedTemporaryFile(delete=False).name
     increment_task_message = [
         "EXECUTE_TASK",
         "2",

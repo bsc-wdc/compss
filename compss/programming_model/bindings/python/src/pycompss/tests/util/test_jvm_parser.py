@@ -25,7 +25,7 @@ import shutil
 def test_jvm_parser():
     from pycompss.util.jvm.parser import convert_to_dict
 
-    jvm_opt_file = tempfile.mktemp()
+    jvm_opt_file = tempfile.NamedTemporaryFile(delete=False).name
     temp_folder = tempfile.mkdtemp()
     jvm_expected_result = {
         "+PerfDisableSharedMem": True,

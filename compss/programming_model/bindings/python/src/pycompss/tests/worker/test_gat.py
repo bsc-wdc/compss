@@ -70,7 +70,7 @@ def test_gat_worker_increment_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
-    temp_file = tempfile.mktemp()
+    temp_file = tempfile.NamedTemporaryFile(delete=False).name
     sys.argv = [
         "worker.py",
         "false",

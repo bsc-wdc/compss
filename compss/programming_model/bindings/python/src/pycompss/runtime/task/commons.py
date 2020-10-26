@@ -17,6 +17,10 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+This module includes all API commons
+"""
+
 import pycompss.api.parameter as parameter
 from pycompss.runtime.task.parameter import get_new_parameter
 
@@ -35,7 +39,7 @@ class TaskCommons(object):
                  user_function):
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
-        self.param_args = None
+        self.param_args = []
         self.param_varargs = None
 
     def get_varargs_direction(self):
@@ -52,8 +56,7 @@ class TaskCommons(object):
             if 'varargsType' in self.decorator_arguments:
                 self.param_varargs = 'varargsType'
                 return self.decorator_arguments['varargsType']
-            else:
-                return self.decorator_arguments['varargs_type']
+            return self.decorator_arguments['varargs_type']
         return self.decorator_arguments[self.param_varargs]
 
     def get_default_direction(self, var_name):

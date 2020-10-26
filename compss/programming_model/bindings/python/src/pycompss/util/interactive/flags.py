@@ -92,30 +92,44 @@ def check_flags(all_vars):
         return is_ok, issues
     else:
         # Check that each element is of the correct type and supported value
-        flag_header = "Flag "
-        is_not = " is not "
         for flag, requirements in REQUIRED_FLAGS.items():
-            if len(requirements) == 1:
-                # Only check type
-                req_type = requirements[0]
-                if not type(all_vars[flag]) in req_type:
-                    issues.append(flag_header + flag + is_not + str(req_type))
-            if len(requirements) == 2:
-                # Check type
-                req_type = requirements[0]
-                req_values = requirements[1]
-                if not type(all_vars[flag]) in req_type:
-                    issues.append(flag_header + flag + is_not + str(req_type))
-                else:
-                    # Check that it is also one of the options
-                    if not all_vars[flag] in req_values:
-                        issues.append(flag_header + flag + "=" + all_vars[flag] +
-                                      " is not supported. Available values: " +
-                                      str(req_values))
+            issues += __check_flag__(all_vars, flag, requirements)
         if issues:
             is_ok = False
 
     return is_ok, issues
+
+
+def __check_flag__(all_vars, flag, requirements):
+    # type: (str, list) -> list
+    """ Checks the given flag agains the requirements looking for issues.
+
+    :param all_vars: All variables.
+    :param flag: Flag to check.
+    :param requirements: Flag requirements.
+    :returns: A list of issues (empty if none).
+    """
+    flag_header = "Flag "
+    is_not = " is not "
+    issues = []
+    if len(requirements) == 1:
+        # Only check type
+        req_type = requirements[0]
+        if not type(all_vars[flag]) in req_type:
+            issues.append(flag_header + flag + is_not + str(req_type))
+    if len(requirements) == 2:
+        # Check type
+        req_type = requirements[0]
+        req_values = requirements[1]
+        if not type(all_vars[flag]) in req_type:
+            issues.append(flag_header + flag + is_not + str(req_type))
+        else:
+            # Check that it is also one of the options
+            if not all_vars[flag] in req_values:
+                issues.append(flag_header + flag + "=" + all_vars[flag] +
+                                " is not supported. Available values: " +
+                                str(req_values))
+    return issues
 
 
 def print_flag_issues(issues):

@@ -281,7 +281,7 @@ def _get_classes():
                   (line.startswith("\t")) or
                   (line.startswith('\n')) or
                   (line == '')) and class_found:
-                # class body: append
+                # class body found: append
                 classes[class_name].append(line + '\n')
             else:
                 class_found = False
@@ -458,6 +458,7 @@ def _get_old_code(file_path):
 
     file_imports = _clean(file_imports)
     file_globals = _clean(file_globals)
+    # No need to clean the following
     # file_classes = _clean(file_classes)
     # file_functions = _clean(file_functions)
     # file_tasks = _clean(file_tasks)
@@ -590,12 +591,12 @@ def _update_globals(new_globals, old_globals):
     if len(old_globals) == 0:
         return new_globals
     else:
-        for gName in list(new_globals.keys()):
-            if DEBUG and gName in old_globals and \
-                    (not new_globals[gName] == old_globals[gName]):
-                print("WARNING! Global variable " + gName +
+        for global_name in list(new_globals.keys()):
+            if DEBUG and global_name in old_globals and \
+                    (not new_globals[global_name] == old_globals[global_name]):
+                print("WARNING! Global variable " + global_name +
                       " has been redefined (the previous will be deprecated).")
-            old_globals[gName] = new_globals[gName]
+            old_globals[global_name] = new_globals[global_name]
         return old_globals
 
 
@@ -615,12 +616,11 @@ def _update_classes(new_classes, old_classes):
     if len(old_classes) == 0:
         return new_classes
     else:
-        for cName in list(new_classes.keys()):
-            if DEBUG and cName in old_classes and \
-                    (not new_classes[cName] == old_classes[cName]):
-                print("WARNING! Class " + cName +
-                      " has been redefined (the previous will be deprecated).")
-            old_classes[cName] = new_classes[cName]
+        for class_name in list(new_classes.keys()):
+            if DEBUG and class_name in old_classes and \
+                    (not new_classes[class_name] == old_classes[class_name]):
+                __show_redefinition_warning__("Class", class_name)
+            old_classes[class_name] = new_classes[class_name]
         return old_classes
 
 
@@ -641,12 +641,11 @@ def _update_functions(new_functions, old_functions):
     if len(old_functions) == 0:
         return new_functions
     else:
-        for fName in list(new_functions.keys()):
-            if DEBUG and fName in old_functions and\
-                    (not new_functions[fName] == old_functions[fName]):
-                print("WARNING! Function " + fName +
-                      " has been redefined (the previous will be deprecated).")
-            old_functions[fName] = new_functions[fName]
+        for function_name in list(new_functions.keys()):
+            if DEBUG and function_name in old_functions and\
+                    (not new_functions[function_name] == old_functions[function_name]):
+                __show_redefinition_warning__("Function", function_name)
+            old_functions[function_name] = new_functions[function_name]
         return old_functions
 
 
@@ -671,10 +670,15 @@ def _update_tasks(new_tasks, old_tasks):
         task_name = list(new_tasks.keys())[0]
         if DEBUG and task_name in old_tasks and\
                 (not new_tasks[task_name] == old_tasks[task_name]):
-            print("WARNING! Task " + task_name +
-                  " has been redefined (the previous will be deprecated).")
+            __show_redefinition_warning__("Task", task_name)
         old_tasks[task_name] = new_tasks[task_name]
     return old_tasks
+
+
+def __show_redefinition_warning__(kind, name):
+    # type: (str) -> None
+    """ Shows a warning notifying the redefinition of "kind" type. """
+    print("WARNING! %s %s has been redefined (the previous will be deprecated)." % (kind, name))  # noqa: E501
 
 
 # #######################
@@ -705,7 +709,7 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions,
     if len(new_globals) == 0:
         code_file.write('\n')
     else:
-        for k, v in list(new_globals.items()):
+        for _, v in list(new_globals.items()):
             for line in v:
                 code_file.write(line)
             code_file.write('\n')
@@ -716,7 +720,7 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions,
     if len(new_classes) == 0:
         code_file.write('\n')
     else:
-        for k, v in list(new_classes.items()):
+        for _, v in list(new_classes.items()):
             for line in v:
                 code_file.write(line)
             code_file.write('\n')
@@ -727,7 +731,7 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions,
     if len(new_functions) == 0:
         code_file.write('\n')
     else:
-        for k, v in list(new_functions.items()):
+        for _, v in list(new_functions.items()):
             for line in v:
                 code_file.write(line)
             code_file.write('\n')
@@ -738,7 +742,7 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions,
     if len(new_tasks) == 0:
         code_file.write('\n')
     else:
-        for k, v in list(new_tasks.items()):
+        for _, v in list(new_tasks.items()):
             for line in v:
                 code_file.write(line)
             code_file.write('\n')

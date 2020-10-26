@@ -89,12 +89,12 @@ def prepare_environment(interactive, o_c, storage_impl,
     binding.object_conversion = o_c
 
     # Get the filename and its path.
+    file_name = os.path.splitext(os.path.basename(app))[0]
+    cp = os.path.dirname(app)
     if interactive:
+        # Rename file_name and cp
         file_name = 'Interactive'
         cp = os.getcwd() + '/'
-    else:
-        file_name = os.path.splitext(os.path.basename(app))[0]
-        cp = os.path.dirname(app)
 
     # Set storage classpath
     if storage_impl:
@@ -117,12 +117,10 @@ def prepare_environment(interactive, o_c, storage_impl,
     os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
     os.environ['EXTRAE_USE_POSIX_CLOCK'] = '0'
 
-    # Add environment variable to get binding-commons debug information
-    if debug:
-        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
+    control_binding_commons_debug(debug)
 
     # Force mpi worker if using ScoreP, ARM-MAP or ARM-DDT
-    if trace == 'scorep' or trace == 'arm-map' or trace == 'arm-ddt':
+    if trace in ['scorep', 'arm-map', 'arm-ddt']:
         mpi_worker = True
 
     env_vars = {'compss_home': compss_home,
@@ -136,6 +134,12 @@ def prepare_environment(interactive, o_c, storage_impl,
                 'mpi_worker': mpi_worker}
     return env_vars
 
+def control_binding_commons_debug(debug):
+    # type: (bool) -> None
+    """ Enables the binding-commons debug mode."""
+    if debug:
+        # Add environment variable to get binding-commons debug information
+        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
 def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
     # type: (int, bool, bool, str) -> dict
@@ -264,8 +268,8 @@ def check_infrastructure_variables(project_xml, resources_xml, compss_home,
     # Check if running within a virtual environment
     if 'VIRTUAL_ENV' in os.environ:
         python_virtual_environment = os.environ['VIRTUAL_ENV']
-    elif 'CONTA_DEFAULT_ENV' in os.environ:
-        python_virtual_environment = os.environ['CONTA_DEFAULT_ENV']
+    elif 'CONDA_DEFAULT_ENV' in os.environ:
+        python_virtual_environment = os.environ['CONDA_DEFAULT_ENV']
     else:
         python_virtual_environment = 'null'
     inf_vars = {'project_xml': project_xml,

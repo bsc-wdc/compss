@@ -35,7 +35,7 @@ from pycompss.worker.commons.worker import execute_task
 from pycompss.worker.commons.executor import build_return_params_message
 
 # Define static logger
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)  # NOSONAR
 LOGGER = logging.getLogger()
 
 

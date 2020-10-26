@@ -37,9 +37,9 @@ except Exception:
 hp = guppy.hpy()
 
 
-def _w(x):
-    def f():
-        x
+def _w(x):    # NOSONAR
+    def f():  # NOSONAR
+        x     # NOSONAR
 
     return f
 

@@ -30,17 +30,13 @@ from multiprocessing import Process
 from multiprocessing import Queue
 
 from pycompss.runtime.commons import range
+from pycompss.util.exceptions import NotImplementedException
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
-from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
-from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
-from pycompss.worker.piper.commons.constants import ERROR_TASK_TAG
-from pycompss.worker.piper.commons.constants import ERROR_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
@@ -50,8 +46,6 @@ from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
 from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.constants import REMOVE_TAG
-from pycompss.worker.piper.commons.constants import SERIALIZE_TAG
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
 from pycompss.worker.piper.commons.executor import ExecutorConf
@@ -225,6 +219,18 @@ def compss_persistent_worker(config):
 
     control_pipe.write(QUIT_TAG)
     control_pipe.close()
+
+
+def create_threads(process_name, pipe):
+    # type: (str, ...) -> int
+    """ Starts a new executor.
+    TODO: Not implemented yet.
+
+    :param process_name: Process name.
+    :param pipe: Communication pipes (in, out).
+    :return: Process identifier.
+    """
+    raise NotImplementedException("ADD NEW EXECUTOR")
 
 
 ############################

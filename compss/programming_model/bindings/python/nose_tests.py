@@ -68,7 +68,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/api/test_exceptions.py',
     'pycompss/tests/api/test_implement.py',
     'pycompss/tests/api/test_io.py',
-    'pycompss/tests/api/test_local.py',  # blacklisted and omitted in sh scripts
+    'pycompss/tests/api/test_local.py',
     'pycompss/tests/api/test_mpi.py',
     'pycompss/tests/api/test_multinode.py',
     'pycompss/tests/api/test_ompss.py',
@@ -82,6 +82,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/runtime/test_object_tracker.py',
     'pycompss/tests/util/test_jvm_parser.py',
     'pycompss/tests/util/test_mpi_helper.py',
+    'pycompss/tests/util/test_object_replace.py',
     'pycompss/tests/util/test_object_sizer.py',
     'pycompss/tests/util/test_warning_modules.py',
     'pycompss/tests/worker/test_gat.py',
@@ -109,7 +110,6 @@ FILES_WHITE_LIST = [
     'pycompss/util/translators/scop_types/scop/extensions_class.py'
 ]
 FILES_BLACK_LIST = [
-    'pycompss/tests/api/test_local.py',  # fails due to replace util.
 ]
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed

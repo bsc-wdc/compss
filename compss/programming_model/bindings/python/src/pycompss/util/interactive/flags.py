@@ -127,8 +127,8 @@ def __check_flag__(all_vars, flag, requirements):
             # Check that it is also one of the options
             if not all_vars[flag] in req_values:
                 issues.append(flag_header + flag + "=" + all_vars[flag] +
-                                " is not supported. Available values: " +
-                                str(req_values))
+                              " is not supported. Available values: " +
+                              str(req_values))
     return issues
 
 

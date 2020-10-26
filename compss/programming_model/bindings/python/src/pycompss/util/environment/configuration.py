@@ -134,12 +134,14 @@ def prepare_environment(interactive, o_c, storage_impl,
                 'mpi_worker': mpi_worker}
     return env_vars
 
+
 def control_binding_commons_debug(debug):
     # type: (bool) -> None
     """ Enables the binding-commons debug mode."""
     if debug:
         # Add environment variable to get binding-commons debug information
         os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
+
 
 def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
     # type: (int, bool, bool, str) -> dict

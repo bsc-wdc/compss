@@ -20,7 +20,7 @@
 from pycompss.api.exceptions import COMPSsException
 
 
-def test_COMPSsException_instantiation():  # noqa
+def test_COMPSsException_instantiation():  # NOSONAR
     exc = COMPSsException("my message")
     is_exception = False
     if issubclass(type(exc), Exception):

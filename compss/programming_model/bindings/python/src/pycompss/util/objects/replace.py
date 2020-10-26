@@ -73,7 +73,7 @@ def _replace_attribute(source, rel, new):
         if rel == "__mro__":
             return  # Updated via __bases__ when important, otherwise futile
     if isinstance(source, (GetSetDescriptorType, MemberDescriptorType)):
-        if rel == "__objclass__":
+        if rel == "__objclass__":   # NOSONAR
             _write_struct_attr(id(source), new, 0)
             return
     try:
@@ -205,7 +205,7 @@ sd = S.q
 
 # -----------------------------------------------------------------------------
 def examine_vars(id1, id2, id3):
-    def ex(v, id_):
+    def ex(v, id_):  # NOSONAR
         return str(v) + ("" if id(v) == id_ else " - ERROR!")
     print("dict (local var):  ", ex(a, id1))
     print("dict (class attr): ", ex(X.cattr, id1))

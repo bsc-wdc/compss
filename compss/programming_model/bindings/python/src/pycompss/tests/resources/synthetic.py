@@ -93,5 +93,6 @@ def main():
     # add more to be tested
 
 
+# Uncomment for command line check:
 # if __name__ == "__main__":
 #     main()

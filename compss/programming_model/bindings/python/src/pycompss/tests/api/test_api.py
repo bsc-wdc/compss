@@ -66,6 +66,7 @@ def test_dummy_api():
     compss_free_resources(num_resources, group_name)
 
     with TaskGroup(group_name, implicit_barrier=True):
+        # Empty task group check
         pass
 
     os.remove(file_name)

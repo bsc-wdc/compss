@@ -38,5 +38,6 @@ def main():
     assert result == initial + 1, "ERROR: Unexpected increment result."
 
 
+# Uncomment for command line check:
 # if __name__ == '__main__':
 #     main()

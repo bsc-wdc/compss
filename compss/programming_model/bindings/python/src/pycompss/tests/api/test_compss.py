@@ -57,7 +57,7 @@ def test_compss_call_outside():
     ), "The compss decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
-def test_compss_appName_parameter():  # noqa
+def test_compss_appName_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
     appName = "my_appName"  # noqa
     my_compss = COMPSs(app_name="date", appName=appName)
@@ -113,7 +113,7 @@ def test_compss_worker_in_master_parameter():
     ), "worker_in_master parameter has not been initialized."
 
 
-def test_compss_workerInMaster_parameter():  # noqa
+def test_compss_workerInMaster_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
     workerInMaster = "my_workerInMaster"  # noqa
     my_compss = COMPSs(app_name="date", workerInMaster=workerInMaster)

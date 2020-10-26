@@ -59,7 +59,7 @@ def test_decorator_resolve_working_dir():
     shutil.rmtree(working_dir)
 
 
-def test_decorator_resolve_workingDir():  # noqa
+def test_decorator_resolve_workingDir():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
     working_dir = tempfile.mkdtemp()
     my_deco = PyCOMPSsDecorator(
@@ -124,7 +124,7 @@ def test_decorator_resolve_fail_by_exit_value_exception():
     ), "Expected exception with wrong fail_by_exit_value not raised."
 
 
-def test_decorator_process_computingNodes():  # noqa
+def test_decorator_process_computingNodes():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
     decorator_name = DECORATOR_NAME
     computing_nodes = 1

@@ -20,6 +20,8 @@
 import os
 import sys
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 def test_launch_test_0_basic1():
     if "COMPSS_HOME" in os.environ:
@@ -58,4 +60,4 @@ def test_launch_test_0_basic1():
         if os.path.exists("message.txt"):
             os.remove("message.txt")
     else:
-        raise Exception("COMPSs is not installed")
+        raise PyCOMPSsException("COMPSs is not installed")

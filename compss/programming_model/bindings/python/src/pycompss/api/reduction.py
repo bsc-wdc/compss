@@ -26,15 +26,14 @@ PyCOMPSs API - Reduction
 
 import os
 from functools import wraps
-import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
-from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 if __debug__:
     import logging
@@ -84,7 +83,7 @@ class Reduction(PyCOMPSsDecorator):
         @wraps(func)
         def reduce_f(*args, **kwargs):
             if not self.scope:
-                raise Exception(not_in_pycompss("reduction"))
+                raise PyCOMPSsException(not_in_pycompss("reduction"))
 
             if __debug__:
                 logger.debug("Executing reduce_f wrapper.")
@@ -121,7 +120,7 @@ class Reduction(PyCOMPSsDecorator):
                 # Convert string to int
                 chunk_size = self.__parse_chunk_size__(chunk_size)
             else:
-                raise Exception("ERROR: Wrong chunk_size value at @reduction decorator.")  # noqa: E501
+                raise PyCOMPSsException("ERROR: Wrong chunk_size value at @reduction decorator.")  # noqa: E501
 
         if 'is_reduce' not in self.kwargs:
             is_reduce = True
@@ -143,7 +142,7 @@ class Reduction(PyCOMPSsDecorator):
 
         :param chunk_size: Chunk size as string.
         :return: Chunk size as integer.
-        :raises Exception: Can not cast string to int error.
+        :raises PyCOMPSsException: Can not cast string to int error.
         """
         # Check if it is an environment variable to be loaded
         if chunk_size.strip().startswith('$'):
@@ -154,13 +153,13 @@ class Reduction(PyCOMPSsDecorator):
             try:
                 chunk_size = int(os.environ[env_var])
             except ValueError:
-                raise Exception(cast_env_to_int_error('chunk_size'))
+                raise PyCOMPSsException(cast_env_to_int_error('chunk_size'))
         else:
             # ChunkSize is in string form, cast it
             try:
                 chunk_size = int(chunk_size)
             except ValueError:
-                raise Exception(cast_string_to_int_error('chunk_size'))
+                raise PyCOMPSsException(cast_string_to_int_error('chunk_size'))
         return chunk_size
 
 

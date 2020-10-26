@@ -19,12 +19,12 @@
 class ExaquteTask(object):
 
     def __call__(self, f):
-        def g(*args, **kwargs):
+        def et_wrapper(*args, **kwargs):
             if "scheduling_constraints" in kwargs:
                 del kwargs["scheduling_constraints"]
             return f(*args, **kwargs)
 
-        return g
+        return et_wrapper()
 
 
 def barrier():  # Wait

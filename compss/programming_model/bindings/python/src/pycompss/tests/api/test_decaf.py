@@ -71,7 +71,7 @@ def test_decaf_runner_parameter():
     ), "Runner parameter has not been initialized."
 
 
-def test_decaf_dfScript_parameter():  # noqa
+def test_decaf_dfScript_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
     dfScript = "my_dfScript"  # noqa
     my_decaf = Decaf(df_script="date", dfScript=dfScript)
@@ -99,7 +99,7 @@ def test_decaf_df_executor_parameter():
     ), "df_executor parameter has not been initialized."
 
 
-def test_decaf_dfExecutor_parameter():  # noqa
+def test_decaf_dfExecutor_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
     dfExecutor = "my_dfExecutor"  # noqa
     my_decaf = Decaf(df_script="date", dfExecutor=dfExecutor)
@@ -127,7 +127,7 @@ def test_decaf_df_lib_parameter():
     ), "df_lib parameter has not been initialized."
 
 
-def test_decaf_dfLib_parameter():  # noqa
+def test_decaf_dfLib_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
     dfLib = "my_dfLib"  # noqa
     my_decaf = Decaf(df_script="date", dfLib=dfLib)

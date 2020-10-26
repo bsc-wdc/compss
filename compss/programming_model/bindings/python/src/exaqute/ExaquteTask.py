@@ -15,32 +15,34 @@
 #  limitations under the License.
 #
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 class ExaquteTask(object):
 
     def __init__(self, *args, **kwargs):
-        raise Exception(
+        raise PyCOMPSsException(
             "Exaqute task decorator not implemented in the current scheduler")
 
     def __call__(self, f):
-        raise Exception(
+        raise PyCOMPSsException(
             "Exaqute task call code not implemented in the current scheduler")
 
 
 def get_value_from_remote(obj):
-    raise Exception("Get value not implemented in the current scheduler")
+    raise PyCOMPSsException("Get value not implemented in the current scheduler")  # noqa: E501
 
 
 def barrier():
-    raise Exception("Barrier not implemented in the current scheduler")
+    raise PyCOMPSsException("Barrier not implemented in the current scheduler")
 
 
 def delete_object(obj):
-    raise Exception("Delete object not implemented in the current scheduler")
+    raise PyCOMPSsException("Delete object not implemented in the current scheduler")  # noqa: E501
 
 
 def compute(obj):
-    raise Exception("Compute not implemented in the current scheduler")
+    raise PyCOMPSsException("Compute not implemented in the current scheduler")
 
 
 def from_args_to_vector(obj):

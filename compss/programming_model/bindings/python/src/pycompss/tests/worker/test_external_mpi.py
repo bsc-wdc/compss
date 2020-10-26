@@ -21,6 +21,7 @@ import os
 import sys
 import tempfile
 
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.worker.external.mpi_executor import main
 from pycompss.api.task import task
 
@@ -143,20 +144,20 @@ def test_external_mpi_worker_increment_task():
 def check_task(job_out, job_err):
     if os.path.exists(job_err) and os.path.getsize(job_err) > 0:  # noqa
         # Non empty file exists
-        raise Exception(
+        raise PyCOMPSsException(
             "An error happened in the task. Please check " + job_err
         )
     with open(job_out, "r") as f:
         content = f.read()
         if "ERROR" in content:
-            raise Exception(
+            raise PyCOMPSsException(
                 "An error happened in the task. Please check " + job_out
             )
         if "EXCEPTION" in content or "Exception" in content:
-            raise Exception(
+            raise PyCOMPSsException(
                 "An exception happened in the task. Please check " + job_out
             )
         if "End task execution. Status: Ok" not in content:
-            raise Exception(
+            raise PyCOMPSsException(
                 "The task was supposed to be OK. Please check " + job_out
             )

@@ -20,6 +20,8 @@
 import os
 import sys
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 def test_get_optional_module_warning():
     from pycompss.util.warnings.modules import get_optional_module_warning
@@ -58,4 +60,4 @@ def test_show_optional_module_warning():
         # Non empty file exists - this is ok.
         os.remove(out_file)
     else:
-        raise Exception("The warning has not been shown")
+        raise PyCOMPSsException("The warning has not been shown")

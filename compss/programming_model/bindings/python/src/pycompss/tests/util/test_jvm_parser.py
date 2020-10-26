@@ -21,6 +21,8 @@ import os
 import tempfile
 import shutil
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 def test_jvm_parser():
     from pycompss.util.jvm.parser import convert_to_dict
@@ -151,7 +153,7 @@ other
     ), "The sizes of the dictionaries does not match"
     for k, v in jvm_expected_result.items():
         if k not in result:
-            raise Exception("Key: %s is not in the result dictionary" % k)
+            raise PyCOMPSsException("Key: %s is not in the result dictionary" % k)
         assert v == result[k], (
             "The value of key: %s does not match the expected value: %s"
             % (k, str(v))

@@ -1049,7 +1049,7 @@ class TaskMaster(TaskCommons):
                     try:
                         parsed_chunk_size = int(os.environ[env_var])
                     except ValueError:
-                        raise Exception(
+                        raise PyCOMPSsException(
                             cast_env_to_int_error('ChunkSize')
                         )
                 else:

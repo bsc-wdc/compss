@@ -19,6 +19,8 @@
 
 import os
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 def test_launch_application():
     if "COMPSS_HOME" in os.environ:
@@ -30,4 +32,4 @@ def test_launch_application():
             app, "main", debug=True, app_name="increment"
         )
     else:
-        raise Exception("COMPSs is not installed")
+        raise PyCOMPSsException("COMPSs is not installed")

@@ -23,9 +23,10 @@ import time
 import tempfile
 import shutil
 import multiprocessing
-from pycompss.util.serialization.serializer import deserialize_from_file
 import subprocess
 
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.api.task import task
 
 
@@ -215,19 +216,19 @@ def test_piper_worker():
     out_log = "log/binding_worker.out"
     err_log = "log/binding_worker.err"
     if os.path.exists(err_log):
-        raise Exception(ERROR_MESSAGE + err_log)
+        raise PyCOMPSsException(ERROR_MESSAGE + err_log)
     with open(out_log, "r") as f:
         if "ERROR" in f.read():
-            raise Exception(ERROR_MESSAGE + out_log)
+            raise PyCOMPSsException(ERROR_MESSAGE + out_log)
         if "Traceback" in f.read():
-            raise Exception(ERROR_MESSAGE + out_log)
+            raise PyCOMPSsException(ERROR_MESSAGE + out_log)
     # Check task 1
     check_task(job1_out, job1_err)
     # Check task 2
     check_task(job2_out, job2_err)
     result = deserialize_from_file(job2_result)
     if result != 2:
-        raise Exception(
+        raise PyCOMPSsException(
             "Wrong result obtained for increment task. Expected 2, received: " +  # noqa: E501
             str(result)
         )
@@ -263,20 +264,20 @@ def test_piper_worker():
 def check_task(job_out, job_err):
     if os.path.exists(job_err) and os.path.getsize(job_err) > 0:  # noqa
         # Non empty file exists
-        raise Exception(
+        raise PyCOMPSsException(
             "An error happened in the task. Please check " + job_err
         )  # noqa
     with open(job_out, "r") as f:
         content = f.read()
         if "ERROR" in content:
-            raise Exception(
+            raise PyCOMPSsException(
                 "An error happened in the task. Please check " + job_out
             )  # noqa
         if "EXCEPTION" in content or "Exception" in content:
-            raise Exception(
+            raise PyCOMPSsException(
                 "An exception happened in the task. Please check " + job_out
             )  # noqa
         if "End task execution. Status: Ok" not in content:
-            raise Exception(
+            raise PyCOMPSsException(
                 "The task was supposed to be OK. Please check " + job_out
             )  # noqa

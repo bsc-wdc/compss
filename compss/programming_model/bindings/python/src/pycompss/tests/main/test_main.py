@@ -20,7 +20,7 @@
 import os
 import sys
 from pycompss.__main__ import main
-
+from pycompss.util.exceptions import PyCOMPSsException
 
 MAIN_NAME = "__main__.py"
 
@@ -30,7 +30,7 @@ def check_output(stdout, stderr, error_expected=False):
             os.path.getsize(stderr) > 0 and
             not error_expected):
         # Non empty file exists
-        raise Exception("An error happened. Please check " + stderr)
+        raise PyCOMPSsException("An error happened. Please check " + stderr)
     else:
         os.remove(stdout)
         os.remove(stderr)

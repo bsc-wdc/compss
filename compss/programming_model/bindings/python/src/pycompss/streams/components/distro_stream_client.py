@@ -334,7 +334,8 @@ class TestDistroStreamClient(unittest.TestCase):
 # MAIN FOR UNIT TEST
 #
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    log_format = "%(asctime)s | %(levelname)s | %(name)s - %(message)s"
     logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s | %(levelname)s | %(name)s - %(message)s')  # noqa: E501
+                        format=log_format)  # NOSONAR
     unittest.main()

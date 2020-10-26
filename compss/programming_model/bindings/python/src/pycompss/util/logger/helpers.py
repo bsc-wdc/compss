@@ -81,7 +81,7 @@ def init_logging(log_config_file, log_path):
             conf["handlers"][handler]["filename"] = log_path + debug_file
         CONFIG_FUNC(conf)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO)  # NOSONAR
 
 
 def init_logging_worker(log_config_file, tracing):
@@ -113,4 +113,4 @@ def init_logging_worker(log_config_file, tracing):
                 conf["handlers"][handler]["filename"] = '../' + debug_file
         CONFIG_FUNC(conf)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO)  # NOSONAR

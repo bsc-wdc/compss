@@ -31,12 +31,12 @@ class ExaquteTask(object):
         return et_wrapper
 
 
-def barrier():  # Wait
-    pass
-
-
 def get_value_from_remote(obj):  # Gather
     return obj
+
+
+def barrier():  # Wait
+    pass
 
 
 def delete_object(*objs):  # Release

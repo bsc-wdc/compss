@@ -111,6 +111,7 @@ FILES_WHITE_LIST = [
     'pycompss/util/translators/scop_types/scop/extensions_class.py'
 ]
 FILES_BLACK_LIST = [
+    'pycompss/tests/integration/test_dds_examples.py',
 ]
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed

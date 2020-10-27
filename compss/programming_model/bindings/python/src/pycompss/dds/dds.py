@@ -20,6 +20,7 @@ import os
 import pickle
 from collections import deque, defaultdict
 
+from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.api import compss_barrier
 from pycompss.dds import heapq3
 from pycompss.dds.partition_generators import *

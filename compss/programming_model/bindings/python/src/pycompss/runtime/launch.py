@@ -488,10 +488,8 @@ def launch_pycompss_application(app,
             result = None
         else:
             if IS_PYTHON3:
-                import importlib.util
-                spec = importlib.util.spec_from_file_location(all_vars["file_name"], app)  # noqa: E501
-                imported_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(imported_module)  # noqa
+                from importlib.machinery import SourceFileLoader
+                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # noqa: E501
             else:
                 import imp  # noqa
                 imported_module = imp.load_source(all_vars["file_name"], app)  # noqa

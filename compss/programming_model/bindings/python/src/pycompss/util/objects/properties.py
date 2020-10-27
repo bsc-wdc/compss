@@ -99,15 +99,18 @@ def is_module_available(module_name):
         if py_version > (3, 4):
             try:
                 import importlib
-                importlib.util.find_spec(module_name)  # noqa
+                module = importlib.util.find_spec(module_name)  # noqa
             except AttributeError:
                 # This can only happen in conda
                 import imp  # noqa # Deprecated in python 3
-                imp.find_module(module_name)  # noqa
+                module = imp.find_module(module_name)  # noqa
         else:
             import imp  # noqa
-            imp.find_module(module_name)  # noqa
-        return True
+            module = imp.find_module(module_name)  # noqa
+        if module:
+            return True
+        else:
+            return False
     except ImportError:
         return False
 

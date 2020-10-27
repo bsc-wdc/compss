@@ -6,12 +6,18 @@
 
   # Run a coverage report for a module
   run() {
-    coverage run --rcfile=${SCRIPT_DIR}/coverage.cfg nose_tests.py False
-                 # --source="src/pycompss" \
-                 # --omit="/usr/lib/*" \
-                 # --omit="src/pycompss/api/tests_parallel/*" \
-                 # --concurrency=multiprocessing \  # not allowed as flag with the others
-                 # --omit="src/pycompss/util/translators/*" \
+    coverage2 run --rcfile=${SCRIPT_DIR}/coverage.cfg nose_tests.py False
+                  # --source="src/pycompss" \
+                  # --omit="/usr/lib/*" \
+                  # --omit="src/pycompss/api/tests_parallel/*" \
+                  # --concurrency=multiprocessing \  # not allowed as flag with the others
+                  # --omit="src/pycompss/util/translators/*" \
+    coverage3 run -a --rcfile=${SCRIPT_DIR}/coverage.cfg nose_tests.py False
+                  # --source="src/pycompss" \
+                  # --omit="/usr/lib/*" \
+                  # --omit="src/pycompss/api/tests_parallel/*" \
+                  # --concurrency=multiprocessing \  # not allowed as flag with the others
+                  # --omit="src/pycompss/util/translators/*" \
     coverage combine
     coverage report -m
   }

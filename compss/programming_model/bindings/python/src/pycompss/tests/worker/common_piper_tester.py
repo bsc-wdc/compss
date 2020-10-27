@@ -18,6 +18,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import time
 import tempfile
 import shutil
@@ -25,6 +26,11 @@ import shutil
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.api.task import task
+
+if sys.version_info >= (3, 0):
+    IS_PYTHON3 = True
+else:
+    IS_PYTHON3 = False
 
 
 STD_OUT_FILE = "/../../../../std.out"
@@ -90,7 +96,10 @@ def evaluate_worker(worker, name, pipes, files, current_path,
     ]
     simple_task_message_str = " ".join(simple_task_message)
     print("Requesting: " + simple_task_message_str)
-    os.write(executor_out, simple_task_message_str + "\n")  # noqa
+    if IS_PYTHON3:
+        os.write(executor_out, (simple_task_message_str + "\n").encode())  # noqa
+    else:
+        os.write(executor_out, simple_task_message_str + "\n")  # noqa
     time.sleep(2)
     # Run a increment task
     job2_out = tempfile.NamedTemporaryFile(delete=False).name
@@ -134,7 +143,10 @@ def evaluate_worker(worker, name, pipes, files, current_path,
     ]
     increment_task_message_str = " ".join(increment_task_message)
     print("Requesting: " + increment_task_message_str)
-    os.write(executor_out, increment_task_message_str + "\n")  # noqa
+    if IS_PYTHON3:
+        os.write(executor_out, (increment_task_message_str + "\n").encode())  # noqa
+    else:
+        os.write(executor_out, increment_task_message_str + "\n")  # noqa
     time.sleep(2)
     # Send quit message
     os.write(executor_out, b"QUIT\n")

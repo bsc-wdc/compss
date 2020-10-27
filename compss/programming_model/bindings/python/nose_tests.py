@@ -22,6 +22,12 @@ import nose
 import sys
 from nose.plugins.base import Plugin
 
+if sys.version_info >= (3, 0):
+    IS_PYTHON3 = True
+else:
+    # autoparallel is not compatible with python3
+    IS_PYTHON3 = False
+
 
 DIRECTORIES_WHITE_LIST = [
     'src',
@@ -36,22 +42,10 @@ DIRECTORIES_WHITE_LIST = [
     'pycompss/tests/runtime',
     'pycompss/tests/util',
     'pycompss/tests/worker',
-    # ############ @parallel related ############ #
     'pycompss/api',
-    'pycompss/util',
-    'pycompss/util/translators',
-    'pycompss/util/translators/code_loader',
-    'pycompss/util/translators/code_replacer',
-    'pycompss/util/translators/py2pycompss',
-    'pycompss/util/translators/py2scop',
-    'pycompss/util/translators/scop2pscop2py',
-    'pycompss/util/translators/scop_types',
-    'pycompss/util/translators/scop_types/scop',
-    'pycompss/util/translators/scop_types/scop/extensions',
-    'pycompss/util/translators/scop_types/scop/globl',
-    'pycompss/util/translators/scop_types/scop/globl/parameters',
-    'pycompss/util/translators/scop_types/scop/statement'
+    'pycompss/util'
 ]
+
 FILES_WHITE_LIST = [
     # Include all tests that check only the sources.
     # (Do not include tests that use the installed runtime. Use
@@ -89,26 +83,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/worker/test_gat.py',
     'pycompss/tests/worker/test_piper.py',
     'pycompss/tests/worker/test_mpi_piper.py',
-    'pycompss/tests/worker/test_external_mpi.py',
-    # ############ @parallel related ############ #
-    'pycompss/api/parallel.py',
-    'pycompss/util/translators/code_loader/code_loader.py',
-    'pycompss/util/translators/code_replacer/code_replacer.py',
-    'pycompss/util/translators/py2pycompss/translator_py2pycompss.py',
-    'pycompss/util/translators/py2scop/translator_py2scop.py',
-    'pycompss/util/translators/scop2pscop2py/translator_scop2pscop2py.py',
-    'pycompss/util/translators/scop_types/scop_class.py',
-    'pycompss/util/translators/scop_types/scop/statement_class.py',
-    'pycompss/util/translators/scop_types/scop/extensions/coordinates_class.py',
-    'pycompss/util/translators/scop_types/scop/extensions/scatnames_class.py',
-    'pycompss/util/translators/scop_types/scop/extensions/arrays_class.py',
-    'pycompss/util/translators/scop_types/scop/global_class.py',
-    'pycompss/util/translators/scop_types/scop/globl/parameters/parameter_class.py',
-    'pycompss/util/translators/scop_types/scop/globl/parameters_class.py',
-    'pycompss/util/translators/scop_types/scop/globl/context_class.py',
-    'pycompss/util/translators/scop_types/scop/statement/statement_extension_class.py',
-    'pycompss/util/translators/scop_types/scop/statement/relation_class.py',
-    'pycompss/util/translators/scop_types/scop/extensions_class.py'
+    'pycompss/tests/worker/test_external_mpi.py'
 ]
 FILES_BLACK_LIST = [
     'pycompss/tests/integration/test_dds_examples.py',
@@ -121,6 +96,44 @@ INTEGRATION_WHITE_LIST = [
     'pycompss/tests/integration/test_launch_functions.py',
     'pycompss/tests/integration/test_launch_0_basic1.py',
 ]
+
+
+if not IS_PYTHON3:
+    # If is python2, add autoparallel code
+    DIRECTORIES_WHITE_LIST += [
+        'pycompss/util/translators',
+        'pycompss/util/translators/code_loader',
+        'pycompss/util/translators/code_replacer',
+        'pycompss/util/translators/py2pycompss',
+        'pycompss/util/translators/py2scop',
+        'pycompss/util/translators/scop2pscop2py',
+        'pycompss/util/translators/scop_types',
+        'pycompss/util/translators/scop_types/scop',
+        'pycompss/util/translators/scop_types/scop/extensions',
+        'pycompss/util/translators/scop_types/scop/globl',
+        'pycompss/util/translators/scop_types/scop/globl/parameters',
+        'pycompss/util/translators/scop_types/scop/statement'
+    ]
+    FILES_WHITE_LIST += [
+        'pycompss/api/parallel.py',
+        'pycompss/util/translators/code_loader/code_loader.py',
+        'pycompss/util/translators/code_replacer/code_replacer.py',
+        'pycompss/util/translators/py2pycompss/translator_py2pycompss.py',
+        'pycompss/util/translators/py2scop/translator_py2scop.py',
+        'pycompss/util/translators/scop2pscop2py/translator_scop2pscop2py.py',
+        'pycompss/util/translators/scop_types/scop_class.py',
+        'pycompss/util/translators/scop_types/scop/statement_class.py',
+        'pycompss/util/translators/scop_types/scop/extensions/coordinates_class.py',
+        'pycompss/util/translators/scop_types/scop/extensions/scatnames_class.py',
+        'pycompss/util/translators/scop_types/scop/extensions/arrays_class.py',
+        'pycompss/util/translators/scop_types/scop/global_class.py',
+        'pycompss/util/translators/scop_types/scop/globl/parameters/parameter_class.py',
+        'pycompss/util/translators/scop_types/scop/globl/parameters_class.py',
+        'pycompss/util/translators/scop_types/scop/globl/context_class.py',
+        'pycompss/util/translators/scop_types/scop/statement/statement_extension_class.py',
+        'pycompss/util/translators/scop_types/scop/statement/relation_class.py',
+        'pycompss/util/translators/scop_types/scop/extensions_class.py'
+    ]
 
 
 class ExtensionPlugin(Plugin):

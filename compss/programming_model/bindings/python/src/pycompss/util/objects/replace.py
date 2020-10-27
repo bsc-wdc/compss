@@ -44,7 +44,10 @@ def _w(x):    # NOSONAR
     return f
 
 
-CellType = type(_w(0).func_closure[0])
+if sys.version_info < (3, 0):
+    CellType = type(_w(0).func_closure[0])
+else:
+    CellType = type(_w(0).__closure__[0])
 
 del _w
 

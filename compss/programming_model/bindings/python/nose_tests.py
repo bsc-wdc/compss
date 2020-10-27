@@ -141,46 +141,6 @@ else:
     FILES_BLACK_LIST += [
         'pycompss/api/parallel.py',
     ]
-if not IS_PYTHON3:
-    # If is python2, add autoparallel code
-    DIRECTORIES_WHITE_LIST += [
-        'pycompss/util/translators',
-        'pycompss/util/translators/code_loader',
-        'pycompss/util/translators/code_replacer',
-        'pycompss/util/translators/py2pycompss',
-        'pycompss/util/translators/py2scop',
-        'pycompss/util/translators/scop2pscop2py',
-        'pycompss/util/translators/scop_types',
-        'pycompss/util/translators/scop_types/scop',
-        'pycompss/util/translators/scop_types/scop/extensions',
-        'pycompss/util/translators/scop_types/scop/globl',
-        'pycompss/util/translators/scop_types/scop/globl/parameters',
-        'pycompss/util/translators/scop_types/scop/statement'
-    ]
-    FILES_WHITE_LIST += [
-        'pycompss/api/parallel.py',
-        'pycompss/util/translators/code_loader/code_loader.py',
-        'pycompss/util/translators/code_replacer/code_replacer.py',
-        'pycompss/util/translators/py2pycompss/translator_py2pycompss.py',
-        'pycompss/util/translators/py2scop/translator_py2scop.py',
-        'pycompss/util/translators/scop2pscop2py/translator_scop2pscop2py.py',
-        'pycompss/util/translators/scop_types/scop_class.py',
-        'pycompss/util/translators/scop_types/scop/statement_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions/coordinates_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions/scatnames_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions/arrays_class.py',
-        'pycompss/util/translators/scop_types/scop/global_class.py',
-        'pycompss/util/translators/scop_types/scop/globl/parameters/parameter_class.py',
-        'pycompss/util/translators/scop_types/scop/globl/parameters_class.py',
-        'pycompss/util/translators/scop_types/scop/globl/context_class.py',
-        'pycompss/util/translators/scop_types/scop/statement/statement_extension_class.py',
-        'pycompss/util/translators/scop_types/scop/statement/relation_class.py',
-        'pycompss/util/translators/scop_types/scop/extensions_class.py'
-    ]
-else:
-    FILES_BLACK_LIST += [
-        'pycompss/api/parallel.py',
-    ]
 
 
 class ExtensionPlugin(Plugin):

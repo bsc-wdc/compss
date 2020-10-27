@@ -15,11 +15,8 @@
 #  limitations under the License.
 #
 
-import sys
-import time
 from random import Random
 
-from pycompss.api.api import compss_barrier
 from pycompss.dds import DDS
 
 
@@ -44,39 +41,6 @@ def _generate_graph():
     return edges
 
 
-def files_to_pairs(element):
-    tuples = list()
-    lines = element[1].split("\n")
-    for _l in lines:
-        if not _l:
-            continue
-        k_v = _l.split(",")
-        tuples.append(tuple(k_v))
-
-    return tuples
-
-
-def _invert_files(pair):
-    res = dict()
-    for word in pair[1].split():
-        res[word] = [pair[0]]
-    return list(res.items())
-
-
-def word_count():
-
-    path_file = sys.argv[1]
-    start = time.time()
-
-    results = DDS().load_files_from_dir(path_file).\
-        map_and_flatten(lambda x: x[1].split()) \
-        .map(lambda x: ''.join(e for e in x if e.isalnum())) \
-        .count_by_value(arity=4, as_dict=True)
-
-    print("Results: " + str(results))
-    print("Elapsed Time: ", time.time()-start)
-
-
 def pi_estimation():
     """
     Example is taken from: https://spark.apache.org/examples.html
@@ -90,53 +54,14 @@ def pi_estimation():
     print("Pi is roughly %f" % (4.0 * count / tries))
 
 
-def terasort():
-    """
-    """
+def transitive_closure(partitions):
 
-    dir_path = sys.argv[1]
-    dest_path = sys.argv[2]
-    # partitions = sys.argv[2] if len(sys.argv) > 2 else -1
-
-    start_time = time.time()
-
-    dds = DDS().load_files_from_dir(dir_path) \
-        .map_and_flatten(files_to_pairs) \
-        .sort_by_key().save_as_text_file(dest_path)
-
-    # compss_barrier()
-    # test = DDS().load_pickle_files(dest_path).map(lambda x: x).collect()
-    # print(test[-1:])
-
-    print("Result: " + str(dds))
-    print("Elapsed Time {} (s)".format(time.time() - start_time))
-
-
-def inverted_indexing():
-
-    path = sys.argv[1]
-    start_time = time.time()
-    result = DDS().load_files_from_dir(path).map_and_flatten(_invert_files)\
-        .reduce_by_key(lambda a, b: a + b).collect()
-    print(result[-1:])
-    print("Elapsed Time {} (s)".format(time.time() - start_time))
-
-
-def transitive_closure():
-
-    # path = sys.argv[1]
-    partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
-    #
-    # od = DDS().load_text_file(path, partitions) \
-    #     .map(lambda line: (int(line.split(",")[0]), int(line.split(",")[1])))\
-    #     .collect(future_objects=True)
     edges = _generate_graph()
     od = DDS().load(edges, partitions).collect(future_objects=True)
 
     # Because join() joins on keys, the edges are stored in reversed order.
     edges = DDS().load(od, -1).map(lambda x_y: (x_y[1], x_y[0]))
 
-    old_count = 0
     next_count = DDS().load(od, -1).count()
 
     while True:
@@ -160,21 +85,14 @@ def transitive_closure():
 #             UNITTESTS               #
 # ################################### #
 
-def test_pi_estimation():
+def pi_estimation_example():
     pi_estimation()
 
 
-def test_word_count():
-    word_count()
+def transitive_closure_example():
+    transitive_closure(2)
 
 
-def test_terasort():
-    terasort()
-
-
-def test_inverted_indexing():
-    inverted_indexing()
-
-
-def test_transitive_closure():
-    transitive_closure()
+def main():
+    pi_estimation_example()
+    transitive_closure_example()

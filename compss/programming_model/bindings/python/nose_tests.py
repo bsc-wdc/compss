@@ -36,6 +36,7 @@ DIRECTORIES_WHITE_LIST = [
     'pycompss/tests/api',
     'pycompss/tests/api/dummy',
     'pycompss/tests/api/commons',
+    'pycompss/tests/dds',
     'pycompss/tests/functions',
     'pycompss/tests/integration',
     'pycompss/tests/main',
@@ -86,10 +87,10 @@ FILES_WHITE_LIST = [
     'pycompss/tests/worker/test_external_mpi.py'
 ]
 FILES_BLACK_LIST = [
-    'pycompss/tests/integration/test_dds_examples.py',
 ]
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed
+    'pycompss/tests/dds/test_dds_examples.py',
     'pycompss/tests/integration/test_launch_application.py',
     'pycompss/tests/integration/test_launch_application_tracing.py',
     'pycompss/tests/integration/test_launch_synthetic_application.py',
@@ -133,6 +134,10 @@ if not IS_PYTHON3:
         'pycompss/util/translators/scop_types/scop/statement/statement_extension_class.py',
         'pycompss/util/translators/scop_types/scop/statement/relation_class.py',
         'pycompss/util/translators/scop_types/scop/extensions_class.py'
+    ]
+else:
+    FILES_BLACK_LIST += [
+        'pycompss/api/parallel.py',
     ]
 
 

@@ -5,7 +5,7 @@
   #
 
   # Run a coverage report for a module
-  run() {
+  run_python2() {
     # -a appends this coverage to the one produced by coverage_run.sh
     coverage2 run -a \
                  --source="src/pycompss" \
@@ -16,6 +16,12 @@
                  # --omit="src/pycompss/tests/api/test_local.py" \
                  # --omit="src/pycompss/util/objects/replace.py" \
                  # --omit="src/pycompss/util/translators/*" \
+    coverage2 report -m
+  }
+
+  # Run a coverage report for a module
+  run_python3() {
+    # -a appends this coverage to the one produced by coverage_run.sh
     coverage3 run -a \
                  --source="src/pycompss" \
                  --omit="/usr/lib/*" \
@@ -25,7 +31,7 @@
                  # --omit="src/pycompss/tests/api/test_local.py" \
                  # --omit="src/pycompss/util/objects/replace.py" \
                  # --omit="src/pycompss/util/translators/*" \
-    coverage report -m
+    coverage3 report -m
   }
 
 
@@ -36,13 +42,24 @@
   cd ${SCRIPT_DIR}
 
   # Run coverage on pycompss folder
-  run
+  run_python2
 
   # Generate XML file
-  coverage xml
+  coverage2 xml
   ev=$?
   if [ "$ev" -ne 0 ]; then
-    echo "[ERROR] Coverage XML generation failed with exit value: $ev"
+    echo "[ERROR] Integration coverage2 XML generation failed with exit value: $ev"
+    exit $ev
+  fi
+
+  # Run coverage on pycompss folder
+  run_python3
+
+  # Generate XML file
+  coverage3 xml
+  ev=$?
+  if [ "$ev" -ne 0 ]; then
+    echo "[ERROR] Integration coverage3 XML generation failed with exit value: $ev"
     exit $ev
   fi
 

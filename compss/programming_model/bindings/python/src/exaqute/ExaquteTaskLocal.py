@@ -18,13 +18,17 @@
 
 class ExaquteTask(object):
 
+    def __init__(self, *args, **kwargs):
+        # Required declaration to allow decorator parameters
+        pass
+
     def __call__(self, f):
         def et_wrapper(*args, **kwargs):
             if "scheduling_constraints" in kwargs:
                 del kwargs["scheduling_constraints"]
             return f(*args, **kwargs)
 
-        return et_wrapper()
+        return et_wrapper
 
 
 def barrier():  # Wait
@@ -51,11 +55,19 @@ def compute(obj):  # Submit task
 
 class Implement(object):
 
+    def __init__(self, *args, **kwargs):
+        # Required declaration to allow decorator parameters
+        pass
+
     def __call__(self, f):
         return f
 
 
 class Constraint(object):
+
+    def __init__(self, *args, **kwargs):
+        # Required declaration to allow decorator parameters
+        pass
 
     def __call__(self, f):
         return f

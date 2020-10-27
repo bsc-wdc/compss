@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 from exaqute.ExaquteTaskLocal import ExaquteTask
 from exaqute.ExaquteTask import from_args_to_vector
 from exaqute.ExaquteTask import from_vector_to_args

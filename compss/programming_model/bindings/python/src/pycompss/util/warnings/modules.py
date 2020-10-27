@@ -56,8 +56,5 @@ def show_optional_module_warnings():
     :return: None
     """
     for (name, description) in OPTIONAL_MODULES.items():
-        print("XXXXXXXXXX " + str(name))
-        print("XXXXXXXXXX " + str(description))
         if not is_module_available(name):
-            print("AAAAAAAAAAAA")
             print(get_optional_module_warning(name, description))

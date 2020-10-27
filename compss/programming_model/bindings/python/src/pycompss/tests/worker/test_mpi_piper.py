@@ -24,6 +24,7 @@ from pycompss.tests.worker.common_piper_tester import evaluate_piper_worker_comm
 
 
 def worker_thread(argv, current_path):
+    from pycompss.worker.piper.mpi_piper_worker import main  # noqa
     # Start the piper worker
     setup_argv(argv, current_path)
     p = subprocess.Popen(

@@ -37,23 +37,14 @@ from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
-from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
-from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
-from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
-from pycompss.worker.piper.commons.constants import ERROR_TASK_TAG
-from pycompss.worker.piper.commons.constants import ERROR_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import ADDED_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
 from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
 from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.constants import REMOVE_TAG
-from pycompss.worker.piper.commons.constants import SERIALIZE_TAG
 from pycompss.worker.piper.commons.constants import HEADER
 
 from mpi4py import MPI

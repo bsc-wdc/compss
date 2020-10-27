@@ -86,6 +86,9 @@ RUN apt-get update && \
     python2 -m ipykernel install && \
     pip3 --no-cache-dir install jupyter ipykernel nbconvert==5.6.1 && \
     python3 -m ipykernel install && \
+# Coverage
+    pip2 --no-cache-dir install coverage && \
+    pip3 --no-cache-dir install coverage && \
 
 # Create Jenkins User for CI/CD
     useradd jenkins -m -s /bin/bash && \

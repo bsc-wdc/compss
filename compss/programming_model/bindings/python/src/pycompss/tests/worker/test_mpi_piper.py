@@ -17,23 +17,15 @@
 
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-import multiprocessing
 import subprocess
 
-from pycompss.tests.worker.common_piper_tester import create_files
-from pycompss.tests.worker.common_piper_tester import STD_OUT_FILE
-from pycompss.tests.worker.common_piper_tester import STD_ERR_FILE
-from pycompss.tests.worker.common_piper_tester import evaluate_worker
+from pycompss.tests.worker.common_piper_tester import setup_argv
+from pycompss.tests.worker.common_piper_tester import evaluate_piper_worker_common
 
 
 def worker_thread(argv, current_path):
     # Start the piper worker
-    sys.argv = argv
-    sys.path.append(current_path)
-    sys.stdout = open(current_path + STD_OUT_FILE, "w")
-    sys.stderr = open(current_path + STD_ERR_FILE, "w")
+    setup_argv(argv, current_path)
     p = subprocess.Popen(
         " ".join(argv),
         shell=True,
@@ -44,62 +36,4 @@ def worker_thread(argv, current_path):
 
 
 def test_piper_worker():
-    # Override sys.argv to mimic runtime call
-    sys_argv_backup = list(sys.argv)
-    sys_path_backup = list(sys.path)
-
-    current_path = os.path.dirname(os.path.abspath(__file__))
-    python_path = (
-        current_path + "/../../tests/worker/:" + os.environ["PYTHONPATH"]
-    )
-
-    files = create_files()
-    temp_folder, executor_outbound, executor_inbound, control_worker_outbound, control_worker_inbound = files  # noqa: E501
-
-    sys.argv = [
-        "mpirun",
-        "-np",
-        "2",
-        "-x",
-        "PYTHONPATH=" + python_path,
-        "python",
-        current_path + "/../../worker/piper/mpi_piper_worker.py",
-        temp_folder,
-        "false",
-        "true",
-        "0",
-        "null",
-        "NONE",
-        "localhost",
-        "49049",
-        "1",
-        executor_outbound,
-        executor_inbound,
-        control_worker_outbound,
-        control_worker_inbound,
-    ]  # noqa: E501
-    pipes = sys.argv[-4:]
-    # Create pipes
-    for pipe in pipes:
-        if os.path.exists(pipe):
-            os.remove(pipe)
-        os.mkfifo(pipe)
-    # Open pipes
-    executor_out = os.open(pipes[0], os.O_RDWR)
-    executor_in = os.open(pipes[1], os.O_RDWR)
-    worker_out = os.open(pipes[2], os.O_RDWR)
-    worker_in = os.open(pipes[3], os.O_RDWR)
-
-    sys.path.append(current_path)
-    # Start the piper worker in a separate thread
-    worker = multiprocessing.Process(
-        target=worker_thread, args=(sys.argv, current_path)
-    )
-
-    evaluate_worker(worker, "test_mpi_piper", pipes, files, current_path,
-                    executor_out, executor_in,
-                    worker_out, worker_in)
-
-    # Restore sys.argv and sys.path
-    sys.argv = sys_argv_backup
-    sys.path = sys_path_backup
+    evaluate_piper_worker_common(worker_thread, mpi_worker=True)

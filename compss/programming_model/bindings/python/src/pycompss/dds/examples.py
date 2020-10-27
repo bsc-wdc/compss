@@ -122,10 +122,11 @@ def inverted_indexing():
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
-def transitive_closure():
+def transitive_closure(partitions=None):
 
     # path = sys.argv[1]
-    partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+    if not partitions:
+        partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
     #
     # od = DDS().load_text_file(path, partitions) \
     #     .map(lambda line: (int(line.split(",")[0]), int(line.split(",")[1])))\

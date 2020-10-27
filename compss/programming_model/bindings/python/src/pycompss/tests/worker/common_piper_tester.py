@@ -22,6 +22,8 @@ import sys
 import time
 import tempfile
 import shutil
+import multiprocessing
+import subprocess
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.serialization.serializer import deserialize_from_file
@@ -47,6 +49,98 @@ def simple():
 @task(returns=1)
 def increment(value):
     return value + 1
+
+
+def setup_argv(argv, current_path):
+    sys.argv = argv
+    sys.path.append(current_path)
+    sys.stdout = open(current_path + STD_OUT_FILE, "w")
+    sys.stderr = open(current_path + STD_ERR_FILE, "w")
+
+
+def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
+    # Override sys.argv to mimic runtime call
+    sys_argv_backup = list(sys.argv)
+    sys_path_backup = list(sys.path)
+
+    files = create_files()
+    temp_folder, executor_outbound, executor_inbound, control_worker_outbound, control_worker_inbound = files  # noqa: E501
+
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    python_path = (
+            current_path + "/../../tests/worker/:" + os.environ["PYTHONPATH"]
+    )
+
+    if mpi_worker:
+        sys.argv = [
+            "mpirun",
+            "-np",
+            "2",
+            "-x",
+            "PYTHONPATH=" + python_path,
+            "python",
+            current_path + "/../../worker/piper/mpi_piper_worker.py",
+            temp_folder,
+            "false",
+            "true",
+            "0",
+            "null",
+            "NONE",
+            "localhost",
+            "49049",
+            "1",
+            executor_outbound,
+            executor_inbound,
+            control_worker_outbound,
+            control_worker_inbound,
+        ]  # noqa: E501
+    else:
+        sys.argv = [
+            "piper_worker.py",
+            temp_folder,
+            "false",
+            "true",
+            0,
+            "null",
+            "NONE",
+            "localhost",
+            "49049",
+            "1",
+            executor_outbound,
+            executor_inbound,
+            control_worker_outbound,
+            control_worker_inbound,
+        ]  # noqa: E501
+    pipes = sys.argv[-4:]
+    # Create pipes
+    for pipe in pipes:
+        if os.path.exists(pipe):
+            os.remove(pipe)
+        os.mkfifo(pipe)
+    # Open pipes
+    executor_out = os.open(pipes[0], os.O_RDWR)
+    executor_in = os.open(pipes[1], os.O_RDWR)
+    worker_out = os.open(pipes[2], os.O_RDWR)
+    worker_in = os.open(pipes[3], os.O_RDWR)
+
+    sys.path.append(current_path)
+    # Start the piper worker in a separate thread
+    worker = multiprocessing.Process(
+        target=worker_thread, args=(sys.argv, current_path)
+    )
+
+    if mpi_worker:
+        evaluate_worker(worker, "test_mpi_piper", pipes, files, current_path,
+                        executor_out, executor_in,
+                        worker_out, worker_in)
+    else:
+        evaluate_worker(worker, "test_piper", pipes, files, current_path,
+                        executor_out, executor_in,
+                        worker_out, worker_in)
+
+    # Restore sys.argv and sys.path
+    sys.argv = sys_argv_backup
+    sys.path = sys_path_backup
 
 
 def create_files():

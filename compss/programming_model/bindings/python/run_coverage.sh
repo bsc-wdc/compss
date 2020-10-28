@@ -23,6 +23,7 @@
                   # --omit="src/pycompss/api/tests_parallel/*" \
                   # --concurrency=multiprocessing \  # not allowed as flag with the others
                   # --omit="src/pycompss/util/translators/*" \
+    python3 -m coverage combine --append
     python3 -m coverage report -m
   }
 

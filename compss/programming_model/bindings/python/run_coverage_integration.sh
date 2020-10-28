@@ -16,6 +16,7 @@
                  # --omit="src/pycompss/tests/api/test_local.py" \
                  # --omit="src/pycompss/util/objects/replace.py" \
                  # --omit="src/pycompss/util/translators/*" \
+    coverage2 combine --append
     coverage2 report -m
   }
 
@@ -31,6 +32,7 @@
                  # --omit="src/pycompss/tests/api/test_local.py" \
                  # --omit="src/pycompss/util/objects/replace.py" \
                  # --omit="src/pycompss/util/translators/*" \
+    coverage3 combine --append
     coverage3 report -m
   }
 

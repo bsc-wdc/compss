@@ -103,6 +103,7 @@ def test_exaqute_task():
 
 def test_exaqute_task_local():
     from exaqute.ExaquteTaskLocal import ExaquteTask
+
     @ExaquteTask()
     def increment(a):
         return a + 1
@@ -133,6 +134,7 @@ def test_exaqute_task_local():
     assert obj == result, "ERROR: compute does not retrieve the same object."
 
     from exaqute.ExaquteTaskLocal import Implement
+
     @Implement()
     def sub(v):
         return v - 1
@@ -140,6 +142,7 @@ def test_exaqute_task_local():
     assert result == 1, "ERROR: The implement decorator is not transparent."
 
     from exaqute.ExaquteTaskLocal import Constraint
+
     @Constraint()
     def pow(v):
         return v * v

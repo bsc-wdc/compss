@@ -122,12 +122,12 @@ def generate_coverage_reports(jacoco_lib_path, coverage_report_path, compss_home
     coverageBashCommand = "mv "+coverage_report_path+"/temp/jacocoreport.exec "+coverage_report_path
     output = subprocess.check_output(['bash','-c',coverageBashCommand])
     output = subprocess.check_output(['bash','-c',"rm -r " + coverage_report_path + "/temp"])
-    
+
     coverageBashCommand = "coverage combine --rcfile=" + coverage_report_path + "/coverage_rc"
     try:
         print("[INFO] Merging combining python reports (" + coverageBashCommand + ")...")
         subprocess.check_output(['bash','-c', coverageBashCommand])
-        
+
         coverageBashCommand = "coverage xml --rcfile=" + coverage_report_path + "/coverage_rc"
         print("[INFO] Merging generating cobertura xml report ...")
         subprocess.check_output(['bash','-c', coverageBashCommand])
@@ -177,13 +177,13 @@ def execute_tests(cmd_args, compss_cfg):
             os.makedirs(coverage_path)
         except OSError:
             raise TestExecutionError("[ERROR] Cannot create coverage dir " + str(coverage_path))
-        
+
         coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
         #coverage_paths[2] = coverage_paths[2].replace("#","@")
         #coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
         print("[INFO] Coverage expression: "+coverage_expression)
         create_coverage_file(coverage_path+"/coverage_rc", target_base_dir)
-        print("[INFO] File coverage_rc generated")   
+        print("[INFO] File coverage_rc generated")
     # Execute all the deployed tests
     results = []
     i=0
@@ -267,7 +267,10 @@ def execute_tests_sc(cmd_args, compss_cfg):
     print("[INFO] Jobs: {}".format(str(jobs)))
     for job in jobs:
         print("[INFO] Waiting for job {}".format(job))
-        polling.poll(lambda: not subprocess.check_output('ssh {} "squeue -h -j {}"'.format(username, job), shell=True), step=2, poll_forever=True)
+        try:
+            polling.poll(lambda: not subprocess.check_output('ssh {} "squeue -h -j {}"'.format(username, job), shell=True), step=30, poll_forever=True)
+        except Exception:
+            print ("[WARN] Error getting status of job " + job)
     print("[INFO] All jobs finished")
     print("[INFO] Checking results")
     cmd = "ssh "+username+" "+"'python " + results_script + " " + remote_dir+"'"
@@ -286,9 +289,12 @@ def execute_tests_sc(cmd_args, compss_cfg):
 
     with open("/tmp/outs.csv",'r') as res_file:
         for line in res_file:
+            print("Checking line: " + line);
             test_dir, environment, job_id, exit_value = line.split(",")
             if int(exit_value) == 0:
                 ev = ExitValue.OK
+            elif int(exit_value) == 2:
+                ev = ExitValue.SKIP
             else:
                 ev = ExitValue.FAIL
             # Update global exit value

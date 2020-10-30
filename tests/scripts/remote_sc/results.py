@@ -17,6 +17,12 @@ with open(os.path.join(target_base_dir, "outs.csv"), "w") as file:
 
 
 for log_dir in sorted(os.listdir(logs_base_dir)):
+    skip_file = os.path.join(logs_base_dir, log_dir, "skip")
+    if os.path.isfile(skip_file):
+        print("Skip test " + log_dir + " results.")
+        with open(os.path.join(target_base_dir, "outs.csv"), "a") as file:
+            file.write(log_dir+ ",none,none,2\n")
+        continue
     processes = []
     for process in sorted(os.listdir(os.path.join(logs_base_dir,log_dir,".COMPSs"))):
         processes.append(process)

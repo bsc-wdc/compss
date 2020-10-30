@@ -16,7 +16,11 @@ DEFAULT_SKIP = True
 DEFAULT_NUM_RETRIES = 3
 DEFAULT_FAIL_FAST = False
 DEFAULT_SC_FAMILIES = [
-                       "simple"]
+                       "simple",
+                       "apps/java",
+                       "apps/python/examples",
+                       "apps/c"]
+DEFAULT_SC_IGNORED = [".target", "target", ".idea", ".settings", ".git", "geneDetection"]
 DEFAULT_FAMILIES = [
                     "agents",
                     "autoparallel",
@@ -29,6 +33,7 @@ DEFAULT_FAMILIES = [
                     "python",
                     "tools",
                     "fault_tolerance"]
+DEFAULT_IGNORED = [".target", "target", ".idea", ".settings", ".git"]
 DEFAULT_TESTS = []
 
 DEFAULT_CFG_FILE = "NIO.cfg"

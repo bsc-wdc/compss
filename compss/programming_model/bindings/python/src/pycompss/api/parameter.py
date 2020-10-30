@@ -37,7 +37,7 @@ PyCOMPSs API - Parameter
         - FLOAT
         - OBJECT
         - COLLECTION
-        - DICT_COLLECTION
+        - DICTIONARY
         - EXTERNAL_PSCO
         - EXTERNAL_STREAM
         - ... (check _DataType generated during installation)
@@ -155,10 +155,10 @@ COLLECTION_FILE_INOUT = _Param(_ParamAliasKeys.COLLECTION_FILE_INOUT)
 COLLECTION_FILE_OUT = _Param(_ParamAliasKeys.COLLECTION_FILE_OUT)
 
 # Aliases for dictionary collections
-DICT_COLLECTION = _Param(_ParamAliasKeys.DICT_COLLECTION)
-DICT_COLLECTION_IN = _Param(_ParamAliasKeys.DICT_COLLECTION_IN)
-DICT_COLLECTION_INOUT = _Param(_ParamAliasKeys.DICT_COLLECTION_INOUT)
-DICT_COLLECTION_OUT = _Param(_ParamAliasKeys.DICT_COLLECTION_OUT)
+DICTIONARY = _Param(_ParamAliasKeys.DICT_COLLECTION)
+DICTIONARY_IN = _Param(_ParamAliasKeys.DICT_COLLECTION_IN)
+DICTIONARY_INOUT = _Param(_ParamAliasKeys.DICT_COLLECTION_INOUT)
+DICTIONARY_OUT = _Param(_ParamAliasKeys.DICT_COLLECTION_OUT)
 
 # Aliases for streams
 STREAM_IN = _Param(_ParamAliasKeys.STREAM_IN)

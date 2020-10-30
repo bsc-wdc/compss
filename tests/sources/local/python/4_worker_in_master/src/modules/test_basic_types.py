@@ -23,8 +23,8 @@ from pycompss.api.task import task
 from pycompss.api.parameter import FILE_OUT
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import COLLECTION_INOUT
-from pycompss.api.parameter import DICT_COLLECTION_IN
-from pycompss.api.parameter import DICT_COLLECTION_INOUT
+from pycompss.api.parameter import DICTIONARY_IN
+from pycompss.api.parameter import DICTIONARY_INOUT
 
 
 @task(filepath=FILE_OUT)
@@ -69,13 +69,13 @@ def test_collection_inout(c):
         elem += 1.0
 
 
-@task(dict_coll_arg=DICT_COLLECTION_IN, returns=1)
+@task(dict_coll_arg=DICTIONARY_IN, returns=1)
 def test_dict_collection_in(dict_coll_arg):
     assert dict_coll_arg == {1:2, 3:4, 5:6}
     return dict_coll_arg
 
 
-@task(d=DICT_COLLECTION_INOUT)
+@task(d=DICTIONARY_INOUT)
 def test_dict_collection_inout(d):
     for i in d.keys():
         result = []
@@ -163,7 +163,7 @@ class TestBasicTypes(unittest.TestCase):
 
     def test_dict_collection_in(self):
         """
-        Tries DICT_COLLECTION_IN parameter passing.
+        Tries DICTIONARY_IN parameter passing.
         """
         print("Running dictionary collection in task")
         d_arg = {1: 2, 3: 4, 5: 6}
@@ -174,7 +174,7 @@ class TestBasicTypes(unittest.TestCase):
 
     def test_dict_collection_inout(self):
         """
-        Tries DICT_COLLECTION_INOUT parameter passing.
+        Tries DICTIONARY_INOUT parameter passing.
         """
         print("Running dictionary collection inout task")
         d_arg = {wrapper(1): np.zeros(1), wrapper(3): np.zeros(3), wrapper(5): np.zeros(5)}

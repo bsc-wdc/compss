@@ -357,7 +357,7 @@ def _get_functions():
 
 def _get_task_code(f):
     # type: (...) -> dict
-    """    Finds the task code.
+    """ Finds the task code.
 
     :param f: Task function
     :return: A dictionary with the task code: {'name': str(line\nline\n...)}
@@ -676,7 +676,7 @@ def _update_tasks(new_tasks, old_tasks):
 
 
 def __show_redefinition_warning__(kind, name):
-    # type: (str) -> None
+    # type: (str, str) -> None
     """ Shows a warning notifying the redefinition of "kind" type. """
     print("WARNING! %s %s has been redefined (the previous will be deprecated)." % (kind, name))  # noqa: E501
 

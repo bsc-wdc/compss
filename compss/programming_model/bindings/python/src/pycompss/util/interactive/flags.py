@@ -101,8 +101,8 @@ def check_flags(all_vars):
 
 
 def __check_flag__(all_vars, flag, requirements):
-    # type: (str, list) -> list
-    """ Checks the given flag agains the requirements looking for issues.
+    # type: (dict, str, list) -> list
+    """ Checks the given flag against the requirements looking for issues.
 
     :param all_vars: All variables.
     :param flag: Flag to check.

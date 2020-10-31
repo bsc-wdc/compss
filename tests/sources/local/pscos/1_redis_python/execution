@@ -77,12 +77,12 @@ EOF
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ]; then
-        python_interpreter="python2"
-        python_mpi_worker="--python_mpi_worker=true"
+    	echo "SKIP FOR ${python_interpreter}" | tee -a "${output_log}"
+        continue
     fi
     if [ "$python_interpreter" == 'python3_mpi' ]; then
-        python_interpreter="python3"
-        python_mpi_worker="--python_mpi_worker=true"
+	echo "SKIP FOR ${python_interpreter}" | tee -a "${output_log}"
+        continue
     fi
 
     # shellcheck disable=SC2086

@@ -3,6 +3,11 @@ import subprocess
 import shutil
 import sys
 
+def create_log_skip_file(log_path):
+    skip_file = os.path.join(log_path, "skip")
+    with open(skip_file, "w") as file:
+        pass
+
 tests_base_dir = sys.argv[1]
 tests_apps_dir = os.path.join(tests_base_dir, "apps")
 logs_base_dir = os.path.join(tests_base_dir, "logs")
@@ -36,9 +41,13 @@ f = open(queue_file, "w+")
 for test_dir in sorted(os.listdir(tests_apps_dir)):
     test_path = os.path.join(tests_apps_dir, test_dir)
     test_logs_path = os.path.join(logs_base_dir,test_dir)
+    skip_file = os.path.join(test_path, "skip")
+    os.makedirs(test_logs_path)
+    if os.path.isfile(skip_file):
+        create_log_skip_file(test_logs_path)
+        continue
     execution_envs_str = ' '.join(str(x) for x in execution_envs)
     execution_script_path = os.path.join(test_path, "execution")
-    os.makedirs(test_logs_path)
     cmd = [str(execution_script_path),
            str(runcompss_bin),
            str(comms),

@@ -11,8 +11,8 @@ import os
 from constants import DEFAULT_SKIP
 from constants import DEFAULT_NUM_RETRIES
 from constants import DEFAULT_FAIL_FAST
-from constants import DEFAULT_FAMILIES, DEFAULT_SC_FAMILIES
-from constants import DEFAULT_CFG_FILE, DEFAULT_SC_CFG_FILE
+from constants import DEFAULT_FAMILIES, DEFAULT_SC_FAMILIES, DEFAULT_SC_IGNORED
+from constants import DEFAULT_CFG_FILE, DEFAULT_SC_CFG_FILE, DEFAULT_IGNORED
 from constants import DEFAULT_TESTS
 from constants import TESTS_DIR, TESTS_SC_DIR
 
@@ -302,7 +302,7 @@ def _check_sc_args(cmd_args):
         cmd_args.families = DEFAULT_SC_FAMILIES
 
     # Add test numbering to cmd_args
-    cmd_args.test_numbers = _get_test_numbers(TESTS_SC_DIR)
+    cmd_args.test_numbers = _get_test_numbers(TESTS_SC_DIR, DEFAULT_SC_FAMILIES, DEFAULT_SC_IGNORED)
 
     return cmd_args
 
@@ -319,12 +319,12 @@ def _check_local_args(cmd_args):
         cmd_args.families = DEFAULT_FAMILIES
 
     # Add test numbering to cmd_args
-    cmd_args.test_numbers = _get_test_numbers(TESTS_DIR)
+    cmd_args.test_numbers = _get_test_numbers(TESTS_DIR, DEFAULT_FAMILIES, DEFAULT_IGNORED)
 
     return cmd_args
 
 
-def _get_test_numbers(tests_dir):
+def _get_test_numbers(tests_dir, families, ignored):
     """
     Builds the numbering of each available test
 
@@ -337,14 +337,16 @@ def _get_test_numbers(tests_dir):
     # Number all tests
     test_numbers = {"global": {}}
     num_global = 1
-    for family_dir in sorted(os.listdir(tests_dir)):
+    #for family_dir in sorted(os.listdir(tests_dir)):
+    for family_dir in sorted(families):
         family_path = os.path.join(tests_dir, family_dir)
         if os.path.isdir(family_path):
             test_numbers[family_dir] = {}
             num_family = 1
             for test_dir in sorted(os.listdir(family_path)):
                 test_path = os.path.join(family_path, test_dir)
-                if test_dir != ".target" and test_dir != ".settings" and test_dir != "target" and test_dir != ".idea" and os.path.isdir(test_path):
+                #if test_dir != ".target" and test_dir != ".settings" and test_dir != "target" and test_dir != ".idea" and test_dir != ".git" and os.path.isdir(test_path):
+                if (test_dir not in ignored) and os.path.isdir(test_path):
                     test_numbers["global"][num_global] = (test_dir, test_path, family_dir, num_family)
                     test_numbers[family_dir][num_family] = (test_dir, test_path, num_global)
                     num_global = num_global + 1

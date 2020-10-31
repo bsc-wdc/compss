@@ -2,7 +2,7 @@
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 2.7 Hyacinth"
+  echo "COMPSs version 2.8 Iris"
   echo " "
 }
 
@@ -11,12 +11,13 @@ show_version() {
 ###############################################
 show_full_version() {
   cat << EOF
-        .-~~-.--.            _____       ________
-       :         )          |____ \\     |_____  /
- .~ ~ -.\\       /.- ~~ .      ___) |         / /
- >       \`.   .'       <     / ___/         / /
-(         .- -.         )   | |____   _    / /
- \`- -.-~  \`- -'  ~-.- -'    |______| |_|  /_/
+                             
+        .-~~-.--.             _____      _______
+       :         )           |____ \\    /  ____  \\
+ .~ ~ -.\\       /.- ~~ .      ___) |    | (____) |
+ >       \`.   .'       <     / ___/      > ____ < 
+(         .- -.         )   | |____   _ | (____) | 
+ \`- -.-~  \`- -'  ~-.- -'    |______| |_|\\________/
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
         ~-.-^-.-~ \\       .~  .-~   .~
@@ -36,10 +37,10 @@ EOF
 ###############################################
 show_flower() {
   cat << EOF
-Hyacinthus is a small genus of bulbous, spring-blooming perennial, fragrant flowering plants in the family Asparagaceae, subfamily Scilloideae. These are commonly called hyacinths. The genus is native to the eastern Mediterranean. Hyacinthus grows from bulbs, each producing around four to six linear leaves and one to three spikes or racemes of flowers. In the wild species, the flowers are widely spaced with as few as two per raceme in H. litwinovii and typically six to eight in H. orientalis, which grows to a height of 15–20 cm (6–8 in). Cultivars of H. orientalis have much denser flower spikes and are generally more robust.
+Iris is a perennial plant, growing from creeping rhizomes (rhizomatous irises) or, in drier climates, from bulbs (bulbous irises). It  has long, erect flowering stems which may be simple or branched, solid or hollow, and flattened or has a circular cross-section. The rhizomatous species usually have 3–10 basal sword-shaped leaves growing in dense clumps. The bulbous species have cylindrical, basal leaves. 
 
 Check more information:
-   https://en.wikipedia.org/wiki/Hyacinth_(plant)
+   https://en.wikipedia.org/wiki/Iris_(plant)
 
 EOF
 }
@@ -50,29 +51,19 @@ EOF
 show_recipe() {
   cat << EOF
 
-Hyacinth  - Cocktail
+Iris - Cocktail
 
-From: http://tasteandtipple.ca/the-hyacinth-cocktail/#Hyacinth
+From: https://www.mixology.recipes/cocktails/iris-cocktail
 
 Ingredients
 
-    1½ tsp Blueberry Syrup recipe follows
-    4 oz sparkling wine
-    Fresh blueberries for garnish
+   1½ oz brandy (4.5 cl)
+   ½ oz sweet vermouth (1.5 cl)
+   ½ oz fresh lemon juice (1.5 cl)
 
 Instructions
 
-    Place Blueberry Syrup into a Champagne flute. Top with sparkling wine and garnish with 3 or 4 fresh blueberries.
-
-Blueberry Syrup
-
-    1 pint blueberries
-    1½ tbsp sugar
-    ¼ cup water
-
-Instructions
-
-    In a small saucepan, place all ingredients over medium heat. Bring to boil, reduce temperature to low and cook for 4 to 5 minutes until berries soften. Remove pan from heat, strain syrup and cool.
+    Place all ingredients in iced cocktail shaker strain. Shake and add sugar to taste. Serve in a cocktail glass (4.5 oz) 
 
 EOF
 }

@@ -32,8 +32,7 @@
   # MAIN
   #
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  cd ${SCRIPT_DIR}
-  export COVERAGE_PROCESS_START=$(pwd)/coverage.cfg
+  export COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
 
   # Run coverage on pycompss folder
   run_python2

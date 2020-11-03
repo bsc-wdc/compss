@@ -12,10 +12,6 @@
                  --omit="/usr/lib/*" \
                  --omit="src/pycompss/api/tests_parallel/*" \
                  nose_tests.py True
-                 # --omit="src/pycompss/api/local.py" \
-                 # --omit="src/pycompss/tests/api/test_local.py" \
-                 # --omit="src/pycompss/util/objects/replace.py" \
-                 # --omit="src/pycompss/util/translators/*" \
     coverage2 combine --append
     coverage2 report -m
   }
@@ -28,10 +24,6 @@
                  --omit="/usr/lib/*" \
                  --omit="src/pycompss/api/tests_parallel/*" \
                  nose_tests.py True
-                 # --omit="src/pycompss/api/local.py" \
-                 # --omit="src/pycompss/tests/api/test_local.py" \
-                 # --omit="src/pycompss/util/objects/replace.py" \
-                 # --omit="src/pycompss/util/translators/*" \
     coverage3 combine --append
     coverage3 report -m
   }
@@ -64,6 +56,13 @@
     echo "[ERROR] Integration coverage3 XML generation failed with exit value: $ev"
     exit $ev
   fi
+
+  # RUN COVERAGE WITH NOTEBOOKS
+
+  # Force pytest coverage to take the sources instead of the installation
+  export PYTHONPATH=${SCRIPT_DIR}:$PYTHONPATH
+  pytest --nbval -v --cov=${SCRIPT_DIR}/src/pycompss/ --cov-append --cov-report=xml src/pycompss/tests/resources/notebook/simple.ipynb
+  coverage3 report -m
 
   # Exit all ok
   exit 0

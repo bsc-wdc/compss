@@ -24,14 +24,12 @@ PyCOMPSs API - MPI
     definition through the decorator.
 """
 
-import os
-import sys
-import subprocess
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
@@ -156,7 +154,7 @@ class MPI(PyCOMPSsDecorator):
         return mpi_f
 
     def __run_mpi__(self, *args, **kwargs):
-        # type: (list, dict) -> int
+        # type: (..., dict) -> int
         """ Runs the mpi binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
@@ -175,31 +173,9 @@ class MPI(PyCOMPSsDecorator):
             cmd += self.kwargs['flags'].split()
         cmd += [self.kwargs['binary']]
 
-        if args:
-            args = [str(a) for a in args]
-            cmd += args
-        my_env = os.environ.copy()
-        env_path = my_env["PATH"]
-        if "working_dir" in self.kwargs:
-            my_env["PATH"] = self.kwargs["working_dir"] + env_path
-        elif "workingDir" in self.kwargs:
-            my_env["PATH"] = self.kwargs["workingDir"] + env_path
-        proc = subprocess.Popen(cmd,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                env=my_env)
-        out, err = proc.communicate()
-        if sys.version_info[0] < 3:
-            out_message = out.strip()
-            err_message = err.strip()
-        else:
-            out_message = out.decode().strip()
-            err_message = err.decode().strip()
-        if out_message:
-            print(out_message)
-        if err_message:
-            sys.stderr.write(err_message + '\n')
-        return proc.returncode
+        cmd = [self.kwargs['binary']]
+        return_code = run_command(cmd, args, kwargs)
+        return return_code
 
     def __resolve_collection_layout_params__(self):
         # type: () -> list

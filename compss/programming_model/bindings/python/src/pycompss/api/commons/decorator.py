@@ -23,6 +23,9 @@ PyCOMPSs DECORATOR COMMONS
     This file contains the main decorator class.
 """
 
+import os
+import sys
+import subprocess
 from contextlib import contextmanager
 
 import pycompss.util.context as context
@@ -192,3 +195,43 @@ def keep_arguments(args, kwargs, prepend_strings=True):
         # Put things back
         for k, v in saved.items():
             setattr(slf, k, v)
+
+
+#################
+# OTHER COMMONS #
+#################
+
+def run_command(cmd, args, kwargs):
+    # type: (list, tuple, dict) -> int
+    """ Executes the command considering necessary the args and kwargs.
+
+    :param cmd: Command to run.
+    :param args: Decorator arguments.
+    :param kwargs: Decorator key arguments.
+    :return: Execution return code.
+    """
+    if args:
+        args = [str(a) for a in args]
+        cmd += args
+    my_env = os.environ.copy()
+    env_path = my_env["PATH"]
+    if "working_dir" in kwargs:
+        my_env["PATH"] = kwargs["working_dir"] + env_path
+    elif "workingDir" in kwargs:
+        my_env["PATH"] = kwargs["workingDir"] + env_path
+    proc = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            env=my_env)
+    out, err = proc.communicate()
+    if sys.version_info[0] < 3:
+        out_message = out.strip()
+        err_message = err.strip()
+    else:
+        out_message = out.decode().strip()
+        err_message = err.decode().strip()
+    if out_message:
+        print(out_message)
+    if err_message:
+        sys.stderr.write(err_message + '\n')
+    return proc.returncode

@@ -235,7 +235,11 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         if remote_working_dir is None:
                 raise ConfigurationError("[ERROR] Undefined variable remote_working_dir")
         self.remote_working_dir = remote_working_dir
-        self.compss_module = compss_module
+        self.compss_module = os.getenv("TEST_COMPSS_MODULE", None)
+        if self.compss_module is None:
+            self.compss_module = compss_module
+        else:
+            print("[WARN] Ovewriting COMPSs Module to test")
         self.qos = qos
         self.queue = queue
 

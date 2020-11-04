@@ -266,6 +266,11 @@ def main():
     global WORKER_CONF
     TRACING = (int(sys.argv[4]) > 0)
 
+    # Enable coverage if performed
+    if "COVERAGE_PROCESS_START" in os.environ:
+        import coverage
+        coverage.process_startup()
+
     # Configure the piper worker with the arguments
     WORKER_CONF = PiperWorkerConfiguration()
     WORKER_CONF.update_params(sys.argv)

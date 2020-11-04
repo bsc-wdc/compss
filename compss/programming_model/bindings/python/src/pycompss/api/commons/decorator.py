@@ -211,8 +211,11 @@ def run_command(cmd, args, kwargs):
     :return: Execution return code.
     """
     if args:
-        args = [str(a) for a in args]
-        cmd += args
+        args_elements = []
+        for a in args:
+            if a:
+                args_elements.append(a)
+        cmd += args_elements
     my_env = os.environ.copy()
     env_path = my_env["PATH"]
     if "working_dir" in kwargs:

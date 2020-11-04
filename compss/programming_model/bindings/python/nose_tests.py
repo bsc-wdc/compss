@@ -70,6 +70,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/api/test_ompss.py',
     'pycompss/tests/api/test_opencl.py',
     'pycompss/tests/api/test_information.py',
+    'pycompss/tests/api/dummy/test_dummy_binary.py',
     'pycompss/tests/api/dummy/test_dummy_task.py',
     'pycompss/tests/api/dummy/test_dummy_container.py',
     'pycompss/tests/api/dummy/test_dummy_reduction.py',

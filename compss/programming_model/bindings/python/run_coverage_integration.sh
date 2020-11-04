@@ -8,7 +8,7 @@
   run_python2() {
     # -a appends this coverage to the one produced by coverage_run.sh
     coverage2 run -a \
-                 --source="src/pycompss" \
+                 --source="src" \
                  --omit="/usr/lib/*" \
                  --omit="src/pycompss/api/tests_parallel/*" \
                  nose_tests.py True
@@ -20,7 +20,7 @@
   run_python3() {
     # -a appends this coverage to the one produced by coverage_run.sh
     coverage3 run -a \
-                 --source="src/pycompss" \
+                 --source="src" \
                  --omit="/usr/lib/*" \
                  --omit="src/pycompss/api/tests_parallel/*" \
                  nose_tests.py True

@@ -15,11 +15,14 @@
 #  limitations under the License.
 #
 
-import sys
+import os, sys
 import time
+import numpy as np
+
 from random import Random
 
-from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_barrier as cb, compss_wait_on as cwo
+from pycompss.api.task import task
 from pycompss.dds import DDS
 
 
@@ -61,6 +64,196 @@ def _invert_files(pair):
     for word in pair[1].split():
         res[word] = [pair[0]]
     return list(res.items())
+
+
+def has_converged(mu, old_mu, epsilon):
+
+    if not old_mu:
+        return False
+
+    aux = [np.linalg.norm(old_mu[i] - mu[i]) for i in range(len(mu))]
+    distance = sum(aux)
+    print("Distance_T: " + str(distance))
+    return distance < (epsilon ** 2)
+
+
+@task(returns=dict)
+def cluster_points_partial(xp, mu, ind):
+    dic = {}
+    for x in enumerate(xp):
+        bestmukey = min([(i[0], np.linalg.norm(x[1] - mu[i[0]]))
+                         for i in enumerate(mu)], key=lambda t: t[1])[0]
+        if bestmukey not in dic:
+            dic[bestmukey] = [x[0] + ind]
+        else:
+            dic[bestmukey].append(x[0] + ind)
+    return dic
+
+
+@task(returns=dict)
+def partial_sum(xp, clusters, ind):
+    p = [(i, [(xp[j - ind]) for j in clusters[i]]) for i in clusters]
+    dic = {}
+    for i, l in p:
+        dic[i] = (len(l), np.sum(l, axis=0))
+    return dic
+
+
+# dict inout??
+@task(returns=dict, priority=True)
+def reduce_centers(a, b):
+    for key in b:
+        if key not in a:
+            a[key] = b[key]
+        else:
+            a[key] = (a[key][0] + b[key][0], a[key][1] + b[key][1])
+    return a
+
+
+def merge_reduce(f, data):
+    from collections import deque
+    q = deque(list(range(len(data))))
+    while len(q):
+        x = q.popleft()
+        if len(q):
+            y = q.popleft()
+            data[x] = f(data[x], data[y])
+            q.append(x)
+        else:
+            return data[x]
+
+
+def plot_k_means(dim, mu, clusters, data):
+    import pylab as plt
+    colors = ['b','g','r','c','m','y','k']
+    if dim == 2:
+        from matplotlib.patches import Circle
+        from matplotlib.collections import PatchCollection
+        fig, ax = plt.subplots(figsize=(10, 10))
+        patches = []
+        pcolors = []
+        for i in range(len(clusters)):
+            for key in clusters[i].keys():
+                d = clusters[i][key]
+                for j in d:
+                    j = j - i * len(data[0])
+                    C = Circle((data[i][j][0], data[i][j][1]), .05)
+                    pcolors.append(colors[key])
+                    patches.append(C)
+        collection = PatchCollection(patches)
+        collection.set_facecolor(pcolors)
+        ax.add_collection(collection)
+
+        # todo: check this
+        x, y = mu
+
+        plt.plot(x, y, '*', c='y', markersize=20)
+        plt.autoscale(enable=True, axis='both', tight=False)
+        plt.show()
+
+    elif dim == 3:
+        from mpl_toolkits.mplot3d import Axes3D
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        for i in range(len(clusters)):
+            for key in clusters[i].keys():
+                d = clusters[i][key]
+                for j in d:
+                    j = j - i * len(data[0])
+                    ax.scatter(data[i][j][0], data[i][j][1], data[i][j][2], 'o', c=colors[key])
+        x, y, z = zip(*mu)
+        for i in range(len(mu)):
+            ax.scatter(x[i], y[i], z[i], s=80, c='y', marker='D')
+        plt.show()
+
+    else:
+        print("No representable dim")
+
+
+def complex_wc():
+    files_path = sys.argv[1]
+
+    startTime = time.time()
+
+    # (key, value) pairs
+    total_wc_dict = DDS().load_files_from_dir(files_path).\
+        map_and_flatten(lambda x: x[1].split()) \
+        .map(lambda x: ''.join(e for e in x if e.isalnum())) \
+        .count_by_value(as_dict=True)
+
+    def count_locally(element):
+        from collections import Counter
+        file_name, text = element
+
+        filtered_words = [word for word in text.split() if word.isalnum()]
+        cnt = Counter(filtered_words)
+
+        for _word in total_wc_dict:
+            if _word not in cnt:
+                cnt[_word] = 0
+
+        return file_name, sorted(cnt.items())
+
+    def gen_array(element):
+        import numpy as np
+        values = [int(v) for k, v in element[1]]
+        return np.array(values)
+
+    total = len(os.listdir(files_path))
+    max_iter = 10
+    frags = 3
+    epsilon = 1e-10
+    size = int(total / frags)
+    k = 2
+    dim = 2
+
+    # X
+    wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
+        .map(count_locally)\
+        .map(gen_array)\
+        .collect(keep_partitions=True)
+
+    mu = [
+        np.array([i for i in range(len(total_wc_dict))]),
+        np.array([i*10 for i in range(len(total_wc_dict))])
+        ]
+
+    old_mu = []
+    clusters = []
+    n = 0
+
+    while n < max_iter and not has_converged(mu, old_mu, epsilon):
+        old_mu = mu
+        clusters = [cluster_points_partial(wc_per_file[f], mu, f * size)
+                    for f in range(frags)]
+
+        partial_result = [partial_sum(wc_per_file[f], clusters[f], f * size)
+                          for f in range(frags)]
+
+        mu = merge_reduce(reduce_centers, partial_result)
+
+        mu = cwo(mu)
+
+        mu = [mu[c][1] / mu[c][0] for c in mu]
+
+        while len(mu) < k:
+            # Add new random center if one of the centers has no points.
+            print("______ adding a new point..")
+            ind_p = np.random.randint(0, size)
+            ind_f = np.random.randint(0, frags)
+            mu.append(wc_per_file[ind_f][ind_p])
+
+        n += 1
+
+    clusters = cwo(clusters)
+
+    print("-----------------------------")
+    print("Kmeans Time {} (s)".format(time.time() - startTime))
+    print("-----------------------------")
+    print("Result:")
+    print("Iterations: ", n)
+    print("Centers: ", mu)
+    # plot_k_means(dim, mu, clusters, wc_per_file)
 
 
 def word_count():
@@ -163,7 +356,8 @@ def main_program():
     # word_count()
     # terasort()
     # inverted_indexing()
-    transitive_closure()
+    # transitive_closure()
+    complex_wc()
 
 
 if __name__ == '__main__':

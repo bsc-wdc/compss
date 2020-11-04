@@ -47,6 +47,10 @@ def init_streaming(streaming_backend,
             not streaming_master_name or \
             streaming_master_name == "null":
         streaming_master_name = "localhost"
+    if streaming_master_port is None or \
+            not streaming_master_port or \
+            streaming_master_port == "null":
+        streaming_master_port = "49049"
 
     # Check if the stream backend is enabled
     streaming_enabled = streaming_backend is not None \

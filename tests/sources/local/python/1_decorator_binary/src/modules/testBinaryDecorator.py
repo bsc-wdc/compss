@@ -119,18 +119,6 @@ def checkStringParam4(string_param):
     pass
 
 
-@binary(binary="./checkString.sh", working_dir=os.getcwd() + '/src/scripts/', fail_by_exit_value=15)
-@task(returns=int)
-def checkStringParam5(string_param):
-    pass
-
-
-@binary(binary="./checkString.sh", working_dir=os.getcwd() + '/src/scripts/', fail_by_exit_value=15)
-@task()
-def checkStringParam6(string_param):
-    pass
-
-
 class testBinaryDecorator(unittest.TestCase):
     def testFunctionalUsage(self):
         myDate("-d", "next friday")
@@ -215,71 +203,11 @@ class testBinaryDecorator(unittest.TestCase):
         exit_value = compss_wait_on(exit_value)
         self.assertEqual(exit_value, 0)
 
-    '''
-    def testReturnFailTrue_exit1(self):
-        group_name = "binary"
-        fail = False
-        try:
-            with TaskGroup(group_name, implicit_barrier=True):
-                string_param = "This is a string. 1"
-                exit_value = checkStringParam1(string_param)
-                exit_value = compss_wait_on(exit_value)
-            fail = True
-        except COMPSsException as e:
-            print("Captured compss exception" + str(e))
-        if fail:
-            raise Exception
-        
-    def testReturnFailTrue_exit15(self):
-        group_name = "binary"
-        fail = False
-        try:
-            with TaskGroup(group_name, implicit_barrier=True):
-                string_param = "string."
-                exit_value = checkStringParam1(string_param)
-                exit_value = compss_wait_on(exit_value)
-            fail = True
-        except COMPSsException as e:
-            print("Captured compss exception" + str(e))
-        if fail:
-            raise Exception
-    '''
-
     def testNoReturnFailTrue_exit0(self):
         string_param = "This is a string."
         exit_value = checkStringParam2(string_param)
         exit_value = compss_wait_on(exit_value)
         self.assertEqual(exit_value, None)
-
-    '''
-    def testNoReturnFailTrue_exit1(self):
-        group_name = "binary"
-        fail = False
-        try:
-            with TaskGroup(group_name, implicit_barrier=True):
-                string_param = "This is a string. 1"
-                exit_value = checkStringParam2(string_param)
-                exit_value = compss_wait_on(exit_value)
-            fail = True
-        except COMPSsException as e:
-            print("Captured compss exception" + str(e))
-        if fail:
-            raise Exception
-            
-    def testNoReturnFailTrue_exit15(self):
-        group_name = "binary"
-        fail = False
-        try:
-            with TaskGroup(group_name, implicit_barrier=True):
-                string_param = "string."
-                exit_value = checkStringParam2(string_param)
-                exit_value = compss_wait_on(exit_value)
-            fail = True
-        except COMPSsException as e:
-            print("Captured compss exception" + str(e))
-        if fail:
-            raise Exception
-    '''
 
     def testReturnFailFalse_exit0(self):
         string_param = "This is a string."
@@ -293,12 +221,6 @@ class testBinaryDecorator(unittest.TestCase):
         exit_value = compss_wait_on(exit_value)
         self.assertEqual(exit_value, 1)
 
-    def testReturnFailFalse_exit15(self):
-        string_param = "string."
-        exit_value = checkStringParam3(string_param)
-        exit_value = compss_wait_on(exit_value)
-        self.assertEqual(exit_value, 15)
-
     def testNoReturnFailFalse_exit0(self):
         string_param = "This is a string."
         exit_value = checkStringParam4(string_param)
@@ -311,48 +233,3 @@ class testBinaryDecorator(unittest.TestCase):
         exit_value = compss_wait_on(exit_value)
         self.assertEqual(exit_value, None)
 
-    def testNoReturnFailFalse_exit15(self):
-        string_param = "string."
-        exit_value = checkStringParam4(string_param)
-        exit_value = compss_wait_on(exit_value)
-        self.assertEqual(exit_value, None)
-
-    # Los seis tests siguientes tendrian que fallar
-    def testReturnFail15_exit0(self):
-        string_param = "This is a string."
-        exit_value = checkStringParam5(string_param)
-        exit_value = compss_wait_on(exit_value)
-        print("EXIT VALUE 13: " + str(exit_value))
-        self.assertEqual(exit_value, 0)
-
-    def testReturnFail15_exit1(self):
-        string_param = "This is a string. 1"
-        exit_value = checkStringParam5(string_param)
-        exit_value = compss_wait_on(exit_value)
-        print("EXIT VALUE 14: " + str(exit_value))
-        self.assertEqual(exit_value, 1)
-
-    def testReturnFail15_exit15(self):
-        string_param = "string."
-        exit_value = checkStringParam5(string_param)
-        exit_value = compss_wait_on(exit_value)
-        print("EXIT VALUE 15: " + str(exit_value))
-        self.assertEqual(exit_value, 15)
-
-    def testNoReturnFail15_exit0(self):
-        string_param = "This is a string."
-        exit_value = checkStringParam6(string_param)
-        exit_value = compss_wait_on(exit_value)
-        self.assertEqual(exit_value, None)
-
-    def testNoReturnFail15_exit1(self):
-        string_param = "This is a string. 1"
-        exit_value = checkStringParam6(string_param)
-        exit_value = compss_wait_on(exit_value)
-        self.assertEqual(exit_value, None)
-
-    def testNoReturnFail15_exit15(self):
-        string_param = "string."
-        exit_value = checkStringParam6(string_param)
-        exit_value = compss_wait_on(exit_value)
-        self.assertEqual(exit_value, None)

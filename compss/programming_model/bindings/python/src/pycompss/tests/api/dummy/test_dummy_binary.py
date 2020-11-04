@@ -25,7 +25,7 @@ from pycompss.api.binary import Binary       # noqa
 from pycompss.api.task import Task           # noqa
 
 
-@Binary(binary="date", working_dir="/tmp")
+@Binary(binary="date", working_dir="/tmp")  # NOSONAR
 @Task(returns=1)
 def check_date():
     # Intentionally empty since it is a binary task.

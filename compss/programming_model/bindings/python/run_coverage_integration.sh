@@ -35,6 +35,9 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   export COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
 
+  # Force pytest coverage to take the sources instead of the installation
+  export PYTHONPATH=${SCRIPT_DIR}/src:$PYTHONPATH
+
   # Run coverage on pycompss folder
   run_python2
 
@@ -58,10 +61,7 @@
   fi
 
   # RUN COVERAGE WITH NOTEBOOKS
-
-  # Force pytest coverage to take the sources instead of the installation
-  export PYTHONPATH=${SCRIPT_DIR}:$PYTHONPATH
-  pytest --nbval -v --cov=${SCRIPT_DIR}/src/pycompss/ --cov-append --cov-report=xml src/pycompss/tests/resources/notebook/simple.ipynb
+  pytest --nbval -v --cov=${SCRIPT_DIR}/src --cov-append --cov-report=xml src/pycompss/tests/resources/notebook/simple.ipynb
   coverage3 report -m
 
   # Exit all ok

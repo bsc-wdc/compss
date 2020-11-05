@@ -605,9 +605,11 @@ class TaskMaster(TaskCommons):
                              list(reversed(self.param_defaults))))):
                 if arg_name not in self.parameters:
                     real_arg_name = get_kwarg_name(arg_name)
+                    is_defined = arg_name in kwargs
                     self.parameters[real_arg_name] = \
                         self.build_parameter_object(real_arg_name,
-                                                    default_value)
+                                                    default_value,
+                                                    is_defined)
 
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
@@ -623,7 +625,6 @@ class TaskMaster(TaskCommons):
             arg_name = get_kwarg_name(name)
             self.parameters[arg_name] = self.build_parameter_object(arg_name,
                                                                     value)
-
         # Check the arguments - Look for mandatory and unexpected arguments
         supported_arguments = (ALL_SUPPORTED_ARGUMENTS + self.param_args)
         check_arguments(MANDATORY_ARGUMENTS,
@@ -632,12 +633,17 @@ class TaskMaster(TaskCommons):
                         list(self.decorator_arguments.keys()),
                         "@task")
 
-    def build_parameter_object(self, arg_name, arg_object):
-        # type: (str, object) -> Parameter
+    def build_parameter_object(self, arg_name, arg_object, is_defined=False):
+        # type: (str, object, bool) -> Parameter
         """ Creates the Parameter object from an argument name and object.
+        The is_defined variable indicates that the parameter is defined in
+        the kwargs dictionary. Consequently, if creating the variadic parameter
+        (default parameter), we know that it will be overridden and avoid
+        to set the NULL content_type.
 
         :param arg_name: Argument name.
         :param arg_object: Argument object.
+        :param is_defined: If the parameter is defined in the kwargs dictionary.
         :return: Parameter object.
         """
         # Is the argument a vararg? or a kwarg? Then check the direction
@@ -672,12 +678,14 @@ class TaskMaster(TaskCommons):
         if param.is_file() or param.is_directory():
             if arg_object:
                 param.file_name = arg_object
-            else:
+            elif not is_defined:
                 # is None: Used None for a FILE or DIRECTORY parameter path
                 param.content_type = parameter.TYPE.NULL
+            else:
+                # Keep the same content_type (FILE or DIRECTORY)
+                pass
         else:
             param.content = arg_object
-
         return param
 
     def compute_user_function_information(self):

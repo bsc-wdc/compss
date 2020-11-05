@@ -583,28 +583,3 @@ class BackendException(Exception):
         s = s + " - Internal error message:" + str(self.message)
 
         return s
-
-
-#
-# UNIT TEST CASES
-#
-
-class TestDistroStream(unittest.TestCase):
-
-    def test_file_distro_stream(self):
-        # TODO: Add test
-        pass
-
-    def test_object_distro_stream(self):
-        # TODO: Add test
-        pass
-
-
-#
-# MAIN FOR UNIT TEST
-#
-
-if __name__ == '__main__':
-    log_format = "%(asctime)s | %(levelname)s | %(name)s - %(message)s"  # NOSONAR
-    logging.basicConfig(level=logging.DEBUG, format=log_format)          # NOSONAR
-    unittest.main()

@@ -83,6 +83,8 @@ def _replace_attribute(source, rel, new):
         setattr(source, rel, new)
     except TypeError as exc:  # NOSONAR
         print("Unknown R_ATTRIBUTE (read-only):", rel, type(source))
+    except AttributeError as exc:  # NOSONAR
+        print("Unknown R_ATTRIBUTE (read-only):", rel, type(source))
 
 
 def _replace_indexval(source, rel, new):
@@ -95,7 +97,7 @@ def _replace_indexval(source, rel, new):
 
 
 def _replace_indexkey(source, rel, new):
-    source[new] = source.pop(source.keys()[rel])
+    source[new] = source.pop(list(source.keys())[rel])
 
 
 def _replace_interattr(source, rel, new):
@@ -213,8 +215,8 @@ def examine_vars(id1, id2, id3):
     print("dict (local var):  ", ex(a, id1))
     print("dict (class attr): ", ex(X.cattr, id1))
     print("dict (inst attr):  ", ex(x.iattr, id1))
-    print("dict (key):        ", ex(d.keys()[0], id1))
-    print("dict (value):      ", ex(d.values()[0], id1))
+    print("dict (key):        ", ex(list(d.keys())[0], id1))
+    print("dict (value):      ", ex(list(d.values())[0], id1))
     print("list:              ", ex(L[0], id1))
     print("tuple:             ", ex(t[0], id1))
     print("method (instance): ", ex(f(), id1))
@@ -228,11 +230,12 @@ def examine_vars(id1, id2, id3):
     print("class (mem descr): ", ex(sd.__get__(s, S), id3))
 
 
-if __name__ == "__main__":
-    examine_vars(id(a), id(U), id(S))
-    print("-" * 35)
-    replace(a, b)
-    replace(U, V)
-    replace(S, T)
-    print("-" * 35)
+# For testing purposes:
+# if __name__ == "__main__":
+#     examine_vars(id(a), id(U), id(S))
+#     print("-" * 35)
+#     replace(a, b)
+#     replace(U, V)
+#     replace(S, T)
+#     print("-" * 35)
 # examine_vars(id(b), id(V), id(T))

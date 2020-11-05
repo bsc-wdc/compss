@@ -21,7 +21,9 @@ if user_opts == "none" :
 module = sys.argv[5]
 queue = sys.argv[6]
 qos = sys.argv[7]
-execution_envs = sys.argv[8:] #python3
+start = int(sys.argv[8])
+end = int(sys.argv[9])
+execution_envs = sys.argv[10:] #python3
 #module = sys.argv[6] #COMPSs/2.6
 #master_working_dir = sys.argv[9]
 #worker_working_dir = sys.argv[10]
@@ -37,8 +39,16 @@ if not os.path.exists(logs_base_dir):
 
 queue_file = os.path.join(tests_base_dir, ".queue.txt")
 f = open(queue_file, "w+")
-
+test_num = 0
 for test_dir in sorted(os.listdir(tests_apps_dir)):
+    # Check if this test must be executed in this batch
+    if test_num < start :
+        test_num += 1
+        continue
+    elif test_num > end :
+        break
+    else :
+        test_num += 1
     test_path = os.path.join(tests_apps_dir, test_dir)
     test_logs_path = os.path.join(logs_base_dir,test_dir)
     skip_file = os.path.join(test_path, "skip")

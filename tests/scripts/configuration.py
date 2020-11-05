@@ -229,7 +229,7 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
 
     def __init__(self, remote_working_dir=None, compss_module=DEFAULT_COMPSS_MODULE, queue='none', qos='none',
                  user=None, java_home=None, compss_home=DEFAULT_COMPSS_HOME, target_base_dir=None,
-                 comm=DEFAULT_COMM, runcompss_opts=None, execution_envs=DEFAULT_SC_EXECUTION_ENVS):
+                 comm=DEFAULT_COMM, runcompss_opts=None, execution_envs=DEFAULT_SC_EXECUTION_ENVS, batch="0"):
         COMPSsConfiguration.__init__(self, user, java_home, compss_home, target_base_dir, comm, runcompss_opts, execution_envs)
 
         if remote_working_dir is None:
@@ -242,6 +242,7 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
             print("[WARN] Ovewriting COMPSs Module to test")
         self.qos = qos
         self.queue = queue
+        self.batch = int(batch)
 
     def get_remote_working_dir(self):
         """
@@ -278,6 +279,14 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
             + type: String
         """
         return self.queue
+    def get_batch(self):
+        """
+        Returns the batch size used for the execution of tests
+
+        :return: The batch size
+            + type: int
+        """
+        return self.batch
 
     def print_vars(self):
         """
@@ -288,6 +297,7 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         print("[INFO]   - remote_dir: " + str(self.remote_working_dir))
         print("[INFO]   - queue: " + str(self.queue))
         print("[INFO]   - qos: " + str(self.qos))
+        print("[INFO]   - batch: " + str(self.batch))
 
 ############################################
 # PUBLIC METHODS

@@ -18,11 +18,18 @@ package es.bsc.compss.scheduler.readynew;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.json.JSONObject;
 
 
@@ -33,6 +40,10 @@ import org.json.JSONObject;
  */
 public abstract class ReadyResourceScheduler<T extends WorkerResourceDescription> extends ResourceScheduler<T> {
 
+    protected Set<ObjectValue<AllocatableAction>> unassignedActions;
+    protected Map<AllocatableAction, ObjectValue<AllocatableAction>> addedActions;
+
+
     /**
      * New Ready Resource Scheduler instance.
      *
@@ -42,6 +53,15 @@ public abstract class ReadyResourceScheduler<T extends WorkerResourceDescription
      */
     public ReadyResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
         super(w, resJSON, implJSON);
+        resetUnassignedActions();
+    }
+
+    public Set<ObjectValue<AllocatableAction>> getUnassignedActions() {
+        return unassignedActions;
+    }
+
+    public Map<AllocatableAction, ObjectValue<AllocatableAction>> getAddedActions() {
+        return addedActions;
     }
 
     @Override
@@ -56,5 +76,14 @@ public abstract class ReadyResourceScheduler<T extends WorkerResourceDescription
 
     @Override
     public abstract String toString();
+
+    /**
+     * Clear unassigned and added actions.
+     */
+    public void resetUnassignedActions() {
+        unassignedActions = new TreeSet<>();
+        addedActions = new HashMap<>();
+
+    }
 
 }

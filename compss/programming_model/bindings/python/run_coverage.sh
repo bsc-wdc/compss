@@ -12,6 +12,11 @@
                   # --omit="src/pycompss/api/tests_parallel/*" \
                   # --concurrency=multiprocessing \  # not allowed as flag with the others
                   # --omit="src/pycompss/util/translators/*" \
+    ev=$?
+    if [ "$ev" -ne 0 ]; then
+      echo "[ERROR] Coverage2 tests FAILED failed with exit value: $ev"
+      exit $ev
+    fi
     python2 -m coverage combine
     python2 -m coverage report -m
   }
@@ -23,6 +28,11 @@
                   # --omit="src/pycompss/api/tests_parallel/*" \
                   # --concurrency=multiprocessing \  # not allowed as flag with the others
                   # --omit="src/pycompss/util/translators/*" \
+    ev=$?
+    if [ "$ev" -ne 0 ]; then
+      echo "[ERROR] Coverage3 tests FAILED failed with exit value: $ev"
+      exit $ev
+    fi
     python3 -m coverage combine --append
     python3 -m coverage report -m
   }

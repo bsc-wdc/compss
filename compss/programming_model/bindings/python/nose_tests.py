@@ -87,6 +87,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/util/test_objects.py',
     'pycompss/tests/util/test_object_replace.py',
     'pycompss/tests/util/test_object_sizer.py',
+    'pycompss/tests/util/test_serializer.py',
     'pycompss/tests/util/test_supercomputer.py',
     'pycompss/tests/util/test_warning_modules.py',
     'pycompss/tests/worker/test_container_worker.py',

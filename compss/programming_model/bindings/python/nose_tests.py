@@ -81,6 +81,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/functions/test_reduce.py',
     'pycompss/tests/runtime/test_object_tracker.py',
     'pycompss/tests/runtime/test_core_element.py',
+    'pycompss/tests/runtime/test_management_direction.py',
     'pycompss/tests/streams/test_distro_stream_client.py',
     'pycompss/tests/util/test_jvm_parser.py',
     'pycompss/tests/util/test_mpi_helper.py',

@@ -37,9 +37,9 @@ def get_compss_direction(pymode):
         return DIRECTION.OUT
     elif pymode.startswith('r+') or pymode.startswith('a'):
         return DIRECTION.INOUT
-    elif pymode.startswith('c'):
-        return DIRECTION.CONCURRENT
     elif pymode.startswith('cv'):
         return DIRECTION.COMMUTATIVE
+    elif pymode.startswith('c'):
+        return DIRECTION.CONCURRENT
     else:
         return DIRECTION.IN

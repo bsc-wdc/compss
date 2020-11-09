@@ -266,8 +266,8 @@ def _get_classes():
         lines = block.split('\n')
         # Look for classes in the block
         class_found = False
+        class_name = ''
         for line in lines:
-            class_name = ''
             if line.startswith('class'):
                 # Class header: find name and include it in the functions dict
                 # split and remove empty spaces

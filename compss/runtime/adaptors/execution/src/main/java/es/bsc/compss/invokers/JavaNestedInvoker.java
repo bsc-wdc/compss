@@ -24,6 +24,7 @@ import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
+import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -293,9 +294,8 @@ public class JavaNestedInvoker extends JavaInvoker {
         switch (p.getType()) {
             case OBJECT_T:
             case PSCO_T:
-                this.context.getLoaderAPI().getObjectRegistry().newObjectAccess(appId, p.getValue(), false);
-                Object internal =
-                    this.context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, p.getValue());
+                ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
+                Object internal = or.collectObjectLastValue(appId, p.getValue());
                 p.setValue(internal);
                 break;
             case FILE_T:

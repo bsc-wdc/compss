@@ -199,6 +199,45 @@ public class ObjectRegistry {
     }
 
     /**
+     * Collects the last value associated to an object.
+     * 
+     * @param appId Application Id.
+     * @param o Object
+     * @return internal value of the object, if it hadn't been registered returns the same object.
+     */
+    public Object collectObjectLastValue(Long appId, Object o) {
+        if (o == null) {
+            return o;
+        }
+        Integer hashCode = getObjectHashCode(appId, o);
+        if (hashCode == null) {
+            // Not a task parameter object. Return the same object
+            return o;
+        }
+        /*
+         * The object has been accessed by a task before. Check with the API that the application has the last version,
+         * blocking if necessary.
+         */
+        if (DEBUG) {
+            LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: false");
+        }
+
+        // Get the updated version of the object
+        Object oUpdated = this.itApi.getObject(appId, o, hashCode, serialDir);
+        if (oUpdated != null) {
+            this.internalObjects.put(hashCode, oUpdated);
+            /*
+             * The object has been accessed by a task before. Return its internal (real) value
+             */
+            if (DEBUG) {
+                LOGGER.debug("Returning internal object " + oUpdated + " with hash code " + hashCode);
+            }
+            return oUpdated;
+        }
+        return o;
+    }
+
+    /**
      * Returns the internal object representing the given object {@code o}.
      *
      * @param appId Application Id.

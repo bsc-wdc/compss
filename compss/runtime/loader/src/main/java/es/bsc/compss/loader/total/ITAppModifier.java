@@ -91,10 +91,11 @@ public class ITAppModifier {
         appClass.addField(itORField);
 
         CtClass appIdClass = CLASS_POOL.get(LoaderConstants.CLASS_APP_ID);
-        String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
+        String itAppIdVar = "new Long(Thread.currentThread().getId())";
+        // String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
         CtField appIdField = new CtField(appIdClass, itAppIdVar, appClass);
         appIdField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(appIdField);
+        // appClass.addField(appIdField);
 
         /*
          * Create a static constructor to initialize the runtime Create a shutdown hook to stop the runtime before the
@@ -149,8 +150,8 @@ public class ITAppModifier {
                  * for Services, to handle multiple service executions simultaneously with a single runtime For normal
                  * applications, there will be only one execution id.
                  */
-                m.addLocalVariable(itAppIdVar, appIdClass);
-                toInsertBefore.append(itAppIdVar).append(" = new Long(Thread.currentThread().getId());");
+                // m.addLocalVariable(itAppIdVar, appIdClass);
+                // toInsertBefore.append(itAppIdVar).append(" = new Long(Thread.currentThread().getId());");
 
                 // TODO remove old code:
                 // boolean isMainProgram = writeToFile ? LoaderUtils.isOrchestration(m) : LoaderUtils.isMainMethod(m);
@@ -169,11 +170,11 @@ public class ITAppModifier {
                         LOGGER.debug("Inserting calls noMoreTasks and stopIT at the end of main");
                         // Set global variable for main as well, will be used in code inserted after to be run no matter
                         // what
-                        toInsertBefore.append(appName).append('.').append(itAppIdVar)
-                            .append(" = new Long(Thread.currentThread().getId());");
+                        // toInsertBefore.append(appName).append('.').append(itAppIdVar)
+                        // .append(" = new Long(Thread.currentThread().getId());");
                         // toInsertAfter.append("System.exit(0);");
                         toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
-                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + appName + '.' + itAppIdVar + ");");
+                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
                         m.insertBefore(toInsertBefore.toString());
                         m.insertAfter(toInsertAfter.toString(), true); // executed no matter what
                     }

@@ -28,6 +28,7 @@ import es.bsc.compss.util.ResourceManager;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -133,7 +134,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
             this.graph.newLine();
             this.graph.write(prefix + prefix + prefix + "color=orange");
             this.graph.newLine();
-            List<AllocatableAction> unassignedActions = ts.getUnassignedActions();
+            Collection<AllocatableAction> unassignedActions = ts.getUnassignedActions();
             for (AllocatableAction action : unassignedActions) {
                 if (action instanceof ExecutionAction) {
                     ExecutionAction se = (ExecutionAction) action;

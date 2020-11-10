@@ -74,10 +74,6 @@ public abstract class PersistentInvoker extends ExternalInvoker {
         }
 
         LOGGER.debug("Job " + jobId + " has finished with exit value 0");
-        for (InvocationParam np : this.invocation.getResults()) {
-            np.setValue(exitValue);
-            np.setValueClass(exitValue.getClass());
-        }
     }
 
     public static native String executeInBinding(String args);

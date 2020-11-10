@@ -33,7 +33,7 @@
   unload_before_python="ignore"
   py2_modules="PYTHON/2.7.3"
   py3_modules="PYTHON/3.5.1-INTEL"
-  py3_other_modules="ignore"
+  py3_other_modules="PYTHON/3.7.4"
 
   # DEFINE CONFIGURATION PARAMETERS
   additionalExports="export PATH=/apps/BSCTOOLS/deps/libxml/2.9.4/bin:/apps/BSCTOOLS/deps/autotools/bin:\$PATH"

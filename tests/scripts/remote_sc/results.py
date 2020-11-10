@@ -4,6 +4,8 @@ import shutil
 import sys
 
 target_base_dir = sys.argv[1]
+start = int(sys.argv[2])
+end = int(sys.argv[3])
 tests_base_dir = os.path.join(target_base_dir,"apps")
 logs_base_dir = os.path.join(target_base_dir,"logs")
 
@@ -15,8 +17,16 @@ processes_apps.pop()
 with open(os.path.join(target_base_dir, "outs.csv"), "w") as file:
     pass
 
-
-for log_dir in sorted(os.listdir(logs_base_dir)):
+test_num = 0
+for log_dir in sorted(os.listdir(tests_base_dir)):
+    # Check if this test must be executed in this batch
+    if test_num < start :
+        test_num += 1
+        continue
+    elif test_num > end :
+        break
+    else :
+        test_num += 1
     skip_file = os.path.join(logs_base_dir, log_dir, "skip")
     if os.path.isfile(skip_file):
         print("Skip test " + log_dir + " results.")

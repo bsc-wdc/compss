@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1137,7 +1138,7 @@ public class TaskScheduler {
      *
      * @return The actions with no resources assigned.
      */
-    public List<AllocatableAction> getUnassignedActions() {
+    public Collection<AllocatableAction> getUnassignedActions() {
         return new LinkedList<>();
     }
 

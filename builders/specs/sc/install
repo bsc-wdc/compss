@@ -12,9 +12,19 @@
   ####################
   # FUNCTIONS
   ####################
-  usage() {
+usage() {
+    exitValue=$1	  
     echo " "
-    echo " Usage:  install <targetFolder> [<queues_cfg>]"
+    echo " Usage:  install [options] <targetFolder> [<queues_cfg>]"
+    echo " "
+    echo " Options:"
+    echo " --help, -h                  Print this help message"
+    echo " --no-bindings, -B           Disable bindings installation"
+    echo " --no-tracing, -T            Disable tracing system installation"
+    echo " --no-autoparallel, -A       Disable autoparallel module installation"
+    echo " --nothing, -N               Disable all previous options"
+    echo " --only-python-2	       Install PyCOMPSs for Python 2"
+    echo " --only-python-3             Install PyCOMPSs for Python 3"
     echo " "
     echo " Parameters:"
     echo "   - targetFolder : Target folder of the COMPSs installation."
@@ -25,33 +35,124 @@
     echo " "
     echo "SUPPORT:   support-compss@bsc.es"
     echo " "
-  }
+    exit "$exitValue"
+}
 
+  # Displays parsing arguments errors
+display_error() {
+  local error_msg=$1
+  echo "$error_msg"
+
+  echo " "
+  usage 1
+}
+
+get_args() {
+  # Parse COMPSs Options
+  while getopts hvBTA-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+        # Display help
+        usage 0
+        ;;
+      B)
+        # Custom bindings value
+        bindings=false
+        ;;
+      T)
+        # Custom tracing value
+        tracing=false
+        ;;
+      A)
+        # Custom autoparallel value
+        autoparallel=false
+        ;;
+      N)
+        # Disables all flags
+        tracing=false
+        bindings=false
+        autoparallel=false
+        ;;
+      -)
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
+          no-bindings)
+            # Custom bindings value
+            bindings=false
+            ;;
+          only-python-2)
+            # Custom PyCOMPSs value
+            python_version=2
+            ;;
+          only-python-3)
+	    python_version=3
+            ;;
+          no-tracing)
+            # Custom tracing value
+            tracing=false
+            ;;
+	  no-autoparallel)
+            # Custom autoparallel value
+            autoparallel=false
+            ;;
+	  nothing)
+            # Disables all flags
+            tracing=false
+            bindings=false
+            autoparallel=false
+            ;;
+    	  *)
+	  # Flag didn't match any patern. End of COMPSs flags
+          display_error "${INCORRECT_PARAMETER}"
+          break
+          ;;
+	          esac
+        ;;
+      *)
+        # Flag didn't match any patern. End of COMPSs flags
+        display_error "${INCORRECT_PARAMETER}"
+        break
+        ;;
+    esac
+  done
+  # Shift option arguments
+  shift $((OPTIND-1))
+  
+  # Get parameters
+  if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    echo "Incorrect number of parameters ($#)"
+    usage 1
+  fi
+  targetDir=$1
+  queues_cfg=$2
+}
 
   ####################
   # MAIN
   ####################
-  # Get parameters
-  if [ $# -gt 1 ] || [ $# -lt 3 ]; then
-    if [ "$1" == "usage" ]; then
-      usage
-      exit 0
-    fi
-  else
-    echo "Incorrect number of parameters"
-    usage
-    exit 1
-  fi
-  targetDir=$1
-  queues_cfg=$2
-
+  tracing=true
+  bindings=true
+  autoparallel=true
+  
+  get_args "$@"
+  
   # WARN MESSAGE and log parameters
   echo " "
-  echo "Parameters:"
-  echo "  - targetFolder = $1"
-  echo "  - COMPSs Installation Folder = $targetDir"
+  echo "Options:"
+  echo "  - Tracing: $tracing"
+  echo "  - Bindings: $bindings"
+  echo "  - Autoparallel: $autoparallel"
   echo " "
-  echo "ATTENTION: The COMPSs folder inside the target folder will be completely removed to avoid"
+  echo "Parameters:"
+  echo "  - Target Installation Folder = $targetDir"
+  echo "  - SC CFG file = $queues_cfg" 
+  echo " "
+  echo "ATTENTION: The target folder will be completely removed to avoid"
   echo "           conflicts between installations. Please save any configuration files."
   echo " "
   echo "  You can abort the installation within 5s..."
@@ -73,45 +174,54 @@
   sed -i -e 's#/opt/COMPSs/#'"${targetDir}"'#g' "${targetDir}"/Runtime/configuration/xml/projects/default_project.xml
   rm -rf "${targetDir}"/Bindings/*
   echo "   Success"
+  if [ "${bindings}" == "true" ]; then
+    # Install bindings-common
+    echo "- Install bindings-common"
+    cd "${SCRIPT_DIR}"/Bindings/bindings-common/
+    ./install_common "${targetDir}"/Bindings/bindings-common
+    cd "${SCRIPT_DIR}"
+    echo "   Success"
 
-  # Install bindings-common
-  echo "- Install bindings-common"
-  cd "${SCRIPT_DIR}"/Bindings/bindings-common/
-  ./install_common "${targetDir}"/Bindings/bindings-common
-  cd "${SCRIPT_DIR}"
-  echo "   Success"
+    # Install C-binding
+    echo "- Install C-binding"
+    cd "${SCRIPT_DIR}"/Bindings/c
+    ./install "${targetDir}"/Bindings/c true
+    mkdir -p "${targetDir}"/Runtime/scripts/system/c/
+    cp "${targetDir}"/Bindings/c/bin/* "${targetDir}"/Runtime/scripts/system/c
+    cp ./compss_build_app "${targetDir}"/Runtime/scripts/user/
+    cd "${SCRIPT_DIR}"
+    echo "   Success"
 
-  # Install C-binding
-  echo "- Install C-binding"
-  cd "${SCRIPT_DIR}"/Bindings/c
-  ./install "${targetDir}"/Bindings/c true
-  mkdir -p "${targetDir}"/Runtime/scripts/system/c/
-  cp "${targetDir}"/Bindings/c/bin/* "${targetDir}"/Runtime/scripts/system/c
-  cp ./compss_build_app "${targetDir}"/Runtime/scripts/user/
-  cd "${SCRIPT_DIR}"
-  echo "   Success"
-
-  # Install Python-binding
-  echo "- Install Python binding"
-  cd "${SCRIPT_DIR}"/Bindings/python
-  ./install "${targetDir}"/Bindings/python false
-  cd "${SCRIPT_DIR}"
-  echo "   Success"
-
-  # Install extrae
-  echo "- Install extrae"
-  cd "${SCRIPT_DIR}"/Dependencies
-  ./install_extrae.sh "${SCRIPT_DIR}"/Dependencies/extrae "${targetDir}"/Dependencies/extrae true
-  cd "${SCRIPT_DIR}"
-  echo "   Success"
-
-  # Install PLUTO
-  echo "- Install Pluto"
-  cd "${SCRIPT_DIR}"/Dependencies/pluto
-  ./install_pluto "${targetDir}"/Dependencies/pluto
-  cd "${SCRIPT_DIR}"
-  echo "   Success"
-
+    # Install Python-binding
+    echo "- Install Python binding"
+    cd "${SCRIPT_DIR}"/Bindings/python
+    # add python_version check
+    if [ -z "$python_version" ]; then
+      ./install "${targetDir}"/Bindings/python false
+      cd "${SCRIPT_DIR}"
+      echo "   Success"
+    else
+      ./install "${targetDir}"/Bindings/python false false python${python_version}
+      cd "${SCRIPT_DIR}"
+      echo "   Success"
+    fi
+  fi
+  if [ "${tracing}" == "true" ]; then
+    # Install extrae
+    echo "- Install extrae"
+    cd "${SCRIPT_DIR}"/Dependencies
+    ./install_extrae.sh "${SCRIPT_DIR}"/Dependencies/extrae "${targetDir}"/Dependencies/extrae true
+    cd "${SCRIPT_DIR}"
+    echo "   Success"
+  fi 
+  if [ "${autoparallel}" == "true" ]; then
+    # Install PLUTO
+    echo "- Install Pluto"
+    cd "${SCRIPT_DIR}"/Dependencies/pluto
+    ./install_pluto "${targetDir}"/Dependencies/pluto
+    cd "${SCRIPT_DIR}"
+    echo "   Success"
+  fi
   # Set permissions
   echo "- Set COMPSs permissions"
   chmod -R 755 "${targetDir}"

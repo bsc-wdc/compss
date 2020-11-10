@@ -697,9 +697,17 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             DataLocation actualLocation = c.getSourceData().finishedCopy(c);
             LogicalData tgtData = c.getTargetData();
             if (tgtData != null) {
-                tgtData.addLocation(actualLocation);
                 if (object != null) {
                     tgtData.setValue(object);
+                    SimpleURI uri = new SimpleURI("object://" + tgtData.getName());
+                    try {
+                        actualLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
+                        tgtData.addLocation(actualLocation);
+                    } catch (Exception e) {
+                        c.end(OperationEndState.OP_FAILED, e);
+                    }
+                } else {
+                    tgtData.addLocation(actualLocation);
                 }
             }
             c.end(OperationEndState.OP_OK);

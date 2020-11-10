@@ -65,7 +65,9 @@ public class LogicalData {
     // Logical data name
     private final String name;
     // Value in memory, null if value in disk
-    private Object value;
+    // 1 position array acting as a pointer to the object. Thus, all linked LogicalData share the same pointer and
+    // setValue assigns the value to all Linked Data at a time
+    private Object[] value;
     // Id if PSCO, null otherwise
     private String pscoId;
     // Id if Binding object, null otherwise
@@ -99,7 +101,7 @@ public class LogicalData {
     public LogicalData(String name, LinkedList<DataVersion> versions) {
         this.name = name;
         this.knownAlias.add(name);
-        this.value = null;
+        this.value = new Object[] { null };
         this.pscoId = null;
         this.bindingId = null;
         this.isBeingSaved = false;
@@ -118,12 +120,12 @@ public class LogicalData {
     public static void link(LogicalData ld, LogicalData ld2) throws CommException {
         synchronized (ld) {
             synchronized (ld2) {
-                Object value = null;
+                Object[] value = null;
                 String pscoId = null;
                 String bindingId = null;
-                if (ld.value != null) {
-                    if (ld2.value != null) {
-                        if (ld2.value != ld.value) {
+                if (ld.value[0] != null) {
+                    if (ld2.value[0] != null) {
+                        if (ld2.value[0] != ld.value[0]) {
                             throw new CommException("Linking two LogicalData with different value in memory");
                         }
                     } else {
@@ -253,7 +255,7 @@ public class LogicalData {
                         }
                     }
                 }
-                value = null;
+                value[0] = null;
             } else {
                 String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
                 SimpleURI uri = new SimpleURI(targetPath);
@@ -409,7 +411,7 @@ public class LogicalData {
      * @return
      */
     public synchronized boolean isInMemory() {
-        return (this.value != null);
+        return (this.value[0] != null);
     }
 
     /**
@@ -427,7 +429,7 @@ public class LogicalData {
      * @return
      */
     public synchronized Object getValue() {
-        return this.value;
+        return this.value[0];
     }
 
     /**
@@ -449,8 +451,8 @@ public class LogicalData {
         // persistent)
         this.locations.remove(loc);
 
-        Object val = this.value;
-        this.value = null;
+        Object val = this.value[0];
+        this.value[0] = null;
 
         return val;
     }
@@ -461,7 +463,7 @@ public class LogicalData {
      * @param o Object value
      */
     public synchronized void setValue(Object o) {
-        this.value = o;
+        this.value[0] = o;
     }
 
     /**
@@ -489,8 +491,8 @@ public class LogicalData {
             if (this.bindingId != null) {
                 id = this.bindingId;
             } else {
-                if (this.value != null) {
-                    id = (String) this.value;
+                if (this.value[0] != null) {
+                    id = (String) this.value[0];
                 } else {
                     id = this.name;
                 }
@@ -520,7 +522,7 @@ public class LogicalData {
                 if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to file " + targetPath);
                 }
-                Serializer.serialize(value, targetPath);
+                Serializer.serialize(value[0], targetPath);
                 addWrittenObjectLocation(targetPath);
             }
         }
@@ -558,7 +560,7 @@ public class LogicalData {
      */
     public synchronized void loadFromStorage() throws CannotLoadException {
         // TODO: Check if we have to do something in binding data??
-        if (value != null) {
+        if (value[0] != null) {
             // Value is already loaded in memory
             return;
         }
@@ -576,17 +578,17 @@ public class LogicalData {
                     String path = u.getPath();
                     if (path.startsWith(File.separator)) {
                         try {
-                            this.value = Serializer.deserialize(path);
+                            this.value[0] = Serializer.deserialize(path);
                         } catch (ClassNotFoundException | IOException e) {
                             // Check next location since deserialization was invalid
-                            this.value = null;
+                            this.value[0] = null;
                             continue;
                         }
                         try {
                             addLocationsForInMemoryObject();
                         } catch (IOException e) {
                             // Check next location since location was invalid
-                            this.value = null;
+                            this.value[0] = null;
                             continue;
                         }
                     }
@@ -599,7 +601,7 @@ public class LogicalData {
                         Tracer.emitEvent(TraceEvent.STORAGE_GETBYID.getId(), TraceEvent.STORAGE_GETBYID.getType());
                     }
                     try {
-                        this.value = StorageItf.getByID(pLoc.getId());
+                        this.value[0] = StorageItf.getByID(pLoc.getId());
                         this.pscoId = pLoc.getId();
                     } catch (StorageException se) {
                         // Check next location since cannot retrieve the object from the storage Back-end
@@ -614,7 +616,7 @@ public class LogicalData {
                         addLocationsForInMemoryObject();
                     } catch (IOException e) {
                         // Check next location since location was invalid
-                        this.value = null;
+                        this.value[0] = null;
                         continue;
                     }
 
@@ -810,7 +812,7 @@ public class LogicalData {
     public synchronized String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Logical Data name: ").append(this.name).append("\n");
-        sb.append("\t Value: ").append(value).append("\n");
+        sb.append("\t Value: ").append(value[0]).append("\n");
         sb.append("\t Id: ").append(pscoId).append("\n");
         sb.append("\t Locations:\n");
         synchronized (locations) {

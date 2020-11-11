@@ -511,9 +511,7 @@ public class AccessProcessor implements Runnable {
         waitForTask(oaId.getDataId(), AccessMode.RW);
         if (this.taskAnalyser.dataWasAccessedConcurrent(oaId.getDataId())) {
             waitForConcurrent(oaId.getDataId(), AccessMode.RW);
-            if (oaId.getDirection() != DataAccessId.Direction.R || oaId.getDirection() != DataAccessId.Direction.RW) {
-                this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
-            }
+            this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
         }
         // TODO: Check if the object was already piggybacked in the task notification
         // Ask for the object
@@ -559,9 +557,7 @@ public class AccessProcessor implements Runnable {
         waitForTask(oaId.getDataId(), AccessMode.RW);
         if (this.taskAnalyser.dataWasAccessedConcurrent(oaId.getDataId())) {
             waitForConcurrent(oaId.getDataId(), AccessMode.RW);
-            if (oaId.getDirection() != DataAccessId.Direction.R || oaId.getDirection() != DataAccessId.Direction.RW) {
-                this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
-            }
+            this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
         }
 
         // TODO: Check if the object was already piggybacked in the task notification
@@ -615,9 +611,7 @@ public class AccessProcessor implements Runnable {
         if (this.taskAnalyser.dataWasAccessedConcurrent(oaId.getDataId())) {
             // Defaut access is read because the binding object is removed after accessing it
             waitForConcurrent(oaId.getDataId(), AccessMode.R);
-            if (oaId.getDirection() != DataAccessId.Direction.R || oaId.getDirection() != DataAccessId.Direction.RW) {
-                this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
-            }
+            this.taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
         }
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 

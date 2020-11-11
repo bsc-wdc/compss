@@ -441,12 +441,10 @@ class DDS(object):
         if self.func:
             if self.paac:
                 for col in self.partitions:
-                    with event(3001, master=True):
-                        processed.append(map_partition(self.func, None, *col))
+                    processed.append(map_partition(self.func, None, col))
             else:
                 for _p in self.partitions:
-                    with event(3001, master=True):
-                        processed.append(map_partition(self.func, _p))
+                    processed.append(map_partition(self.func, _p))
             # Reset the function!
             self.func = None
         else:
@@ -562,7 +560,7 @@ class DDS(object):
                 col = [[] for _ in range(nop)]
                 with event(3002, master=True):
                     distribute_partition(col, self.func, partitioner_func, None,
-                                         *collection)
+                                         collection)
                 for _i in range(nop):
                     grouped[_i].append(col[_i])
         else:

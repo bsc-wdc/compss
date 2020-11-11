@@ -18,7 +18,7 @@ import os
 import pickle
 
 from pycompss.api.api import compss_wait_on as cwo
-from pycompss.api.parameter import INOUT, IN, COLLECTION_OUT
+from pycompss.api.parameter import INOUT, IN, COLLECTION_OUT, COLLECTION_IN
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 
@@ -26,18 +26,17 @@ marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 FILE_NAME_LENGTH = 5
 
 
-@task(returns=1)
-def map_partition(func, partition, *collection):
+@task(returns=1, collection=COLLECTION_IN)
+def map_partition(func, partition, collection=None):
     """ Map the given function to the partition.
 
     :param func: a functions that returns only one argument which is an iterable
     :param partition: the partition itself or a partition generator object
-    :param collection: if the partition is a collection of future objects, it
-            must be sent as *args...
+    :param collection: partition when partition is a collection
     :return: the transformed partition
     """
 
-    partition = partition or list(collection)
+    partition = partition or collection
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
 
@@ -46,8 +45,9 @@ def map_partition(func, partition, *collection):
     return res
 
 
-@task(col=COLLECTION_OUT)
-def distribute_partition(col, func, partitioner_func, partition, *collection):
+# todo: update it and remove the asterisk
+@task(col=COLLECTION_OUT, collection=COLLECTION_IN)
+def distribute_partition(col, func, partitioner_func, partition, collection=None):
     """ Distribute (key, value) structured elements of the partition on
     'buckets'.
     :param col: empty 'buckets', must be repleced with COLLECTION_OUT..
@@ -56,10 +56,9 @@ def distribute_partition(col, func, partitioner_func, partition, *collection):
     :param partitioner_func: a function to find element's corresponding bucket
     :param partition: the partition itself or a partition generator object
     :param collection: if the partition is a collection of future objects, it
-            must be sent as *args...
     :return: fill the empty 'buckets' with the elements of the partition.
     """
-    partition = partition or list(collection)
+    partition = partition or collection
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()

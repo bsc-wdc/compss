@@ -105,6 +105,7 @@ INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed
     'pycompss/tests/dds/test_dds_examples.py',
     'pycompss/tests/integration/test_launch_application.py',
+    'pycompss/tests/integration/test_launch_application_collection.py',
     'pycompss/tests/integration/test_launch_application_tracing.py',
     'pycompss/tests/integration/test_launch_exaqute_example.py',
     'pycompss/tests/integration/test_launch_synthetic_application.py',

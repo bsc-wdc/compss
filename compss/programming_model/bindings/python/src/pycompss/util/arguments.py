@@ -48,20 +48,20 @@ def check_arguments(mandatory_arguments, deprecated_arguments,
     """
     decorator_str = decorator + " decorator"
     # Look for mandatory arguments
-    check_mandatory_arguments(mandatory_arguments,
-                              argument_names,
-                              decorator_str)
+    __check_mandatory_arguments(mandatory_arguments,
+                                argument_names,
+                                decorator_str)
     # Look for deprecated arguments
-    check_deprecated_arguments(deprecated_arguments,
-                               argument_names,
-                               decorator_str)
+    __check_deprecated_arguments(deprecated_arguments,
+                                 argument_names,
+                                 decorator_str)
     # Look for unexpected arguments
-    check_unexpected_arguments(supported_arguments,
-                               argument_names,
-                               decorator_str)
+    __check_unexpected_arguments(supported_arguments,
+                                 argument_names,
+                                 decorator_str)
 
 
-def check_mandatory_arguments(mandatory_arguments, arguments, where):
+def __check_mandatory_arguments(mandatory_arguments, arguments, where):
     """
     This method checks that all mandatory arguments are in arguments.
 
@@ -73,22 +73,22 @@ def check_mandatory_arguments(mandatory_arguments, arguments, where):
     for argument in mandatory_arguments:
         if '_' in argument:
             if argument not in arguments and \
-                    _to_camel_case(argument) not in arguments:
+                    __to_camel_case(argument) not in arguments:
                 # The mandatory argument or it converted to camel case is
                 # not in the arguments
-                error_mandatory_argument(where, argument)
+                __error_mandatory_argument(where, argument)
         else:
             if argument not in arguments:
                 # The mandatory argument is not in the arguments
-                error_mandatory_argument(where, argument)
+                __error_mandatory_argument(where, argument)
 
 
-def _to_camel_case(argument):
+def __to_camel_case(argument):
     components = argument.split('_')
     return components[0] + ''.join(x.title() for x in components[1:])
 
 
-def error_mandatory_argument(argument, decorator):
+def __error_mandatory_argument(argument, decorator):
     """
     Raises an exception when the argument is mandatory in the decorator
 
@@ -101,7 +101,7 @@ def error_mandatory_argument(argument, decorator):
                             " is mandatory in the " + str(decorator) + " decorator.")
 
 
-def check_deprecated_arguments(deprecated_arguments, arguments, where):
+def __check_deprecated_arguments(deprecated_arguments, arguments, where):
     """
     This method looks for deprecated arguments and displays a warning
     if found.
@@ -133,7 +133,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
             print(message, file=sys.stderr)  # also show the warn in stderr
 
 
-def check_unexpected_arguments(supported_arguments, arguments, where):
+def __check_unexpected_arguments(supported_arguments, arguments, where):
     """
     This method looks for unexpected arguments and displays a warning
     if found.

@@ -43,6 +43,7 @@ from pycompss.runtime.commons import set_temporary_directory
 from pycompss.runtime.commons import set_object_conversion
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa
 from pycompss.util.environment.configuration import updated_variables_in_sc
@@ -360,6 +361,11 @@ def launch_pycompss_application(app,
     :param kwargs: Named arguments
     :return: Execution result
     """
+    # Check that COMPSs is available
+    if "COMPSS_HOME" not in os.environ:
+        # Do not allow to continue if COMPSS_HOME is not defined
+        raise PyCOMPSsException("ERROR: COMPSS_HOME is not defined in the environment")  # noqa: E501
+
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API

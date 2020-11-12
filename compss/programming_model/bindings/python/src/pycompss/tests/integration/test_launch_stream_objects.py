@@ -20,30 +20,24 @@
 import os
 import subprocess
 
-from pycompss.util.exceptions import PyCOMPSsException
-
 
 def test_launch_streaming_application():
-    if "COMPSS_HOME" in os.environ:
-        current_path = os.path.dirname(os.path.abspath(__file__))
+    current_path = os.path.dirname(os.path.abspath(__file__))
 
-        # Start streaming server
-        start_script = os.path.join(current_path, "..", "resources",
-                                    "streaming", "start_server.sh")
-        subprocess.check_call([start_script, "OBJECTS", "localhost", "49049"])
+    # Start streaming server
+    start_script = os.path.join(current_path, "..", "resources",
+                                "streaming", "start_server.sh")
+    subprocess.check_call([start_script, "OBJECTS", "localhost", "49049"])
 
-        from pycompss.runtime.launch import launch_pycompss_application
+    from pycompss.runtime.launch import launch_pycompss_application
 
-        app = os.path.join(current_path, "..", "resources", "stream_objects.py")
-        launch_pycompss_application(
-            app, "main", debug=True, app_name="stream_objects",
-            streaming_backend="OBJECTS"
-        )
+    app = os.path.join(current_path, "..", "resources", "stream_objects.py")
+    launch_pycompss_application(
+        app, "main", debug=True, app_name="stream_objects",
+        streaming_backend="OBJECTS"
+    )
 
-        # Stop the streaming server
-        stop_script = os.path.join(current_path, "..", "resources",
-                                   "streaming", "stop_server.sh")
-        subprocess.check_call([stop_script, "OBJECTS"])
-
-    else:
-        raise PyCOMPSsException("COMPSs is not installed")
+    # Stop the streaming server
+    stop_script = os.path.join(current_path, "..", "resources",
+                               "streaming", "stop_server.sh")
+    subprocess.check_call([stop_script, "OBJECTS"])

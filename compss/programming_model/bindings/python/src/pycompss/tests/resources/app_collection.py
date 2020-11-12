@@ -18,7 +18,6 @@
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import COLLECTION_IN
-# from pycompss.api.parameter import COLLECTION_OUT
 from pycompss.api.parameter import COLLECTION_INOUT
 
 
@@ -34,7 +33,6 @@ class Poligon(object):
         return self.sides
 
 
-# @task(value=COLLECTION_OUT)
 def generate_collection(value):
     value.append(Poligon(2))
     value.append(Poligon(10))

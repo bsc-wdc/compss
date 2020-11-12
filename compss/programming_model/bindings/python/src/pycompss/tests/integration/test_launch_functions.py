@@ -19,17 +19,12 @@
 
 import os
 
-from pycompss.util.exceptions import PyCOMPSsException
-
 
 def test_launch_application():
-    if "COMPSS_HOME" in os.environ:
-        from pycompss.runtime.launch import launch_pycompss_application
+    from pycompss.runtime.launch import launch_pycompss_application
 
-        current_path = os.path.dirname(os.path.abspath(__file__))
-        app = os.path.join(current_path, "..", "resources", "functions.py")
-        launch_pycompss_application(
-            app, "main", debug=True, app_name="functions"
-        )
-    else:
-        raise PyCOMPSsException("COMPSs is not installed")
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    app = os.path.join(current_path, "..", "resources", "functions.py")
+    launch_pycompss_application(
+        app, "main", debug=True, app_name="functions"
+    )

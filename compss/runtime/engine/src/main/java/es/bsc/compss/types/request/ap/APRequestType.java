@@ -26,8 +26,7 @@ public enum APRequestType {
 
     ANALYSE_TASK, // Analyse a new task
     UPDATE_GRAPH, // Update task graph
-    WAIT_FOR_TASK, // Waits for task completion
-    WAIT_FOR_CONCURRENT, // Waits for concurrent task completion
+    WAIT_FOR_DATA, // Waits for a data to be available (not necessarily on the master node)
     WAIT_FOR_ALL_TASKS, // Waits for all submitted tasks
     END_OF_APP, // End of application
     ALREADY_ACCESSED, // Data has already been accessed

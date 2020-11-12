@@ -28,6 +28,7 @@ import es.bsc.compss.types.ReadersInfo;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskGroup;
+import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -55,8 +56,7 @@ import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
-import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
-import es.bsc.compss.types.request.ap.WaitForTaskRequest;
+import es.bsc.compss.types.request.ap.WaitForDataRequest;
 import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,7 +94,7 @@ public class TaskAnalyser {
     // Map: data Id -> WritersInfo
     private Map<Integer, WritersInfo> writers;
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
-    private Hashtable<AbstractTask, List<Semaphore>> waitedTasks;
+    private Hashtable<AbstractTask, List<TaskListener>> waitedTasks;
     // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
     private Map<Integer, List<Task>> concurrentAccessMap;
     // Tasks that are accessed commutatively. Map: data id -> commutative group tasks
@@ -267,14 +267,14 @@ public class TaskAnalyser {
     }
 
     /**
-     * Returns the tasks dependent to the requested task.
+     * Request the notification of a request when a data is available and ready to be accessed.
      *
-     * @param request Requested task.
+     * @param request request indicating the data to wait
      */
-    public void findWaitedTask(WaitForTaskRequest request) {
+    public void waitForData(WaitForDataRequest request) {
         int dataId = request.getDataId();
-        AccessMode am = request.getAccessMode();
-        Semaphore sem = request.getSemaphore();
+        AccessMode tam = request.getTaskAccessMode();
+        AccessMode cam = request.getConcurrentAccessMode();
 
         // Retrieve writers information
         WritersInfo wi = this.writers.get(dataId);
@@ -285,36 +285,49 @@ public class TaskAnalyser {
                     // Mark the data accesses
                     List<AbstractTask> lastStreamWriters = wi.getStreamWriters();
                     for (AbstractTask lastWriter : lastStreamWriters) {
-                        treatDataAccess(lastWriter, am, dataId);
+                        treatDataAccess(lastWriter, tam, dataId);
                     }
                     // We do not wait for stream task to complete
-                    sem.release();
                     break;
                 default:
                     // Retrieve last writer task
                     AbstractTask lastWriter = wi.getDataWriter();
                     // Mark the data access
                     if (lastWriter != null) {
-                        treatDataAccess(lastWriter, am, dataId);
+                        treatDataAccess(lastWriter, tam, dataId);
                     }
                     // Release task if possible. Otherwise add to waiting
-                    if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED
-                        || lastWriter.getStatus() == TaskState.CANCELED || lastWriter.getStatus() == TaskState.FAILED) {
-                        sem.release();
-                    } else {
-                        List<Semaphore> list = this.waitedTasks.get(lastWriter);
+                    if (lastWriter != null && lastWriter.getStatus() != TaskState.FINISHED
+                        && lastWriter.getStatus() != TaskState.CANCELED && lastWriter.getStatus() != TaskState.FAILED) {
+                        List<TaskListener> list = this.waitedTasks.get(lastWriter);
                         if (list == null) {
                             list = new LinkedList<>();
+                            this.waitedTasks.put(lastWriter, list);
                         }
-                        list.add(sem);
-                        this.waitedTasks.put(lastWriter, list);
+                        list.add(request);
+                        request.addPendingOperation();
                     }
                     break;
             }
-        } else {
-            // No writer registered, release
-            sem.release();
         }
+
+        List<Task> concurrentAccess = this.concurrentAccessMap.remove(dataId);
+        if (concurrentAccess != null) {
+            for (Task task : concurrentAccess) {
+                treatDataAccess(task, cam, dataId);
+                if (task.getStatus() != TaskState.FINISHED && task.getStatus() != TaskState.CANCELED
+                    && task.getStatus() != TaskState.FAILED) {
+                    List<TaskListener> list = this.waitedTasks.get(task);
+                    if (list == null) {
+                        list = new LinkedList<>();
+                        this.waitedTasks.put(task, list);
+                    }
+                    list.add(request);
+                    request.addPendingOperation();
+                }
+            }
+        }
+
     }
 
     /**
@@ -369,10 +382,10 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Releasing waiting tasks for task " + taskId);
             }
-            List<Semaphore> sems = this.waitedTasks.remove(task);
-            if (sems != null) {
-                for (Semaphore sem : sems) {
-                    sem.release();
+            List<TaskListener> listeners = this.waitedTasks.remove(task);
+            if (listeners != null) {
+                for (TaskListener listener : listeners) {
+                    listener.taskFinished();
                 }
             }
 
@@ -539,38 +552,6 @@ public class TaskAnalyser {
     }
 
     /**
-     * Returns the concurrent tasks dependent to the requested task.
-     *
-     * @param request Requested task.
-     */
-    public void findWaitedConcurrent(WaitForConcurrentRequest request) {
-        int dataId = request.getDataId();
-        AccessMode am = request.getAccessMode();
-        List<Task> concurrentAccess = this.concurrentAccessMap.get(dataId);
-        if (concurrentAccess != null) {
-            // Add to writers if needed
-            this.concurrentAccessMap.put(dataId, null);
-        }
-
-        Semaphore semTasks = request.getTaskSemaphore();
-        int n = 0;
-        for (Task task : concurrentAccess) {
-            treatDataAccess(task, am, dataId);
-            if (task.getStatus() != TaskState.FINISHED) {
-                n++;
-                List<Semaphore> list = this.waitedTasks.get(task);
-                if (list == null) {
-                    list = new LinkedList<>();
-                }
-                list.add(semTasks);
-                this.waitedTasks.put(task, list);
-            }
-        }
-        request.setNumWaitedTasks(n);
-        request.getSemaphore().release();
-    }
-
-    /**
      * Removes the tasks that have accessed the data in a concurrent way.
      *
      * @param dataId Data Id.
@@ -639,10 +620,10 @@ public class TaskAnalyser {
                 if (group.getPredecessors().isEmpty()) {
                     group.releaseDataDependents();
                     // Check if task is being waited
-                    List<Semaphore> sems = this.waitedTasks.remove(group);
-                    if (sems != null) {
-                        for (Semaphore sem : sems) {
-                            sem.release();
+                    List<TaskListener> listeners = this.waitedTasks.remove(group);
+                    if (listeners != null) {
+                        for (TaskListener listener : listeners) {
+                            listener.taskFinished();
                         }
                     }
                     if (DEBUG) {

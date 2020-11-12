@@ -56,7 +56,7 @@ public enum TraceEvent {
     DEBUG(17, Tracer.RUNTIME_EVENTS, "Access Processor: Debug"), // Debug
     ANALYSE_TASK(18, Tracer.RUNTIME_EVENTS, "Access Processor: Analyse task"), // Analyse task
     UPDATE_GRAPH(19, Tracer.RUNTIME_EVENTS, "Access Processor: Update graph"), // Update graph
-    WAIT_FOR_TASK(20, Tracer.RUNTIME_EVENTS, "Access Processor: Wait for task"), // wait for task
+    WAIT_FOR_DATA(20, Tracer.RUNTIME_EVENTS, "Access Processor: Wait for data"), // wait for data
     END_OF_APP(21, Tracer.RUNTIME_EVENTS, "Access Processor: End of app"), // End of application
     ALREADY_ACCESSED(22, Tracer.RUNTIME_EVENTS, "Access Processor: Already accessed"), // Already accessed
     REGISTER_DATA_ACCESS(23, Tracer.RUNTIME_EVENTS, "Access Processor: Register data access"), // Register data access

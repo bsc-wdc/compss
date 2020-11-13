@@ -62,7 +62,6 @@ import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -94,8 +93,6 @@ public class TaskAnalyser {
 
     // Map: data Id -> WritersInfo
     private Map<Integer, WritersInfo> writers;
-    // Tasks being waited on: taskId -> list of semaphores where to notify end of task
-    private Hashtable<AbstractTask, List<TaskListener>> waitedTasks;
     // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
     private Map<Integer, List<Task>> concurrentAccessMap;
     // Tasks that are accessed commutatively. Map: data id -> commutative group tasks
@@ -117,8 +114,6 @@ public class TaskAnalyser {
      */
     public TaskAnalyser() {
         this.writers = new TreeMap<>();
-
-        this.waitedTasks = new Hashtable<>();
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
@@ -307,12 +302,7 @@ public class TaskAnalyser {
                     }
                     // Release task if possible. Otherwise add to waiting
                     if (lastWriter.isPending()) {
-                        List<TaskListener> list = this.waitedTasks.get(lastWriter);
-                        if (list == null) {
-                            list = new LinkedList<>();
-                            this.waitedTasks.put(lastWriter, list);
-                        }
-                        list.add(rdar);
+                        lastWriter.addListener(rdar);
                         rdar.addPendingOperation();
                         if (rdar.getTaskAccessMode() == AccessMode.RW) {
                             wi.setDataWriter(null);
@@ -327,12 +317,7 @@ public class TaskAnalyser {
                         addEdgeFromTaskToMain(task, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
                     }
                     if (task != null && task.isPending()) {
-                        List<TaskListener> list = this.waitedTasks.get(task);
-                        if (list == null) {
-                            list = new LinkedList<>();
-                            this.waitedTasks.put(task, list);
-                        }
-                        list.add(rdar);
+                        task.addListener(rdar);
                         rdar.addPendingOperation();
                     }
                 }
@@ -393,7 +378,7 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Releasing waiting tasks for task " + taskId);
             }
-            List<TaskListener> listeners = this.waitedTasks.remove(task);
+            List<TaskListener> listeners = task.getListeners();
             if (listeners != null) {
                 for (TaskListener listener : listeners) {
                     listener.taskFinished();
@@ -631,7 +616,7 @@ public class TaskAnalyser {
                 if (group.getPredecessors().isEmpty()) {
                     group.releaseDataDependents();
                     // Check if task is being waited
-                    List<TaskListener> listeners = this.waitedTasks.remove(group);
+                    List<TaskListener> listeners = group.getListeners();
                     if (listeners != null) {
                         for (TaskListener listener : listeners) {
                             listener.taskFinished();

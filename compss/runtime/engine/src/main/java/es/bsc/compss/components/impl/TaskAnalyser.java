@@ -39,6 +39,7 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.implementations.TaskType;
@@ -56,7 +57,7 @@ import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
-import es.bsc.compss.types.request.ap.WaitForDataRequest;
+import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -267,67 +268,77 @@ public class TaskAnalyser {
     }
 
     /**
-     * Request the notification of a request when a data is available and ready to be accessed.
+     * Registers a data access from the main code and notifies when the data is available.
      *
-     * @param request request indicating the data to wait
+     * @param rdar request indicating the data being accessed
+     * @return The registered access Id.
      */
-    public void waitForData(WaitForDataRequest request) {
-        int dataId = request.getDataId();
-        AccessMode tam = request.getTaskAccessMode();
-        AccessMode cam = request.getConcurrentAccessMode();
+    public DataAccessId processMainAccess(RegisterDataAccessRequest rdar) {
+        AccessParams access = rdar.getAccessParams();
+        DataAccessId daId = dip.registerDataAccess(access);
+        if (access.getMode() != AccessMode.W) {
+            int dataId = daId.getDataId();
+            // Retrieve writers information
+            WritersInfo wi = this.writers.get(dataId);
 
-        // Retrieve writers information
-        WritersInfo wi = this.writers.get(dataId);
-        if (wi != null) {
-            switch (wi.getDataType()) {
-                case STREAM_T:
-                case EXTERNAL_STREAM_T:
-                    // Mark the data accesses
+            int dataVersion = 0;
+            if (IS_DRAW_GRAPH) {
+                TreeSet<Integer> toPass = new TreeSet<>();
+                toPass.add(dataId);
+                DataInstanceId dii = this.dip.getLastVersions(toPass).get(0);
+                dataVersion = dii.getVersionId();
+            }
+            List<Task> concurrentAccess = this.concurrentAccessMap.remove(dataId);
+            if (wi != null) {
+                // Add graph description
+                if (IS_DRAW_GRAPH) {
                     List<AbstractTask> lastStreamWriters = wi.getStreamWriters();
                     for (AbstractTask lastWriter : lastStreamWriters) {
-                        treatDataAccess(lastWriter, tam, dataId);
+                        addEdgeFromTaskToMain(lastWriter, EdgeType.STREAM_DEPENDENCY, dataId, dataVersion);
+
                     }
-                    // We do not wait for stream task to complete
-                    break;
-                default:
-                    // Retrieve last writer task
-                    AbstractTask lastWriter = wi.getDataWriter();
-                    // Mark the data access
-                    if (lastWriter != null) {
-                        treatDataAccess(lastWriter, tam, dataId);
+                }
+
+                // Retrieve last writer task
+                AbstractTask lastWriter = wi.getDataWriter();
+                if (lastWriter != null) {
+                    if (IS_DRAW_GRAPH) {
+                        addEdgeFromTaskToMain(lastWriter, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
                     }
                     // Release task if possible. Otherwise add to waiting
-                    if (lastWriter != null && lastWriter.getStatus() != TaskState.FINISHED
-                        && lastWriter.getStatus() != TaskState.CANCELED && lastWriter.getStatus() != TaskState.FAILED) {
+                    if (lastWriter.isPending()) {
                         List<TaskListener> list = this.waitedTasks.get(lastWriter);
                         if (list == null) {
                             list = new LinkedList<>();
                             this.waitedTasks.put(lastWriter, list);
                         }
-                        list.add(request);
-                        request.addPendingOperation();
+                        list.add(rdar);
+                        rdar.addPendingOperation();
+                        if (rdar.getTaskAccessMode() == AccessMode.RW) {
+                            wi.setDataWriter(null);
+                        }
                     }
-                    break;
-            }
-        }
+                }
 
-        List<Task> concurrentAccess = this.concurrentAccessMap.remove(dataId);
-        if (concurrentAccess != null) {
-            for (Task task : concurrentAccess) {
-                treatDataAccess(task, cam, dataId);
-                if (task.getStatus() != TaskState.FINISHED && task.getStatus() != TaskState.CANCELED
-                    && task.getStatus() != TaskState.FAILED) {
-                    List<TaskListener> list = this.waitedTasks.get(task);
-                    if (list == null) {
-                        list = new LinkedList<>();
-                        this.waitedTasks.put(task, list);
+            }
+            if (concurrentAccess != null) {
+                for (Task task : concurrentAccess) {
+                    if (IS_DRAW_GRAPH) {
+                        addEdgeFromTaskToMain(task, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
                     }
-                    list.add(request);
-                    request.addPendingOperation();
+                    if (task != null && task.isPending()) {
+                        List<TaskListener> list = this.waitedTasks.get(task);
+                        if (list == null) {
+                            list = new LinkedList<>();
+                            this.waitedTasks.put(task, list);
+                        }
+                        list.add(rdar);
+                        rdar.addPendingOperation();
+                    }
                 }
             }
         }
-
+        return daId;
     }
 
     /**
@@ -1184,38 +1195,6 @@ public class TaskAnalyser {
                         break;
                 }
             }
-        }
-    }
-
-    private void treatDataAccess(AbstractTask lastWriter, AccessMode am, int dataId) {
-        // Add to writers if needed
-        if (am == AccessMode.RW) {
-            WritersInfo wi = this.writers.get(dataId);
-            if (wi != null) {
-                switch (wi.getDataType()) {
-                    case STREAM_T:
-                    case EXTERNAL_STREAM_T:
-                        // Nothing to do, we do not reset the writers because of the main access
-                        break;
-                    default:
-                        // Reset the writers entry
-                        wi.setDataWriter(null);
-                        break;
-                }
-            } else {
-                // Add a new reset entry
-                LOGGER.warn("Adding null writer info for data " + dataId);
-                this.writers.put(dataId, null);
-            }
-        }
-
-        // Add graph description
-        if (IS_DRAW_GRAPH) {
-            TreeSet<Integer> toPass = new TreeSet<>();
-            toPass.add(dataId);
-            DataInstanceId dii = this.dip.getLastVersions(toPass).get(0);
-            int dataVersion = dii.getVersionId();
-            addEdgeFromTaskToMain(lastWriter, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
         }
     }
 

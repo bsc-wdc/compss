@@ -75,7 +75,6 @@ import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
 import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
-import es.bsc.compss.types.request.ap.WaitForDataRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -322,14 +321,11 @@ public class AccessProcessor implements Runnable {
         }
 
         // Tell the DM that the application wants to access a file.
-        DataAccessId faId = registerDataAccess(fap);
+        DataAccessId faId = registerDataAccess(fap, AccessMode.R);
         DataLocation tgtLocation = sourceLocation;
 
         if (fap.getMode() != AccessMode.W) {
             // Wait until the last writer task for the file has finished
-            LOGGER.debug("File " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
-
-            waitForData(faId.getDataId(), AccessMode.R, fap.getMode());
             if (destDir == null) {
                 tgtLocation = transferFileOpen(faId);
             } else {
@@ -402,15 +398,10 @@ public class AccessProcessor implements Runnable {
         }
 
         // Tell the DM that the application wants to access a file.
-        DataAccessId faId = registerDataAccess(fap);
+        DataAccessId faId = registerDataAccess(fap, AccessMode.R);
         DataLocation tgtLocation = sourceLocation;
 
         if (fap.getMode() != AccessMode.W) {
-            // Wait until the last writer task for the file has finished
-            LOGGER.debug(
-                "Directory " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
-
-            waitForData(faId.getDataId(), AccessMode.R, fap.getMode());
             tgtLocation = transferDirectoryOpen(faId);
         }
 
@@ -488,18 +479,10 @@ public class AccessProcessor implements Runnable {
 
         // Tell the DIP that the application wants to access an object
         ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, obj, hashCode);
-        DataAccessId oaId = registerDataAccess(oap);
+        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
 
-        // Wait until the last writer task for the object has finished
-        if (DEBUG) {
-            LOGGER.debug("Waiting for last writer of " + oaId.getDataId() + " with renaming " + wRename);
-        }
-
-        // Defaut access is read because the object is removed after accessing it
-        waitForData(oaId.getDataId(), AccessMode.RW, AccessMode.RW);
-        // TODO: Check if the object was already piggybacked in the task notification
         // Ask for the object
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + oaId.getDataId() + " with renaming " + wRename);
@@ -531,16 +514,7 @@ public class AccessProcessor implements Runnable {
 
         // Tell the DIP that the application wants to access an object
         ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, id, hashCode);
-        DataAccessId oaId = registerDataAccess(oap);
-        DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
-        String wRename = wId.getRenaming();
-
-        // Wait until the last writer task for the object has finished
-        if (DEBUG) {
-            LOGGER.debug("Waiting for last writer of " + oaId.getDataId() + " with renaming " + wRename);
-        }
-
-        waitForData(oaId.getDataId(), AccessMode.RW, AccessMode.RW);
+        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
         String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
@@ -579,17 +553,11 @@ public class AccessProcessor implements Runnable {
                 "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
         }
 
+        // Defaut access is read because the binding object is removed after accessing it
         // Tell the DIP that the application wants to access an object
         BindingObjectAccessParams oap = new BindingObjectAccessParams(app, AccessMode.R, bo, hashCode);
-        DataAccessId oaId = registerDataAccess(oap);
+        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
-        // Wait until the last writer task for the object has finished
-        if (DEBUG) {
-            LOGGER.debug("Waiting for last writer of " + oaId.getDataId());
-        }
-
-        // Defaut access is read because the binding object is removed after accessing it
-        waitForData(oaId.getDataId(), AccessMode.RW, AccessMode.RW);
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
         finishDataAccess(oap);
@@ -718,38 +686,22 @@ public class AccessProcessor implements Runnable {
     }
 
     /**
-     * Synchronism for a specific Data value availability.
-     *
-     * @param dataId Data Id.
-     * @param taskMode Access mode to register the data access.
-     * @param concurrentMode Access mode to register the concurrent data access.
-     */
-    private void waitForData(int dataId, AccessMode taskMode, AccessMode concurrentMode) {
-        Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new WaitForDataRequest(dataId, taskMode, concurrentMode, sem))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
-        }
-        // Wait for response
-        sem.acquireUninterruptibly();
-    }
-
-    /**
-     * Registers a new data access.
+     * Registers a new data access and waits for it to be available.
      *
      * @param access Access parameters.
+     * @param taskMode Access mode to register the data access.
      * @return The registered access Id.
      */
-    private DataAccessId registerDataAccess(AccessParams access) {
-        Semaphore sem = new Semaphore(0);
-        RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, sem);
+    private DataAccessId registerDataAccess(AccessParams access, AccessMode taskMode) {
+        RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, taskMode);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");
         }
 
         // Wait for response
-        sem.acquireUninterruptibly();
-
-        return request.getResponse();
+        request.waitForCompletion();
+        DataAccessId daId = request.getAccessId();
+        return daId;
     }
 
     /**

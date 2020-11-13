@@ -20,57 +20,85 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 
 import java.util.concurrent.Semaphore;
 
 
-public class RegisterDataAccessRequest extends APRequest {
+public class RegisterDataAccessRequest extends APRequest implements TaskListener {
 
-    private final AccessParams access;
+    private final AccessParams accessParams;
+    private DataAccessId accessId;
+    private final AccessMode taskMode;
+
+    private int pendingOperation = 0;
     private final Semaphore sem;
-    private DataAccessId response;
 
 
     /**
      * Creates a new request to register a data access.
-     * 
+     *
      * @param access AccessParams to register.
-     * @param sem Waiting semaphore.
+     * @param taskMode Access mode to register the data access.
      */
-    public RegisterDataAccessRequest(AccessParams access, Semaphore sem) {
-        this.access = access;
-        this.sem = sem;
+    public RegisterDataAccessRequest(AccessParams access, AccessMode taskMode) {
+        this.accessParams = access;
+        this.taskMode = taskMode;
+        this.sem = new Semaphore(0);
     }
 
     /**
      * Returns the associated access parameters.
-     * 
+     *
      * @return The associated access parameters.
      */
-    public AccessParams getAccess() {
-        return this.access;
+    public AccessParams getAccessParams() {
+        return this.accessParams;
     }
 
-    public Semaphore getSemaphore() {
-        return this.sem;
+    /**
+     * Returns the associated access mode to the data.
+     *
+     * @return The associated access mode to the data.
+     */
+    public AccessParams.AccessMode getTaskAccessMode() {
+        return this.taskMode;
     }
 
     /**
      * Returns the waiting semaphore.
-     * 
+     *
      * @return The waiting semaphore.
      */
-    public DataAccessId getResponse() {
-        return this.response;
+    public DataAccessId getAccessId() {
+        return this.accessId;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        DataAccessId daId = dip.registerDataAccess(this.access);
-        this.response = daId;
-        this.sem.release();
+        this.accessId = ta.processMainAccess(this);
+        if (pendingOperation == 0) {
+            sem.release();
+        }
+    }
+
+    public void waitForCompletion() {
+        sem.acquireUninterruptibly();
+    }
+
+    public void addPendingOperation() {
+        pendingOperation++;
+    }
+
+    @Override
+    public void taskFinished() {
+        pendingOperation--;
+        if (pendingOperation == 0) {
+            sem.release();
+        }
     }
 
     @Override

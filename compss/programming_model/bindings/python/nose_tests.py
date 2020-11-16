@@ -76,6 +76,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/api/dummy/test_dummy_task.py',
     'pycompss/tests/api/dummy/test_dummy_container.py',
     'pycompss/tests/api/dummy/test_dummy_reduction.py',
+    'pycompss/tests/dds/test_heapq.py',
     'pycompss/tests/functions/test_data.py',
     'pycompss/tests/functions/test_elapsed_time.py',
     'pycompss/tests/functions/test_reduce.py',

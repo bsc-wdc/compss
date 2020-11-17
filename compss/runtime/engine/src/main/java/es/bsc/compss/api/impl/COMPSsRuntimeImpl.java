@@ -173,72 +173,36 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
 
+    private static void setPropertyFromRuntime(String propertyName, String managerValue) {
+        if (managerValue != null && System.getProperty(propertyName) == null) {
+            System.setProperty(propertyName, managerValue);
+        }
+    }
+
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
         try {
             if (manager != null) {
-                if (manager.getDeploymentId() != null && System.getProperty(COMPSsConstants.DEPLOYMENT_ID) == null) {
-                    System.setProperty(COMPSsConstants.DEPLOYMENT_ID, manager.getDeploymentId());
-                }
-                if (manager.getMasterName() != null && System.getProperty(COMPSsConstants.MASTER_NAME) == null) {
-                    System.setProperty(COMPSsConstants.MASTER_NAME, manager.getMasterName());
-                }
-                if (manager.getMasterPort() != null && System.getProperty(COMPSsConstants.MASTER_PORT) == null) {
-                    System.setProperty(COMPSsConstants.MASTER_PORT, manager.getMasterPort());
-                }
-                if (manager.getAppName() != null && System.getProperty(COMPSsConstants.APP_NAME) == null) {
-                    System.setProperty(COMPSsConstants.APP_NAME, manager.getAppName());
-                }
-                if (manager.getTaskSummary() != null && System.getProperty(COMPSsConstants.TASK_SUMMARY) == null) {
-                    System.setProperty(COMPSsConstants.TASK_SUMMARY, manager.getTaskSummary());
-                }
-                if (manager.getCOMPSsBaseLogDir() != null && System.getProperty(COMPSsConstants.BASE_LOG_DIR) == null) {
-                    System.setProperty(COMPSsConstants.BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
-                }
-                if (manager.getSpecificLogDir() != null
-                    && System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR) == null) {
-                    System.setProperty(COMPSsConstants.SPECIFIC_LOG_DIR, manager.getSpecificLogDir());
-                }
-                if (manager.getLog4jConfiguration() != null && System.getProperty(COMPSsConstants.LOG4J) == null) {
-                    System.setProperty(COMPSsConstants.LOG4J, manager.getLog4jConfiguration());
-                }
-                if (manager.getResourcesFile() != null && System.getProperty(COMPSsConstants.RES_FILE) == null) {
-                    System.setProperty(COMPSsConstants.RES_FILE, manager.getResourcesFile());
-                }
-                if (manager.getResourcesSchema() != null && System.getProperty(COMPSsConstants.RES_SCHEMA) == null) {
-                    System.setProperty(COMPSsConstants.RES_SCHEMA, manager.getResourcesSchema());
-                }
-                if (manager.getProjectFile() != null && System.getProperty(COMPSsConstants.PROJ_FILE) == null) {
-                    System.setProperty(COMPSsConstants.PROJ_FILE, manager.getProjectFile());
-                }
-                if (manager.getProjectSchema() != null && System.getProperty(COMPSsConstants.PROJ_SCHEMA) == null) {
-                    System.setProperty(COMPSsConstants.PROJ_SCHEMA, manager.getProjectSchema());
-                }
+                setPropertyFromRuntime(COMPSsConstants.DEPLOYMENT_ID, manager.getDeploymentId());
+                setPropertyFromRuntime(COMPSsConstants.MASTER_NAME, manager.getMasterName());
+                setPropertyFromRuntime(COMPSsConstants.MASTER_PORT, manager.getMasterPort());
+                setPropertyFromRuntime(COMPSsConstants.APP_NAME, manager.getAppName());
+                setPropertyFromRuntime(COMPSsConstants.TASK_SUMMARY, manager.getTaskSummary());
+                setPropertyFromRuntime(COMPSsConstants.BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
+                setPropertyFromRuntime(COMPSsConstants.SPECIFIC_LOG_DIR, manager.getSpecificLogDir());
+                setPropertyFromRuntime(COMPSsConstants.LOG4J, manager.getLog4jConfiguration());
+                setPropertyFromRuntime(COMPSsConstants.RES_FILE, manager.getResourcesFile());
+                setPropertyFromRuntime(COMPSsConstants.RES_SCHEMA, manager.getResourcesSchema());
+                setPropertyFromRuntime(COMPSsConstants.PROJ_FILE, manager.getProjectFile());
+                setPropertyFromRuntime(COMPSsConstants.PROJ_SCHEMA, manager.getProjectSchema());
+                setPropertyFromRuntime(COMPSsConstants.SCHEDULER, manager.getScheduler());
+                setPropertyFromRuntime(COMPSsConstants.MONITOR, Long.toString(manager.getMonitorInterval()));
+                setPropertyFromRuntime(COMPSsConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
+                setPropertyFromRuntime(COMPSsConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
+                setPropertyFromRuntime(COMPSsConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
+                setPropertyFromRuntime(COMPSsConstants.WORKER_CP, manager.getWorkerCP());
+                setPropertyFromRuntime(COMPSsConstants.WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
 
-                if (manager.getScheduler() != null && System.getProperty(COMPSsConstants.SCHEDULER) == null) {
-                    System.setProperty(COMPSsConstants.SCHEDULER, manager.getScheduler());
-                }
-                if (manager.getMonitorInterval() > 0 && System.getProperty(COMPSsConstants.MONITOR) == null) {
-                    System.setProperty(COMPSsConstants.MONITOR, Long.toString(manager.getMonitorInterval()));
-                }
-                if (manager.getGATAdaptor() != null && System.getProperty(COMPSsConstants.GAT_ADAPTOR_PATH) == null) {
-                    System.setProperty(COMPSsConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
-                }
-                if (manager.getGATBrokerAdaptor() != null
-                    && System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR) == null) {
-                    System.setProperty(COMPSsConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
-                }
-                if (manager.getGATFileAdaptor() != null
-                    && System.getProperty(COMPSsConstants.GAT_FILE_ADAPTOR) == null) {
-                    System.setProperty(COMPSsConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
-                }
-
-                if (manager.getWorkerCP() != null && System.getProperty(COMPSsConstants.WORKER_CP) == null) {
-                    System.setProperty(COMPSsConstants.WORKER_CP, manager.getWorkerCP());
-                }
-                if (manager.getWorkerJVMOpts() != null && System.getProperty(COMPSsConstants.WORKER_JVM_OPTS) == null) {
-                    System.setProperty(COMPSsConstants.WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
-                }
                 if (System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) == null
                     || System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty()) {
                     System.setProperty(COMPSsConstants.WORKER_CPU_AFFINITY,
@@ -250,9 +214,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         Boolean.toString(manager.isWorkerGPUAffinityEnabled()));
                 }
 
-                if (manager.getServiceName() != null && System.getProperty(COMPSsConstants.SERVICE_NAME) == null) {
-                    System.setProperty(COMPSsConstants.SERVICE_NAME, manager.getServiceName());
-                }
+                setPropertyFromRuntime(COMPSsConstants.SERVICE_NAME, manager.getServiceName());
                 if (System.getProperty(COMPSsConstants.COMM_ADAPTOR) == null) {
                     if (manager.getCommAdaptor() != null) {
                         System.setProperty(COMPSsConstants.COMM_ADAPTOR, manager.getCommAdaptor());
@@ -303,91 +265,50 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     private static void setDefaultProperties() {
         System.err.println(WARN_FILE_EMPTY_DEFAULT);
-        if (System.getProperty(COMPSsConstants.DEPLOYMENT_ID) == null
-            || System.getProperty(COMPSsConstants.DEPLOYMENT_ID).isEmpty()) {
-            System.setProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsConstants.DEFAULT_DEPLOYMENT_ID);
-        }
-        if (System.getProperty(COMPSsConstants.RES_SCHEMA) == null
-            || System.getProperty(COMPSsConstants.RES_SCHEMA).isEmpty()) {
-            System.setProperty(COMPSsConstants.RES_SCHEMA, COMPSsConstants.DEFAULT_RES_SCHEMA);
-        }
-        if (System.getProperty(COMPSsConstants.PROJ_SCHEMA) == null
-            || System.getProperty(COMPSsConstants.PROJ_SCHEMA).isEmpty()) {
-            System.setProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsConstants.DEFAULT_PROJECT_SCHEMA);
-        }
-        if (System.getProperty(COMPSsConstants.GAT_ADAPTOR_PATH) == null
-            || System.getProperty(COMPSsConstants.GAT_ADAPTOR_PATH).isEmpty()) {
-            System.setProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
-        }
-        if (System.getProperty(COMPSsConstants.COMM_ADAPTOR) == null
-            || System.getProperty(COMPSsConstants.COMM_ADAPTOR).isEmpty()) {
-            System.setProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
-        }
-        if (System.getProperty(COMPSsConstants.CONN) == null || System.getProperty(COMPSsConstants.CONN).isEmpty()) {
-            System.setProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
-        }
-        if (System.getProperty(COMPSsConstants.SCHEDULER) == null
-            || System.getProperty(COMPSsConstants.SCHEDULER).isEmpty()) {
-            System.setProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
-        }
-        if (System.getProperty(COMPSsConstants.TRACING) == null
-            || System.getProperty(COMPSsConstants.TRACING).isEmpty()) {
-            System.setProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);
-        }
-        if (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) == null
-            || System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()) {
-            System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
-        }
-        if (System.getProperty(COMPSsConstants.TASK_EXECUTION) == null
-            || System.getProperty(COMPSsConstants.TASK_EXECUTION).isEmpty()) {
-            System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
+        setDefaultProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsConstants.DEFAULT_DEPLOYMENT_ID);
+        setDefaultProperty(COMPSsConstants.RES_SCHEMA, COMPSsConstants.DEFAULT_RES_SCHEMA);
+        setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsConstants.DEFAULT_PROJECT_SCHEMA);
+        setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
+        setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
+        setDefaultProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
+        setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
+        setDefaultProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);
+        setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
+        setDefaultProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
+    }
+
+    private static void setDefaultProperty(String propertyName, String defaultValue) {
+        String propertyValue = System.getProperty(propertyName);
+        if (propertyValue == null || propertyValue.isEmpty()) {
+            System.setProperty(propertyName, defaultValue);
         }
     }
 
     private static InputStream findPropertiesConfigFile() {
         InputStream stream = COMPSsRuntimeImpl.class.getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
-        if (stream != null) {
-            return stream;
-        } else {
+        if (stream == null) {
             stream = COMPSsRuntimeImpl.class.getResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
-            if (stream != null) {
-                return stream;
-            } else {
+            if (stream == null) {
                 // System.err.println("IT properties file not defined. Looking at classLoader...");
                 stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
-                if (stream != null) {
-                    return stream;
-                } else {
+                if (stream == null) {
                     stream = COMPSsRuntimeImpl.class.getClassLoader()
                         .getResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
-                    if (stream != null) {
-                        return stream;
-                    } else {
+                    if (stream == null) {
                         // System.err.println("IT properties file not found in classloader. Looking at system
                         // resource...");
                         stream = ClassLoader.getSystemResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
-                        if (stream != null) {
-                            return stream;
-                        } else {
+                        if (stream == null) {
                             stream =
                                 ClassLoader.getSystemResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
-                            if (stream != null) {
-                                return stream;
-                            } else {
+                            if (stream == null) {
                                 // System.err.println("IT properties file not found. Looking at parent ClassLoader");
                                 stream = COMPSsRuntimeImpl.class.getClassLoader().getParent()
                                     .getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
-                                if (stream != null) {
-                                    return stream;
-                                } else {
+                                if (stream == null) {
                                     stream = COMPSsRuntimeImpl.class.getClassLoader().getParent()
                                         .getResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
-                                    if (stream != null) {
-                                        return stream;
-                                    } else {
-                                        // System.err.println("IT properties file not found");
-                                        return null;
-                                    }
+
                                 }
                             }
                         }
@@ -395,6 +316,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
             }
         }
+        return stream;
     }
 
     /*

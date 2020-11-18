@@ -37,7 +37,7 @@ public interface ExecutorContext {
     public Execution getJob();
 
     public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
-        InvocationResources previousAllocation) throws UnsufficientAvailableComputingUnitsException;
+        InvocationResources preferredAllocation) throws UnsufficientAvailableComputingUnitsException;
 
     public void releaseResources(int jobId);
 

@@ -33,7 +33,7 @@ public class Unbinded implements ThreadBinder {
     }
 
     @Override
-    public int[] bindComputingUnits(int jobId, int numCUs, int[] previousAllocation)
+    public int[] bindComputingUnits(int jobId, int numCUs, int[] preferredAllocation)
         throws UnsufficientAvailableComputingUnitsException {
         return new int[] {};
     }

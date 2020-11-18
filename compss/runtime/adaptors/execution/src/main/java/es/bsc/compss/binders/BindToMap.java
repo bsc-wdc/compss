@@ -240,7 +240,7 @@ public class BindToMap implements ThreadBinder {
     }
 
     @Override
-    public int[] bindComputingUnits(int jobId, int numCUs, int[] previousAllocation)
+    public int[] bindComputingUnits(int jobId, int numCUs, int[] preferredAllocation)
         throws UnsufficientAvailableComputingUnitsException {
         int[] assignedCoreUnits = new int[numCUs];
         ArrayList<Integer> usedSockets;
@@ -248,10 +248,10 @@ public class BindToMap implements ThreadBinder {
         // Assign free CUs to the job
 
         synchronized (this) {
-            if (previousAllocation != null && previousAllocation.length == numCUs) {
-                if (isAllocationAvailable(previousAllocation)) {
-                    assignAllocation(previousAllocation, jobId);
-                    return previousAllocation;
+            if (preferredAllocation != null && preferredAllocation.length == numCUs) {
+                if (isAllocationAvailable(preferredAllocation)) {
+                    assignAllocation(preferredAllocation, jobId);
+                    return preferredAllocation;
                 }
             }
             usedSockets = recursiveBindingComputingUnits(jobId, numCUs, 0);

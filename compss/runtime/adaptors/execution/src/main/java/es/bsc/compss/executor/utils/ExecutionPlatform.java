@@ -282,9 +282,9 @@ public class ExecutionPlatform implements ExecutorContext {
 
     @Override
     public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
-        InvocationResources previousAllocation) throws UnsufficientAvailableComputingUnitsException {
+        InvocationResources preferredAllocation) throws UnsufficientAvailableComputingUnitsException {
 
-        return this.rm.acquireResources(jobId, requirements, previousAllocation);
+        return this.rm.acquireResources(jobId, requirements, preferredAllocation);
     }
 
     @Override

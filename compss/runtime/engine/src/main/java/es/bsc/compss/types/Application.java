@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -268,7 +269,7 @@ public class Application {
 
     /**
      * Returns the TaskGroup with all the tasks of the application.
-     * 
+     *
      * @return TaskGroup with all the tasks of the application.
      */
     public TaskGroup getBaseTaskGroup() {
@@ -296,7 +297,7 @@ public class Application {
     }
 
     /*
-     * ----------------------------------- TASK MANAGEMENT -----------------------------------
+     * ----------------------------------- EXECUTION MANAGEMENT -----------------------------------
      */
     /**
      * Registers the existence of a new task for the application and registers it into all the currently open groups.
@@ -305,6 +306,28 @@ public class Application {
      */
     public void newTask(Task task) {
         this.totalTaskCount++;
+    }
+
+    /**
+     * The application's main code cannot make no progress until further notice.
+     */
+    public void stalled() {
+        if (runner != null) {
+            this.runner.stalledApplication();
+        }
+    }
+
+    /**
+     * The application's main code can resume the execution.
+     * 
+     * @param sem notify when the runner is ready to continue
+     */
+    public void readyToContinue(Semaphore sem) {
+        if (this.runner != null) {
+            this.runner.readyToContinue(sem);
+        } else {
+            sem.release();
+        }
     }
 
     /**
@@ -366,7 +389,7 @@ public class Application {
 
     /**
      * Stores the relation between a file and the corresponding dataInfo.
-     * 
+     *
      * @param locationKey file location
      * @param di data registered by the application
      */
@@ -376,7 +399,7 @@ public class Application {
 
     /**
      * Returns the Data Id related to a file.
-     * 
+     *
      * @param locationKey file location
      * @return data Id related to the file
      */

@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -436,7 +437,8 @@ public abstract class Invoker implements ApplicationRunner {
     }
 
     @Override
-    public void readyToContinue() {
+    public void readyToContinue(Semaphore sem) {
         // Resources should be re-acquired to continue the execution
+        sem.release();
     }
 }

@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.api;
 
+import java.util.concurrent.Semaphore;
+
+
 public interface ApplicationRunner {
 
     /**
@@ -25,7 +28,9 @@ public interface ApplicationRunner {
 
     /**
      * Notifies the application runner that the execution of the application's main is ready to continue.
+     * 
+     * @param sem element to notify when the runner is ready
      */
-    public void readyToContinue();
+    public void readyToContinue(Semaphore sem);
 
 }

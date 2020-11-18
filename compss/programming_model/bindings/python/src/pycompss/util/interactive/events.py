@@ -122,7 +122,6 @@ def __pre_run_cell__():
             pass
 
 
-
 def __post_execute__():
     # type: () -> None
     """ Runs after interactive execution (e.g. a cell in a notebook).

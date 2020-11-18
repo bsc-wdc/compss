@@ -58,7 +58,7 @@ def test_exaqute_task():
     from exaqute.ExaquteTask import ExaquteTask
     try:
         _ = ExaquteTask()
-    except PyCOMPSsException:
+    except Exception:  # NOSONAR
         # This is OK
         pass
     else:
@@ -67,7 +67,7 @@ def test_exaqute_task():
     from exaqute.ExaquteTask import get_value_from_remote
     try:
         get_value_from_remote(None)
-    except PyCOMPSsException:
+    except Exception:  # NOSONAR
         # This is OK
         pass
     else:
@@ -76,7 +76,7 @@ def test_exaqute_task():
     from exaqute.ExaquteTask import barrier
     try:
         barrier()
-    except PyCOMPSsException:
+    except Exception:  # NOSONAR
         # This is OK
         pass
     else:
@@ -85,7 +85,7 @@ def test_exaqute_task():
     from exaqute.ExaquteTask import delete_object
     try:
         delete_object(None)
-    except PyCOMPSsException:
+    except Exception:  # NOSONAR
         # This is OK
         pass
     else:
@@ -94,7 +94,7 @@ def test_exaqute_task():
     from exaqute.ExaquteTask import compute
     try:
         compute(None)
-    except PyCOMPSsException:
+    except Exception:  # NOSONAR
         # This is OK
         pass
     else:

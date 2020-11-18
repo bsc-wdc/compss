@@ -56,49 +56,49 @@ def test_exaqute_parameter():
 
 def test_exaqute_task():
     from exaqute.ExaquteTask import ExaquteTask
+    result = False
     try:
         _ = ExaquteTask()
     except Exception:  # NOSONAR
         # This is OK
-        pass
-    else:
-        raise PyCOMPSsException("ERROR: Expected not implemented exception.")
+        result = True
+    assert result, "ERROR: Expected not implemented exception."
 
     from exaqute.ExaquteTask import get_value_from_remote
+    result = False
     try:
         get_value_from_remote(None)
     except Exception:  # NOSONAR
         # This is OK
-        pass
-    else:
-        raise PyCOMPSsException("ERROR: Expected get value not implemented exception.")  # noqa: E501
+        result = True
+    assert result, "ERROR: Expected get value not implemented exception."
 
     from exaqute.ExaquteTask import barrier
+    result = False
     try:
         barrier()
     except Exception:  # NOSONAR
         # This is OK
-        pass
-    else:
-        raise PyCOMPSsException("ERROR: Expected barrier not implemented exception.")  # noqa: E501
+        result = True
+    assert result, "ERROR: Expected barrier not implemented exception."
 
     from exaqute.ExaquteTask import delete_object
+    result = False
     try:
         delete_object(None)
     except Exception:  # NOSONAR
         # This is OK
-        pass
-    else:
-        raise PyCOMPSsException("ERROR: Expected delete object not implemented exception.")  # noqa: E501
+        result = True
+    assert result, "ERROR: Expected delete object not implemented exception."
 
     from exaqute.ExaquteTask import compute
+    result = False
     try:
         compute(None)
     except Exception:  # NOSONAR
         # This is OK
-        pass
-    else:
-        raise PyCOMPSsException("ERROR: Expected compute not implemented exception.")  # noqa: E501
+        result = True
+    assert result, "ERROR: Expected compute not implemented exception."
 
 
 def test_exaqute_task_local():
@@ -125,8 +125,7 @@ def test_exaqute_task_local():
     from exaqute.ExaquteTaskLocal import delete_file
     temp_file = tempfile.NamedTemporaryFile(delete=False).name
     delete_file(temp_file)
-    if os.path.exists(temp_file):
-        raise PyCOMPSsException("ERROR: delete_file did not remove the file.")
+    assert os.path.exists(temp_file) is False, "ERROR: delete_file did not remove the file."
 
     from exaqute.ExaquteTaskLocal import compute
     obj = [1, 2, 3]

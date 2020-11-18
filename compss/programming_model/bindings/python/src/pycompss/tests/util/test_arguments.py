@@ -90,6 +90,7 @@ def test_check_arguments_using_deprecated():
 def test_check_arguments_missing_mandatory():
     from pycompss.util.arguments import check_arguments
 
+    result = False
     mandatory_arguments = {"mandatory_argument_1",
                            "mandatoryArgument2"}
     deprecated_arguments = {"deprecated_argument_1",
@@ -108,14 +109,14 @@ def test_check_arguments_missing_mandatory():
                         decorator)
     except PyCOMPSsException:
         # This is ok
-        pass
-    else:
-        assert False, ERROR_EXCEPTION
+        result = True
+    assert result, ERROR_EXCEPTION
 
 
 def test_check_arguments_missing_mandatory_no_underscore():
     from pycompss.util.arguments import check_arguments
 
+    result = False
     mandatory_arguments = {"mandatory_argument_1",
                            "mandatoryArgument2"}
     deprecated_arguments = {"deprecated_argument_1",
@@ -134,9 +135,8 @@ def test_check_arguments_missing_mandatory_no_underscore():
                         decorator)
     except PyCOMPSsException:
         # This is ok
-        pass
-    else:
-        assert False, ERROR_EXCEPTION
+        result = True
+    assert result, ERROR_EXCEPTION
 
 
 def test_check_arguments_unexpected():
@@ -169,6 +169,7 @@ def test_check_arguments_unexpected():
 def test_check_arguments_using_old_is_modifier():
     from pycompss.util.arguments import check_arguments
 
+    result = False
     mandatory_arguments = {"mandatory_argument_1",
                            "mandatoryArgument2"}
     deprecated_arguments = {"deprecated_argument_1",
@@ -193,5 +194,5 @@ def test_check_arguments_using_old_is_modifier():
         sys.stderr = old_stderr
         assert "WARNING" not in my_stderr.getvalue(), ERROR_UNEXPECTED_WARNING
         assert "ERROR" in my_stderr.getvalue(), ERROR_MISSING_ERROR
-    else:
-        assert False, ERROR_EXCEPTION
+        result = True
+    assert result, ERROR_EXCEPTION

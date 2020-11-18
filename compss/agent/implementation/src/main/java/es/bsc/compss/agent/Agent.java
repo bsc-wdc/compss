@@ -154,7 +154,7 @@ public class Agent {
             LOGGER.debug("\t* " + param);
         }
 
-        Long appId = RUNTIME.registerApplication(ceiClass);
+        Long appId = RUNTIME.registerApplication(ceiClass, null);
         monitor.setAppId(appId);
 
         try {

@@ -18,6 +18,7 @@ package es.bsc.compss.api.impl;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
@@ -517,19 +518,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public long registerApplication(String parallelismSource) {
-        Application app = Application.registerApplication(parallelismSource);
-        return app.getId();
-    }
-
-    @Override
     public void registerApplication(Long appId) {
         Application.registerApplication(appId);
     }
 
     @Override
-    public void registerApplication(Long appId, String parallelismSource) {
-        Application.registerApplication(appId, parallelismSource);
+    public long registerApplication(String parallelismSource, ApplicationRunner runner) {
+        Application app = Application.registerApplication(parallelismSource, runner);
+        return app.getId();
+    }
+
+    @Override
+    public void registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
+        Application.registerApplication(appId, parallelismSource, runner);
     }
 
     @Override

@@ -116,7 +116,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             int parameterCount = entpc.getParameterCount();
                             Object[] parameters = entpc.getParameters();
                             if (this.appId == null) {
-                                this.appId = this.context.getRuntimeAPI().registerApplication();
+                                this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
                             }
                             int numNodes = entpc.getNumNodes();
                             boolean isReduce = entpc.isReduce();

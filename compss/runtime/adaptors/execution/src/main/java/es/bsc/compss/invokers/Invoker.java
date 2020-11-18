@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers;
 
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.log.Loggers;
@@ -46,7 +47,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class Invoker {
+public abstract class Invoker implements ApplicationRunner {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
@@ -429,4 +430,13 @@ public abstract class Invoker {
         return writeHostfile(taskSandboxWorkingDir, workersStr);
     }
 
+    @Override
+    public void stalledApplication() {
+        // Resources should be released so other tasks run in the node
+    }
+
+    @Override
+    public void readyToContinue() {
+        // Resources should be re-acquired to continue the execution
+    }
 }

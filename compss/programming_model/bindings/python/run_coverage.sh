@@ -7,11 +7,6 @@
   # Run a coverage report for a module
   run_python2() {
     python2 -m coverage run --rcfile="${SCRIPT_DIR}/coverage.cfg" nose_tests.py False
-                  # --source="src/pycompss" \
-                  # --omit="/usr/lib/*" \
-                  # --omit="src/pycompss/api/tests_parallel/*" \
-                  # --concurrency=multiprocessing \  # not allowed as flag with the others
-                  # --omit="src/pycompss/util/translators/*" \
     ev=$?
     if [ "$ev" -ne 0 ]; then
       echo "[ERROR] Coverage2 tests FAILED failed with exit value: $ev"
@@ -23,11 +18,6 @@
 
   run_python3() {
     python3 -m coverage run -a --rcfile="${SCRIPT_DIR}/coverage.cfg" nose_tests.py False
-                  # --source="src/pycompss" \
-                  # --omit="/usr/lib/*" \
-                  # --omit="src/pycompss/api/tests_parallel/*" \
-                  # --concurrency=multiprocessing \  # not allowed as flag with the others
-                  # --omit="src/pycompss/util/translators/*" \
     ev=$?
     if [ "$ev" -ne 0 ]; then
       echo "[ERROR] Coverage3 tests FAILED failed with exit value: $ev"
@@ -47,6 +37,9 @@
   cd "${SCRIPT_DIR}"
 
   export COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
+
+  # Force pytest coverage to take the sources instead of the installation
+  export PYTHONPATH=${SCRIPT_DIR}:${SCRIPT_DIR}/src:${PYTHONPATH}
 
   # Run coverage on pycompss folder
   run_python2

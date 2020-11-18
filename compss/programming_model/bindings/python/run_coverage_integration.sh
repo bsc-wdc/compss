@@ -32,7 +32,11 @@
   #
   # MAIN
   #
+  CURRENT_DIR="$(pwd)"
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  # shellcheck disable=SC2164
+  cd "${SCRIPT_DIR}"
+
   export COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
 
   # Force pytest coverage to take the sources instead of the installation
@@ -64,5 +68,7 @@
   pytest --nbval -v --cov=${SCRIPT_DIR}/src --cov-append --cov-report=xml src/pycompss/tests/resources/notebook/simple.ipynb
   coverage3 report -m
 
+  # shellcheck disable=SC2164
+  cd "${CURRENT_DIR}"
   # Exit all ok
   exit 0

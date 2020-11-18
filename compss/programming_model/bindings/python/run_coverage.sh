@@ -6,7 +6,7 @@
 
   # Run a coverage report for a module
   run_python2() {
-    python2 -m coverage run --rcfile=${SCRIPT_DIR}/coverage.cfg nose_tests.py False
+    python2 -m coverage run --rcfile="${SCRIPT_DIR}/coverage.cfg" nose_tests.py False
                   # --source="src/pycompss" \
                   # --omit="/usr/lib/*" \
                   # --omit="src/pycompss/api/tests_parallel/*" \
@@ -22,7 +22,7 @@
   }
 
   run_python3() {
-    python3 -m coverage run -a --rcfile=${SCRIPT_DIR}/coverage.cfg nose_tests.py False
+    python3 -m coverage run -a --rcfile="${SCRIPT_DIR}/coverage.cfg" nose_tests.py False
                   # --source="src/pycompss" \
                   # --omit="/usr/lib/*" \
                   # --omit="src/pycompss/api/tests_parallel/*" \
@@ -41,7 +41,11 @@
   #
   # MAIN
   #
+  CURRENT_DIR="$(pwd)"
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  # shellcheck disable=SC2164
+  cd "${SCRIPT_DIR}"
+
   export COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
 
   # Run coverage on pycompss folder
@@ -66,5 +70,7 @@
     exit $ev
   fi
 
+  # shellcheck disable=SC2164
+  cd "${CURRENT_DIR}"
   # Exit all ok
   exit 0

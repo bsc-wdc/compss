@@ -1,5 +1,14 @@
 #!/bin/bash -e
 
+
+  #
+  # MAIN
+  #
+  CURRENT_DIR="$(pwd)"
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  # shellcheck disable=SC2164
+  cd "${SCRIPT_DIR}"
+
   # WARN: nosetests only recognises *.py files in mode 6xx
 
   # Run unit tests (Last boolean is to enable integration tests)
@@ -19,3 +28,6 @@
 
   # Only with setuptools 
   # python setup.py nosetests -
+
+  # shellcheck disable=SC2164
+  cd "${CURRENT_DIR}"

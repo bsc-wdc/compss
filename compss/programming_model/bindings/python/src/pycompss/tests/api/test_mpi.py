@@ -44,18 +44,17 @@ def test_mpi_call():
     assert result == 1, ERROR_EXPECTED_1
 
 
-# # Disabled due to support of dummy @binary
-# def test_mpi_call_outside():
-#     context.set_pycompss_context(context.OUT_OF_SCOPE)
-#     my_mpi = MPI(runner=MPI_RUNNER)
-#     f = my_mpi(dummy_function)
-#     thrown = False
-#     try:
-#         _ = f()
-#     except Exception:  # noqa
-#         thrown = True  # this is OK!
-#     assert thrown, \
-#         "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
+def test_mpi_call_outside():
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    my_mpi = MPI(runner=MPI_RUNNER, processes=2, binary="date")
+    f = my_mpi(dummy_function)
+    thrown = False
+    try:
+        _ = f()
+    except Exception:  # noqa
+        thrown = True  # this is OK!
+    assert thrown, \
+        "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_mpi_layout_empty_parameter():

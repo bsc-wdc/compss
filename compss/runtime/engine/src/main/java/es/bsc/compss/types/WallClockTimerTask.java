@@ -1,6 +1,6 @@
 package es.bsc.compss.types;
 
-import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.log.Loggers;
 
@@ -14,7 +14,7 @@ public class WallClockTimerTask extends TimerTask {
 
     private final Application app;
     private final AccessProcessor ap;
-    private final COMPSsRuntime rt;
+    private final COMPSsRuntimeImpl rt;
 
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
@@ -28,7 +28,7 @@ public class WallClockTimerTask extends TimerTask {
      * @param ap Access Processor reference to cancel submitted applications.
      * @param rt Runtime reference to stop and exit the application. (Null if this step must be skipped)
      */
-    public WallClockTimerTask(Application app, AccessProcessor ap, COMPSsRuntime rt) {
+    public WallClockTimerTask(Application app, AccessProcessor ap, COMPSsRuntimeImpl rt) {
         this.app = app;
         this.ap = ap;
         this.rt = rt;
@@ -39,8 +39,7 @@ public class WallClockTimerTask extends TimerTask {
         LOGGER.warn("WARNING: Wall clock limit reached for app " + app.getId() + "! Cancelling tasks...");
         ap.cancelApplicationTasks(app);
         if (rt != null) {
-            ap.noMoreTasks(app);
-            ap.getResultFiles(app);
+            rt.noMoreTasks(app);
             rt.stopIT(true);
             System.exit(0);
         }

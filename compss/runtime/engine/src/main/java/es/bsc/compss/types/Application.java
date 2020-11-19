@@ -50,7 +50,7 @@ public class Application {
     // Parallelism source
     private final String parallelismSource;
 
-    private TimerTask wcTask;
+    private TimerTask wallClockKiller;
 
     /*
      * Application state variables
@@ -453,16 +453,17 @@ public class Application {
         }
     }
 
-    public void setTimerTask(WallClockTimerTask wcTask) {
-        this.wcTask = wcTask;
+    public void setTimerTask(WallClockTimerTask wcTimerTask) {
+        this.wallClockKiller = wcTimerTask;
     }
 
     /**
      * Cancel the wall clock time timer task.
      */
     public void cancelTimerTask() {
-        if (this.wcTask != null) {
-            wcTask.cancel();
+        if (this.wallClockKiller != null) {
+            wallClockKiller.cancel();
+            wallClockKiller = null;
         }
     }
 

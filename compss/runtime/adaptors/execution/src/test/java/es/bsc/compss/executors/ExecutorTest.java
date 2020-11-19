@@ -20,6 +20,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
@@ -35,6 +36,7 @@ import es.bsc.compss.util.RequestQueue;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.Semaphore;
 import org.junit.Test;
 
 
@@ -133,6 +135,17 @@ public class ExecutorTest {
         @Override
         public void registerRunningJob(int jobId, Invoker invoker) {
 
+        }
+
+        @Override
+        public void blockedRunner(Invocation inv, InvocationRunner runner, InvocationResources assignedResources) {
+
+        }
+
+        @Override
+        public void unblockedRunner(Invocation inv, InvocationRunner runner, InvocationResources previousAllocation,
+            Semaphore sem) {
+            sem.release();
         }
 
         @Override

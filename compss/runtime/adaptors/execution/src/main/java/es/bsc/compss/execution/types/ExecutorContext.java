@@ -17,12 +17,15 @@
 
 package es.bsc.compss.execution.types;
 
+import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.Collection;
+import java.util.concurrent.Semaphore;
 
 
 public interface ExecutorContext {
@@ -43,6 +46,11 @@ public interface ExecutorContext {
     public Collection<ExecutionPlatformMirror<?>> getMirrors();
 
     public void registerRunningJob(int jobId, Invoker invoker);
+
+    public void blockedRunner(Invocation invocation, InvocationRunner executor, InvocationResources assignedResources);
+
+    public void unblockedRunner(Invocation invocation, InvocationRunner executor,
+        InvocationResources previousAllocation, Semaphore sem);
 
     public void unregisterRunningJob(int jobId);
 

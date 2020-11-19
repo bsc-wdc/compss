@@ -21,10 +21,12 @@ import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.execution.utils.JobQueue;
 import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.executor.Executor;
+import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -263,6 +265,17 @@ public class ExecutionPlatform implements ExecutorContext {
         if (this.toCancel.contains(jobId)) {
             cancelJob(jobId);
         }
+    }
+
+    @Override
+    public void blockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources assignedResources) {
+        
+    }
+
+    @Override
+    public void unblockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources previousAllocation,
+        Semaphore sem) {
+        sem.release();
     }
 
     @Override

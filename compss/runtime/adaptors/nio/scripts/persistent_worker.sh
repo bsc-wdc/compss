@@ -56,7 +56,7 @@
   fi
 
   # shellcheck disable=SC2086
-  /usr/local/bin/setsid $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
+  nohup $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
   endCode=$?
 
   post_launch

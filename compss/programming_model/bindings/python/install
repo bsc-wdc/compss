@@ -1,12 +1,11 @@
 #!/bin/bash
-
+  
   #
   # SCRIPT GLOBAL CONSTANTS
   #
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-
+  BINDING_DIR="$( dirname "${SCRIPT_DIR}")" 
   #
   # SCRIPT GLOBAL HELPERS
   #
@@ -70,6 +69,14 @@
       if [ $exitCode -ne 0 ]; then
         echo "ERROR: Cannot install PyCOMPSs for Python ${python_version}"
         exit $exitCode
+      fi
+      if [ $(uname) == "Darwin" ]; then
+        BINDING_PY="$( dirname "${targetDir}")"
+        echo ${targetDir}
+        echo ${BINDING_PY}
+        BINDING_LIB="$( dirname "${BINDING_PY}")"
+        echo ${BINDING_LIB}
+        install_name_tool -change ${BINDING_DIR}/bindings-common/lib/libbindings_common.0.dylib ${BINDING_PY}/bindings-common/lib/libbindings_common.dylib ${targetDir}/${python_version}/compss.cpython-36m-darwin.so
       fi
 
       # Unify installed versions

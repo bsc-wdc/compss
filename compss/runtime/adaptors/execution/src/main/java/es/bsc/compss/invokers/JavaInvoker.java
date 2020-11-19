@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.invokers;
 
-import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;

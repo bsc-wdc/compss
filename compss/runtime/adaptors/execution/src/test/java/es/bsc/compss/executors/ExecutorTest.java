@@ -18,14 +18,14 @@ package es.bsc.compss.executors;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.Executor;
-import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.execution.types.ExecutorContext;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
 import es.bsc.compss.invokers.test.utils.FakeInvocation;
 import es.bsc.compss.invokers.test.utils.FakeInvocationContext;
+import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.implementations.MethodImplementation;

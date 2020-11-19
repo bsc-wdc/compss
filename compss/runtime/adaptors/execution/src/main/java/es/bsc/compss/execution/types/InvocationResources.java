@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.types;
+package es.bsc.compss.execution.types;
 
 public class InvocationResources {
 

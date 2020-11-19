@@ -17,7 +17,7 @@
 package es.bsc.compss.invokers.util;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;

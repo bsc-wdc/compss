@@ -15,12 +15,12 @@
  *
  */
 
-package es.bsc.compss.executor;
+package es.bsc.compss.utils.execution;
 
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ExecutionPlatform;
-import es.bsc.compss.executor.utils.ResourceManager;
+import es.bsc.compss.execution.ExecutionPlatform;
+import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;

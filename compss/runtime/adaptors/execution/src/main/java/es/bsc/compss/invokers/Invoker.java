@@ -18,7 +18,7 @@ package es.bsc.compss.invokers;
 
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;

@@ -21,6 +21,7 @@ import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.execution.InvocationParam;

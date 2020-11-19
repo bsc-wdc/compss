@@ -14,9 +14,8 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.types;
+package es.bsc.compss.types.execution;
 
-import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.worker.COMPSsException;
 
 

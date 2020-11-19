@@ -15,12 +15,11 @@
  *
  */
 
-package es.bsc.compss.executor;
+package es.bsc.compss.execution.types;
 
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.Collection;

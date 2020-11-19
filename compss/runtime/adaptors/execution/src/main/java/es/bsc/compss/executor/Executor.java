@@ -19,12 +19,12 @@ package es.bsc.compss.executor;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.execution.types.ExecutorContext;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.external.persistent.PersistentMirror;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
 import es.bsc.compss.invokers.JavaNestedInvoker;
@@ -44,6 +44,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -87,7 +88,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class Executor implements Runnable {
+public class Executor implements Runnable, InvocationRunner {
 
     // Loggers
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);

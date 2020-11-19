@@ -14,19 +14,21 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.execution;
 
+import es.bsc.compss.execution.types.ExecutorContext;
+import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.execution.utils.JobQueue;
+import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.executor.Executor;
-import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.util.JobQueue;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.utils.execution.ThreadedProperties;
 
 import java.util.Collection;
 import java.util.Comparator;

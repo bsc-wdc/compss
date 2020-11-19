@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.commands.AccessedFilePipeCommand;
@@ -36,9 +37,8 @@ import es.bsc.compss.executor.external.piped.commands.OpenTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
-import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.executor.types.ExternalTaskStatus;
 import es.bsc.compss.invokers.external.ExternalInvoker;
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
 import es.bsc.compss.invokers.types.TypeValuePair;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;

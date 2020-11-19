@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.util;
+package es.bsc.compss.invokers.types;
 
 public class StdIOStream {
 

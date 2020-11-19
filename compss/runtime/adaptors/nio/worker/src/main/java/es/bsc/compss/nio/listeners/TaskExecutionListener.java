@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.nio.listeners;
 
-import es.bsc.compss.executor.types.ExecutionListener;
 import es.bsc.compss.nio.worker.NIOWorker;
+import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.worker.COMPSsException;
 

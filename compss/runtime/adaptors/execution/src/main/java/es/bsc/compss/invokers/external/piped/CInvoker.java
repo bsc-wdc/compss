@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
-import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.execution.types.ExecutorContext;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
-import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;

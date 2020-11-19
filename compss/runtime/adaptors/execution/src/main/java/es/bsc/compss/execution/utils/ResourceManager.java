@@ -14,12 +14,12 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.execution.utils;
 
 import es.bsc.compss.binders.BindToMap;
 import es.bsc.compss.binders.BindToResource;
 import es.bsc.compss.binders.Unbinded;
-import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;

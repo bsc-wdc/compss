@@ -19,6 +19,8 @@ from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import COLLECTION_INOUT
+from pycompss.api.parameter import DICTIONARY_IN
+from pycompss.api.parameter import DICTIONARY_INOUT
 
 
 class Poligon(object):
@@ -32,6 +34,8 @@ class Poligon(object):
     def get_sides(self):
         return self.sides
 
+
+# COLLECTIONS
 
 def generate_collection(value):
     value.append(Poligon(2))
@@ -53,6 +57,30 @@ def sum_all_sides(value):
     return result
 
 
+# DICTIONARY COLLECTIONS
+
+def generate_dictionary(value):
+    value['a'] = Poligon(3)
+    value['b'] = Poligon(10)
+    value['c'] = Poligon(20)
+
+
+@task(value=DICTIONARY_INOUT)
+def update_dictionary(value):
+    for key in value.keys():
+        value[key].increment(1)
+
+
+@task(returns=2, value=DICTIONARY_IN)
+def sum_all_sides_of_dictionary(value):
+    keys = ""
+    result = 0
+    for k, v in value.items():
+        keys += k
+        result += v.get_sides()
+    return keys, result
+
+
 def main():
     initial = []
     generate_collection(initial)
@@ -60,6 +88,16 @@ def main():
     result = sum_all_sides(initial)
     result = compss_wait_on(result)
     assert result == 35, "ERROR: Unexpected result (%s != 35)." % str(result)
+
+    initial = {}
+    generate_dictionary(initial)
+    update_dictionary(initial)
+    keys, result = sum_all_sides_of_dictionary(initial)
+    keys = compss_wait_on(keys)
+    result = compss_wait_on(result)
+    assert len(keys) == 3 and "a" in keys and "b" in keys and "c" in keys,\
+        "ERROR: Unexpected keys (%s != abc (in any order))." % str(keys)
+    assert result == 36, "ERROR: Unexpected result (%s != 36)." % str(result)
 
 # Uncomment for command line check:
 # if __name__ == '__main__':

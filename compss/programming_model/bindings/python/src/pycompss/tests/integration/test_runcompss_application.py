@@ -18,6 +18,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import subprocess
 
 
@@ -26,7 +27,10 @@ def test_runcompss_increment():
 
     # Call to runcompss for increment application
     app = os.path.join(current_path, "..", "resources", "increment.py")
-    cmd = ["runcompss", "--log_level=debug", app]
+    if sys.version_info < (3, 0):
+        cmd = ["runcompss", "--log_level=debug", "--python_interpreter=python2", app]
+    else:
+        cmd = ["runcompss", "--log_level=debug", "--python_interpreter=python3", app]
     process = subprocess.Popen(" ".join(cmd),
                                shell=True,
                                stdout=subprocess.PIPE,

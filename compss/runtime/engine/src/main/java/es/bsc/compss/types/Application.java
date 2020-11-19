@@ -255,6 +255,15 @@ public class Application {
     }
 
     /**
+     * Returns the TaskGroup with all the tasks of the application.
+     * 
+     * @return TaskGroup with all the tasks of the application.
+     */
+    public TaskGroup getBaseTaskGroup() {
+        return this.currentTaskGroups.firstElement();
+    }
+
+    /**
      * Returns the specified group if it belongs to the application.
      *
      * @param groupName name of the group

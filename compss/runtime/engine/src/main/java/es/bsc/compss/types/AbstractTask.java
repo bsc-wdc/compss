@@ -61,6 +61,9 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     // List of parameters free of dependencies
     private final List<Parameter> freeParams;
 
+    // Listeners to notify when the task ends
+    private final List<TaskListener> listeners;
+
 
     /**
      * Creates a new Abstract Method Task with the given parameters.
@@ -78,6 +81,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
         this.streamDataConsumers = new LinkedList<>();
         this.dependentTasks = new HashMap<>();
         this.freeParams = new LinkedList<>();
+        this.listeners = new LinkedList<>();
     }
 
     /**
@@ -102,7 +106,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
 
     /**
      * Adds a stream dependency from the given producer task to this task.
-     * 
+     *
      * @param producer Stream producer task.
      */
     public void addStreamDataDependency(AbstractTask producer) {
@@ -183,7 +187,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
 
     /**
      * Returns all the tasks producing stream elements used by the current task.
-     * 
+     *
      * @return All the tasks producing stream elements used by the current task.
      */
     public List<AbstractTask> getStreamProducers() {
@@ -192,7 +196,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
 
     /**
      * Returns all the tasks consuming stream elements from the current task.
-     * 
+     *
      * @return All the tasks consuming stream elements from the current task.
      */
     public List<AbstractTask> getStreamConsumers() {
@@ -236,6 +240,16 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     }
 
     /**
+     * Retuns whether the tas is still pending to execute or not.
+     *
+     * @return {@literal true} if the task may still be executed; @{literal false} otherwise
+     */
+    public boolean isPending() {
+        return this.status != TaskState.FINISHED && this.status != TaskState.CANCELED
+            && this.status != TaskState.FAILED;
+    }
+
+    /**
      * Returns the task status.
      *
      * @return The task status.
@@ -251,6 +265,24 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
      */
     public void setStatus(TaskState status) {
         this.status = status;
+    }
+
+    /**
+     * Adds a listener to notify when the Abstract task ends.
+     *
+     * @param listener listener to notify on task end
+     */
+    public void addListener(TaskListener listener) {
+        this.listeners.add(listener);
+    }
+
+    /**
+     * Adds a listener to notify when the Abstract task ends.
+     *
+     * @return list with all listener to notify on task end
+     */
+    public List<TaskListener> getListeners() {
+        return this.listeners;
     }
 
     /**
@@ -273,7 +305,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
 
     /**
      * Returns the parameters to mark to remove.
-     * 
+     *
      * @return list of parameters to mark to remove.
      */
     public abstract List<Parameter> getParameterDataToRemove();
@@ -287,7 +319,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
 
     /**
      * Returns the task's intermediate parameters not used during the execution.
-     * 
+     *
      * @return The list of unused parameters.
      */
     public abstract List<Parameter> getUnusedIntermediateParameters();

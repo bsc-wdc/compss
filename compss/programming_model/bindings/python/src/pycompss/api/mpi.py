@@ -173,7 +173,6 @@ class MPI(PyCOMPSsDecorator):
             cmd += self.kwargs['flags'].split()
         cmd += [self.kwargs['binary']]
 
-        cmd = [self.kwargs['binary']]
         return_code = run_command(cmd, args, kwargs)
         return return_code
 

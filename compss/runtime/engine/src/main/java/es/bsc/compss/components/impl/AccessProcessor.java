@@ -374,7 +374,8 @@ public class AccessProcessor implements Runnable {
         }
 
         if (DEBUG) {
-            LOGGER.debug("File " + faId.getDataId() + " located on " + tgtLocation.toString());
+            LOGGER.debug(
+                "File " + faId.getDataId() + " located on " + (tgtLocation != null ? tgtLocation.toString() : "null"));
         }
         return tgtLocation;
     }

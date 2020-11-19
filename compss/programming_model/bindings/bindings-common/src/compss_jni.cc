@@ -71,6 +71,8 @@ jmethodID midFreeResources;             /* ID of the freeResources method in the
 jmethodID midNoMoreTasksIT;             /* ID of the noMoreTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
+jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
 jobject jobjParDirIN; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirIN_DELETE;        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirOUT; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
@@ -408,6 +410,11 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // Load stopIT
     midStopIT = status->localJniEnv->GetMethodID(clsITimpl, "stopIT", "(Z)V");
     check_exception(status, "Cannot find stopIT method.");
+
+    // Load setWallClockLimit
+    midSetWallClockLimit = status->localJniEnv->GetMethodID(clsITimpl, "setWallClockLimit", "(Ljava/lang/Long;JZ)V");
+    check_exception(status, "Cannot find setWallClockLimit");
+
 
     debug_printf ("[BINDING-COMMONS] - @Init JNI Methods DONE\n");
 
@@ -1602,4 +1609,21 @@ void JNI_FreeResources(long appId, int numResources, char* groupName) {
     access_revoke(status);
 
     debug_printf("[BINDING-COMMONS] - @JNI_FreeResources - Resources destruction requested");
+}
+
+void JNI_set_wall_clock(long appId, long wcl, int stopRT){
+	debug_printf("[BINDING-COMMONS] - @JNI_set_wall_clock - Setting wall clock limit for APP id:%lu of %lu seconds\n", appId, wcl);
+	// Request thread access to JVM
+	ThreadStatus* status = access_request();
+	bool _stop = false;
+	if (stopRT != 0) _stop = true;
+	// Perform operation
+
+	status->localJniEnv->CallVoidMethod(globalRuntime, midSetWallClockLimit,
+			status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+			wcl, _stop);
+	check_exception(status, "Exception received when calling setWallClockLimit");
+
+	// Revoke thread access to JVM
+	access_revoke(status);
 }

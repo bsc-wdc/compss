@@ -434,11 +434,13 @@ public abstract class NIOAgent {
                         ErrorManager
                             .warn("Can't send niether file '" + path + "' nor file '" + renamed.getAbsolutePath()
                                 + "' via connection " + c.hashCode() + " because files don't exist.");
+                        releaseSendSlot(c);
                         handleDataToSendNotAvailable(c, d);
                     }
                 } else {
                     ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode()
                         + " because file doesn't exist.");
+                    releaseSendSlot(c);
                     handleDataToSendNotAvailable(c, d);
                 }
             }
@@ -463,6 +465,7 @@ public abstract class NIOAgent {
             if (!zipCreated) {
                 ErrorManager.warn("Can't send directory '" + path + "'" + "' via connection " + c.hashCode()
                     + " because '" + COMPRESSED_DIR_EXTENSION + "' file couldn't be created.");
+                releaseSendSlot(c);
                 handleDataToSendNotAvailable(c, d);
             }
             c.sendDataFile(zipFile);
@@ -470,6 +473,7 @@ public abstract class NIOAgent {
             // todo: make sure this is not the case!
             ErrorManager.warn(
                 "Can't send directory '" + path + "' via connection " + c.hashCode() + " because it doesn't exist.");
+            releaseSendSlot(c);
             handleDataToSendNotAvailable(c, d);
         }
 
@@ -530,6 +534,7 @@ public abstract class NIOAgent {
                 } else {
                     ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
                         + " because bytebuffer is null.");
+                    releaseSendSlot(c);
                     handleDataToSendNotAvailable(c, d);
                 }
             } else {
@@ -541,12 +546,14 @@ public abstract class NIOAgent {
                 if (res != 0) {
                     ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
                         + " because sending native object call returned " + res);
+                    releaseSendSlot(c);
                     handleDataToSendNotAvailable(c, d);
                 }
             }
         } else {
             ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
                 + " because incorrect path (doesn't contain #).");
+            releaseSendSlot(c);
             handleDataToSendNotAvailable(c, d);
         }
 
@@ -563,6 +570,7 @@ public abstract class NIOAgent {
                 } else {
                     ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
                         + " because error serializing binding object.");
+                    releaseSendSlot(c);
                     handleDataToSendNotAvailable(c, d);
                 }
             } else {
@@ -571,6 +579,7 @@ public abstract class NIOAgent {
                 } else {
                     ErrorManager.warn("Can't send binding data '" + bo.getId() + "' via connection " + c.hashCode()
                         + " because file doesn't exists.");
+                    releaseSendSlot(c);
                     handleDataToSendNotAvailable(c, d);
                 }
             }
@@ -582,6 +591,7 @@ public abstract class NIOAgent {
             } else {
                 ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
                     + " because incorrect path (doesn't contain #).");
+                releaseSendSlot(c);
                 handleDataToSendNotAvailable(c, d);
             }
         }

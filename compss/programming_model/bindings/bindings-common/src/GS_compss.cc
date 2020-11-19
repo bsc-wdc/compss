@@ -262,3 +262,11 @@ void GS_FreeResources(long appId, int numResources, char* groupName) {
 		JNI_FreeResources(appId, numResources, groupName);
 	}
 }
+
+void GS_Set_wall_clock(long appId, long wcl, int stopRT){
+	if (PIPES) {
+		PIPE_set_wall_clock(appId, wcl, stopRT);
+	} else {
+		JNI_set_wall_clock(appId, wcl, stopRT);
+	}
+}

@@ -91,5 +91,6 @@ void JNI_Get_AppDir(char** buf);
 void JNI_EmitEvent(int type, long id);
 void JNI_Get_Object(long appId, char* objectId, char** buf);
 void JNI_Delete_Object(long appId, char* objectId, int** buf);
+void JNI_set_wall_clock(long appId, long wcl, int stopRT);
 
 #endif /* JNI_COMPSS_H */

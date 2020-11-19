@@ -55,6 +55,9 @@ DEFAULT_JVM_MASTER=""
 # Loader implementation
 RUNTIME_LOADER=es.bsc.compss.loader.ITAppLoader
 
+# Default wall clock limit
+DEFAULT_WALL_CLOCK_LIMIT=0
+
 #----------------------------------------------
 # ERROR MESSAGES
 #----------------------------------------------
@@ -168,6 +171,10 @@ check_compss_setup () {
 
   if [ -z "${agent_config}" ]; then
     agent_config=${DEFAULT_AGENT_CONFIG}
+  fi
+  
+  if [ -z "${wall_clock_limit}" ]; then
+    wall_clock_limit=${DEFAULT_WALL_CLOCK_LIMIT}
   fi
 
   check_analysis_setup
@@ -320,6 +327,21 @@ append_app_jvm_options_to_file() {
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.appName=${appName}
 EOT
+  
+}
+
+append_wall_clock_jvm_options_to_file() {
+  # Add Application-specific options
+  if [ ${lang} = python ]; then
+  	cat >> "${jvm_options_file}" << EOT
+-Dcompss.wcl=0
+EOT
+  else
+  	cat >> "${jvm_options_file}" << EOT
+-Dcompss.wcl=${wall_clock_limit}
+EOT
+  fi
+  
 }
 
 #----------------------------------------------
@@ -380,8 +402,11 @@ start_compss_app() {
   prepare_runtime_environment
 
   append_app_jvm_options_to_file "${jvm_options_file}"
+  
+  append_wall_clock_jvm_options_to_file "${jvm_options_file}"
   #echo "Options file: ${jvm_options_file}"
   #cat ${jvm_options_file}
+  
 
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
@@ -469,7 +494,7 @@ exec_python() {
   # Launch application
   start_tracing
   # shellcheck disable=SC2086
-  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${log_level} ${tracing} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
+  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${wall_clock_limit} ${log_level} ${tracing} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
   endCode=$?
   stop_tracing
 

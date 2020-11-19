@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from pycompss.interactive import STREAMING
 
 # -*- coding: utf-8 -*-
 
@@ -75,6 +76,24 @@ else:
     _PYTHON_VERSION = 2
 
 
+def stop_all(exit_code):
+    from pycompss.api.api import compss_stop
+    global STREAMING
+    global PERSISTENT_STORAGE
+    # Stop STREAMING
+    if STREAMING:
+        stop_streaming()
+
+    # Stop persistent storage
+    if PERSISTENT_STORAGE:
+        master_stop_storage(logger)
+
+    compss_stop(exit_code)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    sys.exit(exit_code)
+
+
 def parse_arguments():
     # type: () -> ...
     """ Parse PyCOMPSs arguments.
@@ -83,6 +102,8 @@ def parse_arguments():
     """
     parser = argparse.ArgumentParser(
         description='PyCOMPSs application launcher')
+    parser.add_argument('wall_clock',
+                        help='Application Wall Clock limit [ wall_clock <=0 deactivated | wall_clock >0 max duration in seconds ]')  # noqa: E501
     parser.add_argument('log_level',
                         help='Logging level [trace|debug|api|info|off]')
     parser.add_argument('tracing',
@@ -107,7 +128,7 @@ def compss_main():
     """ PyCOMPSs main function.
 
     General call:
-    python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level
+    python $PYCOMPSS_HOME/pycompss/runtime/launch.py $wall_clock $log_level
            $PyObject_serialize $storage_conf $streaming_backend
            $streaming_master_name $streaming_master_port
            $fullAppPath $application_args
@@ -115,17 +136,18 @@ def compss_main():
     :return: None
     """
     global APP_PATH
-
+    global STREAMING
+    global PERSISTENT_STORAGE
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start, compss_stop
+    from pycompss.api.api import compss_start, compss_stop, compss_set_wall_clock
 
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
     # args from sys.argv
-    user_sys_argv = sys.argv[9:]
-    sys.argv = sys.argv[:9]
+    user_sys_argv = sys.argv[10:]
+    sys.argv = sys.argv[:10]
     args = parse_arguments()
     # We are done, now sys.argv must contain user args only
     sys.argv = [args.app_path] + user_sys_argv
@@ -138,6 +160,11 @@ def compss_main():
 
     # Start the runtime
     compss_start(log_level, tracing, False)
+
+    # Get application wall clock limit
+    wall_clock = int(args.wall_clock)
+    if wall_clock > 0:
+        compss_set_wall_clock(wall_clock)
 
     # Get object_conversion boolean
     set_object_conversion(args.object_conversion == 'true')
@@ -173,10 +200,10 @@ def compss_main():
             logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
 
         # Start persistent storage
-        persistent_storage = master_init_storage(storage_conf, logger)
+        PERSISTENT_STORAGE = master_init_storage(storage_conf, logger)
 
-        # Start streaming
-        streaming = init_streaming(args.streaming_backend,
+        # Start STREAMING
+        STREAMING = init_streaming(args.streaming_backend,
                                    args.streaming_master_name,
                                    args.streaming_master_port)
 
@@ -191,14 +218,6 @@ def compss_main():
                     exec(compile(f.read(), APP_PATH, 'exec'), globals())
             else:
                 execfile(APP_PATH, globals())  # MAIN EXECUTION
-
-        # Stop streaming
-        if streaming:
-            stop_streaming()
-
-        # Stop persistent storage
-        if persistent_storage:
-            master_stop_storage(logger)
 
         # End
         if __debug__:
@@ -230,10 +249,7 @@ def compss_main():
         exit_code = 1
     finally:
         # Stop runtime
-        compss_stop(exit_code)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        sys.exit(exit_code)
+        stop_all(exit_code)
     # --- Execution finished ---
 
 

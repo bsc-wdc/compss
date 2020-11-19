@@ -139,21 +139,25 @@ EOT
     cat <<EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
+    --forward_time_limit		    Forward the queue system time limit to the runtime. 
+					    It will stop the application in a controlled way.
+					    Default: Disabled 
     --storage_home=<string>                 Root installation dir of the storage implementation
                                             Default: ${DEFAULT_STORAGE_HOME}
     --storage_props=<string>                Absolute path of the storage properties file
                                             Mandatory if storage_home is defined
-  Normal submission arguments:
+    --agents=<string>                       Hierarchy of agents for the deployment. Accepted values: plain|tree
+                                            Default: ${DEFAULT_AGENTS_HIERARCHY}
+    --agents                                Deploys the runtime as agents instead of the classic Master-Worker deployment.
+                                            Default: ${DEFAULT_AGENTS_ENABLED}
+    
+  Homogeneous submission arguments:
     --num_nodes=<int>                       Number of nodes to use
                                             Default: ${DEFAULT_NUM_NODES}
     --num_switches=<int>                    Maximum number of different switches. Select 0 for no restrictions.
                                             Maximum nodes per switch: ${MAX_NODES_SWITCH}
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes.
                                             Default: ${DEFAULT_NUM_SWITCHES}
-    --agents=<string>                       Hierarchy of agents for the deployment. Accepted values: plain|tree
-                                            Default: ${DEFAULT_AGENTS_HIERARCHY}
-    --agents                                Deploys the runtime as agents instead of the classic Master-Worker deployment.
-                                            Default: ${DEFAULT_AGENTS_ENABLED}
   Heterogeneous submission arguments:
     --type_cfg=<file_location>              Location of the file with the descriptions of node type requests
                                             File should follow the following format:
@@ -454,6 +458,13 @@ get_args() {
           uuid=*)
             echo "WARNING: uuid is automatically generated. Omitting parameter"
             ;;
+          forward_time_limit)
+            forward_wcl=true
+	    ;;
+	  wall_clock_limit=*)
+	    wcl=${OPTARG//wall_clock_limit=/}
+	    args_pass="$args_pass --$OPTARG"
+	    ;;
           *)
             # Flag didn't match any patern. Add to COMPSs
             args_pass="$args_pass --$OPTARG"
@@ -480,7 +491,12 @@ set_time() {
   if [ -z "${exec_time}" ]; then
     exec_time=${DEFAULT_EXEC_TIME}
   fi
-
+  if [ -z "$wcl" ]; then
+	  if [ -n "${forward_wcl}" ] && [ "${forward_wcl}" == "true" ]; then
+		  wcl=$(((exec_time - 1) * 60))
+		  args_pass="$args_pass --wall_clock_limit=$wcl"
+  	  fi
+  fi
   if [ -z "${WC_CONVERSION_FACTOR}" ]; then
     convert_to_wc "$exec_time"
   else
@@ -643,7 +659,6 @@ check_args() {
   if [ "${ENABLE_QARG_CLUSTER}" == "true" ] && [ -z "${cluster}" ]; then
     display_error "${ERROR_PROJECT_NAME_NA}"
   fi
-
 
 }
 

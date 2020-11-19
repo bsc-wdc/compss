@@ -161,6 +161,9 @@ public class COMPSsConstants {
     public static final String COMPSS_CONFIG_LOCATION = "compss.properties.location";
     public static final String COMPSS_CONTEXT = "compss.context";
 
+    // Wall clock limit definition
+    public static final String COMPSS_WALL_CLOCK_LIMIT = "compss.wcl";
+
     // LOG 4J
     public static final String LOG4J = "log4j.configurationFile";
 

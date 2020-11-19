@@ -35,6 +35,7 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.DoNothingTaskMonitor;
 import es.bsc.compss.types.ErrorHandler;
+import es.bsc.compss.types.WallClockTimerTask;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -88,6 +89,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -115,6 +117,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     // Boolean for initialization
     private static boolean initialized = false;
+    private boolean stopped = false;
 
     // Number of fields per parameter
     public static final int NUM_FIELDS_PER_PARAM = 9;
@@ -135,6 +138,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // Monitor
     private static GraphGenerator graphMonitor;
     private static RuntimeMonitor runtimeMonitor;
+
+    // Application Timer
+    private static Timer timer;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
@@ -352,7 +358,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
             }
         }
-
         ErrorManager.init(this);
         ((MasterResourceImpl) Comm.getAppHost()).setupNestedSupport(this, this);
     }
@@ -410,6 +415,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor,
                         Long.parseLong(System.getProperty(COMPSsConstants.MONITOR)));
                 }
+                timer = new Timer("Application wall clock limit timer");
 
                 // Log initialization
                 initialized = true;
@@ -435,50 +441,59 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void stopIT(boolean terminate) {
         synchronized (this) {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
-            }
+            if (!stopped) {
 
-            // Add task summary
-            boolean taskSummaryEnabled = System.getProperty(COMPSsConstants.TASK_SUMMARY) != null
-                && !System.getProperty(COMPSsConstants.TASK_SUMMARY).isEmpty()
-                && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TASK_SUMMARY));
-            if (taskSummaryEnabled) {
-                td.getTaskSummary(LOGGER);
-            }
+                if (Tracer.extraeEnabled()) {
+                    Tracer.emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
+                }
 
-            // Stop monitor components
-            LOGGER.info("Stop IT reached");
-            if (GraphGenerator.isEnabled()) {
-                LOGGER.debug("Stopping Graph generation...");
-                // Graph committed by noMoreTasks, nothing to do
-            }
-            if (RuntimeMonitor.isEnabled()) {
-                LOGGER.debug("Stopping Monitor...");
-                runtimeMonitor.shutdown();
-            }
+                LOGGER.debug("Stopping Wall Clock limit Timer");
+                if (timer != null) {
+                    timer.cancel();
+                }
 
-            // Stop runtime components
-            LOGGER.debug("Stopping AP...");
-            if (ap != null) {
-                ap.shutdown();
-            } else {
-                LOGGER.debug("AP was not initialized...");
+                // Add task summary
+                boolean taskSummaryEnabled = System.getProperty(COMPSsConstants.TASK_SUMMARY) != null
+                    && !System.getProperty(COMPSsConstants.TASK_SUMMARY).isEmpty()
+                    && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TASK_SUMMARY));
+                if (taskSummaryEnabled) {
+                    td.getTaskSummary(LOGGER);
+                }
+
+                // Stop monitor components
+                LOGGER.info("Stop IT reached");
+                if (GraphGenerator.isEnabled()) {
+                    LOGGER.debug("Stopping Graph generation...");
+                    // Graph committed by noMoreTasks, nothing to do
+                }
+                if (RuntimeMonitor.isEnabled()) {
+                    LOGGER.debug("Stopping Monitor...");
+                    runtimeMonitor.shutdown();
+                }
+
+                // Stop runtime components
+                LOGGER.debug("Stopping AP...");
+                if (ap != null) {
+                    ap.shutdown();
+                } else {
+                    LOGGER.debug("AP was not initialized...");
+                }
+
+                LOGGER.debug("Stopping TD...");
+                if (td != null) {
+                    td.shutdown();
+                } else {
+                    LOGGER.debug("TD was not initialized...");
+                }
+
+                LOGGER.debug("Stopping Comm...");
+                Comm.stop(CoreManager.getSignaturesToCoreIds());
+                LOGGER.debug("Runtime stopped");
+                stopped = true;
             }
-
-            LOGGER.debug("Stopping TD...");
-            if (td != null) {
-                td.shutdown();
-            } else {
-                LOGGER.debug("TD was not initialized...");
-            }
-
-            LOGGER.debug("Stopping Comm...");
-            Comm.stop(CoreManager.getSignaturesToCoreIds());
-            LOGGER.debug("Runtime stopped");
-
         }
         LOGGER.warn("Execution Finished");
+
     }
 
     @Override
@@ -836,6 +851,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.info("No more tasks for app " + app.getId());
         // Wait until all tasks have finished
         ap.noMoreTasks(app);
+
+        app.cancelTimerTask();
         // Retrieve result files
         LOGGER.debug("Getting Result Files for app" + app.getId());
         ap.getResultFiles(app);
@@ -1986,6 +2003,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public void removeApplicationData(Long appId) {
         Application app = Application.registerApplication(appId);
         ap.deleteAllApplicationDataRequest(app);
+    }
+
+    @Override
+    public void setWallClockLimit(Long appId, long wcl, boolean stopRT) {
+        if (wcl > 0) {
+            LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + "seconds.");
+            Application app = Application.registerApplication(appId);
+            WallClockTimerTask wcTask = new WallClockTimerTask(app, ap, (stopRT ? this : null));
+            app.setTimerTask(wcTask);
+            // One second is added to allow possible stop from the binding
+            timer.schedule(wcTask, (wcl + 1) * 1000);
+        }
     }
 
 }

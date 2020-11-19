@@ -253,6 +253,17 @@ def free_resources(app_id, num_resources, group_name):
     _COMPSs.free_resources(app_id, num_resources, group_name)  # noqa
 
 
+def set_wall_clock(app_id, wcl):
+    # type: (long, long) -> None
+    """ Call to set_wall_clock.
+
+    :param app_id: Application identifier.
+    :param wcl: Wall Clock limit in seconds.
+    :return: None
+    """
+    _COMPSs.set_wall_clock(app_id, wcl)  # noqa
+
+
 def register_core_element(ce_signature,      # type: str
                           impl_signature,    # type: str
                           impl_constraints,  # type: str

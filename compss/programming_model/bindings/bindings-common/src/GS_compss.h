@@ -94,5 +94,6 @@ extern "C" void GS_Get_AppDir(char** buf);
 extern "C" void GS_EmitEvent(int type, long id);
 extern "C" void GS_Get_Object(long appId, char* objectId, char** buf);
 extern "C" void GS_Delete_Object(long appId, char* objectId, int** buf);
+extern "C" void GS_Set_wall_clock(long appId, long wcl, int stopRT);
 
 #endif /* GS_COMPSS_H */

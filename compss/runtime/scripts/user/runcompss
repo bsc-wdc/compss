@@ -161,19 +161,21 @@ show_opts() {
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: ${DEFAULT_PyOBJECT_SERIALIZE}
     --persistent_worker_c=<bool>            Only for C Binding. Enable the persistent worker in c (true/false).
-                                            Default: $DEFAULT_PERSISTENT_WORKER_C
+                                            Default: ${DEFAULT_PERSISTENT_WORKER_C}
     --enable_external_adaptation=<bool>     Enable external adaptation. This option will disable the Resource Optimizer.
                                             Default: false
     --gen_coredump                          Enable master coredump generation
                                             Default: false
     --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
-                                            Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
+                                            Default: ${DEFAULT_PYTHON_INTERPRETER} Version: ${DEFAULT_PYTHON_VERSION}
     --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
-                                                   Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
+                                                   Default: ${DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT}
     --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
-                                            Default: $DEFAULT_PYTHON_MPI_WORKER
+                                            Default: ${DEFAULT_PYTHON_MPI_WORKER}
     --python_memory_profile                 Generate a memory profile of the master.
-                                            Default: $DEFAULT_PYTHON_MEMORY_PROFILE
+                                            Default: ${DEFAULT_PYTHON_MEMORY_PROFILE}
+    --wall_clock_limit=<int>				Maximum duration of the application (in seconds).
+    										Default: ${DEFAULT_WALL_CLOCK_LIMIT}
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -428,10 +430,10 @@ get_args() {
             # Enable default external debugger
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             ;;
-	        jmx_port=*)
-	          # Enable JMX profiler on specific port
-	          jmx_port=${OPTARG//jmx_port=/}
-	          ;;
+	      jmx_port=*)
+	        # Enable JMX profiler on specific port
+	        jmx_port=${OPTARG//jmx_port=/}
+	        ;;
           base_log_dir=*)
             # Set a custom base log dir
             base_log_dir=${OPTARG//base_log_dir=/}
@@ -456,10 +458,10 @@ get_args() {
             # Maximum task count. Only for bindings
             task_count=${OPTARG//task_count=/}
             ;;
-    	    appdir=*)
-	          # Main binary directory (only for C/C++ applications)
-	          appdir=${OPTARG//appdir=/}
-	          ;;
+    	  appdir=*)
+	        # Main binary directory (only for C/C++ applications)
+	        appdir=${OPTARG//appdir=/}
+	        ;;
           pythonpath=*)
             # Additional pythonpath
             pythonpath=${OPTARG//pythonpath=/}
@@ -504,13 +506,17 @@ get_args() {
             # Enable or disable the master memory profiling
             python_memory_profile=true
             ;;
-	        gen_coredump)
+	      gen_coredump)
             # Enable coredump generation
             gen_core=true
             ;;
+          wall_clock_limit=*)
+          	# Set wall_clock_limit
+            wall_clock_limit=${OPTARG//wall_clock_limit=/}
+            ;;
   	      *)
-	          # Flag didn't match any patern. Raise exception
-	          arguments_error "Bad argument: $OPTARG"
+	        # Flag didn't match any patern. Raise exception
+	        arguments_error "Bad argument: $OPTARG"
 	        ;;
 	      esac
 	      ;;

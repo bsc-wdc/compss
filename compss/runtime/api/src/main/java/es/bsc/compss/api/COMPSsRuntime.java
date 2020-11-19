@@ -54,6 +54,15 @@ public interface COMPSsRuntime {
     public String getApplicationDirectory();
 
     /**
+     * Set the COMPSs application Wall Clock Limit.
+     *
+     * @appId Application ID.
+     * @wcl Wall Clock limit in seconds.
+     * @stopRT Flag to indicate if runtime must be stopped when limit exceed
+     */
+    public void setWallClockLimit(Long appId, long wcl, boolean stopRT);
+
+    /**
      * Returns the number of active resources.
      *
      * @return The number of active resources.

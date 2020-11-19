@@ -72,6 +72,14 @@
         exit $exitCode
       fi
 
+      # Clean unnecessary files
+      rm ${PYCOMPSS_HOME}/nose_tests.*
+      rm ${PYCOMPSS_HOME}/sitecustomize.*
+      if [ -d "${PYCOMPSS_HOME}/__pycache__" ]
+      then
+          rm -rf ${PYCOMPSS_HOME}/__pycache__
+      fi
+
       # Unify installed versions
       if [ "${python_version}" == "3" ] && [ -d "${targetDir}/2" ] && [ "$unify_installs" = "true" ]; then
         unify_installed_versions "${targetDir}"

@@ -26,4 +26,10 @@ def test_runcompss_increment():
 
     # Call to runcompss for increment application
     app = os.path.join(current_path, "..", "resources", "increment.py")
-    subprocess.check_call(["runcompss", app, "--log_level=True"])
+    cmd = ["runcompss", "--log_level=debug", app]
+    process = subprocess.Popen(" ".join(cmd),
+                               shell=True,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    process.wait()
+    outs, errs = process.communicate()

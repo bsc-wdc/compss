@@ -39,4 +39,3 @@ def test_launch_application_with_mpi_worker():
         app, "main", debug=True, app_name="increment", trace=True,
         mpi_worker=True
     )
-

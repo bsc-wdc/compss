@@ -52,16 +52,19 @@ def compss_stop(code=0):  # noqa
     pass
 
 
-def compss_file_exists(file_name):
-    # type: (str) -> bool
+def compss_file_exists(*file_name):
+    # type: (*str) -> bool or [bool]
     """ Dummy compss_file_exists.
 
     Check if the file exists.
 
-    :param file_name: The file name to check.
+    :param file_name: The file/s name to check.
     :return: True if exists. False otherwise.
     """
-    return os.path.exists(file_name)
+    if len(file_name) == 1:
+        return os.path.exists(file_name[0])
+    else:
+        return [os.path.exists(f_name) for f_name in file_name]
 
 
 def compss_open(file_name, mode='r'):
@@ -78,52 +81,58 @@ def compss_open(file_name, mode='r'):
     return open(file_name, mode)
 
 
-def compss_delete_file(file_name):  # noqa
-    # type: (str) -> bool
+def compss_delete_file(*file_name):  # noqa
+    # type: (*str) -> bool or [bool]
     """ Dummy compss_delete.
 
     Does nothing and always return True.
 
-    :param file_name: File name.
+    :param file_name: File/s name.
     :return: Always True.
     """
-    return True
+    if len(file_name) == 1:
+        return True
+    else:
+        return [True] * len(file_name)
 
 
-def compss_wait_on_file(file_name):  # noqa
-    # type: (str) -> None
+def compss_wait_on_file(*file_name):  # noqa
+    # type: (*str) -> None
     """ Dummy compss_wait_on_file.
 
     Does nothing.
 
-    :param file_name: File name.
+    :param file_name: File/s name.
     :return: None
     """
     return None
 
 
-def compss_wait_on_directory(directory_name):  # noqa
-    # type: (str) -> None
+def compss_wait_on_directory(*directory_name):  # noqa
+    # type: (*str) -> None
     """ Dummy compss_wait_on_directory.
 
     Does nothing.
 
-    :param directory_name: Directory name.
+    :param directory_name: Directory/ies name.
     :return: None
     """
     return None
 
 
-def compss_delete_object(obj):  # noqa
-    # type: (str) -> bool
+def compss_delete_object(*obj):  # noqa
+    # type: (*str) -> bool or [bool]
     """ Dummy compss_delete_object.
 
     Does nothing and always return True.
 
-    :param obj: Object to delete.
+    :param obj: Object/s to delete.
     :return: Always True.
     """
-    return True
+    if len(obj) == 1:
+        return True
+    else:
+        return [True] * len(obj)
 
 
 def compss_barrier(no_more_tasks=False):  # noqa

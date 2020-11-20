@@ -88,22 +88,21 @@ if context.in_pycompss():
         """
         __stop_runtime__(code)
 
-    def compss_file_exists(file_name):
-        # type: (str) -> bool
+    def compss_file_exists(*file_name):
+        # type: (*str) -> bool or [bool]
         """ Check if a file exists.
 
         If it does not exist, it checks if the given file name has been
         accessed before by calling the runtime.
 
-        :param file_name: The file name to check.
+        :param file_name: The file/s name to check.
         :return: True either the file exists or has been accessed by the
                  runtime. False otherwise.
         """
-        from os import path
-        if not path.exists(file_name):
-            return __accessed_file__(file_name)
+        if len(file_name) == 1:
+            return __accessed_file__(file_name[0])
         else:
-            return True
+            return [__accessed_file__(f_name) for f_name in file_name]
 
     def compss_open(file_name, mode='r'):
         # type: (str, str) -> object
@@ -123,55 +122,67 @@ if context.in_pycompss():
         compss_name = __open_file__(file_name, mode)
         return open(compss_name, mode)
 
-    def compss_delete_file(file_name):
-        # type: (str) -> bool
+    def compss_delete_file(*file_name):
+        # type: (*str) -> bool or [bool]
         """ Delete a file.
 
         Calls the runtime to delete the file everywhere in the infrastructure.
         The delete is asynchronous and will be performed when the file is not
         necessary anymore.
 
-        :param file_name: File name.
+        :param file_name: File/s name.
         :return: True if success. False otherwise.
         """
-        return __delete_file__(file_name)
+        if len(file_name) == 1:
+            return __delete_file__(file_name[0])
+        else:
+            return [__delete_file__(f_name) for f_name in file_name]
 
-    def compss_wait_on_file(file_name):
-        # type: (str) -> None
+    def compss_wait_on_file(*file_name):
+        # type: (*str) -> None
         """ Wait and get a file.
 
         Calls the runtime to bring the file to the master when possible
         and waits until produced.
 
-        :param file_name: File name.
+        :param file_name: File/s name.
         :return: None
         """
-        __get_file__(file_name)
+        if len(file_name) == 1:
+            __get_file__(file_name[0])
+        else:
+            [__get_file__(f_name) for f_name in file_name]
 
-    def compss_wait_on_directory(directory_name):
-        # type: (str) -> None
+    def compss_wait_on_directory(*directory_name):
+        # type: (*str) -> None
         """ Wait and get a directory.
 
         Calls the runtime to bring the directory to the master when possible
         and waits until produced.
 
-        :param directory_name: Directory name.
+        :param directory_name: Directory/ies name.
         :return: None
         """
-        __get_directory__(directory_name)
+        if len(directory_name) == 1:
+            __get_directory__(directory_name[0])
+        else:
+            [__get_directory__(d_name) for d_name in directory_name]
 
-    def compss_delete_object(obj):
-        # type: (...) -> bool
+    def compss_delete_object(*obj):
+        # type: (*...) -> bool or [bool]
         """ Delete object.
 
         Removes a used object from the internal structures and calls the
         external python library (that calls the bindings-common)
         in order to request a its corresponding file removal.
 
-        :param obj: Object to delete.
+        :param obj: Object/s to delete.
         :return: True if success. False otherwise.
         """
-        return __delete_object__(obj)
+        if len(obj) == 1:
+            return __delete_object__(obj[0])
+        else:
+            return [__delete_object__(i_obj) for i_obj in obj]
 
     def compss_barrier(no_more_tasks=False):
         # type: (bool) -> None
@@ -322,29 +333,29 @@ else:
         # type: (int) -> None
         __dummy_compss_stop__(code)
 
-    def compss_file_exists(file_name):
-        # type: (str) -> bool
-        return __dummy_compss_file_exists__(file_name)
+    def compss_file_exists(*file_name):
+        # type: (*str) -> bool or [bool]
+        return __dummy_compss_file_exists__(*file_name)
 
     def compss_open(file_name, mode='r'):
         # type: (str, str) -> object
         return __dummy_compss_open__(file_name, mode)
 
-    def compss_delete_file(file_name):
-        # type: (str) -> bool
-        return __dummy_compss_delete_file__(file_name)
+    def compss_delete_file(*file_name):
+        # type: (*str) -> bool or [bool]
+        return __dummy_compss_delete_file__(*file_name)
 
-    def compss_wait_on_file(file_name):
-        # type: (str) -> None
-        __dummy_compss_wait_on_file__(file_name)
+    def compss_wait_on_file(*file_name):
+        # type: (*str) -> None
+        __dummy_compss_wait_on_file__(*file_name)
 
-    def compss_wait_on_directory(directory_name):
-        # type: (str) -> None
-        __dummy_compss_wait_on_directory__(directory_name)
+    def compss_wait_on_directory(*directory_name):
+        # type: (*str) -> None
+        __dummy_compss_wait_on_directory__(*directory_name)
 
-    def compss_delete_object(obj):
-        # type: (...) -> bool
-        return __dummy_compss_delete_object__(obj)
+    def compss_delete_object(*obj):
+        # type: (*...) -> bool or [bool]
+        return __dummy_compss_delete_object__(*obj)
 
     def compss_barrier(no_more_tasks=False):
         # type: (bool) -> None

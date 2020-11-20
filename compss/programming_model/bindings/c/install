@@ -110,6 +110,16 @@
     echo "- SUB_FOLDER: $subfolder"
     export ARCH=$arch
     export SUBFLDR=$subfolder
+    
+    os=$(uname)
+    if [ "$os" == "Linux" ]; then
+          export CPP_OS="-I\$(JAVA_HOME)/include/linux/"
+    elif [ "$os" == "Darwin" ]; then
+          export CPP_OS="-DOSX -I\$(JAVA_HOME)/include/darwin/"
+    else
+          echo "Unsupported system $os (supported are: Linux/Darwin)"
+          exit 1
+    fi
 
     cd "$working_dir"/bindinglib
     install "${build_root}" "Binding Library"

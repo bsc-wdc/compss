@@ -80,13 +80,14 @@ def stop_all(exit_code):
     from pycompss.api.api import compss_stop
     global STREAMING
     global PERSISTENT_STORAGE
+    global LOGGER
     # Stop STREAMING
     if STREAMING:
         stop_streaming()
 
     # Stop persistent storage
     if PERSISTENT_STORAGE:
-        master_stop_storage(logger)
+        master_stop_storage(LOGGER)
 
     compss_stop(exit_code)
     sys.stdout.flush()
@@ -138,6 +139,7 @@ def compss_main():
     global APP_PATH
     global STREAMING
     global PERSISTENT_STORAGE
+    global LOGGER
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
@@ -185,7 +187,7 @@ def compss_main():
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
-    logger = logging.getLogger("pycompss.runtime.launch")
+    LOGGER = logging.getLogger("pycompss.runtime.launch")
 
     # Get JVM options
     # jvm_opts = os.environ['JVM_OPTIONS_FILE']
@@ -196,11 +198,11 @@ def compss_main():
     exit_code = 0
     try:
         if __debug__:
-            logger.debug('--- START ---')
-            logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
+            LOGGER.debug('--- START ---')
+            LOGGER.debug('PyCOMPSs Log path: %s' % binding_log_path)
 
         # Start persistent storage
-        PERSISTENT_STORAGE = master_init_storage(storage_conf, logger)
+        PERSISTENT_STORAGE = master_init_storage(storage_conf, LOGGER)
 
         # Start STREAMING
         STREAMING = init_streaming(args.streaming_backend,
@@ -221,7 +223,7 @@ def compss_main():
 
         # End
         if __debug__:
-            logger.debug('--- END ---')
+            LOGGER.debug('--- END ---')
     except SystemExit as e:
         if e.code != 0:
             print('[ ERROR ]: User program ended with exitcode %s.' % e.code)

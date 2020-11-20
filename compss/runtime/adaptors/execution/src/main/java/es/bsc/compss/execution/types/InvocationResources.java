@@ -18,9 +18,9 @@ package es.bsc.compss.execution.types;
 
 public class InvocationResources {
 
-    private final int[] cpus;
-    private final int[] gpus;
-    private final int[] fpgas;
+    private int[] cpus;
+    private int[] gpus;
+    private int[] fpgas;
 
 
     /**
@@ -46,5 +46,16 @@ public class InvocationResources {
 
     public int[] getAssignedFPGAs() {
         return this.fpgas;
+    }
+
+    /**
+     * Reconfigures the InvocationResources to contain the resources passed in as a parameter.
+     * 
+     * @param res InvocationResources to copy
+     */
+    public void reconfigure(InvocationResources res) {
+        this.cpus = res.cpus;
+        this.gpus = res.gpus;
+        this.fpgas = res.fpgas;
     }
 }

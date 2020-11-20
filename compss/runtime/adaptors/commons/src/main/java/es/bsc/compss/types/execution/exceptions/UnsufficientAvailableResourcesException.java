@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
-public class UnsufficientAvailableComputingUnitsException extends UnsufficientAvailableResourcesException {
+public class UnsufficientAvailableResourcesException extends Exception {
 
     /**
      * Exception Version UID are 2L in all Runtime.
@@ -24,15 +24,15 @@ public class UnsufficientAvailableComputingUnitsException extends UnsufficientAv
     private static final long serialVersionUID = 2L;
 
 
-    public UnsufficientAvailableComputingUnitsException(String message) {
+    public UnsufficientAvailableResourcesException(String message) {
         super(message);
     }
 
-    public UnsufficientAvailableComputingUnitsException(Exception e) {
+    public UnsufficientAvailableResourcesException(Exception e) {
         super(e);
     }
 
-    public UnsufficientAvailableComputingUnitsException(String msg, Exception e) {
+    public UnsufficientAvailableResourcesException(String msg, Exception e) {
         super(msg, e);
     }
 

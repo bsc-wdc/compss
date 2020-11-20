@@ -51,7 +51,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.ContainerImplementation;
@@ -176,7 +176,7 @@ public class Executor implements Runnable, InvocationRunner {
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
         if (Tracer.extraeEnabled()) {
-            closeAssignedResourcesEvents();
+            emitAffinityEndEvents();
         }
         LOGGER.info("Executor finished");
         Collection<ExecutionPlatformMirror<?>> mirrors = platform.getMirrors();
@@ -274,7 +274,7 @@ public class Executor implements Runnable, InvocationRunner {
         try {
             // Bind computing units
             LOGGER.debug("Assigning resources for Job " + jobId);
-            assignExecutionResources(jobId, invocation.getRequirements());
+            obtainExecutionResources(jobId, invocation.getRequirements());
             areResourcesAcquired = true;
 
             // Set the Task working directory
@@ -390,81 +390,6 @@ public class Executor implements Runnable, InvocationRunner {
         return null;
     }
 
-    private void releaseResources(int jobId) {
-        LOGGER.debug("Release binded resources for Job " + jobId);
-        long timeUnassignResourcesStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeUnassignResourcesStart = System.nanoTime();
-        }
-        this.platform.releaseResources(jobId);
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeUnassignResourcesEnd = System.nanoTime();
-            final float timeUnassignResourcesElapsed =
-                (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER
-                .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
-        }
-
-    }
-
-    private void emitTaskEndEvents() {
-
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getCPUCountEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getGPUCountEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getMemoryEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getDiskBWEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTypeEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
-
-    }
-
-    private void assignExecutionResources(int jobId, ResourceDescription requirements)
-        throws UnsufficientAvailableComputingUnitsException {
-        long timeAssignResourcesStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeAssignResourcesStart = System.nanoTime();
-        }
-        this.resources = this.platform.acquireResources(jobId, requirements, resources);
-
-        if (Tracer.extraeEnabled()) {
-            emitAssignedResourcesEvents();
-        }
-        if (this.resources.getAssignedCPUs() != null && this.resources.getAssignedCPUs().length > 0) {
-
-            try {
-                ThreadAffinity.setCurrentThreadAffinity(this.resources.getAssignedCPUs());
-            } catch (Exception e) {
-                LOGGER.warn("Error setting affinity for Job " + jobId, e);
-            }
-        }
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeAssignResourcesEnd = System.nanoTime();
-            final float timeAssignResourcesElapsed =
-                (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER.debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
-        }
-    }
-
-    private void emitingTaskStartEvents() {
-        int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits();
-        Tracer.emitEvent(nCPUs, Tracer.getCPUCountEventsType());
-        int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits();
-        Tracer.emitEvent(nGPUs, Tracer.getGPUCountEventsType());
-        int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize();
-        if (memory < 0) {
-            memory = 0;
-        }
-        Tracer.emitEvent(memory, Tracer.getMemoryEventsType());
-        int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW();
-        if (diskBW < 0) {
-            diskBW = 0;
-        }
-        Tracer.emitEvent(diskBW, Tracer.getDiskBWEventsType());
-        int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
-        Tracer.emitEvent(taskType, Tracer.getTaskTypeEventsType());
-        Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
-    }
-
     private void executeTask(File taskSandboxWorkingDir) throws Exception {
 
         /* Register outputs **************************************** */
@@ -532,26 +457,223 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void emitAssignedResourcesEvents() {
-        if (this.resources != null) {
-            int[] cpus = this.resources.getAssignedCPUs();
-            if (cpus != null && cpus.length > 0) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
-                Tracer.emitEvent(cpus[0] + 1L, Tracer.getTasksCPUAffinityEventsType());
+    private void checkJobFiles(Invocation invocation) throws JobExecutionException {
+        // Check if all the output files have been actually created (in case user has forgotten)
+        // No need to distinguish between IN or OUT files, because IN files will exist, and
+        // if there's one or more missing, they will be necessarily out.
+        boolean allOutFilesCreated = true;
+        for (InvocationParam param : invocation.getParams()) {
+            allOutFilesCreated &= checkOutParam(param);
+        }
+        for (InvocationParam param : invocation.getResults()) {
+            allOutFilesCreated &= checkOutParam(param);
+        }
+        if (!allOutFilesCreated) {
+            throw new JobExecutionException(
+                ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
+        }
+    }
+
+    private boolean checkOutParam(InvocationParam param) {
+        if (param.getType().equals(DataType.FILE_T)) {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM.getId(), TraceEvent.CHECK_OUT_PARAM.getType());
             }
-            int[] gpus = this.resources.getAssignedGPUs();
-            if (gpus != null && gpus.length > 0) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
-                Tracer.emitEvent(gpus[0] + 1L, Tracer.getTasksGPUAffinityEventsType());
+            String filepath = (String) param.getValue();
+            File f = new File(filepath);
+            // If using C binding we ignore potential errors
+            if (!f.exists()) {
+                StringBuilder errMsg = new StringBuilder();
+                errMsg.append("ERROR: File with path '").append(filepath);
+                errMsg.append("' not generated by task with Method Definition ")
+                    .append(invocation.getMethodImplementation().getMethodDefinition());
+                System.out.println(errMsg.toString()); // NOSONAR It must be printed in Job output file
+                System.err.println(errMsg.toString()); // NOSONAR It must be printed in Job error file
+                return false;
+            }
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CHECK_OUT_PARAM.getType());
             }
         }
+        return true;
 
     }
 
-    private void closeAssignedResourcesEvents() {
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+    private void createEmptyFile() {
+        PrintStream out = context.getThreadOutStream();
+        out.println("[EXECUTOR] executeTask - Checking if a blank file needs to be created");
+        for (InvocationParam param : invocation.getParams()) {
+            if (param.getType().equals(DataType.FILE_T)) {
+                String filepath = (String) param.getValue();
+                File f = new File(filepath);
+                // If using C binding we ignore potential errors
+                if (!f.exists()) {
+                    out.println("[EXECUTOR] executeTask - Creating a new blank file");
+                    try {
+                        f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
+                    } catch (IOException e) {
+                        System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
+                    }
+                }
+            }
+        }
     }
+
+    private Invoker selectNativeMethodInvoker(File taskSandboxWorkingDir, InvocationResources assignedResources)
+        throws JobExecutionException {
+        switch (invocation.getLang()) {
+            case JAVA:
+                Invoker javaInvoker = null;
+                switch (context.getExecutionType()) {
+                    case COMPSS:
+                        if (context.getRuntimeAPI() != null && context.getLoaderAPI() != null) {
+                            System.out.println("Nested Support enabled on the Invocation Context!");
+                            javaInvoker =
+                                new JavaNestedInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        } else {
+                            javaInvoker =
+                                new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        }
+                        break;
+                    case STORAGE:
+                        javaInvoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        break;
+                }
+                return javaInvoker;
+            case PYTHON:
+                if (pyPipes == null) {
+                    PipedMirror mirror;
+                    synchronized (platform) {
+                        mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
+                        if (mirror == null) {
+                            mirror = PythonInvoker.getMirror(context, platform);
+                            platform.registerMirror(PythonInvoker.class, mirror);
+                        }
+                    }
+                    pyPipes = mirror.registerExecutor(id);
+                }
+                return new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
+            case C:
+                Invoker cInvoker = null;
+                if (context.isPersistentCEnabled()) {
+                    cInvoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    if (!isRegistered) {
+                        PersistentMirror mirror;
+                        synchronized (platform) {
+                            mirror = (PersistentMirror) platform.getMirror(CPersistentInvoker.class);
+                            if (mirror == null) {
+                                mirror = CPersistentInvoker.getMirror(context, platform);
+                                platform.registerMirror(CPersistentInvoker.class, mirror);
+                            }
+                        }
+                        mirror.registerExecutor(id);
+                        isRegistered = true;
+                    }
+                } else {
+                    if (cPipes == null) {
+                        PipedMirror mirror;
+                        synchronized (platform) {
+                            mirror = (PipedMirror) platform.getMirror(CInvoker.class);
+                            if (mirror == null) {
+                                mirror = (PipedMirror) CInvoker.getMirror(context, platform);
+                                platform.registerMirror(CInvoker.class, mirror);
+                            }
+                        }
+                        cPipes = mirror.registerExecutor(id);
+                    }
+                    cInvoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
+                }
+                return cInvoker;
+            default:
+                throw new JobExecutionException("Unrecognised lang for a method type invocation");
+        }
+    }
+
+    private void obtainExecutionResources(int jobId, ResourceDescription requirements)
+        throws UnsufficientAvailableResourcesException {
+        long timeAssignResourcesStart = 0L;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            timeAssignResourcesStart = System.nanoTime();
+        }
+        this.resources = this.platform.acquireResources(jobId, requirements, resources);
+        assignExecutionResources();
+
+        if (IS_TIMER_COMPSS_ENABLED) {
+            final long timeAssignResourcesEnd = System.nanoTime();
+            final float timeAssignResourcesElapsed =
+                (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
+            TIMER_LOGGER.debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+        }
+    }
+
+    private void assignExecutionResources() {
+        if (Tracer.extraeEnabled()) {
+            emitAffinityChangeEvents();
+        }
+        if (this.resources.getAssignedCPUs() != null && this.resources.getAssignedCPUs().length > 0) {
+            try {
+                ThreadAffinity.setCurrentThreadAffinity(this.resources.getAssignedCPUs());
+            } catch (Exception e) {
+                LOGGER.warn("Error setting affinity for Job " + this.invocation.getJobId(), e);
+            }
+        }
+    }
+
+    @Override
+    public void stalledCodeExecution() {
+        int jobId = invocation.getJobId();
+        LOGGER.debug("Release binded resources for Job " + jobId);
+        long timeUnassignResourcesStart = 0L;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            timeUnassignResourcesStart = System.nanoTime();
+        }
+        this.platform.blockedRunner(invocation, this, this.resources);
+        if (IS_TIMER_COMPSS_ENABLED) {
+            final long timeUnassignResourcesEnd = System.nanoTime();
+            final float timeUnassignResourcesElapsed =
+                (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
+            TIMER_LOGGER
+                .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
+        }
+    }
+
+    @Override
+    public void readyToContinueExecution(Semaphore sem) {
+        long timeAssignResourcesStart = 0L;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            timeAssignResourcesStart = System.nanoTime();
+        }
+        this.platform.unblockedRunner(invocation, this, this.resources, sem);
+        assignExecutionResources();
+
+        if (IS_TIMER_COMPSS_ENABLED) {
+            final long timeAssignResourcesEnd = System.nanoTime();
+            final float timeAssignResourcesElapsed =
+                (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
+            final int jobId = invocation.getJobId();
+            TIMER_LOGGER
+                .debug("[TIMER] Re-assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+        }
+    }
+
+    private void releaseResources(int jobId) {
+        LOGGER.debug("Release binded resources for Job " + jobId);
+        long timeUnassignResourcesStart = 0L;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            timeUnassignResourcesStart = System.nanoTime();
+        }
+        this.platform.releaseResources(jobId);
+        if (IS_TIMER_COMPSS_ENABLED) {
+            final long timeUnassignResourcesEnd = System.nanoTime();
+            final float timeUnassignResourcesElapsed =
+                (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
+            TIMER_LOGGER
+                .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
+        }
+    }
+    /*
+     * ---------------------- SANDBOX MAGEMENT --------------------------------
+     */
 
     /**
      * Creates a sandbox for a task.
@@ -982,138 +1104,6 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void checkJobFiles(Invocation invocation) throws JobExecutionException {
-        // Check if all the output files have been actually created (in case user has forgotten)
-        // No need to distinguish between IN or OUT files, because IN files will exist, and
-        // if there's one or more missing, they will be necessarily out.
-        boolean allOutFilesCreated = true;
-        for (InvocationParam param : invocation.getParams()) {
-            allOutFilesCreated &= checkOutParam(param);
-        }
-        for (InvocationParam param : invocation.getResults()) {
-            allOutFilesCreated &= checkOutParam(param);
-        }
-        if (!allOutFilesCreated) {
-            throw new JobExecutionException(
-                ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
-        }
-    }
-
-    private boolean checkOutParam(InvocationParam param) {
-        if (param.getType().equals(DataType.FILE_T)) {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM.getId(), TraceEvent.CHECK_OUT_PARAM.getType());
-            }
-            String filepath = (String) param.getValue();
-            File f = new File(filepath);
-            // If using C binding we ignore potential errors
-            if (!f.exists()) {
-                StringBuilder errMsg = new StringBuilder();
-                errMsg.append("ERROR: File with path '").append(filepath);
-                errMsg.append("' not generated by task with Method Definition ")
-                    .append(invocation.getMethodImplementation().getMethodDefinition());
-                System.out.println(errMsg.toString()); // NOSONAR It must be printed in Job output file
-                System.err.println(errMsg.toString()); // NOSONAR It must be printed in Job error file
-                return false;
-            }
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CHECK_OUT_PARAM.getType());
-            }
-        }
-        return true;
-
-    }
-
-    private void createEmptyFile() {
-        PrintStream out = context.getThreadOutStream();
-        out.println("[EXECUTOR] executeTask - Checking if a blank file needs to be created");
-        for (InvocationParam param : invocation.getParams()) {
-            if (param.getType().equals(DataType.FILE_T)) {
-                String filepath = (String) param.getValue();
-                File f = new File(filepath);
-                // If using C binding we ignore potential errors
-                if (!f.exists()) {
-                    out.println("[EXECUTOR] executeTask - Creating a new blank file");
-                    try {
-                        f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
-                    } catch (IOException e) {
-                        System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
-                    }
-                }
-            }
-        }
-    }
-
-    private Invoker selectNativeMethodInvoker(File taskSandboxWorkingDir, InvocationResources assignedResources)
-        throws JobExecutionException {
-        switch (invocation.getLang()) {
-            case JAVA:
-                Invoker javaInvoker = null;
-                switch (context.getExecutionType()) {
-                    case COMPSS:
-                        if (context.getRuntimeAPI() != null && context.getLoaderAPI() != null) {
-                            System.out.println("Nested Support enabled on the Invocation Context!");
-                            javaInvoker =
-                                new JavaNestedInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                        } else {
-                            javaInvoker =
-                                new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                        }
-                        break;
-                    case STORAGE:
-                        javaInvoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                        break;
-                }
-                return javaInvoker;
-            case PYTHON:
-                if (pyPipes == null) {
-                    PipedMirror mirror;
-                    synchronized (platform) {
-                        mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
-                        if (mirror == null) {
-                            mirror = PythonInvoker.getMirror(context, platform);
-                            platform.registerMirror(PythonInvoker.class, mirror);
-                        }
-                    }
-                    pyPipes = mirror.registerExecutor(id);
-                }
-                return new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
-            case C:
-                Invoker cInvoker = null;
-                if (context.isPersistentCEnabled()) {
-                    cInvoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    if (!isRegistered) {
-                        PersistentMirror mirror;
-                        synchronized (platform) {
-                            mirror = (PersistentMirror) platform.getMirror(CPersistentInvoker.class);
-                            if (mirror == null) {
-                                mirror = CPersistentInvoker.getMirror(context, platform);
-                                platform.registerMirror(CPersistentInvoker.class, mirror);
-                            }
-                        }
-                        mirror.registerExecutor(id);
-                        isRegistered = true;
-                    }
-                } else {
-                    if (cPipes == null) {
-                        PipedMirror mirror;
-                        synchronized (platform) {
-                            mirror = (PipedMirror) platform.getMirror(CInvoker.class);
-                            if (mirror == null) {
-                                mirror = (PipedMirror) CInvoker.getMirror(context, platform);
-                                platform.registerMirror(CInvoker.class, mirror);
-                            }
-                        }
-                        cPipes = mirror.registerExecutor(id);
-                    }
-                    cInvoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
-                }
-                return cInvoker;
-            default:
-                throw new JobExecutionException("Unrecognised lang for a method type invocation");
-        }
-    }
-
     /**
      * Delete a file or a directory and its children.
      *
@@ -1139,14 +1129,56 @@ public class Executor implements Runnable, InvocationRunner {
         });
     }
 
-    @Override
-    public void stalledCodeExecution() {
-        this.platform.blockedRunner(invocation, this, this.resources);
+    /*
+     * ---------------------- TRACE EVENTS MAGEMENT --------------------------------
+     */
+    private void emitingTaskStartEvents() {
+        int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits();
+        Tracer.emitEvent(nCPUs, Tracer.getCPUCountEventsType());
+        int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits();
+        Tracer.emitEvent(nGPUs, Tracer.getGPUCountEventsType());
+        int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize();
+        if (memory < 0) {
+            memory = 0;
+        }
+        Tracer.emitEvent(memory, Tracer.getMemoryEventsType());
+        int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW();
+        if (diskBW < 0) {
+            diskBW = 0;
+        }
+        Tracer.emitEvent(diskBW, Tracer.getDiskBWEventsType());
+        int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
+        Tracer.emitEvent(taskType, Tracer.getTaskTypeEventsType());
+        Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
     }
 
-    @Override
-    public void readyToContinueExecution(Semaphore sem) {
-        this.platform.unblockedRunner(invocation, this, this.resources, sem);
+    private void emitTaskEndEvents() {
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getCPUCountEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getGPUCountEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getMemoryEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getDiskBWEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTypeEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
+    }
+
+    private void emitAffinityChangeEvents() {
+        if (this.resources != null) {
+            int[] cpus = this.resources.getAssignedCPUs();
+            if (cpus != null && cpus.length > 0) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+                Tracer.emitEvent(cpus[0] + 1L, Tracer.getTasksCPUAffinityEventsType());
+            }
+            int[] gpus = this.resources.getAssignedGPUs();
+            if (gpus != null && gpus.length > 0) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+                Tracer.emitEvent(gpus[0] + 1L, Tracer.getTasksGPUAffinityEventsType());
+            }
+        }
+    }
+
+    private void emitAffinityEndEvents() {
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
     }
 
 

@@ -24,8 +24,13 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +40,7 @@ public class ResourceManager {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
+    private final List<PendingRequest> pendingRequests;
     private final ThreadBinder binderCPUs;
     private final ThreadBinder binderGPUs;
     private final ThreadBinder binderFPGAs;
@@ -42,7 +48,7 @@ public class ResourceManager {
 
     /**
      * Resource Manager constructor.
-     * 
+     *
      * @param cusCPU CPU Computing units
      * @param cpuMap CPU Mapping
      * @param cusGPU GPU Computing units
@@ -127,6 +133,7 @@ public class ResourceManager {
             binderFPGAsTmp = new BindToResource(cusFPGA);
         }
         binderFPGAs = binderFPGAsTmp;
+        this.pendingRequests = new LinkedList<>();
     }
 
     /**
@@ -136,10 +143,10 @@ public class ResourceManager {
      * @param rd Resource descripton
      * @param preferredAllocation resources expected to receive
      * @return Assigned resources
-     * @throws UnsufficientAvailableComputingUnitsException Not enough available computing units
+     * @throws UnsufficientAvailableResourcesException Not enough available resources
      */
-    public InvocationResources acquireResources(int jobId, ResourceDescription rd,
-        InvocationResources preferredAllocation) throws UnsufficientAvailableComputingUnitsException {
+    public synchronized InvocationResources acquireResources(int jobId, ResourceDescription rd,
+        InvocationResources preferredAllocation) throws UnsufficientAvailableResourcesException {
 
         int cpus;
         int gpus;
@@ -155,20 +162,54 @@ public class ResourceManager {
             gpus = 0;
             fpgas = 0;
         }
-        int[] assignedCPUs;
-        int[] assignedGPUs;
-        int[] assignedFPGAs;
+
+        int[] preferredCPUs = null;
+        int[] preferredGPUs = null;
+        int[] preferredFPGAs = null;
         if (preferredAllocation != null) {
-            assignedCPUs = this.binderCPUs.bindComputingUnits(jobId, cpus, preferredAllocation.getAssignedCPUs());
-            assignedGPUs = this.binderGPUs.bindComputingUnits(jobId, gpus, preferredAllocation.getAssignedGPUs());
-            assignedFPGAs = this.binderFPGAs.bindComputingUnits(jobId, fpgas, preferredAllocation.getAssignedFPGAs());
-        } else {
-            assignedCPUs = this.binderCPUs.bindComputingUnits(jobId, cpus, null);
-            assignedGPUs = this.binderGPUs.bindComputingUnits(jobId, gpus, null);
-            assignedFPGAs = this.binderFPGAs.bindComputingUnits(jobId, fpgas, null);
+            preferredCPUs = preferredAllocation.getAssignedCPUs();
+            preferredGPUs = preferredAllocation.getAssignedGPUs();
+            preferredFPGAs = preferredAllocation.getAssignedFPGAs();
+        }
+        int[] assignedCPUs = null;
+        int[] assignedGPUs = null;
+        int[] assignedFPGAs = null;
+        try {
+            assignedCPUs = this.binderCPUs.bindComputingUnits(jobId, cpus, preferredCPUs);
+            assignedGPUs = this.binderGPUs.bindComputingUnits(jobId, gpus, preferredGPUs);
+            assignedFPGAs = this.binderFPGAs.bindComputingUnits(jobId, fpgas, preferredFPGAs);
+        } catch (UnsufficientAvailableResourcesException uare) {
+            if (assignedCPUs != null) {
+                this.binderCPUs.releaseComputingUnits(jobId);
+                if (assignedGPUs != null) {
+                    this.binderCPUs.releaseComputingUnits(jobId);
+                }
+            }
+            throw uare;
         }
 
         return new InvocationResources(assignedCPUs, assignedGPUs, assignedFPGAs);
+    }
+
+    /**
+     * Bind numCUs core units to the job.
+     *
+     * @param jobId Job identifier
+     * @param rd Resource descripton
+     * @param allocatedResources resources expected to receive
+     * @param sem Semaphore to notify when resources are assigned. If {@literal null} and no enough available computing
+     *            units to satify the request, throws an exception.
+     */
+    public synchronized void reacquireResources(int jobId, ResourceDescription rd,
+        InvocationResources allocatedResources, Semaphore sem) {
+        try {
+            InvocationResources newResources = acquireResources(jobId, rd, allocatedResources);
+            allocatedResources.reconfigure(newResources);
+            sem.release();
+        } catch (UnsufficientAvailableResourcesException uare) {
+            PendingRequest p = new PendingRequest(jobId, rd, allocatedResources, sem);
+            this.pendingRequests.add(p);
+        }
     }
 
     /**
@@ -176,10 +217,42 @@ public class ResourceManager {
      *
      * @param jobId Job identifier
      */
-    public void releaseResources(int jobId) {
+    public synchronized void releaseResources(int jobId) {
         this.binderCPUs.releaseComputingUnits(jobId);
         this.binderGPUs.releaseComputingUnits(jobId);
         this.binderFPGAs.releaseComputingUnits(jobId);
+        Iterator<PendingRequest> iter = this.pendingRequests.iterator();
+        while (iter.hasNext()) {
+            PendingRequest req = iter.next();
+            int reqJobId = req.jobId;
+            ResourceDescription reqRequirments = req.requirements;
+            InvocationResources reqAllocation = req.allocation;
+            try {
+                InvocationResources newResources = acquireResources(reqJobId, reqRequirments, reqAllocation);
+                reqAllocation.reconfigure(newResources);
+                req.sem.release();
+                iter.remove();
+            } catch (UnsufficientAvailableResourcesException uare) {
+                // Do nothing. There are not enough resources yet. Move to next request
+            }
+        }
     }
 
+
+    private static class PendingRequest {
+
+        private final int jobId;
+        private final ResourceDescription requirements;
+        private final InvocationResources allocation;
+        private final Semaphore sem;
+
+
+        public PendingRequest(int jobId, ResourceDescription requirements, InvocationResources allocation,
+            Semaphore sem) {
+            this.jobId = jobId;
+            this.requirements = requirements;
+            this.allocation = allocation;
+            this.sem = sem;
+        }
+    }
 }

@@ -28,7 +28,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.utils.execution.ThreadedProperties;
 
@@ -268,14 +268,30 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     @Override
+    public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
+        InvocationResources preferredAllocation) throws UnsufficientAvailableResourcesException {
+
+        return this.rm.acquireResources(jobId, requirements, preferredAllocation);
+    }
+
+    @Override
     public void blockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources assignedResources) {
-        
+        int jobId = invocation.getJobId();
+        this.rm.releaseResources(jobId);
+        this.addWorkerThreads(1);
     }
 
     @Override
     public void unblockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources previousAllocation,
         Semaphore sem) {
-        sem.release();
+        this.removeWorkerThreads(1);
+        int jobId = invocation.getJobId();
+        this.rm.reacquireResources(jobId, invocation.getRequirements(), previousAllocation, sem);
+    }
+
+    @Override
+    public void releaseResources(int jobId) {
+        this.rm.releaseResources(jobId);
     }
 
     @Override
@@ -293,18 +309,6 @@ public class ExecutionPlatform implements ExecutorContext {
     @Override
     public Execution getJob() {
         return this.queue.dequeue();
-    }
-
-    @Override
-    public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
-        InvocationResources preferredAllocation) throws UnsufficientAvailableComputingUnitsException {
-
-        return this.rm.acquireResources(jobId, requirements, preferredAllocation);
-    }
-
-    @Override
-    public void releaseResources(int jobId) {
-        this.rm.releaseResources(jobId);
     }
 
     @Override

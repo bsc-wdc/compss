@@ -55,6 +55,9 @@ public class ITAppModifier {
     private static final boolean IS_MAIN_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS) != null
         && System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS).equals("false") ? false : true;
 
+    private static final long WALL_CLOCK_LIMIT =
+        Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
+
 
     /**
      * Modify method.
@@ -101,7 +104,7 @@ public class ITAppModifier {
          * Create a static constructor to initialize the runtime Create a shutdown hook to stop the runtime before the
          * JVM ends
          */
-        manageStartAndStop(appClass, itApiVar, itSRVar, itORVar);
+        manageStartAndStop(appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
 
         /*
          * Create IT App Editor
@@ -247,14 +250,12 @@ public class ITAppModifier {
         }
     }
 
-    private void manageStartAndStop(CtClass appClass, String itApiVar, String itSRVar, String itORVar)
-        throws CannotCompileException, NotFoundException {
+    private void manageStartAndStop(CtClass appClass, String itApiVar, String itSRVar, String itORVar,
+        String itAppIdVar) throws CannotCompileException, NotFoundException {
 
         if (DEBUG) {
             LOGGER.debug("Previous class initializer is " + appClass.getClassInitializer());
         }
-
-        CtConstructor initializer = appClass.makeClassInitializer();
 
         /*
          * - Creation of the COMPSsRuntimeImpl - Creation of the stream registry to keep track of streams (with error
@@ -271,7 +272,11 @@ public class ITAppModifier {
             .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI
                 + ") " + itApiVar + " );")
             .append(itApiVar + ".startIT();");
-
+        if (WALL_CLOCK_LIMIT > 0) {
+            // Setting wall clock limit with runtime stop.
+            toInsertBefore.append(itApiVar + ".setWallClockLimit(" + itAppIdVar + "," + WALL_CLOCK_LIMIT + "L, true);");
+        }
+        CtConstructor initializer = appClass.makeClassInitializer();
         initializer.insertBefore(toInsertBefore.toString());
     }
 

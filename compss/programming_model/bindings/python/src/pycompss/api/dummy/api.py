@@ -202,6 +202,18 @@ def compss_free_resources(num_resources, group_name):  # noqa
     pass
 
 
+def compss_set_wall_clock(wall_clock_limit):  # noqa
+    # type: (int, str) -> None
+    """ Sets the application wall_clock_limit.
+
+    Does nothing.
+
+    :param wall_clock_limit: Wall clock limit in seconds.
+    :return: None
+    """
+    pass
+
+
 class TaskGroup(object):
     """
     Dummy TaskGroup context manager.

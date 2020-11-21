@@ -25,6 +25,7 @@ PyCOMPSs Binding - Binding
 
 import os
 import re
+import signal
 from shutil import rmtree
 
 import pycompss.runtime.management.COMPSs as COMPSs
@@ -131,6 +132,9 @@ def stop_runtime(code=0):
     app_id = 0
     if __debug__:
         logger.info("Stopping runtime...")
+
+    # Stopping a possible wall clock limit
+    signal.alarm(0)
 
     if code != 0:
         if __debug__:
@@ -440,6 +444,27 @@ def free_resources(num_resources, group_name):
 
     # Call the Runtime
     COMPSs.free_resources(app_id, num_resources, group_name)
+
+
+def set_wall_clock(wall_clock_limit):
+    # type: (long) -> node
+    """ Sets the application wall clock limit.
+
+    :param wall_clock_limit: Wall clock limit in seconds.
+    :return: None
+    """
+
+    app_id = 0
+    if __debug__:
+        logger.debug("Set a wall clock limit of " +
+                     str(wall_clock_limit))
+
+    # Activate wall clock limit alarm
+    signal.signal(signal.SIGALRM, _wall_clock_exceed)
+    signal.alarm(wall_clock_limit)
+
+    # Call the Runtime to set a timer in case wall clock is reached in a synch
+    COMPSs.set_wall_clock(app_id, wall_clock_limit)
 
 
 @emit_event(REGISTER_CORE_ELEMENT_EVENT, master=True)
@@ -773,3 +798,7 @@ def _clean_temps():
     for f in os.listdir(cwd):
         if re.search(r'd\d+v\d+_\d+\.IT', f):  # NOSONAR
             os.remove(os.path.join(cwd, f))
+
+
+def _wall_clock_exceed(signum, frame):
+    raise Exception("Application has reached its wall clock limit")

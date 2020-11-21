@@ -33,6 +33,7 @@ PyCOMPSs API
         - get_number_of_resources
         - request_resources_creation
         - request_resources_destruction
+        - set_wall_clock
         - wait_on
         - TaskGroup (class)
     functions.
@@ -65,6 +66,7 @@ if context.in_pycompss():
     from pycompss.runtime.binding import get_number_of_resources as __get_number_of_resources__  # noqa: E501
     from pycompss.runtime.binding import request_resources as __request_resources__              # noqa: E501
     from pycompss.runtime.binding import free_resources as __free_resources__
+    from pycompss.runtime.binding import set_wall_clock as __set_wall_clock__
     from pycompss.runtime.binding import wait_on as __wait_on__
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
@@ -241,6 +243,15 @@ if context.in_pycompss():
         """
         __free_resources__(num_resources, group_name)
 
+    def compss_set_wall_clock(wall_clock_limit):
+        # type: (long) -> None
+        """ Sets the application wall clock limit.
+
+        :param wall_clock_limit: Wall clock limit in seconds.
+        :return: None
+        """
+        __set_wall_clock__(wall_clock_limit)
+
     class TaskGroup(object):
         """
         A context-like class used to represent a group of tasks.
@@ -311,6 +322,9 @@ else:
         __dummy_compss_request_resources__
     from pycompss.api.dummy.api import compss_free_resources as \
         __dummy_compss_free_resources__
+    from pycompss.api.dummy.api import compss_set_wall_clock as \
+        __dummy_set_wall_clock__
+
     # Hidden TaskGroup context manager
     from pycompss.api.dummy.api import TaskGroup  # noqa
 
@@ -369,3 +383,7 @@ else:
     def compss_free_resources(num_resources, group_name):
         # type: (int, str) -> None
         __dummy_compss_free_resources__(num_resources, group_name)
+
+    def compss_set_wall_clock(wall_clock_limit):
+        # type: (long)
+        __dummy_compss_set_wall_clock__(wall_clock_limit)

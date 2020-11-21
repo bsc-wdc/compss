@@ -1,4 +1,4 @@
-package cancelRunningTasks;
+package wallClockLimit;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,16 +11,19 @@ import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
 
 
-public class CancelRunningTasksImpl {
+public class WallClockTestImpl {
 
-    public static void throwException(String fileName) throws Exception {
-        System.out.println("Exception is going to be thrown");
-        throw new COMPSsException("Second task threw an exception");
+    public static void inoutLongTask(String fileName) throws Exception {
+        for (int j = 0; j <= 600; j++) {
+            Thread.sleep(50);
+            System.out.println(j);
+            COMPSsWorker.cancellationPoint();
+        }
     }
 
     public static void longTask(String fileName) throws Exception {
-        for (int j = 0; j <= 30; j++) {
-            Thread.sleep(1000);
+        for (int j = 0; j <= 600; j++) {
+            Thread.sleep(50);
             System.out.println(j);
             COMPSsWorker.cancellationPoint();
         }
@@ -56,13 +59,6 @@ public class CancelRunningTasksImpl {
             } catch (Exception e) {
             }
         }
-    }
-
-    public static void writeTwo(String fileName) {
-        writeFile(fileName, String.valueOf(2));
-        System.out.println("2 written");
-        String contents = readFile(fileName);
-        System.out.println(contents);
     }
 
     public static String readFile(String fileName) {

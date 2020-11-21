@@ -224,6 +224,7 @@ void PIPE_On() {
     debug_printf ("[BINDING-COMMONS] - @PIPE_On\n");
     init_env_vars();
     // TODO: I think nothing is required in current case
+    debug_printf ("[BINDING-COMMONS] - @PIPE_On NOT CURRENTLY IMPLEMENTED FOR PIPES\n");
     // Create runtime
     // Call startIT
 }
@@ -232,7 +233,7 @@ void PIPE_On() {
 void PIPE_Off(int code) {
     debug_printf("[BINDING-COMMONS] - @PIPE_Off\n");
     // TODO: I think nothing is required in current case
-
+    debug_printf ("[BINDING-COMMONS] - @PIPE_Off NOT CURRENTLY IMPLEMENTED FOR PIPES\n");
 
     // Call noMoreTasks
 
@@ -729,3 +730,8 @@ void PIPE_FreeResources(long appId, int numResources, char* groupName) {
 
     debug_printf("[BINDING-COMMONS] - @PIPE_FreeResources - Resources destruction requested");
 }
+
+void PIPE_set_wall_clock(long appId, long wcl, int stopRT){
+	debug_printf ("[BINDING-COMMONS] - @PIPE_set_wall_clock NOT CURRENTLY IMPLEMENTED FOR PIPES\n");
+}
+

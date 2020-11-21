@@ -44,13 +44,7 @@ usage() {
   #---------------------------------------------------------------------
   # Modify all pom files
   echo "- Modifying pom files..."
-  pomFiles=$(find . -name pom.xml)
-  for pom in $pomFiles; do
-    echo "    $pom"
-    sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$pom"
-    sed -i 's/<compss.version>'"${previousVersion}"'<\/compss.version>/<compss.version>'"${newVersion}"'<\/compss.version>/g' "$pom"
-  done
-
+  mvn versions:set -DnewVersion=${newVersion}
 
   #---------------------------------------------------------------------
   # COMMIT MODIFICATIONS IF NEEDED

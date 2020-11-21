@@ -71,6 +71,7 @@
 		<module>2_limit_of_tasks</module>
 		<module>2_shared_disks</module>
 		<module>2_time_out</module>
+		<module>2_wall_clock_limit</module>
 		<module>3_object_deregister</module>
 		<module>3_remote_file</module>
 		<module>3_worker_environment</module>

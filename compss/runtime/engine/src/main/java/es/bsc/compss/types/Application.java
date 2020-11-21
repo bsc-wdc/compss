@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TimerTask;
 import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -48,6 +49,8 @@ public class Application {
     private final Long id;
     // Parallelism source
     private final String parallelismSource;
+
+    private TimerTask wallClockKiller;
 
     /*
      * Application state variables
@@ -447,6 +450,20 @@ public class Application {
     public void removeWrittenPSCOId(int dataId) {
         if (this.writtenPSCODataIds.remove(dataId)) {
             LOGGER.info(" Removed data " + dataId + " from written pscos");
+        }
+    }
+
+    public void setTimerTask(WallClockTimerTask wcTimerTask) {
+        this.wallClockKiller = wcTimerTask;
+    }
+
+    /**
+     * Cancel the wall clock time timer task.
+     */
+    public void cancelTimerTask() {
+        if (this.wallClockKiller != null) {
+            wallClockKiller.cancel();
+            wallClockKiller = null;
         }
     }
 

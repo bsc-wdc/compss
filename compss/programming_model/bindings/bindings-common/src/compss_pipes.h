@@ -92,5 +92,6 @@ void PIPE_Get_AppDir(char** buf);
 void PIPE_EmitEvent(int type, long id);
 void PIPE_Get_Object(long appId, char* objectId, char** buf);
 void PIPE_Delete_Object(long appId, char* objectId, int** buf);
+void PIPE_set_wall_clock(long appId, long wcl, int stopRT);
 
 #endif /* PIPE_COMPSS_H */

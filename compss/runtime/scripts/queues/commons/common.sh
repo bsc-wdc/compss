@@ -494,7 +494,7 @@ set_time() {
   if [ -z "$wcl" ]; then
 	  if [ -n "${forward_wcl}" ] && [ "${forward_wcl}" == "true" ]; then
 		  wcl=$(((exec_time - 1) * 60))
-		  args_pass="$args_pass --wall_clock_limit=$wcl"
+		  args_pass="--wall_clock_limit=${wcl} ${args_pass}"
   	  fi
   fi
   if [ -z "${WC_CONVERSION_FACTOR}" ]; then

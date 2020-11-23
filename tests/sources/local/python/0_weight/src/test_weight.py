@@ -7,6 +7,7 @@ from pycompss.api.constraint import constraint
 from pycompss.api.api import compss_barrier
 from pycompss.api.parameter import *
 
+import time
 
 CONTENT="Content"
 
@@ -52,7 +53,7 @@ def read_task2(filename1, filename2, filename3):
 
 
 def main():
-    
+    time.sleep(10)
     gen_task1("filename1_1", "filename1_2", "filename1_3", CONTENT)
     gen_task1("filename2_1", "filename2_2", "filename2_3", CONTENT)
     compss_barrier()

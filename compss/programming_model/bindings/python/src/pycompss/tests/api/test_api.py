@@ -41,7 +41,9 @@ def test_dummy_api():
     from pycompss.api.dummy.api import TaskGroup
 
     file_name = "simulated_file.txt"
+    file_names = ["simulated_file1.txt", "simulated_file2.txt"]
     directory_name = "simulated_directory"
+    directory_names = ["simulated_directory1", "simulated_directory2"]
     group_name = "simulated_group"
     obj = [1, 2, 3]
     num_resources = 1
@@ -50,17 +52,29 @@ def test_dummy_api():
         f.write("some content")
     os.mkdir(directory_name)
 
+    for f_name in file_names:
+        with open(f_name, "w") as f:
+            f.write("some content")
+    for d_name in directory_names:
+        os.mkdir(d_name)
+
     compss_start(log_level="off", interactive=False)
     compss_stop(code=0)
     compss_file_exists(file_name)
+    compss_file_exists(*file_names)
     compss_open(file_name, mode="r")
     compss_delete_file(file_name)
+    compss_delete_file(*file_names)
     compss_wait_on_file(file_name)
+    compss_wait_on_file(*file_names)
     compss_wait_on_directory(directory_name)
+    compss_wait_on_directory(*directory_names)
     compss_delete_object(obj)
+    compss_delete_object(*obj)
     compss_barrier(no_more_tasks=False)
     compss_barrier_group(group_name)
     compss_wait_on(obj)
+    compss_wait_on(*obj)
     compss_get_number_of_resources()
     compss_request_resources(num_resources, group_name)
     compss_free_resources(num_resources, group_name)
@@ -71,3 +85,8 @@ def test_dummy_api():
 
     os.remove(file_name)
     os.rmdir(directory_name)
+
+    for f_name in file_names:
+        os.remove(f_name)
+    for d_name in directory_names:
+        os.rmdir(d_name)

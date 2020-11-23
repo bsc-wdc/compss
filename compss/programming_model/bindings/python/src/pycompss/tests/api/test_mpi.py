@@ -57,6 +57,32 @@ def test_mpi_call_outside():
         "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
+def test_mpi_call_outside_with_computing_nodes_old_style():
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    my_mpi = MPI(runner=MPI_RUNNER, computingNodes=2, binary="date")
+    f = my_mpi(dummy_function)
+    thrown = False
+    try:
+        _ = f()
+    except Exception:  # noqa
+        thrown = True  # this is OK!
+    assert thrown, \
+        "The mpi decorator did not raise an exception when invoked out of scope (computingNodes)."  # noqa: E501
+
+
+def test_mpi_call_outside_with_computing_nodes():
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    my_mpi = MPI(runner=MPI_RUNNER, computing_nodes=2, binary="date")
+    f = my_mpi(dummy_function)
+    thrown = False
+    try:
+        _ = f()
+    except Exception:  # noqa
+        thrown = True  # this is OK!
+    assert thrown, \
+        "The mpi decorator did not raise an exception when invoked out of scope (computing_nodes)."  # noqa: E501
+
+
 def test_mpi_layout_empty_parameter():
     context.set_pycompss_context(context.MASTER)
     layout = dict()

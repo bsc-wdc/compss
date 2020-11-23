@@ -173,8 +173,7 @@ class MPI(PyCOMPSsDecorator):
             cmd += self.kwargs['flags'].split()
         cmd += [self.kwargs['binary']]
 
-        return_code = run_command(cmd, args, kwargs)
-        return return_code
+        return run_command(cmd, args, kwargs)
 
     def __resolve_collection_layout_params__(self):
         # type: () -> list
@@ -204,7 +203,8 @@ class MPI(PyCOMPSsDecorator):
 
         return [param_name, str(block_count), str(block_length), str(stride)]
 
-    def __get_block_count__(self, collection_layout):
+    @staticmethod
+    def __get_block_count__(collection_layout):
         # type: (dict) -> int
         """ Get the block count from the given collection layout.
 
@@ -216,7 +216,8 @@ class MPI(PyCOMPSsDecorator):
         else:
             return -1
 
-    def __get_block_length__(self, collection_layout):
+    @staticmethod
+    def __get_block_length__(collection_layout):
         # type: (dict) -> int
         """ Get the block length from the given collection layout.
 
@@ -228,7 +229,8 @@ class MPI(PyCOMPSsDecorator):
         else:
             return -1
 
-    def __get_stride__(self, collection_layout):
+    @staticmethod
+    def __get_stride__(collection_layout):
         # type: (dict) -> int
         """ Get the stride from the given collection layout.
 

@@ -179,7 +179,10 @@ def accessed_file(file_name):
     app_id = 0
     if __debug__:
         logger.debug("Checking if file %s has been accessed." % file_name)
-    return COMPSs.accessed_file(app_id, file_name)
+    if os.path.exists(f_name):
+        return True
+    else:
+        return COMPSs.accessed_file(app_id, file_name)
 
 
 @emit_event(OPEN_FILE_EVENT, master=True)

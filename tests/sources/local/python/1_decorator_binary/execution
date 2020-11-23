@@ -89,5 +89,142 @@
   done
 
   #----------------------------------------------------------------------------------
+
+  app_name2="decorator_binary_fail.py"
+  exit_value2=1
+
+  echo
+  echo "*** RUNNING PYTHON APPLICATION DECORATOR BINARY FAIL"
+
+  for python_interpreter in ${execution_envs}; do
+    echo "   - Running with Interpreter: ${python_interpreter}"
+    output_log="${target_log_folder}/${app_name2}_${python_interpreter}_0${retry_num}.outputlog"
+    error_log="${target_log_folder}/${app_name2}_${python_interpreter}_0${retry_num}.errorlog"
+    specific_log_dir="${COMPSs_log_folder}/${app_name2}_${python_interpreter}_0${retry_num}"
+    exec_target_log_folder="${target_log_folder}/${app_name2}_${python_interpreter}_0${retry_num}"
+    mkdir -p "${exec_target_log_folder}"
+    expectedTime=80s
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+
+    # shellcheck disable=SC2086
+    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+      --project="${base_app_dir}"/project.xml \
+      --resources="${base_app_dir}"/resources.xml \
+      \
+      --comm="$comm" \
+      \
+      --debug \
+      ${runcompss_opts} \
+      \
+      --lang=python \
+      --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
+      --pythonpath="${base_app_dir}"/src \
+      --specific_log_dir="${specific_log_dir}" \
+      \
+      "${base_app_dir}/src/${app_name2}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    # Check timeout
+    if [[ "$?" = "124" ]]; then
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Report time out
+      echo "[WARNING] Python Application timed out" >> "${output_log}"
+      exit_value2=124
+    else
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Check result
+      "${base_app_dir}"/result2 "${output_log}" "${error_log}" "${exec_target_log_folder}"
+      exit_value2=$?
+    fi
+
+    if [ ${exit_value2} -ne 0 ]; then
+      exit ${exit_value2}
+    fi
+  done
+
+  #----------------------------------------------------------------------------------
+
+  app_name3="decorator_binary_return_fail.py"
+  exit_value3=1
+
+  echo
+  echo "*** RUNNING PYTHON APPLICATION DECORATOR BINARY NO RETURN FAIL"
+
+  for python_interpreter in ${execution_envs}; do
+    echo "   - Running with Interpreter: ${python_interpreter}"
+    output_log="${target_log_folder}/${app_name3}_${python_interpreter}_0${retry_num}.outputlog"
+    error_log="${target_log_folder}/${app_name3}_${python_interpreter}_0${retry_num}.errorlog"
+    specific_log_dir="${COMPSs_log_folder}/${app_name3}_${python_interpreter}_0${retry_num}"
+    exec_target_log_folder="${target_log_folder}/${app_name3}_${python_interpreter}_0${retry_num}"
+    mkdir -p "${exec_target_log_folder}"
+    expectedTime=80s
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+
+    # shellcheck disable=SC2086
+    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+      --project="${base_app_dir}"/project.xml \
+      --resources="${base_app_dir}"/resources.xml \
+      \
+      --comm="$comm" \
+      \
+      --debug \
+      ${runcompss_opts} \
+      \
+      --lang=python \
+      --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
+      --pythonpath="${base_app_dir}"/src \
+      --specific_log_dir="${specific_log_dir}" \
+      \
+      "${base_app_dir}/src/${app_name3}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    # Check timeout
+    if [[ "$?" = "124" ]]; then
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Report time out
+      echo "[WARNING] Python Application timed out" >> "${output_log}"
+      exit_value3=124
+    else
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Check result
+      "${base_app_dir}"/result3 "${output_log}" "${error_log}" "${exec_target_log_folder}"
+      exit_value3=$?
+    fi
+
+    if [ ${exit_value3} -ne 0 ]; then
+      exit ${exit_value3}
+    fi
+  done
+  #----------------------------------------------------------------------------------
   # Return execution status
-  exit ${exit_value}
+  if [ ${exit_value} -ne 0 ] && [ ${exit_value2} -ne 0 ] && [ ${exit_value3} -ne 0 ]; then
+    exit 1
+  else
+    exit 0
+  fi

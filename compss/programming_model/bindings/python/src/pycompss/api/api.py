@@ -334,7 +334,7 @@ else:
     from pycompss.api.dummy.api import compss_free_resources as \
         __dummy_compss_free_resources__
     from pycompss.api.dummy.api import compss_set_wall_clock as \
-        __dummy_set_wall_clock__
+        __dummy_compss_set_wall_clock__
 
     # Hidden TaskGroup context manager
     from pycompss.api.dummy.api import TaskGroup  # noqa
@@ -396,5 +396,5 @@ else:
         __dummy_compss_free_resources__(num_resources, group_name)
 
     def compss_set_wall_clock(wall_clock_limit):
-        # type: (long)
+        # type: (long) -> None
         __dummy_compss_set_wall_clock__(wall_clock_limit)

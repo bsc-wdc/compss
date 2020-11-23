@@ -44,6 +44,7 @@ from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.commons import LIST_TYPE
+from pycompss.util.exceptions import PyCOMPSsException
 import pycompss.util.context as context
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
@@ -179,7 +180,7 @@ def accessed_file(file_name):
     app_id = 0
     if __debug__:
         logger.debug("Checking if file %s has been accessed." % file_name)
-    if os.path.exists(f_name):
+    if os.path.exists(file_name):
         return True
     else:
         return COMPSs.accessed_file(app_id, file_name)
@@ -804,4 +805,4 @@ def _clean_temps():
 
 
 def _wall_clock_exceed(signum, frame):
-    raise Exception("Application has reached its wall clock limit")
+    raise PyCOMPSsException("Application has reached its wall clock limit")

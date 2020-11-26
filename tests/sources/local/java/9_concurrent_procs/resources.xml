@@ -10,8 +10,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43001</MinPort>
-                    <MaxPort>43003</MaxPort> <!--  one for each concurrent application -->
+                    <MinPort>43011</MinPort>
+                    <MaxPort>43013</MaxPort> <!--  one for each concurrent application -->
                 </Ports>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">

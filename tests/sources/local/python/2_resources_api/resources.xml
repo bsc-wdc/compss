@@ -8,7 +8,7 @@
 
         <Images>
             <Image Name="image_1">
-                <CreationTime>20</CreationTime>
+                <CreationTime>15</CreationTime>
                 <Adaptors>
                     <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                         <SubmissionSystem>

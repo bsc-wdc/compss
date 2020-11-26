@@ -9,24 +9,24 @@
   target_log_folder=$6
   retry_num=$7
   execution_envs=$8
-  
+
   # Global variables
   exit_value=1
   jar_name="9_stream_objects.jar"
   app_name="objectStreamTest.Main"
-  
+
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
 
   # Wait for system sockets to close
-  sleep 10s
-  
+  sleep 15s
+
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
   mkdir -p /tmp/COMPSsWorker02/
-  
+
   #----------------------------------------------------------------------------------
   # Run application
   echo
@@ -53,24 +53,24 @@
      --classpath="${base_app_dir}/${jar_name}" \
      \
      "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-  
+
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-     
+
      # Report time out
      echo "[WARNING] Java Application timed out" >> "${output_log}"
      exit_value=124
   else
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-  
+
      # Check result
      "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
      exit_value=$?
   fi
-  
+
   #----------------------------------------------------------------------------------
   # Return execution status
   exit ${exit_value}

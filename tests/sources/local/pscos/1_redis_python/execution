@@ -21,7 +21,9 @@
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
-
+  
+  # Wait for system sockets to close
+  sleep 15s
   #----------------------------------------------------------------------------------
   # Download the specified Redis Version, unzip it, compile the redis-server
   # utility, move it to the main folder and execute the main test

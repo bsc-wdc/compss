@@ -38,8 +38,8 @@
 					<Interactive />
 				</SubmissionSystem>
 				<Ports>
-					<MinPort>43002</MinPort>
-					<MaxPort>43003</MaxPort>
+					<MinPort>43003</MinPort>
+					<MaxPort>43004</MaxPort>
 				</Ports>
 			</Adaptor>
 			<Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">

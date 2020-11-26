@@ -10,8 +10,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43001</MinPort>
-                    <MaxPort>43002</MaxPort>
+                    <MinPort>43021</MinPort>
+                    <MaxPort>43022</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
@@ -25,7 +25,7 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-    
+
     <ComputeNode Name="COMPSsWorker02">
         <Processor Name="MainProcessor">
             <ComputingUnits>1</ComputingUnits>
@@ -36,8 +36,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43002</MinPort>
-                    <MaxPort>43003</MaxPort>
+                    <MinPort>43023</MinPort>
+                    <MaxPort>43024</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
@@ -51,7 +51,7 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-    
+
     <ComputeNode Name="COMPSsWorker03">
         <Processor Name="MainProcessor">
             <ComputingUnits>1</ComputingUnits>
@@ -62,8 +62,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43003</MinPort>
-                    <MaxPort>43004</MaxPort>
+                    <MinPort>43025</MinPort>
+                    <MaxPort>43026</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
@@ -77,7 +77,7 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-    
+
     <ComputeNode Name="COMPSsWorker04">
         <Processor Name="MainProcessor">
             <ComputingUnits>1</ComputingUnits>
@@ -88,8 +88,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43004</MinPort>
-                    <MaxPort>43005</MaxPort>
+                    <MinPort>43027</MinPort>
+                    <MaxPort>43028</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
@@ -103,5 +103,5 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-    
+
 </ResourcesList>

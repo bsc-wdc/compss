@@ -11,7 +11,7 @@ DEFAULT_CPUS_PER_TASK="false"
 DEFAULT_AGENTS_ENABLED="disabled"
 DEFAULT_AGENTS_HIERARCHY="tree"
 DEFAULT_NVRAM_OPTIONS="none"
-
+DEFAULT_FORWARD_TIME_LIMIT="true"
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -139,9 +139,9 @@ EOT
     cat <<EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
-    --forward_time_limit		    Forward the queue system time limit to the runtime. 
+    --forward_time_limit=<true|false>	    Forward the queue system time limit to the runtime. 
 					    It will stop the application in a controlled way.
-					    Default: Disabled 
+					    Default: ${DEFAULT_FORWARD_TIME_LIMIT} 
     --storage_home=<string>                 Root installation dir of the storage implementation
                                             Default: ${DEFAULT_STORAGE_HOME}
     --storage_props=<string>                Absolute path of the storage properties file
@@ -458,8 +458,8 @@ get_args() {
           uuid=*)
             echo "WARNING: uuid is automatically generated. Omitting parameter"
             ;;
-          forward_time_limit)
-            forward_wcl=true
+          forward_time_limit=)
+            forward_wcl=${OPTARG//forward_time_limit=/}
 	    ;;
 	  wall_clock_limit=*)
 	    wcl=${OPTARG//wall_clock_limit=/}
@@ -491,11 +491,14 @@ set_time() {
   if [ -z "${exec_time}" ]; then
     exec_time=${DEFAULT_EXEC_TIME}
   fi
+  if [ -z "${forward_wcl}" ]; then
+    forward_wcl=${DEFAULT_FORWARD_TIME_LIMIT}
+  fi
   if [ -z "$wcl" ]; then
-	  if [ -n "${forward_wcl}" ] && [ "${forward_wcl}" == "true" ]; then
-		  wcl=$(((exec_time - 1) * 60))
-		  args_pass="--wall_clock_limit=${wcl} ${args_pass}"
-  	  fi
+    if [ "${forward_wcl}" == "true" ]; then
+       wcl=$(((exec_time - 1) * 60))
+       args_pass="--wall_clock_limit=${wcl} ${args_pass}"
+    fi
   fi
   if [ -z "${WC_CONVERSION_FACTOR}" ]; then
     convert_to_wc "$exec_time"

@@ -73,7 +73,7 @@
   # Compile sources
   echo "- Compile sources"
   cd "${SOURCES_DIR}"
-  mvn -U clean package
+  mvn -U -Dmaven.test.skip=true clean package
   cd "${SCRIPT_DIR}"
 
   # COPY TRUNK

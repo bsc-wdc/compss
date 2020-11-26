@@ -2,11 +2,13 @@
 parallel=true
 data_file=@TEST_OUTPUT_PATH@/coverage/coverage
 omit =
+    */dist-packages/*
     */site-packages/*
     */distutils/*
     @TEST_OUTPUT_PATH@/*
 [report]
 omit =
+    */dist-packages/*
     */site-packages/*
     */distutils/*
     @TEST_OUTPUT_PATH@/*

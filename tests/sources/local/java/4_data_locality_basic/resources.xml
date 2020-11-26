@@ -10,8 +10,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43001</MinPort>
-                    <MaxPort>43002</MaxPort>
+                    <MinPort>43011</MinPort>
+                    <MaxPort>43012</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
@@ -25,7 +25,7 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-    
+
     <ComputeNode Name="COMPSsWorker02">
         <Processor Name="MainProcessor">
             <ComputingUnits>2</ComputingUnits>
@@ -36,8 +36,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43002</MinPort>
-                    <MaxPort>43003</MaxPort>
+                    <MinPort>43013</MinPort>
+                    <MaxPort>43014</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
@@ -51,5 +51,5 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-    
+
 </ResourcesList>

@@ -38,7 +38,8 @@
     exec_target_log_folder1="${target_log_folder}/${app_name1}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder1}"
     expectedTime=200s
-
+    # Add a little sleep to allow OS free sockets
+    sleep 5s
     python_mpi_worker=""
     python_interpreter_real=${python_interpreter}
     if [ "$python_interpreter" == 'python2_mpi' ]; then

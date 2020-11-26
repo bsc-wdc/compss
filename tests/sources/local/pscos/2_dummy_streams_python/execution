@@ -57,7 +57,7 @@ EOF
         expectedTime=100s
 
         # Add a little sleep to allow OS free Storage structures
-        sleep 10s
+        sleep 15s
 
         # shellcheck disable=SC2086
         timeout --signal=2 --kill-after=10s $expectedTime "${COMPSs_exec}" \

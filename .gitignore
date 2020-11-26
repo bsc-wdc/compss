@@ -182,6 +182,8 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 tests/configurations/*.cfg
 !tests/configurations/NIO.cfg
 !tests/configurations/GAT.cfg
+!tests/configurations/MT.cfg
+!tests/configurations/MN.cfg
 tests/scripts/hosts.backup
 
 # Ignore PyCOMPSs AutoParallel submodule patches

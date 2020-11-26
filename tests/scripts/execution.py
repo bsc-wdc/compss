@@ -384,7 +384,7 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
         # Clean orphan processes (if any)
         _clean_procs(compss_cfg)
         # Sleep between executions
-        time.sleep(2)
+        time.sleep(4)
         # Increase retry counter
         retry = retry + 1
     end_time = time.time()

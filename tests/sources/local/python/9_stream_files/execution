@@ -36,7 +36,8 @@
       exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
       mkdir -p "${exec_target_log_folder}"
       expectedTime=80s
-
+      # Add a little sleep to allow OS free sockets
+      sleep 15s
       # shellcheck disable=SC2086
       timeout --signal=2 --kill-after=10s $expectedTime "${COMPSs_exec}" \
         --project="${base_app_dir}"/project.xml \

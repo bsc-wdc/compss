@@ -137,7 +137,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTaAkKN-: flag; do
+  while getopts hvmMbBpPtTaAkKjJN-: flag; do
     # Treat the argument
     case "$flag" in
       h)

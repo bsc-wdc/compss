@@ -19,6 +19,7 @@ package es.bsc.compss.test.dummyadaptor;
 import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -51,9 +52,10 @@ public class DummyWorkerNode extends COMPSsWorker {
      * New DummyWorker node with name {@code name} and configuration {@code config}.
      *
      * @param config Adaptor configuration.
+     * @param monitor element monitoring chages on the node
      */
-    public DummyWorkerNode(MethodConfiguration config) {
-        super();
+    public DummyWorkerNode(MethodConfiguration config, NodeMonitor monitor) {
+        super(monitor);
         this.name = config.getHost();
     }
 

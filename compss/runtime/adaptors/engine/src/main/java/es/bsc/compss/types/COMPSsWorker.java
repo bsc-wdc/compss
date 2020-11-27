@@ -26,9 +26,11 @@ public abstract class COMPSsWorker extends COMPSsNode {
 
     /**
      * New worker.
+     * 
+     * @param monitor element monitoring changes on the node
      */
-    public COMPSsWorker() {
-        super();
+    public COMPSsWorker(NodeMonitor monitor) {
+        super(monitor);
     }
 
     /**

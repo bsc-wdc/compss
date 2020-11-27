@@ -72,6 +72,7 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.utils.execution.ExecutionManager;
@@ -1298,6 +1299,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public LoaderAPI getLoaderAPI() {
         return null;
+    }
+
+    @Override
+    public void idleReservedResourcesDetected(ResourceDescription resources) {
+        // NIO Adaptor does not support remote resource updates
+    }
+
+    @Override
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
+        // NIO Adaptor does not support remote resource updates
     }
 
 }

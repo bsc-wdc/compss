@@ -19,6 +19,7 @@ package es.bsc.compss.comm.fake;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.fake.FakeNode;
 import es.bsc.compss.types.resources.configuration.Configuration;
@@ -45,9 +46,9 @@ public class FakeServiceAdaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(Configuration config) {
+    public COMPSsWorker initWorker(Configuration config, NodeMonitor monitor) {
         ServiceConfiguration serviceCfg = (ServiceConfiguration) config;
-        return new FakeNode(serviceCfg.getWsdl());
+        return new FakeNode(serviceCfg.getWsdl(), monitor);
 
     }
 

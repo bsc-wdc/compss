@@ -18,6 +18,7 @@ package es.bsc.compss.comm;
 
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
@@ -75,9 +76,10 @@ public interface CommAdaptor {
      * Initializes a worker through an adaptor.
      * 
      * @param config Adaptor configuration.
+     * @param monitor element monitoring changes on the node
      * @return A COMPSsWorker object representing the initialized worker.
      */
-    public COMPSsWorker initWorker(Configuration config);
+    public COMPSsWorker initWorker(Configuration config, NodeMonitor monitor);
 
     /**
      * Retrieves all the pending operations.

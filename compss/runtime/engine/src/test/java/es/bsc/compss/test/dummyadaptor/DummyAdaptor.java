@@ -18,6 +18,7 @@ package es.bsc.compss.test.dummyadaptor;
 
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
@@ -55,8 +56,8 @@ public class DummyAdaptor implements CommAdaptor {
     }
 
     @Override
-    public DummyWorkerNode initWorker(Configuration config) {
-        return new DummyWorkerNode((MethodConfiguration) config);
+    public DummyWorkerNode initWorker(Configuration config, NodeMonitor monitor) {
+        return new DummyWorkerNode((MethodConfiguration) config, monitor);
     }
 
     @Override

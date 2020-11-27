@@ -44,6 +44,7 @@ import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.requests.MasterDataRequest;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -98,9 +99,10 @@ public class NIOWorkerNode extends COMPSsWorker {
      *
      * @param config Worker configuration.
      * @param adaptor Worker communication adaptor.
+     * @param monitor element monitoring changes on the node
      */
-    public NIOWorkerNode(NIOConfiguration config, NIOAdaptor adaptor) {
-        super();
+    public NIOWorkerNode(NIOConfiguration config, NIOAdaptor adaptor, NodeMonitor monitor) {
+        super(monitor);
         this.config = config;
         this.commManager = adaptor;
     }

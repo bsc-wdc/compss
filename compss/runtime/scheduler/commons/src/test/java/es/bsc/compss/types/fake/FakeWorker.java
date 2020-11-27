@@ -26,7 +26,7 @@ import es.bsc.compss.types.resources.Worker;
 public class FakeWorker extends Worker<MethodResourceDescription> {
 
     public FakeWorker(MethodResourceDescription description, int limitOfTasks) {
-        super("a", description, new FakeNode(), limitOfTasks, null);
+        super("a", description, new FakeNode(null), limitOfTasks, null);
     }
 
     @Override

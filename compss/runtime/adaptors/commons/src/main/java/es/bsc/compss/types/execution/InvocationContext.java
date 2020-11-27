@@ -22,6 +22,7 @@ import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.PrintStream;
@@ -182,5 +183,20 @@ public interface InvocationContext {
      * @return LoaderAPI implementation to handle the data accesses for nested tasks
      */
     public LoaderAPI getLoaderAPI();
+
+    /**
+     * Notifies the detection of idle resources assigned to an already-running task.
+     * 
+     * @param resources detected idle resources
+     */
+    public void idleReservedResourcesDetected(ResourceDescription resources);
+
+    /**
+     * Notifies the detection of activity on resources assigned to an already-running task previously notified to be
+     * idle.
+     * 
+     * @param resources reactivated resouces
+     */
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources);
 
 }

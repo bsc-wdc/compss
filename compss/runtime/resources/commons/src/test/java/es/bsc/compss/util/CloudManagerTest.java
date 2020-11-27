@@ -331,7 +331,7 @@ public class CloudManagerTest {
         }
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 =
-            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1, null), 0, new HashMap<>());
         cp1.confirmedCreation(rcr1, cmw1, cmrd1);
 
         if (cm.getCurrentVMCount() != 2) {
@@ -352,7 +352,7 @@ public class CloudManagerTest {
 
         String vmName2 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw2 =
-            new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2, null), 0, new HashMap<>());
         cp2.confirmedCreation(rcr2, cmw2, cmrd2);
 
         if (cm.getCurrentVMCount() != 2) {
@@ -408,14 +408,14 @@ public class CloudManagerTest {
         ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1, null);
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 =
-            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1, null), 0, new HashMap<>());
         cp1.confirmedCreation(rcr1, cmw1, cmrd1);
 
         CloudMethodResourceDescription cmrd2 = createResourceDescriptionFromProvider(cp2);
         ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd2, null);
         String vmName2 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw2 =
-            new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2, null), 0, new HashMap<>());
         cp2.confirmedCreation(rcr2, cmw2, cmrd2);
 
         if (cm.getCurrentVMCount() != 2) {

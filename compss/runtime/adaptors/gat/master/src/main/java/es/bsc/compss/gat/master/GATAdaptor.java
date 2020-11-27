@@ -22,6 +22,7 @@ import es.bsc.compss.comm.Dispatcher;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.gat.master.configuration.GATConfiguration;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.configuration.Configuration;
@@ -156,11 +157,11 @@ public class GATAdaptor implements CommAdaptor {
 
     // GAT adaptor initializes the worker each time it sends a new job
     @Override
-    public GATWorkerNode initWorker(Configuration config) {
+    public GATWorkerNode initWorker(Configuration config, NodeMonitor monitor) {
         GATConfiguration gatCfg = (GATConfiguration) config;
         LOGGER.debug("Init GAT Worker Node named " + gatCfg.getHost());
 
-        GATWorkerNode node = new GATWorkerNode((GATConfiguration) config);
+        GATWorkerNode node = new GATWorkerNode((GATConfiguration) config, monitor);
         return node;
     }
 

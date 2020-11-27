@@ -131,9 +131,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     /**
      * New COMPSs Master.
+     * 
+     * @param monitor element monitoring changes on the node.
      */
-    public COMPSsMaster() {
-        super();
+    public COMPSsMaster(NodeMonitor monitor) {
+        super(monitor);
 
         // Gets user execution directory
         this.userExecutionDirPath = System.getProperty("user.dir");

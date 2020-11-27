@@ -268,7 +268,7 @@ public class ResourceManagerTest {
         }
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 =
-            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1, null), 0, new HashMap<>());
         ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1);
         if (!ResourceManager.getPendingCreationRequests().isEmpty()
             || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
@@ -315,7 +315,7 @@ public class ResourceManagerTest {
 
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 =
-            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1, null), 0, new HashMap<>());
         ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1);
         if (ResourceManager.getPendingCreationRequests().size() != 2
             || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
@@ -328,7 +328,7 @@ public class ResourceManagerTest {
 
         String vmName2 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw2 =
-            new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2, null), 0, new HashMap<>());
         ResourceManager.addCloudWorker(rcr2, cmw2, cmrd2);
         if (ResourceManager.getPendingCreationRequests().size() != 1
             || ResourceManager.getPendingCreationRequests().contains(rcr2)) {
@@ -359,7 +359,7 @@ public class ResourceManagerTest {
 
         String vmName3 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw3 =
-            new ExtendedCloudMethodWorker(vmName3, cp1, cmrd3, new FakeNode(vmName3), 0, new HashMap<>());
+            new ExtendedCloudMethodWorker(vmName3, cp1, cmrd3, new FakeNode(vmName3, null), 0, new HashMap<>());
         ResourceManager.addCloudWorker(rcr3, cmw3, cmrd3);
         if (!ResourceManager.getPendingCreationRequests().isEmpty()) {
             fail("ResourceManager is not properly registering the pending resouce creations");

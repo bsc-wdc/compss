@@ -279,6 +279,7 @@ public class ExecutionPlatform implements ExecutorContext {
         int jobId = invocation.getJobId();
         this.rm.releaseResources(jobId);
         this.addWorkerThreads(1);
+        this.context.idleReservedResourcesDetected(invocation.getRequirements());
     }
 
     @Override
@@ -287,6 +288,7 @@ public class ExecutionPlatform implements ExecutorContext {
         this.removeWorkerThreads(1);
         int jobId = invocation.getJobId();
         this.rm.reacquireResources(jobId, invocation.getRequirements(), previousAllocation, sem);
+        this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
     }
 
     @Override

@@ -23,6 +23,7 @@ import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -294,12 +295,13 @@ public class Comm {
      * Initializes a worker with name {@code name} and configuration {@code config}.
      *
      * @param config Adaptor configuration.
+     * @param monitor element monitoring changes on the node
      * @return A COMPSsWorker object representing the worker.
      */
-    public static COMPSsWorker initWorker(Configuration config) {
+    public static COMPSsWorker initWorker(Configuration config, NodeMonitor monitor) {
         String adaptorName = config.getAdaptorName();
         CommAdaptor adaptor = ADAPTORS.get(adaptorName);
-        return adaptor.initWorker(config);
+        return adaptor.initWorker(config, monitor);
     }
 
     /**

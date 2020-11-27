@@ -28,6 +28,7 @@ import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.master.NIOAdaptor;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
@@ -89,13 +90,13 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     }
 
     @Override
-    public COMPSsWorker initWorker(Configuration config) {
+    public COMPSsWorker initWorker(Configuration config, NodeMonitor monitor) {
         System.out.println("Initializing Worker ");
         MethodConfiguration aConf = (MethodConfiguration) config;
 
         String name = aConf.getHost();
         int port = Integer.parseInt(aConf.getProperty(PROPERTY_PORT));
-        return new CommAgentWorker(name, port, this);
+        return new CommAgentWorker(name, port, this, monitor);
     }
 
     @Override

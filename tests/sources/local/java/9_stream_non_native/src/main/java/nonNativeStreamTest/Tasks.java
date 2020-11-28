@@ -36,7 +36,7 @@ public class Tasks {
         // Poll new files
         List<String> newFiles = fds.poll();
         // Process their content
-        int i=0;
+        int i = 0;
         for (String fileName : newFiles) {
             i++;
             System.out.println("RECEIVED FILE: " + fileName);

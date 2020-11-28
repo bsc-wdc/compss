@@ -36,13 +36,15 @@ public class Tasks {
         // Poll new files
         List<String> newFiles = fds.poll();
         // Process their content
+        int i=0;
         for (String fileName : newFiles) {
+            i++;
             System.out.println("RECEIVED FILE: " + fileName);
             String content = new String(Files.readAllBytes(Paths.get(fileName)));
             System.out.println(content);
         }
         // Increase processed files
-        return newFiles.size();
+        return i;
     }
 
 }

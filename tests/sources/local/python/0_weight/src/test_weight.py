@@ -53,7 +53,7 @@ def read_task2(filename1, filename2, filename3):
 
 
 def main():
-    time.sleep(10)
+    time.sleep(25)
     gen_task1("filename1_1", "filename1_2", "filename1_3", CONTENT)
     gen_task1("filename2_1", "filename2_2", "filename2_3", CONTENT)
     compss_barrier()

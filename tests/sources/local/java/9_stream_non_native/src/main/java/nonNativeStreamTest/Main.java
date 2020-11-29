@@ -14,7 +14,7 @@ public class Main {
     public static final String TEST_PATH = "/tmp/file_stream/";
 
     private static final int SLEEP_TIME1 = 500; // ms
-    private static final int SLEEP_TIME2 = 1; // s
+    private static final int SLEEP_TIME2 = 1000; // s
 
 
     public static void main(String[] args) throws RegistrationException, IOException, BackendException {

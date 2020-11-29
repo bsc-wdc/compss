@@ -37,8 +37,8 @@
       specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_${tfvalue}_0${retry_num}"
       exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_${tfvalue}_0${retry_num}"
       mkdir -p "${exec_target_log_folder}"
-      expectedTime=360s
-
+      expectedTime=200s
+      sleep 10s
       python_mpi_worker=""
       if [ "$python_interpreter" == 'python2_mpi' ]; then
           python_interpreter="python2"

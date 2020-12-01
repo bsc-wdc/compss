@@ -1,14 +1,14 @@
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/analysis.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/worker.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/scheduler.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/bindings.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/analysis.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/worker.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/adaptors.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/scheduler.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/bindings.sh"
 
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/streams.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/storage.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/streams.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/tracing.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/storage.sh"
 
 
 ###############################################
@@ -47,7 +47,7 @@ fi
 AGENT_IMPLEMENTATION=es.bsc.compss.agent.Agent
 
 # Default path containing the configuration to start an agent
-DEFAULT_AGENT_CONFIG="${COMPSS_HOME}Runtime/configuration/agents/all.json"
+DEFAULT_AGENT_CONFIG="${COMPSS_HOME}/Runtime/configuration/agents/all.json"
 
 # Master's JVM options
 DEFAULT_JVM_MASTER=""

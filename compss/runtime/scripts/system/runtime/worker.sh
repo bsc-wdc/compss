@@ -1,4 +1,4 @@
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 ###############################################
 ###############################################

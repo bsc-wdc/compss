@@ -216,7 +216,7 @@ public class GATWorker implements InvocationContext {
         this.streamMasterPort = streamMasterPort;
 
         // Prepare execution Manager
-        this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0,
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, false, 0,
             ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, 1);
 
         if (this.debug) {

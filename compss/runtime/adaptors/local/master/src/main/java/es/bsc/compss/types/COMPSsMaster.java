@@ -385,7 +385,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
         this.persistentEnabled = workerPersistentC.toUpperCase().compareTo("TRUE") == 0;
 
-        this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, 0,
+        boolean reuse = Boolean.parseBoolean(System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK));
+        this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, reuse, 0,
             ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, 0);
         try {
             this.executionManager.init();

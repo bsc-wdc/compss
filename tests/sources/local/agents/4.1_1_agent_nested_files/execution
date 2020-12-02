@@ -91,6 +91,7 @@
     "--log_dir=${agent_log_dir}" \
     "--rest_port=46101" \
     "--comm_port=46102" \
+    "--reuse_resources_on_block=false" \
     "-d" \
     "--project=${base_app_dir}/project.xml" \
     "--resources=${base_app_dir}/resources.xml" 1>"${agent_output_log}" 2>"${agent_error_log}" &

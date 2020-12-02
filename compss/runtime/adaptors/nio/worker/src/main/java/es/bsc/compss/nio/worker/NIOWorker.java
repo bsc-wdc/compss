@@ -251,7 +251,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(DATA_MANAGER_ERROR, ie);
         }
 
-        this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, false, computingUnitsGPU, gpuMap,
             computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
 
         if (this.tracingLevel == NIOTracer.BASIC_MODE) {

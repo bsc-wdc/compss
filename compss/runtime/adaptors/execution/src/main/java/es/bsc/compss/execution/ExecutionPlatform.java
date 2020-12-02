@@ -59,6 +59,7 @@ public class ExecutionPlatform implements ExecutorContext {
     private final InvocationContext context;
     private final ResourceManager rm;
 
+    private boolean reuseResourcesOnBlockedInvocation = true;
     private final JobQueue queue;
 
     private boolean started = false;
@@ -79,10 +80,10 @@ public class ExecutionPlatform implements ExecutorContext {
      *
      * @param platformName Platform name
      * @param context Invocation Context
-     * @param initialSize Initial number of processes
+     * @param config configuration of the execution platform
      * @param resManager Resource Manager
      */
-    public ExecutionPlatform(String platformName, InvocationContext context, int initialSize,
+    public ExecutionPlatform(String platformName, InvocationContext context, ExecutionPlatformConfiguration config,
         ResourceManager resManager) {
         LOGGER.info("Initializing execution platform " + platformName);
         this.platformName = platformName;
@@ -100,6 +101,7 @@ public class ExecutionPlatform implements ExecutorContext {
         this.stopSemaphore = new Semaphore(0);
 
         // Instantiate worker thread structure
+        this.reuseResourcesOnBlockedInvocation = config.isReuseResourcesOnBlockedRunner();
         this.workerThreads = new TreeSet<>(new Comparator<Thread>() {
 
             @Override
@@ -108,8 +110,8 @@ public class ExecutionPlatform implements ExecutorContext {
             }
         });
         this.finishedWorkerThreads = new LinkedList<>();
-        addWorkerThreads(initialSize);
-        this.toCancel = new HashSet<Integer>();
+        addWorkerThreads(config.getInitialSize());
+        this.toCancel = new HashSet<>();
         this.executingJobs = new ConcurrentHashMap<>();
     }
 
@@ -276,19 +278,29 @@ public class ExecutionPlatform implements ExecutorContext {
 
     @Override
     public void blockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources assignedResources) {
-        int jobId = invocation.getJobId();
-        this.rm.releaseResources(jobId);
-        this.addWorkerThreads(1);
-        this.context.idleReservedResourcesDetected(invocation.getRequirements());
+        LOGGER.debug("Stalled execution of job " + invocation.getJobId());
+        if (reuseResourcesOnBlockedInvocation) {
+            LOGGER.debug("Releasing resources assigned to job " + invocation.getJobId());
+            int jobId = invocation.getJobId();
+            this.rm.releaseResources(jobId);
+            this.addWorkerThreads(1);
+            this.context.idleReservedResourcesDetected(invocation.getRequirements());
+        }
     }
 
     @Override
     public void unblockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources previousAllocation,
         Semaphore sem) {
-        this.removeWorkerThreads(1);
-        int jobId = invocation.getJobId();
-        this.rm.reacquireResources(jobId, invocation.getRequirements(), previousAllocation, sem);
-        this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
+        LOGGER.debug("Execution of job " + invocation.getJobId() + " ready to continue");
+        if (reuseResourcesOnBlockedInvocation) {
+            LOGGER.debug("Reacquiring resources assigned to job " + invocation.getJobId());
+            this.removeWorkerThreads(1);
+            int jobId = invocation.getJobId();
+            this.rm.reacquireResources(jobId, invocation.getRequirements(), previousAllocation, sem);
+            this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
+        } else {
+            sem.release();
+        }
     }
 
     @Override

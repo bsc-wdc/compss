@@ -88,17 +88,20 @@ COMPSs options:
   --resources=<path>                      Path of the resources file 
                                           (Default: ${DEFAULT_RESOURCES})
 
-  --rest_port=<int>                     Port on which the agent sets up a REST interface. (<=0: Disabled)
+  --rest_port=<int>                       Port on which the agent sets up a REST interface. (<=0: Disabled)
 
-  --scheduler=<className>                  Class that implements the Scheduler for COMPSs
-                                           Supported schedulers: 
+  --reuse_resources_on_block=<boolean>    Enables/Disables reusing the resources assigned to a task when its execution stalls.
+                                          (Default:${DEFAULT_REUSE_RESOURCES_ON_BLOCK})
+
+  --scheduler=<className>                 Class that implements the Scheduler for COMPSs
+                                          Supported schedulers: 
                                               ├── ${DATA_SCHEDULER}
                                               ├── ${FIFO_SCHEDULER}
                                               ├── ${FIFO_DATA_SCHEDULER}
                                               ├── ${LIFO_SCHEDULER}
                                               ├── ${BASE_SCHEDULER}
                                               └── ${LOAD_BALANCING_SCHEDULER}
-                                           Default: ${DEFAULT_SCHEDULER}
+                                          Default: ${DEFAULT_SCHEDULER}
 
   --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
                                           Default: Empty
@@ -272,6 +275,10 @@ parse_options() {
             agent_rest_port=${OPTARG//rest_port=/}
             export REST_AGENT_PORT=${agent_rest_port};
             ;;
+          reuse_resources_on_block=*)
+            # Enable or disable the reusing resources
+            reuse_resources_on_block=${OPTARG//reuse_resources_on_block=/}
+            ;;            
           scheduler=*)
             # Scheduler main class
             scheduler=${OPTARG//scheduler=/}

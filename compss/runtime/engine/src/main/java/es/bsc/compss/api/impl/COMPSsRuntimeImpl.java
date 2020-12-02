@@ -207,6 +207,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 setPropertyFromRuntime(COMPSsConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
                 setPropertyFromRuntime(COMPSsConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
                 setPropertyFromRuntime(COMPSsConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
+                if (System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK) == null
+                    || System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK).isEmpty()) {
+                    System.setProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK,
+                        Boolean.toString(manager.getReuseResourcesOnBlock()));
+                }
                 setPropertyFromRuntime(COMPSsConstants.WORKER_CP, manager.getWorkerCP());
                 setPropertyFromRuntime(COMPSsConstants.WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
 
@@ -277,6 +282,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsConstants.DEFAULT_PROJECT_SCHEMA);
         setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
         setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
+        setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsConstants.DEFAULT_REUSE_RESOURCES_ON_BLOCK);
         setDefaultProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
         setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
         setDefaultProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);

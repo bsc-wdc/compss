@@ -36,7 +36,6 @@ STREAMING_PORT_RAND_RANGE=100
 DEFAULT_PERSISTENT_WORKER_C=false
 DEFAULT_AUTOMATIC_SCALING=true
 DEFAULT_PYTHON_INTERPRETER=python
-DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
 if [ -z "${VIRTUAL_ENV}" ]; then
   DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="null"
 else
@@ -467,11 +466,12 @@ xml_project_add_worker_in_master() {
     fi
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
+      CMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
       if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
-         echo "[LAUNCH_COMPSS] Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+         echo "[LAUNCH_COMPSS] Worker WD mkdir: ${CMD}"
       fi
       # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
+      $CMD
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
@@ -495,11 +495,12 @@ xml_project_add_workers() {
     fi
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
+      CMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
       if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
-         echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+         echo "Worker WD mkdir: ${CMD}"
       fi
       # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
+      ${CMD}
     fi
     # Add compute node
     worker_node_name=${worker_node_name}${network}
@@ -1330,10 +1331,9 @@ check_args() {
 
   if [ -z "${python_interpreter}" ]; then
     python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
-    python_version=${DEFAULT_PYTHON_VERSION}
-  else
-    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
-  fi
+    args_pass="--python_interpreter=${python_interpreter} ${args_pass}"
+  fi 
+  python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
 
   if [ -z "${python_propagate_virtual_environment}" ]; then
     python_propagate_virtual_environment=${DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT}

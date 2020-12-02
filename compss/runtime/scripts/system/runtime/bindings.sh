@@ -1,5 +1,5 @@
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 
 ###############################################
 ###############################################
@@ -19,7 +19,6 @@ DEFAULT_LANGUAGE=java
 # Python
 DEFAULT_PyOBJECT_SERIALIZE=false
 DEFAULT_PYTHON_INTERPRETER=python
-DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
 if [ -z "${VIRTUAL_ENV}" ]; then
   DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="null"
 else
@@ -70,7 +69,7 @@ check_bindings_setup () {
     enable_java="true"
     enable_bindings="true"
     enable_c="true"
-    if [ -d "${COMPSS_HOME}Bindings/python/2" ] || [ -d "${COMPSS_HOME}Bindings/python/3" ]; then
+    if [ -d "${COMPSS_HOME}/Bindings/python/2" ] || [ -d "${COMPSS_HOME}/Bindings/python/3" ]; then
       enable_python="true"
     else
       enable_python="false"
@@ -117,10 +116,10 @@ check_bindings_setup () {
 
     if [ -z "$python_interpreter" ]; then
       python_interpreter=$DEFAULT_PYTHON_INTERPRETER
-      python_version=$DEFAULT_PYTHON_VERSION
       if ! command_exists "${python_interpreter}" ; then
         fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
       fi
+      python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
     else
       if [ "${coverage}" = "true" ]; then
         echo "import sys; print(sys.version_info[:][0])" > .tmp.py

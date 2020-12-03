@@ -16,6 +16,7 @@
 #
 from exaqute.ExaquteTask import *
 
+from pycompss.api.mpi import mpi 
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
 from pycompss.api.api import compss_barrier
@@ -29,15 +30,18 @@ from pycompss.api.implement import implement
 from pycompss.api.constraint import *
 
 
-class ExaquteTask(object):
 
-    def __init__(self, *args, **kwargs):
-        global scheduler
-        scheduler = "Current scheduler is PyCOMPSs"
-        self.task_instance = task(*args, **kwargs)
+#class ExaquteTask(object):
+#
+#    def __init__(self, *args, **kwargs):
+#        global scheduler
+#        scheduler = "Current scheduler is PyCOMPSs"
+#        self.task_instance = task(*args, **kwargs)
+#
+#    def __call__(self, f):
+#        return self.task_instance.__call__(f)
 
-    def __call__(self, f):
-        return self.task_instance.__call__(f)
+ExaquteTask = task
 
 
 def barrier():  # Wait

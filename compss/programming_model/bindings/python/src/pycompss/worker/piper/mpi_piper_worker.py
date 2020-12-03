@@ -37,7 +37,16 @@ from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
-from pycompss.worker.piper.commons.constants import *
+from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
+from pycompss.worker.piper.commons.constants import PING_TAG
+from pycompss.worker.piper.commons.constants import PONG_TAG
+from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import QUIT_TAG
+from pycompss.worker.piper.commons.constants import HEADER
+
 from mpi4py import MPI
 
 # Persistent worker global variables
@@ -114,9 +123,9 @@ def compss_persistent_worker(config):
 
     persistent_storage = (config.storage_conf != 'null')
 
-    logger, storage_loggers = load_loggers(config.debug,
-                                           persistent_storage,
-                                           config.tracing)
+    logger, _ = load_loggers(config.debug,
+                             persistent_storage,
+                             config.tracing)
 
     if __debug__:
         logger.debug(HEADER + "mpi_piper_worker.py rank: " + str(RANK) +
@@ -256,6 +265,11 @@ def main():
     global TRACING
     global WORKER_CONF
     TRACING = (int(sys.argv[4]) > 0)
+
+    # Enable coverage if performed
+    if "COVERAGE_PROCESS_START" in os.environ:
+        import coverage
+        coverage.process_startup()
 
     # Configure the piper worker with the arguments
     WORKER_CONF = PiperWorkerConfiguration()

@@ -9,7 +9,7 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 #----------------------------------------------
 # DEFAULT VALUES
 #----------------------------------------------
-#   Streaming back-end platform 
+#   Streaming back-end platform
 STREAMING_OFF="NONE"
 STREAMING_OBJECTS="OBJECTS"
 STREAMING_FILES="FILES"
@@ -18,7 +18,7 @@ STREAMING_ALL="ALL"
 DEFAULT_STREAMING=${STREAMING_OFF}
 
 #   DistroStream Server port (Base + rand([0, RANGE]))
-#     Base port 
+#     Base port
 BASE_STREAMING_PORT=49049
 #     Range of ports
 STREAMING_PORT_RAND_RANGE=100

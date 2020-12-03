@@ -99,15 +99,18 @@ def is_module_available(module_name):
         if py_version > (3, 4):
             try:
                 import importlib
-                importlib.util.find_spec(module_name)  # noqa
+                module = importlib.util.find_spec(module_name)  # noqa
             except AttributeError:
                 # This can only happen in conda
                 import imp  # noqa # Deprecated in python 3
-                imp.find_module(module_name)  # noqa
+                module = imp.find_module(module_name)  # noqa
         else:
             import imp  # noqa
-            imp.find_module(module_name)  # noqa
-        return True
+            module = imp.find_module(module_name)  # noqa
+        if module:
+            return True
+        else:
+            return False
     except ImportError:
         return False
 
@@ -201,14 +204,15 @@ def create_object_by_con_type(con_type):
 #         return getattr(inspect.getmodule(method),
 #                        method.__qualname__.split('.<locals>',
 #                                                  1)[0].rsplit('.', 1)[0])
-#     # Return not required since None would have been implicitly returned anyway
+#     # Return not required since None would have been implicitly
+#     # returned anyway
 #     return None
 #
 #
 # def get_top_decorator(code, decorator_keys):
 #     # type: (list, list) -> str
-#     """ Retrieves the decorator which is on top of the current task decorators
-#     stack.
+#     """ Retrieves the decorator which is on top of the current task
+#     decorators stack.
 #
 #     :param code: Tuple which contains the task code to analyse and the number
 #                  of lines of the code.
@@ -223,12 +227,13 @@ def create_object_by_con_type(con_type):
 #                   func_code if code_line.strip().startswith('@')]
 #     # Could be improved if it stops when the first line without @ is found,
 #     # but we have to be care if a decorator is commented (# before @)
-#     # The strip is due to the spaces that appear before functions definitions,
-#     # such as class methods.
+#     # The strip is due to the spaces that appear before functions
+#     # definitions, such as class methods.
 #     for dk in decorator_keys:
 #         for d in decorators:
 #             if d.startswith('@' + dk):
-#                 return 'pycompss.api.' + dk.lower()  # each decorator __name__
+#                 # each decorator __name__
+#                 return 'pycompss.api.' + dk.lower()
 #     # If no decorator is found, the current decorator is the one to register
 #     return __name__
 #

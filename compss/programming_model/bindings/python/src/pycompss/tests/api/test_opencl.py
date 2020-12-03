@@ -30,8 +30,9 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_opencl_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_opencl = OpenCL(kernel="date")
-    assert my_opencl.decorator_name == "@opencl", \
-        "The decorator name must be @opencl."
+    assert (
+        my_opencl.decorator_name == "@opencl"
+    ), "The decorator name must be @opencl."
 
 
 def test_opencl_call():
@@ -39,8 +40,7 @@ def test_opencl_call():
     my_opencl = OpenCL(kernel="date")
     f = my_opencl(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_opencl_call_outside():
@@ -52,8 +52,9 @@ def test_opencl_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    assert thrown, \
-        "The opencl decorator did not raise an exception when invoked out of scope."  # noqa: E501
+    assert (
+        thrown
+    ), "The opencl decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_opencl_existing_core_element():
@@ -62,5 +63,6 @@ def test_opencl_existing_core_element():
     f = my_opencl(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    assert CORE_ELEMENT_KEY not in my_opencl.kwargs, \
-           "Core Element is not defined in kwargs dictionary."
+    assert (
+        CORE_ELEMENT_KEY not in my_opencl.kwargs
+    ), "Core Element is not defined in kwargs dictionary."

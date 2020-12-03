@@ -142,14 +142,18 @@ def event(event_id, master=False, inside=False,
     :param event_id: Event identifier to emit.
     :param master: If the event is emitted as master.
     :param inside: If the event is produced inside the worker.
-    :param cpu_affinity: If the event is produced inside the worker for cpu affinity.
-    :param gpu_affinity: If the event is produced inside the worker for gpu affinity.
+    :param cpu_affinity: If the event is produced inside the worker for
+                         cpu affinity.
+    :param gpu_affinity: If the event is produced inside the worker for
+                         gpu affinity.
     :return: None
     """
     if TRACING:
         event_group, event_id = __get_proper_type_event(event_id,
                                                         master,
-                                                        inside, cpu_affinity, gpu_affinity)
+                                                        inside,
+                                                        cpu_affinity,
+                                                        gpu_affinity)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
     yield  # here the code runs
     if TRACING:
@@ -166,14 +170,18 @@ def emit_manual_event(event_id, master=False, inside=False,
     :param event_id: Event identifier to emit.
     :param master: If the event is emitted as master.
     :param inside: If the event is produced inside the worker.
-    :param cpu_affinity: If the event is produced inside the worker for cpu affinity.
-    :param gpu_affinity: If the event is produced inside the worker for gpu affinity.
+    :param cpu_affinity: If the event is produced inside the worker for
+                         cpu affinity.
+    :param gpu_affinity: If the event is produced inside the worker for
+                         gpu affinity.
     :return: None
     """
     if TRACING:
         event_group, event_id = __get_proper_type_event(event_id,
                                                         master,
-                                                        inside, cpu_affinity, gpu_affinity)
+                                                        inside,
+                                                        cpu_affinity,
+                                                        gpu_affinity)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
 
 
@@ -187,8 +195,10 @@ def __get_proper_type_event(event_id, master, inside,
     :param event_id: Event identifier to emit.
     :param master: If the event is emitted as master.
     :param inside: If the event is produced inside the worker.
-    :param cpu_affinity: If the event is produced inside the worker for cpu affinity.
-    :param gpu_affinity: If the event is produced inside the worker for gpu affinity.
+    :param cpu_affinity: If the event is produced inside the worker for
+                         cpu affinity.
+    :param gpu_affinity: If the event is produced inside the worker for
+                         gpu affinity.
     :return: Retrieves the appropriate event_group and event_id
     """
     if master:

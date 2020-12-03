@@ -89,7 +89,7 @@ class PREFIX(object):
     """
     Used as enum for prefix
     """
-    PREFIX = 'null'
+    PREFIX = 'null'  # NOSONAR
 
 
 class _Param(object):
@@ -171,15 +171,15 @@ STDOUT = IOSTREAM.STDOUT
 STDERR = IOSTREAM.STDERR
 
 # Aliases for parameter definition as dictionary
-Type = _ParamDictKeys.Type                # parameter type
-Direction = _ParamDictKeys.Direction      # parameter direction
-StdIOStream = _ParamDictKeys.StdIOStream  # parameter stream
-Prefix = _ParamDictKeys.Prefix            # parameter prefix
-Depth = _ParamDictKeys.Depth              # collection recursive depth
-Weight = _ParamDictKeys.Weight            # parameter weight
-Keep_rename = _ParamDictKeys.Keep_rename  # parameter keep rename property
+Type = _ParamDictKeys.TYPE                # parameter type
+Direction = _ParamDictKeys.DIRECTION      # parameter direction
+StdIOStream = _ParamDictKeys.STDIOSTREAM  # parameter stream
+Prefix = _ParamDictKeys.PREFIX            # parameter prefix
+Depth = _ParamDictKeys.DEPTH              # collection recursive depth
+Weight = _ParamDictKeys.WEIGHT            # parameter weight
+Keep_rename = _ParamDictKeys.KEEP_RENAME  # parameter keep rename property
 
 # Aliases for collection layout for native mpi tasks
-block_count = _MPILayoutKeys.Block_count
-block_length = _MPILayoutKeys.Block_length
-stride = _MPILayoutKeys.Stride
+block_count = _MPILayoutKeys.block_count
+block_length = _MPILayoutKeys.block_length
+stride = _MPILayoutKeys.stride

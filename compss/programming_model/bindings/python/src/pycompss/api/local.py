@@ -30,7 +30,8 @@ import gc
 
 from pycompss.api.api import compss_wait_on
 from pycompss.util.objects.replace import replace
-from pycompss.runtime.management.object_tracker import OT_is_obj_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import \
+    OT_is_obj_pending_to_synchronize
 import pycompss.util.context as context
 
 
@@ -47,6 +48,7 @@ def local(input_function):
             return input_function(*args, **kwargs)
 
         return wrapped_function
+
     else:
 
         def sync_if_needed(obj):

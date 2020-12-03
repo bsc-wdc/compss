@@ -24,6 +24,7 @@ def test_elapsed_time():
     @timeit
     def increment(value):
         import time
+
         time.sleep(0.1)
         return value + 1
 

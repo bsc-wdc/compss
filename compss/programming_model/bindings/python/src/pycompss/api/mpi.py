@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from _ast import If
 
 # -*- coding: utf-8 -*-
 
@@ -25,16 +24,16 @@ PyCOMPSs API - MPI
     definition through the decorator.
 """
 
-import os
-import sys
-import subprocess
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 if __debug__:
     import logging
@@ -73,21 +72,22 @@ class MPI(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         self.task_type = "mpi"
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', MPI.__name__.lower()))
+        super(MPI, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
 
             layout_nums = 0
-            # TODO: Maybe add here the collection layout to avoid iterate twice per elements
+            # noqa TODO: Maybe add here the collection layout to avoid iterate twice per elements
             # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
             for key in self.kwargs.keys():
                 if "_layout" in key:
                     layout_nums += 1
                     SUPPORTED_ARGUMENTS.add(key)
             if layout_nums > 1:
-                raise Exception("More than one layout definition is not yet supported!")
+                msg = "More than one layout definition is not yet supported!"
+                raise PyCOMPSsException(msg)
 
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -103,74 +103,37 @@ class MPI(PyCOMPSsDecorator):
             if 'processes' not in self.kwargs:
                 self.kwargs['processes'] = 1
 
-            # The processes parameter will have to go down until the execution is invoked.
-            # WARNING: processes can be an int, a env string, a str with dynamic variable name.
+            # The processes parameter will have to go down until the execution
+            # is invoked.
+            # WARNING: processes can be an int, a env string, a str with
+            #          dynamic variable name.
             if __debug__:
                 logger.debug("This MPI task will have " +
                              str(self.kwargs['processes']) + " processes.")
-        else:
-            pass
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the mpi parameters within the task core element.
 
-        :param func: Function to decorate.
+        :param user_function: Function to decorate.
         :return: Decorated function.
         """
 
-        @wraps(func)
+        @wraps(user_function)
         def mpi_f(*args, **kwargs):
             if not self.scope:
                 # Execute the mpi as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss("mpi"))
-                # TODO: Intercept the @task parameters to get stream redirection
-                cmd = [self.kwargs['runner']]
-                if 'processes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['processes']]
-                elif 'computing_nodes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['computing_nodes']]
-                elif 'computingNodes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['computingNodes']]
-                else:
-                    pass
-                if 'flags' in self.kwargs:
-                    cmd += self.kwargs['flags'].split()
-                cmd += [self.kwargs['binary']]
-                if args:
-                    args = [str(a) for a in args]
-                    cmd += args
-                my_env = os.environ.copy()
-                if "working_dir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["working_dir"] + my_env["PATH"]
-                elif "workingDir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["workingDir"] + my_env["PATH"]
-                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env)  # noqa: E501
-                out, err = proc.communicate()
-                if sys.version_info[0] < 3:
-                    out_message = out.strip()
-                    err_message = err.strip()
-                else:
-                    out_message = out.decode().strip()
-                    err_message = err.decode().strip()
-                if out_message:
-                    print(out_message)
-                if err_message:
-                    sys.stderr.write(err_message + '\n')
-                return proc.returncode
+                # TODO: Intercept @task parameters to get stream redirection
+                return self.__run_mpi__(args, kwargs)
 
             if __debug__:
                 logger.debug("Executing mpi_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+            if (context.in_master() or context.is_nesting_enabled()) \
+                    and not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
@@ -183,14 +146,42 @@ class MPI(PyCOMPSsDecorator):
 
             with keep_arguments(args, kwargs, prepend_strings=prepend_strings):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        mpi_f.__doc__ = func.__doc__
+        mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
+    def __run_mpi__(self, *args, **kwargs):
+        # type: (..., dict) -> int
+        """ Runs the mpi binary defined in the decorator when used as dummy.
+
+        :param args: Arguments received from call.
+        :param kwargs: Keyword arguments received from call.
+        :return: Execution return code.
+        """
+        cmd = [self.kwargs['runner']]
+        if 'processes' in self.kwargs:
+            cmd += ['-np', self.kwargs['processes']]
+        elif 'computing_nodes' in self.kwargs:
+            cmd += ['-np', self.kwargs['computing_nodes']]
+        elif 'computingNodes' in self.kwargs:
+            cmd += ['-np', self.kwargs['computingNodes']]
+
+        if 'flags' in self.kwargs:
+            cmd += self.kwargs['flags'].split()
+        cmd += [self.kwargs['binary']]
+
+        return run_command(cmd, args, kwargs)
+
     def __resolve_collection_layout_params__(self):
+        # type: () -> list
+        """ Resolve the collection layout, such as blocks, strides, etc.
+
+        :return: list(param_name, block_count, block_length, stride)
+        :raises PyCOMPSsException: If the collection layout does not contain block_count.
+        """
         param_name = ""
         block_count = -1
         block_length = -1
@@ -200,33 +191,65 @@ class MPI(PyCOMPSsDecorator):
             if "_layout" in key:
                 param_name = key.split("_layout")[0]
                 collection_layout = value
-                if "block_count" in collection_layout:
-                    block_count = collection_layout["block_count"]
-                else:
-                    block_count = -1
 
-                if "block_length" in collection_layout:
-                    block_length = collection_layout["block_length"]
-                else:
-                    block_length = -1
+                block_count = self.__get_block_count__(collection_layout)
+                block_length = self.__get_block_length__(collection_layout)
+                stride = self.__get_stride__(collection_layout)
 
-                if "stride" in collection_layout:
-                    stride = collection_layout["stride"]
-                else:
-                    stride = -1
-
-                if (block_length != -1 and block_count == -1) or (stride != -1 and block_count == -1):
-                    raise Exception("Error: collection_layout must contain block_count!")
+                if (block_length != -1 and block_count == -1) or \
+                        (stride != -1 and block_count == -1):
+                    msg = "Error: collection_layout must contain block_count!"
+                    raise PyCOMPSsException(msg)
 
         return [param_name, str(block_count), str(block_length), str(stride)]
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    @staticmethod
+    def __get_block_count__(collection_layout):
+        # type: (dict) -> int
+        """ Get the block count from the given collection layout.
+
+        :param collection_layout: Collection layout.
+        :return: Block count value.
+        """
+        if "block_count" in collection_layout:
+            return collection_layout["block_count"]
+        else:
+            return -1
+
+    @staticmethod
+    def __get_block_length__(collection_layout):
+        # type: (dict) -> int
+        """ Get the block length from the given collection layout.
+
+        :param collection_layout: Collection layout.
+        :return: Block length value.
+        """
+        if "block_length" in collection_layout:
+            return collection_layout["block_length"]
+        else:
+            return -1
+
+    @staticmethod
+    def __get_stride__(collection_layout):
+        # type: (dict) -> int
+        """ Get the stride from the given collection layout.
+
+        :param collection_layout: Collection layout.
+        :return: Stride value.
+        """
+        if "stride" in collection_layout:
+            return collection_layout["stride"]
+        else:
+            return -1
+
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """ Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -248,20 +271,8 @@ class MPI(PyCOMPSsDecorator):
         else:
             flags = '[unassigned]'  # Empty or '[unassigned]'
 
-        if 'scale_by_cu' in self.kwargs:
-            scale_by_cu = self.kwargs['scale_by_cu']
-            if isinstance(scale_by_cu, bool):
-                if scale_by_cu:
-                    scale_by_cu_str = 'true'
-                else:
-                    scale_by_cu_str = 'false'
-            elif isinstance(scale_by_cu, str):
-                scale_by_cu_str = scale_by_cu
-            else:
-                raise Exception("Incorrect format for scale_by_cu property. "
-                                "It should be boolean or an environment variable")  # noqa: E501
-        else:
-            scale_by_cu_str = 'false'
+        # Check if scale by cu is defined
+        scale_by_cu_str = self.__resolve_scale_by_cu__()
 
         # Resolve the working directory
         self.__resolve_working_dir__()
@@ -304,6 +315,29 @@ class MPI(PyCOMPSsDecorator):
 
         # Set as configured
         self.core_element_configured = True
+
+    def __resolve_scale_by_cu__(self):
+        # type: () -> str
+        """ Checks if scale_by_cu is defined and process it.
+
+        :return: Scale by cu value as string.
+        :raises PyCOMPSsException: If scale_by_cu is not bool or string.
+        """
+        if 'scale_by_cu' in self.kwargs:
+            scale_by_cu = self.kwargs['scale_by_cu']
+            if isinstance(scale_by_cu, bool):
+                if scale_by_cu:
+                    scale_by_cu_str = 'true'
+                else:
+                    scale_by_cu_str = 'false'
+            elif isinstance(scale_by_cu, str):
+                scale_by_cu_str = scale_by_cu
+            else:
+                raise PyCOMPSsException("Incorrect format for scale_by_cu property. "
+                                        "It should be boolean or an environment variable")  # noqa: E501
+        else:
+            scale_by_cu_str = 'false'
+        return scale_by_cu_str
 
 
 # ########################################################################### #

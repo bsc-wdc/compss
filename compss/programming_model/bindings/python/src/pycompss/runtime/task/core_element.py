@@ -27,8 +27,8 @@ PyCOMPSs Core Element
 
 class CE(object):
 
-    __slots__ = ['__ceSignature', '__implSignature', '__implConstraints',
-                 '__implType', '__implIO', '__implTypeArgs']
+    __slots__ = ['ce_signature', 'impl_signature', 'impl_constraints',
+                 'impl_type', 'impl_io', 'impl_type_args']
 
     def __init__(self,
                  ce_signature=None,
@@ -37,24 +37,24 @@ class CE(object):
                  impl_type=None,
                  impl_io=None,
                  impl_type_args=None):
-        self.__ceSignature = ce_signature
-        self.__implSignature = impl_signature
-        self.__implConstraints = impl_constraints
-        self.__implType = impl_type
-        self.__implIO = impl_io
-        self.__implTypeArgs = impl_type_args
+        self.ce_signature = ce_signature
+        self.impl_signature = impl_signature
+        self.impl_constraints = impl_constraints
+        self.impl_type = impl_type
+        self.impl_io = impl_io
+        self.impl_type_args = impl_type_args
 
     ###########
     # METHODS #
     ###########
 
     def reset(self):
-        self.__ceSignature = None
-        self.__implSignature = None
-        self.__implConstraints = None
-        self.__implType = None
-        self.__implIO = None
-        self.__implTypeArgs = None
+        self.ce_signature = None
+        self.impl_signature = None
+        self.impl_constraints = None
+        self.impl_type = None
+        self.impl_io = None
+        self.impl_type_args = None
 
     ###########
     # GETTERS #
@@ -62,27 +62,27 @@ class CE(object):
 
     def get_ce_signature(self):
         # type: () -> str
-        return self.__ceSignature
+        return self.ce_signature
 
     def get_impl_signature(self):
         # type: () -> str
-        return self.__implSignature
+        return self.impl_signature
 
     def get_impl_constraints(self):
         # type: () -> dict
-        return self.__implConstraints
+        return self.impl_constraints
 
     def get_impl_type(self):
         # type: () -> str
-        return self.__implType
+        return self.impl_type
 
     def get_impl_io(self):
         # type: () -> bool
-        return self.__implIO
+        return self.impl_io
 
     def get_impl_type_args(self):
         # type: () -> list
-        return self.__implTypeArgs
+        return self.impl_type_args
 
     ###########
     # SETTERS #
@@ -90,27 +90,27 @@ class CE(object):
 
     def set_ce_signature(self, ce_signature):
         # type: (str) -> None
-        self.__ceSignature = ce_signature
+        self.ce_signature = ce_signature
 
     def set_impl_signature(self, impl_signature):
         # type: (str) -> None
-        self.__implSignature = impl_signature
+        self.impl_signature = impl_signature
 
     def set_impl_constraints(self, impl_constraints):
         # type: (dict) -> None
-        self.__implConstraints = impl_constraints
+        self.impl_constraints = impl_constraints
 
     def set_impl_type(self, impl_type):
         # type: (str) -> None
-        self.__implType = impl_type
+        self.impl_type = impl_type
 
     def set_impl_io(self, impl_io):
         # type: (bool) -> None
-        self.__implIO = impl_io
+        self.impl_io = impl_io
 
     def set_impl_type_args(self, impl_type_args):
         # type: (list) -> None
-        self.__implTypeArgs = impl_type_args
+        self.impl_type_args = impl_type_args
 
     ##################
     # REPRESENTATION #
@@ -123,16 +123,16 @@ class CE(object):
         :return: The core element representation.
         """
         _repr = 'CORE ELEMENT: \n'
-        _repr += '\t - CE signature     : ' + str(self.__ceSignature) + '\n'
-        _repr += '\t - Impl. signature  : ' + str(self.__implSignature) + '\n'
-        if self.__implConstraints:
+        _repr += '\t - CE signature     : ' + str(self.ce_signature) + '\n'
+        _repr += '\t - Impl. signature  : ' + str(self.impl_signature) + '\n'
+        if self.impl_constraints:
             impl_constraints = ''
-            for key, value in self.__implConstraints.items():
+            for key, value in self.impl_constraints.items():
                 impl_constraints += key + ':' + str(value) + ';'
         else:
-            impl_constraints = str(self.__implConstraints)
+            impl_constraints = str(self.impl_constraints)
         _repr += '\t - Impl. constraints: ' + impl_constraints + '\n'
-        _repr += '\t - Impl. type       : ' + str(self.__implType) + '\n'
-        _repr += '\t - Impl. io         : ' + str(self.__implIO) + '\n'
-        _repr += '\t - Impl. type args  : ' + str(self.__implTypeArgs)
+        _repr += '\t - Impl. type       : ' + str(self.impl_type) + '\n'
+        _repr += '\t - Impl. io         : ' + str(self.impl_io) + '\n'
+        _repr += '\t - Impl. type args  : ' + str(self.impl_type_args)
         return _repr

@@ -23,10 +23,14 @@ PyCOMPSs DECORATOR COMMONS
     This file contains the main decorator class.
 """
 
+import os
+import sys
+import subprocess
 from contextlib import contextmanager
 
 import pycompss.util.context as context
 from pycompss.util.exceptions import MissingImplementedException
+from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
@@ -57,17 +61,18 @@ class PyCOMPSsDecorator(object):
         # import inspect
         # self.source_frame_info = inspect.getframeinfo(inspect.stack()[1][0])
 
-        if self.scope:
-            if __debug__:
-                logger.debug("Init " + decorator_name + " decorator...")
+        if __debug__ and self.scope:
+            # Log only in the master
+            logger.debug("Init " + decorator_name + " decorator...")
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """
         Include the registering info related to the decorator which inherits
 
         :param kwargs: Current keyword arguments to be updated with the core
-                       element information
+                       element information.
+        :param user_function: Decorated function.
         :return: None
         """
         raise MissingImplementedException("__configure_core_element__")
@@ -113,8 +118,8 @@ class PyCOMPSsDecorator(object):
             elif isinstance(fail_by_ev, int):
                 self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
             else:
-                raise Exception("Incorrect format for fail_by_exit_value property. "    # noqa: E501
-                                "It should be boolean or an environment variable")      # noqa: E501
+                raise PyCOMPSsException("Incorrect format for fail_by_exit_value property. "    # noqa: E501
+                                        "It should be boolean or an environment variable")      # noqa: E501
         else:
             self.kwargs['fail_by_exit_value'] = 'false'
 
@@ -122,7 +127,7 @@ class PyCOMPSsDecorator(object):
         # type: (str) -> None
         """
         Processes the computing_nodes from the decorator.
-        We only ensure that the corect self.kwargs entry exists since its value
+        We only ensure that the correct self.kwargs entry exists since its value
         will be parsed and resolved by the master.process_computing_nodes.
         Used in decorators:
             - mpi
@@ -190,3 +195,46 @@ def keep_arguments(args, kwargs, prepend_strings=True):
         # Put things back
         for k, v in saved.items():
             setattr(slf, k, v)
+
+
+#################
+# OTHER COMMONS #
+#################
+
+def run_command(cmd, args, kwargs):
+    # type: (list, tuple, dict) -> int
+    """ Executes the command considering necessary the args and kwargs.
+
+    :param cmd: Command to run.
+    :param args: Decorator arguments.
+    :param kwargs: Decorator key arguments.
+    :return: Execution return code.
+    """
+    if args:
+        args_elements = []
+        for a in args:
+            if a:
+                args_elements.append(a)
+        cmd += args_elements
+    my_env = os.environ.copy()
+    env_path = my_env["PATH"]
+    if "working_dir" in kwargs:
+        my_env["PATH"] = kwargs["working_dir"] + env_path
+    elif "workingDir" in kwargs:
+        my_env["PATH"] = kwargs["workingDir"] + env_path
+    proc = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            env=my_env)
+    out, err = proc.communicate()
+    if sys.version_info[0] < 3:
+        out_message = out.strip()
+        err_message = err.strip()
+    else:
+        out_message = out.decode().strip()
+        err_message = err.decode().strip()
+    if out_message:
+        print(out_message)
+    if err_message:
+        sys.stderr.write(err_message + '\n')
+    return proc.returncode

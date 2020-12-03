@@ -30,8 +30,9 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_decaf_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_decaf = Decaf(df_script="date")
-    assert my_decaf.decorator_name == "@decaf", \
-        "The decorator name must be @decaf."
+    assert (
+        my_decaf.decorator_name == "@decaf"
+    ), "The decorator name must be @decaf."
 
 
 def test_decaf_call():
@@ -39,8 +40,7 @@ def test_decaf_call():
     my_decaf = Decaf(df_script="date")
     f = my_decaf(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_decaf_call_outside():
@@ -52,8 +52,9 @@ def test_decaf_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    assert thrown, \
-        "The decaf decorator did not raise an exception when invoked out of scope."  # noqa: E501
+    assert (
+        thrown
+    ), "The decaf decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_decaf_runner_parameter():
@@ -62,22 +63,26 @@ def test_decaf_runner_parameter():
     my_decaf = Decaf(df_script="date", runner=runner)
     f = my_decaf(dummy_function)
     _ = f()
-    assert "runner" in my_decaf.kwargs, \
-        "Runner is not defined in kwargs dictionary."
-    assert runner == my_decaf.kwargs["runner"], \
-        "Runner parameter has not been initialized."
+    assert (
+        "runner" in my_decaf.kwargs
+    ), "Runner is not defined in kwargs dictionary."
+    assert (
+        runner == my_decaf.kwargs["runner"]
+    ), "Runner parameter has not been initialized."
 
 
-def test_decaf_dfScript_parameter():  # noqa
+def test_decaf_dfScript_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
-    dfScript = "my_dfScript"  # noqa
-    my_decaf = Decaf(df_script="date", dfScript=dfScript)
+    df_script = "my_dfScript"  # noqa
+    my_decaf = Decaf(df_script="date", dfScript=df_script)
     f = my_decaf(dummy_function)
     _ = f()
-    assert "dfScript" in my_decaf.kwargs, \
-        "dfScript is not defined in kwargs dictionary."
-    assert dfScript == my_decaf.kwargs["dfScript"], \
-        "dfScript parameter has not been initialized."
+    assert (
+        "dfScript" in my_decaf.kwargs
+    ), "dfScript is not defined in kwargs dictionary."
+    assert (
+        df_script == my_decaf.kwargs["dfScript"]
+    ), "dfScript parameter has not been initialized."
 
 
 def test_decaf_df_executor_parameter():
@@ -86,22 +91,26 @@ def test_decaf_df_executor_parameter():
     my_decaf = Decaf(df_script="date", df_executor=df_executor)
     f = my_decaf(dummy_function)
     _ = f()
-    assert "df_executor" in my_decaf.kwargs, \
-        "df_executor is not defined in kwargs dictionary."
-    assert df_executor == my_decaf.kwargs["df_executor"], \
-        "df_executor parameter has not been initialized."
+    assert (
+        "df_executor" in my_decaf.kwargs
+    ), "df_executor is not defined in kwargs dictionary."
+    assert (
+        df_executor == my_decaf.kwargs["df_executor"]
+    ), "df_executor parameter has not been initialized."
 
 
-def test_decaf_dfExecutor_parameter():  # noqa
+def test_decaf_dfExecutor_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
-    dfExecutor = "my_dfExecutor"  # noqa
-    my_decaf = Decaf(df_script="date", dfExecutor=dfExecutor)
+    df_executor = "my_dfExecutor"  # noqa
+    my_decaf = Decaf(df_script="date", dfExecutor=df_executor)
     f = my_decaf(dummy_function)
     _ = f()
-    assert "dfExecutor" in my_decaf.kwargs, \
-        "dfExecutor is not defined in kwargs dictionary."
-    assert dfExecutor == my_decaf.kwargs["dfExecutor"], \
-        "dfExecutor parameter has not been initialized."
+    assert (
+        "dfExecutor" in my_decaf.kwargs
+    ), "dfExecutor is not defined in kwargs dictionary."
+    assert (
+        df_executor == my_decaf.kwargs["dfExecutor"]
+    ), "dfExecutor parameter has not been initialized."
 
 
 def test_decaf_df_lib_parameter():
@@ -110,22 +119,26 @@ def test_decaf_df_lib_parameter():
     my_decaf = Decaf(df_script="date", df_lib=df_lib)
     f = my_decaf(dummy_function)
     _ = f()
-    assert "df_lib" in my_decaf.kwargs, \
-        "df_lib is not defined in kwargs dictionary."
-    assert df_lib == my_decaf.kwargs["df_lib"], \
-        "df_lib parameter has not been initialized."
+    assert (
+        "df_lib" in my_decaf.kwargs
+    ), "df_lib is not defined in kwargs dictionary."
+    assert (
+        df_lib == my_decaf.kwargs["df_lib"]
+    ), "df_lib parameter has not been initialized."
 
 
-def test_decaf_dfLib_parameter():  # noqa
+def test_decaf_dfLib_parameter():  # NOSONAR
     context.set_pycompss_context(context.MASTER)
-    dfLib = "my_dfLib"  # noqa
-    my_decaf = Decaf(df_script="date", dfLib=dfLib)
+    df_lib = "my_dfLib"  # noqa
+    my_decaf = Decaf(df_script="date", dfLib=df_lib)
     f = my_decaf(dummy_function)
     _ = f()
-    assert "dfLib" in my_decaf.kwargs, \
-        "dfLib is not defined in kwargs dictionary."
-    assert dfLib == my_decaf.kwargs["dfLib"], \
-        "dfLib parameter has not been initialized."
+    assert (
+        "dfLib" in my_decaf.kwargs
+    ), "dfLib is not defined in kwargs dictionary."
+    assert (
+        df_lib == my_decaf.kwargs["dfLib"]
+    ), "dfLib parameter has not been initialized."
 
 
 def test_decaf_existing_core_element():
@@ -134,5 +147,6 @@ def test_decaf_existing_core_element():
     f = my_decaf(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    assert CORE_ELEMENT_KEY not in my_decaf.kwargs, \
-           "Core Element is not defined in kwargs dictionary."
+    assert (
+        CORE_ELEMENT_KEY not in my_decaf.kwargs
+    ), "Core Element is not defined in kwargs dictionary."

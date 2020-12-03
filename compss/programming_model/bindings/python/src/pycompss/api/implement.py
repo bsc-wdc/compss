@@ -27,6 +27,7 @@ PyCOMPSs API - Implement (Versioning)
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
@@ -63,8 +64,8 @@ class Implement(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments.
         """
         self.first_register = False
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', Implement.__name__.lower()))
+        super(Implement, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -73,55 +74,51 @@ class Implement(PyCOMPSsDecorator):
                             list(kwargs.keys()),
                             decorator_name)
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the implement parameters within the task core element.
 
-        :param func: Function to decorate.
+        :param user_function: Function to decorate.
         :return: Decorated function.
         """
-        @wraps(func)
+        @wraps(user_function)
         def implement_f(*args, **kwargs):
             # This is executed only when called.
             if not self.scope:
-                raise Exception(not_in_pycompss("implement"))
+                raise NotInPyCOMPSsException(not_in_pycompss("implement"))
 
             if __debug__:
                 logger.debug("Executing implement_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+            if (context.in_master() or context.is_nesting_enabled()) \
+                    and not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        implement_f.__doc__ = func.__doc__
+        implement_f.__doc__ = user_function.__doc__
 
         if context.in_master() and not self.first_register:
             import pycompss.api.task as t
             self.first_register = True
             t.REGISTER_ONLY = True
-            self.__call__(func)(self)
+            self.__call__(user_function)(self)
             t.REGISTER_ONLY = False
 
         return implement_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """ Include the registering info related to @implement.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -136,7 +133,7 @@ class Implement(PyCOMPSsDecorator):
         another_method = self.kwargs['method']
         ce_signature = '.'.join((another_class, another_method))
         impl_type = "METHOD"
-        # impl_args = [another_class, another_method]  # set by @task
+        # impl_args = [another_class, another_method] - set by @task
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

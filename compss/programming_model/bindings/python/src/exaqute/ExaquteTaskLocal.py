@@ -14,29 +14,29 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from exaqute.ExaquteTask import *
 
 
 class ExaquteTask(object):
 
     def __init__(self, *args, **kwargs):
+        # Required declaration to allow decorator parameters
         pass
 
     def __call__(self, f):
-        def g(*args, **kwargs):
+        def et_wrapper(*args, **kwargs):
             if "scheduling_constraints" in kwargs:
                 del kwargs["scheduling_constraints"]
             return f(*args, **kwargs)
 
-        return g
-
-
-def barrier():  # Wait
-    pass
+        return et_wrapper
 
 
 def get_value_from_remote(obj):  # Gather
     return obj
+
+
+def barrier():  # Wait
+    pass
 
 
 def delete_object(*objs):  # Release
@@ -53,19 +53,28 @@ def compute(obj):  # Submit task
     return obj
 
 
-class implement(object):
+class Implement(object):
 
     def __init__(self, *args, **kwargs):
+        # Required declaration to allow decorator parameters
         pass
 
     def __call__(self, f):
         return f
 
 
-class constraint(object):
+class Constraint(object):
 
     def __init__(self, *args, **kwargs):
+        # Required declaration to allow decorator parameters
         pass
 
     def __call__(self, f):
         return f
+
+
+# Enable lower and capital decorators naming:
+implement = Implement
+IMPLEMENT = Implement
+constraint = Constraint
+CONSTRAINT = Constraint

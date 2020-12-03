@@ -14,11 +14,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 class ExecutionCharacteristics(object):
-    def __init__(self, generationNodes, generationCpus_per_node, runNodes,
-                 runCpus_per_node, amountExecutions):
-        self.generationNodes = generationNodes
-        self.generationCpus_per_node = generationCpus_per_node
-        self.runNodes = runNodes
-        self.runCpus_per_node = runCpus_per_node
-        self.amountExecutions = amountExecutions
+
+    def __init__(self,
+                 generation_nodes,
+                 generation_cpus_per_node,
+                 run_nodes,
+                 run_cpus_per_node,
+                 amount_executions):
+        self.generation_nodes = generation_nodes
+        self.generation_cpus_per_node = generation_cpus_per_node
+        self.run_nodes = run_nodes
+        self.run_cpus_per_node = run_cpus_per_node
+        self.amount_executions = amount_executions

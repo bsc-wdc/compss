@@ -24,15 +24,13 @@ PyCOMPSs API - BINARY
     definition through the decorator.
 """
 
-import os
-import sys
-import subprocess
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
 
 if __debug__:
@@ -67,8 +65,8 @@ class Binary(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', Binary.__name__.lower()))
+        super(Binary, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -90,42 +88,16 @@ class Binary(PyCOMPSsDecorator):
                 # Execute the binary as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss("binary"))
-                # TODO: Intercept the @task parameters to get stream redirection
-                cmd = [self.kwargs['binary']]
-                if args:
-                    args = [str(a) for a in args]
-                    cmd += args
-                my_env = os.environ.copy()
-                if "working_dir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["working_dir"] + my_env["PATH"]
-                elif "workingDir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["workingDir"] + my_env["PATH"]
-                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env)  # noqa: E501
-                out, err = proc.communicate()
-                if sys.version_info[0] < 3:
-                    out_message = out.strip()
-                    err_message = err.strip()
-                else:
-                    out_message = out.decode().strip()
-                    err_message = err.decode().strip()
-                if out_message:
-                    print(out_message)
-                if err_message:
-                    sys.stderr.write(err_message + '\n')
-                return proc.returncode
+                # TODO: Intercept @task parameters to get stream redirection
+                return self.__run_binary__(args, kwargs)
 
             if __debug__:
                 logger.debug("Executing binary_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
+            if (context.in_master() or context.is_nesting_enabled()) \
+                    and not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -136,14 +108,26 @@ class Binary(PyCOMPSsDecorator):
         binary_f.__doc__ = user_function.__doc__
         return binary_f
 
+    def __run_binary__(self, *args, **kwargs):
+        # type: (..., dict) -> int
+        """ Runs the binary defined in the decorator when used as dummy.
+
+        :param args: Arguments received from call.
+        :param kwargs: Keyword arguments received from call.
+        :return: Execution return code.
+        """
+        cmd = [self.kwargs['binary']]
+        return_code = run_command(cmd, args, kwargs)
+        return return_code
+
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict) -> None
+        # type: (dict, ...) -> None
         """ Include the registering info related to @binary.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
-        :param user_function: Function to decorate
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -160,7 +144,8 @@ class Binary(PyCOMPSsDecorator):
         # Resolve binary
         _binary = str(self.kwargs['binary'])
 
-        if CORE_ELEMENT_KEY in kwargs and kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
+        if CORE_ELEMENT_KEY in kwargs and \
+                kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
             # @container decorator sits on top of @binary decorator
             # Note: impl_type and impl_signature are NOT modified
             # ('CONTAINER' and 'CONTAINER.function_name' respectively)
@@ -192,8 +177,8 @@ class Binary(PyCOMPSsDecorator):
                          _fail_by_ev]  # fail_by_ev
 
             if CORE_ELEMENT_KEY in kwargs:
-                # Core element has already been created in a higher level decorator
-                # (e.g. @constraint)
+                # Core element has already been created in a higher level
+                # decorator (e.g. @constraint)
                 kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
                 kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)

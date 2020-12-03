@@ -26,8 +26,9 @@ PyCOMPSs Util - logs
 import os
 import logging
 import json
-
 from logging import config
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 CONFIG_FUNC = config.dictConfig
 
@@ -38,7 +39,7 @@ def get_logging_cfg_file(log_level):
 
     :param log_level: Log level [ 'trace'|'debug'|'info'|'api'|'off' ].
     :return: Logging configuration file.
-    :raise Exception: Unsupported log level.
+    :raise PyCOMPSsException: Unsupported log level.
     """
     cfg_files = {
         'trace': 'logging_debug.json',  # trace level == debug level
@@ -51,7 +52,7 @@ def get_logging_cfg_file(log_level):
         logging_cfg_file = cfg_files[log_level]
         return logging_cfg_file
     else:
-        raise Exception("Unsupported logging level.")
+        raise PyCOMPSsException("Unsupported logging level.")
 
 
 def init_logging(log_config_file, log_path):
@@ -80,7 +81,7 @@ def init_logging(log_config_file, log_path):
             conf["handlers"][handler]["filename"] = log_path + debug_file
         CONFIG_FUNC(conf)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO)  # NOSONAR
 
 
 def init_logging_worker(log_config_file, tracing):
@@ -112,4 +113,4 @@ def init_logging_worker(log_config_file, tracing):
                 conf["handlers"][handler]["filename"] = '../' + debug_file
         CONFIG_FUNC(conf)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO)  # NOSONAR

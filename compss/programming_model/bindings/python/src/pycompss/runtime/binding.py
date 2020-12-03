@@ -44,6 +44,7 @@ from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.commons import LIST_TYPE
+from pycompss.util.exceptions import PyCOMPSsException
 import pycompss.util.context as context
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
@@ -179,7 +180,7 @@ def accessed_file(file_name):
     app_id = 0
     if __debug__:
         logger.debug("Checking if file %s has been accessed." % file_name)
-    if os.path.exists(f_name):
+    if os.path.exists(file_name):
         return True
     else:
         return COMPSs.accessed_file(app_id, file_name)
@@ -644,7 +645,7 @@ def process_task(signature,             # type: str
                  distributed,           # type: bool
                  on_failure,            # type: str
                  time_out,              # type: int
-                 ):
+                 ):  # NOSONAR
     # type: (...) -> None
     """ Submit a task to the runtime.
 
@@ -708,8 +709,8 @@ def process_task(signature,             # type: str
     # Check that there is the same amount of values as their types, as well
     # as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) ==
-            len(compss_streams) == len(compss_prefixes) == len(content_types) ==
-            len(weights) == len(keep_renames))
+            len(compss_streams) == len(compss_prefixes) ==
+            len(content_types) == len(weights) == len(keep_renames))
 
     # Submit task to the runtime (call to the C extension):
     # Parameters:
@@ -804,4 +805,4 @@ def _clean_temps():
 
 
 def _wall_clock_exceed(signum, frame):
-    raise Exception("Application has reached its wall clock limit")
+    raise PyCOMPSsException("Application has reached its wall clock limit")

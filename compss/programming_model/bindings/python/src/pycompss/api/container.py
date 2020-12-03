@@ -27,6 +27,7 @@ PyCOMPSs API - CONTAINER
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
@@ -66,8 +67,8 @@ class Container(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        decorator_name = '@' + self.__class__.__name__.lower()
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = '@' + Container.__name__.lower()
+        super(Container, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
                 logger.debug("Init @container decorator...")
@@ -89,20 +90,15 @@ class Container(PyCOMPSsDecorator):
         @wraps(user_function)
         def container_f(*args, **kwargs):
             if not self.scope:
-                raise Exception(not_in_pycompss("container"))
+                raise NotInPyCOMPSsException(not_in_pycompss("container"))
 
             if __debug__:
                 logger.debug("Executing container_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs, user_function)
+            if (context.in_master() or context.is_nesting_enabled()) \
+                    and not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -114,13 +110,13 @@ class Container(PyCOMPSsDecorator):
         return container_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict) -> None
-        """ Include the registering info related to @containerZ.
+        # type: (dict, str) -> None
+        """ Include the registering info related to @container.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
-        :param user_function: Function to decorate
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -133,16 +129,17 @@ class Container(PyCOMPSsDecorator):
         _func = str(user_function.__name__)
 
         # Type and signature
-        impl_type = 'CONTAINER'
+        impl_type = "CONTAINER"
         impl_signature = '.'.join((impl_type, _func))
 
+        unassigned = "[unassigned]"
         impl_args = [_engine,  # engine
                      _image,  # image
-                     '[unassigned]',  # internal_type
-                     '[unassigned]',  # internal_binary
-                     '[unassigned]',  # internal_func
-                     '[unassigned]',  # working_dir
-                     '[unassigned]']  # fail_by_ev
+                     unassigned,  # internal_type
+                     unassigned,  # internal_binary
+                     unassigned,  # internal_func
+                     unassigned,  # working_dir
+                     unassigned]  # fail_by_ev
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -164,8 +161,8 @@ class Container(PyCOMPSsDecorator):
         self.core_element_configured = True
 
 
-# ############################################################################## #
-# ################### CONTAINER DECORATOR ALTERNATIVE NAME ##################### #
-# ############################################################################## #
+# ########################################################################### #
+# ################# CONTAINER DECORATOR ALTERNATIVE NAME #################### #
+# ########################################################################### #
 
 container = Container

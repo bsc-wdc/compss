@@ -118,7 +118,7 @@ def get_serializers():
 
 
 def serialize_to_handler(obj, handler):
-    # type: (object, Iterator) -> None
+    # type: (object, ...) -> None
     """ Serialize an object to a handler.
 
     :param obj: Object to be serialized.
@@ -129,7 +129,7 @@ def serialize_to_handler(obj, handler):
                                  serialization.
     """
     if DISABLE_GC:
-        # Disable the garbage collector while serializing -> improve performance
+        # Disable the garbage collector while serializing -> more performance?
         gc.disable()
     # Get the serializer priority
     serializer_priority = get_serializer_priority(obj)
@@ -166,10 +166,6 @@ def serialize_to_handler(obj, handler):
                 success = True
             except Exception:  # noqa
                 success = False
-                # if __debug__:
-                #    traceback.print_exc()  # No need to show all stack traces
-                #    print('WARNING! Serialization with %s failed.' %
-                #          str(serializer))
         i += 1
 
     if DISABLE_GC:
@@ -257,7 +253,7 @@ def deserialize_from_handler(handler):
 
     try:
         if DISABLE_GC:
-            # Disable the garbage collector while serializing -> improve performance
+            # Disable the garbage collector while serializing -> performance?
             gc.disable()
         if serializer is numpy and NUMPY_AVAILABLE:
             ret = serializer.load(handler, allow_pickle=False)

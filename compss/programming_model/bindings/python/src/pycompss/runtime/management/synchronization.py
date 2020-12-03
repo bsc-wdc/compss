@@ -32,11 +32,12 @@ from pycompss.runtime.management.object_tracker import OT_is_tracked
 from pycompss.runtime.management.object_tracker import OT_get_file_name
 from pycompss.runtime.management.object_tracker import OT_stop_tracking
 from pycompss.runtime.management.object_tracker import OT_update_mapping
-from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import \
+    OT_is_pending_to_synchronize
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
-from pycompss.util.serialization.serializer import *
+from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.runtime.commons import LIST_TYPE
 from pycompss.runtime.commons import DICT_TYPE
 
@@ -50,7 +51,7 @@ def wait_on_object(obj, mode):
 
     :param obj: Object to wait on.
     :param mode: Read or write mode
-    :return: An object of 'file' type.
+    :return: An object of "file" type.
     """
     compss_mode = get_compss_direction(mode)
     if isinstance(obj, Future) or not (isinstance(obj, LIST_TYPE) or
@@ -92,8 +93,8 @@ def _synchronize(obj, mode):
             file_path = COMPSs.open_file(app_id,
                                          "".join(("storage://", str(obj_id))),
                                          mode)
-            # TODO: Add switch on protocol
-            protocol, file_name = file_path.split('://')
+            # TODO: Add switch on protocol (first parameter returned currently ignored)
+            _, file_name = file_path.split("://")
             new_obj = get_by_id(file_name)
             OT_stop_tracking(obj)
             return new_obj
@@ -116,7 +117,7 @@ def _synchronize(obj, mode):
         # produces the output file may have been ignored or cancelled, so its
         # result does not exist.
         real_file_name = compss_file.split('/')[-1]
-        if real_file_name == 'null':
+        if real_file_name == "null":
             print("WARNING: Could not retrieve the object " + str(file_name) +
                   " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa: E501
             return None

@@ -27,6 +27,7 @@ PyCOMPSs API - DECAF
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
@@ -70,8 +71,8 @@ class Decaf(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', Decaf.__name__.lower()))
+        super(Decaf, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -82,32 +83,25 @@ class Decaf(PyCOMPSsDecorator):
 
             # Get the computing nodes
             self.__process_computing_nodes__(decorator_name)
-        else:
-            pass
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the decaf parameters within the task core element.
 
-        :param func: Function to decorate.
+        :param user_function: Function to decorate.
         :return: Decorated function.
         """
-        @wraps(func)
+        @wraps(user_function)
         def decaf_f(*args, **kwargs):
             if not self.scope:
-                raise Exception(not_in_pycompss("decaf"))
+                raise NotInPyCOMPSsException(not_in_pycompss("decaf"))
 
             if __debug__:
                 logger.debug("Executing decaf_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+            if (context.in_master() or context.is_nesting_enabled()) \
+                    and not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
@@ -115,20 +109,21 @@ class Decaf(PyCOMPSsDecorator):
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        decaf_f.__doc__ = func.__doc__
+        decaf_f.__doc__ = user_function.__doc__
         return decaf_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """ Include the registering info related to @decaf.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

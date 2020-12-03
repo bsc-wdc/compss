@@ -14,7 +14,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from exaqute.ExaquteTaskLocal import *
+
+from exaqute.ExaquteTaskLocal import ExaquteTask
+from exaqute.ExaquteTask import from_args_to_vector
+from exaqute.ExaquteTask import from_vector_to_args
 
 
 @ExaquteTask(returns=1)
@@ -28,6 +31,7 @@ def check_vector(*collection_in):
 def main():
     vec = [[1, 2, 3], [4, 5]]
     result = check_vector(*(from_vector_to_args(vec)))
+    print("Result: " + str(result))
 
 
 if __name__ == "__main__":

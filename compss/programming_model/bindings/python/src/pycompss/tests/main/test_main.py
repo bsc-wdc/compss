@@ -20,12 +20,17 @@
 import os
 import sys
 from pycompss.__main__ import main
+from pycompss.util.exceptions import PyCOMPSsException
+
+MAIN_NAME = "__main__.py"
 
 
 def check_output(stdout, stderr, error_expected=False):
-    if os.path.exists(stderr) and os.path.getsize(stderr) > 0 and not error_expected:  # noqa
+    if (os.path.exists(stderr) and
+            os.path.getsize(stderr) > 0 and
+            not error_expected):
         # Non empty file exists
-        raise Exception("An error happened. Please check " + stderr)  # noqa
+        raise PyCOMPSsException("An error happened. Please check " + stderr)
     else:
         os.remove(stdout)
         os.remove(stderr)
@@ -34,11 +39,11 @@ def check_output(stdout, stderr, error_expected=False):
 def call_main(main_py, stdout, stderr):
     backup_out = sys.stdout
     backup_err = sys.stderr
-    f_out = open(stdout, 'a')
-    f_err = open(stderr, 'a')
+    f_out = open(stdout, "a")
+    f_err = open(stderr, "a")
     sys.stdout = f_out
     sys.stderr = f_err
-    sys.argv = [main_py + '__main__.py']
+    sys.argv = [main_py + MAIN_NAME]
     main()
     f_out.close()
     f_err.close()
@@ -49,11 +54,11 @@ def call_main(main_py, stdout, stderr):
 def call_main_run(stdout, stderr):
     backup_out = sys.stdout
     backup_err = sys.stderr
-    f_out = open(stdout, 'a')
-    f_err = open(stderr, 'a')
+    f_out = open(stdout, "a")
+    f_err = open(stderr, "a")
     sys.stdout = f_out
     sys.stderr = f_err
-    sys.argv = ['__main__.py', 'run']
+    sys.argv = [MAIN_NAME, "run"]
     main()
     f_out.close()
     f_err.close()
@@ -64,11 +69,11 @@ def call_main_run(stdout, stderr):
 def call_main_enqueue(stdout, stderr):
     backup_out = sys.stdout
     backup_err = sys.stderr
-    f_out = open(stdout, 'a')
-    f_err = open(stderr, 'a')
+    f_out = open(stdout, "a")
+    f_err = open(stderr, "a")
     sys.stdout = f_out
     sys.stderr = f_err
-    sys.argv = ['__main__.py', 'enqueue']
+    sys.argv = [MAIN_NAME, "enqueue"]
     main()
     f_out.close()
     f_err.close()

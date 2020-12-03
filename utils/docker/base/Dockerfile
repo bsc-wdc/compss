@@ -10,7 +10,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
 # Install Packages
     apt-get install -y --no-install-recommends \
-    git vim wget jq curl openssh-server sudo software-properties-common unzip && \ 
+    git vim wget jq curl openssh-server sudo software-properties-common unzip && \
     add-apt-repository universe && \
 # Enable repo compression
     git config --global core.compression 9 && \
@@ -33,7 +33,7 @@ RUN apt-get update && \
 # Misc. dependencies
     openmpi-bin openmpi-doc libopenmpi-dev uuid-runtime curl bc \
 # Python-binding dependencies
-    python python-setuptools python-dev libpython2.7 \ 
+    python python-setuptools python-dev libpython2.7 \
 # python-pip
     python3 python3-setuptools python3-dev python3-pip \
 # AutoParallel dependencies
@@ -45,11 +45,11 @@ RUN apt-get update && \
     rm get-pip.py && \
     python2 -m pip install --upgrade pip && \
     python3 -m pip install --upgrade pip && \
-    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy decorator mpi4py==1.3.1 && \
-    pip3 install --no-cache-dir wheel numpy==1.15.4 dill decorator mpi4py==3.0.1 && \
-#Ubuntu:20    
-#    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy decorator mpi4py && \
-#    pip3 install --no-cache-dir wheel numpy==1.15.4 dill decorator mpi4py && \
+    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy==0.1.11 decorator mpi4py==1.3.1 && \
+    pip3 install --no-cache-dir wheel numpy==1.15.4 dill guppy3==3.1.0 decorator mpi4py==3.0.1 && \
+#Ubuntu:20
+#    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy==0.1.11 decorator mpi4py && \
+#    pip3 install --no-cache-dir wheel numpy==1.15.4 dill guppy3==3.1.0 decorator mpi4py && \
 
 # Python-redis dependencies
     pip2 install --no-cache-dir redis==2.10.6 redis-py-cluster && \
@@ -86,6 +86,13 @@ RUN apt-get update && \
     python2 -m ipykernel install && \
     pip3 --no-cache-dir install jupyter ipykernel nbconvert==5.6.1 && \
     python3 -m ipykernel install && \
+# Testing
+    pip2 --no-cache-dir install nose matplotlib && \
+    pip3 --no-cache-dir install nose matplotlib && \
+    pip3 --no-cache-dir install pytest pytest-cov pytest-notebook nbval && \
+    # Patch guppy for python2
+    file_to_patch=$(python2 -c "from __future__ import print_function; import guppy.heapy.View as hpv; print(hpv.__file__[:-1]) if hpv.__file__.endswith('c') else print(hpv.__file__)") && \
+    sed -i -E 's/if mod is None:/if mod is None or getattr(mod, "__dict__", None) is None:/g' $file_to_patch  && \
 # Coverage
     pip2 --no-cache-dir install coverage && \
     pip3 --no-cache-dir install coverage && \

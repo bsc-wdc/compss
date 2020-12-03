@@ -73,6 +73,7 @@ def word_count():
         .map(lambda x: ''.join(e for e in x if e.isalnum())) \
         .count_by_value(arity=4, as_dict=True)
 
+    print("Results: " + str(results))
     print("Elapsed Time: ", time.time()-start)
 
 
@@ -99,14 +100,15 @@ def terasort():
 
     start_time = time.time()
 
-    dds = DDS().load_files_from_dir(dir_path)\
-        .map_and_flatten(files_to_pairs)\
+    dds = DDS().load_files_from_dir(dir_path) \
+        .map_and_flatten(files_to_pairs) \
         .sort_by_key().save_as_text_file(dest_path)
 
     # compss_barrier()
     # test = DDS().load_pickle_files(dest_path).map(lambda x: x).collect()
     # print(test[-1:])
 
+    print("Result: " + str(dds))
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
@@ -120,10 +122,11 @@ def inverted_indexing():
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
-def transitive_closure():
+def transitive_closure(partitions=None):
 
     # path = sys.argv[1]
-    partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+    if not partitions:
+        partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
     #
     # od = DDS().load_text_file(path, partitions) \
     #     .map(lambda line: (int(line.split(",")[0]), int(line.split(",")[1])))\

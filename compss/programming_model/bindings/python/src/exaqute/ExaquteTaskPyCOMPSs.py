@@ -14,19 +14,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from exaqute.ExaquteTask import *
 
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
 from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_delete_object
 from pycompss.api.api import compss_delete_file
-
-from pycompss.api.parameter import *
-
-from pycompss.api.implement import implement
-
-from pycompss.api.constraint import *
 
 
 class ExaquteTask(object):

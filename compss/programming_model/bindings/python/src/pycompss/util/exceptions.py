@@ -24,14 +24,34 @@ PyCOMPSs Exceptions
 """
 
 
+class PyCOMPSsException(Exception):
+    """
+    Generic PyCOMPSs exception
+    """
+
+    def __init__(self, message):
+        super(PyCOMPSsException, self).__init__(message)
+
+
+class NotInPyCOMPSsException(Exception):
+    """
+    Not within PyCOMPSs scope exception.
+    """
+
+    def __init__(self, message):
+        super(NotInPyCOMPSsException, self).__init__("Outside PyCOMPSs scope: " +
+                                                     message)
+
+
 class NotImplementedException(Exception):
     """
-    Not implemented exception
+    Not implemented exception.
     """
 
     def __init__(self, functionality):
-        super(self.__class__, self).__init__("Functionality " + functionality +
-                                             " not implemented yet.")
+        super(NotImplementedException, self).__init__("Functionality " +
+                                                      functionality +
+                                                      " not implemented yet.")
 
 
 class MissingImplementedException(Exception):
@@ -40,18 +60,19 @@ class MissingImplementedException(Exception):
     """
 
     def __init__(self, functionality):
-        super(self.__class__, self).__init__("Missing " + functionality +
-                                             ". Needs to be overridden.")
+        super(MissingImplementedException, self).__init__("Missing " +
+                                                          functionality +
+                                                          ". Needs to be overridden.")
 
 
-class TimeOutError(BaseException):
+class TimeOutError(Exception):
     """
     Time out error exception
     """
     pass
 
 
-class CancelError(BaseException):
+class CancelError(Exception):
     """
     Cancel error exception
     """

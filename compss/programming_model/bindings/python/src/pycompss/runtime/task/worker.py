@@ -31,6 +31,7 @@ from pycompss.runtime.task.arguments import get_name_from_kwarg
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.properties import create_object_by_con_type
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
@@ -199,7 +200,8 @@ class TaskWorker(TaskCommons):
         :param logger: Logger (shadows outer logger since this is only used
                                in the worker to reveal the parameter objects).
         :param python_mpi: If the task is python MPI.
-        :param collections_layouts: Layouts of collections params for python MPI tasks.
+        :param collections_layouts: Layouts of collections params for python
+                                    MPI tasks.
         :return: None
         """
         if self.storage_supports_pipelining():
@@ -248,7 +250,8 @@ class TaskWorker(TaskCommons):
         :param argument: Argument.
         :param name_prefix: Name prefix.
         :param python_mpi: If the task is python MPI.
-        :param collections_layouts: Layouts of collections params for python MPI tasks.
+        :param collections_layouts: Layouts of collections params for python
+                                    MPI tasks.
         :param depth: Collection depth (0 if not a collection).
         :return: None
         """
@@ -327,10 +330,9 @@ class TaskWorker(TaskCommons):
                     logger.debug("Rank distribution is: " + str(rank_distribution))  # noqa: E501
 
             for (i, line) in enumerate(open(col_f_name, 'r')):
-                if in_mpi_collection_env:
+                if in_mpi_collection_env and i not in rank_distribution:
                     # Isn't this my offset? skip
-                    if i not in rank_distribution:
-                        continue
+                    continue
                 data_type, content_file, content_type = line.strip().split()
                 # Same naming convention as in COMPSsRuntimeImpl.java
                 sub_name = "%s.%d" % (argument.name, i)
@@ -415,12 +417,13 @@ class TaskWorker(TaskCommons):
             # collection before consulting it
             argument.dict_collection_content = {}
             dict_col_f_name = argument.file_name.split(':')[-1]
+            # Uncomment if you want to check its contents:
             # print("Dictionary file name: " + str(dict_col_f_name))
             # print("Dictionary file contents:")
             # with open(dict_col_f_name, 'r') as f:
             #     print(f.read())
 
-            # maybe it is an inner-dict-collection..
+            # Maybe it is an inner-dict-collection
             _dec_arg = self.decorator_arguments.get(argument.name, None)
             _dict_col_dir = _dec_arg.direction if _dec_arg else None
             _dict_col_dep = _dec_arg.depth if _dec_arg else depth
@@ -635,7 +638,7 @@ class TaskWorker(TaskCommons):
                     numba_signature
                 )(self.user_function).ctypes(*user_args, **user_kwargs)
             else:
-                raise Exception("Unsupported numba mode.")
+                raise PyCOMPSsException("Unsupported numba mode.")
         else:
             try:
                 # Normal task execution
@@ -684,7 +687,8 @@ class TaskWorker(TaskCommons):
 
             # Skip psco: since param.content_type has the old type, we can
             # not use:  param.content_type != parameter.TYPE.EXTERNAL_PSCO
-            _is_psco_true = (arg.content_type == parameter.TYPE.EXTERNAL_PSCO or
+            _is_psco_true = (arg.content_type ==
+                             parameter.TYPE.EXTERNAL_PSCO or
                              is_psco(arg.content))
             if _is_psco_true:
                 continue
@@ -777,7 +781,8 @@ class TaskWorker(TaskCommons):
             # returns matches the number of return parameters
             for (obj, param) in zip(user_returns, ret_params):
                 # If the object is a PSCO, do not serialize to file
-                if param.content_type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
+                if param.content_type == parameter.TYPE.EXTERNAL_PSCO \
+                        or is_psco(obj):
                     continue
                 # Serialize the object
                 # Note that there is no "command line optimization" in the
@@ -877,14 +882,22 @@ class TaskWorker(TaskCommons):
                 if isinstance(_elem, str):
                     coll.append((parameter.TYPE.FILE, 'null'))
                 else:
-                    if _elem.content_type == parameter.TYPE.COLLECTION:
-                        coll.append(build_collection_types_values(_cont, _elem, direction))  # noqa
-                    elif _elem.content_type == parameter.TYPE.EXTERNAL_PSCO and \
-                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
+                    if _elem.content_type == \
+                            parameter.TYPE.COLLECTION:
+                        coll.append(build_collection_types_values(_cont,
+                                                                  _elem,
+                                                                  direction))
+                    elif _elem.content_type == \
+                            parameter.TYPE.EXTERNAL_PSCO \
+                            and is_psco(_cont) \
+                            and direction != parameter.DIRECTION.IN:
                         coll.append((_elem.content_type, _cont.getID()))
-                    elif _elem.content_type == parameter.TYPE.FILE and \
-                            is_psco(_cont) and direction != parameter.DIRECTION.IN:  # noqa
-                        coll.append((parameter.TYPE.EXTERNAL_PSCO, _cont.getID()))   # noqa
+                    elif _elem.content_type == \
+                            parameter.TYPE.FILE \
+                            and is_psco(_cont) \
+                            and direction != parameter.DIRECTION.IN:
+                        coll.append((parameter.TYPE.EXTERNAL_PSCO,
+                                     _cont.getID()))
                     else:
                         coll.append((_elem.content_type, 'null'))
             return coll
@@ -897,9 +910,9 @@ class TaskWorker(TaskCommons):
         for arg in args[params_start:params_end - 1]:
             # Loop through the arguments and update new_types and new_values
             if not isinstance(arg, Parameter):
-                raise Exception("ERROR: A task parameter arrived as an"
-                                " object instead as a TaskParameter"
-                                " when building the task result message.")
+                raise PyCOMPSsException("ERROR: A task parameter arrived as an"
+                                        " object instead as a TaskParameter"
+                                        " when building the task result message.")
             else:
                 original_name = get_name_from_kwarg(arg.name)
                 param = self.decorator_arguments.get(original_name,

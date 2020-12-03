@@ -28,6 +28,8 @@ from __future__ import print_function
 import sys
 import re
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 
 def check_arguments(mandatory_arguments, deprecated_arguments,
                     supported_arguments, argument_names, decorator):
@@ -39,26 +41,27 @@ def check_arguments(mandatory_arguments, deprecated_arguments,
 
     :param mandatory_arguments: Set of mandatory argument names
     :param deprecated_arguments: Set of deprecated argument names
-    :param supported_arguments: Seto of supported argument names
+    :param supported_arguments: Set of supported argument names
     :param argument_names: List of argument names to check
     :param decorator: String - Decorator name
     :return: None
     """
+    decorator_str = decorator + " decorator"
     # Look for mandatory arguments
-    check_mandatory_arguments(mandatory_arguments,
-                              argument_names,
-                              decorator + " decorator")
+    __check_mandatory_arguments(mandatory_arguments,
+                                argument_names,
+                                decorator_str)
     # Look for deprecated arguments
-    check_deprecated_arguments(deprecated_arguments,
-                               argument_names,
-                               decorator + " decorator")
+    __check_deprecated_arguments(deprecated_arguments,
+                                 argument_names,
+                                 decorator_str)
     # Look for unexpected arguments
-    check_unexpected_arguments(supported_arguments,
-                               argument_names,
-                               decorator + " decorator")
+    __check_unexpected_arguments(supported_arguments,
+                                 argument_names,
+                                 decorator_str)
 
 
-def check_mandatory_arguments(mandatory_arguments, arguments, where):
+def __check_mandatory_arguments(mandatory_arguments, arguments, where):
     """
     This method checks that all mandatory arguments are in arguments.
 
@@ -70,35 +73,35 @@ def check_mandatory_arguments(mandatory_arguments, arguments, where):
     for argument in mandatory_arguments:
         if '_' in argument:
             if argument not in arguments and \
-                    _to_camel_case(argument) not in arguments:
+                    __to_camel_case(argument) not in arguments:
                 # The mandatory argument or it converted to camel case is
                 # not in the arguments
-                error_mandatory_argument(where, argument)
+                __error_mandatory_argument(where, argument)
         else:
             if argument not in arguments:
                 # The mandatory argument is not in the arguments
-                error_mandatory_argument(where, argument)
+                __error_mandatory_argument(where, argument)
 
 
-def _to_camel_case(argument):
+def __to_camel_case(argument):
     components = argument.split('_')
     return components[0] + ''.join(x.title() for x in components[1:])
 
 
-def error_mandatory_argument(argument, decorator):
+def __error_mandatory_argument(argument, decorator):
     """
     Raises an exception when the argument is mandatory in the decorator
 
     :param argument: Argument name
     :param decorator: Decorator name
     :return: None
-    :raise Exception: With the decorator and argument that produced the error
+    :raise PyCOMPSsException: With the decorator and argument that produced the error
     """
-    raise Exception("The argument " + str(argument) +
-                    " is mandatory in the " + str(decorator) + " decorator.")
+    raise PyCOMPSsException("The argument " + str(argument) +
+                            " is mandatory in the " + str(decorator) + " decorator.")
 
 
-def check_deprecated_arguments(deprecated_arguments, arguments, where):
+def __check_deprecated_arguments(deprecated_arguments, arguments, where):
     """
     This method looks for deprecated arguments and displays a warning
     if found.
@@ -107,6 +110,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
     :param arguments: List of arguments to check
     :param where: Location of the argument
     :return: None
+    :raise PyCOMPSsException: With the unsupported argument
     """
     for argument in arguments:
         if argument == 'isModifier':
@@ -114,7 +118,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
                       str(where) + ".\n" + \
                       "       Please, use: target_direction"
             print(message, file=sys.stderr)  # also show the warn in stderr
-            raise Exception("Unsupported argument: " + str(argument))
+            raise PyCOMPSsException("Unsupported argument: " + str(argument))
 
         if argument in deprecated_arguments:
             current_argument = re.sub('([A-Z]+)', r'_\1', argument).lower()
@@ -129,7 +133,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
             print(message, file=sys.stderr)  # also show the warn in stderr
 
 
-def check_unexpected_arguments(supported_arguments, arguments, where):
+def __check_unexpected_arguments(supported_arguments, arguments, where):
     """
     This method looks for unexpected arguments and displays a warning
     if found.

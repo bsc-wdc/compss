@@ -44,10 +44,10 @@ class ObjectTracker(object):
     to keep track of the objects within the python binding.
     """
 
-    __slots__ = ['file_names', 'pending_to_synchronize',
-                 'written_objects', 'current_id', 'runtime_id',
-                 'obj_id_to_obj', 'address_to_obj_id',
-                 'reporting', 'reporting_info', 'initial_time']
+    __slots__ = ["file_names", "pending_to_synchronize",
+                 "written_objects", "current_id", "runtime_id",
+                 "obj_id_to_obj", "address_to_obj_id",
+                 "reporting", "reporting_info", "initial_time"]
 
     def __init__(self):
         # Dictionary to contain the conversion from object id to the
@@ -119,11 +119,10 @@ class ObjectTracker(object):
         return obj_id, file_name
 
     def not_track(self, collection=False):
+        obj_id = "%s-%d" % (self.runtime_id, self.current_id)
         if collection:
-            obj_id = '%s-%d' % (self.runtime_id, self.current_id)
             file_name = None
         else:
-            obj_id = '%s-%d' % (self.runtime_id, self.current_id)
             file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
         self.current_id += 1
         return obj_id, file_name
@@ -327,7 +326,7 @@ class ObjectTracker(object):
             # This object was not in our object database or we were forced to
             # remove it, lets assign it an identifier and store it.
             # Generate a new identifier
-            new_id = '%s-%d' % (self.runtime_id, self.current_id)
+            new_id = "%s-%d" % (self.runtime_id, self.current_id)
             self.current_id += 1
             self.obj_id_to_obj[new_id] = obj
             address = self._get_object_address(obj)
@@ -464,13 +463,13 @@ class ObjectTracker(object):
 
         :return: None
         """
-        logger.debug("Object tracker status:"
-                     + " File_names=" + str(len(self.file_names))
-                     + " Pending_to_synchronize=" + str(len(self.pending_to_synchronize))  # noqa: E501
-                     + " Written_objs=" + str(len(self.written_objects))
-                     + " Obj_id_to_obj=" + str(len(self.obj_id_to_obj))
-                     + " Address_to_obj_id=" + str(len(self.address_to_obj_id))
-                     + " Current_id=" + str(self.current_id))
+        logger.debug("Object tracker status: " +
+                     " File_names=" + str(len(self.file_names)) +
+                     " Pending_to_synchronize=" + str(len(self.pending_to_synchronize)) +  # noqa: E501
+                     " Written_objs=" + str(len(self.written_objects)) +
+                     " Obj_id_to_obj=" + str(len(self.obj_id_to_obj)) +
+                     " Address_to_obj_id=" + str(len(self.address_to_obj_id)) +
+                     " Current_id=" + str(self.current_id))
 
     def __update_report__(self, first=False):
         # type: (bool) -> None
@@ -501,7 +500,7 @@ class ObjectTracker(object):
         """
         try:
             import matplotlib                # noqa
-            matplotlib.use('Agg')            # avoid issues in MN
+            matplotlib.use("Agg")            # avoid issues in MN
             import matplotlib.pyplot as plt  # noqa
         except ImportError:
             print("WARNING: Could not generate the Object Tracker report")
@@ -514,13 +513,13 @@ class ObjectTracker(object):
         plt.xlabel("Time (seconds)")
         plt.ylabel("# Elements")
         plt.title("Object tracker behaviour")
-        labels = ['File names',
-                  'Pending to synchronize',
-                  'Updated mappings',
-                  'IDs',
-                  'Addresses']
+        labels = ["File names",
+                  "Pending to synchronize",
+                  "Updated mappings",
+                  "IDs",
+                  "Addresses"]
         for i in range(len(y[0])):
-            plt.plot(x, [pt[i] for pt in y], label='%s' % labels[i])
+            plt.plot(x, [pt[i] for pt in y], label="%s" % labels[i])
         plt.legend()
         target = os.path.join(target_path, "object_tracker.png")
         plt.savefig(target)

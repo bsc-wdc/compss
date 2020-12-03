@@ -32,16 +32,17 @@ import sys
 from mpi4py import MPI
 
 import pycompss.util.context as context
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import emit_event
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
+from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
-# TODO: Comments about exit value and return following values was
-# in another branch need to be reviewed if it works in trunk
+# noqa TODO: Comments about exit value and return following values was in another branch need to be reviewed if it works in trunk
 # SUCCESS_SIG = 0
 # FAILURE_SIG = 1
 # UNEXPECTED_SIG = 2
@@ -56,7 +57,7 @@ def shutdown_handler(signal, frame):  # noqa
     :param frame: Frame
     :return: None
     """
-    raise Exception("Received SIGTERM")
+    raise PyCOMPSsException("Received SIGTERM")
 
 
 ######################
@@ -113,6 +114,7 @@ def executor(process_name, command):
                             logger_handlers,
                             logger_level,
                             logger_formatter)
+    # Signal expected management:
     # if sig == FAILURE_SIG:
     #     raise Exception("Task execution failed!", msg)
     # elif sig == UNEXPECTED_SIG:
@@ -157,12 +159,12 @@ def process_task(current_line,     # type: str
 
     current_line = current_line.split()
     if current_line[0] == EXECUTE_TASK_TAG:
-        hasCollectionParams = int(current_line[-1])
-        if hasCollectionParams != 0:
-            collections_layouts = current_line[hasCollectionParams*-5:-1]
+        has_collection_params = int(current_line[-1])
+        if has_collection_params != 0:
+            collections_layouts = current_line[has_collection_params*-5:-1]
             itr = 1
             while itr < len(collections_layouts):
-                collections_layouts[itr] = int(collections_layouts[itr])
+                collections_layouts[itr] = int(collections_layouts[itr])  # noqa
                 itr += 1
         else:
             collections_layouts = None
@@ -256,7 +258,10 @@ def process_task(current_line,     # type: str
             out.close()
             err.close()
 
-            # global_exit_value = MPI.COMM_WORLD.reduce(exit_value, op=MPI.SUM, root=0)
+            # To reduce if necessary:
+            # global_exit_value = MPI.COMM_WORLD.reduce(exit_value,
+            #                                           op=MPI.SUM,
+            #                                           root=0)
             # message = ""
 
             # if MPI.COMM_WORLD.rank == 0 and global_exit_value == 0:
@@ -284,7 +289,6 @@ def process_task(current_line,     # type: str
                 message = " ".join((END_TASK_TAG,
                                     str(job_id),
                                     str(exit_value) + "\n"))
-                # return FAILURE_SIG, except_msg
 
             if __debug__:
                 logger.debug("%s - END TASK MESSAGE: %s" % (str(process_name),
@@ -319,7 +323,6 @@ def process_task(current_line,     # type: str
             message = " ".join((END_TASK_TAG,
                                 str(job_id),
                                 str(exit_value) + "\n"))
-            # return FAILURE_SIG, e
 
         # Clean environment variables
         if __debug__:
@@ -338,7 +341,8 @@ def process_task(current_line,     # type: str
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s" %
                          (str(process_name), str(job_id)))
-        # return SUCCESS_SIG, "{0} -- Task Ended Successfully!".format(str(process_name))
+        # return SUCCESS_SIG,
+        #        "{0} -- Task Ended Successfully!".format(str(process_name))
 
     else:
         if __debug__:
@@ -350,7 +354,6 @@ def process_task(current_line,     # type: str
                             str(exit_value) + "\n"))
 
     return exit_value, message
-    #    return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)
 
 
 def main():

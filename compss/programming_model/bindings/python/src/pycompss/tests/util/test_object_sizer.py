@@ -25,15 +25,18 @@ class MyClass(object):
         self.value = 1
         self.content = [1, 2, 3, 4]
         self.message = "message"
-        self.more = [{'a': 12345, 'b': 54321, 'c': 10000},
-                     1,
-                     True,
-                     [1, 2, 3, 4],
-                     "test"]
+        self.more = [
+            {"a": 12345, "b": 54321, "c": 10000},
+            1,
+            True,
+            [1, 2, 3, 4],
+            "test",
+        ]
 
 
 def test_object_sizer():
     from pycompss.util.objects.sizer import total_sizeof
+
     o = MyClass()
     system_size = sys.getsizeof(o)
     real_size = total_sizeof(o, handlers={list: iter}, verbose=True)

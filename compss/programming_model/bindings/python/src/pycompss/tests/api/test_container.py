@@ -30,8 +30,9 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_container_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_bin = Container(engine="docker", image="dummy")
-    assert my_bin.decorator_name == "@container", \
-        "The decorator name must be @container."
+    assert (
+        my_bin.decorator_name == "@container"
+    ), "The decorator name must be @container."
 
 
 def test_container_call():
@@ -39,8 +40,7 @@ def test_container_call():
     my_bin = Container(engine="docker", image="dummy")
     f = my_bin(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_container_call_outside():
@@ -52,8 +52,9 @@ def test_container_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    assert thrown, \
-        "The container decorator did not raise an exception when invoked out of scope."  # noqa: E501
+    assert (
+        thrown
+    ), "The container decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_container_engine_image_parameters():
@@ -63,14 +64,18 @@ def test_container_engine_image_parameters():
     my_bin = Container(engine=engine, image=image)
     f = my_bin(dummy_function)
     _ = f()
-    assert "engine" in my_bin.kwargs, \
-        "Engine is not defined in kwargs dictionary."
-    assert engine == my_bin.kwargs["engine"], \
-        "Engine parameter has not been initialized."
-    assert "image" in my_bin.kwargs, \
-        "Image is not defined in kwargs dictionary."
-    assert image == my_bin.kwargs["image"], \
-        "image parameter has not been initialized."
+    assert (
+        "engine" in my_bin.kwargs
+    ), "Engine is not defined in kwargs dictionary."
+    assert (
+        engine == my_bin.kwargs["engine"]
+    ), "Engine parameter has not been initialized."
+    assert (
+        "image" in my_bin.kwargs
+    ), "Image is not defined in kwargs dictionary."
+    assert (
+        image == my_bin.kwargs["image"]
+    ), "image parameter has not been initialized."
 
 
 def test_container_existing_core_element():
@@ -79,5 +84,6 @@ def test_container_existing_core_element():
     f = my_bin(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    assert CORE_ELEMENT_KEY not in my_bin.kwargs, \
-           "Core Element is not defined in kwargs dictionary."
+    assert (
+        CORE_ELEMENT_KEY not in my_bin.kwargs
+    ), "Core Element is not defined in kwargs dictionary."

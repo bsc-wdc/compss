@@ -49,6 +49,7 @@ from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import emit_event
 from pycompss.util.tracing.helpers import emit_manual_event
 from pycompss.util.tracing.helpers import event
@@ -72,9 +73,9 @@ def shutdown_handler(signal, frame):  # noqa
     :param signal: shutdown signal.
     :param frame: Frame.
     :return: None
-    :raises Exception: Received signal.
+    :raises PyCOMPSsException: Received signal.
     """
-    raise Exception("Received SIGTERM")
+    raise PyCOMPSsException("Received SIGTERM")
 
 
 class Pipe(object):
@@ -297,7 +298,7 @@ def executor(queue, process_name, pipe, conf):
                          str(process_name))
         pipe.write(QUIT_TAG)
         pipe.close()
-    except BaseException as e:
+    except Exception as e:
         logger.error(e)
         raise e
 
@@ -361,9 +362,7 @@ def process_message(current_line,             # type: str
         if __debug__:
             logger.debug(HEADER + "[%s] Unexpected message: %s" %
                          (str(process_name), str(current_line)))
-        raise Exception("Unexpected message: %s" % str(current_line))
-
-    return True
+        raise PyCOMPSsException("Unexpected message: %s" % str(current_line))
 
 
 @emit_event(PROCESS_TASK_EVENT)
@@ -402,9 +401,9 @@ def process_task(current_line,             # type: list
     # CPU binding
     cpus = current_line[-3]
     if cpus != "-" and THREAD_AFFINITY:
-        # This event is already emitted in Java
-        # emit_manual_event(0, inside=True, cpu_affinity=True)  # close previous
-        # emit_manual_event(cpus, inside=True, cpu_affinity=True)
+        # The cpu affinity event is already emitted in Java.
+        # Instead of emitting what we receive, we are emitting what whe check
+        # after setting the affinity.
         affinity_ok = bind_cpus(cpus, process_name, logger)
 
     # GPU binding
@@ -468,8 +467,11 @@ def process_task(current_line,             # type: list
     try:
         # Check thread affinity
         if THREAD_AFFINITY:
-            cpus = str(thread_affinity.getaffinity()[0])  # get just the first id
-            emit_manual_event(0, inside=True, cpu_affinity=True)  # close previous
+            # The cpu affinity can be long if multiple cores have been
+            # assigned. To avoid issues, we get just the first id.
+            cpus = str(thread_affinity.getaffinity()[0])
+            # Close previous emitted event since this is the moment we update
+            emit_manual_event(0, inside=True, cpu_affinity=True)
             emit_manual_event(cpus, inside=True, cpu_affinity=True)
             if not affinity_ok:
                 logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
@@ -493,7 +495,8 @@ def process_task(current_line,             # type: list
                               tracing,
                               logger,
                               (job_out, job_err))
-        exit_value, new_types, new_values, timed_out, except_msg = result
+        # The ignored variable is timed_out
+        exit_value, new_types, new_values, _, except_msg = result
 
         if exit_value == 0:
             # Task has finished without exceptions
@@ -619,8 +622,9 @@ def process_quit(logger, process_name):  # noqa
     """
     if __debug__:
         logger.debug(HEADER + "[%s] Received quit." % str(process_name))
-    emit_manual_event(0, inside=True, cpu_affinity=True)  # close last cpu affinity
-    emit_manual_event(0, inside=True, gpu_affinity=True)  # close last gpu affinity
+    # Close last cpu and gpu affinity events
+    emit_manual_event(0, inside=True, cpu_affinity=True)
+    emit_manual_event(0, inside=True, gpu_affinity=True)
     return False
 
 
@@ -740,9 +744,8 @@ def clean_environment(cpus, gpus):
     :param gpus: Binded gpus.
     :return: None
     """
-    if cpus != "-":
-        if 'COMPSS_BINDED_CPUS' in os.environ:
-            del os.environ['COMPSS_BINDED_CPUS']
+    if cpus != "-" and 'COMPSS_BINDED_CPUS' in os.environ:
+        del os.environ['COMPSS_BINDED_CPUS']
     if gpus != "-":
         del os.environ['COMPSS_BINDED_GPUS']
         del os.environ['CUDA_VISIBLE_DEVICES']

@@ -14,34 +14,31 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from exaqute.ExaquteParameter import *
 
 
 class ExaquteTask(object):
 
     def __init__(self, *args, **kwargs):
-        raise Exception(
-            "Exaqute task decorator not implemented in the current scheduler")
+        raise Exception("Exaqute task decorator not implemented in the current scheduler")  # NOSONAR
 
     def __call__(self, f):
-        raise Exception(
-            "Exaqute task call code not implemented in the current scheduler")
+        raise Exception("Exaqute task call code not implemented in the current scheduler")  # NOSONAR
 
 
 def get_value_from_remote(obj):
-    raise Exception("Get value not implemented in the current scheduler")
+    raise Exception("Get value not implemented in the current scheduler")  # NOSONAR
 
 
 def barrier():
-    raise Exception("Barrier not implemented in the current scheduler")
+    raise Exception("Barrier not implemented in the current scheduler")  # NOSONAR
 
 
 def delete_object(obj):
-    raise Exception("Delete object not implemented in the current scheduler")
+    raise Exception("Delete object not implemented in the current scheduler")  # NOSONAR
 
 
 def compute(obj):
-    raise Exception("Compute not implemented in the current scheduler")
+    raise Exception("Compute not implemented in the current scheduler")  # NOSONAR
 
 
 def from_args_to_vector(obj):
@@ -51,7 +48,7 @@ def from_args_to_vector(obj):
     print(list(enumerate(obj)))
     if len(index) == 0:
         return obj
-    new_vector = []
+    new_vector = list()
     new_vector.append(list(obj[0:index[0]]))
     for i in range(len(index) - 1):
         new_vector.append(list(obj[(index[i] + 1):index[i + 1]]))
@@ -64,7 +61,7 @@ def from_args_to_vector(obj):
 def from_vector_to_args(obj):
     new_vector = []
     new_vector.extend(obj[0])
-    for i in range(1, len(obj)):
+    for _ in range(1, len(obj)):
         new_vector.append("#")
         new_vector.extend(obj[1])
     return new_vector

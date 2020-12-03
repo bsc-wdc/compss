@@ -36,10 +36,14 @@ import argparse
 # Project imports
 import pycompss.util.context as context
 from pycompss.runtime.binding import get_log_path
+from pycompss.runtime.commons import DEFAULT_SCHED
+from pycompss.runtime.commons import DEFAULT_CONN
+from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import set_temporary_directory
 from pycompss.runtime.commons import set_object_conversion
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa
 from pycompss.util.environment.configuration import updated_variables_in_sc
@@ -52,6 +56,7 @@ from pycompss.util.serialization.serializer import SerializerException
 from pycompss.util.warnings.modules import show_optional_module_warnings
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
+from pycompss.util.interactive.utils import parameters_to_dict
 from pycompss.api.exceptions import COMPSsException
 
 # Tracing imports
@@ -102,25 +107,25 @@ def parse_arguments():
     :return: Argument's parser.
     """
     parser = argparse.ArgumentParser(
-        description='PyCOMPSs application launcher')
+        description="PyCOMPSs application launcher")
     parser.add_argument('wall_clock',
-                        help='Application Wall Clock limit [ wall_clock <=0 deactivated | wall_clock >0 max duration in seconds ]')  # noqa: E501
-    parser.add_argument('log_level',
-                        help='Logging level [trace|debug|api|info|off]')
-    parser.add_argument('tracing',
-                        help='Tracing [-3(ARM DDT)|-2(ARM MAP)|-1(ScoreP)|0(Deactivated)|1(Basic)|2(Advanced)]')  # noqa: E501
-    parser.add_argument('object_conversion',
-                        help='Object_conversion [true|false]')
-    parser.add_argument('storage_configuration',
-                        help='Storage configuration [null|*]')
-    parser.add_argument('streaming_backend',
-                        help='Streaming Backend [null|*]')
-    parser.add_argument('streaming_master_name',
-                        help='Streaming Master Name [*]')
-    parser.add_argument('streaming_master_port',
-                        help='Streaming Master Port [*]')
-    parser.add_argument('app_path',
-                        help='Application path')
+                        help='Application Wall Clock limit [wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]')  # noqa: E501
+    parser.add_argument("log_level",
+                        help="Logging level [trace|debug|api|info|off]")
+    parser.add_argument("tracing",
+                        help="Tracing [-3(ARM DDT)|-2(ARM MAP)|-1(ScoreP)|0(Deactivated)|1(Basic)|2(Advanced)]")  # noqa: E501
+    parser.add_argument("object_conversion",
+                        help="Object_conversion [true|false]")
+    parser.add_argument("storage_configuration",
+                        help="Storage configuration [null|*]")
+    parser.add_argument("streaming_backend",
+                        help="Streaming Backend [null|*]")
+    parser.add_argument("streaming_master_name",
+                        help="Streaming Master Name [*]")
+    parser.add_argument("streaming_master_port",
+                        help="Streaming Master Port [*]")
+    parser.add_argument("app_path",
+                        help="Application path")
     return parser.parse_args()
 
 
@@ -169,7 +174,7 @@ def compss_main():
         compss_set_wall_clock(wall_clock)
 
     # Get object_conversion boolean
-    set_object_conversion(args.object_conversion == 'true')
+    set_object_conversion(args.object_conversion == "true")
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration
@@ -179,21 +184,21 @@ def compss_main():
 
     # Setup logging
     binding_log_path = get_log_path()
-    log_path = os.path.join(os.getenv('COMPSS_HOME'),
-                            'Bindings',
-                            'python',
+    log_path = os.path.join(os.getenv("COMPSS_HOME"),
+                            "Bindings",
+                            "python",
                             str(_PYTHON_VERSION),
-                            'log')
+                            "log")
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     LOGGER = logging.getLogger("pycompss.runtime.launch")
 
     # Get JVM options
-    # jvm_opts = os.environ['JVM_OPTIONS_FILE']
+    # jvm_opts = os.environ["JVM_OPTIONS_FILE"]
     # from pycompss.util.jvm.parser import convert_to_dict
     # opts = convert_to_dict(jvm_opts)
-    # storage_conf = opts.get('-Dcompss.storage.conf')
+    # storage_conf = opts.get("-Dcompss.storage.conf")
 
     exit_code = 0
     try:
@@ -215,19 +220,20 @@ def compss_main():
 
         # MAIN EXECUTION
         with event(APPLICATION_RUNNING_EVENT, master=True):
+            # MAIN EXECUTION
             if IS_PYTHON3:
                 with open(APP_PATH) as f:
-                    exec(compile(f.read(), APP_PATH, 'exec'), globals())
+                    exec(compile(f.read(), APP_PATH, "exec"), globals())
             else:
-                execfile(APP_PATH, globals())  # MAIN EXECUTION
+                execfile(APP_PATH, globals())  # noqa
 
         # End
         if __debug__:
             LOGGER.debug('--- END ---')
-    except SystemExit as e:
+    except SystemExit as e:  # NOSONAR - reraising would not allow to stop the runtime gracefully.
         if e.code != 0:
-            print('[ ERROR ]: User program ended with exitcode %s.' % e.code)
-            print('\t\tShutting down runtime...')
+            print("[ ERROR ]: User program ended with exitcode %s." % e.code)
+            print("\t\tShutting down runtime...")
             exit_code = e.code
     except SerializerException:
         exit_code = 1
@@ -237,7 +243,7 @@ def compss_main():
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         for line in lines:
             if APP_PATH in line:
-                print('[ ERROR ]: In: %s', line)
+                print("[ ERROR ]: In: %s", line)
         exit_code = 1
     except COMPSsException as e:
         # Any other exception occurred
@@ -262,64 +268,64 @@ def compss_main():
 
 def launch_pycompss_application(app,
                                 func,
-                                log_level='off',                 # type: str
-                                o_c=False,                       # type: bool
-                                debug=False,                     # type: bool
-                                graph=False,                     # type: bool
-                                trace=False,                     # type: bool
-                                monitor=None,                    # type: int
-                                project_xml=None,                # type: str
-                                resources_xml=None,              # type: str
-                                summary=False,                   # type: bool
-                                task_execution='compss',         # type: str
-                                storage_impl=None,               # type: str
-                                storage_conf=None,               # type: str
-                                streaming_backend=None,          # type: str
-                                streaming_master_name=None,      # type: str
-                                streaming_master_port=None,      # type: str
-                                task_count=50,                   # type: int
-                                app_name=None,                   # type: str
-                                uuid=None,                       # type: str
-                                base_log_dir=None,               # type: str
-                                specific_log_dir=None,           # type: str
-                                extrae_cfg=None,                 # type: str
-                                comm='NIO',                      # type: str
-                                conn='es.bsc.compss.connectors.DefaultSSHConnector',                       # noqa: E501
-                                master_name='',                  # type: str
-                                master_port='',                  # type: str
-                                scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',  # noqa: E501
-                                jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
-                                cpu_affinity='automatic',        # type: str
-                                gpu_affinity='automatic',        # type: str
-                                fpga_affinity='automatic',       # type: str
-                                fpga_reprogram='',               # type: str
-                                profile_input='',                # type: str
-                                profile_output='',               # type: str
-                                scheduler_config='',             # type: str
-                                external_adaptation=False,       # type: bool
-                                propagate_virtual_environment=True,  # type: bool
-                                mpi_worker=False,                # type: bool
+                                log_level="off",                  # type: str
+                                o_c=False,                        # type: bool
+                                debug=False,                      # type: bool
+                                graph=False,                      # type: bool
+                                trace=False,                      # type: bool
+                                monitor=None,                     # type: int
+                                project_xml=None,                 # type: str
+                                resources_xml=None,               # type: str
+                                summary=False,                    # type: bool
+                                task_execution="compss",          # type: str
+                                storage_impl=None,                # type: str
+                                storage_conf=None,                # type: str
+                                streaming_backend=None,           # type: str
+                                streaming_master_name=None,       # type: str
+                                streaming_master_port=None,       # type: str
+                                task_count=50,                    # type: int
+                                app_name=None,                    # type: str
+                                uuid=None,                        # type: str
+                                base_log_dir=None,                # type: str
+                                specific_log_dir=None,            # type: str
+                                extrae_cfg=None,                  # type: str
+                                comm="NIO",                       # type: str
+                                conn=DEFAULT_CONN,                # type: str
+                                master_name="",                   # type: str
+                                master_port="",                   # type: str
+                                scheduler=DEFAULT_SCHED,          # type: str
+                                jvm_workers=DEFAULT_JVM_WORKERS,  # type: str
+                                cpu_affinity="automatic",         # type: str
+                                gpu_affinity="automatic",         # type: str
+                                fpga_affinity="automatic",        # type: str
+                                fpga_reprogram="",                # type: str
+                                profile_input="",                 # type: str
+                                profile_output="",                # type: str
+                                scheduler_config="",              # type: str
+                                external_adaptation=False,        # type: bool
+                                propagate_virtual_environment=True,  # noqa type: bool
+                                mpi_worker=False,                 # type: bool
                                 *args, **kwargs
-                                ):
+                                ):  # NOSONAR
     # type: (...) -> None
     """ Launch PyCOMPSs application from function.
 
     :param app: Application path
     :param func: Function
-    :param log_level: Logging level [ 'trace'|'debug'|'info'|'api'|'off' ]
-                      (default: 'off')
+    :param log_level: Logging level [ "trace"|"debug"|"info"|"api"|"off" ]
+                      (default: "off")
     :param o_c: Objects to string conversion [ True | False ] (default: False)
     :param debug: Debug mode [ True | False ] (default: False)
                   (overrides log_level)
     :param graph: Generate graph [ True | False ] (default: False)
     :param trace: Generate trace
-                  [ True | False | 'scorep' | 'arm-map' | 'arm-ddt']
+                  [ True | False | "scorep" | "arm-map" | "arm-ddt"]
                   (default: False)
     :param monitor: Monitor refresh rate (default: None)
     :param project_xml: Project xml file path
     :param resources_xml: Resources xml file path
     :param summary: Execution summary [ True | False ] (default: False)
-    :param task_execution: Task execution (default: 'compss')
+    :param task_execution: Task execution (default: "compss")
     :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
     :param streaming_backend: Streaming backend (default: None)
@@ -333,19 +339,19 @@ def launch_pycompss_application(app,
     :param extrae_cfg: Extrae configuration file path
     :param comm: Communication library (default: NIO)
     :param conn: Connector (default: DefaultSSHConnector)
-    :param master_name: Master Name (default: '')
-    :param master_port: Master port (default: '')
+    :param master_name: Master Name (default: "")
+    :param master_port: Master port (default: "")
     :param scheduler: Scheduler (default:
                   es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)
     :param jvm_workers: Java VM parameters
-                        (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
-    :param cpu_affinity: CPU Core affinity (default: 'automatic')
-    :param gpu_affinity: GPU Core affinity (default: 'automatic')
-    :param fpga_affinity: FPA Core affinity (default: 'automatic')
-    :param fpga_reprogram: FPGA repogram command (default: '')
-    :param profile_input: Input profile  (default: '')
-    :param profile_output: Output profile  (default: '')
-    :param scheduler_config: Scheduler configuration  (default: '')
+                        (default: "-Xms1024m,-Xmx1024m,-Xmn400m")
+    :param cpu_affinity: CPU Core affinity (default: "automatic")
+    :param gpu_affinity: GPU Core affinity (default: "automatic")
+    :param fpga_affinity: FPA Core affinity (default: "automatic")
+    :param fpga_reprogram: FPGA repogram command (default: "")
+    :param profile_input: Input profile  (default: "")
+    :param profile_output: Output profile  (default: "")
+    :param scheduler_config: Scheduler configuration  (default: "")
     :param external_adaptation: External adaptation [ True | False ]
                                 (default: False)
     :param propagate_virtual_environment: Propagate virtual environment
@@ -355,6 +361,11 @@ def launch_pycompss_application(app,
     :param kwargs: Named arguments
     :return: Execution result
     """
+    # Check that COMPSs is available
+    if "COMPSS_HOME" not in os.environ:
+        # Do not allow to continue if COMPSS_HOME is not defined
+        raise PyCOMPSsException("ERROR: COMPSS_HOME is not defined in the environment")  # noqa: E501
+
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
@@ -368,43 +379,43 @@ def launch_pycompss_application(app,
         log_level = "debug"
 
     # Initial dictionary with the user defined parameters
-    all_vars = {'log_level': log_level,
-                'debug': debug,
-                'o_c': o_c,
-                'graph': graph,
-                'trace': trace,
-                'monitor': monitor,
-                'project_xml': project_xml,
-                'resources_xml': resources_xml,
-                'summary': summary,
-                'task_execution': task_execution,
-                'storage_impl': storage_impl,
-                'storage_conf': storage_conf,
-                'streaming_backend': streaming_backend,
-                'streaming_master_name': streaming_master_name,
-                'streaming_master_port': streaming_master_port,
-                'task_count': task_count,
-                'app_name': app_name,
-                'uuid': uuid,
-                'base_log_dir': base_log_dir,
-                'specific_log_dir': specific_log_dir,
-                'extrae_cfg': extrae_cfg,
-                'comm': comm,
-                'conn': conn,
-                'master_name': master_name,
-                'master_port': master_port,
-                'scheduler': scheduler,
-                'jvm_workers': jvm_workers,
-                'cpu_affinity': cpu_affinity,
-                'gpu_affinity': gpu_affinity,
-                'fpga_affinity': fpga_affinity,
-                'fpga_reprogram': fpga_reprogram,
-                'profile_input': profile_input,
-                'profile_output': profile_output,
-                'scheduler_config': scheduler_config,
-                'external_adaptation': external_adaptation,
-                'propagate_virtual_environment': propagate_virtual_environment,
-                'mpi_worker': mpi_worker}
+    all_vars = parameters_to_dict(log_level,
+                                  debug,
+                                  o_c,
+                                  graph,
+                                  trace,
+                                  monitor,
+                                  project_xml,
+                                  resources_xml,
+                                  summary,
+                                  task_execution,
+                                  storage_impl,
+                                  storage_conf,
+                                  streaming_backend,
+                                  streaming_master_name,
+                                  streaming_master_port,
+                                  task_count,
+                                  app_name,
+                                  uuid,
+                                  base_log_dir,
+                                  specific_log_dir,
+                                  extrae_cfg,
+                                  comm,
+                                  conn,
+                                  master_name,
+                                  master_port,
+                                  scheduler,
+                                  jvm_workers,
+                                  cpu_affinity,
+                                  gpu_affinity,
+                                  fpga_affinity,
+                                  fpga_reprogram,
+                                  profile_input,
+                                  profile_output,
+                                  scheduler_config,
+                                  external_adaptation,
+                                  propagate_virtual_environment,
+                                  mpi_worker)
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)
@@ -427,17 +438,17 @@ def launch_pycompss_application(app,
         updated_vars = updated_variables_in_sc()
         all_vars.update(updated_vars)
 
-    to_update = prepare_tracing_environment(all_vars['trace'],
-                                            all_vars['extrae_lib'],
-                                            all_vars['ld_library_path'])
-    all_vars['trace'], all_vars['ld_library_path'] = to_update
+    to_update = prepare_tracing_environment(all_vars["trace"],
+                                            all_vars["extrae_lib"],
+                                            all_vars["ld_library_path"])
+    all_vars["trace"], all_vars["ld_library_path"] = to_update
 
-    inf_vars = check_infrastructure_variables(all_vars['project_xml'],
-                                              all_vars['resources_xml'],
-                                              all_vars['compss_home'],
-                                              all_vars['app_name'],
-                                              all_vars['file_name'],
-                                              all_vars['external_adaptation'])
+    inf_vars = check_infrastructure_variables(all_vars["project_xml"],
+                                              all_vars["resources_xml"],
+                                              all_vars["compss_home"],
+                                              all_vars["app_name"],
+                                              all_vars["file_name"],
+                                              all_vars["external_adaptation"])
     all_vars.update(inf_vars)
 
     create_init_config_file(**all_vars)
@@ -447,36 +458,36 @@ def launch_pycompss_application(app,
     ##############################################################
 
     # Runtime start
-    compss_start(log_level, all_vars['trace'], True)
+    compss_start(log_level, all_vars["trace"], True)
 
     # Setup logging
     binding_log_path = get_log_path()
-    log_path = os.path.join(all_vars['compss_home'],
-                            'Bindings',
-                            'python',
-                            str(all_vars['major_version']),
-                            'log')
+    log_path = os.path.join(all_vars["compss_home"],
+                            "Bindings",
+                            "python",
+                            str(all_vars["major_version"]),
+                            "log")
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
-    logger.debug('--- START ---')
-    logger.debug('PyCOMPSs Log path: %s' % log_path)
+    logger.debug("--- START ---")
+    logger.debug("PyCOMPSs Log path: %s" % log_path)
 
     logger.debug("Starting storage")
-    persistent_storage = master_init_storage(all_vars['storage_conf'], logger)
+    persistent_storage = master_init_storage(all_vars["storage_conf"], logger)
 
     logger.debug("Starting streaming")
-    streaming = init_streaming(all_vars['streaming_backend'],
-                               all_vars['streaming_master_name'],
-                               all_vars['streaming_master_port'])
+    streaming = init_streaming(all_vars["streaming_backend"],
+                               all_vars["streaming_master_name"],
+                               all_vars["streaming_master_port"])
 
     saved_argv = sys.argv
     sys.argv = args
     # Execution:
     with event(APPLICATION_RUNNING_EVENT, master=True):
-        if func is None or func == '__main__':
+        if func is None or func == "__main__":
             if IS_PYTHON3:
                 exec(open(app).read())
             else:
@@ -484,13 +495,11 @@ def launch_pycompss_application(app,
             result = None
         else:
             if IS_PYTHON3:
-                import importlib.util
-                spec = importlib.util.spec_from_file_location(all_vars['file_name'], app)  # noqa: E501
-                imported_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(imported_module)  # noqa
+                from importlib.machinery import SourceFileLoader
+                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # noqa: E501
             else:
                 import imp  # noqa
-                imported_module = imp.load_source(all_vars['file_name'], app)  # noqa
+                imported_module = imp.load_source(all_vars["file_name"], app)  # noqa
             method_to_call = getattr(imported_module, func)
             result = method_to_call(*args, **kwargs)
     # Recover the system arguments
@@ -504,7 +513,7 @@ def launch_pycompss_application(app,
     if persistent_storage:
         master_stop_storage(logger)
 
-    logger.debug('--- END ---')
+    logger.debug("--- END ---")
 
     ##############################################################
     # RUNTIME STOP
@@ -516,7 +525,7 @@ def launch_pycompss_application(app,
     return result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     This is the PyCOMPSs entry point.
     """

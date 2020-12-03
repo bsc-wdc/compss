@@ -65,12 +65,12 @@ class ODSPublisher(object):
                                             acks="all",
                                             retries=0,
                                             batch_size=16384,
-                                            # auto_commit_interval_ms=2,
-                                            linger_ms=0,
-                                            # key_serializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
-                                            # value_serializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
-                                            # block_on_buffer_full=True
-                                            )
+                                            linger_ms=0)
+        # Other flags:
+        # auto_commit_interval_ms=2,
+        # key_serializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
+        # value_serializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
+        # block_on_buffer_full=True
 
         logger.debug("DONE Creating Publisher")
 
@@ -152,14 +152,14 @@ class ODSConsumer(object):
                                             enable_auto_commit=True,
                                             auto_commit_interval_ms=200,
                                             group_id=self.topic,
-                                            # key_deserializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
-                                            # value_deserializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
                                             auto_offset_reset="earliest",
                                             session_timeout_ms=10000,
                                             fetch_min_bytes=1,
                                             receive_buffer_bytes=262144,
-                                            max_partition_fetch_bytes=2097152
-                                            )
+                                            max_partition_fetch_bytes=2097152)
+        # Other flags:
+        # key_deserializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
+        # value_deserializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
 
         # Subscribe consumer
         self.kafka_consumer.subscribe([self.topic])

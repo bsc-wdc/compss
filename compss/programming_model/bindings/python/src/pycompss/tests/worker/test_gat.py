@@ -19,6 +19,7 @@
 
 import os
 import sys
+import tempfile
 
 from pycompss.worker.gat.worker import main
 from pycompss.api.task import task
@@ -26,6 +27,7 @@ from pycompss.api.task import task
 
 @task()
 def simple():
+    # Do nothing task
     pass
 
 
@@ -38,10 +40,26 @@ def test_gat_worker_simple_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
-    sys.argv = ["worker.py", "false", 1, "true",
-                "null", "NONE", "localhost", "49049", "METHOD",
-                "test_gat", "simple",
-                "0", "0", "1", "false", "null", "0", "0"]
+    sys.argv = [
+        "worker.py",
+        "false",
+        1,
+        "true",
+        "null",
+        "NONE",
+        "localhost",
+        "49049",
+        "METHOD",
+        "test_gat",
+        "simple",
+        "0",
+        "0",
+        "1",
+        "false",
+        "null",
+        "0",
+        "0",
+    ]
     current_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(current_path)
     main()
@@ -53,15 +71,42 @@ def test_gat_worker_increment_task():
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
-    sys.argv = ["worker.py", "false", 1, "true",
-                "null", "NONE", "localhost", "49049", "METHOD",
-                "test_gat", "increment",
-                "0", "0", "1", "false", "null", "1", "2", "4", "3",
-                "null", "value", "null", "1", "9", "3", "#", "$return_0",
-                "null", "/tmp/d1v1_1234.IT"
-                ]
+    temp_file = tempfile.NamedTemporaryFile(delete=False).name
+    sys.argv = [
+        "worker.py",
+        "false",
+        1,
+        "true",
+        "null",
+        "NONE",
+        "localhost",
+        "49049",
+        "METHOD",
+        "test_gat",
+        "increment",
+        "0",
+        "0",
+        "1",
+        "false",
+        "null",
+        "1",
+        "2",
+        "4",
+        "3",
+        "null",
+        "value",
+        "null",
+        "1",
+        "9",
+        "3",
+        "#",
+        "$return_0",
+        "null",
+        temp_file,
+    ]
     current_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(current_path)
     main()
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup
+    os.remove(temp_file)

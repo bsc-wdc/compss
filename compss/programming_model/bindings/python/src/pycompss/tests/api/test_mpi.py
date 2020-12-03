@@ -22,6 +22,9 @@ from pycompss.runtime.task.core_element import CE
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 import pycompss.util.context as context
 
+MPI_RUNNER = "mpirun"
+ERROR_EXPECTED_1 = "Wrong expected result (should be 1)."
+
 
 def dummy_function(*args, **kwargs):  # noqa
     return 1
@@ -29,42 +32,66 @@ def dummy_function(*args, **kwargs):  # noqa
 
 def test_mpi_instantiation():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun")
-    assert my_mpi.decorator_name == "@mpi", \
-        "The decorator name must be @mpi."
+    my_mpi = MPI(runner=MPI_RUNNER)
+    assert my_mpi.decorator_name == "@mpi", "The decorator name must be @mpi."
 
 
 def test_mpi_call():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun")
+    my_mpi = MPI(runner=MPI_RUNNER)
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
-# # Disabled due to support of dummy @binary
-# def test_mpi_call_outside():
-#     context.set_pycompss_context(context.OUT_OF_SCOPE)
-#     my_mpi = MPI(runner="mpirun")
-#     f = my_mpi(dummy_function)
-#     thrown = False
-#     try:
-#         _ = f()
-#     except Exception:  # noqa
-#         thrown = True  # this is OK!
-#     assert thrown, \
-#         "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
+def test_mpi_call_outside():
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    my_mpi = MPI(runner=MPI_RUNNER, processes=2, binary="date")
+    f = my_mpi(dummy_function)
+    thrown = False
+    try:
+        _ = f()
+    except Exception:  # noqa
+        thrown = True  # this is OK!
+    assert thrown, \
+        "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
+
+
+def test_mpi_call_outside_with_computing_nodes_old_style():
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    my_mpi = MPI(runner=MPI_RUNNER, computingNodes=2, binary="date")
+    f = my_mpi(dummy_function)
+    thrown = False
+    try:
+        _ = f()
+    except Exception:  # noqa
+        thrown = True  # this is OK!
+    assert thrown, \
+        "The mpi decorator did not raise an exception when invoked out of scope (computingNodes)."  # noqa: E501
+
+
+def test_mpi_call_outside_with_computing_nodes():
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    my_mpi = MPI(runner=MPI_RUNNER, computing_nodes=2, binary="date")
+    f = my_mpi(dummy_function)
+    thrown = False
+    try:
+        _ = f()
+    except Exception:  # noqa
+        thrown = True  # this is OK!
+    assert thrown, \
+        "The mpi decorator did not raise an exception when invoked out of scope (computing_nodes)."  # noqa: E501
 
 
 def test_mpi_layout_empty_parameter():
     context.set_pycompss_context(context.MASTER)
     layout = dict()
-    my_mpi = MPI(runner="mpirun", _layout={"_layout": layout})
+    my_mpi = MPI(runner=MPI_RUNNER, _layout={"_layout": layout})
     f = my_mpi(dummy_function)
     _ = f()
-    assert "_layout" in my_mpi.kwargs, \
-        "_layout is not defined in kwargs dictionary."
+    assert (
+        "_layout" in my_mpi.kwargs
+    ), "_layout is not defined in kwargs dictionary."
 
 
 def test_mpi_layout_parameter_exception():
@@ -72,67 +99,74 @@ def test_mpi_layout_parameter_exception():
     layout = 2
     exception = False
     try:
-        _ = MPI(_layout={"_layout": layout}, _layout2={"_layout": layout}, runner="mpirun")  # noqa: E501
+        _ = MPI(
+            _layout={"_layout": layout},
+            _layout2={"_layout": layout},
+            runner=MPI_RUNNER,
+        )  # noqa: E501
     except Exception:  # noqa
         exception = True  # Ok - Exception expected.
-    assert exception, \
-        "Expected exception due to multiple layouts has not been raised"
+    assert (
+        exception
+    ), "Expected exception due to multiple layouts has not been raised"
 
 
 def test_mpi_binary():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags")
+    my_mpi = MPI(runner=MPI_RUNNER, binary="date", flags="flags")
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_bool_true():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu=True)  # noqa: E501
+    my_mpi = MPI(
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=True
+    )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_bool_false():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu=False)  # noqa: E501
+    my_mpi = MPI(
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=False
+    )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_str():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu="ENV_VAR")  # noqa: E501
+    my_mpi = MPI(
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="ENV_VAR"
+    )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
-    assert result == 1, \
-        "Wrong expected result (should be 1)."
+    assert result == 1, ERROR_EXPECTED_1
 
 
 def test_mpi_binary_scale_incorrect():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun", binary="date", flags="flags", scale_by_cu=1)
+    my_mpi = MPI(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=1)
     f = my_mpi(dummy_function)
     exception = False
     try:
         _ = f()
     except Exception:  # noqa
         exception = True
-    assert exception, \
-        "Unsupported scale_by_cu value exception not raised."
+    assert exception, "Unsupported scale_by_cu value exception not raised."
 
 
 def test_mpi_existing_core_element():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = MPI(runner="mpirun")
+    my_mpi = MPI(runner=MPI_RUNNER)
     f = my_mpi(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    assert CORE_ELEMENT_KEY not in my_mpi.kwargs, \
-           "Core Element is not defined in kwargs dictionary."
+    assert (
+        CORE_ELEMENT_KEY not in my_mpi.kwargs
+    ), "Core Element is not defined in kwargs dictionary."

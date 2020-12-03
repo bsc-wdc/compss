@@ -45,8 +45,8 @@ else:
     import types
     STR_ESCAPE = 'string_escape'
     IS_PYTHON3 = False
-    LIST_TYPE = types.ListType
-    DICT_TYPE = types.DictType
+    LIST_TYPE = types.ListType  # noqa
+    DICT_TYPE = types.DictType  # noqa
 
 # Determine the environment
 ENVIRONMENT = 'terminal'
@@ -78,6 +78,11 @@ EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
 
 # Interactive mode file name
 INTERACTIVE_FILE_NAME = 'InteractiveMode'
+
+# LONG DEFAULTS
+DEFAULT_SCHED = "es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
+DEFAULT_CONN = "es.bsc.compss.connectors.DefaultSSHConnector"
+DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
 
 #####################################################
 # Builtin functions depending on the python version #
@@ -120,13 +125,14 @@ def get_temporary_directory():
 
 
 def set_temporary_directory(folder, create_tmpdir=True):
-    # type: (str) -> None
+    # type: (str, bool) -> None
     """ Set the temporary directory.
 
     Creates the temporary directory from the folder parameter and
     sets the temporary directory variable.
 
     :param folder: Temporary directory path
+    :param create_tmpdir: Create temporary directory within folder.
     :return: None
     """
     global _TEMP_DIR

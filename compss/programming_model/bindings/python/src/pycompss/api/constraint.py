@@ -54,53 +54,49 @@ class Constraint(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(('@', Constraint.__name__.lower()))
+        super(Constraint, self).__init__(decorator_name, *args, **kwargs)
 
-    def __call__(self, func):
+    def __call__(self, user_function):
         """ Parse and set the constraints within the task core element.
 
-        :param func: Function to decorate.
+        :param user_function: Function to decorate.
         :return: Decorated function.
         """
-        @wraps(func)
+        @wraps(user_function)
         def constrained_f(*args, **kwargs):
             if not self.scope:
                 from pycompss.api.dummy.constraint import constraint \
                     as dummy_constraint
                 d_c = dummy_constraint(self.args, self.kwargs)
-                return d_c.__call__(func)(*args, **kwargs)
+                return d_c.__call__(user_function)(*args, **kwargs)
 
             if __debug__:
                 logger.debug("Executing constrained_f wrapper.")
 
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
+            if (context.in_master() or context.is_nesting_enabled()) \
+                    and not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs, user_function)
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        constrained_f.__doc__ = func.__doc__
+        constrained_f.__doc__ = user_function.__doc__
         return constrained_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs, user_function):
+        # type: (dict, ...) -> None
         """ Include the registering info related to @constraint.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Current keyword arguments to be updated with the core
                        element information.
+        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

@@ -18,11 +18,12 @@
 """
 PyCOMPSs Worker for Containers
 =======================
-    This file contains the code of a fake worker to execute Python tasks inside containers.
+    This file contains the code of a fake worker to execute Python tasks
+inside containers.
 """
 
 # Fix PYTHONPATH setup
-import pythonpath_fixer  # noqa
+import pycompss.worker.container.pythonpath_fixer  # noqa
 
 # Regular imports
 import sys
@@ -34,7 +35,7 @@ from pycompss.worker.commons.worker import execute_task
 from pycompss.worker.commons.executor import build_return_params_message
 
 # Define static logger
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)  # NOSONAR
 LOGGER = logging.getLogger()
 
 
@@ -68,7 +69,8 @@ def main():
     num_params = int(sys.argv[6])
     func_params = sys.argv[7:]
 
-    execute_task_params = [func_file_path, func_name, num_slaves, timeout, cus, has_target, return_type,
+    execute_task_params = [func_file_path, func_name, num_slaves,
+                           timeout, cus, has_target, return_type,
                            return_length, num_params] + func_params
 
     if __debug__:
@@ -97,11 +99,12 @@ def main():
                           execute_task_params,
                           tracing,
                           LOGGER,
-                          log_files,
+                          log_files,           # noqa
                           python_mpi,
-                          collections_layouts
+                          collections_layouts  # noqa
                           )
-    exit_value, new_types, new_values, timed_out, except_msg = result
+    # The ignored result is time out
+    exit_value, new_types, new_values, _, except_msg = result
 
     if __debug__:
         LOGGER.debug("DONE Processing task")
@@ -122,18 +125,20 @@ def main():
             LOGGER.debug("DONE Building return parameters")
     elif exit_value == 2:
         # Task has finished with a COMPSs Exception
-        except_msg = except_msg.replace(" ", "_")
         if __debug__:
-            LOGGER.debug("Registered COMPSs Exception: " + str(except_msg))
+            except_msg = except_msg.replace(" ", "_")
+            LOGGER.debug("Registered COMPSs Exception: %s" %
+                         str(except_msg))
     else:
         # An exception has been raised in task
-        except_msg = except_msg.replace(" ", "_")
         if __debug__:
-            LOGGER.debug("Registered Exception in task execution" + str(except_msg))
+            except_msg = except_msg.replace(" ", "_")
+            LOGGER.debug("Registered Exception in task execution %s" %
+                         str(except_msg))
 
     # Return
     if exit_value != 0:
-        LOGGER.debug("ERROR: Task execution finished with non-zero exit value (" + str(exit_value) + " != 0)")
+        LOGGER.debug("ERROR: Task execution finished with non-zero exit value (%s != 0)" % str(exit_value))  # noqa: E501
     else:
         LOGGER.debug("Task execution finished SUCCESSFULLY!")
     return exit_value

@@ -20,18 +20,19 @@ from pycompss.api.api import compss_wait_on
 from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_delete_object
 from pycompss.api.api import compss_delete_file
+from pycompss.api.mpi import mpi
+from pycompss.api.constraint import constraint
+from pycompss.api.parameter import * 
+from pycompss.api.implement import implement 
+from pycompss.api.constraint import constraint
 
-
-class ExaquteTask(object):
-
-    def __init__(self, *args, **kwargs):
-        global scheduler
-        scheduler = "Current scheduler is PyCOMPSs"
-        self.task_instance = task(*args, **kwargs)
-
-    def __call__(self, f):
-        return self.task_instance.__call__(f)
-
+ExaquteTask=task
+MPI=mpi
+Mpi=mpi
+CONSTRAINT=constraint
+Constraint=constraint
+IMPLEMENT=implement
+Implement=implement
 
 def barrier():  # Wait
     compss_barrier()

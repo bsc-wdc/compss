@@ -72,9 +72,18 @@ class Constraint(object):
     def __call__(self, f):
         return f
 
+class Mpi(object):
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, f):
+        return f
 
 # Enable lower and capital decorators naming:
 implement = Implement
 IMPLEMENT = Implement
 constraint = Constraint
 CONSTRAINT = Constraint
+mpi = Mpi
+MPI = MPI

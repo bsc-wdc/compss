@@ -32,3 +32,7 @@ Direction = 'direction'  # parameter type
 StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
 Depth = 'depth'  # collection recursive depth
+
+block_count = 'block_count'
+block_length = 'block_length'
+stride = 'stride'

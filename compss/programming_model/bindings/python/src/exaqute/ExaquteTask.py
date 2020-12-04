@@ -16,6 +16,14 @@
 #
 from exaqute.ExaquteParameter import *
 
+class mpi(object):
+    def __init__(self, *args, **kwargs):
+        raise Exception(
+            "Exaqute MPI decorator not implemented in the current scheduler")
+
+    def __call__(self, f):
+        raise Exception(
+            "Exaqute MPI call code not implemented in the current scheduler")
 
 class ExaquteTask(object):
 

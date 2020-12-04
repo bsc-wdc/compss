@@ -69,3 +69,12 @@ class constraint(object):
 
     def __call__(self, f):
         return f
+
+class mpi(object):
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, f):
+        return f
+

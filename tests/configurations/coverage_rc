@@ -6,6 +6,8 @@ omit =
     */site-packages/*
     */distutils/*
     /usr/lib/*
+    /opt/COMPSs/Bindings/python/2/tests/*
+    /opt/COMPSs/Bindings/python/3/tests/*
     @TEST_OUTPUT_PATH@/*
 source =
     src/
@@ -17,6 +19,9 @@ omit =
     */dist-packages/*
     */site-packages/*
     */distutils/*
+    /usr/lib/*
+    /opt/COMPSs/Bindings/python/2/tests/*
+    /opt/COMPSs/Bindings/python/3/tests/*
     @TEST_OUTPUT_PATH@/*
 [xml]
 output=@TEST_OUTPUT_PATH@/coverage/coverage.xml

@@ -5,7 +5,13 @@ omit =
     */dist-packages/*
     */site-packages/*
     */distutils/*
+    /usr/lib/*
     @TEST_OUTPUT_PATH@/*
+source =
+    src/
+    /opt/COMPSs/Bindings/python/2/
+    /opt/COMPSs/Bindings/python/3/
+concurrency = multiprocessing
 [report]
 omit =
     */dist-packages/*

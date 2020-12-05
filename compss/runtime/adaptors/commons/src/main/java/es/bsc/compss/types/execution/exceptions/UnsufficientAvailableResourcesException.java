@@ -14,37 +14,26 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.types;
+package es.bsc.compss.types.execution.exceptions;
 
-public class InvocationResources {
-
-    private final int[] cpus;
-    private final int[] gpus;
-    private final int[] fpgas;
-
+public class UnsufficientAvailableResourcesException extends Exception {
 
     /**
-     * Invocation resources constructor.
-     * 
-     * @param cpus Assigned CPUs array
-     * @param gpus Assigned GPUs array
-     * @param fpgas Assigned FPGAs array
+     * Exception Version UID are 2L in all Runtime.
      */
-    public InvocationResources(int[] cpus, int[] gpus, int[] fpgas) {
-        this.cpus = cpus;
-        this.gpus = gpus;
-        this.fpgas = fpgas;
+    private static final long serialVersionUID = 2L;
+
+
+    public UnsufficientAvailableResourcesException(String message) {
+        super(message);
     }
 
-    public int[] getAssignedCPUs() {
-        return this.cpus;
+    public UnsufficientAvailableResourcesException(Exception e) {
+        super(e);
     }
 
-    public int[] getAssignedGPUs() {
-        return this.gpus;
+    public UnsufficientAvailableResourcesException(String msg, Exception e) {
+        super(msg, e);
     }
 
-    public int[] getAssignedFPGAs() {
-        return this.fpgas;
-    }
 }

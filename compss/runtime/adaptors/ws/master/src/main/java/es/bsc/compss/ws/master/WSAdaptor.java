@@ -20,6 +20,7 @@ import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.jaxb.PriceType;
@@ -95,10 +96,10 @@ public class WSAdaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(Configuration config) {
+    public COMPSsWorker initWorker(Configuration config, NodeMonitor monitor) {
         WSConfiguration wsCfg = (WSConfiguration) config;
         LOGGER.debug("Init WS Worker Node named " + wsCfg.getWsdl());
-        return new ServiceInstance(wsCfg);
+        return new ServiceInstance(wsCfg, monitor);
     }
 
     @Override

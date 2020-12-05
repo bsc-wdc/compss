@@ -22,6 +22,7 @@ import es.bsc.compss.gat.master.configuration.GATConfiguration;
 import es.bsc.compss.gat.master.utils.GATScriptExecutor;
 import es.bsc.compss.gat.master.utils.SSHManager;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -69,9 +70,10 @@ public class GATWorkerNode extends COMPSsWorker {
      * New GAT Worker Node with name @name and configuration @{code config}.
      *
      * @param config Adaptor configuration.
+     * @param monitor element monitoring changes on the node
      */
-    public GATWorkerNode(GATConfiguration config) {
-        super();
+    public GATWorkerNode(GATConfiguration config, NodeMonitor monitor) {
+        super(monitor);
         this.config = config;
     }
 

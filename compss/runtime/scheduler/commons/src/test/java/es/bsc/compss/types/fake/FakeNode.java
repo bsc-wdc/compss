@@ -17,6 +17,7 @@
 package es.bsc.compss.types.fake;
 
 import es.bsc.compss.types.COMPSsNode;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -37,6 +38,10 @@ import java.util.List;
 
 
 public class FakeNode extends COMPSsNode {
+
+    public FakeNode(NodeMonitor monitor) {
+        super(monitor);
+    }
 
     @Override
     public String getName() {

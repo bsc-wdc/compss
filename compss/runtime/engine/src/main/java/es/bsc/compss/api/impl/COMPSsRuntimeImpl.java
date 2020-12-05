@@ -18,6 +18,7 @@ package es.bsc.compss.api.impl;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
@@ -206,6 +207,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 setPropertyFromRuntime(COMPSsConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
                 setPropertyFromRuntime(COMPSsConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
                 setPropertyFromRuntime(COMPSsConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
+                if (System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK) == null
+                    || System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK).isEmpty()) {
+                    System.setProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK,
+                        Boolean.toString(manager.getReuseResourcesOnBlock()));
+                }
                 setPropertyFromRuntime(COMPSsConstants.WORKER_CP, manager.getWorkerCP());
                 setPropertyFromRuntime(COMPSsConstants.WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
 
@@ -276,6 +282,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsConstants.DEFAULT_PROJECT_SCHEMA);
         setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
         setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
+        setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsConstants.DEFAULT_REUSE_RESOURCES_ON_BLOCK);
         setDefaultProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
         setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
         setDefaultProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);
@@ -517,19 +524,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public long registerApplication(String parallelismSource) {
-        Application app = Application.registerApplication(parallelismSource);
-        return app.getId();
-    }
-
-    @Override
     public void registerApplication(Long appId) {
         Application.registerApplication(appId);
     }
 
     @Override
-    public void registerApplication(Long appId, String parallelismSource) {
-        Application.registerApplication(appId, parallelismSource);
+    public long registerApplication(String parallelismSource, ApplicationRunner runner) {
+        Application app = Application.registerApplication(parallelismSource, runner);
+        return app.getId();
+    }
+
+    @Override
+    public void registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
+        Application.registerApplication(appId, parallelismSource, runner);
     }
 
     @Override

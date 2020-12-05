@@ -22,6 +22,7 @@ import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.nio.master.NIOWorkerNode;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -46,8 +47,8 @@ class CommAgentWorker extends NIOWorkerNode {
     private final CommResource remoteResource;
 
 
-    public CommAgentWorker(String name, int port, CommAgentAdaptor adaptor) {
-        super(null, adaptor);
+    public CommAgentWorker(String name, int port, CommAgentAdaptor adaptor, NodeMonitor monitor) {
+        super(null, adaptor, monitor);
         remoteResource = new CommResource(name, port);
         node = new NIONode(name, port);
         started = true;

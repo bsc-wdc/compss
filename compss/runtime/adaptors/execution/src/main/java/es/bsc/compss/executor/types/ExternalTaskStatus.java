@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.types;
+package es.bsc.compss.executor.types;
 
+import es.bsc.compss.invokers.types.TypeValuePair;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 

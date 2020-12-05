@@ -26,6 +26,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.PrintStream;
@@ -252,6 +253,14 @@ public class FakeInvocationContext implements InvocationContext {
     @Override
     public LoaderAPI getLoaderAPI() {
         return null;
+    }
+
+    @Override
+    public void idleReservedResourcesDetected(ResourceDescription resources) {
+    }
+
+    @Override
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
     }
 
 

@@ -99,14 +99,6 @@ public interface COMPSsRuntime {
     public long registerApplication();
 
     /**
-     * Registers in the runtime a new application with with parallelism defined by a specific source.
-     *
-     * @param parallelismSource Element defining the task within the application
-     * @return Id of the registered application
-     */
-    public long registerApplication(String parallelismSource);
-
-    /**
      * Registers in the runtime a new application with no inner parallelism.
      *
      * @param appId Id of the application.
@@ -116,10 +108,20 @@ public interface COMPSsRuntime {
     /**
      * Registers in the runtime a new application with with parallelism defined by a specific source.
      *
+     * @param parallelismSource Element defining the task within the application
+     * @param runner Element executing the application's main code.
+     * @return Id of the registered application
+     */
+    public long registerApplication(String parallelismSource, ApplicationRunner runner);
+
+    /**
+     * Registers in the runtime a new application with with parallelism defined by a specific source.
+     *
      * @param appId Id of the application.
      * @param parallelismSource Element defining the task within the application
+     * @param runner Element executing the application's main code.
      */
-    public void registerApplication(Long appId, String parallelismSource);
+    public void registerApplication(Long appId, String parallelismSource, ApplicationRunner runner);
 
     /**
      * Deregisters an application from the runtime.

@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -47,8 +48,8 @@ public class ServiceInstance extends COMPSsWorker {
     private WSConfiguration config;
 
 
-    public ServiceInstance(WSConfiguration config) {
-        super();
+    public ServiceInstance(WSConfiguration config, NodeMonitor monitor) {
+        super(monitor);
         this.config = config;
     }
 

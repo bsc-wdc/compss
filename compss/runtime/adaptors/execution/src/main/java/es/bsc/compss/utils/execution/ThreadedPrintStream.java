@@ -15,7 +15,7 @@
  *
  */
 
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.utils.execution;
 
 import java.io.PrintStream;
 import java.util.HashMap;

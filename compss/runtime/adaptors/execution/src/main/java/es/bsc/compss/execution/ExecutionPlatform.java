@@ -14,19 +14,23 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.execution;
 
+import es.bsc.compss.execution.types.ExecutorContext;
+import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.execution.utils.JobQueue;
+import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.executor.Executor;
-import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.util.JobQueue;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.utils.execution.ThreadedProperties;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -55,6 +59,7 @@ public class ExecutionPlatform implements ExecutorContext {
     private final InvocationContext context;
     private final ResourceManager rm;
 
+    private boolean reuseResourcesOnBlockedInvocation = true;
     private final JobQueue queue;
 
     private boolean started = false;
@@ -75,10 +80,10 @@ public class ExecutionPlatform implements ExecutorContext {
      *
      * @param platformName Platform name
      * @param context Invocation Context
-     * @param initialSize Initial number of processes
+     * @param config configuration of the execution platform
      * @param resManager Resource Manager
      */
-    public ExecutionPlatform(String platformName, InvocationContext context, int initialSize,
+    public ExecutionPlatform(String platformName, InvocationContext context, ExecutionPlatformConfiguration config,
         ResourceManager resManager) {
         LOGGER.info("Initializing execution platform " + platformName);
         this.platformName = platformName;
@@ -96,6 +101,7 @@ public class ExecutionPlatform implements ExecutorContext {
         this.stopSemaphore = new Semaphore(0);
 
         // Instantiate worker thread structure
+        this.reuseResourcesOnBlockedInvocation = config.isReuseResourcesOnBlockedRunner();
         this.workerThreads = new TreeSet<>(new Comparator<Thread>() {
 
             @Override
@@ -104,8 +110,8 @@ public class ExecutionPlatform implements ExecutorContext {
             }
         });
         this.finishedWorkerThreads = new LinkedList<>();
-        addWorkerThreads(initialSize);
-        this.toCancel = new HashSet<Integer>();
+        addWorkerThreads(config.getInitialSize());
+        this.toCancel = new HashSet<>();
         this.executingJobs = new ConcurrentHashMap<>();
     }
 
@@ -264,6 +270,45 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     @Override
+    public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
+        InvocationResources preferredAllocation) throws UnsufficientAvailableResourcesException {
+
+        return this.rm.acquireResources(jobId, requirements, preferredAllocation);
+    }
+
+    @Override
+    public void blockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources assignedResources) {
+        LOGGER.debug("Stalled execution of job " + invocation.getJobId());
+        if (reuseResourcesOnBlockedInvocation) {
+            LOGGER.debug("Releasing resources assigned to job " + invocation.getJobId());
+            int jobId = invocation.getJobId();
+            this.rm.releaseResources(jobId);
+            this.addWorkerThreads(1);
+            this.context.idleReservedResourcesDetected(invocation.getRequirements());
+        }
+    }
+
+    @Override
+    public void unblockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources previousAllocation,
+        Semaphore sem) {
+        LOGGER.debug("Execution of job " + invocation.getJobId() + " ready to continue");
+        if (reuseResourcesOnBlockedInvocation) {
+            LOGGER.debug("Reacquiring resources assigned to job " + invocation.getJobId());
+            this.removeWorkerThreads(1);
+            int jobId = invocation.getJobId();
+            this.rm.reacquireResources(jobId, invocation.getRequirements(), previousAllocation, sem);
+            this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
+        } else {
+            sem.release();
+        }
+    }
+
+    @Override
+    public void releaseResources(int jobId) {
+        this.rm.releaseResources(jobId);
+    }
+
+    @Override
     public void unregisterRunningJob(int jobId) {
         LOGGER.debug("Unregistering job " + jobId);
         this.executingJobs.remove(jobId);
@@ -278,18 +323,6 @@ public class ExecutionPlatform implements ExecutorContext {
     @Override
     public Execution getJob() {
         return this.queue.dequeue();
-    }
-
-    @Override
-    public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
-        InvocationResources previousAllocation) throws UnsufficientAvailableComputingUnitsException {
-
-        return this.rm.acquireResources(jobId, requirements, previousAllocation);
-    }
-
-    @Override
-    public void releaseResources(int jobId) {
-        this.rm.releaseResources(jobId);
     }
 
     @Override

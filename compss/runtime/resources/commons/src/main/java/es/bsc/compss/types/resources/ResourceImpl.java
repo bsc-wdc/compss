@@ -22,6 +22,7 @@ import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsNode;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -60,7 +61,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class ResourceImpl implements Comparable<Resource>, Resource {
+public abstract class ResourceImpl implements Comparable<Resource>, Resource, NodeMonitor {
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
@@ -83,7 +84,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      */
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
-        this.node = Comm.initWorker(conf);
+        this.node = Comm.initWorker(conf, this);
         this.sharedDisks = sharedDisks;
         SharedDiskManager.addMachine(this);
         ResourcesPool.add(this);
@@ -98,6 +99,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     public ResourceImpl(COMPSsNode node, Map<String, String> sharedDisks) {
         this.name = node.getName();
         this.node = node;
+        node.setMonitor(this);
         this.sharedDisks = sharedDisks;
         SharedDiskManager.addMachine(this);
         ResourcesPool.add(this);
@@ -202,6 +204,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     /**
      * Clears the list of obsolete files.
      */
+    @Override
     public final void clearObsoletes() {
         synchronized (this.obsoletes) {
             this.obsoletes.clear();
@@ -675,4 +678,13 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         LOGGER.debug("Worker files from resource " + getName() + "received");
     }
 
+    @Override
+    public void idleReservedResourcesDetected(ResourceDescription resources) {
+        // Should notify the resource user that such resources are available again
+    }
+
+    @Override
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
+        // Should notify the resource user that such resources are no longer available
+    }
 }

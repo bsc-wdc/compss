@@ -220,7 +220,7 @@ public class TestJavaInvoker extends TestObject {
         executions.put(executorId, result);
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_EMPTY_METHODNAME, true, new Object[] {}, null, null);
@@ -272,7 +272,7 @@ public class TestJavaInvoker extends TestObject {
         ExecutionReport result = new ExecutionReport(TEST_READS_METHODNAME, false, new Object[] { value1,
             value2 }, null, null);
         executions.put(executorId, result);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_READS_METHODNAME, true, new Object[] { value1,
@@ -332,7 +332,7 @@ public class TestJavaInvoker extends TestObject {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_INOUT_METHODNAME, true, new Object[] { out1,
@@ -373,7 +373,7 @@ public class TestJavaInvoker extends TestObject {
 
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
         try {
-            invoker.processTask();
+            invoker.runInvocation(null);
         } catch (NullPointerException npe) {
             // Executing a instance method on null -> Raise Exception
         }
@@ -405,7 +405,7 @@ public class TestJavaInvoker extends TestObject {
         ExecutionReport result = new ExecutionReport(TEST_TARGET_IN_METHODNAME, false, new Object[] {}, target, null);
         executions.put(executorId, result);
 
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_TARGET_IN_METHODNAME, true, new Object[] {}, target, null);
@@ -454,7 +454,7 @@ public class TestJavaInvoker extends TestObject {
         executions.put(executorId, result);
 
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
-        invoker.processTask();
+        invoker.runInvocation(null);
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_TARGET_INOUT_METHODNAME, true, new Object[] {}, target, null);
         deleteSandbox(sandBoxDir);
@@ -500,7 +500,7 @@ public class TestJavaInvoker extends TestObject {
         executions.put(executorId, result);
 
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_RESULT_METHODNAME, true, new Object[] {}, null, null);

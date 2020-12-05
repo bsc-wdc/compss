@@ -17,7 +17,7 @@
 package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.EndTaskExternalCommand;
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
+import es.bsc.compss.executor.types.ExternalTaskStatus;
 
 
 public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCommand {

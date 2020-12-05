@@ -14,10 +14,10 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.util;
+package es.bsc.compss.execution.utils;
 
-import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.Execution;
 
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
@@ -120,11 +120,13 @@ public class JobQueue {
     public void wakeUpAll() {
         // Wake up all waiting threads
         LOGGER.info("Waking up " + waitingLocks.size() + " locks.");
-        while (!this.waitingLocks.isEmpty()) {
-            Object lock = this.waitingLocks.pop();
-            synchronized (lock) {
-                LOGGER.debug("Release lock" + lock.hashCode());
-                lock.notify();
+        synchronized (this) {
+            while (!this.waitingLocks.isEmpty()) {
+                Object lock = this.waitingLocks.pop();
+                synchronized (lock) {
+                    LOGGER.debug("Release lock" + lock.hashCode());
+                    lock.notify();
+                }
             }
         }
     }

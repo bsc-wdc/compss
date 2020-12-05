@@ -83,12 +83,16 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
         MASTER_NAME = hostName;
     }
 
+    private NodeMonitor monitor;
+
 
     /**
      * Creates a new node.
+     *
+     * @param monitor element monitoring changes on the node
      */
-    public COMPSsNode() {
-        // Nothing to do since there are no attributes to initialize
+    public COMPSsNode(NodeMonitor monitor) {
+        this.monitor = monitor;
     }
 
     /**
@@ -100,7 +104,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Returns the master name.
-     * 
+     *
      * @return The master name.
      */
     public static String getMasterName() {
@@ -188,7 +192,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Returns the expected data target path in the node.
-     * 
+     *
      * @param tgtName expected data target name
      * @param param Dependency parameter
      * @return data target path
@@ -249,21 +253,47 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * 
      * @Override public int hashCode() { return getName().hashCode(); }
      */
-
     /**
      * Increases the computing capabilities of the node.
-     * 
+     *
      * @param description New resource description.
      */
     public abstract void increaseComputingCapabilities(ResourceDescription description);
 
     /**
      * Decreases the computing capabilities of the node.
-     * 
+     *
      * @param description New resource description.
      */
     public abstract void reduceComputingCapabilities(ResourceDescription description);
 
     public abstract void removeObsoletes(List<MultiURI> obsoletes);
 
+    /**
+     * Sets an element that will monitor the chages on the node.
+     * 
+     * @param monitor element monitoring the changes on the node
+     */
+    public void setMonitor(NodeMonitor monitor) {
+        this.monitor = monitor;
+    }
+
+    /**
+     * Notifies the detection of idle resources assigned to an already-running task.
+     * 
+     * @param resources detected idle resources
+     */
+    public void idleReservedResourcesDetected(ResourceDescription resources) {
+        this.monitor.idleReservedResourcesDetected(resources);
+    }
+
+    /**
+     * Notifies the detection of activity on resources assigned to an already-running task previously notified to be
+     * idle.
+     * 
+     * @param resources reactivated resouces
+     */
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
+        this.monitor.reactivatedReservedResourcesDetected(resources);
+    }
 }

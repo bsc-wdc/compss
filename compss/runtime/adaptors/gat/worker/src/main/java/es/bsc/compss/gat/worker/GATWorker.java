@@ -20,9 +20,6 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.executor.ExecutionManager;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.ExecutionListener;
 import es.bsc.compss.gat.executor.types.ExecutionEnd;
 import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
 import es.bsc.compss.gat.worker.implementations.COMPSsDefinition;
@@ -33,6 +30,8 @@ import es.bsc.compss.gat.worker.implementations.MultiNodeDefinition;
 import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
 import es.bsc.compss.gat.worker.implementations.OpenCLDefinition;
 import es.bsc.compss.loader.LoaderAPI;
+import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -42,8 +41,10 @@ import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
+import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -215,7 +216,7 @@ public class GATWorker implements InvocationContext {
         this.streamMasterPort = streamMasterPort;
 
         // Prepare execution Manager
-        this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0,
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, false, 0,
             ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, 1);
 
         if (this.debug) {
@@ -447,6 +448,16 @@ public class GATWorker implements InvocationContext {
     @Override
     public LoaderAPI getLoaderAPI() {
         return null;
+    }
+
+    @Override
+    public void idleReservedResourcesDetected(ResourceDescription resources) {
+        // GAT Adaptor does not support remote resource updates
+    }
+
+    @Override
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
+        // GAT Adaptor does not support remote resource updates
     }
 
 }

@@ -15,12 +15,13 @@
  *
  */
 
-package es.bsc.compss.executor;
+package es.bsc.compss.utils.execution;
 
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ExecutionPlatform;
-import es.bsc.compss.executor.utils.ResourceManager;
+import es.bsc.compss.execution.ExecutionPlatform;
+import es.bsc.compss.execution.ExecutionPlatformConfiguration;
+import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
@@ -43,6 +44,8 @@ public class ExecutionManager {
      * @param context Invocation context
      * @param computingUnitsCPU Number of CPU Computing Units
      * @param cpuMap CPU Mapping
+     * @param reuseCPUsOnBlock if {@literal true} resources are released and the platform accepts new invocations when
+     *            an already-running invocation stalls; otherwise, the running invocation keeps the resources.
      * @param computingUnitsGPU Number of GPU Computing Units
      * @param gpuMap GPU Mapping
      * @param computingUnitsFPGA Number of FPGA Computing Units
@@ -50,8 +53,8 @@ public class ExecutionManager {
      * @param ioExecNum Number of IO Executors
      * @param limitOfTasks Limit of number of simultaneous tasks
      */
-    public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU,
-        String gpuMap, int computingUnitsFPGA, String fpgaMap, int ioExecNum, int limitOfTasks) {
+    public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, boolean reuseCPUsOnBlock,
+        int computingUnitsGPU, String gpuMap, int computingUnitsFPGA, String fpgaMap, int ioExecNum, int limitOfTasks) {
 
         ResourceManager rm = null;
         try {
@@ -59,8 +62,11 @@ public class ExecutionManager {
         } catch (InvalidMapException ime) {
             ErrorManager.fatal(ime);
         }
-        this.cpuExecutors = new ExecutionPlatform("CPUThreadPool", context, computingUnitsCPU, rm);
-        this.ioExecutors = new ExecutionPlatform("IOThreadPool", context, ioExecNum, rm);
+        ExecutionPlatformConfiguration cpuConf =
+            new ExecutionPlatformConfiguration(computingUnitsCPU, reuseCPUsOnBlock);
+        this.cpuExecutors = new ExecutionPlatform("CPUThreadPool", context, cpuConf, rm);
+        ExecutionPlatformConfiguration ioConf = new ExecutionPlatformConfiguration(ioExecNum, false);
+        this.ioExecutors = new ExecutionPlatform("IOThreadPool", context, ioConf, rm);
     }
 
     /**
@@ -80,7 +86,6 @@ public class ExecutionManager {
      * Enqueues a new task.
      *
      * @param exec Task execution description
-     * @throws Exception if there is no IO executors to execute the IO task
      */
     public void enqueue(Execution exec) {
         if (exec.getInvocation().getMethodImplementation().isIO()) {

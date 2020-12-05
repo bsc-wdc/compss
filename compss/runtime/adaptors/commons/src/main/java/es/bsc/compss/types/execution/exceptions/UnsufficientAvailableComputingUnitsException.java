@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
-public class UnsufficientAvailableComputingUnitsException extends Exception {
+public class UnsufficientAvailableComputingUnitsException extends UnsufficientAvailableResourcesException {
 
     /**
      * Exception Version UID are 2L in all Runtime.

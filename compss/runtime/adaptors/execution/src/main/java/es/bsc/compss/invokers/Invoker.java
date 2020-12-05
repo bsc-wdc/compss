@@ -16,8 +16,10 @@
  */
 package es.bsc.compss.invokers;
 
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
@@ -41,12 +43,13 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class Invoker {
+public abstract class Invoker implements ApplicationRunner {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
@@ -62,6 +65,8 @@ public abstract class Invoker {
 
     protected final InvocationContext context;
     protected final Invocation invocation;
+    protected InvocationRunner runner;
+
     protected final File taskSandboxWorkingDir;
     protected final InvocationResources assignedResources;
 
@@ -266,10 +271,12 @@ public abstract class Invoker {
     /**
      * Perform the task execution (job).
      *
+     * @param runner Element hosting the code execution
      * @throws JobExecutionException When an error in the task execution occurs.
      * @throws COMPSsException When the task needs to be stopped (task groups, failure management).
      */
-    public void processTask() throws JobExecutionException, COMPSsException {
+    public void runInvocation(InvocationRunner runner) throws JobExecutionException, COMPSsException {
+        this.runner = runner;
         /* Invoke the requested method ****************************** */
         invoke();
         try {
@@ -429,4 +436,15 @@ public abstract class Invoker {
         return writeHostfile(taskSandboxWorkingDir, workersStr);
     }
 
+    @Override
+    public void stalledApplication() {
+        // Resources should be released so other tasks run in the node
+        this.runner.stalledCodeExecution();
+    }
+
+    @Override
+    public void readyToContinue(Semaphore sem) {
+        // Resources should be re-acquired to continue the execution
+        this.runner.readyToContinueExecution(sem);
+    }
 }

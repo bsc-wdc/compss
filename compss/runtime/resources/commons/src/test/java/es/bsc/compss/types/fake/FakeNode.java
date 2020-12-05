@@ -20,6 +20,7 @@ import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -43,8 +44,8 @@ public class FakeNode extends COMPSsWorker {
     private final String name;
 
 
-    public FakeNode(String name) {
-        super();
+    public FakeNode(String name, NodeMonitor monitor) {
+        super(monitor);
         this.name = name;
     }
 

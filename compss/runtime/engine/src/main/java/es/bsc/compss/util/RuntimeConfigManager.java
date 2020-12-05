@@ -418,6 +418,26 @@ public class RuntimeConfigManager {
     }
 
     /**
+     * Returns whether the resources assigned to an execution should be reused when it stalls.
+     * 
+     * @return {@literal true} if the resources assigned to an execution should be reused when it stalls;
+     *         {@literal false}, otherwise.
+     */
+    public boolean getReuseResourcesOnBlock() {
+        return config.getBoolean(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK);
+    }
+
+    /**
+     * Sets whether the resources assigned to an execution should be reused when it stalls.
+     * 
+     * @param reuse {@literal true} if the resources assigned to an execution should be reused when it stalls;
+     *            {@literal false}, otherwise.
+     */
+    public void setReuseResourcesOnBlock(boolean reuse) {
+        config.setProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, reuse);
+    }
+
+    /**
      * Sets the new CPU Affinity for the Workers.
      * 
      * @param isAffinityEnabled New CPU Affinity for the Workers.

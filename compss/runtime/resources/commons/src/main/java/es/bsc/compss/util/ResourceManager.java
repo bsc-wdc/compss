@@ -561,6 +561,30 @@ public class ResourceManager {
     }
 
     /**
+     * Notifies that a worker has some idle reserved resources.
+     *
+     * @param worker Worker to whom the resources belong
+     * @param resources amount of resources that are idle
+     */
+    public static void notifyIdleResources(MethodWorker worker, MethodResourceDescription resources) {
+        worker.endTask(resources);
+        RUNTIME_LOGGER.info("Node with idle resources. Name = " + worker.getName());
+        resourceUser.updatedResource(worker, new PerformedIncrease<>(resources));
+    }
+
+    /**
+     * Notifies that some worker's resources are no longer idle.
+     *
+     * @param worker Worker to whom the resources belong
+     * @param resources amount of resources that are no longer idle
+     */
+    public static void notifyResourcesReacquisition(MethodWorker worker, MethodResourceDescription resources) {
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(resources);
+        RUNTIME_LOGGER.info("Node reacquires resources. Name = " + worker.getName());
+        worker.runTask(resources);
+    }
+
+    /**
      * Terminates the given dynamic resource.
      *
      * @param worker Worker to stop.

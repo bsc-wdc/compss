@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.DataInfo;
 
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +42,7 @@ public class Application {
     private static final Random APP_ID_GENERATOR = new SecureRandom();
 
     private static final TreeMap<Long, Application> APPLICATIONS = new TreeMap<>();
-    private static final Application NO_APPLICATION = new Application(null, null);
+    private static final Application NO_APPLICATION = new Application(null, null, null);
 
     /*
      * Application definition
@@ -51,6 +53,11 @@ public class Application {
     private final String parallelismSource;
 
     private TimerTask wallClockKiller;
+
+    /*
+     * Element running the main code of the application
+     */
+    private final ApplicationRunner runner;
 
     /*
      * Application state variables
@@ -111,21 +118,7 @@ public class Application {
      * @return Application instance registered.
      */
     public static Application registerApplication() {
-        return registerApplication((String) null);
-    }
-
-    /**
-     * Registers a new application with a non-currently-used appId.
-     *
-     * @param parallelismSource element identifying the inner tasks
-     * @return Application instance registered.
-     */
-    public static Application registerApplication(String parallelismSource) {
-        Long appId = APP_ID_GENERATOR.nextLong();
-        while (APPLICATIONS.containsKey(appId)) {
-            appId = APP_ID_GENERATOR.nextLong();
-        }
-        return registerApplication(appId, parallelismSource);
+        return registerApplication(null, null);
     }
 
     /**
@@ -136,7 +129,22 @@ public class Application {
      * @return Application instance registered for that appId.
      */
     public static Application registerApplication(Long appId) {
-        return registerApplication(appId, null);
+        return registerApplication(appId, null, null);
+    }
+
+    /**
+     * Registers a new application with a non-currently-used appId.
+     *
+     * @param parallelismSource element identifying the inner tasks
+     * @param runner element running the main code of the application
+     * @return Application instance registered.
+     */
+    public static Application registerApplication(String parallelismSource, ApplicationRunner runner) {
+        Long appId = APP_ID_GENERATOR.nextLong();
+        while (APPLICATIONS.containsKey(appId)) {
+            appId = APP_ID_GENERATOR.nextLong();
+        }
+        return registerApplication(appId, parallelismSource, runner);
     }
 
     /**
@@ -145,9 +153,10 @@ public class Application {
      *
      * @param appId Id of the application to be registered
      * @param parallelismSource element identifying the inner tasks
+     * @param runner element running the main code of the application
      * @return Application instance registered for that appId.
      */
-    public static Application registerApplication(Long appId, String parallelismSource) {
+    public static Application registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
         Application app;
         if (appId == null) {
             LOGGER.error("No application id", new Exception("Application id is null"));
@@ -156,7 +165,7 @@ public class Application {
             synchronized (APPLICATIONS) {
                 app = APPLICATIONS.get(appId);
                 if (app == null) {
-                    app = new Application(appId, parallelismSource);
+                    app = new Application(appId, parallelismSource, runner);
                     APPLICATIONS.put(appId, app);
                 }
             }
@@ -205,9 +214,10 @@ public class Application {
         }
     }
 
-    private Application(Long appId, String parallelismSource) {
+    private Application(Long appId, String parallelismSource, ApplicationRunner runner) {
         this.id = appId;
         this.parallelismSource = parallelismSource;
+        this.runner = runner;
         this.totalTaskCount = 0;
         this.ending = false;
         this.currentTaskGroups = new Stack<>();
@@ -259,7 +269,7 @@ public class Application {
 
     /**
      * Returns the TaskGroup with all the tasks of the application.
-     * 
+     *
      * @return TaskGroup with all the tasks of the application.
      */
     public TaskGroup getBaseTaskGroup() {
@@ -287,7 +297,7 @@ public class Application {
     }
 
     /*
-     * ----------------------------------- TASK MANAGEMENT -----------------------------------
+     * ----------------------------------- EXECUTION MANAGEMENT -----------------------------------
      */
     /**
      * Registers the existence of a new task for the application and registers it into all the currently open groups.
@@ -296,6 +306,28 @@ public class Application {
      */
     public void newTask(Task task) {
         this.totalTaskCount++;
+    }
+
+    /**
+     * The application's main code cannot make no progress until further notice.
+     */
+    public void stalled() {
+        if (runner != null) {
+            this.runner.stalledApplication();
+        }
+    }
+
+    /**
+     * The application's main code can resume the execution.
+     * 
+     * @param sem notify when the runner is ready to continue
+     */
+    public void readyToContinue(Semaphore sem) {
+        if (this.runner != null) {
+            this.runner.readyToContinue(sem);
+        } else {
+            sem.release();
+        }
     }
 
     /**
@@ -357,7 +389,7 @@ public class Application {
 
     /**
      * Stores the relation between a file and the corresponding dataInfo.
-     * 
+     *
      * @param locationKey file location
      * @param di data registered by the application
      */
@@ -367,7 +399,7 @@ public class Application {
 
     /**
      * Returns the Data Id related to a file.
-     * 
+     *
      * @param locationKey file location
      * @return data Id related to the file
      */

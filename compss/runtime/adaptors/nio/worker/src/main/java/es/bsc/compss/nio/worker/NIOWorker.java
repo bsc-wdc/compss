@@ -29,9 +29,6 @@ import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.data.MultiOperationFetchListener;
-import es.bsc.compss.executor.ExecutionManager;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ThreadedPrintStream;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
@@ -67,6 +64,7 @@ import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -74,8 +72,11 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.utils.execution.ExecutionManager;
+import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
@@ -250,7 +251,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(DATA_MANAGER_ERROR, ie);
         }
 
-        this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, false, computingUnitsGPU, gpuMap,
             computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
 
         if (this.tracingLevel == NIOTracer.BASIC_MODE) {
@@ -1298,6 +1299,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public LoaderAPI getLoaderAPI() {
         return null;
+    }
+
+    @Override
+    public void idleReservedResourcesDetected(ResourceDescription resources) {
+        // NIO Adaptor does not support remote resource updates
+    }
+
+    @Override
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
+        // NIO Adaptor does not support remote resource updates
     }
 
 }

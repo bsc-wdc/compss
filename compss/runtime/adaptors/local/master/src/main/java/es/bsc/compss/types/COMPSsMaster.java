@@ -24,10 +24,6 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.AnnounceException;
-import es.bsc.compss.executor.ExecutionManager;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.ExecutionListener;
-import es.bsc.compss.executor.utils.ThreadedPrintStream;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
@@ -44,6 +40,8 @@ import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -66,6 +64,8 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
+import es.bsc.compss.utils.execution.ExecutionManager;
+import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
@@ -131,9 +131,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     /**
      * New COMPSs Master.
+     * 
+     * @param monitor element monitoring changes on the node.
      */
-    public COMPSsMaster() {
-        super();
+    public COMPSsMaster(NodeMonitor monitor) {
+        super(monitor);
 
         // Gets user execution directory
         this.userExecutionDirPath = System.getProperty("user.dir");
@@ -383,7 +385,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
         this.persistentEnabled = workerPersistentC.toUpperCase().compareTo("TRUE") == 0;
 
-        this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, 0,
+        boolean reuse = Boolean.parseBoolean(System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK));
+        this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, reuse, 0,
             ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, 0);
         try {
             this.executionManager.init();

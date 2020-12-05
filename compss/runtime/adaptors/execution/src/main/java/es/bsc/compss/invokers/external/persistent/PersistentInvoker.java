@@ -16,15 +16,14 @@
  */
 package es.bsc.compss.invokers.external.persistent;
 
-import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.execution.types.ExecutorContext;
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.persistent.PersistentMirror;
-import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.executor.types.ExternalTaskStatus;
 import es.bsc.compss.invokers.external.ExternalInvoker;
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import java.io.File;
 

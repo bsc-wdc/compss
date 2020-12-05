@@ -19,7 +19,7 @@ package es.bsc.compss.invokers.test.utils.types;
 
 import static org.junit.Assert.fail;
 
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
+import es.bsc.compss.executor.types.ExternalTaskStatus;
 
 import java.util.List;
 

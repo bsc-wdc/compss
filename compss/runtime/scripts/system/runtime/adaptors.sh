@@ -23,6 +23,8 @@ COMM_AGENT_ADAPTOR=es.bsc.compss.agent.comm.CommAgentAdaptor
 DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
 #DEFAULT_COMMUNICATION_ADAPTOR=${GAT_ADAPTOR}
 
+DEFAULT_REUSE_RESOURCES_ON_BLOCK="true"
+
 #----------------------------------------------
 # ERROR MESSAGES
 #----------------------------------------------
@@ -59,6 +61,11 @@ check_adaptors_setup () {
   if [ -z "$comm" ]; then
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
+  
+  # Should resources be released while a task execution stalls
+  if [ -z "${reuse_resources_on_block}" ]; then
+    reuse_resources_on_block=${DEFAULT_REUSE_RESOURCES_ON_BLOCK}
+  fi
 }
 
 
@@ -76,6 +83,7 @@ append_adaptors_jvm_options_to_file() {
 -Dgat.debug=false
 -Dgat.broker.adaptor=sshtrilead
 -Dgat.file.adaptor=sshtrilead
+-Dcompss.execution.reuseOnBlock=${reuse_resources_on_block}
 EOT
 }
 

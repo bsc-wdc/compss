@@ -58,6 +58,7 @@ import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.requests.MasterDataRequest;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -343,11 +344,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(Configuration config) {
+    public COMPSsWorker initWorker(Configuration config, NodeMonitor monitor) {
         NIOConfiguration nioCfg = (NIOConfiguration) config;
         LOGGER.debug("Init NIO Worker Node named " + nioCfg.getHost());
 
-        NIOWorkerNode worker = new NIOWorkerNode(nioCfg, this);
+        NIOWorkerNode worker = new NIOWorkerNode(nioCfg, this, monitor);
         NODES.add(worker);
         return worker;
     }

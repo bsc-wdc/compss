@@ -105,7 +105,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         checkInvocation(invocation, new InvocationParam[] {}, null, null);
@@ -139,7 +139,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.BOOLEAN_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -177,7 +177,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.CHAR_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -215,7 +215,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.BYTE_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -253,7 +253,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.SHORT_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -292,7 +292,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 =
@@ -330,7 +330,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.LONG_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -368,7 +368,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.FLOAT_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -406,7 +406,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -444,7 +444,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.STRING_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -490,7 +490,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -534,7 +534,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -576,7 +576,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -615,7 +615,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -658,7 +658,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -702,7 +702,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
 
@@ -743,7 +743,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -785,7 +785,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED,
@@ -827,7 +827,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 =
@@ -871,7 +871,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 =
@@ -915,7 +915,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam endParam0 =
@@ -955,7 +955,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0,
@@ -997,7 +997,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0,
@@ -1039,7 +1039,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam target =
@@ -1082,7 +1082,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam target =
@@ -1128,7 +1128,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam target =
@@ -1172,7 +1172,7 @@ public class TestInvoker {
         FakeInvocationContext context = ctxBdr.build();
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-        invoker.processTask();
+        invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         InvocationParam result =
@@ -1216,7 +1216,7 @@ public class TestInvoker {
         File sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         try {
-            invoker.processTask();
+            invoker.runInvocation(null);
         } catch (COMPSsException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

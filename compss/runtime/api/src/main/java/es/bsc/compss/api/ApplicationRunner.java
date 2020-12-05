@@ -14,21 +14,23 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.types;
+package es.bsc.compss.api;
 
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.worker.COMPSsException;
+import java.util.concurrent.Semaphore;
 
 
-public interface ExecutionListener {
+public interface ApplicationRunner {
 
     /**
-     * Notifies the end of the given invocation with the given status.
-     * 
-     * @param invocation Task invocation.
-     * @param success Whether the task was successful or not.
-     * @param e COMPSsException for task groups.
+     * Notifies the application runner that the application's main code cannot make no progress until further notice.
      */
-    public void notifyEnd(Invocation invocation, boolean success, COMPSsException e);
+    public void stalledApplication();
+
+    /**
+     * Notifies the application runner that the execution of the application's main is ready to continue.
+     * 
+     * @param sem element to notify when the runner is ready
+     */
+    public void readyToContinue(Semaphore sem);
 
 }

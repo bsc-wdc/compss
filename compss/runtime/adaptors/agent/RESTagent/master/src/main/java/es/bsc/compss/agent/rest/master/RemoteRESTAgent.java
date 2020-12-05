@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -64,9 +65,10 @@ public class RemoteRESTAgent extends COMPSsWorker {
      * Constructs a new RemoteRESTAgent using the configuration passed in as parameter.
      *
      * @param config configuration values to interact with the remote agent.
+     * @param monitor element monitoring changes on the node
      */
-    public RemoteRESTAgent(AgentConfiguration config) {
-        super();
+    public RemoteRESTAgent(AgentConfiguration config, NodeMonitor monitor) {
+        super(monitor);
         this.config = config;
         this.name = this.config.getHost();
 

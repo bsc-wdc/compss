@@ -129,6 +129,9 @@ public class COMPSsConstants {
     public static final String GAT_BROKER_ADAPTOR = "gat.broker.adaptor";
     public static final String GAT_FILE_ADAPTOR = "gat.file.adaptor";
 
+    // LOCAL
+    public static final String REUSE_RESOURCES_ON_BLOCK = "compss.execution.reuseOnBlock";
+
     // Storage properties
     public static final String STORAGE_CONF = "compss.storage.conf";
     public static final String TASK_EXECUTION = "compss.task.execution";
@@ -198,6 +201,8 @@ public class COMPSsConstants {
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION =
         System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
     public static final String DEFAULT_PERSISTENT_C = "false";
+
+    public static final String DEFAULT_REUSE_RESOURCES_ON_BLOCK = "true";
 
     public static final String DEFAULT_PYTHON_INTERPRETER = "python";
     public static final String DEFAULT_PYTHON_VERSION = "2";

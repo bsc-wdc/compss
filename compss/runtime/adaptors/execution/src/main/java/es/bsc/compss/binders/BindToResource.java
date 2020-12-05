@@ -45,13 +45,13 @@ public class BindToResource implements ThreadBinder {
     }
 
     @Override
-    public int[] bindComputingUnits(int jobId, int numCUs, int[] previousAllocation)
+    public int[] bindComputingUnits(int jobId, int numCUs, int[] preferredAllocation)
         throws UnsufficientAvailableComputingUnitsException {
-        if (previousAllocation != null && previousAllocation.length == numCUs) {
+        if (preferredAllocation != null && preferredAllocation.length == numCUs) {
             synchronized (this.bindedComputingUnits) {
-                if (isAllocationAvailable(previousAllocation)) {
-                    assignAllocation(previousAllocation, jobId);
-                    return previousAllocation;
+                if (isAllocationAvailable(preferredAllocation)) {
+                    assignAllocation(preferredAllocation, jobId);
+                    return preferredAllocation;
                 }
             }
         }

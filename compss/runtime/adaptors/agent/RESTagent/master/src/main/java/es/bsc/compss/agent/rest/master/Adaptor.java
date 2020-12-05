@@ -19,6 +19,7 @@ package es.bsc.compss.agent.rest.master;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
@@ -56,9 +57,9 @@ public class Adaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(Configuration config) {
+    public COMPSsWorker initWorker(Configuration config, NodeMonitor monitor) {
         AgentConfiguration ac = (AgentConfiguration) config;
-        return new RemoteRESTAgent(ac);
+        return new RemoteRESTAgent(ac, monitor);
     }
 
     @Override

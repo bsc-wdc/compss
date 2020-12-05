@@ -20,6 +20,7 @@ import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.compss.util.ResourceManager;
 
 import java.util.Map;
 
@@ -44,7 +45,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Creates a new MethodWorker instance.
-     * 
+     *
      * @param name Worker name.
      * @param description Worker description.
      * @param worker COMPSs worker.
@@ -69,7 +70,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Creates a new MethodWorker instance.
-     * 
+     *
      * @param name Worker name.
      * @param description Worker description.
      * @param conf Worker configuration.
@@ -89,7 +90,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Clones the given MethodWorker.
-     * 
+     *
      * @param mw MethodWorker to clone.
      */
     public MethodWorker(MethodWorker mw) {
@@ -118,7 +119,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the avaiable resources in the current worker.
-     * 
+     *
      * @return The available resources in the current worker.
      */
     public MethodResourceDescription getAvailable() {
@@ -177,7 +178,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Sets a new number of maximum CPU tasks.
-     * 
+     *
      * @param maxCPUTaskCount New number of maximum CPU tasks.
      */
     public void setMaxCPUTaskCount(int maxCPUTaskCount) {
@@ -186,7 +187,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the maximum number of CPU tasks.
-     * 
+     *
      * @return The maximum number of CPU tasks.
      */
     public int getMaxCPUTaskCount() {
@@ -195,7 +196,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the current number of CPU tasks.
-     * 
+     *
      * @return The current number of CPU tasks.
      */
     public int getUsedCPUTaskCount() {
@@ -218,7 +219,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Sets a new number of maximum GPU tasks.
-     * 
+     *
      * @param maxGPUTaskCount New number of maximum GPU tasks.
      */
     public void setMaxGPUTaskCount(int maxGPUTaskCount) {
@@ -227,7 +228,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the maximum number of GPU tasks.
-     * 
+     *
      * @return The maximum number of GPU tasks.
      */
     public int getMaxGPUTaskCount() {
@@ -236,7 +237,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the current number of GPU tasks.
-     * 
+     *
      * @return The current number of GPU tasks.
      */
     public int getUsedGPUTaskCount() {
@@ -259,7 +260,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Sets a new number of maximum FPGA tasks.
-     * 
+     *
      * @param maxFPGATaskCount New number of maximum FPGA tasks.
      */
     public void setMaxFPGATaskCount(int maxFPGATaskCount) {
@@ -268,7 +269,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the maximum number of FPGA tasks.
-     * 
+     *
      * @return The maximum number of FPGA tasks.
      */
     public int getMaxFPGATaskCount() {
@@ -277,7 +278,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the current number of FPGA tasks.
-     * 
+     *
      * @return The current number of FPGA tasks.
      */
     public int getUsedFPGATaskCount() {
@@ -300,7 +301,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Sets a new number of maximum OTHER tasks.
-     * 
+     *
      * @param maxOthersTaskCount New number of maximum OTHER tasks.
      */
     public void setMaxOthersTaskCount(int maxOthersTaskCount) {
@@ -309,7 +310,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the maximum number of OTHER tasks.
-     * 
+     *
      * @return The maximum number of OTHER tasks.
      */
     public int getMaxOthersTaskCount() {
@@ -318,7 +319,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the current number of OTHER tasks.
-     * 
+     *
      * @return The current number of OTHER tasks.
      */
     public int getUsedOthersTaskCount() {
@@ -377,7 +378,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     /**
      * Returns the description value.
-     * 
+     *
      * @return The description value.
      */
     private Float getValue() {
@@ -434,12 +435,14 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         boolean canRun = super.canRunNow(consumption);
 
         // Available slots
+        LOGGER.info("CHECKING CAN RUN ON " + this.getName());
         canRun = canRun && (this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU());
         canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !consumption.containsGPU());
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !consumption.containsFPGA());
         canRun =
             canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
         canRun = canRun && this.hasAvailable(consumption);
+        LOGGER.info("\t RUNNABLE " + canRun);
         return canRun;
     }
 
@@ -486,6 +489,18 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
             return reserved;
         }
         return reserved;
+    }
+
+    @Override
+    public void idleReservedResourcesDetected(ResourceDescription resources) {
+        // Should notify the resource user that such resources are available again
+        ResourceManager.notifyIdleResources((MethodWorker) this, (MethodResourceDescription) resources);
+    }
+
+    @Override
+    public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
+        // Should notify the resource user that such resources are no longer available
+        ResourceManager.notifyResourcesReacquisition((MethodWorker) this, (MethodResourceDescription) resources);
     }
 
     @Override

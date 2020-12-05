@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
@@ -82,6 +83,9 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
         this.accessId = ta.processMainAccess(this);
         if (pendingOperation == 0) {
             sem.release();
+        } else {
+            Application app = this.accessParams.getApp();
+            app.stalled();
         }
     }
 
@@ -97,7 +101,8 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
     public void taskFinished() {
         pendingOperation--;
         if (pendingOperation == 0) {
-            sem.release();
+            Application app = this.accessParams.getApp();
+            app.readyToContinue(sem);
         }
     }
 

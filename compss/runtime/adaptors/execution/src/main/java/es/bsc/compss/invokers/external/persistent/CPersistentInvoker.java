@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.invokers.external.persistent;
 
+import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
-import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;

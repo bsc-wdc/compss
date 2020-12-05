@@ -86,4 +86,4 @@ IMPLEMENT = Implement
 constraint = Constraint
 CONSTRAINT = Constraint
 mpi = Mpi
-MPI = MPI
+MPI = Mpi

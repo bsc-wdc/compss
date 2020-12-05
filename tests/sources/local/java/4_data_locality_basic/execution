@@ -31,7 +31,8 @@
   output_log="${target_log_folder}/dataLocality_basicTest_0${retry_num}.outputlog"
   error_log="${target_log_folder}/dataLocality_basicTest_0${retry_num}.errorlog"
   
-  expectedTime=60s
+  expectedTime=80s
+  sleep 10s
   numTasks=5
   fileOut="${target_log_folder}/dataLocality_basicTest.out"
   echo "CREATE" >> "$fileOut"

@@ -56,7 +56,7 @@ EOF
     expectedTime=80s
 
     python_mpi_worker=""
-    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        if [ "$python_interpreter" == 'python2_mpi' ]; then
         python_interpreter="python2"
         python_mpi_worker="--python_mpi_worker=true"
     fi
@@ -64,7 +64,8 @@ EOF
         python_interpreter="python3"
         python_mpi_worker="--python_mpi_worker=true"
     fi
-
+    #Time to allow to close sockets
+    sleep 10s
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \

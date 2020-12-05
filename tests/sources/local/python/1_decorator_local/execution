@@ -39,17 +39,13 @@
     mkdir -p "${exec_target_log_folder}"
     expectedTime=80s
 
-    if [[ "${python_interpreter}" != python2* ]]; then
+    if [[ "${python_interpreter}" != python2 ]]; then
       # guppy is not supported in python3
       echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
       continue
     fi
 
     python_mpi_worker=""
-    if [ "$python_interpreter" == 'python2_mpi' ]; then
-        python_interpreter="python2"
-        python_mpi_worker="--python_mpi_worker=true"
-    fi
 
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \

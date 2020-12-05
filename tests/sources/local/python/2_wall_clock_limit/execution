@@ -35,8 +35,6 @@
     exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
     expectedTime=300s
-    # Add a little sleep to allow OS free sockets
-    sleep 5s
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ]; then
         echo "This feature is not needed to be tested with MPI workers. Skipping."
@@ -46,7 +44,8 @@
         echo "This feature is not needed to be tested with MPI workers. Skipping."
         continue
     fi
-
+    # Add a little sleep to allow OS free sockets
+    sleep 10s
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \

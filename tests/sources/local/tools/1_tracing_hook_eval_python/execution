@@ -38,19 +38,14 @@
     exec_target_log_folder1="${target_log_folder}/${app_name1}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder1}"
     expectedTime=250s
-    # Add a little sleep to allow OS free sockets
-    sleep 10s
     python_mpi_worker=""
     python_interpreter_real=${python_interpreter}
-    if [ "$python_interpreter" == 'python2_mpi' ]; then
-        python_interpreter_real="python2"
-        python_mpi_worker="--python_mpi_worker=true"
+    if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ]; then
+       echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+       continue
     fi
-    if [ "$python_interpreter" == 'python3_mpi' ]; then
-        python_interpreter_real="python3"
-        python_mpi_worker="--python_mpi_worker=true"
-    fi
-
+    # Add a little sleep to allow OS free sockets
+    sleep 10s
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \

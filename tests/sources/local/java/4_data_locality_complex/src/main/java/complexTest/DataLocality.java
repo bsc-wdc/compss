@@ -19,7 +19,7 @@ public class DataLocality {
         }
         // Add for test stability
         try {
-            Thread.sleep(2000);
+            Thread.sleep(20_000);
         } catch (InterruptedException e) {
             // Nothing to do
         }

@@ -129,11 +129,11 @@ def generate_coverage_reports(jacoco_lib_path, coverage_report_path, compss_home
         subprocess.check_output(['bash','-c', coverageBashCommand])
 
         coverageBashCommand = "coverage xml --rcfile=" + coverage_report_path + "/coverage_rc"
-        print("[INFO] Merging generating cobertura xml report ...")
+        print("[INFO] Merging generating cobertura xml report ("+ coverageBashCommand + ")...")
         subprocess.check_output(['bash','-c', coverageBashCommand])
-        print("[INFO] Correcting path to source paths (" + coverageBashCommand + ")...")
         for i in ["2","3"]:
-            coverageBashCommand = "sed -i \'s#"+compss_home_path+"Bindings/python/"+i+"/#src/#g\' " + coverage_report_path + "/coverage.xml"
+            coverageBashCommand = "sed -i \'s#"+compss_home_path+"Bindings/python/"+i+"#src#g\' " + coverage_report_path + "/coverage.xml"
+            print("[INFO] Correcting path to source paths (" + coverageBashCommand + ")...")
             subprocess.check_output(['bash','-c', coverageBashCommand])
     except subprocess.CalledProcessError as e:
         print("Error generating coverage report")

@@ -528,6 +528,25 @@ public class RuntimeConfigManager {
     }
 
     /**
+     * Returns the custom Extrae configuration file path for python worker.
+     * 
+     * @return The custom Extrae configuration file path for python worker.
+     */
+    public String getCustomExtraeFilePython() {
+        return config.getString(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE,
+            COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE);
+    }
+
+    /**
+     * Sets a new custom Extrae configuration file path for python worker.
+     * 
+     * @param extraeFilePathPython New custom Extrae configuration file path for python worker.
+     */
+    public void setCustomExtraeFilePython(String extraeFilePathPython) {
+        config.setProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE, extraeFilePathPython);
+    }
+
+    /**
      * Returns the monitor interval value.
      * 
      * @return The monitor interval value.

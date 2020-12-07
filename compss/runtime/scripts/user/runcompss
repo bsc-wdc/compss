@@ -85,6 +85,8 @@ show_opts() {
   Advanced options:
     --extrae_config_file=<path>             Sets a custom extrae config file. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE}
+    --extrae_config_file_python=<path>      Sets a custom extrae config file for python. Must be in a shared disk between all COMPSs workers.
+                                            Default: ${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON}
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
                                             Default: None
     --comm=<ClassName>                      Class that implements the adaptor for communications
@@ -357,6 +359,10 @@ get_args() {
             # Custom extrae config file
             custom_extrae_config_file=${OPTARG//extrae_config_file=/}
             ;;
+          extrae_config_file_python=*)
+            # Custom extrae config file
+            custom_extrae_config_file_python=${OPTARG//extrae_config_file_python=/}
+            ;;
           trace_label=*)
             # Custom trace_label
             trace_label=${OPTARG//trace_label=/}
@@ -430,10 +436,10 @@ get_args() {
             # Enable default external debugger
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             ;;
-	      jmx_port=*)
-	        # Enable JMX profiler on specific port
-	        jmx_port=${OPTARG//jmx_port=/}
-	        ;;
+          jmx_port=*)
+            # Enable JMX profiler on specific port
+            jmx_port=${OPTARG//jmx_port=/}
+            ;;
           base_log_dir=*)
             # Set a custom base log dir
             base_log_dir=${OPTARG//base_log_dir=/}
@@ -458,10 +464,10 @@ get_args() {
             # Maximum task count. Only for bindings
             task_count=${OPTARG//task_count=/}
             ;;
-    	  appdir=*)
-	        # Main binary directory (only for C/C++ applications)
-	        appdir=${OPTARG//appdir=/}
-	        ;;
+          appdir=*)
+            # Main binary directory (only for C/C++ applications)
+            appdir=${OPTARG//appdir=/}
+            ;;
           pythonpath=*)
             # Additional pythonpath
             pythonpath=${OPTARG//pythonpath=/}
@@ -506,7 +512,7 @@ get_args() {
             # Enable or disable the master memory profiling
             python_memory_profile=true
             ;;
-	      gen_coredump)
+          gen_coredump)
             # Enable coredump generation
             gen_core=true
             ;;

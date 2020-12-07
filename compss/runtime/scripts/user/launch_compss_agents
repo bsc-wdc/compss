@@ -22,6 +22,7 @@ DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
+DEFAULT_CUSTOM_EXTRAE_FILE_PYTHON="null"
 DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
 DEFAULT_CPU_AFFINITY="automatic"
@@ -439,6 +440,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        extrae_config_file_python=*)
+          custom_extrae_config_file_python=${OPTARG//extrae_config_file_python=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         comm=*)
           comm=${OPTARG//comm=/}
           # Keep it for runcompss (to add them to master)
@@ -824,6 +830,10 @@ check_args() {
     custom_extrae_file=${DEFAULT_CUSTOM_EXTRAE_FILE}
   fi
 
+  if [ -z "${custom_extrae_config_file_python}" ]; then
+    custom_extrae_config_file_python=${DEFAULT_CUSTOM_EXTRAE_FILE_PYTHON}
+  fi
+
   if [ -z "${jupyter_notebook}" ]; then
     jupyter_notebook=${DEFAULT_JUPYTER_NOTEBOOK}
     jupyter_notebook_path=${DEFAULT_JUPYTER_NOTEBOOK_PATH}
@@ -1020,6 +1030,7 @@ log_variables() {
   echo "Python version:            ${python_version}"
   echo "Python virtual env:        ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}"
   echo "Python propagate virt env. ${python_propagate_virtual_environment}"
+  echo "Python extrae config file  ${custom_extrae_config_file_python}"
   echo "Python use MPI worker      ${python_mpi_worker}"
   echo "Python memory profile      ${python_memory_profile}"
   echo "COMM:                      ${comm}"
@@ -1163,7 +1174,7 @@ launch() {
     curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
   done
 
-  if [ "${lang}" == "java" || "${lang}" == "JAVA" ]; then 
+  if [ "${lang}" == "java" || "${lang}" == "JAVA" ]; then
     cei="--cei=${fullAppPath}Itf"
   fi
 

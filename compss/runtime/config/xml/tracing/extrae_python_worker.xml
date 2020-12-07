@@ -13,6 +13,27 @@
     <counters enabled="yes" />
   </pthread>
 
+  <!-- NOTES TO CONFIGURE COUNTERS -->
+  <!--
+      - Available counters can be found with:
+          - papi_avail
+          - papi_native_avail
+      - Extrae supports up to 8 counters in the same set.
+      - Not all counters are supported in the same set.
+      - Extrae provides a tool to generate the sets from the given counters
+        (available at papi_avail or provided by papi_native_avail) and takes
+        care of the counters that can not be in the same set.
+        For example:
+
+          $COMPSS_HOME//Dependencies/extrae/bin/./papi_best_set COUNTER_1,COUNTER_2,...,COUNTER_N
+
+          $COMPSS_HOME//Dependencies/extrae/bin/./papi_best_set PAPI_TOT_INS,PAPI_TOT_CYC,PAPI_L1_DCM
+
+        Then copy and paste the output in the following section.
+      - Be careful with the changeat-time parameter specifies the minimum time
+        to hold the set. If set to 0 with only one set, it will be extracted
+        on each events_and_counters call.
+  -->
   <counters enabled="yes">
     <cpu enabled="yes" starting-set-distribution="1">
       <set enabled="yes" domain="all" changeat-time="0ms">
@@ -20,11 +41,11 @@
       </set>
     </cpu>
   </counters>
-  
+
   <!-- Commented cpu events
   <cpu-events enabled="yes" frequency="10u" emit-always="no"/>
    -->
-  
+
 <storage enabled="no"/>
 
   <buffer enabled="yes">

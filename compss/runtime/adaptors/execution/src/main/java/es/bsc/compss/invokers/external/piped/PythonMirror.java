@@ -83,6 +83,7 @@ public class PythonMirror extends PipedMirror {
         cmd.append(this.pyParams.usePythonMpiWorker()).append(TOKEN_SEP);
         cmd.append(this.size + 1).append(TOKEN_SEP); // Number of MPI threads if using MPI worker.
         cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.getPythonExtraeFile()).append(TOKEN_SEP);
 
         return cmd.toString();
     }

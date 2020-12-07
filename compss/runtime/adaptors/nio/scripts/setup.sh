@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  NUM_PARAMS=35
+  NUM_PARAMS=36
 
   ######################
   # INTERNAL FUNCTIONS
@@ -57,7 +57,7 @@
       jvmFlags="${jvmFlags} ${!pos}"
     done
     #Changed to support Coverage mode
-    uuid=$(uuidgen) 
+    uuid=$(uuidgen)
     jvmFlags=$(echo "$jvmFlags" | tr "#" ",")
     jvmFlags=$(echo "$jvmFlags" | tr "@" ",")
     jvmFlags="${jvmFlags/ffff/$uuid}"
@@ -116,7 +116,8 @@
     pythonVersion=${32}
     pythonVirtualEnvironment=${33}
     pythonPropagateVirtualEnvironment=${34}
-    pythonMpiWorker=${35}
+    pythonExtraeFile=${35}
+    pythonMpiWorker=${36}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -144,7 +145,8 @@
       echo "- Python Version       $pythonVersion"
       echo "- Python Virtual Env.  $pythonVirtualEnvironment"
       echo "- Python Propagate Virtual Env.  $pythonPropagateVirtualEnvironment"
-      echo "- Python MPI Worker.  $pythonMpiWorker"
+      echo "- Python Extrae File   $pythonExtraeFile"
+      echo "- Python MPI Worker.   $pythonMpiWorker"
 
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"
@@ -178,18 +180,18 @@
         if [ "$tracing" -gt 1 ]; then
           extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_advanced.xml
         fi
-      fi  
+      fi
 
       if [ -z "$EXTRAE_HOME" ]; then
         export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
-      fi  
+      fi
 
       export EXTRAE_LIB=${EXTRAE_HOME}/lib
       export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
       export EXTRAE_CONFIG_FILE=${extraeFile}
       export EXTRAE_USE_POSIX_CLOCK=0
       export AFTER_EXTRAE_LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
-    fi  
+    fi
   }
 
   setup_environment(){
@@ -257,8 +259,9 @@
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
+    -Dcompss.extrae.file.python=${pythonExtraeFile}
     -Djava.library.path=$LD_LIBRARY_PATH"
-    
+
     if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
     	generate_jvm_opts_file
         # shellcheck disable=SC2034
@@ -267,9 +270,9 @@
         # shellcheck disable=SC2034
         cmd="$JAVA ${worker_jvm_flags} -classpath $CLASSPATH:${worker_jar} ${main_worker_class}"
     fi
-    	
+
   }
-  
+
   generate_jvm_opts_file() {
     jvm_worker_opts=$(echo "${worker_jvm_flags}" | tr " " "\\n")
     jvm_options_file=$(mktemp) || error_msg "Error creating java_opts_tmp_file"
@@ -288,7 +291,7 @@ EOT
 
   pre_launch() {
     cd "$workingDir" || exit 1
-    
+
     if [ "${persistentBinding}" = "true" ]; then
     	export COMPSS_HOME=${SCRIPT_DIR}/../../../../../
     	export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib:${LD_LIBRARY_PATH}

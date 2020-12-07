@@ -100,6 +100,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected String pythonVersion;
     protected String pythonVirtualEnvironment;
     protected String pythonPropagateVirtualEnvironment;
+    protected String pythonExtraeFile;
     protected String pythonMpiWorker;
     protected int totalCPU;
     protected int totalGPU;
@@ -239,6 +240,12 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         if (this.pythonPropagateVirtualEnvironment == null || this.pythonPropagateVirtualEnvironment.isEmpty()
             || this.pythonPropagateVirtualEnvironment.equals("null")) {
             this.pythonPropagateVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+        }
+
+        // Configure python extrae config file
+        this.pythonExtraeFile = System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE);
+        if (this.pythonExtraeFile == null || this.pythonExtraeFile.isEmpty() || this.pythonExtraeFile.equals("null")) {
+            this.pythonExtraeFile = COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE;
         }
 
         this.pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);

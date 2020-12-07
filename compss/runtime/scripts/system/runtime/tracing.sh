@@ -23,6 +23,7 @@ TRACING_ADVANCED=2
 DEFAULT_TRACING=${TRACING_DEACTIVATED}
 DEFAULT_TRACE_LABEL="None"
 DEFAULT_EXTRAE_CONFIG_FILE="null"
+DEFAULT_EXTRAE_CONFIG_FILE_PYTHON="null"
 
 #----------------------------------------------
 # ERROR MESSAGES
@@ -60,6 +61,10 @@ check_tracing_setup () {
   # TRACING file option
   if [ -z "${custom_extrae_config_file}" ]; then
     custom_extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
+  fi
+
+  if [ -z "${custom_extrae_config_file_python}" ]; then
+    custom_extrae_config_file_python=${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON}
   fi
 
   if [ -z "${trace_label}" ]; then
@@ -103,6 +108,7 @@ append_tracing_jvm_options_to_file() {
 -Dcompss.tracing=${tracing}
 -Dcompss.trace.label=${trace_label}
 -Dcompss.extrae.file=${custom_extrae_config_file}
+-Dcompss.extrae.file.python=${custom_extrae_config_file_python}
 EOT
 }
 

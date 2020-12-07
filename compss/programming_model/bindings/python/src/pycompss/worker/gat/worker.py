@@ -111,21 +111,21 @@ def main():
     # Next: method_type = sys.argv[8]
     params = sys.argv[9:]
     # Next parameters:
-    # class_name = sys.argv[9]
-    # method_name = sys.argv[10]
-    # num_slaves = sys.argv[11]
-    # i = 11 + num_slaves
-    # slaves = sys.argv[11..i]
+    # class_name = sys.argv[10]
+    # method_name = sys.argv[11]
+    # num_slaves = sys.argv[12]
+    # i = 13 + num_slaves
+    # slaves = sys.argv[12..i]
     # numCus = sys.argv[i+1]
     # has_target = sys.argv[i+2] == 'true'
     # num_params = int(sys.argv[i+3])
     # params = sys.argv[i+4..]
 
     if log_level == "true" or log_level == "debug":
-        print("tracing = " + str(tracing))
-        print("task_id = " + str(task_id))
-        print("log_level = " + str(log_level))
-        print("storage_conf = " + str(storage_conf))
+        print("Tracing = " + str(tracing))
+        print("Task id = " + str(task_id))
+        print("Log level = " + str(log_level))
+        print("Storage conf = " + str(storage_conf))
 
     persistent_storage = False
     if storage_conf != "null":

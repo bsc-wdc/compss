@@ -1053,11 +1053,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String pythonVersion = args[31];
         String pythonVirtualEnvironment = args[32];
         String pythonPropagateVirtualEnvironment = args[33];
-        String pythonMpiWorker = args[34];
+        String pythonExtraeFile = args[34];
+        String pythonMpiWorker = args[35];
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
-            pythonPropagateVirtualEnvironment, pythonpath, pythonMpiWorker);
+            pythonPropagateVirtualEnvironment, pythonpath, pythonExtraeFile, pythonMpiWorker);
         final CParams cParams = new CParams(classpath);
 
         // Print arguments
@@ -1087,6 +1088,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
             WORKER_LOGGER.debug("Tracing: " + traceFlag);
             WORKER_LOGGER.debug("Extrae config File: " + extraeFile);
+            WORKER_LOGGER.debug("Python extrae config File: " + pythonExtraeFile);
             WORKER_LOGGER.debug("Host: " + traceHost);
 
             WORKER_LOGGER.debug("LibraryPath: " + libPath);

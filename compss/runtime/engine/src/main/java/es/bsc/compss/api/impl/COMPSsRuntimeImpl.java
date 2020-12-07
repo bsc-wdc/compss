@@ -256,6 +256,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 if (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) == null) {
                     System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
                 }
+                if (System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE) == null) {
+                    System.setProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE, manager.getCustomExtraeFilePython());
+                }
                 if (System.getProperty(COMPSsConstants.TASK_EXECUTION) == null
                     || System.getProperty(COMPSsConstants.TASK_EXECUTION).equals("")) {
                     System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());

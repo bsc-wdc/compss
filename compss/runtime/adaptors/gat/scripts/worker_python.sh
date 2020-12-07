@@ -44,7 +44,8 @@
   pythonVersion=${invocation[4]}
   pythonVirtualEnvironment=${invocation[5]}
   pythonPropagateVirtualEnvironment=${invocation[6]}
-  
+  pythonExtraeFile=${invocation[7]}
+
   # Added to support coverage
   if [[ "${pythonInterpreter}" = coverage* ]]; then
 	     pythonInterpreter=$(echo ${pythonInterpreter} | tr "#" " " )
@@ -55,12 +56,13 @@
     echo "[WORKER_PYTHON.SH] - pythonVersion                      = $pythonVersion"
     echo "[WORKER_PYTHON.SH] - pythonVirtualEnvironment           = $pythonVirtualEnvironment"
     echo "[WORKER_PYTHON.SH] - pythonPropagateVirtualEnvironment  = $pythonPropagateVirtualEnvironment"
+    echo "[WORKER_PYTHON.SH] - pythonExtraeFile                   = $pythonExtraeFile"
   fi
- 
-  # shellcheck disable=SC2206 
-  arguments=(${invocation[@]:9})
-  moduleName=${invocation[7]}
-  methodName=${invocation[8]}
+
+  # shellcheck disable=SC2206
+  arguments=(${invocation[@]:10})
+  moduleName=${invocation[8]}
+  methodName=${invocation[9]}
   if [ "${debug}" == "true" ]; then
     echo "[WORKER_PYTHON.SH] - arguments                         = $pythonpath"
   fi
@@ -68,7 +70,7 @@
 
   # Pre-execution
   set_env
-  
+
   compute_generic_sandbox
   echo "[WORKER_PYTHON.SH]    - sandbox                        = ${sandbox}"
   if [ ! -d "${sandbox}" ]; then
@@ -98,12 +100,12 @@
     weight=${params[$((index + 5))]}
     kr=${params[$((index + 6))]}
     case ${ptype} in
-      [0-7]) 
+      [0-7])
         value=${params[$((index + 7))]}
         param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${value}" )
         index=$((index + 8))
         ;;
-      8) 
+      8)
         lengthPos=$((index + 7))
         length=${params[${lengthPos}]}
         stringValue=${params[@]:$((index + 8)):${length}}
@@ -116,13 +118,12 @@
         originalName=${params[$originalNameIdx]}
         dataLocation=${params[${dataLocationIdx}]}
         if [ "$kr" = "false" ]; then
-	    moveFileToSandbox "${dataLocation}" "${originalName}"
+            moveFileToSandbox "${dataLocation}" "${originalName}"
             param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${sandbox}/${originalName}" )
-	else
-	    param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${dataLocation}" )
-	fi
+        else
+            param=( "${ptype}" "${stream}" "${prefix}" "${name}" "${conType}" "${dataLocation}" )
+        fi
         index=$((index + 9))
-
         ;;
       *)
         value=${params[$((index + 7))]}
@@ -137,6 +138,9 @@
   # Include version subfolder in pycompss home and set pythonpath related env
   export PYCOMPSS_HOME=${PYCOMPSS_HOME}/${pythonVersion}
   export PYTHONPATH=${PYCOMPSS_HOME}:${pythonpath}:${app_dir}:${PYTHONPATH}
+  if [ "${tracing}" == "true" ]; then
+    export PYTHONPATH=${COMPSS_HOME}/Dependencies/extrae/lib:${PYTHONPATH}
+  fi
 
   echo "[WORKER_PYTHON.SH] PYTHONPATH: ${PYTHONPATH}"
   echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/gat/worker.py ${workerConfDescription[*]} ${implDescription[*]} ${invocationParams[*]}"

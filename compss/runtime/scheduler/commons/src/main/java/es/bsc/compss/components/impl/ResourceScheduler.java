@@ -375,9 +375,12 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         int taskCount = -1;
         if (coreId < profiles.length) {
             taskCount = 0;
-            for (AllocatableAction aa : this.running) {
-                if (aa != null && aa.getCoreId() == coreId) {
-                    taskCount++;
+            for (AllocatableAction aa : this.getHostedActions()) {
+                if (aa != null) {
+                    Integer cId = aa.getCoreId();
+                    if (cId != null && cId == coreId) {
+                        taskCount++;
+                    }
                 }
             }
         }

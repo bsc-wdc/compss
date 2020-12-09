@@ -153,6 +153,7 @@ public class COMPSsConstants {
     public static final String PYTHON_VIRTUAL_ENVIRONMENT = "compss.python.virtualenvironment";
     public static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "compss.python.propagate_virtualenvironment";
     public static final String PYTHON_MPI_WORKER = "compss.python.mpi_worker";
+    public static final String PYTHON_EXTRAE_CONFIG_FILE = "compss.extrae.file.python";
 
     // System properties for Instrumentation flags
     public static final String COMPSS_TO_FILE = "compss.to.file";
@@ -184,6 +185,7 @@ public class COMPSsConstants {
 
     public static final String DEFAULT_TRACING = "0";
     public static final String DEFAULT_CUSTOM_EXTRAE_FILE = "null";
+    public static final String DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE = "null";
 
     public static final long DEFAULT_MONITOR_INTERVAL = 0;
 

@@ -5,7 +5,7 @@
 ########################################
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    
+
 
 ########################################
 # SCRIPT HELPER FUNCTIONS
@@ -57,7 +57,9 @@ get_args() {
         mpiWorker=$3
         numThreads=$4
         pythonInterpreter=$5
-        shift 5
+        # Get specific extrae config file (empty or null means use default)
+        pythonExtraeFile=$6
+        shift 6
     fi
 }
 
@@ -69,12 +71,16 @@ create_pipe() {
 export_tracing() {
     if [ "$tracing" -gt "0" ]; then
         echo "Initializing python tracing with extrae..."
-        configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
-        escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
-        baseConfigFile="${configPath}/extrae_python_worker.xml"
-        workerConfigFile="$(pwd)/extrae_python_worker.xml"
-
-        sed "s/{{PATH}}/${escapedConfigPath}/g" "${baseConfigFile}" > "${workerConfigFile}"
+        if [[ "$pythonExtraeFile" == "" || "$pythonExtraeFile" == "null" ]]; then
+            configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
+            escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
+            baseConfigFile="${configPath}/extrae_python_worker.xml"
+            workerConfigFile="$(pwd)/extrae_python_worker.xml"
+            sed "s/{{PATH}}/${escapedConfigPath}/g" "${baseConfigFile}" > "${workerConfigFile}"
+        else
+            workerConfigFile=${pythonExtraeFile}
+        fi
+        echo "Using extrae config file: $workerConfigFile"
 
         if [ "$mpiWorker" == "true" ]; then
             # Exporting variables for MPI Python worker
@@ -95,7 +101,7 @@ export_tracing() {
                 echo "QUIT" >> "${controlRESULTpipe}"
                 exit 1
             fi
-            
+
             # The LATER_* variables are used in the workerCMD built from the JAVA side (mpirun -X var=LATER_var)
             unset EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE
             export EXTRAE_USE_POSIX_CLOCK=0
@@ -109,7 +115,7 @@ export_tracing() {
             export EXTRAE_USE_POSIX_CLOCK=0
             export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
         fi
-    
+
     elif [ "$tracing" -lt "-1" ]; then
         # exporting variables required by any other tracing option (map/ddt/scorep)
         if [ "$binding" == "PYTHON" ]; then
@@ -155,21 +161,21 @@ process_pipe_commands() {
                 mkdir -p "${worker_log_dir}"
                 touch "${worker_log_dir}/binding_worker.out"
                 touch "${worker_log_dir}/binding_worker.err"
-                
+
                 # Build workerCMD
                 workerCMD=$(echo "${line}" | cut -d' ' -f3-)
-                
+
                 if [ "$binding" == "PYTHON" ] && [ "$mpiWorker" == "true" ]; then
                     # delimiter example: "python -u"
                     delimiter="${pythonInterpreter} -u"
                     bindingExecutable="${workerCMD%%"$delimiter"*}"
                     bindingArgs=${workerCMD#*"$delimiter"}
-        
+
                     # If not coverage, get full path of the binary
-		    if [[ "${pythonInterpreter}" != coverage* ]]; then
+                    if [[ "${pythonInterpreter}" != coverage* ]]; then
                        pythonInterpreter=$(which "${pythonInterpreter}")
                     fi
-                    if [ "$tracing" -eq "-1" ]; then 
+                    if [ "$tracing" -eq "-1" ]; then
                         # scorep
                         echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
                         TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
@@ -184,7 +190,7 @@ process_pipe_commands() {
                         ld_preload=$(scorep-preload-init --value-only --user --nocompiler --mpp=mpi --thread=pthread --io=runtime:posix "${app_path}/${app_name}")
                         bindingArgs=" -x LD_PRELOAD=$ld_preload ${pythonInterpreter} -u -m scorep $bindingArgs"
                         echo "[BINDINGS PIPER] ScoreP setup done"
-                    elif [ "$tracing" -eq "-2" ]; then 
+                    elif [ "$tracing" -eq "-2" ]; then
                         # arm-map
                         echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
                         TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
@@ -195,7 +201,7 @@ process_pipe_commands() {
                         bindingExecutable="map"
                         bindingArgs=" --profile -o $(pwd)/$(hostname).map --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
                         echo "[BINDINGS PIPER] Arm setup for MAP done"
-                    elif [ "$tracing" -eq "-3" ]; then 
+                    elif [ "$tracing" -eq "-3" ]; then
                         # arm-ddt
                         echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
                         TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
@@ -213,7 +219,7 @@ process_pipe_commands() {
                     # Build worker command
                     workerCMD="${bindingExecutable} ${bindingArgs}"
                 fi
-                
+
                 # Add support for coverage-run command
                 if [ "$binding" == "PYTHON" ]; then
                     delimiter="${pythonInterpreter} -u"
@@ -222,9 +228,9 @@ process_pipe_commands() {
                         newDelimiter=$(echo "${delimiter}")
                         echo "[BINDINGS PIPER] Changing Interpreter: ${newDelimiter} to ${newInterpreter}"
                         workerCMD=$(echo "${workerCMD}" | sed "s+${newDelimiter}+${newInterpreter}+")
-		    else
-			pythonInterpreter=$(which "${pythonInterpreter}")
-		    fi
+                    else
+                        pythonInterpreter=$(which "${pythonInterpreter}")
+                    fi
                 fi
 
                 # INVOKE WORKER
@@ -232,7 +238,7 @@ process_pipe_commands() {
                 # shellcheck disable=SC2086
                 eval ${workerCMD} </dev/null 3>/dev/null &
                 bindingPID=$!
-    
+
                 # Disable EXTRAE automatic library initialisation (just in case)
                 if [ "$tracing" -gt "0" ]; then
                   export EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE=1
@@ -258,7 +264,7 @@ process_pipe_commands() {
             "QUIT")
                 stop_received=true
                 ;;
-                
+
             *)
                 echo "[BINDINGS PIPER] UNKNOWN COMMAND ${line}"
                 ;;
@@ -316,16 +322,16 @@ main() {
         # Force to spawn the MPI processes in the same node
         export SLURM_NODELIST=${SLURM_STEP_NODELIST}
     fi
-    
+
     # Export tracing
     export_tracing
-  
+
     # Process pipe commands
     process_pipe_commands
-  
+
     # Quit
     echo "QUIT" >> "${controlRESULTpipe}"
-  
+
     # Exit message
     echo "[BINDINGS PIPER] Finished"
     exit 0

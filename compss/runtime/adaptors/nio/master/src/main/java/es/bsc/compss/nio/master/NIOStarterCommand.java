@@ -164,6 +164,8 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = this.pythonVirtualEnvironment;
         // Python propagate virtual environment parameter
         cmd[nextPosition++] = this.pythonPropagateVirtualEnvironment;
+        // Python extrae config file
+        cmd[nextPosition++] = this.pythonExtraeFile;
         // Python use MPI worker parameter
         cmd[nextPosition++] = this.pythonMpiWorker;
 

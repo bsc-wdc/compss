@@ -365,6 +365,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             pythonPath = "";
         }
 
+        // Get Python extrae config file
+        String pythonExtraeFile = System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE);
+        if (pythonExtraeFile == null || pythonExtraeFile.isEmpty() || pythonExtraeFile.equals("null")) {
+            pythonExtraeFile = COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE;
+        }
+
         // Get Python MPI worker invocation
         String pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
         if (pythonMpiWorker == null || pythonMpiWorker.isEmpty() || pythonMpiWorker.equals("null")) {
@@ -372,7 +378,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
         JavaParams javaParams = new JavaParams(classPath);
         PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVEnv, pythonPropagateVEnv,
-            pythonPath, pythonMpiWorker);
+            pythonPath, pythonExtraeFile, pythonMpiWorker);
         CParams cParams = new CParams(classPath);
 
         this.langParams[Lang.JAVA.ordinal()] = javaParams;

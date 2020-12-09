@@ -108,6 +108,10 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
             ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
             : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+    private static final String PYTHON_CUSTOM_EXTRAE_FILE =
+        System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE) != null
+            ? System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE)
+            : COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE;
 
     private static final String JOBS_DIR =
         System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
@@ -342,6 +346,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
             lArgs.add(String.valueOf(Tracer.getTaskEventsType())); // event type
             int slot = Tracer.getNextSlot(targetHost);
+            lArgs.add(String.valueOf(this.taskId));
             lArgs.add(String.valueOf(slot)); // slot id
             sd.addAttribute("slot", slot);
         }
@@ -365,6 +370,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                         lArgs.add(PYTHON_VERSION);
                         lArgs.add(PYTHON_VIRTUAL_ENVIRONMENT);
                         lArgs.add(PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+                        lArgs.add(PYTHON_CUSTOM_EXTRAE_FILE);
                         break;
                     case UNKNOWN:
                         throw new LangNotDefinedException();

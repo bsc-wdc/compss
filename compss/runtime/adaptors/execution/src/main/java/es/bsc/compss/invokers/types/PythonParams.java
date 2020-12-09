@@ -29,6 +29,7 @@ public class PythonParams implements LanguageParams {
     private String pythonVirtualEnvironment;
     private String pythonPropagateVirtualEnvironment;
     private String pythonPath;
+    private String pythonExtraeFile;
     private Boolean pythonMpiWorker;
 
 
@@ -40,16 +41,18 @@ public class PythonParams implements LanguageParams {
      * @param pythonVirtualEnvironment Python Virtual Environment
      * @param pythonPropagateVirtualEnvironment Python Propagate Virtual Environment flag
      * @param pythonPath Python Path
+     * @param pythonExtraeFile Extrae config file for python
      * @param pythonMpiWorker Python MPI Worker flag
      */
     public PythonParams(String pythonInterpreter, String pythonVersion, String pythonVirtualEnvironment,
-        String pythonPropagateVirtualEnvironment, String pythonPath, String pythonMpiWorker) {
+        String pythonPropagateVirtualEnvironment, String pythonPath, String pythonExtraeFile, String pythonMpiWorker) {
 
         this.pythonInterpreter = pythonInterpreter;
         this.pythonVersion = pythonVersion;
         this.pythonVirtualEnvironment = pythonVirtualEnvironment;
         this.pythonPropagateVirtualEnvironment = pythonPropagateVirtualEnvironment;
         this.pythonPath = pythonPath.equals("null") ? "" : pythonPath;
+        this.pythonExtraeFile = pythonExtraeFile;
         this.pythonMpiWorker = Boolean.parseBoolean(pythonMpiWorker);
     }
 
@@ -91,6 +94,14 @@ public class PythonParams implements LanguageParams {
 
     public void setPythonPath(String pythonPath) {
         this.pythonPath = pythonPath;
+    }
+
+    public String getPythonExtraeFile() {
+        return this.pythonExtraeFile;
+    }
+
+    public void setPythonExtraeFile(String pythonExtraeFile) {
+        this.pythonExtraeFile = pythonExtraeFile;
     }
 
     public Boolean usePythonMpiWorker() {

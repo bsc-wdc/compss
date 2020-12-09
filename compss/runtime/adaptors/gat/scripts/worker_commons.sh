@@ -39,7 +39,7 @@ get_host_parameters () {
       taskEventType=$4
       taskId=$5
       slot=$6
-      shift 6      
+      shift 6
     fi
     hostFlags=( "${nodeName}" "${workingDir}" "${debug}" "${installDir}" "${appDir}" "${storageConf}" "${streaming}" "${streamingMasterName}" "${streamingPort}" )
     # shellcheck disable=SC2206
@@ -50,12 +50,12 @@ get_invocation_params () {
     jobId=$1
     taskId=$2
     timeout=$3
-    
+
     numSlaves=$4
     # shellcheck disable=SC2206
     slaves=(${@:5:${numSlaves}})
     shift $((4 + numSlaves))
-    
+
     cus=$1
     numParams=$2
     hasTarget=$3
@@ -87,6 +87,7 @@ get_parameters() {
     pythonVersion=$6
     pythonVirtualEnvironment=$7
     pythonPropagateVirtualEnvironment=$8
+    pythonExtraeFile=$9
     debug=$9
     storageConf=${10}
     methodType=${11}
@@ -94,7 +95,7 @@ get_parameters() {
     # Shit all parameters except method ones
     shiftSizeForApp=8
     shift $shiftSizeForApp
-   
+
     # Get method parameters
     # shellcheck disable=SC2206
     params=($@)
@@ -108,6 +109,7 @@ get_parameters() {
       echo "[WORKER_COMMONS.SH] - pythonVersion                      $pythonVersion"
       echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment           $pythonVirtualEnvironment"
       echo "[WORKER_COMMONS.SH] - pythonPropagateVirtualEnvironment  $pythonPropagateVirtualEnvironment"
+      echo "[WORKER_COMMONS.SH] - pythonExtraeFile                   $pythonExtraeFile"
     fi
 }
 
@@ -116,7 +118,7 @@ set_env() {
     bindingsDir=$(dirname "$0")/../../../../../Bindings
     # Set LD_LIBRARY_PATH related env
     export LD_LIBRARY_PATH=${bindingsDir}/c/lib:${bindingsDir}/bindings-common/lib:$LD_LIBRARY_PATH
-	
+
     # Activate bindings debug if debug activated
     if [ "$debug" == "true" ]; then
       export COMPSS_BINDINGS_DEBUG=1
@@ -131,7 +133,7 @@ set_env() {
       	  echo "WARNNING: Java lib dir not found."
     	fi
       fi
-      if [ -n "$libjava" ]; then 
+      if [ -n "$libjava" ]; then
         libjavafolder=$(dirname "$libjava")
         export LD_LIBRARY_PATH=${libjavafolder}:$LD_LIBRARY_PATH
       fi
@@ -151,7 +153,7 @@ set_env() {
 compute_generic_sandbox () {
     sandbox="${workingDir}/sandBox/job_${jobId}/"
 }
-  
+
 numRenames=0
 moveFileToSandbox () {
     if [ -f "$1" ]; then

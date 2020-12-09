@@ -20,6 +20,7 @@ DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
+DEFAULT_CUSTOM_EXTRAE_FILE_PYTHON="null"
 DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
 DEFAULT_WORKER_MIN_PORT=43001
@@ -396,7 +397,8 @@ worker_cmd() {
             ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
             ${python_propagate_virtual_environment} \
-            ${python_mpi_worker}"
+            ${python_mpi_worker} \
+            ${custom_extrae_config_file_python}"
 }
 
 ###############################################
@@ -1083,6 +1085,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        extrae_config_file_python=*)
+          custom_extrae_config_file_python=${OPTARG//extrae_config_file_python=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         comm=*)
           comm=${OPTARG//comm=/}
           # Keep it for runcompss (to add them to master)
@@ -1168,7 +1175,7 @@ get_args() {
           # Remove from runcompss since launcher will add it
           master_port=${OPTARG//master_port=/}
           ;;
-	worker_port_range=*)
+	      worker_port_range=*)
           # Remove from runcompss since launcher will add it
           worker_port_range=${OPTARG//worker_port_range=/}
           ;;
@@ -1332,11 +1339,15 @@ check_args() {
   if [ -z "${python_interpreter}" ]; then
     python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
     args_pass="--python_interpreter=${python_interpreter} ${args_pass}"
-  fi 
+  fi
   python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
 
   if [ -z "${python_propagate_virtual_environment}" ]; then
     python_propagate_virtual_environment=${DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT}
+  fi
+
+  if [ -z "${custom_extrae_config_file_python}" ]; then
+    custom_extrae_config_file_python=${DEFAULT_CUSTOM_EXTRAE_FILE_PYTHON}
   fi
 
   if [ -z "${python_mpi_worker}" ]; then
@@ -1737,6 +1748,7 @@ log_variables() {
   echo "Python version:            ${python_version}"
   echo "Python virtual env:        ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}"
   echo "Python propagate virt env. ${python_propagate_virtual_environment}"
+  echo "Python extrae config file  ${custom_extrae_config_file_python}"
   echo "Python use MPI worker      ${python_mpi_worker}"
   echo "Python memory profile      ${python_memory_profile}"
   echo "COMM:                      ${comm}"

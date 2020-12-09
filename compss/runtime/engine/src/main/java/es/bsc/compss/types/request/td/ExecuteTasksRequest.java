@@ -115,23 +115,12 @@ public class ExecuteTasksRequest extends TDRequest {
             }
         } else if (isDistributed) {
             // Method annotation forces RoundRobin among nodes
-            // WARN: This code is proportional to the number of resources, can lead to some overhead
             if (DEBUG) {
                 LOGGER.debug("Distributing task " + this.task.getId());
             }
 
-            ResourceScheduler<? extends WorkerResourceDescription> selectedResource = null;
-            int minNumTasksOfSameType = Integer.MAX_VALUE;
-            Collection<ResourceScheduler<? extends WorkerResourceDescription>> resources = ts.getWorkers();
-            for (ResourceScheduler<? extends WorkerResourceDescription> rs : resources) {
-                // RS numTasks only considers MasterExecutionActions
-                int numTasks = rs.getNumTasks(this.task.getTaskDescription().getCoreElement().getCoreId());
-                if (numTasks < minNumTasksOfSameType) {
-                    minNumTasksOfSameType = numTasks;
-                    selectedResource = rs;
-                }
-            }
-
+            ResourceScheduler<? extends WorkerResourceDescription> selectedResource =
+                ts.getNextResourForDistributed(this.task.getTaskDescription().getCoreElement().getCoreId());
             this.task.setExecutionCount(numNodes);
             submitTask(ts, numNodes, selectedResource);
         } else {

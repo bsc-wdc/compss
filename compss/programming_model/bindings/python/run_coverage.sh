@@ -57,12 +57,12 @@
   run_python3
 
   # Generate XML file
-#  python3 -m coverage xml
-#  ev=$?
-#  if [ "$ev" -ne 0 ]; then
-#    echo "[ERROR] Coverage3 XML generation failed with exit value: $ev"
-#    exit $ev
-#  fi
+  python3 -m coverage xml
+  ev=$?
+  if [ "$ev" -ne 0 ]; then
+    echo "[ERROR] Coverage3 XML generation failed with exit value: $ev"
+    exit $ev
+  fi
 
   # Move .coverage to be combined later
   mv .coverage .coverage.python2_3

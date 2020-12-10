@@ -95,6 +95,7 @@ public class TaskScheduler {
     private final boolean externalAdaptation;
     private final ExternalAdaptationManager extAdaptationManager;
     protected final JSONStateManager jsm;
+    private Map<Integer, LinkedList<ResourceScheduler<? extends WorkerResourceDescription>>> distributedTasksResources;
 
     // Profiles from resources that have already been turned off
     private Profile[][] offVMsProfiles;
@@ -129,6 +130,7 @@ public class TaskScheduler {
             }
             this.offVMsProfiles[coreId] = implProfiles;
         }
+        this.distributedTasksResources = new HashMap<>();
 
         // Start SchedulingOptimizer
         this.so = generateSchedulingOptimizer();
@@ -1478,6 +1480,20 @@ public class TaskScheduler {
     }
 
 
+    /** Get next resource to execute a distributed task.
+     * @param coreId CoreId of the task
+     * @return resource to execute the task.
+     */
+    public ResourceScheduler<? extends WorkerResourceDescription> getNextResourForDistributed(int coreId) {
+        LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> resourceList =
+            this.distributedTasksResources.computeIfAbsent(coreId,
+                resources -> new LinkedList<ResourceScheduler<? extends WorkerResourceDescription>>(getWorkers()));
+        // Get the first and add at the end
+        ResourceScheduler<? extends WorkerResourceDescription> res = resourceList.poll();
+        resourceList.add(res);
+        return res;
+    }
+
     private class WorkersMap {
 
         private final Map<Worker<? extends WorkerResourceDescription>,
@@ -1505,4 +1521,5 @@ public class TaskScheduler {
             return map.values();
         }
     }
+
 }

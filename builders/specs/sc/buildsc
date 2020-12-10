@@ -40,6 +40,10 @@
   COMPSs_version=$1
   distribution=sc
 
+  # Define script variables
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  cd ${SCRIPT_DIR}
+
   trunk_rel_path=../../../
   packages_target=${trunk_rel_path}/builders/packages/
 

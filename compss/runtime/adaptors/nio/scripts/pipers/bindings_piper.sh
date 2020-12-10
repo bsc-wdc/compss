@@ -78,7 +78,10 @@ export_tracing() {
             workerConfigFile="$(pwd)/extrae_python_worker.xml"
             sed "s/{{PATH}}/${escapedConfigPath}/g" "${baseConfigFile}" > "${workerConfigFile}"
         else
+            configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
+            escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
             workerConfigFile=${pythonExtraeFile}
+            sed -i "s/{{PATH}}/${escapedConfigPath}/g" "${workerConfigFile}"
         fi
         echo "Using extrae config file: $workerConfigFile"
 

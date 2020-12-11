@@ -28,11 +28,14 @@ import sys
 import logging
 import time
 import tempfile
+import json
+import base64
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize        # noqa: E501
+from pycompss.runtime.management.object_tracker import OT_clean_object_tracker
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.commons import DEFAULT_SCHED
 from pycompss.runtime.commons import DEFAULT_CONN
@@ -52,11 +55,8 @@ from pycompss.util.interactive.events import setup_event_manager
 from pycompss.util.interactive.events import release_event_manager
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
-<<<<<<< HEAD
 from pycompss.util.interactive.utils import parameters_to_dict
-=======
 from pycompss.util.interactive.outwatcher import STDW
->>>>>>> Enabled error reporting in Jupyter notebooks.
 
 # Tracing imports
 from pycompss.util.tracing.helpers import emit_manual_event
@@ -263,6 +263,10 @@ def start(log_level="off",                     # type: str
                                   external_adaptation,
                                   propagate_virtual_environment,
                                   mpi_worker)
+    # Save all vars in global current flags so that events.py can restart
+    # the notebook with the same flags
+    # Removes b' and ' to avoid issues with javascript
+    os.environ["PYCOMPSS_CURRENT_FLAGS"] = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]  # noqa
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)
@@ -435,12 +439,14 @@ def __print_setup__(verbose, all_vars):
     logger.debug(output)
 
 
-def stop(sync=False):
-    # type: (bool) -> None
+def stop(sync=False, _hard_stop=False):
+    # type: (bool, bool) -> None
     """ Runtime stop.
 
     :param sync: Scope variables synchronization [ True | False ]
                  (default: False)
+    :param _hard_stop: Stop compss when runtime has died [ True | False ].
+                       (default: False)
     :return: None
     """
     logger = logging.getLogger(__name__)
@@ -454,26 +460,19 @@ def stop(sync=False):
     print(LINE_SEPARATOR)
     print("*************** STOPPING PyCOMPSs ******************")
     print(LINE_SEPARATOR)
-    # Wait 2 seconds to give some time to process the remaining messages
+    # Wait 5 seconds to give some time to process the remaining messages
     # of the STDW and check if there is some error that could have stopped
     # the runtime before continuing.
     print("Checking if any issue happened.")
     time.sleep(5)
     messages = STDW.get_messages()
     if messages:
-        halt = False
         for message in messages:
             sys.stderr.write("".join((message, '\n')))
-            if message == '[ERRMGR]  -  Shutting down COMPSs...':
-                halt = True
-                context.set_pycompss_context(context.OUT_OF_SCOPE)
-        if halt:
-            # The runtime was stopped by something external
-            return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)  # noqa: E501
 
     # import pprint
     # pprint.pprint(ipython.__dict__, width=1)
-    if sync:
+    if sync and not _hard_stop:
         sync_msg = "Synchronizing all future objects left on the user scope."
         print(sync_msg)
         logger.debug(sync_msg)
@@ -486,8 +485,13 @@ def stop(sync=False):
             if not k.startswith('_'):   # not internal objects
                 if type(obj_k) == Future:
                     print("Found a future object: %s" % str(k))
-                    logger.debug("Found a future object: %s" % (k,))
-                    ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
+                    logger.debug("Found a future object: %s" % str(k))
+                    new_obj_k = compss_wait_on(obj_k)
+                    if new_obj_k == obj_k:
+                        print("\t - Could not retrieve object: %s" % str(k))
+                        logger.debug("\t - Could not retrieve object: %s" % str(k))
+                    else:
+                        ipython.__dict__['user_ns'][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
                         if OT_is_pending_to_synchronize(obj_k):
@@ -516,14 +520,14 @@ def stop(sync=False):
     emit_manual_event(0)
 
     # Stop runtime
-    compss_stop()
+    compss_stop(_hard_stop=_hard_stop)
 
     # Cleanup events and files
     release_event_manager(ipython)
     __clean_temp_files__()
 
     # Stop watching stdout and stderr
-    STDW.stop_watching(clean=not interactive_helpers.DEBUG)
+    STDW.stop_watching(clean=True)
     # Retrieve the remaining messages that could have been captured.
     last_messages = STDW.get_messages()
     if last_messages:
@@ -560,6 +564,9 @@ def __hard_stop__(debug, sync, logger, ipython):
     # Stop persistent storage
     if PERSISTENT_STORAGE:
         master_stop_storage(logger)
+
+    # Clean any left object in the object tracker
+    OT_clean_object_tracker()
 
     # Cleanup events and files
     release_event_manager(ipython)

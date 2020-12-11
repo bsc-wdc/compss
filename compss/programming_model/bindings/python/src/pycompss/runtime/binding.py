@@ -117,8 +117,8 @@ def start_runtime(log_level='off', tracing=0, interactive=False):
 
 
 @emit_event(STOP_RUNTIME_EVENT, master=True)
-def stop_runtime(code=0):
-    # type: (int) -> None
+def stop_runtime(code=0, hard_stop=False):
+    # type: (int, bool) -> None
     """ Stops the COMPSs runtime.
 
     Stops the runtime by calling the external python library that calls
@@ -128,6 +128,7 @@ def stop_runtime(code=0):
     cancelled.
 
     :parameter code: Stop code (if code != 0 ==> cancel application tasks).
+    :param hard_stop: Stop compss when runtime has died.
     :return: None
     """
     app_id = 0
@@ -144,7 +145,7 @@ def stop_runtime(code=0):
 
     if __debug__:
         logger.info("Cleaning objects...")
-    _clean_objects()
+    _clean_objects(hard_stop=hard_stop)
 
     if __debug__:
         reporting = OT_is_report_enabled()
@@ -162,6 +163,7 @@ def stop_runtime(code=0):
         logger.info("Cleaning temps...")
     _clean_temps()
 
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     if __debug__:
         logger.info("COMPSs stopped")
 
@@ -770,8 +772,8 @@ def process_task(signature,             # type: str
 # ####################### AUXILIARY FUNCTIONS ############################### #
 # ########################################################################### #
 
-def _clean_objects():
-    # type: () -> None
+def _clean_objects(hard_stop=False):
+    # type: (bool) -> None
     """ Clean all objects.
 
     Clean the objects stored in the global dictionaries:
@@ -780,11 +782,13 @@ def _clean_objects():
         - obj_id_to_filename dict.
         - _objs_written_by_mp dict.
 
+    :param hard_stop: avoid call to delete_file when the runtime has died.
     :return: None
     """
     app_id = 0
-    for filename in OT_get_all_file_names():
-        COMPSs.delete_file(app_id, filename, False)
+    if not hard_stop:
+        for filename in OT_get_all_file_names():
+            COMPSs.delete_file(app_id, filename, False)
     OT_clean_object_tracker()
 
 

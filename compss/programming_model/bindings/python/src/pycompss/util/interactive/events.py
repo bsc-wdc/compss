@@ -24,6 +24,8 @@ PyCOMPSs Util - Interactive Events
     callbacks.
 """
 
+import os
+
 from pycompss.util.interactive.outwatcher import STDW
 import pycompss.util.context as context
 
@@ -70,46 +72,61 @@ def __pre_run_cell__():
                 runtime_crashed = True
         if runtime_crashed:
             # Display popup with the error messages
-            header = ["<h4><u><strong>OUTPUT MESSAGES:</u></strong></h4>"]
-            footer = ["",
-                      "<h4><u><strong>IMPORTANT!</strong></u></h4>",
-                      "<strong>The execution will continue without COMPSs.</strong>"]  # noqa: E501
+            current_flags = str(os.environ["PYCOMPSS_CURRENT_FLAGS"])
+            header = []
+            footer = []
             popup_body = header + messages + footer
             error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
             error_messages_html = error_messages_html.replace("'", "")
-            popup_title_html = "ERROR: COMPSs Runtime Crashed!"
+            popup_title_html = "COMPSs RUNTIME STOPPED"
             popup_code = """require(["base/js/dialog"],
                                     function(dialog) OPENBRACKET
+                                        function restartCOMPSs()OPENBRACKET
+                                            var kernel = IPython.notebook.kernel;
+                                            kernel.execute("import base64; import json; from pycompss.interactive import stop, start; stop(_hard_stop=True); _COMPSS_START_FLAGS=json.loads(base64.b64decode('" + '{2}' + "'.encode())); start(**_COMPSS_START_FLAGS)");
+                                        CLOSEBRACKET
+                                        function continueWithoutCOMPSs()OPENBRACKET
+                                            var kernel = IPython.notebook.kernel;
+                                            kernel.execute("from pycompss.interactive import stop; stop(_hard_stop=True)");
+                                        CLOSEBRACKET
                                         dialog.modal(OPENBRACKET
                                             title: '{0}',
                                             body: $('{1}'),
                                             buttons: OPENBRACKET
-                                                'Ok': OPENBRACKET CLOSEBRACKET
+                                                'Continue without COMPSs': OPENBRACKET
+                                                                             click: function() OPENBRACKET
+                                                                                 continueWithoutCOMPSs();
+                                                                             CLOSEBRACKET
+                                                                           CLOSEBRACKET,
+                                                'Restart COMPSs': OPENBRACKET
+                                                                    class: 'btn-primary',
+                                                                    click: function() OPENBRACKET
+                                                                        restartCOMPSs();
+                                                                    CLOSEBRACKET
+                                                                  CLOSEBRACKET
                                             CLOSEBRACKET
                                         CLOSEBRACKET);
                                     CLOSEBRACKET
-                            );""".format(popup_title_html, error_messages_html)
-            popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')  # noqa: E501
+                            );""".format(popup_title_html, error_messages_html, current_flags)  # noqa: E501
+            popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')      # noqa: E501
             popup = Javascript(popup_js)
             display(popup)  # noqa
-            context.set_pycompss_context(context.OUT_OF_SCOPE)
+            # context.set_pycompss_context(context.OUT_OF_SCOPE)
         elif found_errors:
             # Display popup with the warning messages
-            header = ["<h4><u><strong>OUTPUT MESSAGES:</u></strong></h4>", ""]
-            footer = ["",
-                      "<h4><u><strong>IMPORTANT!</strong></u></h4>",
-                      "<strong>This is just a warning. The tasks that failed have been recovered.</strong>"]  # noqa: E501
+            header = []
+            footer = []
             popup_body = header + messages + footer
             error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
             error_messages_html = error_messages_html.replace("'", "")
-            popup_title_html = "WARNING: some tasks may have failed!"
+            popup_title_html = "WARNING: Some tasks may have failed"
             popup_code = """require(["base/js/dialog"],
                                     function(dialog) OPENBRACKET
                                         dialog.modal(OPENBRACKET
                                             title: '{0}',
                                             body: $('{1}'),
                                             buttons: OPENBRACKET
-                                                'Ok': OPENBRACKET CLOSEBRACKET
+                                                'Continue': OPENBRACKET CLOSEBRACKET,
                                             CLOSEBRACKET
                                         CLOSEBRACKET);
                                     CLOSEBRACKET

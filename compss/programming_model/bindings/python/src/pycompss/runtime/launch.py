@@ -32,6 +32,8 @@ import sys
 import logging
 import traceback
 import argparse
+import json
+import base64
 
 # Project imports
 import pycompss.util.context as context
@@ -416,6 +418,10 @@ def launch_pycompss_application(app,
                                   external_adaptation,
                                   propagate_virtual_environment,
                                   mpi_worker)
+    # Save all vars in global current flags so that events.py can restart
+    # the notebook with the same flags
+    # Removes b' and ' to avoid issues with javascript
+    os.environ["PYCOMPSS_CURRENT_FLAGS"] = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]  # noqa
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)

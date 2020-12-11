@@ -273,7 +273,6 @@ def terminate_interactive_link():
     :return: None
     """
     LINK_PROCESS.terminate()
-    wait_for_interactive_link()
 
 
 class COMPSs(object):

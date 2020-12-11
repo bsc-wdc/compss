@@ -81,14 +81,15 @@ if context.in_pycompss():
         """
         __start_runtime__(log_level, tracing, interactive)
 
-    def compss_stop(code=0):
-        # type: (int) -> None
+    def compss_stop(code=0, _hard_stop=False):
+        # type: (int, bool) -> None
         """ Stops the runtime.
 
         :param code: Stop code.
+        :param _hard_stop: Stop compss when runtime has died.
         :return: None
         """
-        __stop_runtime__(code)
+        __stop_runtime__(code, _hard_stop)
 
     def compss_file_exists(*file_name):
         # type: (*str) -> bool or [bool]
@@ -343,9 +344,9 @@ else:
         # type: (str, int, bool) -> None
         __dummy_compss_start__(log_level, tracing, interactive)
 
-    def compss_stop(code=0):
-        # type: (int) -> None
-        __dummy_compss_stop__(code)
+    def compss_stop(code=0, _hard_stop=False):
+        # type: (int, bool) -> None
+        __dummy_compss_stop__(code, _hard_stop)
 
     def compss_file_exists(*file_name):
         # type: (*str) -> bool or [bool]

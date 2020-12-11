@@ -18,12 +18,19 @@
     exit ${exit_code}
   fi
 
+  # Clean pyc files
+  find . -type f -name '*.pyc' -exec rm {} \;
+
   python3 nose_tests.py -s -v False
   exit_code=$?
   if [ ${exit_code} -ne 0 ]; then
     echo "ERROR: FAILED unittests with Python 3"
     exit ${exit_code}
   fi
+
+  # Clean all __pycache__
+  # Not necessary for normal unittests, probably for integration.
+  # find . -type d -name '__pycache__' -exec rm -rf {} \;
 
   # Only with setuptools
   # python setup.py nosetests -

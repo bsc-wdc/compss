@@ -78,16 +78,11 @@ class MPI(PyCOMPSsDecorator):
             if __debug__:
                 logger.debug("Init @mpi decorator...")
 
-            layout_nums = 0
             # noqa TODO: Maybe add here the collection layout to avoid iterate twice per elements
             # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
             for key in self.kwargs.keys():
                 if "_layout" in key:
-                    layout_nums += 1
                     SUPPORTED_ARGUMENTS.add(key)
-            if layout_nums > 1:
-                msg = "More than one layout definition is not yet supported!"
-                raise PyCOMPSsException(msg)
 
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -182,13 +177,12 @@ class MPI(PyCOMPSsDecorator):
         :return: list(param_name, block_count, block_length, stride)
         :raises PyCOMPSsException: If the collection layout does not contain block_count.
         """
-        param_name = ""
-        block_count = -1
-        block_length = -1
-        stride = -1
 
+        num_layouts = 0
+        layout_params = []
         for key, value in self.kwargs.items():
             if "_layout" in key:
+                num_layouts += 1
                 param_name = key.split("_layout")[0]
                 collection_layout = value
 
@@ -200,8 +194,9 @@ class MPI(PyCOMPSsDecorator):
                         (stride != -1 and block_count == -1):
                     msg = "Error: collection_layout must contain block_count!"
                     raise PyCOMPSsException(msg)
-
-        return [param_name, str(block_count), str(block_length), str(stride)]
+                layout_params.extend([param_name, str(block_count), str(block_length), str(stride)])
+        layout_params.insert(0, str(num_layouts))
+        return layout_params
 
     @staticmethod
     def __get_block_count__(collection_layout):

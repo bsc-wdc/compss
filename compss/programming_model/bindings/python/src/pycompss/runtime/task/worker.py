@@ -331,13 +331,13 @@ class TaskWorker(TaskCommons):
             # 3- the current argument is the layout target
             in_mpi_collection_env = False
             if python_mpi and collections_layouts and \
-                    collections_layouts[0] == argument.name:
+                    argument.name in collections_layouts:
                 in_mpi_collection_env = True
                 from pycompss.util.mpi.helper import rank_distributor
                 # Call rank_distributor if the current param is the target of
                 # the layout for each rank, return its offset(s) in the
                 # collection.
-                rank_distribution = rank_distributor(collections_layouts[1:])
+                rank_distribution = rank_distributor(collections_layouts[argument.name])
                 rank_distr_len = len(rank_distribution)
                 if __debug__:
                     logger.debug("Rank distribution is: " + str(rank_distribution))  # noqa: E501

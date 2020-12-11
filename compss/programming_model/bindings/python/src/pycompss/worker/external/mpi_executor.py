@@ -161,14 +161,13 @@ def process_task(current_line,     # type: str
     if current_line[0] == EXECUTE_TASK_TAG:
         num_collection_params = int(current_line[-1])
         if num_collection_params > 0:
-            
-            collections_layouts =dict() 
+            collections_layouts = dict()
             raw_layouts = current_line[((num_collection_params * -4) - 1):-1]
             for i in range(num_collection_params):
-                param = raw_layouts[ i * 4]
-                layout = [int(raw_layouts[ (i * 4) + 1]), 
-                          int(raw_layouts[ (i * 4) + 2]), 
-                          int(raw_layouts[ (i * 4) + 3])]
+                param = raw_layouts[i * 4]
+                layout = [int(raw_layouts[(i * 4) + 1]),
+                          int(raw_layouts[(i * 4) + 2]),
+                          int(raw_layouts[(i * 4) + 3])]
                 collections_layouts[param] = layout
         else:
             collections_layouts = None

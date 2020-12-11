@@ -278,10 +278,10 @@ class NewTaskEvent(Event):
         """
         super(NewTaskEvent, self).__init__(timestamp)
         line_array = message.split()
-        self.task_id = line_array[5]
-        method_name_start = message.find("(")
+        self.task_id = line_array[6]
+        method_name_start = message.find("Name:")
         method_name_end = message.find(")")
-        self.method_name = message[method_name_start+1:method_name_end]
+        self.method_name = message[method_name_start+5:method_name_end]
 
     def apply(self, state):
         """
@@ -292,7 +292,7 @@ class NewTaskEvent(Event):
         state.tasks.register_task(self.task_id, self.method_name, self.timestamp)
 
     def __str__(self):
-        return self.method_name+"(task "+self.task_id+") @ "+self.timestamp
+        return "New task "+ self.method_name+"(task "+self.task_id+") @ "+self.timestamp
 
 
 class InputValueEvent(Event):
@@ -374,6 +374,7 @@ class OutputValueEvent(Event):
         line_array = message.split()
         self.datum_id = line_array[5]
         self.task_id = line_array[8]
+        self.direction="UNKNOWN DIRECTION"
 
     def apply(self, state):
         """
@@ -384,6 +385,7 @@ class OutputValueEvent(Event):
         task = state.tasks.get_task(self.task_id)
         access = state.data.last_registered_access
         p = None
+        self.direction = access.get_direction()
         if access.get_direction() == "OUT":
             p = task.add_parameter(access)
             access.set_cause(p)
@@ -554,6 +556,7 @@ class HostActionEvent(Event):
         desc_start_pos = message.find("(")
         desc_end_pos = message.find(")")
         self.description = message[desc_start_pos:desc_end_pos + 1]
+        self.resource_name = "UNKNOWN RESOURCE"
 
     def apply(self, state):
         """
@@ -566,6 +569,7 @@ class HostActionEvent(Event):
         if resource is not None:
             resource.host(action, self.timestamp)
             action.hosted(resource, self.timestamp)
+            self.resource_name = resource.name
         else:
             print("Unassigned resource to action " + str(action))
 
@@ -656,6 +660,7 @@ class SettingHostToJobEvent(Event):
         message = message[4:]
         line_array = message.split()
         self.resource_name = line_array[-1]
+        self.job_id="UNKNOWN JOB"
 
     def apply(self, state):
         """
@@ -666,6 +671,7 @@ class SettingHostToJobEvent(Event):
         resource = state.resources.get_resource(self.resource_name)
         last_job = state.jobs.get_last_registered_job()
         last_job.bind_to_action(resource)
+        self.job_id=last_job.job_id
 
     def __str__(self):
         return "Job " + self.job_id + " runs on " + self.resource_name + " @ " + self.timestamp

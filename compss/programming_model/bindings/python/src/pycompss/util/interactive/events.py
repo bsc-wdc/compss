@@ -27,11 +27,13 @@ PyCOMPSs Util - Interactive Events
 import os
 
 from pycompss.util.interactive.outwatcher import STDW
-import pycompss.util.context as context
 
 # IPython imports
 from IPython.display import display
 from IPython.display import Javascript
+
+# Placeholder for post run cell messages
+POST_MESSAGE = None
 
 
 #######################################
@@ -56,6 +58,7 @@ def __pre_run_cell__():
 
     :return: None
     """
+    global POST_MESSAGE
     messages = STDW.get_messages()
     found_errors = False
     runtime_crashed = False
@@ -111,7 +114,8 @@ def __pre_run_cell__():
             popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')      # noqa: E501
             popup = Javascript(popup_js)
             display(popup)  # noqa
-            # context.set_pycompss_context(context.OUT_OF_SCOPE)
+            warn_msg = "WARNING: Some objects may have not been synchronized and need to be recomputed."  # noqa: E501
+            POST_MESSAGE = "\x1b[40;43m" + warn_msg + "\x1b[0m"
         elif found_errors:
             # Display popup with the warning messages
             header = []
@@ -134,6 +138,8 @@ def __pre_run_cell__():
             popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')  # noqa: E501
             popup = Javascript(popup_js)
             display(popup)  # noqa
+            info_msg = "INFO: The runtime has recovered the failed tasks."
+            POST_MESSAGE = "\x1b[40;46m" + info_msg + "\x1b[0m"
         else:
             # No issue
             pass
@@ -157,7 +163,10 @@ def __post_run_cell__():
 
     :return: None
     """
-    print("post_run_cell")
+    global POST_MESSAGE
+    if POST_MESSAGE:
+        print(POST_MESSAGE)
+        POST_MESSAGE = None
 
 
 #######################################
@@ -174,7 +183,7 @@ def setup_event_manager(ipython):
     # ipython.events.register('pre_execute', __pre_execute__)
     ipython.events.register('pre_run_cell', __pre_run_cell__)
     # ipython.events.register('post_execute', __post_execute__)
-    # ipython.events.register('post_run_cell', __post_run_cell__)
+    ipython.events.register('post_run_cell', __post_run_cell__)
 
 
 def release_event_manager(ipython):
@@ -188,7 +197,7 @@ def release_event_manager(ipython):
         # ipython.events.unregister('pre_execute', __pre_execute__)
         ipython.events.unregister('pre_run_cell', __pre_run_cell__)
         # ipython.events.unregister('post_execute', __post_execute__)
-        # ipython.events.unregister('post_run_cell', __post_run_cell__)
+        ipython.events.unregister('post_run_cell', __post_run_cell__)
     except ValueError:
         # The event was already unregistered
         pass

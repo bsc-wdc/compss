@@ -157,7 +157,8 @@ def _get_ipython_imports():
         # have blank spaces before.
         lines = i.split('\n')
         for line in lines:
-            if line.startswith("from") or line.startswith("import"):
+            if (line.startswith("from") or line.startswith("import")) \
+                    and "pycompss.interactive" not in line:
                 imports.append(line + '\n')
     return imports
 

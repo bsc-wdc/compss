@@ -40,13 +40,14 @@ def compss_start(log_level='off', tracing=0, interactive=False):  # noqa
     pass
 
 
-def compss_stop(code=0):  # noqa
-    # type: (int) -> None
+def compss_stop(code=0, _hard_stop=False):  # noqa
+    # type: (int, bool) -> None
     """ Dummy runtime stop.
 
     Does nothing.
 
     :param code: Stop code.
+    :param _hard_stop: Stop compss when runtime has died.
     :return: None
     """
     pass

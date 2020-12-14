@@ -26,7 +26,10 @@ PyCOMPSs Binding - Link
     and restarted (interactive usage of PyCOMPSs - ipython and jupyter).
 """
 
+import os
 import multiprocessing
+from pycompss.util.std.redirects import ipython_std_redirector
+from pycompss.util.std.redirects import not_std_redirector
 
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -79,81 +82,94 @@ def shutdown_handler(signal, frame):  # noqa
         LINK_PROCESS.terminate()
 
 
-def c_extension_link(in_queue, out_queue):
-    # type: (..., ...) -> None
+def c_extension_link(in_queue, out_queue,
+                     redirect_std, out_file_name, err_file_name):
+    # type: (..., ..., bool, str, str) -> None
     """ Main C extension process.
 
     :param in_queue: Queue to receive messages.
     :param out_queue: Queue to send messages.
+    :param redirect_std: Decide whether to store the stdout and stderr into
+                         files or not.
+    :param out_file_name: File where to store the stdout (only required if
+                          redirect_std is True).
+    :param err_file_name: File where to store the stderr (only required if
+                          redirect_std is True).
     :return: None
     """
+    # Import C extension within the external process
     import compss
 
-    alive = True
-    while alive:
-        message = in_queue.get()
-        command = message[0]
-        parameters = []
-        if len(message) > 0:
-            parameters = message[1:]
-        if command == START:
-            compss.start_runtime()
-        elif command == SET_DEBUG:
-            compss.set_debug(*parameters)
-        elif command == STOP:
-            compss.stop_runtime(*parameters)
-            alive = False
-        elif command == CANCEL_TASKS:
-            compss.cancel_application_tasks(*parameters)
-        elif command == ACCESSED_FILE:
-            accessed = compss.accessed_file(*parameters)
-            out_queue.put(accessed)
-        elif command == OPEN_FILE:
-            compss_name = compss.open_file(*parameters)
-            out_queue.put(compss_name)
-        elif command == CLOSE_FILE:
-            compss.close_file(*parameters)
-        elif command == DELETE_FILE:
-            result = compss.delete_file(*parameters)
-            out_queue.put(result)
-        elif command == GET_FILE:
-            compss.get_file(*parameters)
-        elif command == GET_DIRECTORY:
-            compss.get_directory(*parameters)
-        elif command == BARRIER:
-            compss.barrier(*parameters)
-        elif command == BARRIER_GROUP:
-            exception_message = compss.barrier_group(*parameters)
-            out_queue.put(exception_message)
-        elif command == OPEN_TASK_GROUP:
-            compss.open_task_group(*parameters)
-        elif command == CLOSE_TASK_GROUP:
-            compss.close_task_group(*parameters)
-        elif command == GET_LOGGING_PATH:
-            log_path = compss.get_logging_path()
-            out_queue.put(log_path)
-        elif command == GET_NUMBER_OF_RESOURCES:
-            num_resources = compss.get_number_of_resources(*parameters)
-            out_queue.put(num_resources)
-        elif command == REQUEST_RESOURCES:
-            compss.request_resources(*parameters)
-        elif command == FREE_RESOURCES:
-            compss.free_resources(*parameters)
-        elif command == REGISTER_CORE_ELEMENT:
-            compss.register_core_element(*parameters)
-        elif command == PROCESS_TASK:
-            compss.process_task(*parameters)
-        elif command == SET_PIPES:
-            compss.set_pipes(*parameters)
-        elif command == SET_WALL_CLOCK:
-            compss.set_wall_clock(*parameters)
-        else:
-            raise PyCOMPSsException("Unknown link command")
+    with ipython_std_redirector(out_file_name, err_file_name) \
+            if redirect_std else not_std_redirector():
+        alive = True
+        while alive:
+            message = in_queue.get()
+            command = message[0]
+            parameters = []
+            if len(message) > 0:
+                parameters = message[1:]
+            if command == START:
+                compss.start_runtime()
+            elif command == SET_DEBUG:
+                compss.set_debug(*parameters)
+            elif command == STOP:
+                compss.stop_runtime(*parameters)
+                alive = False
+            elif command == CANCEL_TASKS:
+                compss.cancel_application_tasks(*parameters)
+            elif command == ACCESSED_FILE:
+                accessed = compss.accessed_file(*parameters)
+                out_queue.put(accessed)
+            elif command == OPEN_FILE:
+                compss_name = compss.open_file(*parameters)
+                out_queue.put(compss_name)
+            elif command == CLOSE_FILE:
+                compss.close_file(*parameters)
+            elif command == DELETE_FILE:
+                result = compss.delete_file(*parameters)
+                out_queue.put(result)
+            elif command == GET_FILE:
+                compss.get_file(*parameters)
+            elif command == GET_DIRECTORY:
+                compss.get_directory(*parameters)
+            elif command == BARRIER:
+                compss.barrier(*parameters)
+            elif command == BARRIER_GROUP:
+                exception_message = compss.barrier_group(*parameters)
+                out_queue.put(exception_message)
+            elif command == OPEN_TASK_GROUP:
+                compss.open_task_group(*parameters)
+            elif command == CLOSE_TASK_GROUP:
+                compss.close_task_group(*parameters)
+            elif command == GET_LOGGING_PATH:
+                log_path = compss.get_logging_path()
+                out_queue.put(log_path)
+            elif command == GET_NUMBER_OF_RESOURCES:
+                num_resources = compss.get_number_of_resources(*parameters)
+                out_queue.put(num_resources)
+            elif command == REQUEST_RESOURCES:
+                compss.request_resources(*parameters)
+            elif command == FREE_RESOURCES:
+                compss.free_resources(*parameters)
+            elif command == REGISTER_CORE_ELEMENT:
+                compss.register_core_element(*parameters)
+            elif command == PROCESS_TASK:
+                compss.process_task(*parameters)
+            elif command == SET_PIPES:
+                compss.set_pipes(*parameters)
+            elif command == SET_WALL_CLOCK:
+                compss.set_wall_clock(*parameters)
+            else:
+                raise Exception("Unknown link command")
 
 
 def establish_link(logger=None):  # noqa
     # type: (...) -> ...
     """ Loads the compss C extension within the same process.
+
+    Does not implement support for stdout and stderr redirecting as the
+    establish_interactive_link.
 
     :param logger: Use this logger instead of the module logger.
     :return: The COMPSs C extension link.
@@ -174,18 +190,33 @@ def establish_link(logger=None):  # noqa
     return compss
 
 
-def establish_interactive_link(logger=None):  # noqa
-    # type: (...) -> ...
+def establish_interactive_link(logger=None, redirect_std=False):  # noqa
+    # type: (..., bool) -> ...
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
+    It will return stdout file name and stderr file name as None if
+    redirect_std is False. Otherwise, returns the names which are the
+    current process pid followed by the out/err extension.
+
     :param logger: Use this logger instead of the module logger.
-    :return: The COMPSs C extension link.
+    :param redirect_std: Decide whether to store the stdout and stderr into
+                         files or not.
+    :return: The COMPSs C extension link, stdout file name and stderr file
+             name.
     """
     global LINK_PROCESS
     global IN_QUEUE
     global OUT_QUEUE
     global RELOAD
+
+    if redirect_std:
+        pid = str(os.getpid())
+        out_file_name = "compss-" + pid + ".out"
+        err_file_name = "compss-" + pid + ".err"
+    else:
+        out_file_name = None
+        err_file_name = None
 
     if RELOAD:
         IN_QUEUE = multiprocessing.Queue()
@@ -200,7 +231,9 @@ def establish_interactive_link(logger=None):  # noqa
             link_logger.debug(message)
 
     LINK_PROCESS = multiprocessing.Process(target=c_extension_link,
-                                           args=(IN_QUEUE, OUT_QUEUE))
+                                           args=(IN_QUEUE, OUT_QUEUE,
+                                                 redirect_std,
+                                                 out_file_name, err_file_name))
     LINK_PROCESS.start()
 
     if __debug__:
@@ -211,7 +244,7 @@ def establish_interactive_link(logger=None):  # noqa
             link_logger.debug(message)
 
     compss_link = COMPSs  # object that mimics compss library
-    return compss_link
+    return compss_link, out_file_name, err_file_name
 
 
 def wait_for_interactive_link():
@@ -240,7 +273,6 @@ def terminate_interactive_link():
     :return: None
     """
     LINK_PROCESS.terminate()
-    wait_for_interactive_link()
 
 
 class COMPSs(object):

@@ -94,7 +94,7 @@ def find_packages(path='./src'):
 if target_os == 'Linux' :
     os_modules = [compssmodule, thread_affinity]
 elif target_os == 'Darwin' :
-    os_modules = [compssmodule, thread_affinity]
+    os_modules = [compssmodule]
 else :
     print("Unsupported OS " + target_os + "(Supported Linux/Darwin)")
 

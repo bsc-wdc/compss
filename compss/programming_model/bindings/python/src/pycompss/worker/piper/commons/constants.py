@@ -31,23 +31,24 @@ PyCOMPSs Persistent Worker Pipe Constants
 ---------------------
 TAGS EXPECTED FORMAT:
 ---------------------
-- EXECUTE_TASK_TAG....... "task" taskId jobOut jobErr task_params
-- END_TASK_TAG........... "endTask" taskId endStatus
-- CANCEL_TASK_TAG........ "cancelTask" in_pipe out_pipe
-- COMPSS_EXCEPTION_TAG... "compssException" taskId exception_message
-- ERROR_TASK_TAG......... TBD
-- ERROR_TAG.............. "error" [MESSAGE EXPECTED]
-- PING_TAG............... "ping"
-- PONG_TAG............... "pong"
-- ADD_EXECUTOR_TAG....... "addExecutor" in_pipe out_pipe
-- ADDED_EXECUTOR_TAG..... "addedExecutor"
-- QUERY_EXECUTOR_ID_TAG.. "query" in_pipe out_pipe
-- REPLY_EXECUTOR_ID_TAG.. "reply" executor_id
-- REMOVE_EXECUTOR_TAG.... "removeExecutor" in_pipe out_pipe
-- REMOVED_EXECUTOR_TAG... "removedExecutor"
-- QUIT_TAG............... "quit"
-- REMOVE_TAG............. TBD
-- SERIALIZE_TAG.......... TBD
+- EXECUTE_TASK_TAG........... "task" taskId jobOut jobErr task_params
+- END_TASK_TAG............... "endTask" taskId endStatus
+- CANCEL_TASK_TAG............ "cancelTask" in_pipe out_pipe
+- COMPSS_EXCEPTION_TAG....... "compssException" taskId exception_message
+- ERROR_TASK_TAG............. TBD
+- ERROR_TAG.................. "error" [MESSAGE EXPECTED]
+- PING_TAG................... "ping"
+- PONG_TAG................... "pong"
+- ADD_EXECUTOR_TAG........... "addExecutor" in_pipe out_pipe
+- ADD_EXECUTOR_FAILED_TAG.... "addExecutorFailed"
+- ADDED_EXECUTOR_TAG......... "addedExecutor"
+- QUERY_EXECUTOR_ID_TAG...... "query" in_pipe out_pipe
+- REPLY_EXECUTOR_ID_TAG...... "reply" executor_id
+- REMOVE_EXECUTOR_TAG........ "removeExecutor" in_pipe out_pipe
+- REMOVED_EXECUTOR_TAG....... "removedExecutor"
+- QUIT_TAG................... "quit"
+- REMOVE_TAG................. TBD
+- SERIALIZE_TAG.............. TBD
 """
 EXECUTE_TASK_TAG = "EXECUTE_TASK"
 END_TASK_TAG = "END_TASK"
@@ -58,6 +59,7 @@ ERROR_TAG = "ERROR"
 PING_TAG = "PING"
 PONG_TAG = "PONG"
 ADD_EXECUTOR_TAG = "ADD_EXECUTOR"
+ADD_EXECUTOR_FAILED_TAG = "ADD_EXECUTOR_FAILED"
 ADDED_EXECUTOR_TAG = "ADDED_EXECUTOR"
 QUERY_EXECUTOR_ID_TAG = "QUERY_EXECUTOR_ID"
 REPLY_EXECUTOR_ID_TAG = "REPLY_EXECUTOR_ID"

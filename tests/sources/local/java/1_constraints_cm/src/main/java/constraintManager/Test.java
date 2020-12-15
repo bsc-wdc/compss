@@ -10,8 +10,9 @@ import java.util.Map.Entry;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.task.Method;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
 
@@ -157,9 +158,10 @@ public class Test {
 
         // Check all constraints
         for (int implId = 0; implId < declaringClassesItf[coreId].length; implId++) {
-            MethodImplementation m = ((MethodImplementation) implementations.get(implId));
+            AbstractMethodImplementation m = ((AbstractMethodImplementation) implementations.get(implId));
             System.out.println("[LOG] \t" + declaringClassesItf[coreId][implId]);
-            if (declaringClassesItf[coreId][implId].compareTo(m.getDeclaringClass()) != 0) {
+            if (declaringClassesItf[coreId][implId]
+                .compareTo(((MethodDefinition) m.getDefinition()).getDeclaringClass()) != 0) {
                 System.out.println(coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][implId]
                     + " is not included registered in the system");
                 System.exit(-1);

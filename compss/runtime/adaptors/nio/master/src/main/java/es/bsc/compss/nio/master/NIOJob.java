@@ -22,9 +22,9 @@ import es.bsc.compss.nio.master.utils.NIOParamFactory;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
@@ -94,14 +94,15 @@ public class NIOJob extends Job<NIOWorkerNode> {
         // This is a workaround for Python
         switch (absMethodImpl.getMethodType()) {
             case METHOD:
-                MethodImplementation methodImpl = (MethodImplementation) absMethodImpl;
+                MethodDefinition methodImpl = (MethodDefinition) absMethodImpl.getDescription().getDefinition();
                 String methodName = methodImpl.getAlternativeMethodName();
                 if (methodName == null || methodName.isEmpty()) {
                     methodImpl.setAlternativeMethodName(this.taskParams.getName());
                 }
                 break;
             case MULTI_NODE:
-                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) absMethodImpl;
+                MultiNodeDefinition multiNodeImpl =
+                    (MultiNodeDefinition) absMethodImpl.getDescription().getDefinition();
                 String multiNodeMethodName = multiNodeImpl.getMethodName();
                 if (multiNodeMethodName == null || multiNodeMethodName.isEmpty()) {
                     multiNodeImpl.setMethodName(this.taskParams.getName());

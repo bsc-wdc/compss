@@ -33,7 +33,9 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -63,33 +65,36 @@ public class TestJavaInvoker extends TestObject {
 
     private static final String TEST_RESULT_METHODNAME = "testResult";
 
-    private static final MethodImplementation TEST_EMPTY;
-    private static final MethodImplementation TEST_READS;
-    private static final MethodImplementation TEST_INOUT;
-    private static final MethodImplementation TEST_TARGET_IN;
-    private static final MethodImplementation TEST_TARGET_INOUT;
-    private static final MethodImplementation TEST_RESULT;
-    private static final MethodImplementation TEST_NONEXISTENT_CLASS;
-    private static final MethodImplementation TEST_NONEXISTENT_METHOD;
+    private static final AbstractMethodImplementation TEST_EMPTY;
+    private static final AbstractMethodImplementation TEST_READS;
+    private static final AbstractMethodImplementation TEST_INOUT;
+    private static final AbstractMethodImplementation TEST_TARGET_IN;
+    private static final AbstractMethodImplementation TEST_TARGET_INOUT;
+    private static final AbstractMethodImplementation TEST_RESULT;
+    private static final AbstractMethodImplementation TEST_NONEXISTENT_CLASS;
+    private static final AbstractMethodImplementation TEST_NONEXISTENT_METHOD;
+
+
+    public static AbstractMethodImplementation genDummy(String className, String methodName, Integer coreId,
+        Integer implId, String signature, MethodResourceDescription mrd) {
+        return new AbstractMethodImplementation(coreId, implId,
+            new ImplementationDescription<>(new MethodDefinition(className, methodName), signature, mrd));
+    }
+
 
     static {
-        TEST_EMPTY =
-            new MethodImplementation(EXISTING_CLASS, TEST_EMPTY_METHODNAME, 0, 0, "", new MethodResourceDescription());
-        TEST_READS =
-            new MethodImplementation(EXISTING_CLASS, TEST_READS_METHODNAME, 0, 0, "", new MethodResourceDescription());
-        TEST_INOUT =
-            new MethodImplementation(EXISTING_CLASS, TEST_INOUT_METHODNAME, 0, 0, "", new MethodResourceDescription());
-        TEST_TARGET_IN = new MethodImplementation(EXISTING_CLASS, TEST_TARGET_IN_METHODNAME, 0, 0, "",
-            new MethodResourceDescription());
-        TEST_TARGET_INOUT = new MethodImplementation(EXISTING_CLASS, TEST_TARGET_INOUT_METHODNAME, 0, 0, "",
-            new MethodResourceDescription());
-        TEST_RESULT =
-            new MethodImplementation(EXISTING_CLASS, TEST_RESULT_METHODNAME, 0, 0, "", new MethodResourceDescription());
+        TEST_EMPTY = genDummy(EXISTING_CLASS, TEST_EMPTY_METHODNAME, 0, 0, "", new MethodResourceDescription());
+        TEST_READS = genDummy(EXISTING_CLASS, TEST_READS_METHODNAME, 0, 0, "", new MethodResourceDescription());
+        TEST_INOUT = genDummy(EXISTING_CLASS, TEST_INOUT_METHODNAME, 0, 0, "", new MethodResourceDescription());
+        TEST_TARGET_IN = genDummy(EXISTING_CLASS, TEST_TARGET_IN_METHODNAME, 0, 0, "", new MethodResourceDescription());
+        TEST_TARGET_INOUT =
+            genDummy(EXISTING_CLASS, TEST_TARGET_INOUT_METHODNAME, 0, 0, "", new MethodResourceDescription());
+        TEST_RESULT = genDummy(EXISTING_CLASS, TEST_RESULT_METHODNAME, 0, 0, "", new MethodResourceDescription());
 
-        TEST_NONEXISTENT_CLASS = new MethodImplementation(NON_EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, "",
-            new MethodResourceDescription());
-        TEST_NONEXISTENT_METHOD = new MethodImplementation(EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, "",
-            new MethodResourceDescription());
+        TEST_NONEXISTENT_CLASS =
+            genDummy(NON_EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, "", new MethodResourceDescription());
+        TEST_NONEXISTENT_METHOD =
+            genDummy(EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, "", new MethodResourceDescription());
     }
 
     private static HashMap<Long, ExecutionReport> executions = new HashMap<>();

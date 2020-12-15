@@ -3,8 +3,8 @@ package cloudManager;
 
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
@@ -59,7 +59,7 @@ public class Test {
                     System.out.println("[LOG]\t Checking Implementation: " + impl.getImplementationId());
                     System.out.println("\t\t Checking obtained compatible cloud images");
 
-                    MethodImplementation mImpl = (MethodImplementation) impl;
+                    AbstractMethodImplementation mImpl = (AbstractMethodImplementation) impl;
 
                     for (CloudImageDescription cid_gci : cp.getCompatibleImages(mImpl.getRequirements())) {
                         System.out.println("\t\t\t Checking compatible Image: " + cid_gci.getImageName());

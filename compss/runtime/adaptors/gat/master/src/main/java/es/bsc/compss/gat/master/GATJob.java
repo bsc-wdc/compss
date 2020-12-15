@@ -27,18 +27,18 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.BinaryImplementation;
-import es.bsc.compss.types.implementations.COMPSsImplementation;
-import es.bsc.compss.types.implementations.ContainerImplementation;
-import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MPIImplementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
-import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.implementations.definition.BinaryDefinition;
+import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
+import es.bsc.compss.types.implementations.definition.ContainerDefinition;
+import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
+import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
+import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
+import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
@@ -375,112 +375,50 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     case UNKNOWN:
                         throw new LangNotDefinedException();
                 }
-                MethodImplementation methodImpl = (MethodImplementation) absImpl;
-                lArgs.add(methodImpl.getDeclaringClass());
+
+                MethodDefinition methodImpl = (MethodDefinition) absImpl.getDefinition();
                 String methodName = methodImpl.getAlternativeMethodName();
                 if (methodName == null || methodName.isEmpty()) {
-                    methodName = taskParams.getName();
+                    methodImpl.setAlternativeMethodName(taskParams.getName());
                 }
-                lArgs.add(methodName);
+                methodImpl.appendToArgs(lArgs, taskParams.getName());
                 break;
             case BINARY:
-                BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
-                String sandboxDir = binaryImpl.getWorkingDir();
-                lArgs.add(binaryImpl.getBinary());
-                lArgs.add(sandboxDir);
-                lArgs.add(Boolean.toString(binaryImpl.isFailByEV()));
+                BinaryDefinition binaryImpl = (BinaryDefinition) absImpl.getDefinition();
+                binaryImpl.appendToArgs(lArgs, null);
                 break;
             case MPI:
-                MPIImplementation mpiImpl = (MPIImplementation) absImpl;
-                sandboxDir = mpiImpl.getWorkingDir();
-                lArgs.add(mpiImpl.getMpiRunner());
-                lArgs.add(mpiImpl.getMpiFlags());
-                lArgs.add(mpiImpl.getBinary());
-                lArgs.add(sandboxDir);
-                lArgs.add(Boolean.toString(mpiImpl.getScaleByCU()));
-                lArgs.add(Boolean.toString(mpiImpl.isFailByEV()));
+                MPIDefinition mpiImpl = (MPIDefinition) absImpl.getDefinition();
+                mpiImpl.appendToArgs(lArgs, null);
                 break;
             case COMPSs:
-                COMPSsImplementation compssImpl = (COMPSsImplementation) absImpl;
-                sandboxDir = compssImpl.getWorkingDir();
-                lArgs.add(compssImpl.getRuncompss());
-                lArgs.add(compssImpl.getFlags());
-                lArgs.add(compssImpl.getAppName());
-                lArgs.add(sandboxDir);
-                lArgs.add(Boolean.toString(compssImpl.isFailByEV()));
+                COMPSsDefinition compssImpl = (COMPSsDefinition) absImpl.getDefinition();
+                compssImpl.appendToArgs(lArgs, null);
                 break;
             case DECAF:
-                DecafImplementation decafImpl = (DecafImplementation) absImpl;
-                sandboxDir = decafImpl.getWorkingDir();
-                String dfScript = decafImpl.getDfScript();
-                if (!dfScript.startsWith(File.separator)) {
-                    String appPath = getResourceNode().getAppDir();
-                    dfScript = appPath + File.separator + dfScript;
-                }
-                lArgs.add(dfScript);
-
-                String dfExecutor = decafImpl.getDfExecutor();
-                if (dfExecutor == null || dfExecutor.isEmpty() || dfExecutor.equals(Constants.UNASSIGNED)) {
-                    dfExecutor = "executor.sh";
-                }
-                if (!dfExecutor.startsWith(File.separator) && !dfExecutor.startsWith("./")) {
-                    dfExecutor = "./" + dfExecutor;
-                }
-                lArgs.add(dfExecutor);
-
-                String dfLib = decafImpl.getDfLib();
-                if (dfLib == null || dfLib.isEmpty()) {
-                    dfLib = Constants.UNASSIGNED;
-                }
-                lArgs.add(dfLib);
-
-                lArgs.add(decafImpl.getMpiRunner());
-                lArgs.add(sandboxDir);
-                lArgs.add(Boolean.toString(decafImpl.isFailByEV()));
+                DecafDefinition decafImpl = (DecafDefinition) absImpl.getDefinition();
+                decafImpl.appendToArgs(lArgs, getResourceNode().getAppDir());
                 break;
             case MULTI_NODE:
-                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) absImpl;
-                lArgs.add(multiNodeImpl.getDeclaringClass());
-                lArgs.add(multiNodeImpl.getMethodName());
+                MultiNodeDefinition multiNodeImpl = (MultiNodeDefinition) absImpl.getDefinition();
+                multiNodeImpl.appendToArgs(lArgs, null);
                 break;
             case OMPSS:
-                OmpSsImplementation ompssImpl = (OmpSsImplementation) absImpl;
-                sandboxDir = ompssImpl.getWorkingDir();
-                lArgs.add(ompssImpl.getBinary());
-                lArgs.add(sandboxDir);
-                lArgs.add(Boolean.toString(ompssImpl.isFailByEV()));
+                OmpSsDefinition ompssImpl = (OmpSsDefinition) absImpl.getDefinition();
+                ompssImpl.appendToArgs(lArgs, null);
                 break;
             case OPENCL:
-                OpenCLImplementation openclImpl = (OpenCLImplementation) absImpl;
-                sandboxDir = openclImpl.getWorkingDir();
-                lArgs.add(openclImpl.getKernel());
-                lArgs.add(sandboxDir);
+                OpenCLDefinition openclImpl = (OpenCLDefinition) absImpl.getDefinition();
+                openclImpl.appendToArgs(lArgs, null);
                 break;
             case PYTHON_MPI:
-                // TODO: Python MPI in GAT not implemented
-                PythonMPIImplementation pythonMPIImpl = (PythonMPIImplementation) absImpl;
-                sandboxDir = pythonMPIImpl.getWorkingDir();
-                lArgs.add(pythonMPIImpl.getDeclaringClass());
-                lArgs.add(pythonMPIImpl.getMethodDefinition());
-                lArgs.add(pythonMPIImpl.getMpiRunner());
-                lArgs.add(pythonMPIImpl.getMpiFlags());
-                lArgs.add(sandboxDir);
-                lArgs.add(Boolean.toString(pythonMPIImpl.getScaleByCU()));
-                lArgs.add(Boolean.toString(pythonMPIImpl.isFailByEV()));
-
-                throw new UnsupportedOperationException("Python MPI is not supported in GAT");
+                PythonMPIDefinition pythonMPIImpl = (PythonMPIDefinition) absImpl.getDefinition();
+                pythonMPIImpl.appendToArgs(lArgs, null);
+                break;
             case CONTAINER:
-                // TODO: Container executions in GAT not implemented
-                ContainerImplementation containerImpl = (ContainerImplementation) absImpl;
-                lArgs.add(containerImpl.getContainer().getEngine().toString());
-                lArgs.add(containerImpl.getContainer().getImage());
-                lArgs.add(containerImpl.getInternalExecutionType().toString());
-                lArgs.add(containerImpl.getInternalBinary());
-                lArgs.add(containerImpl.getInternalFunction());
-                lArgs.add(containerImpl.getWorkingDir());
-                lArgs.add(Boolean.toString(containerImpl.isFailByEV()));
-
-                throw new UnsupportedOperationException("Container executions are not supported in GAT");
+                ContainerDefinition containerImpl = (ContainerDefinition) absImpl.getDefinition();
+                containerImpl.appendToArgs(lArgs, null);
+                break;
         }
 
         // Job arguments

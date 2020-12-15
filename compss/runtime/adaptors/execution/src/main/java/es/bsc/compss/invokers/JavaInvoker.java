@@ -23,8 +23,8 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.worker.CanceledTask;
 
 import java.io.File;
@@ -65,12 +65,13 @@ public class JavaInvoker extends Invoker {
         // Get method class and name
         switch (invocation.getMethodImplementation().getMethodType()) {
             case METHOD:
-                MethodImplementation methodImpl = (MethodImplementation) invocation.getMethodImplementation();
+                MethodDefinition methodImpl = (MethodDefinition) invocation.getMethodImplementation().getDefinition();
                 this.className = methodImpl.getDeclaringClass();
                 this.methodName = methodImpl.getAlternativeMethodName();
                 break;
             case MULTI_NODE:
-                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) invocation.getMethodImplementation();
+                MultiNodeDefinition multiNodeImpl =
+                    (MultiNodeDefinition) invocation.getMethodImplementation().getDefinition();
                 this.className = multiNodeImpl.getDeclaringClass();
                 this.methodName = multiNodeImpl.getMethodName();
                 break;

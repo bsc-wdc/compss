@@ -30,7 +30,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -62,9 +62,9 @@ public class BinaryInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        BinaryImplementation binaryImpl = null;
+        BinaryDefinition binaryImpl = null;
         try {
-            binaryImpl = (BinaryImplementation) invocation.getMethodImplementation();
+            binaryImpl = (BinaryDefinition) invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);

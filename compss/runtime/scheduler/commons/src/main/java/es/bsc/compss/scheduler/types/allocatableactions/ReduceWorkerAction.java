@@ -25,9 +25,11 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
@@ -70,10 +72,10 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
         this.worker = worker;
         this.ru = (PendingReduction<T>) modification;
         if (modification.getModification() instanceof MethodResourceDescription) {
-            impl = new MethodImplementation("", "", null, null, "",
-                (MethodResourceDescription) modification.getModification());
+            impl =
+                AbstractMethodImplementation.generateDummy((MethodResourceDescription) modification.getModification());
         } else {
-            impl = new ServiceImplementation(null, "", "", "", "", "");
+            impl = ServiceImplementation.generateDummy();
         }
     }
 

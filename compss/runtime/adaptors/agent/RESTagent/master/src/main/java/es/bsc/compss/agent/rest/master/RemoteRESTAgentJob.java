@@ -33,8 +33,8 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
@@ -73,7 +73,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         WebTarget wt = executorNode.getTarget();
         wt = wt.path("/COMPSs/startApplication/");
 
-        MethodImplementation mImpl = (MethodImplementation) this.impl;
+        MethodDefinition mImpl = (MethodDefinition) this.impl.getDescription().getDefinition();
         // Get method definition properties
         String className = mImpl.getDeclaringClass();
 

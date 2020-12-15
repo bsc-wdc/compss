@@ -18,8 +18,8 @@ package es.bsc.compss.util.parsers;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 
@@ -325,9 +325,9 @@ public class IDLParser {
         ced.setCeSignature(taskSignature);
 
         // Register method implementation
-        ImplementationDefinition<?> implDef = null;
+        ImplementationDescription<?, ?> implDef = null;
         try {
-            implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(),
+            implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(),
                 implementationSignature, currConstraints, declaringClass, methodName);
         } catch (Exception e) {
             ErrorManager.error(e.getMessage());

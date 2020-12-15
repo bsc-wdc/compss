@@ -26,9 +26,10 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -67,11 +68,10 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             case WORKER:
             case MASTER:
                 Worker<T> mw = worker.getResource();
-                this.impl =
-                    new MethodImplementation("", "", null, null, "", (MethodResourceDescription) mw.getDescription());
+                this.impl = AbstractMethodImplementation.generateDummy((MethodResourceDescription) mw.getDescription());
                 break;
             default:
-                this.impl = new ServiceImplementation(null, "", "", "", "", "");
+                this.impl = ServiceImplementation.generateDummy();
         }
     }
 

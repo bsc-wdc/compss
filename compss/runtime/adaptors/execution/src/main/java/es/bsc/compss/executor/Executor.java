@@ -52,15 +52,15 @@ import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
-import es.bsc.compss.types.implementations.BinaryImplementation;
-import es.bsc.compss.types.implementations.COMPSsImplementation;
-import es.bsc.compss.types.implementations.ContainerImplementation;
-import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
-import es.bsc.compss.types.implementations.PythonMPIImplementation;
+import es.bsc.compss.types.implementations.definition.BinaryDefinition;
+import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
+import es.bsc.compss.types.implementations.definition.ContainerDefinition;
+import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
+import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
+import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.TraceEvent;
@@ -691,36 +691,38 @@ public class Executor implements Runnable, InvocationRunner {
         String specificWD = null;
         switch (invocation.getMethodImplementation().getMethodType()) {
             case CONTAINER:
-                ContainerImplementation contImpl = (ContainerImplementation) invocation.getMethodImplementation();
+                ContainerDefinition contImpl =
+                    (ContainerDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = contImpl.getWorkingDir();
                 break;
             case BINARY:
-                BinaryImplementation binaryImpl = (BinaryImplementation) invocation.getMethodImplementation();
+                BinaryDefinition binaryImpl = (BinaryDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = binaryImpl.getWorkingDir();
                 break;
             case MPI:
-                MPIImplementation mpiImpl = (MPIImplementation) invocation.getMethodImplementation();
+                MPIDefinition mpiImpl = (MPIDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = mpiImpl.getWorkingDir();
                 break;
             case PYTHON_MPI:
-                PythonMPIImplementation nativeMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
+                PythonMPIDefinition nativeMPIImpl =
+                    (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = nativeMPIImpl.getWorkingDir();
                 break;
             case COMPSs:
-                COMPSsImplementation compssImpl = (COMPSsImplementation) invocation.getMethodImplementation();
+                COMPSsDefinition compssImpl = (COMPSsDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = compssImpl.getWorkingDir() + File.separator + compssImpl.getParentAppId() + File.separator
                     + "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
                 break;
             case DECAF:
-                DecafImplementation decafImpl = (DecafImplementation) invocation.getMethodImplementation();
+                DecafDefinition decafImpl = (DecafDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = decafImpl.getWorkingDir();
                 break;
             case OMPSS:
-                OmpSsImplementation ompssImpl = (OmpSsImplementation) invocation.getMethodImplementation();
+                OmpSsDefinition ompssImpl = (OmpSsDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = ompssImpl.getWorkingDir();
                 break;
             case OPENCL:
-                OpenCLImplementation openclImpl = (OpenCLImplementation) invocation.getMethodImplementation();
+                OpenCLDefinition openclImpl = (OpenCLDefinition) invocation.getMethodImplementation().getDefinition();
                 specificWD = openclImpl.getWorkingDir();
                 break;
             case METHOD:

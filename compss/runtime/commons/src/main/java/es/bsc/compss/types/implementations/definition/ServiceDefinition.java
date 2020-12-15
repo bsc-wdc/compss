@@ -17,53 +17,103 @@
 
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.ServiceImplementation;
-import es.bsc.compss.types.resources.ServiceResourceDescription;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.util.EnvironmentLoader;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 
 /**
  * Class containing all the necessary information to generate a service implementation of a CE.
  */
-public class ServiceDefinition extends ImplementationDefinition<ServiceResourceDescription> {
-
-    private final String namespace;
-    private final String serviceName;
-    private final String operation;
-    private final String port;
-
+public class ServiceDefinition implements ImplementationDefinition {
 
     /**
-     * Creates a new ImplementationDefinition to create a service core element implementation.
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static final int NUM_PARAMS = 4;
+
+    private String namespace;
+    private String serviceName;
+    private String operation;
+    private String port;
+
+
+    public ServiceDefinition() {
+        // For serialization
+    }
+
+    /**
+     * Creates a new ServiceDefinition to create a service core element implementation.
      * 
-     * @param signature Service operation signature.
      * @param namespace Service namespace.
      * @param serviceName Service name.
      * @param port Service port.
      * @param operation Service operation.
      */
-    public ServiceDefinition(String signature, String namespace, String serviceName, String operation, String port) {
-        super(signature, null);
+    public ServiceDefinition(String namespace, String serviceName, String operation, String port) {
         this.namespace = namespace;
         this.serviceName = serviceName;
         this.operation = operation;
         this.port = port;
     }
 
-    @Override
-    public Implementation getImpl(int coreId, int implId) {
-        return new ServiceImplementation(coreId, namespace, serviceName, port, operation, this.getSignature());
+    /**
+     * Creates a new Definition from string array.
+     * 
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     */
+    public ServiceDefinition(String[] implTypeArgs, int offset) {
+        this.namespace = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+        this.serviceName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.operation = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.port = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("SERVICE Implementation \n");
-        sb.append("\t Signature: ").append(this.getSignature()).append("\n");
+        sb.append("SERVICE Definition \n");
         sb.append("\t Namespace: ").append(namespace).append("\n");
         sb.append("\t Service name: ").append(serviceName).append("\n");
         sb.append("\t Operation: ").append(operation).append("\n");
         sb.append("\t Port: ").append(port).append("\n");
         return sb.toString();
     }
+
+    public TaskType getTaskType() {
+        return TaskType.SERVICE;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.namespace = (String) in.readObject();
+        this.serviceName = (String) in.readObject();
+        this.operation = (String) in.readObject();
+        this.port = (String) in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(this.namespace);
+        out.writeObject(this.serviceName);
+        out.writeObject(this.operation);
+        out.writeObject(this.port);
+    }
+
+    @Override
+    public String toShortFormat() {
+        return " Service in namespace " + this.namespace + " with name " + this.serviceName + " on port " + this.port
+            + "and operation " + this.operation;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
 }

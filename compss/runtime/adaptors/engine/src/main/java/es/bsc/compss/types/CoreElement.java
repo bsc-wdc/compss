@@ -17,7 +17,8 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.ImplementationDescription;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class CoreElement {
      * @param implDef Implementation to relate to the CoreElement
      * @return {@literal true} if the implementation has been registered; false, otherwise.
      */
-    public boolean addImplementation(ImplementationDefinition<?> implDef) {
+    public boolean addImplementation(ImplementationDescription<?, ?> implDef) {
         boolean alreadyExisting = false;
         String implSignature = implDef.getSignature();
 

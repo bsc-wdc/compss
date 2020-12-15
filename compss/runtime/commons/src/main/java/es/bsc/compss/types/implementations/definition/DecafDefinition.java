@@ -14,69 +14,230 @@
  *  limitations under the License.
  *
  */
-
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.util.EnvironmentLoader;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.List;
 
 
-/**
- * Class containing all the necessary information to generate a Decaf implementation of a CE.
- */
-public class DecafDefinition extends ImplementationDefinition<MethodResourceDescription> {
+public class DecafDefinition implements AbstractMethodImplementationDefinition {
 
-    private final String dfScript;
-    private final String dfExecutor;
-    private final String dfLib;
-    private final String workingDir;
-    private final String mpiRunner;
-    private final boolean failByEV;
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static final int NUM_PARAMS = 6;
+    public static final String SIGNATURE = "decaf.DECAF";
+
+    public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
+        + "system" + File.separator + "decaf" + File.separator + "run_decaf.sh";
+
+    private String mpiRunner;
+    private String dfScript;
+    private String dfExecutor;
+    private String dfLib;
+    private String workingDir;
+    private boolean failByEV;
 
 
     /**
-     * Creates a new ImplementationDefinition to create a Decaf core element implementation.
+     * Creates a new DecafImplementation instance for serialization.
+     */
+    public DecafDefinition() {
+        // For externalizable
+    }
+
+    /**
+     * Creates a new DecafImplementation instance from the given parameters.
      * 
-     * @param signature Decaf operation signature.
      * @param dfScript Path to df script.
      * @param dfExecutor Path to df executor.
      * @param dfLib Path to df library.
      * @param workingDir Working directory.
      * @param mpiRunner Path to MPI binary command.
      * @param failByEV Flag to enable failure with EV.
-     * @param implConstraints Decaf operation requirements.
      */
-    public DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir,
-        String mpiRunner, boolean failByEV, MethodResourceDescription implConstraints) {
-        super(signature, implConstraints);
+    public DecafDefinition(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
+        boolean failByEV) {
+        this.mpiRunner = mpiRunner;
+        this.workingDir = workingDir;
         this.dfScript = dfScript;
         this.dfExecutor = dfExecutor;
         this.dfLib = dfLib;
-        this.workingDir = workingDir;
-        this.mpiRunner = mpiRunner;
         this.failByEV = failByEV;
     }
 
+    /**
+     * Creates a new Definition from string array.
+     * 
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     */
+    public DecafDefinition(String[] implTypeArgs, int offset) {
+        this.dfScript = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+        this.dfExecutor = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.dfLib = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
+        this.mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 5]);
+        if (mpiRunner == null || mpiRunner.isEmpty()) {
+            throw new IllegalArgumentException("Empty mpiRunner annotation for DECAF method ");
+        }
+        if (dfScript == null || dfScript.isEmpty()) {
+            throw new IllegalArgumentException("Empty dfScript annotation for DECAF method ");
+        }
+    }
+
     @Override
-    public Implementation getImpl(int coreId, int implId) {
-        return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, failByEV, coreId, implId,
-            this.getSignature(), this.getConstraints());
+    public void appendToArgs(List<String> lArgs, String auxParam) {
+        String script = this.dfScript;
+        if (!script.startsWith(File.separator)) {
+            script = auxParam + File.separator + script;
+        }
+        lArgs.add(script);
+
+        String executor = this.dfExecutor;
+        if (executor == null || executor.isEmpty() || executor.equals(Constants.UNASSIGNED)) {
+            executor = "executor.sh";
+        }
+        if (!executor.startsWith(File.separator) && !executor.startsWith("./")) {
+            executor = "./" + executor;
+        }
+        lArgs.add(executor);
+
+        String lib = this.dfLib;
+        if (lib == null || lib.isEmpty()) {
+            lib = Constants.UNASSIGNED;
+        }
+        lArgs.add(lib);
+        lArgs.add(this.workingDir);
+        lArgs.add(this.mpiRunner);
+        lArgs.add(Boolean.toString(this.failByEV));
+
+    }
+
+    /**
+     * Returns the df script.
+     * 
+     * @return The df script.
+     */
+    public String getDfScript() {
+        return this.dfScript;
+    }
+
+    /**
+     * Returns the df executor.
+     * 
+     * @return The df executor.
+     */
+    public String getDfExecutor() {
+        return this.dfExecutor;
+    }
+
+    /**
+     * Returns the df library.
+     * 
+     * @return The df library.
+     */
+    public String getDfLib() {
+        return this.dfLib;
+    }
+
+    /**
+     * Returns the working directory.
+     * 
+     * @return The working directory.
+     */
+    public String getWorkingDir() {
+        return this.workingDir;
+    }
+
+    /**
+     * Returns the path to the MPI binary command.
+     * 
+     * @return The path to the MPI binary command.
+     */
+    public String getMpiRunner() {
+        return this.mpiRunner;
+    }
+
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
+    @Override
+    public MethodType getMethodType() {
+        return MethodType.DECAF;
+    }
+
+    @Override
+    public String toMethodDefinitionFormat() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[MPI RUNNER=").append(this.mpiRunner);
+        sb.append(", DF_SCRIPT=").append(this.dfScript);
+        sb.append(", DF_EXECUTOR=").append(this.dfExecutor);
+        sb.append(", DF_LIBRARY=").append(this.dfLib);
+        sb.append("]");
+
+        return sb.toString();
+    }
+
+    @Override
+    public String toShortFormat() {
+        return super.toString() + " Decaf Method with script " + this.dfScript + ", executor " + this.dfScript
+            + ", library " + this.dfLib + " and MPIrunner " + this.mpiRunner;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("DECAF Implementation \n");
-        sb.append("\t Signature: ").append(this.getSignature()).append("\n");
-        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Decaf script: ").append(dfScript).append("\n");
         sb.append("\t Decaf executor: ").append(dfExecutor).append("\n");
         sb.append("\t Decaf lib: ").append(dfLib).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
-        sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.mpiRunner = (String) in.readObject();
+        this.dfScript = (String) in.readObject();
+        this.dfExecutor = (String) in.readObject();
+        this.dfLib = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
+        this.failByEV = in.readBoolean();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(this.mpiRunner);
+        out.writeObject(this.dfScript);
+        out.writeObject(this.dfExecutor);
+        out.writeObject(this.dfLib);
+        out.writeObject(this.workingDir);
+        out.writeBoolean(this.failByEV);
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.METHOD;
+    }
+
 }

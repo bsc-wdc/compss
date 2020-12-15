@@ -27,11 +27,11 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
-import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
+import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -115,17 +115,19 @@ public abstract class ExternalInvoker extends Invoker {
         String methodName;
         switch (methodType) {
             case METHOD:
-                MethodImplementation methodImpl = (MethodImplementation) invocation.getMethodImplementation();
+                MethodDefinition methodImpl = (MethodDefinition) invocation.getMethodImplementation().getDefinition();
                 methodClass = methodImpl.getDeclaringClass();
                 methodName = methodImpl.getAlternativeMethodName();
                 break;
             case PYTHON_MPI:
-                PythonMPIImplementation pythonMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
+                PythonMPIDefinition pythonMPIImpl =
+                    (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
                 methodClass = pythonMPIImpl.getDeclaringClass();
                 methodName = pythonMPIImpl.getAlternativeMethodName();
                 break;
             case MULTI_NODE:
-                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) invocation.getMethodImplementation();
+                MultiNodeDefinition multiNodeImpl =
+                    (MultiNodeDefinition) invocation.getMethodImplementation().getDefinition();
                 methodClass = multiNodeImpl.getDeclaringClass();
                 methodName = multiNodeImpl.getMethodName();
                 break;

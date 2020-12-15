@@ -45,17 +45,17 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
-import es.bsc.compss.types.implementations.BinaryImplementation;
-import es.bsc.compss.types.implementations.COMPSsImplementation;
-import es.bsc.compss.types.implementations.ContainerImplementation;
-import es.bsc.compss.types.implementations.ContainerImplementation.ContainerExecutionType;
-import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.types.implementations.MPIImplementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.BinaryDefinition;
+import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
+import es.bsc.compss.types.implementations.definition.ContainerDefinition;
+import es.bsc.compss.types.implementations.definition.ContainerDefinition.ContainerExecutionType;
+import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
+import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
@@ -481,9 +481,9 @@ public class ITFParser {
             }
 
             // Register method implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(), methodSignature,
+                implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(), methodSignature,
                     implConstraints, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -511,9 +511,9 @@ public class ITFParser {
             String serviceSignature = calleeMethodSignature.toString();
 
             // Register service implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(TaskType.SERVICE.toString(), serviceSignature,
+                implDef = ImplementationDescription.defineImplementation(TaskType.SERVICE.toString(), serviceSignature,
                     null, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(), serviceAnnot.port());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -563,7 +563,7 @@ public class ITFParser {
             }
 
             // Load signature
-            String containerSignature = calleeMethodSignature.toString() + ContainerImplementation.SIGNATURE;
+            String containerSignature = calleeMethodSignature.toString() + ContainerDefinition.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -573,9 +573,9 @@ public class ITFParser {
             }
 
             // Register container implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.CONTAINER.toString(),
+                implDef = ImplementationDescription.defineImplementation(MethodType.CONTAINER.toString(),
                     containerSignature, implConstraints, engine, image, internalExecutionTypeStr, internalBinary,
                     internalFunc, hostDir, containerFailByExitValue);
             } catch (Exception e) {
@@ -597,7 +597,7 @@ public class ITFParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            String binarySignature = calleeMethodSignature.toString() + BinaryImplementation.SIGNATURE;
+            String binarySignature = calleeMethodSignature.toString() + BinaryDefinition.SIGNATURE;
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
             if (binaryAnnot.constraints() != null) {
@@ -606,9 +606,9 @@ public class ITFParser {
             }
 
             // Register binary implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
+                implDef = ImplementationDescription.defineImplementation(MethodType.BINARY.toString(), binarySignature,
                     implConstraints, binary, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage(), e);
@@ -642,7 +642,7 @@ public class ITFParser {
                 LOGGER.debug("mpiRunner: " + mpiRunner);
             }
 
-            String mpiSignature = calleeMethodSignature.toString() + MPIImplementation.SIGNATURE;
+            String mpiSignature = calleeMethodSignature.toString() + MPIDefinition.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -652,9 +652,9 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature,
+                implDef = ImplementationDescription.defineImplementation(MethodType.MPI.toString(), mpiSignature,
                     implConstraints, binary, workingDir, mpiRunner, mpiFlags, scaleByCUStr, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -689,7 +689,7 @@ public class ITFParser {
                 LOGGER.debug("mpiRunner: " + mpiRunner);
             }
 
-            String decafSignature = calleeMethodSignature.toString() + DecafImplementation.SIGNATURE;
+            String decafSignature = calleeMethodSignature.toString() + DecafDefinition.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -699,9 +699,9 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.DECAF.toString(), decafSignature,
+                implDef = ImplementationDescription.defineImplementation(MethodType.DECAF.toString(), decafSignature,
                     implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -733,7 +733,7 @@ public class ITFParser {
                 LOGGER.debug("appName: " + appName);
             }
 
-            String compssSignature = calleeMethodSignature.toString() + COMPSsImplementation.SIGNATURE;
+            String compssSignature = calleeMethodSignature.toString() + COMPSsDefinition.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -743,9 +743,9 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
+                implDef = ImplementationDescription.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
                     implConstraints, runcompss, flags, appName, workerInMaster, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -783,9 +783,9 @@ public class ITFParser {
             }
 
             // Register method implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.MULTI_NODE.toString(),
+                implDef = ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(),
                     methodSignature, implConstraints, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -806,7 +806,7 @@ public class ITFParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            String ompssSignature = calleeMethodSignature.toString() + OmpSsImplementation.SIGNATURE;
+            String ompssSignature = calleeMethodSignature.toString() + OmpSsDefinition.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -816,9 +816,9 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
+                implDef = ImplementationDescription.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
                     implConstraints, binary, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -838,7 +838,7 @@ public class ITFParser {
                 ErrorManager.error("Empty kernel annotation for method " + m.getName());
             }
 
-            String openclSignature = calleeMethodSignature.toString() + OpenCLImplementation.SIGNATURE;
+            String openclSignature = calleeMethodSignature.toString() + OpenCLDefinition.SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -848,9 +848,9 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition<?> implDef = null;
+            ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.OPENCL.toString(), openclSignature,
+                implDef = ImplementationDescription.defineImplementation(MethodType.OPENCL.toString(), openclSignature,
                     implConstraints, kernel, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());

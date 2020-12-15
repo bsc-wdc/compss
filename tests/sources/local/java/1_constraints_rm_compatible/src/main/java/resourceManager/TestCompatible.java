@@ -2,9 +2,10 @@ package resourceManager;
 
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
@@ -127,7 +128,7 @@ public class TestCompatible {
         }
 
         if (resource.getType() == ResourceType.WORKER) {
-            MethodImplementation mImpl = (MethodImplementation) impl;
+            AbstractMethodImplementation mImpl = (AbstractMethodImplementation) impl;
             MethodResourceDescription iDescription = mImpl.getRequirements();
             MethodWorker worker = (MethodWorker) resource;
             MethodResourceDescription wDescription = (MethodResourceDescription) worker.getDescription();

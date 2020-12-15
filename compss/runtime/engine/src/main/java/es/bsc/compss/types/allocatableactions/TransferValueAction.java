@@ -34,8 +34,9 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
@@ -61,7 +62,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     // LOGGER
     private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
 
-    private static final Implementation DUMMY_IMPL = new MethodImplementation("", "", null, null, "", null);
+    private static final Implementation DUMMY_IMPL = AbstractMethodImplementation.generateDummy(null);
 
     private final DependencyParameter dataToTransfer;
     private final ResourceScheduler<T> receiver;

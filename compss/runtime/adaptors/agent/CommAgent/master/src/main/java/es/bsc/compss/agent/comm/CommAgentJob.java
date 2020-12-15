@@ -38,8 +38,8 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -68,14 +68,14 @@ class CommAgentJob extends NIOJob {
         // This is a workaround for Python
         switch (absMethodImpl.getMethodType()) {
             case METHOD:
-                MethodImplementation methodImpl = (MethodImplementation) absMethodImpl;
+                MethodDefinition methodImpl = (MethodDefinition) absMethodImpl.getDefinition();
                 String methodName = methodImpl.getAlternativeMethodName();
                 if (methodName == null || methodName.isEmpty()) {
                     methodImpl.setAlternativeMethodName(this.taskParams.getName());
                 }
                 break;
             case MULTI_NODE:
-                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) absMethodImpl;
+                MultiNodeDefinition multiNodeImpl = (MultiNodeDefinition) absMethodImpl.getDefinition();
                 String multiNodeMethodName = multiNodeImpl.getMethodName();
                 if (multiNodeMethodName == null || multiNodeMethodName.isEmpty()) {
                     multiNodeImpl.setMethodName(this.taskParams.getName());

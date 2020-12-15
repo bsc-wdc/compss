@@ -34,9 +34,9 @@ public abstract class Implementation implements Externalizable {
 
     protected Integer coreId;
     protected Integer implementationId;
-    protected String signature;
     protected boolean io;
-    protected WorkerResourceDescription requirements;
+    protected ImplementationDescription<? extends WorkerResourceDescription,
+        ? extends ImplementationDefinition> implDescription;
 
 
     /**
@@ -51,18 +51,15 @@ public abstract class Implementation implements Externalizable {
      *
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param signature Signature of the implementation.
-     * @param requirements Implementation requirements.
+     * @param implDesc Implementation Description
      */
-    public Implementation(Integer coreId, Integer implementationId, String signature,
-        WorkerResourceDescription requirements) {
-
+    public Implementation(Integer coreId, Integer implementationId,
+        ImplementationDescription<? extends WorkerResourceDescription, ? extends ImplementationDefinition> implDesc) {
         this.coreId = coreId;
         this.implementationId = implementationId;
-        this.signature = signature;
-        this.requirements = requirements;
-        if (requirements != null) {
-            this.io = !requirements.usesCPUs();
+        this.implDescription = implDesc;
+        if (implDesc.getConstraints() != null) {
+            this.io = !implDesc.getConstraints().usesCPUs();
         } else {
             this.io = false;
         }
@@ -87,15 +84,6 @@ public abstract class Implementation implements Externalizable {
     }
 
     /**
-     * Returns the signature of the implemention operation.
-     *
-     * @return signature of the implemention operation.
-     */
-    public String getSignature() {
-        return signature;
-    }
-
-    /**
      * Returns whether the implementation is IO or not.
      *
      * @return true if the implementation is IO, false otherwise.
@@ -105,33 +93,20 @@ public abstract class Implementation implements Externalizable {
     }
 
     /**
-     * Returns the implementation requirements.
-     *
-     * @return The implementation requirements.
-     */
-    public WorkerResourceDescription getRequirements() {
-        return this.requirements;
-    }
-
-    /**
-     * Returns the global task type.
-     *
-     * @return The global task type.
-     */
-    public abstract TaskType getTaskType();
-
-    /**
      * Returns an ImplementationDefinition describing the implementation.
      *
      * @return description of the implementation.
      */
-    public abstract ImplementationDefinition<?> getDefinition();
+    public ImplementationDescription<? extends WorkerResourceDescription, ? extends ImplementationDefinition>
+        getDescription() {
+        return implDescription;
+    }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Implementation ").append(this.implementationId);
         sb.append(" for core ").append(this.coreId);
-        sb.append(":");
+        sb.append(":").append(this.implDescription);
         return sb.toString();
     }
 
@@ -139,18 +114,25 @@ public abstract class Implementation implements Externalizable {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.coreId = (Integer) in.readObject();
         this.implementationId = (Integer) in.readObject();
-        this.signature = in.readUTF();
+        this.implDescription = (ImplementationDescription<? extends WorkerResourceDescription,
+            ? extends ImplementationDefinition>) in.readObject();
         this.io = (boolean) in.readObject();
-        this.requirements = (WorkerResourceDescription) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(this.coreId);
         out.writeObject(this.implementationId);
-        out.writeUTF(signature);
+        out.writeObject(this.implDescription);
         out.writeObject(this.io);
-        out.writeObject(this.requirements);
+    }
+
+    public abstract TaskType getTaskType();
+
+    public abstract WorkerResourceDescription getRequirements();
+
+    public String getSignature() {
+        return this.implDescription.getSignature();
     }
 
 }

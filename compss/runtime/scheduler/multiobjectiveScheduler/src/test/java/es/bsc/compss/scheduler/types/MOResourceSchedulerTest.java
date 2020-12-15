@@ -24,8 +24,8 @@ import es.bsc.compss.scheduler.types.fake.FakeWorker;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
@@ -88,18 +88,18 @@ public class MOResourceSchedulerTest {
 
         CoreElementDefinition cedA = new CoreElementDefinition();
         cedA.setCeSignature("methodA");
-        ImplementationDefinition<?> implDef = null;
-        implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassA.methodA",
+        ImplementationDescription<?, ?> implDef = null;
+        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodA",
             new MethodResourceDescription(), "ClassA", "methodA");
         cedA.addImplementation(implDef);
-        implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassB.methodA",
+        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassB.methodA",
             new MethodResourceDescription(), "ClassB", "methodA");
         cedA.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedA);
 
         CoreElementDefinition cedB = new CoreElementDefinition();
         cedB.setCeSignature("methodB");
-        implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassA.methodB",
+        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodB",
             new MethodResourceDescription(), "ClassA", "methodB");
         cedB.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedB);

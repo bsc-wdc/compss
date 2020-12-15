@@ -29,7 +29,9 @@ import es.bsc.compss.invokers.test.utils.FakeInvocationContext;
 import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.RequestQueue;
@@ -71,8 +73,9 @@ public class ExecutorTest {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setLang(Lang.JAVA);
-        invBr = invBr.setImpl(new MethodImplementation(this.getClass().getCanonicalName(), "javaTest", 0, 0, "",
-            new MethodResourceDescription()));
+        invBr = invBr.setImpl(new AbstractMethodImplementation(0, 0,
+            new ImplementationDescription<>(new MethodDefinition(this.getClass().getCanonicalName(), "javaTest"), "",
+                new MethodResourceDescription())));
         Invocation invocation1 = invBr.build();
         Execution exec = new Execution(invocation1, null);
         p.execute(exec);

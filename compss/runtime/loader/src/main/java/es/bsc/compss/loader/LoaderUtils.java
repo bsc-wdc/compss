@@ -40,13 +40,13 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
-import es.bsc.compss.types.implementations.BinaryImplementation;
-import es.bsc.compss.types.implementations.COMPSsImplementation;
-import es.bsc.compss.types.implementations.ContainerImplementation;
-import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.types.implementations.MPIImplementation;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
+import es.bsc.compss.types.implementations.definition.BinaryDefinition;
+import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
+import es.bsc.compss.types.implementations.definition.ContainerDefinition;
+import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
+import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.util.ErrorManager;
 import java.lang.reflect.InvocationTargetException;
 import java.security.SecureRandom;
@@ -64,13 +64,13 @@ public class LoaderUtils {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
 
-    public static final String CONTAINER_SIGNATURE = ContainerImplementation.SIGNATURE;
-    public static final String BINARY_SIGNATURE = BinaryImplementation.SIGNATURE;
-    public static final String MPI_SIGNATURE = MPIImplementation.SIGNATURE;
-    public static final String DECAF_SIGNATURE = DecafImplementation.SIGNATURE;
-    public static final String COMPSS_SIGNATURE = COMPSsImplementation.SIGNATURE;
-    public static final String OMPSS_SIGNATURE = OmpSsImplementation.SIGNATURE;
-    public static final String OPENCL_SIGNATURE = OpenCLImplementation.SIGNATURE;
+    public static final String CONTAINER_SIGNATURE = ContainerDefinition.SIGNATURE;
+    public static final String BINARY_SIGNATURE = BinaryDefinition.SIGNATURE;
+    public static final String MPI_SIGNATURE = MPIDefinition.SIGNATURE;
+    public static final String DECAF_SIGNATURE = DecafDefinition.SIGNATURE;
+    public static final String COMPSS_SIGNATURE = COMPSsDefinition.SIGNATURE;
+    public static final String OMPSS_SIGNATURE = OmpSsDefinition.SIGNATURE;
+    public static final String OPENCL_SIGNATURE = OpenCLDefinition.SIGNATURE;
 
 
     /**

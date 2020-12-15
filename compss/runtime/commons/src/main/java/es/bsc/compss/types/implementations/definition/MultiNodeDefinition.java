@@ -14,53 +14,144 @@
  *  limitations under the License.
  *
  */
-
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.util.EnvironmentLoader;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.List;
 
 
-/**
- * Class containing all the necessary information to generate a multi-node implementation of a CE.
- */
-public class MultiNodeDefinition extends ImplementationDefinition<MethodResourceDescription> {
+public class MultiNodeDefinition implements AbstractMethodImplementationDefinition {
 
-    private final String multiNodeClass;
-    private final String multiNodeName;
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static final int NUM_PARAMS = 2;
+
+    private String declaringClass;
+    private String methodName;
 
 
     /**
-     * Creates a new ImplementationDefinition to create a multinode core element implementation.
-     *
-     * @param signature Method signature.
-     * @param multiNodeClass Class name.
-     * @param multiNodeName Method name.
-     * @param implConstraints Method requirements.
+     * Creates a new MultiNodeImplementation for serialization.
      */
-    public MultiNodeDefinition(String signature, String multiNodeClass, String multiNodeName,
-        MethodResourceDescription implConstraints) {
-        super(signature, implConstraints);
-        this.multiNodeClass = multiNodeClass;
-        this.multiNodeName = multiNodeName;
+    public MultiNodeDefinition() {
+        // For externalizable
+    }
+
+    /**
+     * Creates a new MultiNodeImplementation instance from the given parameters.
+     *
+     * @param methodClass Class name.
+     * @param methodName Method name.
+     */
+    public MultiNodeDefinition(String methodClass, String methodName) {
+
+        this.declaringClass = methodClass;
+        this.methodName = methodName;
+    }
+
+    /**
+     * Creates a new Definition from string array.
+     * 
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     */
+    public MultiNodeDefinition(String[] implTypeArgs, int offset) {
+        declaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+        methodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        if (declaringClass == null || declaringClass.isEmpty()) {
+            throw new IllegalArgumentException("Empty declaringClass annotation for method ");
+        }
+        if (methodName == null || methodName.isEmpty()) {
+            throw new IllegalArgumentException("Empty methodName annotation for method ");
+        }
     }
 
     @Override
-    public Implementation getImpl(int coreId, int implId) {
-        return new MultiNodeImplementation(multiNodeClass, multiNodeName, coreId, implId, this.getSignature(),
-            this.getConstraints());
+    public void appendToArgs(List<String> lArgs, String auxParam) {
+        lArgs.add(this.declaringClass);
+        lArgs.add(this.methodName);
+    }
+
+    /**
+     * Returns the method declaring class.
+     *
+     * @return The method declaring class.
+     */
+    public String getDeclaringClass() {
+        return declaringClass;
+    }
+
+    /**
+     * Returns the method name.
+     *
+     * @return The method name.
+     */
+    public String getMethodName() {
+        return this.methodName;
+    }
+
+    /**
+     * Sets a new method name.
+     *
+     * @param methodName New method name.
+     */
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    @Override
+    public MethodType getMethodType() {
+        return MethodType.MULTI_NODE;
+    }
+
+    @Override
+    public String toMethodDefinitionFormat() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[DECLARING CLASS=").append(this.declaringClass);
+        sb.append(", METHOD NAME=").append(this.methodName);
+        sb.append("]");
+
+        return sb.toString();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("MultiNode Implementation \n");
-        sb.append("\t Signature: ").append(this.getSignature()).append("\n");
-        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
-        sb.append("\t Class: ").append(multiNodeClass).append("\n");
-        sb.append("\t Name: ").append(multiNodeName).append("\n");
-        sb.append("\t Constraints: ").append(this.getConstraints());
+        sb.append("\t Class: ").append(this.declaringClass).append("\n");
+        sb.append("\t Name: ").append(this.methodName).append("\n");
         return sb.toString();
     }
+
+    @Override
+    public String toShortFormat() {
+        return " Multi-Node Method declared in class " + this.declaringClass + "." + methodName;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.declaringClass = (String) in.readObject();
+        this.methodName = (String) in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(this.declaringClass);
+        out.writeObject(this.methodName);
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.METHOD;
+    }
+
 }

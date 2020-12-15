@@ -30,7 +30,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.MPIImplementation;
+import es.bsc.compss.types.implementations.definition.MPIDefinition;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -69,9 +69,9 @@ public class MPIInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        MPIImplementation mpiImpl = null;
+        MPIDefinition mpiImpl = null;
         try {
-            mpiImpl = (MPIImplementation) this.invocation.getMethodImplementation();
+            mpiImpl = (MPIDefinition) this.invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);

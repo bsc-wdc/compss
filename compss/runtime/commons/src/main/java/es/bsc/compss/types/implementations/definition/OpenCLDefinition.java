@@ -14,52 +14,131 @@
  *  limitations under the License.
  *
  */
-
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.util.EnvironmentLoader;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.List;
 
 
-/**
- * Class containing all the necessary information to generate an OpenCL implementation of a CE.
- */
-public class OpenCLDefinition extends ImplementationDefinition<MethodResourceDescription> {
+public class OpenCLDefinition implements AbstractMethodImplementationDefinition {
 
-    private final String kernel;
-    private final String workingDir;
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static final int NUM_PARAMS = 2;
+    public static final String SIGNATURE = "opencl.OPENCL";
+
+    private String kernel;
+    private String workingDir;
 
 
     /**
-     * Creates a new ImplementationDefinition to create an OpenCL core element implementation.
+     * Creates a new OpenCLImplementation for serialization.
+     */
+    public OpenCLDefinition() {
+        // For externalizable
+    }
+
+    /**
+     * Creates a new OpenCLImplementation instance from the given parameters.
      *
-     * @param signature Method signature.
      * @param kernel Path to the OpenCL kernel.
      * @param workingDir Binary working directory.
-     * @param implConstraints Method requirements.
      */
-    public OpenCLDefinition(String signature, String kernel, String workingDir,
-        MethodResourceDescription implConstraints) {
-        super(signature, implConstraints);
+    public OpenCLDefinition(String kernel, String workingDir) {
         this.kernel = kernel;
         this.workingDir = workingDir;
     }
 
+    /**
+     * Creates a new Definition from string array.
+     * 
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     */
+    public OpenCLDefinition(String[] implTypeArgs, int offset) {
+        this.kernel = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        if (this.kernel == null || this.kernel.isEmpty()) {
+            throw new IllegalArgumentException("Empty kernel annotation for OpenCL method ");
+        }
+    }
+
     @Override
-    public Implementation getImpl(int coreId, int implId) {
-        return new OpenCLImplementation(kernel, workingDir, coreId, implId, this.getSignature(), this.getConstraints());
+    public void appendToArgs(List<String> lArgs, String auxParam) {
+        lArgs.add(kernel);
+        lArgs.add(workingDir);
+    }
+
+    /**
+     * Returns the path to the OpenCL kernel.
+     *
+     * @return The path to the OpenCL kernel.
+     */
+    public String getKernel() {
+        return this.kernel;
+    }
+
+    /**
+     * Returns the binary working directory.
+     *
+     * @return The binary working directory.
+     */
+    public String getWorkingDir() {
+        return this.workingDir;
+    }
+
+    @Override
+    public MethodType getMethodType() {
+        return MethodType.OPENCL;
+    }
+
+    @Override
+    public String toMethodDefinitionFormat() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[KERNEL=").append(this.kernel);
+        sb.append("]");
+
+        return sb.toString();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("OpenCL Implementation \n");
-        sb.append("\t Signature: ").append(this.getSignature()).append("\n");
-        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Kernel: ").append(kernel).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
-        sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }
+
+    @Override
+    public String toShortFormat() {
+        return " OpenCL Method with kernel " + this.kernel;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.kernel = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(this.kernel);
+        out.writeObject(this.workingDir);
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.METHOD;
+    }
+
 }

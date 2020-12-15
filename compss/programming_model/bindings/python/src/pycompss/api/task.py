@@ -78,7 +78,7 @@ class Task(PyCOMPSsDecorator):
                  "registered", "signature",
                  "interactive", "module", "function_arguments",
                  "function_name", "module_name", "function_type", "class_name",
-                 "hints"]
+                 "hints", "on_failure", "defaults"]
 
     @staticmethod
     def _get_default_decorator_values():
@@ -97,6 +97,7 @@ class Task(PyCOMPSsDecorator):
             "returns": False,
             "priority": False,
             "on_failure": "RETRY",
+            "defaults": {},
             "time_out": 0,
             "is_replicated": False,
             "is_distributed": False,
@@ -191,6 +192,8 @@ class Task(PyCOMPSsDecorator):
         self.function_type = None
         self.class_name = None
         self.hints = None
+        self.on_failure = None
+        self.defaults = None
 
     def __call__(self, user_function):
         """ This function is called in all explicit function calls.
@@ -234,7 +237,9 @@ class Task(PyCOMPSsDecorator):
                                         self.module_name,
                                         self.function_type,
                                         self.class_name,
-                                        self.hints)
+                                        self.hints,
+                                        self.on_failure,
+                                        self.defaults)
                 result = master.call(*args, **kwargs)
                 fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
                 del master
@@ -245,7 +250,9 @@ class Task(PyCOMPSsDecorator):
                     with event(WORKER_TASK_INSTANTIATION,
                                master=False, inside=True):
                         worker = TaskWorker(self.decorator_arguments,
-                                            self.user_function)
+                                            self.user_function,
+                                            self.on_failure,
+                                            self.defaults)
                     result = worker.call(*args, **kwargs)
                     del worker
                     return result
@@ -267,7 +274,9 @@ class Task(PyCOMPSsDecorator):
                                                 self.module_name,
                                                 self.function_type,
                                                 self.class_name,
-                                                self.hints)
+                                                self.hints,
+                                                self.on_failure,
+                                                self.defaults)
                             result = master.call(*args, **kwargs)
                             fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
                         del master

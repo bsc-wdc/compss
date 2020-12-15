@@ -155,6 +155,7 @@ MANDATORY_ARGUMENTS = {}
 SUPPORTED_ARGUMENTS = ["returns",
                        "priority",
                        "on_failure",
+                       "defaults",
                        "time_out",
                        "is_replicated",
                        "is_distributed",
@@ -205,7 +206,8 @@ class TaskMaster(TaskCommons):
                  "returns", "multi_return",
                  "core_element", "registered", "signature",
                  "chunk_size", "is_reduce",
-                 "interactive", "module", "function_arguments", "hints"]
+                 "interactive", "module", "function_arguments", "hints",
+                 "on_failure", "defaults"]
 
     def __init__(self,
                  decorator_arguments,
@@ -220,11 +222,14 @@ class TaskMaster(TaskCommons):
                  module_name,
                  function_type,
                  class_name,
-                 hints
-                 ):
+                 hints,
+                 on_failure,
+                 defaults):
         # Initialize TaskCommons
         super(TaskMaster, self).__init__(decorator_arguments,
-                                         user_function)
+                                         user_function,
+                                         on_failure,
+                                         defaults)
         # Add more argument related attributes that will be useful later
         self.param_defaults = None
         # Add function related attributed that will be useful later
@@ -348,7 +353,7 @@ class TaskMaster(TaskCommons):
             # Get other arguments if exist
             if not self.hints:
                 self.hints = self.check_task_hints()
-            is_replicated, is_distributed, on_failure, time_out, has_priority, has_target = self.hints  # noqa: E501
+            is_replicated, is_distributed, time_out, has_priority, has_target = self.hints  # noqa: E501
 
         # Deal with the return part.
         with event(PROCESS_RETURN, master=True):
@@ -404,7 +409,7 @@ class TaskMaster(TaskCommons):
             chunk_size,
             is_replicated,
             is_distributed,
-            on_failure,
+            self.on_failure,
             time_out
         )
 
@@ -561,6 +566,8 @@ class TaskMaster(TaskCommons):
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
         self.computing_nodes = kwargs.pop("computing_nodes", 1)
+        self.on_failure = kwargs.pop("on_failure", "RETRY")
+        self.defaults = kwargs.pop("defaults", {})
         # We take the reduce and chunk size set for the reduce decorator,
         # otherwise we set them to 0.
         self.is_reduce = kwargs.pop("is_reduce", False)
@@ -1100,12 +1107,6 @@ class TaskMaster(TaskCommons):
                 "Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
         else:
             is_distributed = deco_arg_getter("is_distributed")
-        # Get on failure
-        if "onFailure" in self.decorator_arguments:
-            on_failure = deco_arg_getter("onFailure")
-            logger.warning("Detected deprecated onFailure. Please, change it to on_failure")  # noqa: E501
-        else:
-            on_failure = deco_arg_getter("on_failure")
         # Get time out
         if "timeOut" in self.decorator_arguments:
             time_out = deco_arg_getter("timeOut")
@@ -1117,7 +1118,7 @@ class TaskMaster(TaskCommons):
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
 
-        return is_replicated, is_distributed, on_failure, time_out, has_priority, has_target  # noqa: E501
+        return is_replicated, is_distributed, time_out, has_priority, has_target  # noqa: E501
 
     def add_return_parameters(self):
         # type: () -> int

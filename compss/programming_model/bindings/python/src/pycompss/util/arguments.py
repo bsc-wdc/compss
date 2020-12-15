@@ -48,9 +48,9 @@ def check_arguments(mandatory_arguments, deprecated_arguments,
     """
     decorator_str = decorator + " decorator"
     # Look for mandatory arguments
-    __check_mandatory_arguments(mandatory_arguments,
-                                argument_names,
-                                decorator_str)
+    check_mandatory_arguments(mandatory_arguments,
+                              argument_names,
+                              decorator_str)
     # Look for deprecated arguments
     __check_deprecated_arguments(deprecated_arguments,
                                  argument_names,
@@ -61,7 +61,7 @@ def check_arguments(mandatory_arguments, deprecated_arguments,
                                  decorator_str)
 
 
-def __check_mandatory_arguments(mandatory_arguments, arguments, where):
+def check_mandatory_arguments(mandatory_arguments, arguments, where):
     """
     This method checks that all mandatory arguments are in arguments.
 

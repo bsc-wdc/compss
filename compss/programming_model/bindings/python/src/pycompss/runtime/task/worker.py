@@ -19,6 +19,7 @@
 
 import os
 import sys
+import shutil
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
@@ -57,10 +58,14 @@ class TaskWorker(TaskCommons):
 
     def __init__(self,
                  decorator_arguments,
-                 user_function):
+                 user_function,
+                 on_failure,
+                 defaults):
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments,
-                                             user_function)
+                                             user_function,
+                                             on_failure,
+                                             defaults)
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (list, list, list)
@@ -79,6 +84,10 @@ class TaskWorker(TaskCommons):
         logger = kwargs['logger']  # noqa
         if __debug__:
             logger.debug("Starting @task decorator worker call")
+
+        # Update the on_failure attribute (could be defined by @on_failure)
+        self.on_failure = kwargs.pop("on_failure", "RETRY")
+        self.defaults = kwargs.pop("defaults", {})
 
         if __debug__:
             logger.debug("Revealing objects")
@@ -148,13 +157,17 @@ class TaskWorker(TaskCommons):
             result = self.execute_user_code(user_args,
                                             user_kwargs,
                                             kwargs['compss_tracing'])
-            user_returns, compss_exception = result
+            user_returns, compss_exception, default_values = result
             if __debug__:
                 logger.debug("Finished user code")
 
         python_mpi = False
         if kwargs["compss_python_MPI"]:
             python_mpi = True
+
+        # Deal with defaults if any
+        if default_values:
+            self.manage_defaults(args, default_values)
 
         # Deal with INOUTs and COL_OUTs
         self.manage_inouts(args, python_mpi)
@@ -583,6 +596,7 @@ class TaskWorker(TaskCommons):
 
         user_returns = None
         compss_exception = None
+        default_values = None
         if self.decorator_arguments['numba']:
             # Import all supported functionalities
             from numba import jit
@@ -644,6 +658,8 @@ class TaskWorker(TaskCommons):
                 # Normal task execution
                 user_returns = self.user_function(*user_args, **user_kwargs)
             except COMPSsException as ce:
+                # Perform any required action on failure
+                user_returns, default_values = self.manage_exception()
                 compss_exception = ce
                 # Check old targetDirection
                 if 'targetDirection' in self.decorator_arguments:
@@ -651,12 +667,59 @@ class TaskWorker(TaskCommons):
                 else:
                     target_label = 'target_direction'
                 compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
+            except Exception as exc:  # noqa
+                if self.on_failure == "IGNORE":
+                    # Perform any required action on failure
+                    user_returns, default_values = self.manage_exception()
+                else:
+                    # Re-raise the exception
+                    raise exc
 
         # Reestablish the hook if it was disabled
         if restore_hook:
             sys.setprofile(pro_f)
 
-        return user_returns, compss_exception
+        return user_returns, compss_exception, default_values
+
+    def manage_exception(self):
+        # type () -> (tuple, dict)
+        """ Deal with exceptions (on failure action).
+
+        :return: The default return and values.
+        """
+        user_returns = None
+        default_values = None
+        if self.on_failure == "IGNORE":
+            # Provide default return
+            user_returns = self.defaults.pop("returns", None)
+            # Provide defaults to the runtime
+            default_values = self.defaults
+        return user_returns, default_values
+
+    def manage_defaults(self, args, default_values):
+        # type: (tuple, dict) -> None
+        """ Deal with default values. Updates args with the appropriate object
+        or file.
+
+        :param args: Argument list.
+        :param default_values: Dictionary containing the default values.
+        :return: None
+        """
+        if __debug__:
+            logger.debug("Dealing with default values")
+        for arg in args:
+            # Skip non-task-parameters
+            if not isinstance(arg, Parameter):
+                continue
+            # Skip returns
+            if is_return(arg.name):
+                continue
+            if self.is_parameter_an_object(arg.name):
+                # Update object
+                arg.content = default_values[arg.name]
+            else:
+                # Update file
+                shutil.copyfile(default_values[arg.name], arg.content)
 
     def manage_inouts(self, args, python_mpi):
         # type: (tuple, bool) -> None

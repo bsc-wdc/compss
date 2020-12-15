@@ -32,15 +32,20 @@ class TaskCommons(object):
     """
 
     __slots__ = ['user_function', 'decorator_arguments',
-                 'param_args', 'param_varargs']
+                 'param_args', 'param_varargs',
+                 'on_failure', 'defaults']
 
     def __init__(self,
                  decorator_arguments,
-                 user_function):
+                 user_function,
+                 on_failure,
+                 defaults):
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
         self.param_args = []
         self.param_varargs = None
+        self.on_failure = on_failure
+        self.defaults = defaults
 
     def get_varargs_direction(self):
         # type: () -> ... # Parameter

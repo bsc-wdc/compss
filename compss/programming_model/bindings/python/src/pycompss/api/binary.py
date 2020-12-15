@@ -35,7 +35,6 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'binary'}

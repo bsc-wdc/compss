@@ -112,25 +112,21 @@ def compss_persistent_worker(config):
 
     # Create new threads
     queues = []
+
+    conf = ExecutorConf(TRACING,
+                        config.storage_conf,
+                        logger,
+                        storage_loggers,
+                        config.stream_backend,
+                        config.stream_master_name,
+                        config.stream_master_port)
+
     for i in range(0, config.tasks_x_node):
         if __debug__:
             logger.debug(HEADER + "Launching process " + str(i))
         process_name = "".join(("Process-", str(i)))
-        queue = Queue()
+        pid, queue = create_executor_process(process_name, conf, config.pipes[i])
         queues.append(queue)
-        conf = ExecutorConf(TRACING,
-                            config.storage_conf,
-                            logger,
-                            storage_loggers,
-                            config.stream_backend,
-                            config.stream_master_name,
-                            config.stream_master_port)
-        process = Process(target=executor, args=(queue,
-                                                 process_name,
-                                                 config.pipes[i],
-                                                 conf))
-        PROCESSES[config.pipes[i].input_pipe] = process
-        process.start()
 
     # Read command from control pipe
     alive = True
@@ -147,7 +143,8 @@ def compss_persistent_worker(config):
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pipe = Pipe(in_pipe, out_pipe)
-                pid = create_threads(process_name, pipe)
+                pid, queue = create_executor_process(process_name, conf, pipe)
+                queues.append(queue)
                 control_pipe.write(" ".join((ADDED_EXECUTOR_TAG,
                                              out_pipe,
                                              in_pipe,
@@ -221,16 +218,23 @@ def compss_persistent_worker(config):
     control_pipe.close()
 
 
-def create_threads(process_name, pipe):
-    # type: (str, ...) -> int
+def create_executor_process(process_name, conf, pipe):
+    # type: (str, dict, ...) -> (int, queue)
     """ Starts a new executor.
-    TODO: Not implemented yet.
 
     :param process_name: Process name.
+    :param conf: executor config.
     :param pipe: Communication pipes (in, out).
-    :return: Process identifier.
+    :return: Process identifier and queue used by the process
     """
-    raise NotImplementedException("ADD NEW EXECUTOR")
+    queue = Queue()
+    process = Process(target=executor, args=(queue,
+                                             process_name,
+                                             pipe,
+                                             conf))
+    PROCESSES[pipe.input_pipe] = process
+    process.start()
+    return process.pid, queue
 
 
 ############################

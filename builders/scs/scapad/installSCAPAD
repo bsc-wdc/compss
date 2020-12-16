@@ -1,0 +1,93 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: installSCAPAD
+  # Description: SCRIPT FOR INSTALLING THE SC PACKAGE INTO THE S-CAPAD CLUSTER
+  # Parameters: <FullTargetPath> Base Target Installation folder on S-CAPAD
+  #
+  # Installation steps:
+  # -------------------
+  # 1.- Requires to stablish the connection with the firewall:
+  #     http://webpublix.ipgp.fr/rech/scp/Acces.php
+  #     NOTE: Use Oracle javaws to make the jnlp file work.
+  # 2.- Generate the SC package to be installed:
+  #     Go to specs/sc
+  # 3.- Transfer the generated tar.gz to the S-CAPAD cluster:
+  #     scp -P 11270 package.tar.gz user@localhost
+  # 4.- Log in S-CAPAD and decompress the package:
+  #     ssh user@localhost -p 11270
+  #     tar zxvf package.tar.gz
+  # 5.- Copy this script into the decompressed folder
+  # 6.- Run this script
+  #
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: installSCAPAD <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 1 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  targetDir=$1
+
+  # Install runtime and bindings (only with python 2)
+  module purge
+  module load gcc/6.3.0 slurm/17.02.10 tcltk/gcc/8.5.9 intel/mkl/64/11.0/2015.1.133 intel/compiler/64/15.0/1.133 python/intel/2.7.12
+
+  ./install --no-tracing --no-autoparallel --only-python-2 ${targetDir} scapad.cfg
+
+  # Install binding for python 3 (and other python 3 modules)
+  module purge
+  module load gcc/6.3.0 slurm/17.02.10
+  cd Bindings/python
+  module load intel/compiler/64/2017/17.0.2 python3/intel/3.6.2
+  ./install "${targetDir}"/Bindings/python false true python3
+  module unload python3/intel/3.6.2 intel/compiler/64/2017/17.0.2
+  module load python-intel-19.5/3.6-with-tensorflow
+  ./install "${targetDir}"/Bindings/python false true python3
+  module unload python-intel-19.5/3.6-with-tensorflow
+  cd ../..
+
+  ## Install Extrae  -- issue with missing papi
+  module purge
+  module load gcc/6.3.0 slurm/17.02.10
+  cd Dependencies
+  #module load papi # DOES NOT EXIST
+  # Uncomment the papi check into the install_extrae.sh script  since there is not papi.h installed.
+  ./install_extrae.sh $(pwd)/extrae "${targetDir}"/Dependencies/extrae false
+  module load openmpi-2.1.1/gcc-6.3.0
+  ./install_extrae.sh $(pwd)/extrae "${targetDir}"/Dependencies/extrae-openmpi true
+  module unload openmpi-2.1.1/gcc-6.3.0
+  module load intel/mpi/64/2017/2.174
+  ./install_extrae.sh $(pwd)/extrae "${targetDir}"/Dependencies/extrae-impi true
+  module unload intel/mpi/64/2017/2.174
+  cd ..
+
+  # Install Pluto (for autoparallel) -- issue with libimf.so
+  #module purge
+  #module load gcc/6.3.0 slurm/17.02.10
+  #cd Dependencies/pluto
+  #module load gmp/intel/5.1.2
+  #./install_pluto "${targetDir}"/pluto
+  #module unload gmp/intel/5.1.2
+  #cd ../..
+  #

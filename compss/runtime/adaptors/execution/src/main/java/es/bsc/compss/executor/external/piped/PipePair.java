@@ -274,7 +274,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             case REPLY_EXECUTOR_ID:
                 readCommand = new ExecutorPIDReplyPipeCommand(command);
                 break;
-
+            case ADD_EXECUTOR_FAILED:
+                readCommand = new AddedExecutorPipeCommand(command);
+                break;
             case ADDED_EXECUTOR:
                 readCommand = new AddedExecutorPipeCommand(command);
                 break;

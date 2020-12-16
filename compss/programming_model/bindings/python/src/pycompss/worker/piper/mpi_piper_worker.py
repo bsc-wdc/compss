@@ -40,6 +40,8 @@ from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
 from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
+from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_FAILED_TAG
 from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
 from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
 from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
@@ -158,7 +160,15 @@ def compss_persistent_worker(config):
         command = control_pipe.read_command()
         if command != "":
             line = command.split()
-            if line[0] == REMOVE_EXECUTOR_TAG:
+            if line[0] == ADD_EXECUTOR_TAG:
+                in_pipe = line[1]
+                out_pipe = line[2]
+                control_pipe.write(" ".join((ADD_EXECUTOR_FAILED_TAG,
+                                             out_pipe,
+                                             in_pipe,
+                                             str(0))))
+
+            elif line[0] == REMOVE_EXECUTOR_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 PROCESSES.pop(in_pipe, None)

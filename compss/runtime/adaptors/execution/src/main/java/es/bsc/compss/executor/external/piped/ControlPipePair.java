@@ -48,6 +48,7 @@ public class ControlPipePair {
      * 
      * @param basePipePath Pipe path
      * @param id Pipe identifier
+     * @param mirror piped mirror to whom the controlPipe belongs
      */
     public ControlPipePair(String basePipePath, String id, PipedMirror mirror) {
         this.pipe = new PipePair(basePipePath, id, mirror);
@@ -55,6 +56,12 @@ public class ControlPipePair {
         this.unusedCommands = new LinkedList<>();
     }
 
+    /**
+     * Sends a command through the control pipe.
+     * 
+     * @param command command to send
+     * @return {@literal true} if command was successfully submitted
+     */
     public boolean sendCommand(PipeCommand command) {
         return this.pipe.sendCommand(command);
     }

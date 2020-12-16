@@ -25,6 +25,7 @@ import es.bsc.compss.executor.external.piped.PipePair;
  */
 public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand implements PipeCommand {
 
+    private boolean success;
     private final String inPipe;
     private final String outPipe;
     private int pid;
@@ -36,19 +37,26 @@ public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand imple
      * @param line String array with the in/out pipe names and the process identifier
      */
     public AddedExecutorPipeCommand(String[] line) {
+        success = (line[0].compareTo(CommandType.ADDED_EXECUTOR.toString()) == 0);
         inPipe = line[1];
         outPipe = line[2];
         pid = Integer.parseInt(line[3]);
     }
 
+    /**
+     * Executor added notification constructor.
+     * 
+     * @param pp PipePair expected to use the added executor
+     */
     public AddedExecutorPipeCommand(PipePair pp) {
+        success = false;
         inPipe = pp.getInboundPipe();
         outPipe = pp.getOutboundPipe();
     }
 
     @Override
     public String getAsString() {
-        return super.getAsString() + " " + inPipe + " " + outPipe;
+        return super.getAsString() + " " + inPipe + " " + outPipe + (success ? " PID " + pid : " FAILED");
     }
 
     @Override
@@ -65,10 +73,16 @@ public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand imple
 
     @Override
     public void join(PipeCommand receivedCommand) {
+        success = ((AddedExecutorPipeCommand) receivedCommand).success;
         pid = ((AddedExecutorPipeCommand) receivedCommand).pid;
     }
 
     public int getPid() {
         return pid;
     }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
 }

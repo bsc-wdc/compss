@@ -32,6 +32,7 @@ public interface ExternalCommand {
 
         // REQUIRED BY THE WORKER
         ADD_EXECUTOR, // Add new executor
+        ADD_EXECUTOR_FAILED, // New executor was not properly added
         ADDED_EXECUTOR, // Added new executor
         QUERY_EXECUTOR_ID, // Query the pid of the process hosting the
         REPLY_EXECUTOR_ID, // Response to the executor pid query

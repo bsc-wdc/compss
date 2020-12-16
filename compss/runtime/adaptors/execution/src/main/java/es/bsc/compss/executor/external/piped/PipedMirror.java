@@ -408,8 +408,12 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 try {
                     AddedExecutorPipeCommand reply = new AddedExecutorPipeCommand(pp);
                     this.pipeWorkerPipe.waitForCommand(reply);
-                    executorPID = reply.getPid();
-
+                    if (reply.isSuccess()) {
+                        executorPID = reply.getPid();
+                    } else {
+                        throw new UnsupportedOperationException(
+                            "Not yet implemented. Specific exception should be raised");
+                    }
                 } catch (ClosedPipeException ie) {
                     throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
                 }

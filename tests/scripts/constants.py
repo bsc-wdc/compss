@@ -51,6 +51,7 @@ TESTS_DIR = os.path.join(SCRIPT_DIR, "../sources/local")
 TESTS_SC_DIR = os.path.join(SCRIPT_DIR, "../sources/sc")
 REMOTE_SCRIPTS_REL_PATH = "remote_sc/"
 CONFIGURATIONS_DIR = os.path.join(SCRIPT_DIR, "../configurations")
+PYCOMPSS_SRC_DIR = os.path.join(SCRIPT_DIR, "../../compss/programming_model/bindings/python/src")
 RUNCOMPSS_REL_PATH = "Runtime/scripts/user/runcompss"
 ENQUEUE_COMPSS_REL_PATH = "Runtime/scripts/user/enqueue_compss"
 CLEAN_PROCS_REL_PATH = "Runtime/scripts/utils/compss_clean_procs"

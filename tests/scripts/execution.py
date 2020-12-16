@@ -18,6 +18,7 @@ from constants import JACOCO_LIB_REL_PATH
 from constants import SCRIPT_DIR
 from constants import DEFAULT_REL_TARGET_TESTS_DIR
 from constants import CONFIGURATIONS_DIR
+from constants import PYCOMPSS_SRC_DIR
 
 ############################################
 # ERROR CLASS
@@ -129,11 +130,12 @@ def generate_coverage_reports(jacoco_lib_path, coverage_report_path, compss_home
         subprocess.check_output(['bash','-c', coverageBashCommand])
 
         coverageBashCommand = "coverage xml --rcfile=" + coverage_report_path + "/coverage_rc"
-        print("[INFO] Merging generating cobertura xml report ...")
+        print("[INFO] Merging generating cobertura xml report ("+ coverageBashCommand + ")...")
         subprocess.check_output(['bash','-c', coverageBashCommand])
-        print("[INFO] Correcting path to source paths (" + coverageBashCommand + ")...")
+        # Not required with [paths] tag in coverage_rc
         for i in ["2","3"]:
-            coverageBashCommand = "sed -i \'s#"+compss_home_path+"Bindings/python/"+i+"/#src/#g\' " + coverage_report_path + "/coverage.xml"
+            coverageBashCommand = "sed -i \'s#"+compss_home_path+"Bindings/python/"+i+"#src#g\' " + coverage_report_path + "/coverage.xml"
+            print("[INFO] Correcting path to source paths (" + coverageBashCommand + ")...")
             subprocess.check_output(['bash','-c', coverageBashCommand])
     except subprocess.CalledProcessError as e:
         print("Error generating coverage report")
@@ -143,7 +145,9 @@ def create_coverage_file(coverage_rc_path, tests_output_path):
     fin = open(CONFIGURATIONS_DIR + "/coverage_rc", "rt")
     fout = open(coverage_rc_path, "w")
     for line in fin:
-        fout.write(line.replace('@TEST_OUTPUT_PATH@', tests_output_path))
+        line = line.replace('@TEST_OUTPUT_PATH@', tests_output_path)
+        line = line.replace('@PYCOMPSS_SRC_PATH@', PYCOMPSS_SRC_DIR)
+        fout.write(line)
     fin.close()
     fout.close()
 

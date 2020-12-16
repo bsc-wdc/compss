@@ -29,7 +29,7 @@ import java.io.ObjectOutput;
 
 public class PythonMPIImplementation extends AbstractMethodImplementation implements Externalizable {
 
-    public static final int NUM_PARAMS = 7;
+    public static final int NUM_PARAMS = 8;
 
     private String declaringClass;
     private String alternativeMethod;
@@ -38,7 +38,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     private String mpiFlags;
     private boolean scaleByCU;
     private boolean failByEV;
-    private CollectionLayout cl;
+    private CollectionLayout[] cls;
 
 
     /**
@@ -58,14 +58,14 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      * @param mpiRunner Path to the MPI command.
      * @param scaleByCU Scale by computing units property.
      * @param failByEV Flag to enable failure with EV.
-     * @param cl Collection Layout.
+     * @param cls Collections Layouts.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature Method signature.
      * @param requirements Method requirements.
      */
     public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
-        String mpiFlags, boolean scaleByCU, boolean failByEV, CollectionLayout cl, Integer coreId,
+        String mpiFlags, boolean scaleByCU, boolean failByEV, CollectionLayout[] cls, Integer coreId,
         Integer implementationId, String signature, MethodResourceDescription requirements) {
 
         super(coreId, implementationId, signature, requirements);
@@ -77,7 +77,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.mpiFlags = mpiFlags;
         this.scaleByCU = scaleByCU;
         this.failByEV = failByEV;
-        this.cl = cl;
+        this.cls = cls;
     }
 
     /**
@@ -157,8 +157,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      *
      * @return The collection layout.
      */
-    public CollectionLayout getCollectionLayout() {
-        return this.cl;
+    public CollectionLayout[] getCollectionLayouts() {
+        return this.cls;
     }
 
     @Override
@@ -175,7 +175,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         sb.append(", MPI FLAGS=").append(this.mpiFlags);
         sb.append(", SCALE_BY_CU=").append(this.scaleByCU);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
-        sb.append(", Collection Layouts: ").append(this.cl);
+        sb.append(", Collections Layouts= ").append(this.cls.length);
 
         return sb.toString();
     }
@@ -183,15 +183,13 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     @Override
     public ImplementationDefinition<?> getDefinition() {
         return new PythonMPIDefinition(this.getSignature(), declaringClass, alternativeMethod, workingDir, mpiRunner,
-            mpiFlags, scaleByCU, failByEV, cl.getParamName(), cl.getBlockCount(), cl.getBlockLen(), cl.getBlockStride(),
-            this.getRequirements());
+            mpiFlags, scaleByCU, failByEV, cls, this.getRequirements());
     }
 
     @Override
     public String toString() {
         return super.toString() + " Python MPI Method declared in class " + this.declaringClass + "."
-            + this.alternativeMethod + " with MPIrunner " + this.mpiRunner
-            + ". with the following Collection Layout: \n" + cl + "\n " + this.requirements.toString();
+            + this.alternativeMethod + " with MPIrunner " + this.mpiRunner;
     }
 
     @Override
@@ -204,7 +202,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
         this.failByEV = in.readBoolean();
-        this.cl = (CollectionLayout) in.readObject();
+        this.cls = (CollectionLayout[]) in.readObject();
     }
 
     @Override
@@ -217,7 +215,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);
         out.writeBoolean(this.failByEV);
-        out.writeObject(this.cl);
+        out.writeObject(this.cls);
     }
 
 }

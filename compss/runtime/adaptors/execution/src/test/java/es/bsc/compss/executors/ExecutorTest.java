@@ -17,9 +17,9 @@
 package es.bsc.compss.executors;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.executor.Executor;
 import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;

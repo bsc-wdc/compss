@@ -9,11 +9,13 @@ omit =
     /opt/COMPSs/Bindings/python/2/tests/*
     /opt/COMPSs/Bindings/python/3/tests/*
     @TEST_OUTPUT_PATH@/*
+concurrency = multiprocessing
+[paths]
 source =
-    src/
+    @PYCOMPSS_SRC_PATH@
     /opt/COMPSs/Bindings/python/2/
     /opt/COMPSs/Bindings/python/3/
-concurrency = multiprocessing
+
 [report]
 omit =
     */dist-packages/*

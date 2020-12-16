@@ -6,6 +6,7 @@
 
   # Run a coverage report for a module
   run_python2() {
+    echo "[INFO] Running Coverage2 tests."
     python2 -m coverage run --rcfile="${SCRIPT_DIR}/coverage.cfg" nose_tests.py False
     ev=$?
     if [ "$ev" -ne 0 ]; then
@@ -14,10 +15,12 @@
     fi
     python2 -m coverage combine
     mv .coverage .coverage.python2
+    echo "[INFO] Coverage2 tests finished."
     # python2 -m coverage report -m
   }
 
   run_python3() {
+    echo "[INFO] Running Coverage3 tests."
     python3 -m coverage run --rcfile="${SCRIPT_DIR}/coverage.cfg" nose_tests.py False
     ev=$?
     if [ "$ev" -ne 0 ]; then
@@ -26,6 +29,7 @@
     fi
     python3 -m coverage combine --append
     python3 -m coverage report -m
+    echo "[INFO] Coverage3 tests finished."
   }
 
 
@@ -57,12 +61,12 @@
   run_python3
 
   # Generate XML file
-#  python3 -m coverage xml
-#  ev=$?
-#  if [ "$ev" -ne 0 ]; then
-#    echo "[ERROR] Coverage3 XML generation failed with exit value: $ev"
-#    exit $ev
-#  fi
+  python3 -m coverage xml
+  ev=$?
+  if [ "$ev" -ne 0 ]; then
+    echo "[ERROR] Coverage3 XML generation failed with exit value: $ev"
+    exit $ev
+  fi
 
   # Move .coverage to be combined later
   mv .coverage .coverage.python2_3

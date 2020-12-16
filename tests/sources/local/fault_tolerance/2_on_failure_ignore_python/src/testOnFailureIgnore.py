@@ -14,6 +14,7 @@ import time
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import FILE_OUT, FILE_INOUT, FILE_CONCURRENT
 from pycompss.api.task import task
+from pycompss.api.on_failure import on_failure
 from pycompss.api.api import compss_open
 import sys
 
@@ -32,7 +33,8 @@ class ServiceExit(Exception):
         pass
 
 
-@task(file_path=FILE_INOUT, on_failure='IGNORE')
+@on_failure(management="IGNORE")
+@task(file_path=FILE_INOUT)
 def write_file(file_path):
     print('Start processing')
     with open(file_path) as f:
@@ -51,9 +53,12 @@ def write_file(file_path):
         print("EXCEPTION")
         raise ServiceExit()
 
-@task(file_path=FILE_OUT, on_failure='IGNORE')
+
+@on_failure(management="IGNORE")
+@task(file_path=FILE_OUT)
 def raise_failure_with_out(file_path):
     print("Nothing done")
+
 
 def test_on_failure_retry(file_name):
     # Clean previous ocurrences of the file

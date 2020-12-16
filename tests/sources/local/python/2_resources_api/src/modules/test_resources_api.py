@@ -15,6 +15,7 @@ import unittest
 import time
 
 from pycompss.api.task import task
+from pycompss.api.on_failure import on_failure
 from pycompss.api.api import TaskGroup
 from pycompss.api.api import compss_get_number_of_resources
 from pycompss.api.api import compss_request_resources
@@ -32,7 +33,8 @@ def dummy_task():
     print("Dummy task executed")
 
 
-@task(on_failure="IGNORE")
+@on_failure(management="IGNORE")
+@task()
 def waiter_task():
     print("Starting task")
 

@@ -11,6 +11,7 @@ PyCOMPSs Testbench
 import unittest
 
 from pycompss.api.task import task
+from pycompss.api.on_failure import on_failure
 from pycompss.api.binary import binary
 from pycompss.api.mpi import mpi
 from pycompss.api.api import TaskGroup
@@ -25,14 +26,16 @@ def exception_task():
     raise COMPSsException("Intended exception")
 
 
+@on_failure(management="IGNORE")
 @binary(binary="${PATH_BINARY}/simple.sh")
-@task(returns=1, on_failure="IGNORE")
+@task(returns=1)
 def cancel_binary():
     pass
 
 
+@on_failure(management="IGNORE")
 @mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh")
-@task(returns=1, on_failure="IGNORE")
+@task(returns=1)
 def cancel_mpi():
     pass
 

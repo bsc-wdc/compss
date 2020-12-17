@@ -236,7 +236,7 @@ public class TraceMerger {
         }
         // Append new hardware counters labels to master pcf
         if (newHWCounters.size() > 0) {
-        	if (DEBUG) {
+            if (DEBUG) {
                 LOGGER.debug("Adding " + newHWCounters.size() + " new counters to master PCF file.");
             }
             this.masterPcfWriter.println(HW_COUNTER_HEADER);

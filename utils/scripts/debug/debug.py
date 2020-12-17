@@ -104,6 +104,7 @@ def handle_queries(runtime_log_file):
             elif input_array[0] == "u" or input_array[0] == "update":
                 state.clear()
                 parse(runtime_log_file)
+                print("Finished parsing "+runtime_log_file+". Script ready to reply queries")
             else:
                 print("Unknown command " + input_array[0] + ".", file=sys.stderr)
                 print_commands(file=sys.stderr)

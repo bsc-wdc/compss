@@ -21,12 +21,12 @@ class Loggers:
 
         class FileAccess:
             label = "ainAccessToFile"
-            WAITING = "waiting until"
+            WAITING = "is available"
             OBTAINED = "located on"
 
         class ObjectAccess:
             label = "nAccessToObject"
-            WAITING = "Waiting for"
+            WAITING = "Request object transfer"
             OBTAINED = "retrieved"
 
         class WaitEnds:
@@ -756,7 +756,7 @@ class FileAccessEvent(Event):
         line_array = message.split()
         self.data_id = None
         if "File not accessed before" not in message:
-            if "waiting" in message:
+            if "File" in message:
                 self.data_id = line_array[1]
 
     def apply(self, state):
@@ -778,7 +778,7 @@ class FileAccessEvent(Event):
 # Main accesses data
 class ObjectAccessEvent(Event):
     """
-    Application accesses a file
+    Application accesses an object
     """
 
     def __init__(self, timestamp, message):
@@ -786,14 +786,14 @@ class ObjectAccessEvent(Event):
         Constructs a new ObjectAccessEvent out of the message printed in the log
 
         :param timestamp:
-        :param message: file access description
+        :param message: object access description
         """
         super(ObjectAccessEvent, self).__init__(timestamp)
         line_array = message.split()
         self.data_id = None
         if "Object not accessed before" not in message:
-            if "Waiting" in message:
-                self.data_id = line_array[5]
+            if "Requested" in message:
+                self.data_id = line_array[3]
 
     def apply(self, state):
         """

@@ -322,6 +322,7 @@ public class AccessProcessor implements Runnable {
 
         // Tell the DM that the application wants to access a file.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
+        LOGGER.debug("File " + faId.getDataId() + " is available");
         DataLocation tgtLocation = sourceLocation;
 
         if (fap.getMode() != AccessMode.W) {

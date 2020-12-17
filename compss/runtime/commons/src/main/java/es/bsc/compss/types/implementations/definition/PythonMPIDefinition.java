@@ -26,6 +26,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
 
+
 public class PythonMPIDefinition implements AbstractMethodImplementationDefinition {
 
     /**
@@ -100,16 +101,12 @@ public class PythonMPIDefinition implements AbstractMethodImplementationDefiniti
         for (int i = 0; i < numLayouts; i++) {
             int index = offset + NUM_PARAMS + (i * 4);
             String pythonMPILayoutParam = EnvironmentLoader.loadFromEnvironment(implTypeArgs[index]);
-            int pythonMPIBlockSize =
-                Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[index + 1]));
-            int pythonMPIBlockLen =
-                Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[index + 2]));
-            int pythonMPIBlockStride =
-                Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[index + 3]));
-            cls[i] = new CollectionLayout(pythonMPILayoutParam, pythonMPIBlockSize, pythonMPIBlockLen,
-                pythonMPIBlockStride);
+            int pythonMPIBlockSize = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[index + 1]));
+            int pythonMPIBlockLen = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[index + 2]));
+            int pythonMPIBlockStride = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[index + 3]));
+            cls[i] =
+                new CollectionLayout(pythonMPILayoutParam, pythonMPIBlockSize, pythonMPIBlockLen, pythonMPIBlockStride);
         }
-        
 
     }
 

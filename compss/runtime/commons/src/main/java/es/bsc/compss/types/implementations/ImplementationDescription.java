@@ -248,11 +248,8 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        System.out.println("Reading Signature");
         this.signature = (String) in.readObject();
-        System.out.println("Reading Constraints");
         this.constraints = (T) in.readObject();
-        System.out.println("Reading Definition");
         this.implDefinition = (D) in.readObject();
 
     }

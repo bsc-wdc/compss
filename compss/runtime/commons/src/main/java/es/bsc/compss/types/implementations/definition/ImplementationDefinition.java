@@ -4,6 +4,7 @@ import es.bsc.compss.types.implementations.TaskType;
 
 import java.io.Externalizable;
 
+
 public interface ImplementationDefinition extends Externalizable {
 
     public TaskType getTaskType();

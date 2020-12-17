@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.types.CollectionLayout;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.ContainerImplementation;
@@ -113,16 +114,6 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     }
                     String pythonMPIdeclaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String pythonMPImethodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
-                    String pythonMPIWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
-                    String pythonMPIRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
-                    String pythonMPIFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
-                    boolean pythonMPIscaleByCU = Boolean.parseBoolean(implTypeArgs[5]);
-                    boolean pythonMPIfailByEV = Boolean.parseBoolean(implTypeArgs[6]);
-                    String pythonMPILayoutParam = EnvironmentLoader.loadFromEnvironment(implTypeArgs[7]);
-                    int pythonMPIBlockSize = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[8]));
-                    int pythonMPIBlockLen = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[9]));
-                    int pythonMPIBlockStride =
-                        Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[10]));
                     if (pythonMPIdeclaringClass == null || pythonMPIdeclaringClass.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty declaringClass annotation for method " + implSignature);
@@ -130,11 +121,29 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     if (pythonMPImethodName == null || pythonMPImethodName.isEmpty()) {
                         throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
                     }
+                    String pythonMPIWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
+                    String pythonMPIRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    String pythonMPIFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
+                    boolean pythonMPIscaleByCU = Boolean.parseBoolean(implTypeArgs[5]);
+                    boolean pythonMPIfailByEV = Boolean.parseBoolean(implTypeArgs[6]);
+                    int numLayouts = Integer.parseInt(implTypeArgs[7]);
+                    CollectionLayout[] cls = new CollectionLayout[numLayouts];
+                    for (int i = 0; i < numLayouts; i++) {
+                        int offset = PythonMPIImplementation.NUM_PARAMS + (i * 4);
+                        String pythonMPILayoutParam = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+                        int pythonMPIBlockSize =
+                            Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]));
+                        int pythonMPIBlockLen =
+                            Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]));
+                        int pythonMPIBlockStride =
+                            Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]));
+                        cls[i] = new CollectionLayout(pythonMPILayoutParam, pythonMPIBlockSize, pythonMPIBlockLen,
+                            pythonMPIBlockStride);
+                    }
 
                     id = (ImplementationDefinition<T>) new PythonMPIDefinition(implSignature, pythonMPIdeclaringClass,
                         pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner, pythonMPIFlags, pythonMPIscaleByCU,
-                        pythonMPIfailByEV, pythonMPILayoutParam, pythonMPIBlockSize, pythonMPIBlockLen,
-                        pythonMPIBlockStride, (MethodResourceDescription) implConstraints);
+                        pythonMPIfailByEV, cls, (MethodResourceDescription) implConstraints);
                     break;
 
                 case CONTAINER:

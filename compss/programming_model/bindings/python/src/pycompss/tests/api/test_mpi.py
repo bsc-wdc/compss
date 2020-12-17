@@ -67,18 +67,6 @@ def test_mpi_layout_empty_parameter():
         "_layout is not defined in kwargs dictionary."
 
 
-def test_mpi_layout_parameter_exception():
-    context.set_pycompss_context(context.MASTER)
-    layout = 2
-    exception = False
-    try:
-        _ = MPI(_layout={"_layout": layout}, _layout2={"_layout": layout}, runner="mpirun")  # noqa: E501
-    except Exception:  # noqa
-        exception = True  # Ok - Exception expected.
-    assert exception, \
-        "Expected exception due to multiple layouts has not been raised"
-
-
 def test_mpi_binary():
     context.set_pycompss_context(context.MASTER)
     my_mpi = MPI(runner="mpirun", binary="date", flags="flags")

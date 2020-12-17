@@ -927,13 +927,7 @@ class TaskMaster(TaskCommons):
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
             if get_impl_type() == "PYTHON_MPI":
-                param_name = get_impl_type_args()[-4].strip()
-                if param_name:
-                    if param_name in self.parameters:
-                        if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:  # noqa: E501
-                            raise Exception("Parameter %s is not a collection!" % param_name)      # noqa: E501
-                    else:
-                        raise Exception("Parameter %s does not exist!" % param_name)               # noqa: E501
+                self.check_layout_params(get_impl_type_args())
                 set_impl_signature(".".join(("MPI", impl_signature)))
                 set_impl_type_args(impl_type_args + get_impl_type_args()[1:])
             if get_impl_io() is None:
@@ -947,6 +941,18 @@ class TaskMaster(TaskCommons):
             set_impl_type(impl_type)
             set_impl_type_args(impl_type_args)
             set_impl_io(impl_io)
+
+    def check_layout_params(self, impl_type_args):
+        num_layouts = int(impl_type_args[6])
+        if num_layouts > 0:
+            for i in range(num_layouts):
+                param_name = impl_type_args[(7+(i*4))].strip()
+                if param_name:
+                    if param_name in self.parameters:
+                        if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:      # noqa: E501
+                            raise PyCOMPSsException("Parameter %s is not a collection!" % param_name)  # noqa: E501
+                    else:
+                        raise PyCOMPSsException("Parameter %s does not exist!" % param_name)           # noqa: E501
 
     def register_task(self):
         # type: () -> None

@@ -1,4 +1,4 @@
-#!/bin/bash -e 
+#!/bin/bash  
  
   #############################################################
   # Name: buildMN
@@ -33,12 +33,20 @@
           	res=$(ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" pjstat -A --filter jnam=${job_name} --choose st | tail -n 1)
           	echo "Job ${job_name} has status ${res} ."
   	done
+	echo "Copying job outs: scp -r -q -o StrictHostKeyChecking=no ${SCuser}@${SCloginNode}:${SCTMP_DIR}/${job_name}* ${TMP_DIR}"
   	scp -r -q -o StrictHostKeyChecking=no "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"/${job_name}* ${TMP_DIR}
-	$(cat ${TMP_DIR}/${job_name}.*.out | grep "ERROR")
+	echo "Checking if error in execution..."
+	error=$(cat ${TMP_DIR}/${job_name}.*.out | grep "ERROR")
+	ev=$?
+        if [ $ev -gt 1 ]; then # 1 means no match
+                echo "ERROR: Exception checking job results"
+                exit 1
+        fi
 	if [ ! -z "${error}" ]; then
 		echo "ERROR Running job ${job_name}. Find errors at ${TMP_DIR}"
                 exit 1
         fi
+	echo "Job ${job_name} sucessfully executed."
   }
 
   ####################
@@ -77,6 +85,8 @@
   SC_BUILD_DIR=${SCRIPT_DIR}/../../specs/sc/
   PACKAGES_DIR=${SCRIPT_DIR}/../../packages/sc/
   TMP_DIR=${SCRIPT_DIR}/tmp
+  rm -rf ${TMP_DIR}
+  mkdir -p ${TMP_DIR}
   SCauxScript_generic=${SCRIPT_DIR}/buildSC_aux
 
   # Log script variables
@@ -116,8 +126,9 @@
     echo "ERROR: Exception extracting package"
     exit 1
   fi
-  
+  echo " - Installing compss" 
   submit_and_check_job "compss_build_${uuid}" "submit_compss_build.sh"
+  echo " - Installing extra pycompss"
   submit_and_check_job "pycompss_extra_build_${uuid}" "submit_pycompss_extra_build.sh"
   
   # ERASE TMP FILES

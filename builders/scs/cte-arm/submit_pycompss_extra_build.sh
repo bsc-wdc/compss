@@ -6,6 +6,8 @@ echo "Installing COMPSs in $TARGET"
 source venv.sh
 cd COMPSs/Bindings/python
 
+python_version=3
+
 ./install "$TARGET"/Bindings/python false false python${python_version}
 if [ $? -ne 0 ]; then
 	echo "ERROR installing extra PyCOMPSs"

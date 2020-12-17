@@ -20,6 +20,10 @@
   # 5.- Copy this script into the decompressed folder
   # 6.- Run this script
   #
+  # NOTE: java and papi are not available as modules.
+  #       They are installed systemwide.
+  # WARNING: There are issues with java and hardware counters.
+  #          They must be disabled.
   #############################################################
 
   ####################
@@ -71,8 +75,6 @@
   module purge
   module load gcc/6.3.0 slurm/17.02.10
   cd Dependencies
-  #module load papi # DOES NOT EXIST
-  # Uncomment the papi check into the install_extrae.sh script  since there is not papi.h installed.
   ./install_extrae.sh $(pwd)/extrae "${targetDir}"/Dependencies/extrae false
   module load openmpi-2.1.1/gcc-6.3.0
   ./install_extrae.sh $(pwd)/extrae "${targetDir}"/Dependencies/extrae-openmpi true

@@ -54,7 +54,7 @@ public class TraceMerger {
     private static final Integer WORKER_ID_INDEX = 2;
     private static final Integer VALUE_INDEX = 5;
 
-    // could be wrong this regex (designed for matching tasks not workers)
+    // Could be wrong this regex (designed for matching tasks not workers)
     private static final String WORKER_THREAD_INFO_REGEX = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
     private static final Pattern WORKER_THREAD_INFO_PATTERN = Pattern.compile(WORKER_THREAD_INFO_REGEX); // NOSONAR
     private static final Integer STATE_TYPE = 1;
@@ -62,8 +62,15 @@ public class TraceMerger {
     private static final Integer WORKER_TIMESTAMP = 6;
     private static final Integer WORKER_LINE_INFO = 7;
 
+    // Hardware counters pattern
+    private static final String HW_COUNTER_HEADER = "EVENT_TYPE";
+    private static final String HW_FIXED_COUNTER = "7  41999999 Active hardware counter set";
+    private static final String HW_COUNTER_LINE_HEADER = "7  4200";
+
+    // File names patterns
     private static final String MASTER_TRACE_SUFFIX = "_compss_trace_";
     private static final String TRACE_EXTENSION = ".prv";
+    private static final String TRACE_PCF_EXTENSION = ".pcf";
     private static final String WORKER_TRACE_SUFFIX = "_python_trace" + TRACE_EXTENSION;
     private static final String TRACE_SUBDIR = "trace";
     private static final String WORKER_SUBDIR = "python";
@@ -73,8 +80,11 @@ public class TraceMerger {
     private final File masterTrace;
     private final File[] workersTraces;
     private final String masterTracePath;
+    private final String masterTracePcfPath;
     private final String[] workersTracePath;
+    private final String[] workersTracePcfPath;
     private final PrintWriter masterWriter;
+    private final PrintWriter masterPcfWriter;
 
 
     private class LineInfo {
@@ -123,6 +133,7 @@ public class TraceMerger {
         } else {
             this.masterTrace = matchingMasterFiles[0];
             this.masterTracePath = this.masterTrace.getAbsolutePath();
+            this.masterTracePcfPath = this.masterTracePath.replace(TRACE_EXTENSION, TRACE_PCF_EXTENSION);
             if (matchingMasterFiles.length > 1) {
                 LOGGER.warn("Found more than one master trace, using " + this.masterTrace + " to merge.");
             }
@@ -140,12 +151,15 @@ public class TraceMerger {
         }
 
         this.workersTracePath = new String[this.workersTraces.length];
+        this.workersTracePcfPath = new String[this.workersTraces.length];
         for (int i = 0; i < this.workersTracePath.length; ++i) {
             this.workersTracePath[i] = this.workersTraces[i].getAbsolutePath();
+            this.workersTracePcfPath[i] = this.workersTracePath[i].replace(TRACE_EXTENSION, TRACE_PCF_EXTENSION);
         }
 
         // Initialize the writer for the final master trace
         this.masterWriter = new PrintWriter(new FileWriter(this.masterTracePath, true));
+        this.masterPcfWriter = new PrintWriter(new FileWriter(this.masterTracePcfPath, true));
 
         LOGGER.debug("Trace's merger initialization successful");
     }
@@ -179,6 +193,9 @@ public class TraceMerger {
         }
         this.masterWriter.close();
 
+        LOGGER.debug("Merging PCF Hardware Counters into master");
+        this.mergePCFs();
+
         LOGGER.debug("Merging finished.");
 
         if (!DEBUG) {
@@ -190,6 +207,55 @@ public class TraceMerger {
                 LOGGER.warn("Could not remove python temporal tracing folder" + ioe.toString());
             }
         }
+    }
+
+    private void mergePCFs() throws IOException {
+        // Check master hardware counters
+        ArrayList<String> masterHWCounters = getHWCounters(this.masterTracePcfPath);
+        // Check worker hardware counters
+        ArrayList<ArrayList<String>> allWorkersHWCounters = new ArrayList<ArrayList<String>>();
+        for (String workerPcf : this.workersTracePcfPath) {
+            allWorkersHWCounters.add(getHWCounters(workerPcf));
+        }
+        // Extract unique counters
+        ArrayList<String> newHWCounters = new ArrayList<String>();
+        for (ArrayList<String> workerHWCounters : allWorkersHWCounters) {
+            int differentLines = 0;
+            for (String line : workerHWCounters) {
+                if (!masterHWCounters.contains(line) && !newHWCounters.contains(line)) {
+                    if (DEBUG) {
+                        LOGGER.debug("Found PCF counter line not at master: " + line);
+                    }
+                    newHWCounters.add(line);
+                    differentLines++;
+                }
+            }
+            if (DEBUG) {
+                LOGGER.debug("Analised worker had " + differentLines + " lines to be included");
+            }
+        }
+        // Append new hardware counters labels to master pcf
+        if (newHWCounters.size() > 0) {
+            if (DEBUG) {
+                LOGGER.debug("Adding " + newHWCounters.size() + " new counters to master PCF file.");
+            }
+            this.masterPcfWriter.println(HW_COUNTER_HEADER);
+            if (masterHWCounters.size() == 0) {
+                // The master did not contain hardware counter labels: requires fixed
+                if (DEBUG) {
+                    LOGGER.debug("Master PCF did not contain any hardware counter.");
+                }
+                this.masterPcfWriter.println(HW_FIXED_COUNTER);
+            }
+            for (String line : newHWCounters) {
+                this.masterPcfWriter.println(line);
+            }
+        } else {
+            if (DEBUG) {
+                LOGGER.debug("No hardware counters to include in PCF.");
+            }
+        }
+        this.masterPcfWriter.close();
     }
 
     private void removeFolder(String sandBox) throws IOException {
@@ -310,6 +376,20 @@ public class TraceMerger {
         Long realStart = Math.abs(javaSync.getTimestamp() - workerSync.getTimestamp()) - syncDifference;
 
         return new LineInfo(javaStart.getResourceId(), realStart, javaStart.getValue());
+    }
+
+    private ArrayList<String> getHWCounters(String tracePcfPath) throws IOException {
+        if (DEBUG) {
+            LOGGER.debug("Getting pcf hw counters from: " + tracePcfPath);
+        }
+        ArrayList<String> hwCounters = new ArrayList<String>();
+        List<String> lines = Files.readAllLines(Paths.get(tracePcfPath), StandardCharsets.UTF_8);
+        for (String line : lines) {
+            if (line.startsWith(this.HW_COUNTER_LINE_HEADER)) {
+                hwCounters.add(line);
+            }
+        }
+        return hwCounters;
     }
 
 }

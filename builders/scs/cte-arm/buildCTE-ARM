@@ -1,0 +1,140 @@
+#!/bin/bash  
+ 
+  #############################################################
+  # Name: buildMN
+  # Description: SCRIPT FOR MareNostrum COMPSs BUILD
+  # Parameters: <MN_user> MareNostrum user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on MareNostrum for deployment
+  #             <FullTargetPath> Base Target Installation folder on MareNostrum
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildCTE_ARM <user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+  
+  submit_and_check_job(){
+	job_name=$1
+	script=$2
+	ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "cd ${SCTMP_DIR}; pjsub -N ${job_name} -x TARGET=${SCtargetDir} ${script}"
+        ev=$?
+  	if [ $ev -ne 0 ]; then
+    		echo "ERROR: Exception raised submiting job"
+    		exit 1
+  	fi
+  	#wait until finished
+  	res="QUE"
+  	while [ ! -z "$res" ]
+  	do
+          	sleep 60s
+          	res=$(ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" pjstat -A --filter jnam=${job_name} --choose st | tail -n 1)
+          	echo "Job ${job_name} has status ${res} ."
+  	done
+	echo "Copying job outs: scp -r -q -o StrictHostKeyChecking=no ${SCuser}@${SCloginNode}:${SCTMP_DIR}/${job_name}* ${TMP_DIR}"
+  	scp -r -q -o StrictHostKeyChecking=no "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"/${job_name}* ${TMP_DIR}
+	echo "Checking if error in execution..."
+	error=$(cat ${TMP_DIR}/${job_name}.*.out | grep "ERROR")
+	ev=$?
+        if [ $ev -gt 1 ]; then # 1 means no match
+                echo "ERROR: Exception checking job results"
+                exit 1
+        fi
+	if [ ! -z "${error}" ]; then
+		echo "ERROR Running job ${job_name}. Find errors at ${TMP_DIR}"
+                exit 1
+        fi
+	echo "Job ${job_name} sucessfully executed."
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  
+  SCuser=$1
+  SC_DIR=$2
+  SCtargetDir=$3
+  SCloginNode=armlogin1.bsc.es
+
+   # CREATE SC TMP DIR
+  echo "Creating remote tmp directory..."
+
+  uuid=$(uuidgen)
+  SCTMP_DIR=${SC_DIR}/tmp_${uuid}
+  # shellcheck disable=SC2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" mkdir -p "${SCTMP_DIR}"
+
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SC_BUILD_DIR=${SCRIPT_DIR}/../../specs/sc/
+  PACKAGES_DIR=${SCRIPT_DIR}/../../packages/sc/
+  TMP_DIR=${SCRIPT_DIR}/tmp
+  rm -rf ${TMP_DIR}
+  mkdir -p ${TMP_DIR}
+  SCauxScript_generic=${SCRIPT_DIR}/buildSC_aux
+
+  # Log script variables
+  echo "- SC user           = ${SCuser}"
+  echo "- SC login node     = ${SCloginNode}"
+  echo "- SC tmp Dir        = ${SCTMP_DIR}"
+  echo "- SC target Dir     = ${SCtargetDir}"
+  echo "- Script Dir        = ${SCRIPT_DIR}"
+  echo "- Local tmp Dir     = ${TMP_DIR}"
+  sleep 5s
+
+  #Generate SC package
+  $SC_BUILD_DIR/buildsc cte_arm
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception raised building SC package"
+    exit 1
+  fi
+
+  #Copy package
+  echo "- Deploy files to TMP_DIR in SC"
+  # shellcheck disable=2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "rm -rf ${SCTMP_DIR}; mkdir -p ${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${PACKAGES_DIR}/COMPSs_cte_arm.tar.gz" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${SCRIPT_DIR}/env.sh" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${SCRIPT_DIR}/venv.sh" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${SCRIPT_DIR}/submit_compss_build.sh" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${SCRIPT_DIR}/submit_pycompss_extra_build.sh" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+
+  # Execute deployment aux script
+  echo "- Execute installation on SC"
+  SCauxScriptName=$(basename "${SCauxScript}")
+  # shellcheck disable=2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "cd ${SCTMP_DIR}; tar zxvf COMPSs_cte_arm.tar.gz"
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception extracting package"
+    exit 1
+  fi
+  echo " - Installing compss" 
+  submit_and_check_job "compss_build_${uuid}" "submit_compss_build.sh"
+  echo " - Installing extra pycompss"
+  submit_and_check_job "pycompss_extra_build_${uuid}" "submit_pycompss_extra_build.sh"
+  
+  # ERASE TMP FILES
+  echo "- Erase tmp files"
+  # shellcheck disable=2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "rm -rf ${SCTMP_DIR}"
+  echo "COMPSs INSTALLED"
+  rm -rf "${TMP_DIR}"
+  exit 0

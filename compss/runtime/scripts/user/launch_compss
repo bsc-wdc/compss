@@ -397,8 +397,8 @@ worker_cmd() {
             ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
             ${python_propagate_virtual_environment} \
-            ${python_mpi_worker} \
-            ${custom_extrae_config_file_python}"
+            ${custom_extrae_config_file_python} \
+            ${python_mpi_worker}"
 }
 
 ###############################################

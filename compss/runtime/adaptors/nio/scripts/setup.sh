@@ -145,8 +145,8 @@
       echo "- Python Version       $pythonVersion"
       echo "- Python Virtual Env.  $pythonVirtualEnvironment"
       echo "- Python Propagate Virtual Env.  $pythonPropagateVirtualEnvironment"
-      echo "- Python Extrae File   $pythonExtraeFile"
       echo "- Python MPI Worker.   $pythonMpiWorker"
+      echo "- Python Extrae File   $pythonExtraeFile"
 
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"

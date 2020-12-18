@@ -71,7 +71,7 @@ create_pipe() {
 export_tracing() {
     if [ "$tracing" -gt "0" ]; then
         echo "Initializing python tracing with extrae..."
-        if [[ "$pythonExtraeFile" == "" || "$pythonExtraeFile" == "null" ]]; then
+        if [[ "$pythonExtraeFile" == "" || "$pythonExtraeFile" == "null" || "$pythonExtraeFile" == "false" ]]; then
             configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
             escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
             baseConfigFile="${configPath}/extrae_python_worker.xml"

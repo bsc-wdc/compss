@@ -100,10 +100,20 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
     public COMPSsDefinition(String[] implTypeArgs, int offset) {
         this.runcompss = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.flags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        if (this.runcompss == null || this.runcompss.isEmpty() | this.runcompss.equals(Constants.UNASSIGNED)) {
+            this.runcompss = DEFAULT_RUNCOMPSS;
+        }
+        if (this.flags == null || this.flags.isEmpty() || this.flags.equals(Constants.UNASSIGNED)) {
+            this.flags = DEFAULT_FLAGS;
+        }
         this.appName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
         this.workerInMaster = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
         this.failByEV = Boolean.parseBoolean(implTypeArgs[5]);
+        String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
+        if (appLogDir != null && !appLogDir.isEmpty()) {
+            this.parentAppId = new File(System.getProperty(COMPSsConstants.APP_LOG_DIR)).getName();
+        }
         if (appName == null || appName.isEmpty()) {
             throw new IllegalArgumentException("Empty appName annotation for COMPSs method ");
         }

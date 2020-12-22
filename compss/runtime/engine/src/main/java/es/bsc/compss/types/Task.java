@@ -24,7 +24,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.implementations.ImplementationSignature;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -113,8 +113,8 @@ public class Task extends AbstractTask {
         long timeOut) {
 
         super(app);
-        String signature =
-            ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, numReturns, parameters);
+        String signature = ImplementationSignature.getServiceSignature(namespace, service, port, operation, hasTarget,
+            numReturns, parameters);
         CoreElement core = CoreManager.getCore(signature);
 
         int numNodes = Constants.SINGLE_NODE;

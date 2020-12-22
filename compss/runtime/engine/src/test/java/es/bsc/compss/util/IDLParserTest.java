@@ -21,9 +21,10 @@ import static org.junit.Assert.assertNotNull;
 
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
-
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.components.Processor.ProcessorType;
 import es.bsc.compss.util.parsers.IDLParser;
@@ -74,7 +75,7 @@ public class IDLParserTest {
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");
         List<Implementation> implList = CoreManager.getCore(0).getImplementations();
         assertNotNull(implList);
-        MethodImplementation impl = (MethodImplementation) implList.get(0);
+        AbstractMethodImplementation impl = (AbstractMethodImplementation) implList.get(0);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
         assertEquals(implList.size(), CORE0_2_3_4_5_IMPLS_RESULT);
         Processor p = impl.getRequirements().getProcessors().get(0);
@@ -86,14 +87,14 @@ public class IDLParserTest {
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (3)");
         assertEquals(implList.size(), CORE1_6_IMPLS_RESULT);
-        impl = (MethodImplementation) implList.get(0);
+        impl = (AbstractMethodImplementation) implList.get(0);
         assertEquals(impl.getRequirements().getMemorySize(), 2.0f, 0);
         assertEquals(impl.getRequirements().getStorageSize(), 10.0f, 0);
-        impl = (MethodImplementation) implList.get(1);
+        impl = (AbstractMethodImplementation) implList.get(1);
         p = impl.getRequirements().getProcessors().get(0);
         assertEquals(p.getComputingUnits(), COMPUTING_UNITS_RESULT);
         assertEquals(impl.getRequirements().getMemorySize(), 4.0f, 0);
-        impl = (MethodImplementation) implList.get(2);
+        impl = (AbstractMethodImplementation) implList.get(2);
         p = impl.getRequirements().getProcessors().get(0);
         assertEquals(p.getComputingUnits(), 1);
 
@@ -114,7 +115,7 @@ public class IDLParserTest {
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
         assertEquals(implList.size(), CORE0_2_3_4_5_IMPLS_RESULT);
-        impl = (MethodImplementation) implList.get(0);
+        impl = (AbstractMethodImplementation) implList.get(0);
         LOGGER.debug("[IDL-Loader]: Checking Number of processors (2)");
         assertEquals(impl.getRequirements().getProcessors().size(), PROCESSOR_COUNT);
         Processor p1 = impl.getRequirements().getProcessors().get(0);
@@ -136,7 +137,7 @@ public class IDLParserTest {
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
         assertEquals(implList.size(), CORE0_2_3_4_5_IMPLS_RESULT);
-        impl = (MethodImplementation) implList.get(0);
+        impl = (AbstractMethodImplementation) implList.get(0);
         LOGGER.debug("[IDL-Loader]: Checking Number of processors (1)");
         assertEquals(impl.getRequirements().getProcessors().size(), 1);
         p = impl.getRequirements().getProcessors().get(0);
@@ -150,14 +151,14 @@ public class IDLParserTest {
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (3)");
         assertEquals(implList.size(), CORE1_6_IMPLS_RESULT);
 
-        impl = (MethodImplementation) implList.get(0);
+        impl = (AbstractMethodImplementation) implList.get(0);
         LOGGER.debug("[IDL-Loader]: Checking Number of first implementation processors (1)");
         assertEquals(impl.getRequirements().getProcessors().size(), 1);
         p = impl.getRequirements().getProcessors().get(0);
         assertEquals(p.getType(), ProcessorType.CPU);
         assertEquals(p.getComputingUnits(), 4);
 
-        impl = (MethodImplementation) implList.get(1);
+        impl = (AbstractMethodImplementation) implList.get(1);
         LOGGER.debug("[IDL-Loader]: Checking Number of second implementation processors (2)");
         assertEquals(impl.getRequirements().getProcessors().size(), PROCESSOR_COUNT);
         p1 = impl.getRequirements().getProcessors().get(0);
@@ -169,7 +170,7 @@ public class IDLParserTest {
         assertEquals(p2.getType(), ProcessorType.CPU);
         assertEquals(p2.getComputingUnits(), 2);
 
-        impl = (MethodImplementation) implList.get(2);
+        impl = (AbstractMethodImplementation) implList.get(2);
         LOGGER.debug("[IDL-Loader]: Checking Number of third implementation processors (2)");
         assertEquals(impl.getRequirements().getProcessors().size(), PROCESSOR_COUNT);
         p1 = impl.getRequirements().getProcessors().get(0);
@@ -202,7 +203,7 @@ public class IDLParserTest {
         assertNotNull(implList);
         assertEquals(implList.size(), 1);
 
-        MethodImplementation impl = (MethodImplementation) implList.get(0);
+        MethodDefinition impl = (MethodDefinition) implList.get(0).getDescription().getDefinition();
         LOGGER.debug(impl.getDeclaringClass());
         assertEquals(impl.getDeclaringClass(), "Block");
 
@@ -229,8 +230,8 @@ public class IDLParserTest {
         assertNotNull(implList);
         assertEquals(implList.size(), 1);
 
-        MethodImplementation impl = (MethodImplementation) implList.get(0);
-        LOGGER.debug(impl.getDeclaringClass());
+        ImplementationDescription impl = (ImplementationDescription) implList.get(0).getDescription();
+        LOGGER.debug(impl.getSignature());
         String signature = impl.getSignature();
         assertEquals(signature, TEST_2_SIGNATURE);
     }

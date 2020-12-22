@@ -16,51 +16,143 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.util.EnvironmentLoader;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.List;
 
 
-/**
- * Class containing all the necessary information to generate a native method implementation of a CE.
- */
-public class MethodDefinition extends ImplementationDefinition<MethodResourceDescription> {
+public class MethodDefinition implements AbstractMethodImplementationDefinition {
 
-    private final String declaringClass;
-    private final String methodName;
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static final int NUM_PARAMS = 2;
+
+    private String declaringClass;
+    // In C implementations could have different method names
+    private String alternativeMethod;
 
 
     /**
-     * Creates a new ImplementationDefinition to create a method core element implementation.
-     * 
-     * @param implSignature Method signature.
-     * @param declaringClass Method class.
-     * @param methodName Method name.
-     * @param implConstraints Method annotations.
+     * Creates a new MethodImplementation for serialization.
      */
-    public MethodDefinition(String implSignature, String declaringClass, String methodName,
-        MethodResourceDescription implConstraints) {
-        super(implSignature, implConstraints);
-        this.declaringClass = declaringClass;
-        this.methodName = methodName;
+    public MethodDefinition() {
+        // For externalizable
+    }
+
+    /**
+     * Creates a new MethodImplementation instance from the given parameters.
+     * 
+     * @param methodClass Method class.
+     * @param altMethodName Method name.
+     */
+    public MethodDefinition(String methodClass, String altMethodName) {
+        this.declaringClass = methodClass;
+        this.alternativeMethod = altMethodName;
+    }
+
+    /**
+     * Creates a new Definition from string array.
+     * 
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     */
+    public MethodDefinition(String[] implTypeArgs, int offset) {
+        this.declaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+        this.alternativeMethod = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        if (declaringClass == null || declaringClass.isEmpty()) {
+            throw new IllegalArgumentException("Empty declaringClass annotation for method " + this.alternativeMethod);
+        }
+        if (alternativeMethod == null || alternativeMethod.isEmpty()) {
+            throw new IllegalArgumentException("Empty methodName annotation for method " + declaringClass);
+        }
     }
 
     @Override
-    public Implementation getImpl(int coreId, int implId) {
-        return new MethodImplementation(declaringClass, methodName, coreId, implId, this.getSignature(),
-            this.getConstraints());
+    public void appendToArgs(List<String> lArgs, String auxParam) {
+        lArgs.add(this.declaringClass);
+        lArgs.add(this.alternativeMethod);
+    }
+
+    /**
+     * Returns the method declaring class.
+     * 
+     * @return The method declaring class.
+     */
+    public String getDeclaringClass() {
+        return this.declaringClass;
+    }
+
+    /**
+     * Returns the alternative method name.
+     * 
+     * @return The alternative method name.
+     */
+    public String getAlternativeMethodName() {
+        return this.alternativeMethod;
+    }
+
+    /**
+     * Sets a new alternative method name.
+     * 
+     * @param alternativeMethod The new alternative method name.
+     */
+    public void setAlternativeMethodName(String alternativeMethod) {
+        this.alternativeMethod = alternativeMethod;
+    }
+
+    @Override
+    public MethodType getMethodType() {
+        return MethodType.METHOD;
+    }
+
+    @Override
+    public String toMethodDefinitionFormat() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[DECLARING CLASS=").append(this.declaringClass);
+        sb.append(", METHOD NAME=").append(this.alternativeMethod);
+        sb.append("]");
+
+        return sb.toString();
+    }
+
+    @Override
+    public String toShortFormat() {
+        return "Method declared in class " + this.declaringClass + "." + alternativeMethod + ": "
+            + this.alternativeMethod;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.declaringClass = (String) in.readObject();
+        this.alternativeMethod = (String) in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(this.declaringClass);
+        out.writeObject(this.alternativeMethod);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("METHOD Implementation \n");
-        sb.append("\t Signature: ").append(this.getSignature()).append("\n");
         sb.append("\t Declaring class: ").append(declaringClass).append("\n");
-        sb.append("\t Method name: ").append(methodName).append("\n");
-        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
-        sb.append("\t Constraints: ").append(this.getConstraints());
+        sb.append("\t Method name: ").append(alternativeMethod).append("\n");
         return sb.toString();
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.METHOD;
     }
 
 }

@@ -25,9 +25,10 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceType;
@@ -75,9 +76,9 @@ public class StopWorkerAction extends AllocatableAction {
         this.worker = worker;
         this.ru = (PerformedReduction<WorkerResourceDescription>) modification;
         if (worker.getResource().getType() == ResourceType.WORKER) {
-            this.impl = new MethodImplementation("", "", null, null, "", new MethodResourceDescription());
+            this.impl = AbstractMethodImplementation.generateDummy(new MethodResourceDescription());
         } else {
-            this.impl = new ServiceImplementation(null, "", "", "", "", "");
+            this.impl = ServiceImplementation.generateDummy();
         }
     }
 

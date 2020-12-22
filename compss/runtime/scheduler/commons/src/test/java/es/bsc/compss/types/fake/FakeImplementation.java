@@ -17,8 +17,9 @@
 package es.bsc.compss.types.fake;
 
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 
 public class FakeImplementation extends Implementation {
@@ -29,7 +30,12 @@ public class FakeImplementation extends Implementation {
     }
 
     @Override
-    public ImplementationDefinition<?> getDefinition() {
+    public ImplementationDescription<?, ?> getDescription() {
+        return null;
+    }
+
+    @Override
+    public WorkerResourceDescription getRequirements() {
         return null;
     }
 

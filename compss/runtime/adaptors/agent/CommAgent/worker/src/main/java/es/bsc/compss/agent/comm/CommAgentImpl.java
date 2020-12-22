@@ -34,10 +34,8 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 
@@ -192,7 +190,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(request.getCeSignature());
-        ImplementationDefinition<?> implDef = impl.getDefinition();
+        ImplementationDescription<?, ?> implDef = impl.getDescription();
         ced.addImplementation(implDef);
 
         OnFailure onFail = request.getOnFailure();

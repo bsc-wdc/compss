@@ -16,45 +16,63 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.ContainerImplementation;
-import es.bsc.compss.types.implementations.ContainerImplementation.ContainerExecutionType;
-import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.ContainerDescription;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ContainerDescription.ContainerEngine;
+import es.bsc.compss.util.EnvironmentLoader;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.List;
 
 
-/**
- * Class containing all the necessary information to generate a Container implementation of a CE.
- */
-public class ContainerDefinition extends ImplementationDefinition<MethodResourceDescription> {
+public class ContainerDefinition implements AbstractMethodImplementationDefinition {
 
-    private final ContainerExecutionType internalExecutionType;
-    private final String internalFunc;
-    private final String internalBinary;
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
 
-    private final String workingDir;
-    private final boolean failByEV;
+    public static final int NUM_PARAMS = 7;
+    public static final String SIGNATURE = "container.CONTAINER";
 
-    private final ContainerDescription container;
+
+    public static enum ContainerExecutionType {
+        CET_PYTHON, // For Python CET executions
+        CET_BINARY; // For Binary CET executions
+    }
+
+
+    private ContainerDescription container;
+    private ContainerExecutionType internalExecutionType;
+    private String internalBinary;
+    private String internalFunc;
+
+    private String workingDir;
+    private boolean failByEV;
 
 
     /**
-     * Creates a new ImplementationDefinition to create a container core element implementation.
+     * Creates a new ContainerImplementation instance for serialization.
+     */
+    public ContainerDefinition() {
+        // For externalizable
+    }
+
+    /**
+     * Creates a new ContainerImplementation from the given parameters.
      * 
-     * @param signature Binary signature.
      * @param internalExecutionType ContainerExecutionType "PYTHON"/"BINARY"
      * @param internalFunc Python function path.
      * @param internalBinary Binary path.
      * @param workingDir Working directory.
      * @param failByEV Flag to enable failure with EV.
      * @param container Container Description.
-     * @param implConstraints Binary requirements.
      */
-    public ContainerDefinition(String signature, ContainerExecutionType internalExecutionType, String internalFunc,
-        String internalBinary, String workingDir, boolean failByEV, ContainerDescription container,
-        MethodResourceDescription implConstraints) {
-
-        super(signature, implConstraints);
+    public ContainerDefinition(ContainerExecutionType internalExecutionType, String internalFunc, String internalBinary,
+        String workingDir, boolean failByEV, ContainerDescription container) {
 
         this.internalExecutionType = internalExecutionType;
         this.internalBinary = internalBinary;
@@ -66,23 +84,169 @@ public class ContainerDefinition extends ImplementationDefinition<MethodResource
         this.container = container;
     }
 
+    /**
+     * Creates a new Definition from string array.
+     * 
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     */
+    public ContainerDefinition(String[] implTypeArgs, int offset) {
+        String engineStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+        engineStr = engineStr.toUpperCase();
+        ContainerEngine engine = ContainerEngine.valueOf(engineStr);
+        String image = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.container = new ContainerDescription(engine, image);
+
+        String internalTypeContainerStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        internalTypeContainerStr = internalTypeContainerStr.toUpperCase();
+        // String to ENUM can throw IllegalArgumentException
+        this.internalExecutionType = ContainerExecutionType.valueOf(internalTypeContainerStr);
+        this.internalBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
+        this.internalFunc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 6]);
+
+        // Check empty arguments
+        switch (this.internalExecutionType) {
+            case CET_BINARY:
+                if (internalBinary == null || internalBinary.isEmpty() || internalBinary.equals("[unassigned]")) {
+                    throw new IllegalArgumentException("Empty binary annotation for CONTAINER method");
+                }
+                break;
+            case CET_PYTHON:
+                if (internalFunc == null || internalFunc.isEmpty() || internalFunc.equals("[unassigned]")) {
+                    throw new IllegalArgumentException("Empty python function annotation for CONTAINER method");
+                }
+                break;
+        }
+    }
+
     @Override
-    public Implementation getImpl(int coreId, int implId) {
-        return new ContainerImplementation(this.internalExecutionType, this.internalFunc, this.internalBinary,
-            this.workingDir, this.failByEV, this.container, coreId, implId, getSignature(), getConstraints());
+    public void appendToArgs(List<String> lArgs, String auxParam) {
+        lArgs.add(this.container.getEngine().toString());
+        lArgs.add(this.container.getImage());
+        lArgs.add(this.internalExecutionType.toString());
+        lArgs.add(this.internalBinary);
+        lArgs.add(this.internalFunc);
+        lArgs.add(this.workingDir);
+        lArgs.add(Boolean.toString(this.failByEV));
+    }
+
+    /**
+     * Returns the internal type.
+     * 
+     * @return The internal type.
+     */
+    public ContainerExecutionType getInternalExecutionType() {
+        return this.internalExecutionType;
+    }
+
+    /**
+     * Returns the binary path.
+     * 
+     * @return The binary path.
+     */
+    public String getInternalBinary() {
+        return this.internalBinary;
+    }
+
+    /**
+     * Returns the Python function path.
+     * 
+     * @return The Python function path.
+     */
+    public String getInternalFunction() {
+        return this.internalFunc;
+    }
+
+    /**
+     * Returns the binary working directory.
+     * 
+     * @return The binary working directory.
+     */
+    public String getWorkingDir() {
+        return this.workingDir;
+    }
+
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return this.failByEV;
+    }
+
+    /**
+     * Returns the container.
+     * 
+     * @return The container implementation.
+     */
+    public ContainerDescription getContainer() {
+        return this.container;
+    }
+
+    @Override
+    public MethodType getMethodType() {
+        return MethodType.CONTAINER;
+    }
+
+    @Override
+    public String toMethodDefinitionFormat() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[CONTAINER=").append(this.container);
+        sb.append("]");
+        return sb.toString();
+    }
+
+    @Override
+    public String toShortFormat() {
+        return "ContainerImplementation [container=" + this.container + ", internalExecutionType="
+            + this.internalExecutionType + ", binary=" + this.internalBinary + ", pyFunc=" + this.internalFunc + "]";
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+
+        this.internalExecutionType = (ContainerExecutionType) in.readObject();
+        this.internalFunc = (String) in.readObject();
+        this.internalBinary = (String) in.readObject();
+
+        this.workingDir = (String) in.readObject();
+        this.failByEV = in.readBoolean();
+
+        this.container = (ContainerDescription) in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+
+        out.writeObject(this.internalExecutionType);
+        out.writeObject(this.internalFunc);
+        out.writeObject(this.internalBinary);
+
+        out.writeObject(this.workingDir);
+        out.writeBoolean(this.failByEV);
+
+        out.writeObject(this.container);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Container Implementation \n");
-        sb.append("\t Signature: ").append(getSignature()).append("\n");
+        ;
         sb.append("\t Container: ").append(this.container).append("\n");
         sb.append("\t InternalExecutionType: ").append(this.internalExecutionType).append("\n");
         sb.append("\t InternalBinary: ").append(this.internalBinary).append("\n");
         sb.append("\t InternalFunction: ").append(this.internalFunc).append("\n");
-        sb.append("\t Constraints: ").append(getConstraints());
         return sb.toString();
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.METHOD;
     }
 
 }

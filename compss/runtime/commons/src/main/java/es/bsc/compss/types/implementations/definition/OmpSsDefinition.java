@@ -14,57 +14,150 @@
  *  limitations under the License.
  *
  */
-
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.util.EnvironmentLoader;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.List;
 
 
-/**
- * Class containing all the necessary information to generate an OmpSs implementation of a CE.
- */
-public class OmpSsDefinition extends ImplementationDefinition<MethodResourceDescription> {
+public class OmpSsDefinition implements AbstractMethodImplementationDefinition {
 
-    private final String binary;
-    private final String workingDir;
-    private final boolean failByEV;
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static final int NUM_PARAMS = 3;
+    public static final String SIGNATURE = "ompss.OMPSS";
+
+    private String binary;
+    private String workingDir;
+    private boolean failByEV;
 
 
     /**
-     * Creates a new ImplementationDefinition to create an OMPSs core element implementation.
+     * Creates a new OmpSsImplementation for serialization.
+     */
+    public OmpSsDefinition() {
+        // For externalizable
+    }
+
+    /**
+     * Creates a new OmpSsImplementation instance from the given parameters.
      * 
-     * @param signature OmpSs operation signature.
      * @param binary Path to the OmpSs binary.
      * @param workingDir Binary working directory.
      * @param failByEV Flag to enable failure with EV.
-     * @param implConstraints OmpSs method requirements.
      */
-    public OmpSsDefinition(String signature, String binary, String workingDir, boolean failByEV,
-        MethodResourceDescription implConstraints) {
-        super(signature, implConstraints);
+    public OmpSsDefinition(String binary, String workingDir, boolean failByEV) {
         this.binary = binary;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
     }
 
+    /**
+     * Creates a new Definition from string array.
+     * 
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     */
+    public OmpSsDefinition(String[] implTypeArgs, int offset) {
+        this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 2]);
+        if (binary == null || binary.isEmpty()) {
+            throw new IllegalArgumentException("Empty binary annotation for OmpSs method");
+        }
+    }
+
     @Override
-    public Implementation getImpl(int coreId, int implId) {
-        return new OmpSsImplementation(binary, workingDir, failByEV, coreId, implId, this.getSignature(),
-            this.getConstraints());
+    public void appendToArgs(List<String> lArgs, String auxParam) {
+        lArgs.add(binary);
+        lArgs.add(workingDir);
+        lArgs.add(Boolean.toString(failByEV));
+    }
+
+    /**
+     * Returns the path to the OmpSs binary.
+     * 
+     * @return The path to the OmpSs binary.
+     */
+    public String getBinary() {
+        return this.binary;
+    }
+
+    /**
+     * Returns the binary working directory.
+     * 
+     * @return The binary working directory.
+     */
+    public String getWorkingDir() {
+        return this.workingDir;
+    }
+
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
+    @Override
+    public MethodType getMethodType() {
+        return MethodType.OMPSS;
+    }
+
+    @Override
+    public String toMethodDefinitionFormat() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[BINARY=").append(this.binary);
+        sb.append(", FAIL_BY_EV=").append(this.failByEV);
+        sb.append("]");
+
+        return sb.toString();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("OmpSs Implementation \n");
-        sb.append("\t Signature: ").append(this.getSignature()).append("\n");
         sb.append("\t Binary: ").append(binary).append("\n");
-        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
-        sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }
+
+    @Override
+    public String toShortFormat() {
+        return "OmpSs Method with binary " + this.binary;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.binary = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
+        this.failByEV = in.readBoolean();
+
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(this.binary);
+        out.writeObject(this.workingDir);
+        out.writeBoolean(this.failByEV);
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.METHOD;
+    }
+
 }

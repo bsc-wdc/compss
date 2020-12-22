@@ -20,7 +20,7 @@ import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
+import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 
 import java.io.File;
 
@@ -44,9 +44,9 @@ public class OpenCLInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        OpenCLImplementation openclImpl = null;
+        OpenCLDefinition openclImpl = null;
         try {
-            openclImpl = (OpenCLImplementation) this.invocation.getMethodImplementation();
+            openclImpl = (OpenCLDefinition) this.invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);

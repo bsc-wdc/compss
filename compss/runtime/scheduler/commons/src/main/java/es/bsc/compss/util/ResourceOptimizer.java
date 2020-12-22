@@ -23,9 +23,10 @@ import es.bsc.compss.scheduler.types.WorkloadState;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.ResourceCreationRequest;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -782,7 +783,7 @@ public class ResourceOptimizer extends Thread {
                     continue;
                 }
 
-                MethodResourceDescription constraints = ((MethodImplementation) impl).getRequirements();
+                MethodResourceDescription constraints = ((AbstractMethodImplementation) impl).getRequirements();
                 ValueResourceDescription v =
                     new ValueResourceDescription(constraints, creationRecommendations[coreId], false);
                 pq.add(v);
@@ -801,7 +802,7 @@ public class ResourceOptimizer extends Thread {
                     if (impl.getTaskType() == TaskType.SERVICE) {
                         continue;
                     }
-                    MethodResourceDescription constraints = ((MethodImplementation) impl).getRequirements();
+                    MethodResourceDescription constraints = ((AbstractMethodImplementation) impl).getRequirements();
                     ValueResourceDescription v =
                         new ValueResourceDescription(constraints, creationRecommendations[coreId], false);
                     pq.add(v);

@@ -39,7 +39,9 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -85,12 +87,17 @@ public class TestInvoker {
         return (directory.delete());
     }
 
+    public AbstractMethodImplementation genDummy(String className, String methodName, Integer coreId, Integer implId,
+        String signature, MethodResourceDescription mrd) {
+        return new AbstractMethodImplementation(coreId, implId,
+            new ImplementationDescription<>(new MethodDefinition(className, methodName), signature, mrd));
+    }
+
     @Test
     public void emptyInvoker() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr.setListener(expectedEvents);
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
@@ -123,8 +130,7 @@ public class TestInvoker {
         p.setValue(true);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
@@ -159,8 +165,7 @@ public class TestInvoker {
         p.setValue('a');
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 'a'));
@@ -197,8 +202,7 @@ public class TestInvoker {
         p.setValue(240);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 240));
@@ -235,8 +239,7 @@ public class TestInvoker {
         p.setValue(25);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 25));
@@ -274,8 +277,7 @@ public class TestInvoker {
         p.setValue(878544);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 878544));
@@ -312,8 +314,7 @@ public class TestInvoker {
         p.setValue(832478544);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 832478544));
@@ -350,8 +351,7 @@ public class TestInvoker {
         p.setValue(832.23f);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 832.23f));
@@ -388,8 +388,7 @@ public class TestInvoker {
         p.setValue(83.31415644d);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 83.31415644d));
@@ -426,8 +425,7 @@ public class TestInvoker {
         p.setValue("Test String");
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, "Test String"));
@@ -469,8 +467,7 @@ public class TestInvoker {
         params.add(p);
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 83.31415644d));
@@ -516,8 +513,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -556,8 +552,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -597,8 +592,7 @@ public class TestInvoker {
             false, "", renaming, false);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         invBr = invBr.setTarget(p);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -638,8 +632,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         invBr = invBr.setParams(params);
         invBr = invBr.setTarget(p);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -682,8 +675,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> results = new LinkedList<>();
         results.add(p);
         invBr = invBr.setResult(results);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.RETURN, 0, Field.WRITE_FINAL, true));
@@ -725,8 +717,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -767,8 +758,7 @@ public class TestInvoker {
         params.add(p);
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -807,8 +797,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -851,8 +840,7 @@ public class TestInvoker {
         params.add(p);
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -894,8 +882,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         params.add(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -937,8 +924,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setParams(params);
         invBr = invBr.setTarget(p);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -979,8 +965,7 @@ public class TestInvoker {
         invBr = invBr.setTarget(p);
         LinkedList<InvocationParam> params = new LinkedList<>();
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -1019,8 +1004,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setTarget(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -1062,8 +1046,7 @@ public class TestInvoker {
         invBr = invBr.setTarget(p);
         LinkedList<InvocationParam> params = new LinkedList<>();
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -1105,8 +1088,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         invBr = invBr.setTarget(p);
         invBr = invBr.setParams(params);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -1151,8 +1133,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> results = new LinkedList<>();
         results.add(p);
         invBr = invBr.setResult(results);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.RETURN, 0, Field.WRITE_FINAL, true));
@@ -1194,8 +1175,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> results = new LinkedList<>();
         results.add(p);
         invBr = invBr.setResult(results);
-        invBr = invBr
-            .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
+        invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.RETURN, 0, Field.WRITE_FINAL, true));

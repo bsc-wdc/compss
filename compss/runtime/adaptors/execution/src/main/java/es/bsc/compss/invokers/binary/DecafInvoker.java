@@ -31,7 +31,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.DecafImplementation;
+import es.bsc.compss.types.implementations.definition.DecafDefinition;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -70,9 +70,9 @@ public class DecafInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        DecafImplementation decafImpl = null;
+        DecafDefinition decafImpl = null;
         try {
-            decafImpl = (DecafImplementation) invocation.getMethodImplementation();
+            decafImpl = (DecafDefinition) invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
@@ -187,7 +187,7 @@ public class DecafInvoker extends Invoker {
         } else {
             cmd = new String[NUM_BASE_DECAF_ARGS];
         }
-        final String dfRunner = this.context.getInstallDir() + DecafImplementation.SCRIPT_PATH;
+        final String dfRunner = this.context.getInstallDir() + DecafDefinition.SCRIPT_PATH;
         cmd[0] = dfRunner;
         cmd[1] = this.dfScript;
         cmd[2] = this.dfExecutor;

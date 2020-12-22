@@ -21,14 +21,6 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.gat.executor.types.ExecutionEnd;
-import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
-import es.bsc.compss.gat.worker.implementations.COMPSsDefinition;
-import es.bsc.compss.gat.worker.implementations.DecafDefinition;
-import es.bsc.compss.gat.worker.implementations.JavaMethodDefinition;
-import es.bsc.compss.gat.worker.implementations.MPIDefinition;
-import es.bsc.compss.gat.worker.implementations.MultiNodeDefinition;
-import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
-import es.bsc.compss.gat.worker.implementations.OpenCLDefinition;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.ExecutionListener;
@@ -40,7 +32,21 @@ import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.BinaryDefinition;
+import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
+import es.bsc.compss.types.implementations.definition.ContainerDefinition;
+import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
+import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
+import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
+import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
@@ -149,7 +155,7 @@ public class GATWorker implements InvocationContext {
         }
 
         // Retrieve task arguments
-        ImplementationDefinition implDef = parseArguments(args);
+        GATInvocation implDef = parseArguments(args);
 
         // Initialize GAT Worker
         GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, streamBackend,
@@ -237,38 +243,55 @@ public class GATWorker implements InvocationContext {
      *            arg[3+N+1]: Number of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method
      *            dependant parameters Others
      */
-    private static ImplementationDefinition parseArguments(String[] args) {
+    private static GATInvocation parseArguments(String[] args) {
         // Default flags
         int argPosition = DEFAULT_FLAGS_SIZE;
         boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
         MethodType methodType = MethodType.valueOf(args[argPosition++]);
         switch (methodType) {
             case METHOD:
-                return new JavaMethodDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new MethodDefinition(args, argPosition), debug, args,
+                    argPosition + MethodDefinition.NUM_PARAMS);
             case BINARY:
-                return new BinaryDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new BinaryDefinition(args, argPosition), debug, args,
+                    argPosition + BinaryDefinition.NUM_PARAMS);
             case MPI:
-                return new MPIDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new MPIDefinition(args, argPosition), debug, args,
+                    argPosition + MPIDefinition.NUM_PARAMS);
             case COMPSs:
-                return new COMPSsDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new COMPSsDefinition(args, argPosition), debug, args,
+                    argPosition + COMPSsDefinition.NUM_PARAMS);
             case DECAF:
-                return new DecafDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new DecafDefinition(args, argPosition), debug, args,
+                    argPosition + DecafDefinition.NUM_PARAMS);
             case MULTI_NODE:
-                return new MultiNodeDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new MultiNodeDefinition(args, argPosition), debug, args,
+                    argPosition + MultiNodeDefinition.NUM_PARAMS);
             case OMPSS:
-                return new OMPSsDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new OmpSsDefinition(args, argPosition), debug, args,
+                    argPosition + OmpSsDefinition.NUM_PARAMS);
             case OPENCL:
-                return new OpenCLDefinition(debug, args, argPosition);
+                return genImplemenationDefinition(new OpenCLDefinition(args, argPosition), debug, args,
+                    argPosition + OpenCLDefinition.NUM_PARAMS);
             case PYTHON_MPI:
-                // TODO: Support Python MPI in GAT
-                throw new UnsupportedOperationException("Python MPI is not supported in GAT");
+                PythonMPIDefinition pyMPIDef = new PythonMPIDefinition(args, argPosition);
+                return genImplemenationDefinition(pyMPIDef, debug, args,
+                    argPosition + PythonMPIDefinition.NUM_PARAMS + pyMPIDef.getCollectionLayouts().length * 4);
             case CONTAINER:
-                // TODO: Support containers in GAT
-                throw new UnsupportedOperationException("Container executions are not supported in GAT");
+                return genImplemenationDefinition(new ContainerDefinition(args, argPosition), debug, args,
+                    argPosition + ContainerDefinition.NUM_PARAMS);
         }
         // If we reach this point means that the methodType was unrecognized
         ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
         return null;
+    }
+
+    private static GATInvocation genImplemenationDefinition(AbstractMethodImplementationDefinition implDef,
+        boolean debug, String[] args, int argPosition) {
+        ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> implDesc =
+            new ImplementationDescription<>(implDef, "", null);
+        AbstractMethodImplementation impl = new AbstractMethodImplementation(0, 0, implDesc);
+        return new GATInvocation(debug, impl, args, argPosition);
     }
 
     @Override
@@ -414,7 +437,7 @@ public class GATWorker implements InvocationContext {
         }
     }
 
-    private boolean runTask(ImplementationDefinition task) {
+    private boolean runTask(GATInvocation task) {
         // Execute the job
         final ExecutionEnd status = new ExecutionEnd();
         final Semaphore sem = new Semaphore(0);

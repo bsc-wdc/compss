@@ -38,7 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public abstract class ImplementationDefinition implements Invocation {
+public class GATInvocation implements Invocation {
 
     protected static final String ERROR_INVOKE = "Error invoking requested method";
     private static final String WARN_UNSUPPORTED_DATA_TYPE = "WARNING: Unsupported data type";
@@ -60,16 +60,19 @@ public abstract class ImplementationDefinition implements Invocation {
     private final LinkedList<Param> arguments = new LinkedList<>();
     private final Param target;
     private final LinkedList<Param> results = new LinkedList<>();
+    private final AbstractMethodImplementation impl;
 
 
     /**
      * Creates a new ImplementationDefinition instance.
      * 
      * @param enableDebug Whether the debug mode is enabled or not.
+     * @param impl Abstract method Implementation.
      * @param args Application arguments.
      * @param appArgsIdx Application arguments parsing index.
      */
-    public ImplementationDefinition(boolean enableDebug, String[] args, int appArgsIdx) {
+    public GATInvocation(boolean enableDebug, AbstractMethodImplementation impl, String[] args, int appArgsIdx) {
+        this.impl = impl;
         this.jobId = Integer.parseInt(args[appArgsIdx++]);
         this.taskId = Integer.parseInt(args[appArgsIdx++]);
         this.lang = Lang.JAVA;
@@ -289,7 +292,9 @@ public abstract class ImplementationDefinition implements Invocation {
     }
 
     @Override
-    public abstract AbstractMethodImplementation getMethodImplementation();
+    public AbstractMethodImplementation getMethodImplementation() {
+        return this.impl;
+    }
 
     @Override
     public MethodResourceDescription getRequirements() {
@@ -300,9 +305,13 @@ public abstract class ImplementationDefinition implements Invocation {
         return mrd;
     }
 
-    public abstract MethodType getType();
+    public MethodType getType() {
+        return this.impl.getMethodType();
+    }
 
-    public abstract String toLogString();
+    public String toLogString() {
+        return this.impl.getMethodDefinition();
+    }
 
     @Override
     public List<? extends InvocationParam> getParams() {
@@ -491,5 +500,6 @@ public abstract class ImplementationDefinition implements Invocation {
             // File is not available to be fetch from anywhere
             return null;
         }
+
     }
 }

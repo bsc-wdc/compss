@@ -16,137 +16,57 @@
  */
 package es.bsc.compss.types.implementations;
 
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.ServiceDefinition;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.ServiceResourceDescription;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.List;
 
-
-public class ServiceImplementation extends Implementation implements Externalizable {
+public class ServiceImplementation extends Implementation {
 
     /**
      * Runtime Objects have serialization ID 1L.
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 4;
-
-    private String operation;
-
 
     /**
-     * Creates a new ServiceImplementation for serialization.
+     * Generate Dummy service implementation.
+     * 
+     * @return Dummy service implementation.
      */
+    public static ServiceImplementation generateDummy() {
+        return new ServiceImplementation(null, null, new ImplementationDescription<>(
+            new ServiceDefinition("", "", "", ""), "", new ServiceResourceDescription("", "", "", 0)));
+    }
+
     public ServiceImplementation() {
-        // For externalizable
         super();
     }
 
-    /**
-     * Creates a new ServiceImplementation instance from the given parameters.
-     *
-     * @param coreId Core Id.
-     * @param namespace Service namespace.
-     * @param service Service name.
-     * @param port Service port.
-     * @param operation Service operation.
-     * @param signature Service operation signature.
-     */
-    public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation,
-        String signature) {
-
-        super(coreId, 0, signature, null);
-
-        this.requirements = new ServiceResourceDescription(service, namespace, port, 1);
-        this.operation = operation;
+    public ServiceImplementation(Integer coreId, Integer implId,
+        ImplementationDescription<ServiceResourceDescription, ServiceDefinition> implDesc) {
+        super(coreId, implId, implDesc);
     }
 
-    /**
-     * Returns the service operation.
-     *
-     * @return
-     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public ImplementationDescription<ServiceResourceDescription, ServiceDefinition> getDescription() {
+        return (ImplementationDescription<ServiceResourceDescription, ServiceDefinition>) this.implDescription;
+
+    }
+
+    @Override
+    public ServiceResourceDescription getRequirements() {
+        return this.getDescription().getConstraints();
+
+    }
+
     public String getOperation() {
-        return this.operation;
-    }
-
-    /**
-     * Builds a service signature from the given parameters.
-     *
-     * @param namespace Service namespace.
-     * @param serviceName Service name.
-     * @param portName Service port.
-     * @param operation Service operation.
-     * @param hasTarget Whether the service has a target object or not.
-     * @param numReturns The number of return parameters of the service.
-     * @param parameters The number of parameters of the method.
-     * @return Signature built from the given parameters.
-     */
-    public static String getSignature(String namespace, String serviceName, String portName, String operation,
-        boolean hasTarget, int numReturns, List<Parameter> parameters) {
-
-        StringBuilder buffer = new StringBuilder();
-
-        buffer.append(operation).append("(");
-        int numPars = parameters.size();
-        if (hasTarget) {
-            numPars--;
-        }
-
-        numPars -= numReturns;
-        if (numPars > 0) {
-            buffer.append(parameters.get(0).getType());
-            for (int i = 1; i < numPars; i++) {
-                buffer.append(",").append(parameters.get(i).getType());
-            }
-        }
-        buffer.append(")").append(namespace).append(',').append(serviceName).append(',').append(portName);
-
-        return buffer.toString();
+        return getDescription().getDefinition().getOperation();
     }
 
     @Override
     public TaskType getTaskType() {
         return TaskType.SERVICE;
-    }
-
-    @Override
-    public ServiceResourceDescription getRequirements() {
-        return (ServiceResourceDescription) this.requirements;
-    }
-
-    @Override
-    public ImplementationDefinition<ServiceResourceDescription> getDefinition() {
-        String namespace = this.getRequirements().getNamespace();
-        String serviceName = this.getRequirements().getServiceName();
-        String port = this.getRequirements().getPort();
-
-        return new ServiceDefinition(this.signature, namespace, serviceName, this.operation, port);
-    }
-
-    @Override
-    public String toString() {
-        ServiceResourceDescription description = (ServiceResourceDescription) this.requirements;
-        return super.toString() + " Service in namespace " + description.getNamespace() + " with name "
-            + description.getPort() + " on port " + description.getPort() + "and operation " + this.operation;
-    }
-
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        super.readExternal(in);
-        this.operation = (String) in.readObject();
-    }
-
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        super.writeExternal(out);
-        out.writeObject(this.operation);
     }
 
 }

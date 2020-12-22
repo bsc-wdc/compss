@@ -38,7 +38,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -369,8 +369,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         MethodResourceDescription requirements = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS;
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(ceSignature);
-        ImplementationDefinition<?> implDef =
-            ImplementationDefinition.defineImplementation("METHOD", implSignature, requirements, typeArgs);
+        ImplementationDescription<?, ?> implDef =
+            ImplementationDescription.defineImplementation("METHOD", implSignature, requirements, typeArgs);
         ced.addImplementation(implDef);
         try {
             appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, OnFailure.FAIL);

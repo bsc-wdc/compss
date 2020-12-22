@@ -21,7 +21,7 @@ import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
@@ -94,7 +94,7 @@ public class CoreManager {
         if (coreElement == null) {
             coreElement = insertCoreElement(ceSignature);
         }
-        for (ImplementationDefinition<?> implDef : ced.getImplementations()) {
+        for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {
             String implSignature = implDef.getSignature();
             if (implSignature != null && !implSignature.isEmpty()) {
                 boolean alreadyExisting = coreElement.addImplementation(implDef);

@@ -48,8 +48,9 @@ import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.ImplementationDescription;
+import es.bsc.compss.types.implementations.ImplementationSignature;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
@@ -575,8 +576,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);
-        ImplementationDefinition<?> implDef =
-            ImplementationDefinition.defineImplementation(implType, implSignature, mrd, implTypeArgs);
+        ImplementationDescription<?, ?> implDef =
+            ImplementationDescription.defineImplementation(implType, implSignature, mrd, implTypeArgs);
         ced.addImplementation(implDef);
 
         td.registerNewCoreElement(ced);
@@ -587,7 +588,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.info("Registering CoreElement " + ced.getCeSignature());
         if (LOGGER.isDebugEnabled()) {
             int implId = 0;
-            for (ImplementationDefinition<?> implDef : ced.getImplementations()) {
+            for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {
                 LOGGER.debug("\t - Implementation " + implId + ":");
                 try {
                     LOGGER.debug(implDef.toString());
@@ -813,7 +814,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Create the signature if it is not created
         if (!hasSignature) {
-            signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, numReturns, pars);
+            signature =
+                ImplementationSignature.getMethodSignature(methodClass, methodName, hasTarget, numReturns, pars);
         }
 
         if (monitor == null) {

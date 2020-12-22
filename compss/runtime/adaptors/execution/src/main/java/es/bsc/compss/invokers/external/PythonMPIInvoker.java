@@ -30,7 +30,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.PythonMPIImplementation;
+import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -66,9 +66,9 @@ public class PythonMPIInvoker extends ExternalInvoker {
         InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
-        PythonMPIImplementation pythonmpiImpl = null;
+        PythonMPIDefinition pythonmpiImpl = null;
         try {
-            pythonmpiImpl = (PythonMPIImplementation) this.invocation.getMethodImplementation();
+            pythonmpiImpl = (PythonMPIDefinition) this.invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);

@@ -16,151 +16,69 @@
  */
 package es.bsc.compss.types.implementations;
 
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.exceptions.LangNotDefinedException;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.List;
 
-
-public abstract class AbstractMethodImplementation extends Implementation implements Externalizable {
+public class AbstractMethodImplementation extends Implementation {
 
     /**
      * Runtime Objects have serialization ID 1L.
      */
     private static final long serialVersionUID = 1L;
 
-    private static final Lang LANG;
-
-    static {
-        // Compute language
-        Lang l = Lang.JAVA;
-
-        String langProperty = System.getProperty(COMPSsConstants.LANG);
-        if (langProperty != null) {
-            if (langProperty.equalsIgnoreCase("python")) {
-                l = Lang.PYTHON;
-            } else if (langProperty.equalsIgnoreCase("c")) {
-                l = Lang.C;
-            }
-        }
-
-        LANG = l;
-    }
-
 
     /**
-     * New AbstractMethodImplementation instance for serialization.
+     * Generate a dummy method implementation.
+     * 
+     * @param constraints Method resource description for the dummy implementation
+     * @return Dummy abstract method implementation.
      */
+    public static AbstractMethodImplementation generateDummy(MethodResourceDescription constraints) {
+        return new AbstractMethodImplementation(null, null,
+            new ImplementationDescription<>(new MethodDefinition("", ""), "", constraints));
+    }
+
     public AbstractMethodImplementation() {
-        // For externalizable
+        // For serialization
         super();
     }
 
-    /**
-     * New AbstractMethodImplementation instance for the given core Id {@code coreId} - implementation Id
-     * {@code implementationId}, and with the annotations {@code annot}.
-     * 
-     * @param coreId Associated core Id.
-     * @param implementationId Associated implementation Id.
-     * @param signature Implementation's operation signature
-     * @param annot Implementation's requirements.
-     */
-    public AbstractMethodImplementation(Integer coreId, Integer implementationId, String signature,
-        MethodResourceDescription annot) {
-        super(coreId, implementationId, signature, annot);
+    public AbstractMethodImplementation(Integer coreId, Integer implId,
+        ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> implDesc) {
+        super(coreId, implId, implDesc);
     }
-
-    /**
-     * Builds the signature from the given parameters.
-     * 
-     * @param declaringClass Method declaring classs.
-     * @param methodName Method name.
-     * @param hasTarget Whether the method has target object or not.
-     * @param numReturns The number of return values of the method.
-     * @param parameters The number of parameters of the method.
-     * @return The signature built from the given parameters.
-     */
-    public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns,
-        List<Parameter> parameters) {
-
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(methodName).append("(");
-
-        switch (LANG) {
-            case JAVA:
-            case C:
-                int numPars = parameters.size();
-                if (hasTarget) {
-                    numPars--;
-                }
-                numPars -= numReturns;
-                if (numPars > 0) {
-                    DataType type = parameters.get(0).getType();
-                    type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;
-                    buffer.append(type);
-                    for (int i = 1; i < numPars; i++) {
-                        type = parameters.get(i).getType();
-                        type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;
-                        buffer.append(",").append(type);
-                    }
-                }
-                break;
-            case PYTHON:
-                // There is no function overloading in Python
-                break;
-            case UNKNOWN:
-                throw new LangNotDefinedException();
-        }
-
-        buffer.append(")").append(declaringClass);
-        return buffer.toString();
-    }
-
-    /**
-     * Returns the internal method type.
-     * 
-     * @return The internal method type.
-     */
-    public abstract MethodType getMethodType();
-
-    /**
-     * Returns the method definition.
-     * 
-     * @return The method definition.
-     */
-    public abstract String getMethodDefinition();
 
     @Override
-    public TaskType getTaskType() {
-        return TaskType.METHOD;
+    public ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition>
+        getDescription() {
+        return (ImplementationDescription<MethodResourceDescription,
+            AbstractMethodImplementationDefinition>) this.implDescription;
+
     }
 
     @Override
     public MethodResourceDescription getRequirements() {
-        return (MethodResourceDescription) this.requirements;
+        return this.getDescription().getConstraints();
+
+    }
+
+    public AbstractMethodImplementationDefinition getDefinition() {
+        return getDescription().getDefinition();
+    }
+
+    public String getMethodDefinition() {
+        return getDescription().getDefinition().toMethodDefinitionFormat();
+    }
+
+    public MethodType getMethodType() {
+        return getDescription().getDefinition().getMethodType();
     }
 
     @Override
-    public String toString() {
-        return super.toString();
-    }
-
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        super.readExternal(in);
-    }
-
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        super.writeExternal(out);
+    public TaskType getTaskType() {
+        return TaskType.METHOD;
     }
 
 }

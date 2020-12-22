@@ -30,7 +30,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
+import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -62,9 +62,9 @@ public class OmpSsInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        OmpSsImplementation ompssImpl = null;
+        OmpSsDefinition ompssImpl = null;
         try {
-            ompssImpl = (OmpSsImplementation) this.invocation.getMethodImplementation();
+            ompssImpl = (OmpSsDefinition) this.invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);

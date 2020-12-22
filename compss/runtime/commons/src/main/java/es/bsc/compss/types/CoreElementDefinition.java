@@ -16,7 +16,8 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.ImplementationDescription;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ import java.util.List;
 public class CoreElementDefinition implements Comparable<CoreElementDefinition> {
 
     private String ceSignature;
-    private final List<ImplementationDefinition<?>> implementations;
+    private final List<ImplementationDescription<?, ?>> implementations;
 
 
     /**
@@ -57,7 +58,7 @@ public class CoreElementDefinition implements Comparable<CoreElementDefinition> 
      * 
      * @param impl The new CoreElement implementation.
      */
-    public void addImplementation(ImplementationDefinition<?> impl) {
+    public void addImplementation(ImplementationDescription<?, ?> impl) {
         this.implementations.add(impl);
     }
 
@@ -66,7 +67,7 @@ public class CoreElementDefinition implements Comparable<CoreElementDefinition> 
      * 
      * @return The registered implementations for the CoreElement.
      */
-    public List<ImplementationDefinition<?>> getImplementations() {
+    public List<ImplementationDescription<?, ?>> getImplementations() {
         return this.implementations;
     }
 

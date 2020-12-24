@@ -20,8 +20,10 @@ import es.bsc.compss.log.Loggers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -47,7 +49,7 @@ public class MultiNodeGroup {
     private final int groupSize;
     private AtomicInteger nextProcessId;
     private boolean isAnyActionRunning;
-
+    private final Set<MultiNodeExecutionAction> remainingActions;
     private final HashMap<Integer, MultiNodeExecutionAction> registeredSlaves;
     private MultiNodeExecutionAction registeredMaster;
 
@@ -64,9 +66,13 @@ public class MultiNodeGroup {
         this.groupSize = groupSize;
         this.nextProcessId = new AtomicInteger(groupSize);
         this.isAnyActionRunning = false;
-
+        this.remainingActions = new HashSet<>(groupSize);
         this.registeredSlaves = new HashMap<>();
         this.registeredMaster = null;
+    }
+
+    public void addAction(MultiNodeExecutionAction action) {
+        remainingActions.add(action);
     }
 
     /**
@@ -111,6 +117,7 @@ public class MultiNodeGroup {
      */
     public int registerProcess(MultiNodeExecutionAction action) {
         int actionId = this.nextProcessId.getAndDecrement();
+        remainingActions.remove(action);
         if (actionId == ID_MASTER_PROC) {
             // Register process as master
             LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as master of group " + this.groupId);
@@ -119,9 +126,21 @@ public class MultiNodeGroup {
             // Register process as slave
             LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as slave of group " + this.groupId);
             this.registeredSlaves.put(actionId, action);
+
+            if (remainingActions.size() == this.groupSize - 1) {
+                // First registered task, a change could be done in the othe group scores
+                LOGGER.debug("[MultiNodeGroup] Upgrading actions of group " + this.groupId);
+                updateRemainingActionScore();
+            }
         }
 
         return actionId;
+    }
+
+    private void updateRemainingActionScore() {
+        for (MultiNodeExecutionAction action : this.remainingActions) {
+            action.upgrade();
+        }
     }
 
     /**

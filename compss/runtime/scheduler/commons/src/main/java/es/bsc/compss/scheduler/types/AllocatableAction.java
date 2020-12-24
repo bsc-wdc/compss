@@ -596,7 +596,7 @@ public abstract class AllocatableAction {
             && readyForExecution // there are no tasks being executed in a commutative group
         ) {
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
-            // task is not to stop; or the assigned resour ce is not the required
+            // task is not to stop; or the assigned resource is not the required
             if ((this.selectedResource.isRemoved() && !isToStopResource())
                 || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
                     && this.selectedResource != this.schedulingInfo.getEnforcedTargetResource())) {

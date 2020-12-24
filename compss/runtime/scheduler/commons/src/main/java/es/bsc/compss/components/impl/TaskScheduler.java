@@ -39,6 +39,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
+import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
@@ -63,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -82,7 +82,7 @@ public class TaskScheduler {
     private ActionOrchestrator orchestrator;
 
     // Map of available workers and its resource schedulers
-    private final WorkersMap workers;
+    protected final WorkersMap workers;
 
     // List of blocked actions
     private final ActionSet blockedActions;
@@ -665,7 +665,7 @@ public class TaskScheduler {
     protected <T extends WorkerResourceDescription> void handleDependencyFreeActions(
         List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
         List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
-        LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
+        LOGGER.debug("[TaskScheduler] Handling dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
         // Try to launch all the data free actions and the resource free actions
@@ -1144,6 +1144,16 @@ public class TaskScheduler {
         return new LinkedList<>();
     }
 
+    /** Upgrade the action because another action of the same multi-node group has been scheduled
+     * and it should be prioritised to avoid possible deadlocks.
+     *
+     * @param action Action to upgrade
+     */
+    public void upgradeAction(AllocatableAction action) {
+        LOGGER.info("No upgrade required by default for " + action);
+        // Nothing to do by default
+    }
+
     /*
      * *********************************************************************************************************
      * *********************************************************************************************************
@@ -1494,9 +1504,9 @@ public class TaskScheduler {
         return res;
     }
 
-    private class WorkersMap {
+    protected class WorkersMap {
 
-        private final Map<Worker<? extends WorkerResourceDescription>,
+        private final Map<Resource,
             ResourceScheduler<? extends WorkerResourceDescription>> map;
 
 
@@ -1504,16 +1514,16 @@ public class TaskScheduler {
             this.map = new HashMap<>();
         }
 
-        public <T extends WorkerResourceDescription> void put(Worker<T> w, ResourceScheduler<T> rs) {
+        public <T extends WorkerResourceDescription> void put(Resource w, ResourceScheduler<T> rs) {
             this.map.put(w, rs);
         }
 
         @SuppressWarnings("unchecked")
-        public <T extends WorkerResourceDescription> ResourceScheduler<T> get(Worker<T> w) {
+        public <T extends WorkerResourceDescription> ResourceScheduler<T> get(Resource w) {
             return (ResourceScheduler<T>) this.map.get(w);
         }
 
-        private <T extends WorkerResourceDescription> void remove(Worker<T> resource) {
+        private <T extends WorkerResourceDescription> void remove(Resource resource) {
             this.map.remove(resource);
         }
 

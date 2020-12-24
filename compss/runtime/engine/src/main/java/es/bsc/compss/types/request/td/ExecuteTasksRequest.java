@@ -180,6 +180,7 @@ public class ExecuteTasksRequest extends TDRequest {
                 ts.generateSchedulingInformation(specificResource, this.task.getTaskDescription().getParameters(),
                     this.task.getTaskDescription().getCoreElement().getCoreId()),
                 ts.getOrchestrator(), this.ap, this.task, group);
+            group.addAction(action);
             ts.newAllocatableAction(action);
         }
     }

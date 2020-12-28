@@ -221,7 +221,7 @@
   
   sleep 1
   
-  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ on AGENT 1
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 1
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
 
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
@@ -245,7 +245,7 @@
     exit 1
   fi
 
-  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ on AGENT 1
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 2
   RESOURCES=$(curl -XGET http://127.0.0.1:46201/COMPSs/resources 2>/dev/null)
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
   if [ ! "${num_RESOURCES}" == "1" ]; then
@@ -268,6 +268,52 @@
     exit 1
   fi
 
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 3
+  RESOURCES=$(curl -XGET http://127.0.0.1:46301/COMPSs/resources 2>/dev/null)
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 3's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker03") | .description ')
+  if [ -z "${DESCRIPTION}" ]; then
+    echo "Wrong Resource on Agent 3; COMPSsWorker03 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 3. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 3. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 4
+  RESOURCES=$(curl -XGET http://127.0.0.1:46401/COMPSs/resources 2>/dev/null)
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 4's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker04") | .description ')
+  if [ -z "${DESCRIPTION}" ]; then
+    echo "Wrong Resource on Agent 4; COMPSsWorker04 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 4. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 4. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
 
   # ---------------------------------------
   # ------- TESTING COMM INTERFACE --------
@@ -283,7 +329,7 @@
     "COMPSsWorker02" "Port=46202" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
   sleep 1
   
-# CHECK WHETHER THE Worker as properly set on AGENT 1
+# CHECK WHETHER THE Worker was properly set on AGENT 1
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
 
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
@@ -378,6 +424,7 @@
     echo "unexpected number of tasks executed on Agent2. Expecting 2 and ${created_jobs} ran."
     exit 1
   fi 
+  
   job1_start=$( grep "Start time:" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
   job1_end=$( grep "Start time:" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
   job2_start=$( grep "Start time:" "${agent2_log_dir}/jobs/job2_NEW.out" | cut -d ':' -f2)
@@ -487,7 +534,7 @@
     "COMPSsWorker03" "Port=46302" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
   sleep 1
   
-# CHECK WHETHER THE Worker as properly set on AGENT 1
+# CHECK WHETHER THE Worker was properly set on AGENT 1
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
 
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
@@ -624,7 +671,7 @@
   sleep 1
 
 
-  # CHECK WHETHER THE Worker as properly set on AGENT 1
+  # CHECK WHETHER THE Worker was properly set on AGENT 1
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
 
 

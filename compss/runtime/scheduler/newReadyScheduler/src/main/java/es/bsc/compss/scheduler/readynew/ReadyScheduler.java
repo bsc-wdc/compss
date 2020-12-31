@@ -33,13 +33,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -58,6 +57,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
     protected final HashMap<ResourceScheduler<?>, Future<?>> resourceTokens;
     protected int amountOfWorkers;
     ThreadPoolExecutor schedulerExecutor;
+    protected Set<AllocatableAction> upgradedActions;
 
 
     /**
@@ -70,6 +70,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
         this.amountOfWorkers = 0;
         this.schedulerExecutor = new ThreadPoolExecutor(15, 40, 180, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         this.schedulerExecutor.allowCoreThreadTimeOut(true);
+        this.upgradedActions = new HashSet<>();
     }
 
     /*
@@ -200,7 +201,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
         Set<AllocatableAction> unassigned = new HashSet<>();
         Iterator<ResourceScheduler<?>> iter = this.getWorkers().iterator();
         while (iter.hasNext()) {
-            @SuppressWarnings("unchecked")
             ReadyResourceScheduler<?> resource = (ReadyResourceScheduler<?>) iter.next();
             Future<?> resourceToken = this.resourceTokens.get(resource);
             if (resourceToken != null) {
@@ -223,8 +223,9 @@ public abstract class ReadyScheduler extends TaskScheduler {
         List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
         List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
         if (DEBUG) {
-            LOGGER.debug("[ReadyScheduler] Treating dependency free actions on resource " + resource.getName());
+            LOGGER.debug("[ReadyScheduler] Handling dependency free actions on resource " + resource.getName());
         }
+        manageUpgradedActions(resource);
         if (resource.canRunSomething()) {
             this.availableWorkers.add(resource);
         }
@@ -235,6 +236,60 @@ public abstract class ReadyScheduler extends TaskScheduler {
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
         List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
         ResourceScheduler<T> resource) {
+
+    }
+
+    private void manageUpgradedActions(ResourceScheduler<?> resource) {
+
+        if (!upgradedActions.isEmpty()) {
+            if (DEBUG) {
+                LOGGER.debug("[ReadyScheduler] Managing " + upgradedActions.size() + " upgraded actions.");
+            }
+            Set<ResourceScheduler<?>> candidates = new HashSet<>();
+            candidates.add(resource);
+            PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
+            for (AllocatableAction action : upgradedActions) {
+                Score fullScore = action.schedulingScore(resource, this.generateActionScore(action));
+                ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
+                executableActions.add(obj);
+            }
+            while (!executableActions.isEmpty() && resource.canRunSomething()) {
+                ObjectValue<AllocatableAction> obj = executableActions.poll();
+                AllocatableAction freeAction = obj.getObject();
+                try {
+                    freeAction.tryToSchedule(obj.getScore(), candidates);
+                    tryToLaunch(freeAction);
+                    upgradedActions.remove(freeAction);
+                } catch (BlockedActionException | UnassignedActionException e) {
+                    // Nothing to do It could be scheduled in another resource
+                }
+            }
+        }
+
+    }
+
+    private void updateActionToSchedulerStructures(AllocatableAction action) {
+
+        if (!this.getWorkers().isEmpty()) {
+            if (DEBUG) {
+                LOGGER.debug("[ReadyScheduler] Updating action to scheduler structures " + action);
+            }
+            if (action.isTargetResourceEnforced()) {
+                // Add in enforced resource only
+                ReadyResourceScheduler<?> resource = (ReadyResourceScheduler<?>) action.getEnforcedTargetResource();
+                updateActionInResource(resource, action);
+            } else {
+                updateActionInAllResources(action);
+            }
+
+        } else {
+            if (DEBUG) {
+                LOGGER.debug(
+                    "[ReadyScheduler] Cannot add action " + action + " because there are not available resources");
+            }
+            addToBlocked(action);
+        }
+
     }
 
     private void addActionToSchedulerStructures(AllocatableAction action) {
@@ -246,7 +301,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
             Score actionScore = generateActionScore(action);
             if (action.isTargetResourceEnforced()) {
                 // Add in enforced resource only
-                ReadyResourceScheduler<?> resource = (ReadyResourceScheduler) action.getEnforcedTargetResource();
+                ReadyResourceScheduler<?> resource = (ReadyResourceScheduler<?>) action.getEnforcedTargetResource();
                 addActionToResource(resource, actionScore, action);
             } else {
                 addActionInAllResources(actionScore, action);
@@ -266,8 +321,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
         // Add action in all workers
         Iterator<ResourceScheduler<?>> iter = getWorkers().iterator();
         if (iter.hasNext()) {
-            ReadyResourceScheduler<WorkerResourceDescription> resource =
-                (ReadyResourceScheduler<WorkerResourceDescription>) iter.next();
+            ReadyResourceScheduler<?> resource = (ReadyResourceScheduler<?>) iter.next();
             if (!addActionToResource(resource, actionScore, action)) {
                 if (DEBUG) {
                     LOGGER.debug("[ReadyScheduler] Action already added " + action);
@@ -275,7 +329,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 return;
             }
             while (iter.hasNext()) {
-                resource = (ReadyResourceScheduler<WorkerResourceDescription>) iter.next();
+                resource = (ReadyResourceScheduler<?>) iter.next();
                 Future<?> lastToken = this.resourceTokens.get(resource);
                 this.resourceTokens.put(resource,
                     schedulerExecutor.submit(new AddRunnable(resource, actionScore, action, lastToken)));
@@ -284,6 +338,18 @@ public abstract class ReadyScheduler extends TaskScheduler {
             if (DEBUG) {
                 LOGGER.debug("[ReadyScheduler] No resources to addAction");
             }
+        }
+
+    }
+
+    private void updateActionInAllResources(AllocatableAction action) {
+        // Add action in all workers
+        Iterator<ResourceScheduler<?>> iter = getWorkers().iterator();
+        while (iter.hasNext()) {
+            ReadyResourceScheduler<?> resource = (ReadyResourceScheduler<?>) iter.next();
+            Future<?> lastToken = this.resourceTokens.get(resource);
+            this.resourceTokens.put(resource,
+                schedulerExecutor.submit(new UpdateRunnable(resource, action, lastToken)));
         }
 
     }
@@ -306,8 +372,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
         Iterator<ResourceScheduler<?>> iter = getWorkers().iterator();
         if (iter.hasNext()) {
-            ReadyResourceScheduler<WorkerResourceDescription> resource =
-                (ReadyResourceScheduler<WorkerResourceDescription>) iter.next();
+            ReadyResourceScheduler<?> resource = (ReadyResourceScheduler<?>) iter.next();
             if (!removeActionFromResource(resource, action)) {
                 if (DEBUG) {
                     LOGGER.debug("[ReadyScheduler] Action already added " + action);
@@ -316,7 +381,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
             }
 
             while (iter.hasNext()) {
-                resource = (ReadyResourceScheduler<WorkerResourceDescription>) iter.next();
+                resource = (ReadyResourceScheduler<?>) iter.next();
                 Future<?> lastToken = this.resourceTokens.get(resource);
                 this.resourceTokens.put(resource,
                     schedulerExecutor.submit(new RemoveRunnable(resource, action, lastToken)));
@@ -338,8 +403,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
         // Actions that have been freeded by the action that just finished
         for (AllocatableAction freeAction : dataFreeActions) {
             if (DEBUG) {
-                LOGGER
-                    .debug("[ReadyScheduler] Introducing action " + freeAction + " into the scheduler from data free");
+                LOGGER.debug("[ReadyScheduler] Introducing data free action " + freeAction + " into the scheduler.");
             }
             addActionToSchedulerStructures(freeAction);
         }
@@ -347,8 +411,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
         // Resource free actions should always be empty in this scheduler
         for (AllocatableAction freeAction : resourceFreeActions) {
             if (DEBUG) {
-                LOGGER.debug(
-                    "[ReadyScheduler] Introducing action " + freeAction + " into the scheduler from resource free");
+                LOGGER
+                    .debug("[ReadyScheduler] Introducing resource free action " + freeAction + " into the scheduler.");
             }
             addActionToSchedulerStructures(freeAction);
         }
@@ -357,7 +421,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
         // available resources -> They were in the blocked list
         for (AllocatableAction freeAction : blockedCandidates) {
             if (DEBUG) {
-                LOGGER.debug("[ReadyScheduler] Introducing action " + freeAction + " into the scheduler from blocked");
+                LOGGER.debug("[ReadyScheduler] Introducing blocked action " + freeAction + " into the scheduler.");
             }
             addActionToSchedulerStructures(freeAction);
         }
@@ -371,16 +435,24 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 ErrorManager.fatal("Unexpected thread interruption", e);
             }
         }
-        this.resourceTokens.put(resource, null);
+        Semaphore sem = new Semaphore(0);
+        this.resourceTokens.put(resource, schedulerExecutor.submit(new WaitSchedulingRunnable(resource, sem)));
+
         Set<ObjectValue<AllocatableAction>> unassignedActions =
-            ((ReadyResourceScheduler<WorkerResourceDescription>) resource).getUnassignedActions();
+            ((ReadyResourceScheduler<?>) resource).getUnassignedActions();
         if (unassignedActions != null) {
-            Iterator<ObjectValue<AllocatableAction>> executableActionsIterator = unassignedActions.iterator();
             HashSet<ObjectValue<AllocatableAction>> objectValueToErase = new HashSet<>();
+            Iterator<ObjectValue<AllocatableAction>> executableActionsIterator = unassignedActions.iterator();
+            if (DEBUG) {
+                LOGGER.debug("[ReadyScheduler]  ***** Trying to schedule " + unassignedActions.size()
+                    + " unassigned actions to " + this.availableWorkers.size() + " workers");
+            }
             while (executableActionsIterator.hasNext() && !this.availableWorkers.isEmpty()) {
                 ObjectValue<AllocatableAction> obj = executableActionsIterator.next();
                 AllocatableAction freeAction = obj.getObject();
-
+                if (DEBUG) {
+                    LOGGER.debug("[ReadyScheduler] -- Trying to schedule " + freeAction);
+                }
                 try {
                     List<ResourceScheduler<?>> uselessWorkers = null;
                     if (freeAction.isTargetResourceEnforced()) {
@@ -400,17 +472,26 @@ public abstract class ReadyScheduler extends TaskScheduler {
                     ResourceScheduler<? extends WorkerResourceDescription> assignedResource =
                         freeAction.getAssignedResource();
                     tryToLaunch(freeAction);
-                    if (assignedResource != null && !assignedResource.canRunSomething()) {
-                        this.availableWorkers.remove(assignedResource);
+                    if (assignedResource != null) {
+                        if (DEBUG) {
+                            LOGGER.debug("[ReadyScheduler] -- Action " + freeAction
+                                + " successfully scheduled and launched in " + assignedResource.getName());
+                        }
+                        if (!assignedResource.canRunSomething()) {
+                            this.availableWorkers.remove(assignedResource);
+                        }
                     }
-
                     objectValueToErase.add(obj);
                 } catch (BlockedActionException e) {
+                    if (DEBUG) {
+                        LOGGER.debug("[ReadyScheduler] -- Action " + freeAction
+                            + " added to blocked and removed from unassigned.");
+                    }
                     objectValueToErase.add(obj);
                     addToBlocked(freeAction);
                 } catch (UnassignedActionException e) {
                     if (DEBUG) {
-                        LOGGER.debug("[ReadyScheduler] Action " + freeAction
+                        LOGGER.debug("[ReadyScheduler] -- Action " + freeAction
                             + " could not be assigned to any of the available resources");
                     }
                     // Nothing to be done here since the action was already in the scheduler
@@ -419,10 +500,19 @@ public abstract class ReadyScheduler extends TaskScheduler {
                     // Hence, this is not an ignored Exception but an expected behavior.
                 }
             }
+            sem.release();
+            if (DEBUG) {
+                LOGGER.debug("[ReadyScheduler]  ***** Unassigned actions scheduling finished. Removing "
+                    + objectValueToErase.size() + " actions from scheduler structures.");
+            }
             for (ObjectValue<AllocatableAction> obj : objectValueToErase) {
                 AllocatableAction action = obj.getObject();
                 removeActionFromSchedulerStructures(action);
             }
+        }
+        if (DEBUG) {
+            LOGGER
+                .debug("[ReadyScheduler] Try to launch free actions on resource " + resource.getName() + " finished.");
         }
     }
 
@@ -448,6 +538,30 @@ public abstract class ReadyScheduler extends TaskScheduler {
         }
         return added;
 
+    }
+
+    private void updateActionInResource(ReadyResourceScheduler<?> scheduler, AllocatableAction action) {
+        Set<ObjectValue<AllocatableAction>> actionList = scheduler.getUnassignedActions();
+        ObjectValue<AllocatableAction> obj = scheduler.getAddedActions().remove(action);
+        if (obj != null) {
+            if (actionList.remove(obj)) { // NOSONAR
+                Score fullScore = action.schedulingScore(scheduler, generateActionScore(action));
+                obj = new ObjectValue<>(action, fullScore);
+                boolean added = actionList.add(obj);
+                if (added) {
+                    scheduler.getAddedActions().put(action, obj);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void upgradeAction(AllocatableAction action) {
+        if (DEBUG) {
+            LOGGER.debug(" Upgrading action " + action);
+        }
+        upgradedActions.add(action);
+        updateActionToSchedulerStructures(action);
     }
 
 
@@ -481,6 +595,27 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
     }
 
+    private class WaitSchedulingRunnable implements Runnable {
+
+        private ResourceScheduler<?> scheduler;
+        private Semaphore sem;
+
+
+        public WaitSchedulingRunnable(ResourceScheduler<?> resource, Semaphore sem) {
+            this.scheduler = resource;
+            this.sem = sem;
+        }
+
+        public void run() {
+            try {
+                this.sem.acquire();
+            } catch (InterruptedException e) {
+                // Nothing to do
+            }
+        }
+
+    }
+
     private class AddRunnable implements Runnable {
 
         private ReadyResourceScheduler<?> scheduler;
@@ -509,6 +644,34 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 }
             }
             addActionToResource(scheduler, actionScore, action);
+        }
+    }
+
+    private class UpdateRunnable implements Runnable {
+
+        private ReadyResourceScheduler<?> scheduler;
+        private AllocatableAction action;
+        private Future<?> token;
+
+
+        public UpdateRunnable(ReadyResourceScheduler<?> scheduler, AllocatableAction action, Future<?> token) {
+            this.scheduler = scheduler;
+            this.action = action;
+            this.token = token;
+        }
+
+        public void run() {
+            if (token != null) {
+                try {
+                    token.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.fatal("Unexpected thread interruption", e);
+                    ErrorManager.fatal("Unexpected thread interruption", e);
+                    // Restore interrupted state.
+                    Thread.currentThread().interrupt();
+                }
+            }
+            updateActionInResource(scheduler, action);
         }
 
     }

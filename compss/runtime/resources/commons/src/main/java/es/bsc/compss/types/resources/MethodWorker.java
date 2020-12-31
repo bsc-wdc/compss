@@ -435,14 +435,12 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         boolean canRun = super.canRunNow(consumption);
 
         // Available slots
-        LOGGER.info("CHECKING CAN RUN ON " + this.getName());
         canRun = canRun && (this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU());
         canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !consumption.containsGPU());
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !consumption.containsFPGA());
         canRun =
             canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
         canRun = canRun && this.hasAvailable(consumption);
-        LOGGER.info("\t RUNNABLE " + canRun);
         return canRun;
     }
 

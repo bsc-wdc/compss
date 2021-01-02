@@ -198,4 +198,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
             + this.task.getTaskDescription().getName() + ") with GroupId = " + this.group.getGroupId();
     }
 
+    public void upgrade() {
+        orchestrator.actionUpgrade(this);
+    }
+
 }

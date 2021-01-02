@@ -249,6 +249,11 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         addRequest(request);
     }
 
+    @Override
+    public void actionUpgrade(AllocatableAction action) {
+        scheduler.upgradeAction(action);
+    }
+
     /**
      * Adds a new tasks summary request.
      *

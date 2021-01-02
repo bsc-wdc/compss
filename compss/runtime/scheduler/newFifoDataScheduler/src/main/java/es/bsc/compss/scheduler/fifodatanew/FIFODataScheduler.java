@@ -76,7 +76,7 @@ public class FIFODataScheduler extends ReadyScheduler {
         List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
         ResourceScheduler<T> resource) {
 
-        LOGGER.debug("[FIFOData Scheduler] Treating dependency free actions");
+        LOGGER.debug("[FIFOData Scheduler] Purging dependency free actions");
 
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction action : dataFreeActions) {

@@ -55,4 +55,9 @@ public class FakeActionOrchestrator implements ActionOrchestrator {
     public void actionException(AllocatableAction action, COMPSsException e) {
         this.ts.exceptionOnAction(action, e);
     }
+
+    @Override
+    public void actionUpgrade(AllocatableAction action) {
+        this.ts.upgradeAction(action);
+    }
 }

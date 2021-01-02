@@ -50,4 +50,12 @@ public interface ActionOrchestrator {
      */
     public void actionException(AllocatableAction action, COMPSsException e);
 
+    /**
+     * Notify that a given action should be upgraded because another action of the multinode group is waiting for a
+     * resource.
+     *
+     * @param action Action which raised the exception.
+     */
+    public void actionUpgrade(AllocatableAction action);
+
 }

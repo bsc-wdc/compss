@@ -63,7 +63,6 @@ compssmodule = Extension(
     ],
     libraries=['bindings_common'],
     extra_compile_args = os_extra_compile_compss,
-    # extra_compile_args=['-fPIC'],
     sources=['src/ext/compssmodule.cc']
 )
 
@@ -95,7 +94,7 @@ def find_packages(path='./src'):
 if target_os == 'Linux' :
     os_modules = [compssmodule, thread_affinity]
 elif target_os == 'Darwin' :
-    os_modules = [compssmodule, thread_affinity]
+    os_modules = [compssmodule]
 else :
     print("Unsupported OS " + target_os + "(Supported Linux/Darwin)")
 

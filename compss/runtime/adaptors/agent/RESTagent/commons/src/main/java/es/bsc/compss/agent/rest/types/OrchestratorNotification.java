@@ -22,8 +22,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Class describing an endpoint and operation to invoke.
  */
-@XmlRootElement(name = "Orchestrator")
-public class Orchestrator {
+@XmlRootElement(name = "orchestrator")
+public class OrchestratorNotification implements RESTAgentRequestListener {
 
     public static enum HttpMethod {
         GET, POST, PUT, DELETE
@@ -35,7 +35,7 @@ public class Orchestrator {
     private String operation;
 
 
-    public Orchestrator() {
+    public OrchestratorNotification() {
     }
 
     /**
@@ -45,7 +45,7 @@ public class Orchestrator {
      * @param method HTTP method to invoke
      * @param operation name of the operation to invoke on the agent.
      */
-    public Orchestrator(String host, HttpMethod method, String operation) {
+    public OrchestratorNotification(String host, HttpMethod method, String operation) {
         this.host = host;
         this.method = method;
         this.operation = operation;
@@ -80,4 +80,8 @@ public class Orchestrator {
         return method + "@" + host + "/" + operation;
     }
 
+    @Override
+    public void requestCompleted(RESTAgentRequestHandler handler) {
+        handler.notifyOrchestrator(host, method, operation);
+    }
 }

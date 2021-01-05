@@ -13,6 +13,10 @@ pom.xml.versionsBackup
 .project
 .cproject
 
+#ingore vscode files
+.vscode
+.factorypath
+
 # Ignore IntelliJ files
 .idea/
 *.iml

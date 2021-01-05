@@ -31,7 +31,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ErrorHandler;
-
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.LogicalData;
@@ -44,17 +43,21 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import storage.StorageException;
 import storage.StorageItf;
 
@@ -125,8 +128,20 @@ public class Agent {
      * Start the runtime within the Agent and sets it up to allow the execution of COMPSs methods.
      */
     public static void start() {
-
         RUNTIME.startIT();
+    }
+
+    /**
+     * Stops the runtime within the Agent.
+     */
+    public static void stop() {
+        RUNTIME.stopIT(true);
+        Iterator<AgentInterface<?>> itfs = INTERFACES.iterator();
+        while (itfs.hasNext()) {
+            AgentInterface<?> itf = itfs.next();
+            itf.stop();
+            itfs.remove();
+        }
     }
 
     /**

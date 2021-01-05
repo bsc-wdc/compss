@@ -361,6 +361,8 @@
     --master_port="46101" \
     --method_name="demoFunction" \
     --cei="es.bsc.compss.test.DemoClassItf" \
+    --stop \
+    --forward_to="COMPSsWorker02:46102;COMPSsWorker03:46103" \
     es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \

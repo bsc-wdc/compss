@@ -52,7 +52,15 @@ Usage: ${SCRIPT_NAME} [options] application_name application_arguments
                                             Mandatory
 
     --master_port=<string>                  Node where to run the COMPSs Master
-                                            Mandatory                                            
+                                            Mandatory    
+
+    --stop                                  Stops the agent after the execution
+                                            of the task.   
+
+    --forward_to=<list>                     Forwards the stop action to other
+                                            agents, eht list shoud follow the
+                                            format:
+                                            <ip1>:<port1>;<ip2>:<port2>...
   Launch configuration:
 EOT
 
@@ -165,6 +173,9 @@ get_args() {
           # Display options
           show_opts 0
           ;;
+        stop)
+          action="stop"
+          ;;
         master_node=*)
           master_node=${OPTARG//master_node=/}
           ;;
@@ -179,6 +190,9 @@ get_args() {
           ;;
         method_name=*)
           method_name=${OPTARG//method_name=/}
+          ;;
+        forward_to=*)
+          forward_to=${OPTARG//forward_to=/}
           ;;
         *)
           # Flag didn't match any patern. Add to COMPSs
@@ -239,6 +253,20 @@ call(){
     http_cei="<ceiClass>${cei}</ceiClass>"
   fi
 
+  local actionTrigger=""
+  if [ ! -z "${action}" ]; then
+    local forwardsWrapper=""
+    if [ ! -z "${forward_to}" ]; then
+      local forwardArray=(${forward_to//;/ })
+      local agentArray=""
+      for agent in "${forwardArray[@]}"; do
+        agentArray=$agentArray"<agent>http://${agent}</agent>"
+      done
+      forwardsWrapper="<forwardTo>"$agentArray"</forwardTo>"
+    fi
+    actionTrigger="<action><actionName>"${action}"</actionName>"${forwardsWrapper}"</action>"
+  fi
+
   if [ "${params_as_array}" == "true" ]; then
     get_parameters_as_array "${lang}" "$@"
   else
@@ -256,9 +284,10 @@ call(){
     <className>${fullAppPath}</className>
     <hasResult>false</hasResult>
     <methodName>${method_name}</methodName>
+    ${actionTrigger}
     ${http_parameters}
   </startApplication>"
-
+  
   "${APP_CMD}" "-s" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}"
 }
 

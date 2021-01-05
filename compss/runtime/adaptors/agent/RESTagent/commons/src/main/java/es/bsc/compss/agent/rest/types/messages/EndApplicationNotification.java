@@ -41,7 +41,7 @@ public class EndApplicationNotification {
      * Constructs a new End application notification.
      *
      * @param jobId job of the ended application
-     * @param status end statud of the application execution
+     * @param status end status of the application execution
      * @param paramTypes array containing the types of the parameters of the job
      * @param paramLocations locations where to find the values of the job parameters
      */

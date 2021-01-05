@@ -18,6 +18,7 @@
 package es.bsc.compss.agent.rest;
 
 import java.util.concurrent.Semaphore;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -74,6 +75,8 @@ public class RESTServiceLauncher implements Runnable {
             } catch (Exception e) {
                 // TODO: Send a notification to stop the Agent
             } finally {
+                while (!server.isStopped()) {
+                }
                 this.server.destroy();
                 this.server = null;
             }

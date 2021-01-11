@@ -88,4 +88,4 @@ def test_binary_existing_core_element():
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
     assert CORE_ELEMENT_KEY not in my_bin.kwargs, \
-           "Core Element is not defined in kwargs dictionary."
+        "Core Element is not defined in kwargs dictionary."

@@ -1332,7 +1332,7 @@ check_args() {
   if [ -z "${python_interpreter}" ]; then
     python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
     args_pass="--python_interpreter=${python_interpreter} ${args_pass}"
-  fi 
+  fi
   python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
 
   if [ -z "${python_propagate_virtual_environment}" ]; then
@@ -1569,10 +1569,9 @@ check_args() {
     if [ -a "${fullAppPath%/*}/__init__.py" ]; then
         pythonpath=${DEFAULT_PYTHONPATH}
     else
-        pythonpath=${fullAppPath%/*}
+        pythonpath=$(pwd):${fullAppPath%/*}
     fi
   fi
-
 
   # AppDir
   if [ -z "$appdir" ]; then

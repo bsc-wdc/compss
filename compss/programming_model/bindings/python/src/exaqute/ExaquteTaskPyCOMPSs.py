@@ -16,33 +16,44 @@
 #
 from exaqute.ExaquteTask import *
 
-from pycompss.api.mpi import mpi 
-from pycompss.api.task import task
+from pycompss.api.mpi import mpi as _mpi 
+from pycompss.api.task import task as _task
 from pycompss.api.api import compss_wait_on
 from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_delete_object
 from pycompss.api.api import compss_delete_file
-
 from pycompss.api.parameter import *
-
 from pycompss.api.implement import implement
-
 from pycompss.api.constraint import *
+import pycompss.util.context as context
+from functools import wraps
 
+ExaquteTask = _task
+task = _task
+Task = _task
+TASK = _task
 
+class mpi(_mpi):
 
-#class ExaquteTask(object):
-#
-#    def __init__(self, *args, **kwargs):
-#        global scheduler
-#        scheduler = "Current scheduler is PyCOMPSs"
-#        self.task_instance = task(*args, **kwargs)
-#
-#    def __call__(self, f):
-#        return self.task_instance.__call__(f)
+    def __call__(self, user_function):
+        """ Parse and set the mpi parameters within the task core element.
 
-ExaquteTask = task
+        :param user_function: Function to decorate.
+        :return: Decorated function.
+        """
+        @wraps(user_function)
+        def mpi_f(*args, **kwargs):
+            ret = self.__decorator_body__(user_function, args, kwargs)
+            if context.in_master() and int(self.kwargs['processes']) == 1:
+                return [ret]
+            else:
+                return ret
 
+        mpi_f.__doc__ = user_function.__doc__
+        return mpi_f
+
+MPI = mpi
+Mpi = mpi
 
 def barrier():  # Wait
     compss_barrier()

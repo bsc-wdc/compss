@@ -214,7 +214,9 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
     from mpi4py import MPI
 
     if rank_zero_reduce:
-        obj = MPI.COMM_WORLD.reduce([obj], root=0)
+        nprocs = MPI.COMM_WORLD.Get_size()
+        if nprocs > 1:
+            obj = MPI.COMM_WORLD.reduce([obj], root=0)
         if MPI.COMM_WORLD.rank == 0:
             serialize_to_file(obj, file_name)
     else:

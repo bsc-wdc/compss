@@ -36,16 +36,12 @@ class mpi(_mpi):
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
-        print("Calling exaqute mpi decorator")
         @wraps(user_function)
         def mpi_f(*args, **kwargs):
-            print("In Exaqute decorator")
             ret = self.__decorator_body__(user_function, args, kwargs)
             if context.in_master() and int(self.kwargs['processes']) == 1:
-                print("In Exaqute decorator when single processes")
                 return [ret]
             else:
-                print("In Exaqute decorator when multi-processes")
                 return ret
 
         mpi_f.__doc__ = user_function.__doc__

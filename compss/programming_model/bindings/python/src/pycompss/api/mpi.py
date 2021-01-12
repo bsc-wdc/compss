@@ -74,7 +74,7 @@ class MPI(PyCOMPSsDecorator):
         """
         self.task_type = "mpi"
         decorator_name = "".join(('@', self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        super(MPI, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
@@ -115,75 +115,87 @@ class MPI(PyCOMPSsDecorator):
 
         @wraps(func)
         def mpi_f(*args, **kwargs):
-            if not self.scope:
-                # Execute the mpi as with PyCOMPSs so that sequential
-                # execution performs as parallel.
-                # To disable: raise Exception(not_in_pycompss("mpi"))
-                # TODO: Intercept the @task parameters to get stream redirection
-                cmd = [self.kwargs['runner']]
-                if 'processes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['processes']]
-                elif 'computing_nodes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['computing_nodes']]
-                elif 'computingNodes' in self.kwargs:
-                    cmd += ['-np', self.kwargs['computingNodes']]
-                else:
-                    pass
-                if 'flags' in self.kwargs:
-                    cmd += self.kwargs['flags'].split()
-                cmd += [self.kwargs['binary']]
-                if args:
-                    args = [str(a) for a in args]
-                    cmd += args
-                my_env = os.environ.copy()
-                if "working_dir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["working_dir"] + my_env["PATH"]
-                elif "workingDir" in self.kwargs:
-                    my_env["PATH"] = self.kwargs["workingDir"] + my_env["PATH"]
-                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env)  # noqa: E501
-                out, err = proc.communicate()
-                if sys.version_info[0] < 3:
-                    out_message = out.strip()
-                    err_message = err.strip()
-                else:
-                    out_message = out.decode().strip()
-                    err_message = err.decode().strip()
-                if out_message:
-                    print(out_message)
-                if err_message:
-                    sys.stderr.write(err_message + '\n')
-                return proc.returncode
-
-            if __debug__:
-                logger.debug("Executing mpi_f wrapper.")
-
-            if context.in_master():
-                # master code
-                if not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
-            else:
-                # worker code
-                if context.is_nesting_enabled() and \
-                        not self.core_element_configured:
-                    self.__configure_core_element__(kwargs)
-
-            # Set the computing_nodes variable in kwargs for its usage
-            # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['processes']
-
-            if self.task_type == "PYTHON_MPI":
-                prepend_strings = True
-            else:
-                prepend_strings = False
-
-            with keep_arguments(args, kwargs, prepend_strings=prepend_strings):
-                # Call the method
-                ret = func(*args, **kwargs)
-
-            return ret
+            return self.__decorator_body__(func, args, kwargs)
 
         mpi_f.__doc__ = func.__doc__
         return mpi_f
+
+    def __decorator_body__(self, func, args, kwargs):
+        if not self.scope:
+            # Execute the mpi as with PyCOMPSs so that sequential
+            # execution performs as parallel.
+            # To disable: raise Exception(not_in_pycompss("mpi"))
+            # TODO: Intercept the @task parameters to get stream redirection
+            return self.__run_mpi__(args, kwargs)
+
+        if __debug__:
+            logger.debug("Executing mpi_f wrapper.")
+
+        if context.in_master():
+            # master code
+            if not self.core_element_configured:
+                self.__configure_core_element__(kwargs)
+        else:
+            # worker code
+            if context.is_nesting_enabled() and \
+                    not self.core_element_configured:
+                self.__configure_core_element__(kwargs)
+
+        # Set the computing_nodes variable in kwargs for its usage
+        # in @task decorator
+        kwargs['computing_nodes'] = self.kwargs['processes']
+
+        if self.task_type == "PYTHON_MPI":
+            prepend_strings = True
+        else:
+            prepend_strings = False
+
+        with keep_arguments(args, kwargs, prepend_strings=prepend_strings):
+            # Call the method
+            ret = func(*args, **kwargs)
+
+        return ret
+
+    def __run_mpi__(self, *args, **kwargs):
+        # type: (..., dict) -> int
+        """ Runs the mpi binary defined in the decorator when used as dummy.
+        :param args: Arguments received from call.
+        :param kwargs: Keyword arguments received from call.
+        :return: Execution return code.
+        """
+        cmd = [self.kwargs['runner']]
+        if 'processes' in self.kwargs:
+            cmd += ['-np', self.kwargs['processes']]
+        elif 'computing_nodes' in self.kwargs:
+            cmd += ['-np', self.kwargs['computing_nodes']]
+        elif 'computingNodes' in self.kwargs:
+            cmd += ['-np', self.kwargs['computingNodes']]
+        else:
+            pass
+        if 'flags' in self.kwargs:
+            cmd += self.kwargs['flags'].split()
+        cmd += [self.kwargs['binary']]
+        if args:
+            args = [str(a) for a in args]
+            cmd += args
+        my_env = os.environ.copy()
+        if "working_dir" in self.kwargs:
+            my_env["PATH"] = self.kwargs["working_dir"] + my_env["PATH"]
+        elif "workingDir" in self.kwargs:
+            my_env["PATH"] = self.kwargs["workingDir"] + my_env["PATH"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env)  # noqa: E501
+        out, err = proc.communicate()
+        if sys.version_info[0] < 3:
+            out_message = out.strip()
+            err_message = err.strip()
+        else:
+            out_message = out.decode().strip()
+            err_message = err.decode().strip()
+        if out_message:
+            print(out_message)
+        if err_message:
+            sys.stderr.write(err_message + '\n')
+        return proc.returncode
 
     def __resolve_collection_layout_params__(self):
         num_layouts = 0

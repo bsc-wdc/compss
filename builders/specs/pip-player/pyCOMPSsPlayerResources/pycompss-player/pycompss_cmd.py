@@ -43,7 +43,7 @@ elif len(client.containers.list(filters={'name': master_name})) > 0:
     image_name = master.image.attrs['RepoTags'][0]
 else:
     # Otherwise, fallback to default COMPSs image
-    image_name = 'compss/compss:2.6'  # Update when releasing new version
+    image_name = 'compss/compss:2.8'  # Update when releasing new version
 
 
 # ############# #

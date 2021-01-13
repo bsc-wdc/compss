@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [2.8] - 2020-01-13
+### Added
+- Nothing
+
+### Changed
+- Updated to container version with COMPSs 2.8.
+
+### Removed
+- Nothing
+
+
 ## [2.6.5] - 2020-01-31
 ### Added
 - Support for dislib command.

@@ -20,19 +20,19 @@ modification or action on this package.
 The PyPI distributable can be created with the following command:
 	sudo -E ./buildpipplayer $VERSION
 Where $VERSION contains the desired target version. For example, if
-you want to create a distributable for the 2.0.rc1337 version then
+you want to create a distributable for the 2.8 version then
 the following command should be executed:
-	sudo -E ./buildpipplayer 2.0.rc1337
+	sudo -E ./buildpipplayer 2.8
 
 This will create the following files and directories:
 	- A pyCOMPSsPlayer directory in /trunk/builders/packages/pip-player.
 	  This directory contains the scripts and files necessary to
 	  install pyCOMPSsPlayer via distutils and/or PIP.
 
-	- A pycompss-rc1337.tar.gz file in /trunk/builders/packages/pip-player/pyCOMPSsPlayer/dist
+	- A pycompss-player-2.8.tar.gz file in /trunk/builders/packages/pip-player/pyCOMPSsPlayer/dist
 	  This .tar.gz contains the whole pyCOMPSsPlayer directory (except for the dist
 		folder). This file is useful for testing. For example, if you type
-		 sudo -E python -m pip install pycompss-player-rc1337.tar.gz -v
+		 sudo -E python -m pip install pycompss-player-2.8.tar.gz -v
 	  pip will try to install pyCOMPSsPlayer from this .tar.gz
 
 
@@ -143,7 +143,7 @@ buildpipplayer:
 	- Main script. sudo -E ./buildpipplayer VERSION will create a PIP distributable
 	  named pycompss-player-${PyCOMPSs_VERSION}.tar.gz in
 		framework/builders/packages/pip-player/pyCOMPSsPlayer/dist/
-	  Example: sudo -E ./buildpipplayer 2.6 will create a pycompss-player-2.6.tar.gz
+	  Example: sudo -E ./buildpipplayer 2.8 will create a pycompss-player-2.8.tar.gz
 
 PyCOMPSsResources/pycompss-player/compss:
 	- pycompss alias.

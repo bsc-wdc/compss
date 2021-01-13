@@ -312,7 +312,7 @@ class DDS(object):
                 branch = cwo(branch[0])
                 break
 
-            temp = reduce_multiple(f, *branch)
+            temp = reduce_multiple(f, branch)
             local_results.append(temp)
             branch = []
 
@@ -366,8 +366,10 @@ class DDS(object):
 
             if len(branch) == 1:
                 break
-            reduce_dicts(*branch)
-            future_objects.append(branch[0])
+
+            first, branch = branch[0], branch[1:]
+            reduce_dicts(first, branch)
+            future_objects.append(first)
 
         if as_dict:
             branch[0] = cwo(branch[0])
@@ -478,7 +480,7 @@ class DDS(object):
         """
         if self.paac:
             for i, _p in enumerate(self.partitions):
-                map_and_save_text_file(self.func, i, path, None, *_p)
+                map_and_save_text_file(self.func, i, path, None, _p)
         else:
             for i, _p in enumerate(self.partitions):
                 map_and_save_text_file(self.func, i, path, _p)
@@ -493,7 +495,7 @@ class DDS(object):
         """
         if self.paac:
             for i, _p in enumerate(self.partitions):
-                map_and_save_pickle(self.func, i, path, None, *_p)
+                map_and_save_pickle(self.func, i, path, None, _p)
         else:
             for i, _p in enumerate(self.partitions):
                 map_and_save_pickle(self.func, i, path, _p)

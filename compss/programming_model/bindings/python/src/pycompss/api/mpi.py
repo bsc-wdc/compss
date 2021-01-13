@@ -115,38 +115,41 @@ class MPI(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def mpi_f(*args, **kwargs):
-            if not self.scope:
-                # Execute the mpi as with PyCOMPSs so that sequential
-                # execution performs as parallel.
-                # To disable: raise Exception(not_in_pycompss("mpi"))
-                # TODO: Intercept @task parameters to get stream redirection
-                return self.__run_mpi__(args, kwargs)
-
-            if __debug__:
-                logger.debug("Executing mpi_f wrapper.")
-
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
-                # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
-
-            # Set the computing_nodes variable in kwargs for its usage
-            # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['processes']
-
-            if self.task_type == "PYTHON_MPI":
-                prepend_strings = True
-            else:
-                prepend_strings = False
-
-            with keep_arguments(args, kwargs, prepend_strings=prepend_strings):
-                # Call the method
-                ret = user_function(*args, **kwargs)
-
-            return ret
+            return self.__decorator_body__(user_function, args, kwargs)
 
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
+
+    def __decorator_body__(self, user_function, args, kwargs):
+        if not self.scope:
+            # Execute the mpi as with PyCOMPSs so that sequential
+            # execution performs as parallel.
+            # To disable: raise Exception(not_in_pycompss("mpi"))
+            # TODO: Intercept @task parameters to get stream redirection
+            return self.__run_mpi__(args, kwargs)
+
+        if __debug__:
+            logger.debug("Executing mpi_f wrapper.")
+
+        if (context.in_master() or context.is_nesting_enabled()) \
+                and not self.core_element_configured:
+            # master code - or worker with nesting enabled
+            self.__configure_core_element__(kwargs, user_function)
+
+        # Set the computing_nodes variable in kwargs for its usage
+        # in @task decorator
+        kwargs['computing_nodes'] = self.kwargs['processes']
+
+        if self.task_type == "PYTHON_MPI":
+            prepend_strings = True
+        else:
+            prepend_strings = False
+
+        with keep_arguments(args, kwargs, prepend_strings=prepend_strings):
+            # Call the method
+            ret = user_function(*args, **kwargs)
+
+        return ret
 
     def __run_mpi__(self, *args, **kwargs):
         # type: (..., dict) -> int

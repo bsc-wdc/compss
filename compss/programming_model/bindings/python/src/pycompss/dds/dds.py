@@ -139,6 +139,7 @@ class DDS(object):
 
     def load_files_from_dir(self, dir_path, num_of_parts=-1):
         """
+        # todo: add sorting function
         Read multiple files from a given directory. Each file and its content
         is saved in a tuple in ('file_path', 'file_content') format.
         :param dir_path: A directory that all files will be loaded from

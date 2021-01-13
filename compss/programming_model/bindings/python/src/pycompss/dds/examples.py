@@ -22,6 +22,7 @@ import numpy as np
 from random import Random
 
 from pycompss.api.api import compss_barrier as cb, compss_wait_on as cwo
+from pycompss.api.parameter import FILE_IN, COLLECTION_FILE_IN
 from pycompss.api.task import task
 from pycompss.dds import DDS
 
@@ -81,12 +82,15 @@ def has_converged(mu, old_mu, epsilon):
 def cluster_points_partial(xp, mu, ind):
     dic = {}
     for x in enumerate(xp):
+
         bestmukey = min([(i[0], np.linalg.norm(x[1] - mu[i[0]]))
                          for i in enumerate(mu)], key=lambda t: t[1])[0]
+
         if bestmukey not in dic:
             dic[bestmukey] = [x[0] + ind]
         else:
             dic[bestmukey].append(x[0] + ind)
+
     return dic
 
 
@@ -108,6 +112,28 @@ def reduce_centers(a, b):
         else:
             a[key] = (a[key][0] + b[key][0], a[key][1] + b[key][1])
     return a
+
+
+def calculate_avg_similarity(fayl, clusterr):
+    """
+    Calculate average similarity of a file againt a list of files
+    :param fayl: file to be compared with its cluster
+    :param cluster: file names to be compared with the file
+    :return: average similarity
+    """
+    import spacy
+    nlp = spacy.load("en_core_web_sm")
+
+    d1 = nlp(unicode(open(fayl).read()))
+    total = 0
+
+    for other in cluster:
+        if other == fayl:
+            continue
+        d2 = nlp(unicode(open(other).read()))
+        total += d1.similarity(d2)
+
+    return total / len(cluster)
 
 
 def merge_reduce(f, data):
@@ -179,7 +205,7 @@ def complex_wc():
     total_wc_dict = DDS().load_files_from_dir(files_path).\
         map_and_flatten(lambda x: x[1].split()) \
         .map(lambda x: ''.join(e for e in x if e.isalnum())) \
-        .count_by_value(as_dict=True)
+        .distinct().collect()
 
     def count_locally(element):
         from collections import Counter
@@ -201,22 +227,26 @@ def complex_wc():
 
     total = len(os.listdir(files_path))
     max_iter = 10
-    frags = 3
+    frags = 2
     epsilon = 1e-10
     size = int(total / frags)
     k = 2
     dim = 2
 
     # X
+    # dict ( index_in_wc_per_file : file_name )
+
+    # to acces file names by index returned from the clusters..
+    # load_files_from_list will also sort them alphabetically
+    indexes = [os.path.join(files_path, f)
+               for f in sorted(os.listdir(files_path))]
+
     wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
         .map(count_locally)\
         .map(gen_array)\
         .collect(keep_partitions=True)
 
-    mu = [
-        np.array([i for i in range(len(total_wc_dict))]),
-        np.array([i*10 for i in range(len(total_wc_dict))])
-        ]
+    mu = wc_per_file[:2]
 
     old_mu = []
     clusters = []
@@ -245,7 +275,23 @@ def complex_wc():
 
         n += 1
 
-    clusters = cwo(clusters)
+    clusters_with_frag = cwo(clusters)
+
+    from collections import defaultdict
+    cluster_sets = defaultdict(list)
+
+    for _d in clusters_with_frag:
+        for _k in _d:
+            cluster_sets[_k] += [indexes[i] for i in _d[_k]]
+
+    sims_per_file = {}
+
+    for k in cluster_sets:
+        clus = cluster_sets[k]
+        for fayl in clus:
+            sims_per_file[fayl] = calculate_avg_similarity(fayl, clus)
+
+    import pdb; pdb.set_trace()
 
     print("-----------------------------")
     print("Kmeans Time {} (s)".format(time.time() - startTime))

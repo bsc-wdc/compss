@@ -19,7 +19,7 @@
   # Traps and Handlers
   function kill_agents() {
     for pid in ${AGENT_PIDS}; do
-      kill -SIGINT ${pid}
+      kill -SIGINT ${pid} 1>/dev/null 2>/dev/null
     done
   }
   trap kill_agents EXIT
@@ -416,8 +416,20 @@ compss_agent_start \
 
   echo  "4 simultaneous demoFunction methods properly managed with 1 cpu" > >(tee -a "${output_log}")
 
+  # Stopping agent
+  curl -XDELETE http://127.0.0.1:46101/COMPSs
 
-
+  alive_agents="true"
+  while [ "${alive_agents}" = "true" ]; do
+    alive_agents="false"
+    for pid in ${AGENT_PIDS}; do
+      pid_info=$(ps -ef | grep "${pid}" | grep -v PID | grep -v grep)
+      if [ -n "${pid_info}" ]; then
+        alive_agents="true"
+      fi
+    done
+  done
+  echo "Agent properly shuts down on request"
 
   # Copy LOG files
   cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"

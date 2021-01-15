@@ -42,6 +42,13 @@ from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.util.objects.util import group_iterable
 from pycompss.worker.commons.worker import build_task_parameter
+# TODO: THIS IS SPECIFIC FOR PIPER:
+from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
+from pycompss.worker.piper.cache.tracker import insert_object_into_cache
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 import logging
 logger = logging.getLogger(__name__)
@@ -54,7 +61,7 @@ class TaskWorker(TaskCommons):
     Process the task decorator and prepare call the user function.
     """
 
-    __slots__ = []
+    __slots__ = ['cache_ids', 'cache_queue', 'cached_references']
 
     def __init__(self,
                  decorator_arguments,
@@ -66,6 +73,12 @@ class TaskWorker(TaskCommons):
                                              user_function,
                                              on_failure,
                                              defaults)
+        # These variables are initialized on call since they are only for
+        # the worker
+        self.cache_ids = None
+        self.cache_queue = None
+        self.cached_references = []
+        # placeholder to keep the object references and avoid garbage collector
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (list, list, list)
@@ -88,6 +101,10 @@ class TaskWorker(TaskCommons):
         # Update the on_failure attribute (could be defined by @on_failure)
         self.on_failure = kwargs.pop("on_failure", "RETRY")
         self.defaults = kwargs.pop("defaults", {})
+
+        # Pop cache if available
+        self.cache_ids = kwargs.pop("cache_ids", None)
+        self.cache_queue = kwargs.pop("cache_queue", None)
 
         if __debug__:
             logger.debug("Revealing objects")
@@ -197,12 +214,20 @@ class TaskWorker(TaskCommons):
                                                              target_label,
                                                              self_type,
                                                              self_value)
+
+        # Clean cached references
+        if self.cached_references:
+            # Let the garbage collector act
+            self.cached_references = None
+
         if __debug__:
             logger.debug("Finished @task decorator")
 
         return new_types, new_values, self.decorator_arguments[target_label]
 
-    def reveal_objects(self, args, logger, python_mpi=False, collections_layouts=None):  # noqa
+    def reveal_objects(self, args, logger,
+                       python_mpi=False,
+                       collections_layouts=None):  # noqa
         # type: (tuple, logger, bool, list) -> None
         """ Get the objects from the args message.
 
@@ -291,7 +316,7 @@ class TaskWorker(TaskCommons):
                 f_name = argument.file_name.split(':')[-1]
                 if __debug__:
                     logger.debug("\t\t - It is an OBJECT. Deserializing from file: " + str(f_name))  # noqa: E501
-                argument.content = deserialize_from_file(f_name)
+                argument.content = self.recover_object(f_name)
                 if __debug__:
                     logger.debug("\t\t - Deserialization finished")
             else:
@@ -307,7 +332,7 @@ class TaskWorker(TaskCommons):
         elif content_type == type_external_stream:
             if __debug__:
                 logger.debug("\t\t - It is an EXTERNAL STREAM")
-            argument.content = deserialize_from_file(argument.file_name)
+            argument.content = self.recover_object(argument.file_name)
         elif content_type == type_collection:
             argument.content = []
             # This field is exclusive for COLLECTION_T parameters, so make
@@ -518,6 +543,35 @@ class TaskWorker(TaskCommons):
             # If we have not entered in any of these cases we will assume
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
+
+    def recover_object(self, f_name):
+        # type: (str) -> ...
+        """ Recovers the object within a file.
+
+        :param f_name: File that contains an object.
+        :return: The object withing f_name
+        """
+        cache = self.cache_queue is not None
+        if np and cache:
+            # Check if the object is already in cache
+            if f_name in self.cache_ids:
+                # The object is cached
+                retrieved, existing_shm = retrieve_object_from_cache(logger,
+                                                                     self.cache_ids,
+                                                                     f_name)
+                self.cached_references.append(existing_shm)
+                return retrieved
+            else:
+                # Not in cache. Retrieve from file and put in cache
+                obj = deserialize_from_file(f_name)
+                if isinstance(obj, np.ndarray):
+                    insert_object_into_cache(logger,
+                                             self.cache_queue,
+                                             obj,
+                                             f_name)
+                return obj
+        else:
+            return deserialize_from_file(f_name)
 
     def segregate_objects(self, args):
         # type: (tuple) -> (list, dict, list)

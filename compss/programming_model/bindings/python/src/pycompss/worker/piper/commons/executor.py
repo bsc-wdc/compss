@@ -58,6 +58,7 @@ from pycompss.worker.commons.constants import PROCESS_PING_EVENT
 from pycompss.worker.commons.constants import PROCESS_QUIT_EVENT
 from pycompss.worker.commons.constants import INIT_WORKER_POSTFORK_EVENT
 from pycompss.worker.commons.constants import FINISH_WORKER_POSTFORK_EVENT
+from pycompss.worker.piper.cache.tracker import initialize_shared_memory_manager
 
 # Streaming imports
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
@@ -149,10 +150,12 @@ class ExecutorConf(object):
     """
 
     __slots__ = ['tracing', 'storage_conf', 'logger', 'storage_loggers',
-                 'stream_backend', 'stream_master_ip', 'stream_master_port']
+                 'stream_backend', 'stream_master_ip', 'stream_master_port',
+                 'cache_ids', 'cache_queue']
 
     def __init__(self, tracing, storage_conf, logger, storage_loggers,
-                 stream_backend, stream_master_ip, stream_master_port):
+                 stream_backend, stream_master_ip, stream_master_port,
+                 cache_ids=None, cache_queue=None):
         """
         Constructs a new executor configuration.
 
@@ -164,6 +167,9 @@ class ExecutorConf(object):
         :param stream_backend: Streaming backend type.
         :param stream_master_ip: Streaming master IP.
         :param stream_master_port: Streaming master port.
+        :param cache_ids: Proxy cache dictionary.
+        :param cache_queue: Cache queue where to submit to add new entries to
+                            cache_ids.
         """
         self.tracing = tracing
         self.storage_conf = storage_conf
@@ -172,6 +178,8 @@ class ExecutorConf(object):
         self.stream_backend = stream_backend
         self.stream_master_ip = stream_master_ip
         self.stream_master_port = stream_master_port
+        self.cache_ids = cache_ids  # Read-only
+        self.cache_queue = cache_queue
 
 
 ######################
@@ -245,6 +253,10 @@ def executor(queue, process_name, pipe, conf):
                 logger.error(e)
                 raise e
 
+        # Connect to Shared memory manager
+        if conf.cache_queue:
+            initialize_shared_memory_manager()
+
         # Process properties
         alive = True
 
@@ -271,7 +283,13 @@ def executor(queue, process_name, pipe, conf):
                                         logger_formatter,
                                         storage_conf,
                                         storage_loggers,
-                                        storage_loggers_handlers)
+                                        storage_loggers_handlers,
+                                        conf.cache_queue,
+                                        conf.cache_ids)
+                # import random
+                # a = str(random.randint(0, 10000000))
+                # b = str(random.randint(0, 10000000))
+                # conf.cache_queue.put(a + " " + b + " 1")
 
         # Stop storage
         if storage_conf != 'null':
@@ -303,18 +321,20 @@ def executor(queue, process_name, pipe, conf):
         raise e
 
 
-def process_message(current_line,             # type: str
-                    process_name,             # type: str
-                    pipe,                     # type: Pipe
-                    queue,                    # type: ...
-                    tracing,                  # type: bool
-                    logger,                   # type: ...
-                    logger_handlers,          # type: list
-                    logger_level,             # type: int
-                    logger_formatter,         # type: ...
-                    storage_conf,             # type: str
-                    storage_loggers,          # type: list
-                    storage_loggers_handlers  # type: list
+def process_message(current_line,              # type: str
+                    process_name,              # type: str
+                    pipe,                      # type: Pipe
+                    queue,                     # type: ...
+                    tracing,                   # type: bool
+                    logger,                    # type: ...
+                    logger_handlers,           # type: list
+                    logger_level,              # type: int
+                    logger_formatter,          # type: ...
+                    storage_conf,              # type: str
+                    storage_loggers,           # type: list
+                    storage_loggers_handlers,  # type: list
+                    cache_queue=None,          # type: queue
+                    cache_ids=None,            # type: ...
                     ):
     # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
@@ -331,6 +351,8 @@ def process_message(current_line,             # type: str
     :param storage_conf: Storage configuration
     :param storage_loggers: Storage loggers
     :param storage_loggers_handlers: Storage loggers handlers
+    :param cache_queue: Cache tracker communication queue
+    :param cache_ids: Cache proxy dictionary (read-only)
     :return: <Boolean> True if processed successfully, False otherwise.
     """
     if __debug__:
@@ -351,7 +373,9 @@ def process_message(current_line,             # type: str
                             logger_formatter,
                             storage_conf,
                             storage_loggers,
-                            storage_loggers_handlers)
+                            storage_loggers_handlers,
+                            cache_queue,
+                            cache_ids)
     elif current_line[0] == PING_TAG:
         # Response -> Pong
         return process_ping(pipe, logger, process_name)
@@ -366,18 +390,20 @@ def process_message(current_line,             # type: str
 
 
 @emit_event(PROCESS_TASK_EVENT)
-def process_task(current_line,             # type: list
-                 process_name,             # type: str
-                 pipe,                     # type: Pipe
-                 queue,                    # type: ...
-                 tracing,                  # type: bool
-                 logger,                   # type: ...
-                 logger_handlers,          # type: list
-                 logger_level,             # type: int
-                 logger_formatter,         # type: ...
-                 storage_conf,             # type: str
-                 storage_loggers,          # type: list
-                 storage_loggers_handlers  # type: list
+def process_task(current_line,              # type: list
+                 process_name,              # type: str
+                 pipe,                      # type: Pipe
+                 queue,                     # type: ...
+                 tracing,                   # type: bool
+                 logger,                    # type: ...
+                 logger_handlers,           # type: list
+                 logger_level,              # type: int
+                 logger_formatter,          # type: ...
+                 storage_conf,              # type: str
+                 storage_loggers,           # type: list
+                 storage_loggers_handlers,  # type: list
+                 cache_queue,               # type: queue
+                 cache_ids,                 # type: ...
                  ):
     # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
@@ -394,6 +420,8 @@ def process_task(current_line,             # type: list
     :param storage_conf: Storage configuration.
     :param storage_loggers: Storage loggers.
     :param storage_loggers_handlers: Storage loggers handlers.
+    :param cache_queue: Cache tracker communication queue.
+    :param cache_ids: Cache proxy dictionary (read-only).
     :return: True if processed successfully, False otherwise.
     """
     affinity_ok = True
@@ -494,7 +522,11 @@ def process_task(current_line,             # type: list
                               current_line[9:],
                               tracing,
                               logger,
-                              (job_out, job_err))
+                              (job_out, job_err),
+                              False,
+                              None,
+                              cache_queue,
+                              cache_ids)
         # The ignored variable is timed_out
         exit_value, new_types, new_values, _, except_msg = result
 

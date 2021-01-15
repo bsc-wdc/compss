@@ -30,7 +30,6 @@ from multiprocessing import Process
 from multiprocessing import Queue
 
 from pycompss.runtime.commons import range
-from pycompss.util.exceptions import NotImplementedException
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -52,12 +51,17 @@ from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
+from pycompss.worker.piper.cache.tracker import CacheTrackerConf
+from pycompss.worker.piper.cache.tracker import cache_tracker
 import pycompss.util.context as context
 
 # Persistent worker global variables
 PROCESSES = {}  # IN_PIPE -> PROCESS
 TRACING = False
 WORKER_CONF = None
+CACHE = sys.version_info >= (3, 8)
+CACHE_PROCESS = None
+CACHE_QUEUE = None
 
 
 def shutdown_handler(signal, frame):  # noqa
@@ -72,6 +76,8 @@ def shutdown_handler(signal, frame):  # noqa
     for proc in PROCESSES.values():
         if proc.is_alive():
             proc.terminate()
+    if CACHE and CACHE_PROCESS.is_alive():  # noqa
+        CACHE_PROCESS.terminate()           # noqa
 
 
 ######################
@@ -110,16 +116,38 @@ def compss_persistent_worker(config):
             from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
-    # Create new threads
+    # Create new processes
     queues = []
 
+    if CACHE:
+        # Cache can be used
+        # Create a proxy dictionary to share the information across workers
+        # within the same node
+        from multiprocessing import Manager
+        manager = Manager()
+        cache_ids = manager.dict()  # proxy dictionary
+        # Start a new process to manage the cache contents.
+        from multiprocessing.managers import SharedMemoryManager
+        smm = SharedMemoryManager(address=('', 50000), authkey=b'compss_cache')
+        smm.start()
+        conf = CacheTrackerConf(logger,
+                                10000000000,
+                                None,
+                                cache_ids)
+        create_cache_tracker_process("cache_tracker", conf)
+    else:
+        cache_ids = None
+
+    # Create new executor processes
     conf = ExecutorConf(TRACING,
                         config.storage_conf,
                         logger,
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,
-                        config.stream_master_port)
+                        config.stream_master_port,
+                        cache_ids,
+                        CACHE_QUEUE)
 
     for i in range(0, config.tasks_x_node):
         if __debug__:
@@ -203,6 +231,13 @@ def compss_persistent_worker(config):
         queue.close()
         queue.join_thread()
 
+    if CACHE:
+        CACHE_QUEUE.put("QUIT")
+        CACHE_PROCESS.join()
+        CACHE_QUEUE.close()
+        CACHE_QUEUE.join_thread()
+        smm.shutdown()
+
     if persistent_storage:
         # Finish storage
         if __debug__:
@@ -219,7 +254,7 @@ def compss_persistent_worker(config):
 
 
 def create_executor_process(process_name, conf, pipe):
-    # type: (str, dict, ...) -> (int, queue)
+    # type: (str, ExecutorConf, ...) -> (int, queue)
     """ Starts a new executor.
 
     :param process_name: Process name.
@@ -235,6 +270,25 @@ def create_executor_process(process_name, conf, pipe):
     PROCESSES[pipe.input_pipe] = process
     process.start()
     return process.pid, queue
+
+
+def create_cache_tracker_process(process_name, conf):
+    # type: (str, CacheTrackerConf) -> None
+    """ Starts a new cache tracker process.
+
+    :param process_name: Process name.
+    :param conf: cache config.
+    :return: None
+    """
+    global CACHE_PROCESS
+    global CACHE_QUEUE
+    queue = Queue()
+    process = Process(target=cache_tracker, args=(queue,
+                                                  process_name,
+                                                  conf))
+    CACHE_PROCESS = process
+    CACHE_QUEUE = queue
+    process.start()
 
 
 ############################

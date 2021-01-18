@@ -244,9 +244,10 @@ xml_resources_add_workers() {
         worker_node_name=${worker_node}
       fi
 
-      if [ "${max_tasks_per_node}" -lt "-1" ]; then
+      if [ -z "${max_tasks_per_node}" ] || [ "${max_tasks_per_node}" -lt "-1" ]; then
         max_tasks_per_node="-1"
       fi
+      
       # Add compute node
       worker_node_name=${worker_node_name}${network}
       add_compute_node "${worker_node_name}" "${cpus}" "${gpus}" "${fpgas}" "${memory}" "${storage_bw}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
@@ -316,35 +317,40 @@ worker_install_dir=${2}
 max_tasks_per_node=${3}
 shift 3
 
+
+INFO_FILE="${log_dir}/../${HOSTNAME}${network}.INFO"
+OUT_FILE="${log_dir}/../${HOSTNAME}${network}.OUT"
+ERR_FILE="${log_dir}/../${HOSTNAME}${network}.ERR"
+
 # shellcheck disable=SC2086
 "get_topology_${agents_hierarchy}" "${MASTER}" ${worker_nodes}
 
-echo "--------${HOSTNAME}--------" >> "${log_dir}/INFO"
-echo "VARIABLES" >>"${log_dir}/INFO"
+echo "--------${HOSTNAME}--------" >> "${INFO_FILE}"
+echo "VARIABLES" >>"${INFO_FILE}"
 
-echo "hostname:       ${HOSTNAME}" >>"${log_dir}/INFO"
-echo "Network         ${network}" >>"${log_dir}/INFO"
+echo "hostname:       ${HOSTNAME}" >>"${INFO_FILE}"
+echo "Network         ${network}" >>"${INFO_FILE}"
 
-echo "Topology:       ${agents_hierarchy}" >>"${log_dir}/INFO"
-echo "Master name:    ${MASTER}" >>"${log_dir}/INFO"
-echo "Workers' names: ${worker_nodes}" >>"${log_dir}/INFO"
+echo "Topology:       ${agents_hierarchy}" >>"${INFO_FILE}"
+echo "Master name:    ${MASTER}" >>"${INFO_FILE}"
+echo "Workers' names: ${worker_nodes}" >>"${INFO_FILE}"
 
-echo "Working Dir:    ${worker_working_dir}" >>"${log_dir}/INFO"
-echo "Install Dir:    ${worker_install_dir}" >>"${log_dir}/INFO"
-echo "Log Dir:        ${log_dir}" >>"${log_dir}/INFO"
+echo "Working Dir:    ${worker_working_dir}" >>"${INFO_FILE}"
+echo "Install Dir:    ${worker_install_dir}" >>"${INFO_FILE}"
+echo "Log Dir:        ${log_dir}" >>"${INFO_FILE}"
 
-echo "CPUs:           ${cpus_per_node} ${cpu_affinity}" >>"${log_dir}/INFO"
-echo "GPUs:           ${gpus_per_node} ${gpu_affinity}" >>"${log_dir}/INFO"
-echo "FPGAs:          ${fpgas_per_node} ${fpga_affinity}" >>"${log_dir}/INFO"
-echo "Storage BW:     ${storage_bw_per_node}" >>"${log_dir}/INFO"
-echo "Max Tasks:      ${max_tasks_per_node}" >>"${log_dir}/INFO"
+echo "CPUs:           ${cpus_per_node} ${cpu_affinity}" >>"${INFO_FILE}"
+echo "GPUs:           ${gpus_per_node} ${gpu_affinity}" >>"${INFO_FILE}"
+echo "FPGAs:          ${fpgas_per_node} ${fpga_affinity}" >>"${INFO_FILE}"
+echo "Storage BW:     ${storage_bw_per_node}" >>"${INFO_FILE}"
+echo "Max Tasks:      ${max_tasks_per_node}" >>"${INFO_FILE}"
 
 
-echo "Child nodes:" >>"${log_dir}/INFO"
+echo "Child nodes:" >>"${INFO_FILE}"
 
 if [ ! -z "${CHILD_NODES}" ]; then
   while read -r blade cpu gpu fpgas memory storage_bw limit_of_tasks; do
-    echo "  * name ${blade} cpus ${cpu} gpus ${gpu} fpgas ${fpgas} memory ${memory} storage_bw ${storage_bw} limit of tasks ${limit_of_tasks}" >>"${log_dir}/INFO"
+    echo "  * name ${blade} cpus ${cpu} gpus ${gpu} fpgas ${fpgas} memory ${memory} storage_bw ${storage_bw} limit of tasks ${limit_of_tasks}" >>"${INFO_FILE}"
   done <<< "${CHILD_NODES}"
 fi
 
@@ -357,8 +363,8 @@ generate_project
 RESOURCES_FILE="${worker_working_dir}/resources_$HOSTNAME.xml"
 export RESOURCES_FILE
 generate_resources
-echo "--------${HOSTNAME}-OUT----" >"${log_dir}/OUT"
-echo "--------${HOSTNAME}-ERR----" >"${log_dir}/ERR"
+echo "--------${HOSTNAME}-OUT----" >"${OUT_FILE}"
+echo "--------${HOSTNAME}-ERR----" >"${ERR_FILE}"
 
 echo "${worker_install_dir}/Runtime/scripts/user/compss_agent_start" \
 "--hostname=${HOSTNAME}${network}" \
@@ -367,7 +373,7 @@ echo "${worker_install_dir}/Runtime/scripts/user/compss_agent_start" \
 "--project=${PROJECT_FILE}" \
 "--resources=${RESOURCES_FILE}" \
 ${@} \
->> "${log_dir}/OUT"
+>> "${OUT_FILE}"
 
 "${worker_install_dir}/Runtime/scripts/user/compss_agent_start" \
 "--hostname=${HOSTNAME}${network}" \
@@ -376,4 +382,8 @@ ${@} \
 "--project=${PROJECT_FILE}" \
 "--resources=${RESOURCES_FILE}" \
 ${@} \
->>"${log_dir}/OUT" 2>>"${log_dir}/ERR"
+>> "${OUT_FILE}" 2>>"${ERR_FILE}"
+
+
+
+echo "S'ha parat el proces de l'agent ${HOSTNAME}${network}" >> ${OUT_FILE}

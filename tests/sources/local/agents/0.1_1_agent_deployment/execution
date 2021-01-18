@@ -13,8 +13,8 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  jar_name="0_1_agent_deployment.jar"
-  app_name="1_agent_deployment"
+  jar_name="0.1_1_agent_deployment.jar"
+  app_name="0.1_1_agent_deployment"
 
   # Traps and Handlers
   function kill_agents() {
@@ -60,7 +60,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo ""
-  echo "*** RUNNING AGENTS TEST: 1 agent deployment"
+  echo "*** RUNNING AGENTS TEST: 0.1_1 agent deployment"
   log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
   mkdir -p "${log_dir}"
   output_log="${log_dir}test.outputlog"
@@ -102,7 +102,7 @@ compss_agent_start \
   echo "Agent started" > >(tee -a "${output_log}")
   sleep 1
  
-  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
     num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
   if [ ! "${num_RESOURCES}" == "1" ]; then

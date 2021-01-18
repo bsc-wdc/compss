@@ -135,6 +135,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
                     try {
                         Thread.sleep(500);
                         RESTAgent.this.server.stop();
+                        LOGGER.debug("REST Service Agent Interface stopped");
                     } catch (Exception ex) {
                         ErrorManager.warn("Could not stop the REST server for the Agent at port " + port, ex);
                         if (!server.isStopped()) {
@@ -156,8 +157,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
      */
     @DELETE
     public Response powerOff() {
-        LOGGER.debug("_______apagandome");
         Agent.stop();
+        LOGGER.info("Agent was shutdown");
         return Response.ok().build();
     }
 

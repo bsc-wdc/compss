@@ -64,7 +64,7 @@ public class ActionTrigger implements RESTAgentRequestListener {
 
     @Override
     public void requestCompleted(RESTAgentRequestHandler handler) {
-        if (action.equalsIgnoreCase("stop")) {
+        if ("stop".equalsIgnoreCase(action)) {
             handler.powerOff(forwardTo);
         }
     }

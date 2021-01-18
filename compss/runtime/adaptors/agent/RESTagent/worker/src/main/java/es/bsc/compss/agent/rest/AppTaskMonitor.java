@@ -56,7 +56,7 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
 
     private final TaskProfile profile;
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
 
     /**
@@ -164,7 +164,6 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
         super.onCompletion();
         profile.end();
         if (this.requestListener != null) {
-            LOGGER.debug("_______ el requestListener es: " + requestListener.toString());
             this.requestListener.requestCompleted(this);
         }
         System.out.println("Job completed after " + profile.getTotalTime());
@@ -192,18 +191,30 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
 
     @Override
     public void powerOff(List<String> forwardToHosts) {
-        for (String host : forwardToHosts) {
-            WebTarget target = CLIENT.target(host);
-            LOGGER.debug("Forwarding stop action to: " + target.toString());
-            WebTarget wt = target.path("COMPSs/");
-            LOGGER.debug("_______forwarding a: " + forwardToHosts.toString());
-            Response response = wt.request().delete(Response.class);
-            LOGGER.debug("________stop enviado con respuesta: " + response.toString());
-            if (response.getStatusInfo().getStatusCode() != 200) {
-                ErrorManager.warn("AGENT Could not forward stop action to " + wt + ", returned code: "
-                    + response.getStatusInfo().getStatusCode());
+        LOGGER.debug("AppTaskRequest completion initiates agent shutdown");
+        if (forwardToHosts != null) {
+            for (String host : forwardToHosts) {
+                WebTarget target = CLIENT.target(host);
+                LOGGER.debug("Forwarding stop action to: " + (target != null ? target.toString() : "null"));
+                WebTarget wt = target.path("COMPSs/");
+                Response response = wt.request().delete(Response.class);
+                if (response.getStatusInfo().getStatusCode() != 200) {
+                    ErrorManager.warn("AGENT Could not forward stop action to " + wt + ", returned code: "
+                        + response.getStatusInfo().getStatusCode());
+                }
             }
         }
-        this.owner.powerOff();
+        /*
+         * A new Thread is necessary since poweroff is executed by the AccessProcessor thread. Stopping the agent is
+         * sinchronous and waits for the whole COMPSs runtime to stop; therefore, the AccessProcessor waits for himself
+         * to be stopped and cannot process the StopAP request.
+         */
+        new Thread() {
+
+            @Override
+            public void run() {
+                AppTaskMonitor.this.owner.powerOff();
+            }
+        }.start();
     }
 }

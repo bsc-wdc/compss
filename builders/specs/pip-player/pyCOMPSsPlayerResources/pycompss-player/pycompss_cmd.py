@@ -374,17 +374,20 @@ def _generate_project_cfg(ips: list = (), cpus: int = 4,
     # ./generate_project.sh project.xml "172.17.0.3:4:/opt/COMPSs:/tmp"
     master = _get_master()
     proj_cmd = '/opt/COMPSs/Runtime/scripts/system/xmls/generate_project.sh'
-    proj_arg = ' '.join(
+    master_ip = '127.0.0.1'
+    workers_ip = ips
+    proj_master = ":".join((master_ip, "0", install_dir, worker_dir))
+    proj_workers = ' '.join(
         ["%s:%s:%s:%s" % (ip, cpus, install_dir, worker_dir) for ip in
-         ips])
-    cmd = "%s /project.xml '%s'" % (proj_cmd, proj_arg)
+        workers_ip])
+    cmd = "%s /project.xml '%s' '%s'" % (proj_cmd, proj_master, proj_workers)
     exit_code, output = master.exec_run(cmd=cmd)
     if exit_code != 0:
         print("Exit code: %s" % exit_code)
         for line in [l for l in output.decode().split('\n')]:
             print(line)
         sys.exit(exit_code)
-    return proj_arg
+    return proj_workers
 
 
 def _generate_resources_cfg(ips: list = (), cpus: int = 4):

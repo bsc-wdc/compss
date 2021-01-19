@@ -1,5 +1,7 @@
 FROM compss/compss:2.8
 
+EXPOSE 43000-44000
+
 RUN pip2 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir --upgrade pip && \
     pip2 install --no-cache-dir matplotlib && \

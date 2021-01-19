@@ -376,7 +376,7 @@ def _generate_project_cfg(ips: list = (), cpus: int = 4,
     proj_cmd = '/opt/COMPSs/Runtime/scripts/system/xmls/generate_project.sh'
     master_ip = '127.0.0.1'
     workers_ip = ips
-    proj_master = ":".join((master_ip, str(cpus), install_dir, worker_dir))
+    proj_master = ":".join((master_ip, "0", install_dir, worker_dir))
     proj_workers = ' '.join(
         ["%s:%s:%s:%s" % (ip, cpus, install_dir, worker_dir) for ip in
         workers_ip])

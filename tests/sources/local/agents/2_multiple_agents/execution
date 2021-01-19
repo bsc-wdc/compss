@@ -13,6 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
+  NUM_RETRIES="50"
   jar_name="2_multiple_agents.jar"
   app_name="2_multiple_agents"
 
@@ -83,15 +84,16 @@
   agent1_output_log="${log_dir}/agent1.outputlog"
   agent1_error_log="${log_dir}/agent1.errorlog"
   compss_agent_start \
-   "--hostname=COMPSsWorker01" \
-   "--classpath=${base_app_dir}/${jar_name}" \
-   "--log_dir=${agent1_log_dir}" \
-   "--rest_port=46101" \
-   "--comm_port=46102" \
-   "-d" \
-   "--input_profile=profiles.json" \
-   "--project=${base_app_dir}/project.xml" \
-   "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+    --hostname="COMPSsWorker01" \
+    --classpath="${base_app_dir}/${jar_name}" \
+    --log_dir="${agent1_log_dir}" \
+    --rest_port="46101" \
+    --comm_port="46102" \
+    -d \
+    ${runcompss_opts} \
+    --input_profile="profiles.json" \
+    --project="${base_app_dir}/project.xml" \
+    --resources="${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
   agent_pid="$!"
   AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
@@ -102,14 +104,15 @@
   agent2_output_log="${log_dir}/agent2.outputlog"
   agent2_error_log="${log_dir}/agent2.errorlog"
   compss_agent_start \
-   "--hostname=COMPSsWorker02" \
-   "--classpath=${base_app_dir}/${jar_name}" \
-   "--log_dir=${agent2_log_dir}" \
-   "--rest_port=46201" \
-   "--comm_port=46202" \
-   "-d" \
-   "--project=${base_app_dir}/project.xml" \
-   "--resources=${base_app_dir}/resources.xml" 1>"${agent2_output_log}" 2>"${agent2_error_log}" &
+  --hostname="COMPSsWorker02" \
+  --classpath="${base_app_dir}/${jar_name}" \
+  --log_dir="${agent2_log_dir}" \
+  --rest_port="46201" \
+  --comm_port="46202" \
+  -d \
+  ${runcompss_opts} \
+  --project="${base_app_dir}/project.xml" \
+  --resources="${base_app_dir}/resources.xml" 1>"${agent2_output_log}" 2>"${agent2_error_log}" &
 
   agent_pid="$!"
   AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
@@ -120,14 +123,15 @@
   agent3_output_log="${log_dir}/agent3.outputlog"
   agent3_error_log="${log_dir}/agent3.errorlog"
   compss_agent_start \
-   "--hostname=COMPSsWorker03" \
-   "--classpath=${base_app_dir}/${jar_name}" \
-   "--log_dir=${agent3_log_dir}" \
-   "--rest_port=46301" \
-   "--comm_port=46302" \
-   "-d" \
-   "--project=${base_app_dir}/project.xml" \
-   "--resources=${base_app_dir}/resources.xml" 1>"${agent3_output_log}" 2>"${agent3_error_log}" &
+  --hostname="COMPSsWorker03" \
+  --classpath="${base_app_dir}/${jar_name}" \
+  --log_dir="${agent3_log_dir}" \
+  --rest_port="46301" \
+  --comm_port="46302" \
+  -d \
+  ${runcompss_opts} \
+  --project="${base_app_dir}/project.xml" \
+  --resources="${base_app_dir}/resources.xml" 1>"${agent3_output_log}" 2>"${agent3_error_log}" &
 
   agent_pid="$!"
   AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
@@ -136,22 +140,24 @@
   mkdir -p "${agent4_log_dir}" 
   agent4_output_log="${log_dir}/agent4.outputlog"
   agent4_error_log="${log_dir}/agent4.errorlog"
+  
   compss_agent_start \
-   "--hostname=COMPSsWorker04" \
-   "--classpath=${base_app_dir}/${jar_name}" \
-   "--log_dir=${agent4_log_dir}" \
-   "--rest_port=46401" \
-   "--comm_port=46402" \
-   "-d" \
-   "--project=${base_app_dir}/project.xml" \
-   "--resources=${base_app_dir}/resources.xml" 1>"${agent4_output_log}" 2>"${agent4_error_log}" &
+  --hostname="COMPSsWorker04" \
+  --classpath="${base_app_dir}/${jar_name}" \
+  --log_dir="${agent4_log_dir}" \
+  --rest_port="46401" \
+  --comm_port="46402" \
+  -d \
+  ${runcompss_opts} \
+  --project="${base_app_dir}/project.xml" \
+  --resources="${base_app_dir}/resources.xml" 1>"${agent4_output_log}" 2>"${agent4_error_log}" &
 
   agent_pid="$!"
   AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
 
   sleep 5
 
-  retries="3"
+  retries="${NUM_RETRIES}"
   curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
   exit_value=$?
   while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
@@ -161,7 +167,7 @@
     exit_value=$?
   done
 
-  retries="3"
+  retries="${NUM_RETRIES}"
   curl -XGET http://127.0.0.1:46201/COMPSs/test
   exit_value=$?
   while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
@@ -171,7 +177,7 @@
     exit_value=$?
   done
 
-  retries="3"
+  retries="${NUM_RETRIES}"
   curl -XGET http://127.0.0.1:46301/COMPSs/test
   exit_value=$?
   while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
@@ -181,7 +187,7 @@
     exit_value=$?
   done
 
-  retries="3"
+  retries="${NUM_RETRIES}"
   curl -XGET http://127.0.0.1:46401/COMPSs/test
   exit_value=$?
   while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do

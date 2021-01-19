@@ -13,6 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
+  NUM_RETRIES="50"
   app_name="1agent"
   
   # Traps and Handlers
@@ -100,22 +101,23 @@
     comm_port=$(( 46000 + port_offset + 2))
 
     compss_agent_start \
-      "--hostname=COMPSsWorker01" \
-      "--pythonpath=${base_app_dir}/src" \
-      "--log_dir=${agent1_log_dir}" \
-      "--rest_port=${rest_port}" \
-      "--comm_port=${comm_port}" \
-      "-d" \
-      "--project=${base_app_dir}/project.xml" \
-      "--resources=${base_app_dir}/resources.xml" \
-      "--python_interpreter=${python_interpreter}" \
-      "${python_mpi_worker}" \
+      --hostname="COMPSsWorker01" \
+      --pythonpath="${base_app_dir}/src" \
+      --log_dir="${agent1_log_dir}" \
+      --rest_port="${rest_port}" \
+      --comm_port="${comm_port}" \
+      -d \
+      ${runcompss_opts} \
+      --project="${base_app_dir}/project.xml" \
+      --resources="${base_app_dir}/resources.xml" \
+      --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
       1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
     agent_pid="$!"
     AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
 
-    retries="3"
+    retries="${NUM_RETRIES}"
     curl -XGET http://127.0.0.1:${rest_port}/COMPSs/test 1>/dev/null 2>/dev/null
     ev=$?
     while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do

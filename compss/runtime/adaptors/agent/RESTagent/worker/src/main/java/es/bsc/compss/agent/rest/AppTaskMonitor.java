@@ -17,13 +17,18 @@
 package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.agent.AppMonitor;
-import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.OrchestratorNotification;
+import es.bsc.compss.agent.rest.types.RESTAgentRequestHandler;
+import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.util.ErrorManager;
+
+import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -32,20 +37,26 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
 
 
 /**
  * Class handling the status changes for a task and the corresponding notifications to its orchestrator.
  */
-public class AppTaskMonitor extends AppMonitor {
+public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandler {
 
     private static final Client CLIENT = ClientBuilder.newClient(new ClientConfig());
 
-    private final Orchestrator orchestrator;
+    private final RESTAgent owner;
+    private final RESTAgentRequestListener requestListener;
 
     private boolean successful;
+
     private final TaskProfile profile;
+
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
 
     /**
@@ -54,14 +65,16 @@ public class AppTaskMonitor extends AppMonitor {
      * @param args Monitored execution's arguments
      * @param target Monitored execution's target
      * @param results Monitored execution's results
-     * @param orchestrator orchestrator to notify any task status updates.
+     * @param owner RESTAgent handling the request
+     * @param requestListener handler to notify the final state of the app task execution
      */
     public AppTaskMonitor(ApplicationParameter[] args, ApplicationParameter target, ApplicationParameter[] results,
-        Orchestrator orchestrator) {
+        RESTAgent owner, RESTAgentRequestListener requestListener) {
         super(args, target, results);
-        this.orchestrator = orchestrator;
+        this.requestListener = requestListener;
         this.successful = false;
         this.profile = new TaskProfile();
+        this.owner = owner;
     }
 
     @Override
@@ -150,19 +163,8 @@ public class AppTaskMonitor extends AppMonitor {
     public void onCompletion() {
         super.onCompletion();
         profile.end();
-        if (this.orchestrator != null) {
-            String masterId = this.orchestrator.getHost();
-            String operation = this.orchestrator.getOperation();
-            WebTarget target = CLIENT.target(masterId);
-            WebTarget wt = target.path(operation);
-            EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
-                this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.getParamTypes(),
-                this.getParamLocations());
-
-            Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
-            if (response.getStatusInfo().getStatusCode() != 200) {
-                ErrorManager.warn("AGENT Could not notify Application " + getAppId() + " end to " + wt);
-            }
+        if (this.requestListener != null) {
+            this.requestListener.requestCompleted(this);
         }
         System.out.println("Job completed after " + profile.getTotalTime());
     }
@@ -172,5 +174,47 @@ public class AppTaskMonitor extends AppMonitor {
         super.onFailure();
         profile.end();
         System.out.println("Job failed after " + profile.getTotalTime());
+    }
+
+    @Override
+    public void notifyOrchestrator(String host, OrchestratorNotification.HttpMethod method, String operation) {
+        WebTarget target = CLIENT.target(host);
+        WebTarget wt = target.path(operation);
+        EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
+            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.getParamTypes(),
+            this.getParamLocations());
+        Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
+        if (response.getStatusInfo().getStatusCode() != 200) {
+            ErrorManager.warn("AGENT Could not notify Application " + getAppId() + " end to " + wt);
+        }
+    }
+
+    @Override
+    public void powerOff(List<String> forwardToHosts) {
+        LOGGER.debug("AppTaskRequest completion initiates agent shutdown");
+        if (forwardToHosts != null) {
+            for (String host : forwardToHosts) {
+                WebTarget target = CLIENT.target(host);
+                LOGGER.debug("Forwarding stop action to: " + (target != null ? target.toString() : "null"));
+                WebTarget wt = target.path("COMPSs/");
+                Response response = wt.request().delete(Response.class);
+                if (response.getStatusInfo().getStatusCode() != 200) {
+                    ErrorManager.warn("AGENT Could not forward stop action to " + wt + ", returned code: "
+                        + response.getStatusInfo().getStatusCode());
+                }
+            }
+        }
+        /*
+         * A new Thread is necessary since poweroff is executed by the AccessProcessor thread. Stopping the agent is
+         * sinchronous and waits for the whole COMPSs runtime to stop; therefore, the AccessProcessor waits for himself
+         * to be stopped and cannot process the StopAP request.
+         */
+        new Thread() {
+
+            @Override
+            public void run() {
+                AppTaskMonitor.this.owner.powerOff();
+            }
+        }.start();
     }
 }

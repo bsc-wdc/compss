@@ -246,7 +246,7 @@
   sleep 1
 
   echo "Checking infrastructure configuration" > >(tee -a "${output_log}")
-  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ on AGENT 1
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 1
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
 
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
@@ -288,7 +288,7 @@
   fi
 
 
-  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ on AGENT 2
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 2
   RESOURCES=$(curl -XGET http://127.0.0.1:46201/COMPSs/resources 2>/dev/null)
 
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
@@ -328,7 +328,7 @@
     exit 1
   fi
 
-# CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ on AGENT 3
+# CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 3
   RESOURCES=$(curl -XGET http://127.0.0.1:46301/COMPSs/resources 2>/dev/null)
 
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')

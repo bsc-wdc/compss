@@ -112,7 +112,7 @@ AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
     echo "Agent started" > >(tee -a "${output_log}")
     sleep 2s
  
-  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
+  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
   num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
   if [ ! "${num_RESOURCES}" == "1" ]; then

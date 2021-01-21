@@ -5,7 +5,7 @@
   target_base_dir=$2
   
   # Copy files
-  app_name="0_1_agent_deployment"
+  app_name="0.1_1_agent_deployment"
 
   cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
 

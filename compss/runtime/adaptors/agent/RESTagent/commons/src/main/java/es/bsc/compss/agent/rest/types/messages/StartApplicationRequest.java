@@ -16,10 +16,12 @@
  */
 package es.bsc.compss.agent.rest.types.messages;
 
+import es.bsc.compss.agent.rest.types.ActionTrigger;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ArrayParameter;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ElementParameter;
-import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.OrchestratorNotification;
+import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -27,7 +29,9 @@ import es.bsc.compss.types.parameter.Parameter;
 
 import java.io.Serializable;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
@@ -51,7 +55,7 @@ public class StartApplicationRequest implements Serializable {
     private ApplicationParameterImpl[] params = new ApplicationParameterImpl[0];
     private ApplicationParameterImpl target;
     private boolean hasResult;
-    private Orchestrator orchestrator;
+    private RESTAgentRequestListener requestListener;
 
 
     public StartApplicationRequest() {
@@ -72,7 +76,7 @@ public class StartApplicationRequest implements Serializable {
 
     /**
      * Getter for the language of the request. If the language is not definied by default assigns Java.
-     * 
+     *
      * @return language of the request
      */
     public String getLang() {
@@ -186,7 +190,7 @@ public class StartApplicationRequest implements Serializable {
 
     /**
      * Add a Persistent parameter.
-     * 
+     *
      * @param direction parameter direction
      * @param id parameter identifier
      */
@@ -234,16 +238,18 @@ public class StartApplicationRequest implements Serializable {
         return sb.toString();
     }
 
-    public void setOrchestrator(String host, Orchestrator.HttpMethod method, String operation) {
-        this.orchestrator = new Orchestrator(host, method, operation);
+    public void setOrchestratorNotification(String host, OrchestratorNotification.HttpMethod method, String operation) {
+        this.requestListener = new OrchestratorNotification(host, method, operation);
     }
 
-    public void setOrchestrator(Orchestrator orchestrator) {
-        this.orchestrator = orchestrator;
+    @XmlElements({ @XmlElement(name = "action", type = ActionTrigger.class, required = false),
+        @XmlElement(name = "orchestrator", type = OrchestratorNotification.class, required = false), })
+    public RESTAgentRequestListener getRequestListener() {
+        return this.requestListener;
     }
 
-    public Orchestrator getOrchestrator() {
-        return this.orchestrator;
+    public void setRequestListener(RESTAgentRequestListener requestListener) {
+        this.requestListener = requestListener;
     }
 
 }

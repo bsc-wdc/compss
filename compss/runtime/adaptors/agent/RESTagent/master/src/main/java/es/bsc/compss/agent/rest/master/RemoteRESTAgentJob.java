@@ -17,7 +17,7 @@
 package es.bsc.compss.agent.rest.master;
 
 import es.bsc.compss.agent.RESTAgentConfig;
-import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.OrchestratorNotification;
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
@@ -189,7 +189,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             }
         }
         System.out.println("SUBMISSION[" + this.getJobId() + "] Stage in completed.");
-        sar.setOrchestrator(REST_AGENT_URL, Orchestrator.HttpMethod.PUT, "COMPSs/endApplication/");
+        sar.setOrchestratorNotification(REST_AGENT_URL, OrchestratorNotification.HttpMethod.PUT,
+            "COMPSs/endApplication/");
 
         Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(sar), Response.class);
 

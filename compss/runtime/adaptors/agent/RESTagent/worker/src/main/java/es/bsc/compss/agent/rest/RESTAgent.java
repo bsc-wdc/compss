@@ -22,7 +22,7 @@ import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.AgentInterface;
 import es.bsc.compss.agent.RESTAgentConfig;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
-import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.rest.types.messages.IncreaseNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
@@ -51,6 +51,7 @@ import es.bsc.compss.util.ResourceManager;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -60,9 +61,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.eclipse.jetty.server.Server;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -128,15 +127,39 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     @Override
     public synchronized void stop() {
         if (this.server != null) {
-            try {
-                this.server.stop();
-            } catch (Exception ex) {
-                ErrorManager.warn("Could not stop the REST server for the Agent at port " + port, ex);
-            } finally {
-                server.destroy();
-                server = null;
-            }
+            new Thread() {
+
+                @Override
+                public void run() {
+                    Thread.currentThread().setName("REST Agent Service Stopper");
+                    try {
+                        Thread.sleep(500);
+                        RESTAgent.this.server.stop();
+                        LOGGER.debug("REST Service Agent Interface stopped");
+                    } catch (Exception ex) {
+                        ErrorManager.warn("Could not stop the REST server for the Agent at port " + port, ex);
+                        if (!server.isStopped()) {
+                            server.destroy();
+                        }
+                    } finally {
+                        server = null;
+                    }
+                }
+            }.start();
+
         }
+    }
+
+    /**
+     * Stops the agent.
+     *
+     * @return REST response Indicates the correct termination of the Agent.
+     */
+    @DELETE
+    public Response powerOff() {
+        Agent.stop();
+        LOGGER.info("Agent was shutdown");
+        return Response.ok().build();
     }
 
     @GET
@@ -315,7 +338,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return response;
     }
 
-    private static Response runTask(StartApplicationRequest request) {
+    private Response runTask(StartApplicationRequest request) {
         Lang lang;
         try {
             lang = Lang.valueOf(request.getLang().toUpperCase());
@@ -340,8 +363,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             results = new ApplicationParameterImpl[0];
         }
         long appId;
-        Orchestrator orchestrator = request.getOrchestrator();
-        AppTaskMonitor monitor = new AppTaskMonitor(arguments, target, results, orchestrator);
+        RESTAgentRequestListener requestListener = request.getRequestListener();
+        AppTaskMonitor monitor = new AppTaskMonitor(arguments, target, results, this, requestListener);
 
         // COMPUTE SIGNATURES
         StringBuilder typesSB = new StringBuilder();

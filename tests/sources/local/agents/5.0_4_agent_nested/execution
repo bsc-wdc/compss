@@ -13,6 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
+  NUM_RETRIES="50"
   jar_name="5.0_4_agent_nested.jar"
   app_name="5.0_4_agent_nested"
 
@@ -87,14 +88,15 @@
     eval "agent${agent_id}_errput_log=${agent_error_log}"
 
     compss_agent_start \
-      "--hostname=COMPSsWorker0${agent_id}" \
-      "--classpath=${base_app_dir}/${jar_name}" \
-      "--log_dir=${agent_log_dir}" \
-      "--rest_port=46${agent_id}01" \
-      "--comm_port=46${agent_id}02" \
-      "-d" \
-      "--project=${base_app_dir}/project.xml" \
-      "--resources=${base_app_dir}/resources.xml" 1>"${agent_output_log}" 2>"${agent_error_log}" &
+      --hostname="COMPSsWorker0${agent_id}" \
+      --classpath="${base_app_dir}/${jar_name}" \
+      --log_dir="${agent_log_dir}" \
+      --rest_port="46${agent_id}01" \
+      --comm_port="46${agent_id}02" \
+      -d \
+      ${runcompss_opts} \
+      --project="${base_app_dir}/project.xml" \
+      --resources="${base_app_dir}/resources.xml" 1>"${agent_output_log}" 2>"${agent_error_log}" &
 
       agent_pid="$!"
       AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
@@ -105,7 +107,7 @@
     out_log_name=agent${agent_id}_output_log
     eval agent_output_log=${!out_log_name}
 
-    retries="3"
+    retries="${NUM_RETRIES}"
     curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
     ev=$?
     while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
@@ -157,7 +159,9 @@
   fi
 
   job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3 )
-  job1_method="${job1_method::-1}"
+  if [ -n "${job1_method}" ]; then
+    job1_method="${job1_method::-1}"
+  fi
   if [ ! "${job1_method}" == "main" ]; then
     echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit 1
@@ -189,7 +193,9 @@
     
 
   job2_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-  job2_method="${job2_method::-1}"
+  if [ -n "${job2_method}" ]; then
+    job2_method="${job2_method::-1}"
+  fi
   job3_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
   job3_method="${job3_method::-1}"
   job4_method=$( grep "METHOD NAME" "${agent4_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)

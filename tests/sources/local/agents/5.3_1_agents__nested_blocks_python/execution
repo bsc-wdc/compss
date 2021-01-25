@@ -13,7 +13,8 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  app_name="5.2_3_agents_blocks_python"
+  NUM_RETRIES="50"
+  app_name="5.3_1_agents__nested_blocks_python"
 
   # Traps and Handlers
   function kill_agents() {
@@ -80,20 +81,21 @@ mkdir -p "${agent1_log_dir}"
 agent1_output_log="${log_dir}agent1.outputlog"
 agent1_error_log="${log_dir}agent1.errorlog"
 compss_agent_start \
-"--hostname=COMPSsWorker01" \
-"--pythonpath=${base_app_dir}/src" \
-   "--log_dir=${agent1_log_dir}" \
-   "--rest_port=46101" \
-   "--comm_port=46102" \
-   "-d" \
-   "--project=${base_app_dir}/project.xml" \
-   "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+  --hostname="COMPSsWorker01" \
+  --pythonpath="${base_app_dir}/src" \
+  --log_dir="${agent1_log_dir}" \
+  --rest_port="46101" \
+  --comm_port="46102" \
+  -d \
+  ${runcompss_opts} \
+  --project="${base_app_dir}/project.xml" \
+  --resources="${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
 agent_pid="$!"
 AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
 
 
-    retries="3"
+    retries="${NUM_RETRIES}"
   curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
     ev=$?
     while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
@@ -164,7 +166,9 @@ AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
   sleep 5
 
   job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-  job1_method="${job1_method::-1}"
+  if [ -n "${job1_method}" ]; then
+    job1_method="${job1_method::-1}"
+  fi
   if [ ! "${job1_method}" == "main" ]; then
     echo "Unexpected method (${job1_method}) for job 1." > >(tee -a "${error_log}")
     exit 1
@@ -175,12 +179,18 @@ AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
     echo "COMPSs has generated ${created_jobs} tasks and only 4 expected." > >(tee -a "${error_log}")
     exit 1
   fi 
-job2_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
-  job2_method="${job2_method::-1}"
+  job2_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
+  if [ -n "${job2_method}" ]; then
+    job2_method="${job2_method::-1}"
+  fi
   job3_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
-  job3_method="${job3_method::-1}"
+  if [ -n "${job3_method}" ]; then
+    job3_method="${job3_method::-1}"
+  fi
   job4_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
-  job4_method="${job4_method::-1}"
+  if [ -n "${job4_method}" ]; then
+    job4_method="${job4_method::-1}"
+  fi
 
   job2_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job2_NEW.out" | grep testValue | awk '{print$2}')
   job3_value=$( grep -v "\[" "${agent1_log_dir}/jobs/job3_NEW.out" | grep testValue | awk '{print$2}')

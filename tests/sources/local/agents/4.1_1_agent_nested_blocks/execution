@@ -13,6 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
+  NUM_RETRIES="50"
   jar_name="4.1_1_agent_nested_blocks.jar"
   app_name="4.1_1_agent_nested_blocks"
 
@@ -81,19 +82,20 @@
   agent1_output_log="${log_dir}agent1.outputlog"
   agent1_error_log="${log_dir}agent1.errorlog"
   compss_agent_start \
-   "--hostname=COMPSsWorker01" \
-   "--classpath=${base_app_dir}/${jar_name}" \
-   "--log_dir=${agent1_log_dir}" \
-   "--rest_port=46101" \
-   "--comm_port=46102" \
-   "-d" \
-   "--project=${base_app_dir}/project.xml" \
-   "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+  --hostname="COMPSsWorker01" \
+  --classpath="${base_app_dir}/${jar_name}" \
+  --log_dir="${agent1_log_dir}" \
+  --rest_port="46101" \
+  --comm_port="46102" \
+  -d \
+  ${runcompss_opts} \
+  --project="${base_app_dir}/project.xml" \
+  --resources="${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
   agent_pid="$!"
   AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
 
-  retries="3"
+  retries="${NUM_RETRIES}"
   curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
   ev=$?
   while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
@@ -161,7 +163,9 @@
   fi
 
   job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3 )
-  job1_method="${job1_method::-1}"
+  if [ -n "${job1_method}" ]; then
+    job1_method="${job1_method::-1}"
+  fi
   if [ ! "${job1_method}" == "main" ]; then
     echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit 1
@@ -177,7 +181,9 @@
   fi 
 
   job2_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
-  job2_method="${job2_method::-1}"
+  if [ -n "${job2_method}" ]; then
+    job2_method="${job2_method::-1}"
+  fi
   job3_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
   job3_method="${job3_method::-1}"
   job4_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)

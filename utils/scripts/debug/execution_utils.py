@@ -13,6 +13,7 @@ from task_utils import TaskRegister
 from action_utils import JobRegister
 from resource_utils import ResourceRegister
 from connection_utils import ConnectionRegister
+from ce_utils import CoreElementRegister
 
 import sys
 
@@ -47,6 +48,7 @@ class ExecutionState:
     Class representing the current state of the execution
     """
     def __init__(self):
+        self.core_elements = CoreElementRegister()
         self.tasks = TaskRegister()
         self.resources = ResourceRegister()
         self.jobs = JobRegister()
@@ -93,6 +95,60 @@ class ExecutionState:
                 name = resource.name
                 print(name + (((max_length - len(name)) + 3) * " ") + str(len(resource.hosts)))
 
+
+    def _short_signature(self, signature):
+        if len(signature) > 50 :
+            method_name = signature.split(".")[-1]
+            prev_len = 47 - len(method_name)
+            return signature[0:prev_len]+".."+method_name
+        else:
+            return signature.ljust(50)
+            
+    def query_core_elements(self, query):
+        """
+
+        :param query:
+        """
+        if len(query) > 0:
+            core_element = None
+            if all(char.isdigit() for char in query[0]):
+                core_id = int(query[0])
+                core_element = self.core_elements.get_core_element_by_id(core_id)
+            else:
+                core_signature = query[0]
+                core_element = self.core_elements.get_core_element_by_signature(core_signature)
+            if core_element is None:
+                print("Runtime has no information regarding such core element.", file=sys.stderr)
+            else:
+                print("------- Core Element ------")
+                print("Id: " + str(core_element.core_id))
+                print("Signature: " + core_element.signature)
+                print("Implementations:")
+                for impl in core_element.get_implementations():
+                    print("\t* Signature:"+impl.signature)
+                    print("\t  Constraints:"+impl.constraints)
+                print("History:")
+                for entry in core_element.get_history():
+                    print("\t "+entry[0]+" -> "+entry[1])
+
+        else:
+            print("------ Core Elements ------")
+            print("ID\tSignature\t\t\t\t\t\tCPUs\tMem")
+            cores = self.core_elements.get_core_elements()
+            for core in sorted(cores, key=lambda core: int(core.core_id)):
+                print(str(core.core_id)+"\t"+self._short_signature(str(core.signature)))
+                impls = core.get_implementations()
+                impl_count=len(impls)
+                idx = 0
+                for impl in impls:
+                    impl_desc=""
+                    if impl_count == idx+1:
+                        impl_desc = chr(192).decode('cp437')
+                    else:
+                        impl_desc = chr(195).decode('cp437')
+                    impl_desc = impl_desc + (chr(196).decode('cp437') * 7 )
+                    print(impl_desc+" "+self._short_signature(str(impl.signature))+"\t"+impl.get_constraints_cores()+"\t"+impl.get_constraints_memory())
+            
     def query_connection(self, query):
         """
 
@@ -119,7 +175,7 @@ class ExecutionState:
             else:
                 print("Unknown job sub-command "+query[0], file=sys.stderr)
         else:
-            print("-------- Connections ------")
+            print("------- Connections -------")
             print("Connection ID\tStatus")
             connections = self.connections.get_connections()
             for connection in sorted(connections, key=lambda connection: int(connection.connection_id)):
@@ -149,10 +205,25 @@ class ExecutionState:
                 print("Unknown job sub-command "+query[0], file=sys.stderr)
         else:
             print("-------- Jobs ------")
-            print("Job ID\tStatus\t\t\tAction")
+            print("Job ID\tStatus\t\tAction\t\t\t\tResource\tExecution Period")
             jobs = self.jobs.get_jobs()
             for job in sorted(jobs, key=lambda job: int(job.job_id)):
-                print(job.job_id+"\t"+str(job.status)+"\t"+str(job.action))
+                job_status_label = "{:<15}".format(str(job.status).split(".")[1])
+                job_action_label= "{:<31}".format(str(job.action))
+                job_resource_label = "{:<15}".format(str(job.resource.name))
+
+                job_creation_label="?"
+                job_submission_label="?"
+                job_completion_label="?"
+                for entry in job.get_history():
+                    if "created" in entry[1]:
+                        job_creation_label=entry[0]
+                    elif "submitted" in entry[1]:
+                        job_submission_label=entry[0]
+                    elif "completed" in entry[1]:
+                        job_completion_label=entry[0]
+
+                print(job.job_id+"\t"+job_status_label+"\t"+job_action_label+"\t"+job_resource_label+"\t"+job_submission_label+"-"+job_completion_label)
 
     def query_task(self, query):
         if len(query) > 0:

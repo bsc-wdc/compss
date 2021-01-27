@@ -1135,7 +1135,7 @@ public class Executor implements Runnable, InvocationRunner {
      * ---------------------- TRACE EVENTS MAGEMENT --------------------------------
      */
     private void emitingTaskStartEvents() {
-        //Adding multiply by numNodes for the multinode case. 
+        // Adding multiply by numNodes for the multinode case.
         int numNodes = 1;
         if (invocation.getSlaveNodesNames() != null) {
             numNodes = invocation.getSlaveNodesNames().size() + 1;

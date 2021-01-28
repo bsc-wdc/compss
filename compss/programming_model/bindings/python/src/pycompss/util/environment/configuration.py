@@ -328,6 +328,7 @@ def create_init_config_file(compss_home,                    # type: str
                             python_virtual_environment,     # type: str
                             propagate_virtual_environment,  # type: bool
                             mpi_worker,                     # type: bool
+                            worker_cache,                   # type: bool or str
                             **kwargs        # noqa          # type: dict
                             ):  # NOSONAR
     # type: (...) -> None
@@ -392,6 +393,8 @@ def create_init_config_file(compss_home,                    # type: str
     :param propagate_virtual_environment: <Boolean> Propagate python virtual
                                           environment to workers
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
+    :param worker_cache: Use the worker cache [ True | int(size) | False ]
+                         (default: False)
     :param kwargs: Any other parameter
     :return: None
     """
@@ -588,6 +591,11 @@ def create_init_config_file(compss_home,                    # type: str
         jvm_options_file.write('-Dcompss.python.mpi_worker=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.mpi_worker=false\n')
+    if worker_cache:
+        jvm_options_file.write('-Dcompss.python.worker_cache=' +
+                               str(worker_cache).lower() + '\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.worker_cache=false\n')
 
     # Uncomment for debugging purposes
     # jvm_options_file.write('-Xcheck:jni\n')

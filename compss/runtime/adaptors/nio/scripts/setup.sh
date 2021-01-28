@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  NUM_PARAMS=36
+  NUM_PARAMS=37
 
   ######################
   # INTERNAL FUNCTIONS
@@ -118,6 +118,7 @@
     pythonPropagateVirtualEnvironment=${34}
     pythonExtraeFile=${35}
     pythonMpiWorker=${36}
+    pythonWorkerCache=${37}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -146,6 +147,7 @@
       echo "- Python Virtual Env.  $pythonVirtualEnvironment"
       echo "- Python Propagate Virtual Env.  $pythonPropagateVirtualEnvironment"
       echo "- Python MPI Worker.   $pythonMpiWorker"
+      echo "- Python Worker Cache. $pythonWorkerCache"
       echo "- Python Extrae File   $pythonExtraeFile"
 
       echo "- Tracing:             $tracing"

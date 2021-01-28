@@ -21,23 +21,24 @@
 PyCOMPSs Cache tracker
 ======================
     This file contains the cache object tracker.
-    IMPORTANT: Only used with the piper_worker.py
+    IMPORTANT: Only used with the piper_worker.py and python >= 3.8.
 """
 
 from collections import OrderedDict
 try:
-    from multiprocessing.shared_memory import SharedMemory
-    from multiprocessing.managers import SharedMemoryManager
+    from multiprocessing.shared_memory import SharedMemory    # noqa
+    from multiprocessing.managers import SharedMemoryManager  # noqa
 except ImportError:
     # Unsupported in python < 3.8
     SharedMemory = None
+    SharedMemoryManager = None
 try:
     import numpy as np
 except ImportError:
     np = None
 
 
-HEADER = "*[PYTHON CACHE] "
+HEADER = "[PYTHON CACHE] "
 SHARED_MEMORY_MANAGER = None
 
 
@@ -86,7 +87,6 @@ def cache_tracker(queue, process_name, conf):
     # MAIN CACHE TRACKER LOOP
     used_size = 0
     while alive:
-        # Check every 1 second
         msg = queue.get()
         if msg == "QUIT":
             if __debug__:
@@ -95,7 +95,6 @@ def cache_tracker(queue, process_name, conf):
             alive = False
         else:
             try:
-                # new_id, new_cache_id, shape, dtype, new_id_size = msg.split()
                 new_id, new_cache_id, shape, dtype, new_id_size = msg
                 if new_id in cache_ids:
                     # Any executor has already put the id
@@ -113,10 +112,16 @@ def cache_tracker(queue, process_name, conf):
                     new_id_size = int(new_id_size)
                     if used_size + new_id_size > max_size:
                         # Cache is full, need to evict
-                        used_size = check_cache_status(conf, used_size, new_id_size)
+                        used_size = check_cache_status(conf,
+                                                       used_size,
+                                                       new_id_size)
                     # Add without problems
                     used_size = used_size + new_id_size
-                    cache_ids[new_id] = [new_cache_id, shape, dtype, new_id_size, 0]
+                    cache_ids[new_id] = [new_cache_id,
+                                         shape,
+                                         dtype,
+                                         new_id_size,
+                                         0]
             except Exception as e:
                 logger.exception("%s - Exception %s" % (str(process_name),
                                                         str(e)))
@@ -132,7 +137,7 @@ def check_cache_status(conf, used_size, requested_size):
     :param requested_size: Size needed to fit the new object.
     :return: new used size
     """
-    logger = conf.logger
+    logger = conf.logger  # noqa
     max_size = conf.size
     cache_ids = conf.cache_ids
 
@@ -167,11 +172,12 @@ def initialize_shared_memory_manager():
     :return: None
     """
     global SHARED_MEMORY_MANAGER
-    SHARED_MEMORY_MANAGER = SharedMemoryManager(address=('127.0.0.1', 50000), authkey=b'compss_cache')
+    SHARED_MEMORY_MANAGER = SharedMemoryManager(address=('127.0.0.1', 50000),
+                                                authkey=b'compss_cache')
     SHARED_MEMORY_MANAGER.connect()
 
 
-def retrieve_object_from_cache(logger, cache_ids, identifier):
+def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     # type: (..., ..., str) -> ...
     """ Retrieve an object from the given cache proxy dict.
 
@@ -191,7 +197,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):
     return output, existing_shm
 
 
-def insert_object_into_cache(logger, cache_queue, obj, f_name):
+def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     # type: (..., ..., ..., ...) -> None
     """ Put an object into cache.
 
@@ -206,10 +212,11 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):
     shape = obj.shape
     d_type = obj.dtype
     size = obj.nbytes
-    shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)
+    shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
     within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
     within_cache[:] = obj[:]  # Copy contents
     new_cache_id = shm.name
     cache_queue.put((f_name, new_cache_id, shape, d_type, size))
     if __debug__:
-        logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))
+        logger.debug(HEADER + "Inserted into cache: " +
+                     str(f_name) + " as " + str(new_cache_id))

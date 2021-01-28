@@ -168,6 +168,8 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = this.pythonExtraeFile;
         // Python use MPI worker parameter
         cmd[nextPosition++] = this.pythonMpiWorker;
+        // Python use MPI worker parameter
+        cmd[nextPosition++] = this.pythonWorkerCache;
 
         if (cmd.length != nextPosition) {
             throw new Exception(

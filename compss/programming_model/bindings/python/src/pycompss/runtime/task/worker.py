@@ -42,7 +42,9 @@ from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.util.objects.util import group_iterable
 from pycompss.worker.commons.worker import build_task_parameter
-# TODO: THIS IS SPECIFIC FOR PIPER:
+# The cache is only available currently for piper_worker.py and python >= 3.8
+# If supported in the future by another worker, add a common interface
+# with these two functions and import the appropriate.
 from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
 from pycompss.worker.piper.cache.tracker import insert_object_into_cache
 try:

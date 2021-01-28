@@ -59,7 +59,7 @@ import pycompss.util.context as context
 PROCESSES = {}  # IN_PIPE -> PROCESS
 TRACING = False
 WORKER_CONF = None
-CACHE = sys.version_info >= (3, 8)
+CACHE = None
 CACHE_PROCESS = None
 CACHE_QUEUE = None
 
@@ -93,6 +93,8 @@ def compss_persistent_worker(config):
     :param config: Piper Worker Configuration description.
     :return: None
     """
+    global CACHE
+
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
@@ -119,19 +121,27 @@ def compss_persistent_worker(config):
     # Create new processes
     queues = []
 
+    # Setup cache
+    if ":" in config.cache:
+        cache, cache_size = config.cache.split(":")
+        CACHE = True if cache == "true" else False
+        cache_size = int(cache_size)
+    else:
+        CACHE = True if config.cache == "true" else False
+        cache_size = 10000000000
     if CACHE:
         # Cache can be used
         # Create a proxy dictionary to share the information across workers
         # within the same node
         from multiprocessing import Manager
         manager = Manager()
-        cache_ids = manager.dict()  # proxy dictionary
+        cache_ids = manager.dict()  # Proxy dictionary
         # Start a new process to manage the cache contents.
         from multiprocessing.managers import SharedMemoryManager
         smm = SharedMemoryManager(address=('', 50000), authkey=b'compss_cache')
         smm.start()
         conf = CacheTrackerConf(logger,
-                                10000000000,
+                                cache_size,
                                 None,
                                 cache_ids)
         create_cache_tracker_process("cache_tracker", conf)
@@ -232,10 +242,10 @@ def compss_persistent_worker(config):
         queue.join_thread()
 
     if CACHE:
-        CACHE_QUEUE.put("QUIT")
-        CACHE_PROCESS.join()
-        CACHE_QUEUE.close()
-        CACHE_QUEUE.join_thread()
+        CACHE_QUEUE.put("QUIT")    # noqa
+        CACHE_PROCESS.join()       # noqa
+        CACHE_QUEUE.close()        # noqa
+        CACHE_QUEUE.join_thread()  # noqa
         smm.shutdown()
 
     if persistent_storage:

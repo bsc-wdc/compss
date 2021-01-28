@@ -40,7 +40,7 @@ class PiperWorkerConfiguration(object):
 
     __slots__ = ['nesting', 'debug', 'tracing', 'storage_conf',
                  'stream_backend', 'stream_master_name', 'stream_master_port',
-                 'tasks_x_node', 'pipes', 'control_pipe']
+                 'tasks_x_node', 'pipes', 'control_pipe', 'cache']
 
     def __init__(self):
         """
@@ -56,6 +56,7 @@ class PiperWorkerConfiguration(object):
         self.tasks_x_node = 0
         self.pipes = []
         self.control_pipe = None
+        self.cache = False
 
     def update_params(self, argv):
         # type: (list) -> None
@@ -75,9 +76,10 @@ class PiperWorkerConfiguration(object):
         self.stream_backend = argv[6]
         self.stream_master_name = argv[7]
         self.stream_master_port = argv[8]
-        self.tasks_x_node = int(argv[9])
-        in_pipes = argv[10:10 + self.tasks_x_node]
-        out_pipes = argv[10 + self.tasks_x_node:-2]
+        self.cache = argv[9]
+        self.tasks_x_node = int(argv[10])
+        in_pipes = argv[11:11 + self.tasks_x_node]
+        out_pipes = argv[11 + self.tasks_x_node:-2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)
@@ -99,6 +101,7 @@ class PiperWorkerConfiguration(object):
         logger.debug(HEADER + "Nesting        : " + str(self.nesting))
         logger.debug(HEADER + "Debug          : " + str(self.debug))
         logger.debug(HEADER + "Tracing        : " + str(self.tracing))
+        logger.debug(HEADER + "Cache          : " + str(self.cache))
         logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))
         logger.debug(HEADER + "Pipe Pairs     : ")
         for pipe in self.pipes:

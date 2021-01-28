@@ -102,6 +102,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected String pythonPropagateVirtualEnvironment;
     protected String pythonExtraeFile;
     protected String pythonMpiWorker;
+    protected String pythonWorkerCache;
     protected int totalCPU;
     protected int totalGPU;
     protected int totalFPGA;
@@ -248,10 +249,19 @@ public abstract class WorkerStarterCommand implements StarterCommand {
             this.pythonExtraeFile = COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE;
         }
 
+        // Configure mpi worker
         this.pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
         if (this.pythonMpiWorker == null || this.pythonMpiWorker.isEmpty() || this.pythonMpiWorker.equals("null")) {
             this.pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
         }
+
+        // Configure worker cache
+        this.pythonWorkerCache = System.getProperty(COMPSsConstants.PYTHON_WORKER_CACHE);
+        if (this.pythonWorkerCache == null || this.pythonWorkerCache.isEmpty()
+            || this.pythonWorkerCache.equals("null")) {
+            this.pythonWorkerCache = COMPSsConstants.DEFAULT_PYTHON_WORKER_CACHE;
+        }
+
         this.lang = System.getProperty(COMPSsConstants.LANG);
 
         this.totalCPU = totalCPU;

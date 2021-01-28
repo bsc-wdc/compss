@@ -307,6 +307,7 @@ def launch_pycompss_application(app,
                                 external_adaptation=False,        # type: bool
                                 propagate_virtual_environment=True,  # noqa type: bool
                                 mpi_worker=False,                 # type: bool
+                                worker_cache=False,               # type: bool or str
                                 *args, **kwargs
                                 ):  # NOSONAR
     # type: (...) -> None
@@ -359,6 +360,8 @@ def launch_pycompss_application(app,
     :param propagate_virtual_environment: Propagate virtual environment
                                           [ True | False ] (default: False)
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
+    :param worker_cache: Use the worker cache [ True | int(size) | False]
+                         (default: False)
     :param args: Positional arguments
     :param kwargs: Named arguments
     :return: Execution result
@@ -417,7 +420,8 @@ def launch_pycompss_application(app,
                                   scheduler_config,
                                   external_adaptation,
                                   propagate_virtual_environment,
-                                  mpi_worker)
+                                  mpi_worker,
+                                  worker_cache)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
     # Removes b' and ' to avoid issues with javascript

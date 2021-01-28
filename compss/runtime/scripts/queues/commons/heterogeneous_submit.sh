@@ -69,12 +69,14 @@ unset_type_vars(){
 
 write_master_submit(){
   add_submission_headers
+  add_env_script
   add_only_master_node
   add_launch
 }
 
 write_worker_submit(){
   add_submission_headers
+  add_env_script
   add_only_worker_nodes
   add_launch
 }

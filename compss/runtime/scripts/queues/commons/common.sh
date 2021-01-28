@@ -88,6 +88,11 @@ show_opts() {
                                             Default: ${DEFAULT_QUEUE}
     --reservation=<name>                    Reservation to use when submitting the job.
                                             Default: ${DEFAULT_RESERVATION}
+    --env_script=<path/to/script>           Script to source the required environment for the application.
+                                            Default: Empty
+    --extra_submit_flag=<flag>              Flag to pass queue system flags not supported by default command flags.
+                                            Spaces must be added as '#'
+                                            Default: Empty
 EOT
    if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     cat <<EOT
@@ -146,6 +151,7 @@ EOT
                                             Default: ${DEFAULT_STORAGE_HOME}
     --storage_props=<string>                Absolute path of the storage properties file
                                             Mandatory if storage_home is defined
+  Agents deployment arguments:
     --agents=<string>                       Hierarchy of agents for the deployment. Accepted values: plain|tree
                                             Default: ${DEFAULT_AGENTS_HIERARCHY}
     --agents                                Deploys the runtime as agents instead of the classic Master-Worker deployment.
@@ -465,6 +471,12 @@ get_args() {
 	    wcl=${OPTARG//wall_clock_limit=/}
 	    args_pass="$args_pass --$OPTARG"
 	    ;;
+	  env_script=*)
+	    env_script=${OPTARG//env_script=/}
+	    ;;
+	  extra_submit_flag=*)
+            extra_submit_flag=(${extra_submit_flag[@]} ${OPTARG//extra_submit_flag=/})
+	    ;;
           *)
             # Flag didn't match any patern. Add to COMPSs
             args_pass="$args_pass --$OPTARG"
@@ -691,8 +703,17 @@ EOT
 create_normal_tmp_submit(){
   create_tmp_submit
   add_submission_headers
+  add_env_source
   add_master_and_worker_nodes
   add_launch
+}
+
+add_env_source(){
+  if [ -n "${env_script}" ]; then
+     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+source ${env_script}
+EOT
+  fi
 }
 
 add_submission_headers(){
@@ -896,6 +917,15 @@ EOT
 #${QUEUE_CMD} --nvram-options=${nvram_options}
 EOT
     fi
+  fi
+
+  if [ -n "${extra_submit_flag}" ]; then
+    for flag in "${extra_submit_flag[@]}"; do
+       flag=${flag//#/ }
+       cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${flag}
+EOT
+    done
   fi
 }
 

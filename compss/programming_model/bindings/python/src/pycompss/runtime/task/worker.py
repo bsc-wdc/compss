@@ -47,6 +47,7 @@ from pycompss.worker.commons.worker import build_task_parameter
 # with these two functions and import the appropriate.
 from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
 from pycompss.worker.piper.cache.tracker import insert_object_into_cache
+from pycompss.worker.piper.cache.tracker import replace_object_into_cache
 try:
     import numpy as np
 except ImportError:
@@ -566,11 +567,10 @@ class TaskWorker(TaskCommons):
             else:
                 # Not in cache. Retrieve from file and put in cache
                 obj = deserialize_from_file(f_name)
-                if isinstance(obj, np.ndarray):
-                    insert_object_into_cache(logger,
-                                             self.cache_queue,
-                                             obj,
-                                             f_name)
+                insert_object_into_cache(logger,
+                                         self.cache_queue,
+                                         obj,
+                                         f_name)
                 return obj
         else:
             return deserialize_from_file(f_name)
@@ -845,6 +845,8 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
+                            if np and self.cache_queue is not None:
+                                self.update_object_in_cache(content, f_name)
                     else:
                         # It is None --> PSCO
                         pass
@@ -862,6 +864,8 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
+                            if np and self.cache_queue is not None:
+                                self.update_object_in_cache(content, f_name)
                     else:
                         # It is None --> PSCO
                         pass
@@ -874,9 +878,29 @@ class TaskWorker(TaskCommons):
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
                     serialize_to_file(arg.content, f_name)
+                    if np and self.cache_queue is not None:
+                        self.update_object_in_cache(arg.content, f_name)
 
-    @staticmethod
-    def manage_returns(num_returns, user_returns, ret_params, python_mpi):
+    def update_object_in_cache(self, content, f_name):
+        # type: (..., str) -> None
+        """ Updates the object into cache if possible
+
+        :param content: Object to be updated.
+        :param f_name: File where to store the object (id at cache).
+        :return: None
+        """
+        if f_name in self.cache_ids:
+            replace_object_into_cache(logger,
+                                      self.cache_queue,
+                                      content,
+                                      f_name)
+        else:
+            insert_object_into_cache(logger,
+                                     self.cache_queue,
+                                     content,
+                                     f_name)
+
+    def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
         # type: (int, list, list, bool) -> list
         """ Manage task returns.
 
@@ -921,7 +945,22 @@ class TaskWorker(TaskCommons):
                     serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
                 else:
                     serialize_to_file(obj, f_name)
+                    if np and self.cache_queue is not None:
+                        self.insert_object_in_cache(obj, f_name)
         return user_returns
+
+    def insert_object_in_cache(self, content, f_name):
+        # type: (..., str) -> None
+        """ Inserts the object into cache if possible
+
+        :param content: Object to be updated.
+        :param f_name: File where to store the object (id at cache).
+        :return: None
+        """
+        insert_object_into_cache(logger,
+                                 self.cache_queue,
+                                 content,
+                                 f_name)
 
     def is_parameter_an_object(self, name):
         # type: (str) -> bool

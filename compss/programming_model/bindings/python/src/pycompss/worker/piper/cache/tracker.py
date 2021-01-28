@@ -95,33 +95,39 @@ def cache_tracker(queue, process_name, conf):
             alive = False
         else:
             try:
-                new_id, new_cache_id, shape, dtype, new_id_size = msg
-                if new_id in cache_ids:
-                    # Any executor has already put the id
-                    if __debug__:
-                        logger.debug(HEADER + "[%s] Cache collision" %
-                                     str(process_name))
-                    # Increment hits
-                    cache_ids[new_id][4] += 1
-                else:
-                    # Add new entry request
-                    if __debug__:
-                        logger.debug(HEADER + "[%s] Cache add entry: %s" %
-                                     (str(process_name), str(msg)))
-                    # Check if it is going to fit and remove if necessary
-                    new_id_size = int(new_id_size)
-                    if used_size + new_id_size > max_size:
-                        # Cache is full, need to evict
-                        used_size = check_cache_status(conf,
-                                                       used_size,
-                                                       new_id_size)
-                    # Add without problems
-                    used_size = used_size + new_id_size
-                    cache_ids[new_id] = [new_cache_id,
-                                         shape,
-                                         dtype,
-                                         new_id_size,
-                                         0]
+                action, message = msg
+                if action == "PUT":
+                    new_id, new_cache_id, shape, dtype, new_id_size = message
+                    if new_id in cache_ids:
+                        # Any executor has already put the id
+                        if __debug__:
+                            logger.debug(HEADER + "[%s] Cache collision" %
+                                         str(process_name))
+                        # Increment hits
+                        cache_ids[new_id][4] += 1
+                    else:
+                        # Add new entry request
+                        if __debug__:
+                            logger.debug(HEADER + "[%s] Cache add entry: %s" %
+                                         (str(process_name), str(msg)))
+                        # Check if it is going to fit and remove if necessary
+                        new_id_size = int(new_id_size)
+                        if used_size + new_id_size > max_size:
+                            # Cache is full, need to evict
+                            used_size = check_cache_status(conf,
+                                                           used_size,
+                                                           new_id_size)
+                        # Add without problems
+                        used_size = used_size + new_id_size
+                        cache_ids[new_id] = [new_cache_id,
+                                             shape,
+                                             dtype,
+                                             new_id_size,
+                                             0]
+                elif action == "REMOVE":
+                    f_name = message
+                    cache_ids.pop(f_name)
+
             except Exception as e:
                 logger.exception("%s - Exception %s" % (str(process_name),
                                                         str(e)))
@@ -207,16 +213,55 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+    if isinstance(obj, np.ndarray):
+        if __debug__:
+            logger.debug(HEADER + "Inserting into cache: " + str(f_name))
+        shape = obj.shape
+        d_type = obj.dtype
+        size = obj.nbytes
+        shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
+        within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
+        within_cache[:] = obj[:]  # Copy contents
+        new_cache_id = shm.name
+        cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size)))
+        if __debug__:
+            logger.debug(HEADER + "Inserted into cache: " +
+                         str(f_name) + " as " + str(new_cache_id))
+    else:
+        if __debug__:
+            logger.debug(HEADER +
+                         "Can not put into cache: Not a np.ndarray object")
+
+
+def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
+    # type: (..., ..., ...) -> None
+    """ Removes an object from cache.
+
+    :param logger: Logger where to push messages.
+    :param cache_queue: Cache notification queue.
+    :param f_name: File name that corresponds to the object (used as id).
+    :return: None
+    """
     if __debug__:
-        logger.debug(HEADER + "Inserting into cache: " + str(f_name))
-    shape = obj.shape
-    d_type = obj.dtype
-    size = obj.nbytes
-    shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
-    within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
-    within_cache[:] = obj[:]  # Copy contents
-    new_cache_id = shm.name
-    cache_queue.put((f_name, new_cache_id, shape, d_type, size))
+        logger.debug(HEADER + "Removing from cache: " + str(f_name))
+    cache_queue.put(("REMOVE", f_name))
     if __debug__:
-        logger.debug(HEADER + "Inserted into cache: " +
-                     str(f_name) + " as " + str(new_cache_id))
+        logger.debug(HEADER + "Removed from cache: " + str(f_name))
+
+
+def replace_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
+    # type: (..., ..., ..., ...) -> None
+    """ Put an object into cache.
+
+    :param logger: Logger where to push messages.
+    :param cache_queue: Cache notification queue.
+    :param obj: Object to store.
+    :param f_name: File name that corresponds to the object (used as id).
+    :return: None
+    """
+    if __debug__:
+        logger.debug(HEADER + "Replacing from cache: " + str(f_name))
+    remove_object_from_cache(logger, cache_queue, f_name)
+    insert_object_into_cache(logger, cache_queue, obj, f_name)
+    if __debug__:
+        logger.debug(HEADER + "Replaced from cache: " + str(f_name))

@@ -33,6 +33,13 @@ class Loggers:
             label = "waitForTask"
             END = "End of waited task for data"
 
+    class TaskDispatcher:
+        label = "TaskDispatcher"
+
+        class RegisterCE:
+            label = "rNewCoreElement"
+            REGISTERING = "Registering New CoreElement"
+
     class TaskAnalyser:
         label = "TaskAnalyser"
 
@@ -192,6 +199,11 @@ class Parser:
             if method == Loggers.DataInfoProvider.RegisteringAccess.label:
                 if Loggers.DataInfoProvider.RegisteringAccess.REGISTER in message:
                     event = RegisteringAccessEvent(timestamp, message)
+
+        if logger == Loggers.TaskDispatcher.label:
+            if method == Loggers.TaskDispatcher.RegisterCE.label:
+                if Loggers.TaskDispatcher.RegisterCE.REGISTERING in message:
+                    event = RegisteringCEEvent(timestamp, message)
 
         if logger == Loggers.TaskScheduler.label:
             if method == Loggers.TaskScheduler.CreateAction.label:
@@ -1105,3 +1117,40 @@ class ClosedSocketEvent(Event):
 
     def __str__(self):
         return "Connection "+str(self.connection_id)+" closed its socket "
+
+# Core Element Management
+class RegisteringCEEvent(Event):
+    """
+    Registering new Core Element
+    """
+
+    def __init__(self, timestamp, message):
+        super(RegisteringCEEvent, self).__init__(timestamp)
+        self.ce_signature = ""
+        self.impls=[]
+        current_impl = None
+        lines=message.splitlines()
+        for line in lines:
+            property=line.split()
+            if len(property) > 2:
+                if property[0] == "ceSignature":
+                    self.ce_signature = property[2]
+                elif property[0] == "implSignature":
+                    if current_impl is not None:
+                        self.impls.append(current_impl)
+                    current_impl = [line[16:]]
+                elif property[0] == "implConstraints":
+                    current_impl.append(line[18:])
+        if current_impl is not None:
+            self.impls.append(current_impl)
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        core_element = state.core_elements.register_core_element(self.ce_signature, self.timestamp)
+        for impl in self.impls:
+            core_element.add_implementation(impl[0], impl[1], self.timestamp)
+        

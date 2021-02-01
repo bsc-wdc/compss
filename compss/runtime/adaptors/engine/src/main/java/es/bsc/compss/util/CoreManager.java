@@ -80,13 +80,15 @@ public class CoreManager {
      * @return Core Element of the registered definition.
      */
     public static CoreElement registerNewCoreElement(CoreElementDefinition ced) {
+        StringBuilder logString = new StringBuilder("Registering New CoreElement\n");
         String ceSignature = ced.getCeSignature();
-        LOGGER.debug("ceSignature = " + ceSignature + "\n");
+
         // Check that the signature is valid
         if (ceSignature == null || ceSignature.isEmpty()) {
-            LOGGER.warn(ERROR_INVALID_SIGNATURE);
+            LOGGER.warn(ERROR_INVALID_SIGNATURE + (ceSignature));
             return null;
         }
+        logString.append("ceSignature = ").append(ceSignature).append("\n");
 
         // Check that the signature does not exist
         CoreElement coreElement = SIGNATURE_TO_CORE.get(ceSignature);
@@ -96,6 +98,8 @@ public class CoreManager {
         }
         for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {
             String implSignature = implDef.getSignature();
+            logString.append("implSignature = ").append(implDef.getSignature()).append("\n");
+            logString.append("implConstraints = ").append(implDef.getConstraints()).append("\n");
             if (implSignature != null && !implSignature.isEmpty()) {
                 boolean alreadyExisting = coreElement.addImplementation(implDef);
                 if (!alreadyExisting) {
@@ -103,6 +107,7 @@ public class CoreManager {
                 }
             }
         }
+        LOGGER.debug(logString);
         return coreElement;
     }
 

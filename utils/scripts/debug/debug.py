@@ -58,6 +58,7 @@ def parse(log_file):
 def print_commands(file=None):
     print("Available Commands:\n" +
           " * c, current     -> print current status of the execution\n" +
+          " * ce, cores      -> print information related to the registered core elements\n" +
           " * cn, connection -> print information related to a connection\n" +
           " * d, data        -> print information related to data values\n" +
           " * h, help        -> print available commands\n" +
@@ -89,6 +90,8 @@ def handle_queries(runtime_log_file):
                     print(str(r))
             elif input_array[0] == "cn" or input_array[0] == "connection":
                 state.query_connection(input_array[1:])
+            elif input_array[0] == "ce" or input_array[0] == "cores":
+                state.query_core_elements(input_array[1:])                
             elif input_array[0] == "d" or input_array[0] == "data":
                 state.query_data(input_array[1:])
             elif input_array[0] == "j" or input_array[0] == "job":

@@ -145,7 +145,7 @@ public class Executor implements Runnable, InvocationRunner {
         this.platform = platform;
         this.id = executorId;
         this.isRegistered = false;
-        this.timer = new Timer("Timer executor" + this.getId());
+        this.timer = new Timer("Timer executor" + this.id);
     }
 
     /**
@@ -209,6 +209,7 @@ public class Executor implements Runnable, InvocationRunner {
                 }
             }
         }
+        this.timer.cancel();
     }
 
     private void processExecution(Execution execution) {

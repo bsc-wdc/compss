@@ -263,7 +263,6 @@ agent_cmd() {
 
 
   ACMD="${ACMD} ${@}"
-  echo ${ACMD}
 }
 
 
@@ -1113,6 +1112,7 @@ launch_agent () {
   fi
 
   ACMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_name} ${ACMD}"
+  echo ${ACMD}
   $ACMD&
 }
 
@@ -1157,14 +1157,20 @@ launch() {
   num_agents=$(wc -w <<< "${worker_nodes}")
   echo "Wait until all workers are awake..."
   CONFIRMED_AGENTS=0
+  forward_stop_to=""
   while [ ${CONFIRMED_AGENTS} -lt ${num_agents} ]; do
     sleep 1
+    forward_stop_to=""
     CONFIRMED_AGENTS=0
     for worker in ${worker_nodes}; do
       curl -s -XGET http://${worker}${network}:46101/COMPSs/test # 2>/dev/null
       if [ $? -eq 0 ]; then
         CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
       fi
+      if [ -n "${forward_stop_to}" ]; then 
+        forward_stop_to="${forward_stop_to};"
+      fi
+      forward_stop_to="${forward_stop_to}${worker}${network}:46101"
     done
   done
   echo "All nodes are ready"
@@ -1174,14 +1180,15 @@ launch() {
     curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
   done
 
-  if [ "${lang}" == "java" || "${lang}" == "JAVA" ]; then
+
+  if [ "${lang}" == "java" ] || [ "${lang}" == "JAVA" ]; then
     cei="--cei=${fullAppPath}Itf"
   fi
 
   echo "------ Launching Execution ------"
   # Calling main method of the application passing in a single parameter containing an array with the method arguments
-  echo ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 ${cei} ${call_options} ${app_args}
-  ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 ${cei} ${call_options} ${app_args}
+  echo ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
+  ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101  --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
 }
 
 ###############################################

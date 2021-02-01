@@ -61,6 +61,7 @@ def parameters_to_dict(log_level,                      # type: str
                        external_adaptation,            # type: bool
                        propagate_virtual_environment,  # type: bool
                        mpi_worker,                     # type: bool
+                       worker_cache,                   # type: str
                        ):  # NOSONAR
     # type: (...) -> dict
     """ Converts the given parameters into a dictionary """
@@ -100,5 +101,6 @@ def parameters_to_dict(log_level,                      # type: str
                 "scheduler_config": scheduler_config,
                 "external_adaptation": external_adaptation,
                 "propagate_virtual_environment": propagate_virtual_environment,
-                "mpi_worker": mpi_worker}
+                "mpi_worker": mpi_worker,
+                "worker_cache": worker_cache}
     return all_vars

@@ -115,7 +115,7 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.8.rc2101"
+  echo "COMPSs version 2.8.rc2102"
   echo " "
 }
 

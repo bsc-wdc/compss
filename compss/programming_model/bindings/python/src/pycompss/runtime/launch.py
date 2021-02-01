@@ -131,6 +131,24 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def __load_user_module__(app_path):
+    # type: (str) -> None
+    """ Loads the user module (resolve all user imports).
+    This has shown to be necessary before doing "start_compss" in order
+    to avoid segmentation fault in some libraries.
+
+    :param app_path: Path to the file to be imported
+    :return: None
+    """
+    app_name = os.path.basename(app_path).split(".")[0]
+    if IS_PYTHON3:
+        from importlib.machinery import SourceFileLoader
+        _ = SourceFileLoader(app_name, app_path).load_module()
+    else:
+        import imp  # noqa
+        _ = imp.load_source(app_name, args.app_path)  # noqa
+
+
 def compss_main():
     # type: () -> None
     """ PyCOMPSs main function.
@@ -166,6 +184,9 @@ def compss_main():
 
     # Setup tracing
     tracing = int(args.tracing)
+
+    # Load user imports before starting the runtime
+    __load_user_module__(args.app_path)
 
     # Start the runtime
     compss_start(log_level, tracing, False)

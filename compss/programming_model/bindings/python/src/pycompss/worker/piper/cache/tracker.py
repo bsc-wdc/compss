@@ -125,9 +125,10 @@ def cache_tracker(queue, process_name, conf):
                                              new_id_size,
                                              0]
                 elif action == "REMOVE":
+                    logger.debug(HEADER + "[%s] Removing: %s" %
+                                 (str(process_name), str(message)))
                     f_name = message
                     cache_ids.pop(f_name)
-
             except Exception as e:
                 logger.exception("%s - Exception %s" % (str(process_name),
                                                         str(e)))
@@ -159,7 +160,7 @@ def check_cache_status(conf, used_size, requested_size):
     # Select how many to evict
     to_evict = list()
     while size_to_recover > 0:
-        for k, v in sorted_cache_ids:
+        for k, v in sorted_cache_ids.items():
             to_evict.append(k)
             size_to_recover = size_to_recover - v[3]
     if __debug__:

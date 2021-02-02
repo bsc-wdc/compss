@@ -128,7 +128,10 @@ def compss_persistent_worker(config):
         cache_size = int(cache_size)
     else:
         CACHE = True if config.cache == "true" else False
-        cache_size = 10000000000
+        # Default cache_size (bytes) = total_memory (bytes) / 4
+        mem_info = dict((i.split()[0].rstrip(':'), int(i.split()[1]))
+                        for i in open('/proc/meminfo').readlines())
+        cache_size = int(mem_info["MemTotal"] / 4)
     if CACHE:
         # Cache can be used
         # Create a proxy dictionary to share the information across workers

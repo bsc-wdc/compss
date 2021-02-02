@@ -31,6 +31,9 @@ public class EndOfAppRequest extends APRequest implements Barrier {
     private final Application app;
     private final Semaphore sem;
 
+    private boolean released;
+    private boolean stalled;
+
 
     /**
      * Creates a new request to end the application.
@@ -41,6 +44,9 @@ public class EndOfAppRequest extends APRequest implements Barrier {
     public EndOfAppRequest(Application app, Semaphore sem) {
         this.app = app;
         this.sem = sem;
+
+        this.released = false;
+        this.stalled = false;
     }
 
     /**
@@ -64,6 +70,12 @@ public class EndOfAppRequest extends APRequest implements Barrier {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.noMoreTasks(this);
+        synchronized (this) {
+            if (!released) {
+                this.app.stalled();
+                this.stalled = true;
+            }
+        }
     }
 
     @Override
@@ -84,7 +96,14 @@ public class EndOfAppRequest extends APRequest implements Barrier {
 
     @Override
     public void release() {
-        sem.release();
+        synchronized (this) {
+            released = true;
+            if (stalled) {
+                app.readyToContinue(sem);
+            } else {
+                sem.release();
+            }
+        }
     }
 
 }

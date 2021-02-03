@@ -25,12 +25,16 @@ PyCOMPSs Cache tracker
 """
 
 from collections import OrderedDict
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.objects.sizer import total_sizeof
 try:
     from multiprocessing.shared_memory import SharedMemory    # noqa
+    from multiprocessing.shared_memory import ShareableList   # noqa
     from multiprocessing.managers import SharedMemoryManager  # noqa
 except ImportError:
     # Unsupported in python < 3.8
     SharedMemory = None
+    ShareableList = None
     SharedMemoryManager = None
 try:
     import numpy as np
@@ -40,6 +44,10 @@ except ImportError:
 
 HEADER = "[PYTHON CACHE] "
 SHARED_MEMORY_MANAGER = None
+
+SHARED_MEMORY_TAG = "SharedMemory"
+SHAREABLE_LIST_TAG = "ShareableList"
+SHAREABLE_TUPLE_TAG = "ShareableTuple"
 
 
 class CacheTrackerConf(object):
@@ -62,7 +70,7 @@ class CacheTrackerConf(object):
         self.logger = logger
         self.size = size
         self.policy = policy        # currently no policies defined.
-        self.cache_ids = cache_ids  # key - (id, shape, dtype, size, hits)
+        self.cache_ids = cache_ids  # key - (id, shape, dtype, size, hits, shared_type)
 
 
 def cache_tracker(queue, process_name, conf):
@@ -97,11 +105,11 @@ def cache_tracker(queue, process_name, conf):
             try:
                 action, message = msg
                 if action == "PUT":
-                    new_id, new_cache_id, shape, dtype, new_id_size = message
+                    new_id, new_cache_id, shape, dtype, new_id_size, shared_type = message
                     if new_id in cache_ids:
                         # Any executor has already put the id
                         if __debug__:
-                            logger.debug(HEADER + "[%s] Cache collision" %
+                            logger.debug(HEADER + "[%s] Cache hit" %
                                          str(process_name))
                         # Increment hits
                         cache_ids[new_id][4] += 1
@@ -123,7 +131,8 @@ def cache_tracker(queue, process_name, conf):
                                              shape,
                                              dtype,
                                              new_id_size,
-                                             0]
+                                             0,
+                                             shared_type]
                 elif action == "REMOVE":
                     logger.debug(HEADER + "[%s] Removing: %s" %
                                  (str(process_name), str(message)))
@@ -167,7 +176,7 @@ def check_cache_status(conf, used_size, requested_size):
         logger.debug(HEADER + "Evicting %d entries" % (len(to_evict)))
     # Evict
     for entry in to_evict:
-        cache_id, _, _ = cache_ids.pop(entry)
+        cache_ids.pop(entry)
 
     return used_size - size_to_recover
 
@@ -195,13 +204,41 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     """
     if __debug__:
         logger.debug(HEADER + "Retrieving: " + str(identifier))
-    obj_id, obj_shape, obj_d_type, _, obj_hits = cache_ids[identifier]
-    existing_shm = SharedMemory(name=obj_id)
-    cache_ids[identifier][4] = obj_hits + 1
-    output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)
+    obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]
+    if shared_type == SHARED_MEMORY_TAG:
+        existing_shm = SharedMemory(name=obj_id)
+        cache_ids[identifier][4] = obj_hits + 1
+        output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)
+    elif shared_type == SHAREABLE_LIST_TAG:
+        existing_shm = ShareableList(name=obj_id)
+        cache_ids[identifier][4] = obj_hits + 1
+        output = list(existing_shm)
+    elif shared_type == SHAREABLE_TUPLE_TAG:
+        existing_shm = ShareableList(name=obj_id)
+        cache_ids[identifier][4] = obj_hits + 1
+        output = tuple(existing_shm)
+    else:
+        raise PyCOMPSsException("Unknown cacheable type.")
     if __debug__:
         logger.debug(HEADER + "Retrieved: " + str(identifier))
     return output, existing_shm
+
+
+def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
+    # type: (..., ..., ..., ...) -> None
+    """ Put an object into cache wrapper to avoid event emission when not
+    supported.
+
+    :param logger: Logger where to push messages.
+    :param cache_queue: Cache notification queue.
+    :param obj: Object to store.
+    :param f_name: File name that corresponds to the object (used as id).
+    :return: None
+    """
+    if np and cache_queue is not None and (isinstance(obj, np.ndarray)
+                                           or isinstance(obj, list)
+                                           or isinstance(obj, tuple)):
+        insert_object_into_cache(logger, cache_queue, obj, f_name)
 
 
 def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
@@ -214,9 +251,9 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+    if __debug__:
+        logger.debug(HEADER + "Inserting into cache: " + str(f_name))
     if isinstance(obj, np.ndarray):
-        if __debug__:
-            logger.debug(HEADER + "Inserting into cache: " + str(f_name))
         shape = obj.shape
         d_type = obj.dtype
         size = obj.nbytes
@@ -224,14 +261,23 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
         within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
         within_cache[:] = obj[:]  # Copy contents
         new_cache_id = shm.name
-        cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size)))
-        if __debug__:
-            logger.debug(HEADER + "Inserted into cache: " +
-                         str(f_name) + " as " + str(new_cache_id))
+        cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa
+    elif isinstance(obj, list):
+        sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+        new_cache_id = sl.name
+        size = total_sizeof(obj)
+        cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa
+    elif isinstance(obj, tuple):
+        sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+        new_cache_id = sl.name
+        size = total_sizeof(obj)
+        cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa
     else:
         if __debug__:
-            logger.debug(HEADER +
-                         "Can not put into cache: Not a np.ndarray object")
+            logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa
+    if __debug__:
+        logger.debug(HEADER + "Inserted into cache: " +
+                     str(f_name) + " as " + str(new_cache_id))
 
 
 def remove_object_from_cache(logger, cache_queue, f_name):  # noqa

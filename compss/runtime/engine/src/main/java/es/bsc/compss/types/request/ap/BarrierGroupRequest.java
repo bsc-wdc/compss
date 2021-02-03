@@ -34,6 +34,9 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
     private Application app;
     private COMPSsException exception;
 
+    private boolean released;
+    private boolean stalled;
+
 
     /**
      * Creates a new group barrier request.
@@ -47,6 +50,9 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
         this.groupName = groupName;
         this.sem = sem;
         this.exception = null;
+
+        this.released = false;
+        this.stalled = false;
     }
 
     public Application getApp() {
@@ -78,6 +84,12 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.barrierGroup(this);
+        synchronized (this) {
+            if (!released) {
+                this.app.stalled();
+                this.stalled = true;
+            }
+        }
     }
 
     @Override
@@ -87,6 +99,13 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
 
     @Override
     public void release() {
-        sem.release();
+        synchronized (this) {
+            released = true;
+            if (stalled) {
+                app.readyToContinue(sem);
+            } else {
+                sem.release();
+            }
+        }
     }
 }

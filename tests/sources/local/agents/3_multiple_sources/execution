@@ -126,6 +126,7 @@
   --log_dir="${agent1_log_dir}" \
   --rest_port="46101" \
   --comm_port="46102" \
+  --reuse_resources_on_block="false" \
   -d \
   ${runcompss_opts} \
   --input_profile="profiles1.json" \
@@ -146,6 +147,7 @@
   --log_dir="${agent2_log_dir}" \
   --rest_port="46201" \
   --comm_port="46202" \
+  --reuse_resources_on_block="false" \
   -d \
   ${runcompss_opts} \
   --input_profile="profiles2.json" \
@@ -166,6 +168,7 @@
   --log_dir="${agent3_log_dir}" \
   --rest_port="46301" \
   --comm_port="46302" \
+  --reuse_resources_on_block="false" \
   -d \
   ${runcompss_opts} \
   --project="${base_app_dir}/project_compute.xml" \

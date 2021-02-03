@@ -24,6 +24,7 @@ PyCOMPSs Cache tracker
     IMPORTANT: Only used with the piper_worker.py and python >= 3.8.
 """
 
+import os
 from collections import OrderedDict
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
@@ -135,9 +136,9 @@ def cache_tracker(queue, process_name, conf):
                                              0,
                                              shared_type]
                 elif action == "REMOVE":
+                    f_name = __get_file_name__(message)
                     logger.debug(HEADER + "[%s] Removing: %s" %
-                                 (str(process_name), str(message)))
-                    f_name = message
+                                 (str(process_name), str(f_name)))
                     cache_ids.pop(f_name)
             except Exception as e:
                 logger.exception("%s - Exception %s" % (str(process_name),
@@ -203,6 +204,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     :param identifier: Object identifier.
     :return: The object from cache.
     """
+    identifier = __get_file_name__(identifier)
     if __debug__:
         logger.debug(HEADER + "Retrieving: " + str(identifier))
     obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]
@@ -254,8 +256,9 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+    f_name = __get_file_name__(f_name)
     if __debug__:
-        logger.debug(HEADER + "Inserting into cache: " + str(f_name))
+        logger.debug(HEADER + "Inserting into cache (%s): %s" % (str(type(obj)), str(f_name)))
     if isinstance(obj, np.ndarray):
         shape = obj.shape
         d_type = obj.dtype
@@ -299,6 +302,7 @@ def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+    f_name = __get_file_name__(f_name)
     if __debug__:
         logger.debug(HEADER + "Removing from cache: " + str(f_name))
     cache_queue.put(("REMOVE", f_name))
@@ -316,9 +320,33 @@ def replace_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+    f_name = __get_file_name__(f_name)
     if __debug__:
         logger.debug(HEADER + "Replacing from cache: " + str(f_name))
     remove_object_from_cache(logger, cache_queue, f_name)
     insert_object_into_cache(logger, cache_queue, obj, f_name)
     if __debug__:
         logger.debug(HEADER + "Replaced from cache: " + str(f_name))
+
+
+def in_cache(f_name, cache):
+    # type: (str, dict) -> bool
+    """ Checks if the given file name is in the cache
+
+    :param f_name: Absolute file name.
+    :param cache: Proxy dictionary cache.
+    :return: True if in. False otherwise.
+    """
+    f_name = __get_file_name__(f_name)
+    return f_name in cache
+
+
+def __get_file_name__(f_name):
+    # type: (str) -> str
+    """ Convert a full path with file name to the file name (removes the path).
+    Example: /a/b/c.py -> c.py
+
+    :param f_name: Absolute file name path
+    :return: File name
+    """
+    return os.path.basename(f_name)

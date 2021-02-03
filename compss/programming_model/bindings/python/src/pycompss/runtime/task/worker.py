@@ -48,6 +48,7 @@ from pycompss.worker.commons.worker import build_task_parameter
 from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
 from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
 from pycompss.worker.piper.cache.tracker import replace_object_into_cache
+from pycompss.worker.piper.cache.tracker import in_cache
 try:
     import numpy as np
 except ImportError:
@@ -557,7 +558,7 @@ class TaskWorker(TaskCommons):
         cache = self.cache_queue is not None
         if np and cache:
             # Check if the object is already in cache
-            if f_name in self.cache_ids:
+            if in_cache(f_name, self.cache_ids):
                 # The object is cached
                 retrieved, existing_shm = retrieve_object_from_cache(logger,
                                                                      self.cache_ids,
@@ -886,7 +887,7 @@ class TaskWorker(TaskCommons):
         :param f_name: File where to store the object (id at cache).
         :return: None
         """
-        if f_name in self.cache_ids:
+        if in_cache(f_name, self.cache_ids):
             replace_object_into_cache(logger,
                                       self.cache_queue,
                                       content,

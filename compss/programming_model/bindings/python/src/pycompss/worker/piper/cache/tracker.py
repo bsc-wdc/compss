@@ -48,6 +48,7 @@ SHARED_MEMORY_MANAGER = None
 SHARED_MEMORY_TAG = "SharedMemory"
 SHAREABLE_LIST_TAG = "ShareableList"
 SHAREABLE_TUPLE_TAG = "ShareableTuple"
+SHAREABLE_DICT_TAG = "ShareableTuple"
 
 
 class CacheTrackerConf(object):
@@ -207,26 +208,27 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]
     if shared_type == SHARED_MEMORY_TAG:
         existing_shm = SharedMemory(name=obj_id)
-        cache_ids[identifier][4] = obj_hits + 1
         output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)
     elif shared_type == SHAREABLE_LIST_TAG:
         existing_shm = ShareableList(name=obj_id)
-        cache_ids[identifier][4] = obj_hits + 1
         output = list(existing_shm)
     elif shared_type == SHAREABLE_TUPLE_TAG:
         existing_shm = ShareableList(name=obj_id)
-        cache_ids[identifier][4] = obj_hits + 1
         output = tuple(existing_shm)
+    elif shared_type == SHAREABLE_LIST_TAG:
+        existing_shm = ShareableList(name=obj_id)
+        output = dict(existing_shm)
     else:
         raise PyCOMPSsException("Unknown cacheable type.")
     if __debug__:
         logger.debug(HEADER + "Retrieved: " + str(identifier))
+    cache_ids[identifier][4] = obj_hits + 1
     return output, existing_shm
 
 
 def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
     # type: (..., ..., ..., ...) -> None
-    """ Put an object into cache wrapper to avoid event emission when not
+    """ Put an object into cache filter to avoid event emission when not
     supported.
 
     :param logger: Logger where to push messages.
@@ -237,7 +239,8 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
     """
     if np and cache_queue is not None and (isinstance(obj, np.ndarray)
                                            or isinstance(obj, list)
-                                           or isinstance(obj, tuple)):
+                                           or isinstance(obj, tuple)
+                                           or isinstance(obj, dict)):
         insert_object_into_cache(logger, cache_queue, obj, f_name)
 
 
@@ -272,6 +275,13 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
         new_cache_id = sl.name
         size = total_sizeof(obj)
         cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa
+    elif isinstance(obj, dict):
+        # Convert dict to list of tuples
+        list_tuples = list(zip(obj.keys(), obj.values()))
+        sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
+        new_cache_id = sl.name
+        size = total_sizeof(obj)
+        cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa
     else:
         if __debug__:
             logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa

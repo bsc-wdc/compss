@@ -320,7 +320,8 @@ class TaskWorker(TaskCommons):
                 f_name = argument.file_name.split(':')[-1]
                 if __debug__:
                     logger.debug("\t\t - It is an OBJECT. Deserializing from file: " + str(f_name))  # noqa: E501
-                argument.content = self.recover_object(f_name)
+                argument.content = self.recover_object(f_name,
+                                                       argument.direction)
                 if __debug__:
                     logger.debug("\t\t - Deserialization finished")
             else:
@@ -336,7 +337,8 @@ class TaskWorker(TaskCommons):
         elif content_type == type_external_stream:
             if __debug__:
                 logger.debug("\t\t - It is an EXTERNAL STREAM")
-            argument.content = self.recover_object(argument.file_name)
+            argument.content = self.recover_object(argument.file_name,
+                                                   argument.direction)
         elif content_type == type_collection:
             argument.content = []
             # This field is exclusive for COLLECTION_T parameters, so make
@@ -548,11 +550,12 @@ class TaskWorker(TaskCommons):
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
 
-    def recover_object(self, f_name):
-        # type: (str) -> ...
+    def recover_object(self, f_name, direction):
+        # type: (str, parameter.DIRECTION) -> ...
         """ Recovers the object within a file.
 
         :param f_name: File that contains an object.
+        :param direction: Direction of the parameter
         :return: The object withing f_name
         """
         cache = self.cache_queue is not None
@@ -568,10 +571,11 @@ class TaskWorker(TaskCommons):
             else:
                 # Not in cache. Retrieve from file and put in cache
                 obj = deserialize_from_file(f_name)
-                insert_object_into_cache_wrapper(logger,
-                                                 self.cache_queue,
-                                                 obj,
-                                                 f_name)
+                if direction != parameter.DIRECTION.IN_DELETE:
+                    insert_object_into_cache_wrapper(logger,
+                                                     self.cache_queue,
+                                                     obj,
+                                                     f_name)
                 return obj
         else:
             return deserialize_from_file(f_name)

@@ -107,32 +107,32 @@ def cache_tracker(queue, process_name, conf):
             try:
                 action, message = msg
                 if action == "PUT":
-                    new_id, new_cache_id, shape, dtype, new_id_size, shared_type = message
-                    if new_id in cache_ids:
+                    f_name, cache_id, shape, dtype, obj_size, shared_type = message
+                    if f_name in cache_ids:
                         # Any executor has already put the id
                         if __debug__:
                             logger.debug(HEADER + "[%s] Cache hit" %
                                          str(process_name))
                         # Increment hits
-                        cache_ids[new_id][4] += 1
+                        cache_ids[f_name][4] += 1
                     else:
                         # Add new entry request
                         if __debug__:
                             logger.debug(HEADER + "[%s] Cache add entry: %s" %
                                          (str(process_name), str(msg)))
                         # Check if it is going to fit and remove if necessary
-                        new_id_size = int(new_id_size)
-                        if used_size + new_id_size > max_size:
+                        obj_size = int(obj_size)
+                        if used_size + obj_size > max_size:
                             # Cache is full, need to evict
                             used_size = check_cache_status(conf,
                                                            used_size,
-                                                           new_id_size)
+                                                           obj_size)
                         # Add without problems
-                        used_size = used_size + new_id_size
-                        cache_ids[new_id] = [new_cache_id,
+                        used_size = used_size + obj_size
+                        cache_ids[f_name] = [cache_id,
                                              shape,
                                              dtype,
-                                             new_id_size,
+                                             obj_size,
                                              0,
                                              shared_type]
                 elif action == "REMOVE":
@@ -239,7 +239,8 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
-    if np and cache_queue is not None and (isinstance(obj, np.ndarray)
+    if np and cache_queue is not None and ((isinstance(obj, np.ndarray)
+                                            and not obj.dtype == object)
                                            or isinstance(obj, list)
                                            or isinstance(obj, tuple)
                                            or isinstance(obj, dict)):
@@ -270,19 +271,19 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
         cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa
     elif isinstance(obj, list):
         sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-        new_cache_id = sl.name
+        new_cache_id = sl.shm.name
         size = total_sizeof(obj)
         cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa
     elif isinstance(obj, tuple):
         sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-        new_cache_id = sl.name
+        new_cache_id = sl.shm.name
         size = total_sizeof(obj)
         cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa
     elif isinstance(obj, dict):
         # Convert dict to list of tuples
         list_tuples = list(zip(obj.keys(), obj.values()))
         sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
-        new_cache_id = sl.name
+        new_cache_id = sl.shm.name
         size = total_sizeof(obj)
         cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa
     else:

@@ -338,8 +338,11 @@ def in_cache(f_name, cache):
     :param cache: Proxy dictionary cache.
     :return: True if in. False otherwise.
     """
-    f_name = __get_file_name__(f_name)
-    return f_name in cache
+    if cache:
+        f_name = __get_file_name__(f_name)
+        return f_name in cache
+    else:
+        return False
 
 
 def __get_file_name__(f_name):

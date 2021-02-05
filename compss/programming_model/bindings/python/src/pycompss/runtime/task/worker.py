@@ -887,14 +887,16 @@ class TaskWorker(TaskCommons):
                     self.update_object_in_cache(arg.content, f_name, arg.name)
 
     def update_object_in_cache(self, content, f_name, name):
-        # type: (..., str) -> None
+        # type: (..., str, str) -> None
         """ Updates the object into cache if possible
 
         :param content: Object to be updated.
         :param f_name: File where to store the object (id at cache).
+        :param name: Parameter name.
         :return: None
         """
-        if name not in self.decorator_arguments["no_cache"]:
+        cache = self.cache_queue is not None
+        if np and cache and name not in self.decorator_arguments["no_cache"]:
             if in_cache(f_name, self.cache_ids):
                 replace_object_into_cache(logger,
                                           self.cache_queue,

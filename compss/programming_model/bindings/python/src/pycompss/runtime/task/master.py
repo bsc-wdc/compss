@@ -190,6 +190,7 @@ ATTRIBUTES_TO_BE_REMOVED = ["decorator_arguments",
 # This lock allows tasks to be launched with the Threading module while
 # ensuring that no attribute is overwritten
 MASTER_LOCK = threading.Lock()
+VALUE_OF = 'value_of'
 
 
 class TaskMaster(TaskCommons):
@@ -306,6 +307,9 @@ class TaskMaster(TaskCommons):
                 self.param_varargs = "varargs_type"
             if self.param_defaults is None:
                 self.param_defaults = ()
+        explicit_num_returns = None
+        if 'returns' in kwargs:
+            explicit_num_returns = kwargs.pop('returns')
 
         # Process the parameters, give them a proper direction
         with event(PROCESS_PARAMETERS, master=True):
@@ -357,7 +361,7 @@ class TaskMaster(TaskCommons):
 
         # Deal with the return part.
         with event(PROCESS_RETURN, master=True):
-            num_returns = self.add_return_parameters()
+            num_returns = self.add_return_parameters(explicit_num_returns)
             if not self.returns:
                 num_returns = self.update_return_if_no_returns(self.user_function)  # noqa: E501
 
@@ -377,7 +381,7 @@ class TaskMaster(TaskCommons):
             compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
         # Signature and other parameters:
-        # Get path
+        # Get path:
         if self.class_name == "":
             path = self.module_name
         else:
@@ -1126,7 +1130,7 @@ class TaskMaster(TaskCommons):
 
         return is_replicated, is_distributed, time_out, has_priority, has_target  # noqa: E501
 
-    def add_return_parameters(self):
+    def add_return_parameters(self, returns=None):
         # type: () -> int
         """ Modify the return parameters accordingly to the return statement.
 
@@ -1135,7 +1139,11 @@ class TaskMaster(TaskCommons):
         """
         self.returns = OrderedDict()
 
-        _returns = self.decorator_arguments["returns"]
+        if returns:
+            _returns = returns
+        else:
+            _returns = self.decorator_arguments["returns"]
+
         # Note that "returns" is by default False
         if not _returns:
             return 0
@@ -1155,18 +1163,9 @@ class TaskMaster(TaskCommons):
             # integer or a global variable.
             # In such case, build a list of objects of value length and
             # set it in ret_type.
-            # Global variable or string wrapping integer value
-            try:
-                # Return is hidden by an int as a string.
-                # i.e., returns="var_int"
-                num_rets = int(_returns)
-            except ValueError:
-                # Return is hidden by a global variable. i.e., LT_ARGS
-                try:
-                    num_rets = self.user_function.__globals__.get(_returns)
-                except AttributeError:
-                    # This is a numba jit declared task
-                    num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
+            # Global variable, value_of(Parameter) or string wrapping integer value
+            # (Evaluated in reverse orther)
+            num_rets = self.get_num_returns_from_string(_returns)
             # Construct hidden multi-return
             if num_rets > 1:
                 to_return = num_rets
@@ -1218,6 +1217,28 @@ class TaskMaster(TaskCommons):
                 return len(to_return)  # noqa
         else:
             return to_return
+
+    def get_num_returns_from_string(self, _returns):
+        try:
+            # Return is hidden by an int as a string.
+            # i.e., returns="var_int"
+            return int(_returns)
+        except ValueError:
+            if _returns.startswith(VALUE_OF):
+                #  from 'value_of ( xxx.yyy )' to [xxx, yyy]
+                param_ref = _returns.replace(VALUE_OF, '').replace('(', '').replace(')', '').strip().split('.')
+                if len(param_ref) > 0:
+                    obj = self.parameters[param_ref[0]].content
+                    return int(_get_object_property(param_ref, obj))
+                else:
+                    raise Exception("Incorrect value_of format in " + _returns)
+            else:
+                # Return is hidden by a global variable. i.e., LT_ARGS
+                try:
+                    num_rets = self.user_function.__globals__.get(_returns)
+                except AttributeError:
+                    # This is a numba jit declared task
+                    num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
 
     def update_return_if_no_returns(self, f):
         # type: (...) -> int
@@ -1661,6 +1682,13 @@ class TaskMaster(TaskCommons):
             raise PyCOMPSsException("Wrong convert_objects_to_strings policy.")
 
         return p, num_bytes
+
+
+def _get_object_property(param_ref, obj):
+    if len(param_ref) == 1:
+        return obj
+    else:
+        return _get_object_property(param_ref[1:], getattr(obj, param_ref[1]))
 
 
 def _manage_persistent_object(p):

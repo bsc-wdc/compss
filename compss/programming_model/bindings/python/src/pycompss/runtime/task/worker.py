@@ -321,6 +321,7 @@ class TaskWorker(TaskCommons):
                 if __debug__:
                     logger.debug("\t\t - It is an OBJECT. Deserializing from file: " + str(f_name))  # noqa: E501
                 argument.content = self.recover_object(f_name,
+                                                       argument.name,
                                                        argument.direction)
                 if __debug__:
                     logger.debug("\t\t - Deserialization finished")
@@ -338,6 +339,7 @@ class TaskWorker(TaskCommons):
             if __debug__:
                 logger.debug("\t\t - It is an EXTERNAL STREAM")
             argument.content = self.recover_object(argument.file_name,
+                                                   argument.name,
                                                    argument.direction)
         elif content_type == type_collection:
             argument.content = []
@@ -550,16 +552,17 @@ class TaskWorker(TaskCommons):
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
 
-    def recover_object(self, f_name, direction):
-        # type: (str, parameter.DIRECTION) -> ...
+    def recover_object(self, f_name, name, direction):
+        # type: (str, str, parameter.DIRECTION) -> ...
         """ Recovers the object within a file.
 
         :param f_name: File that contains an object.
+        :param name: Parameter name.
         :param direction: Direction of the parameter
         :return: The object withing f_name
         """
         cache = self.cache_queue is not None
-        if np and cache:
+        if np and cache and name not in self.decorator_arguments["no_cache"]:
             # Check if the object is already in cache
             if in_cache(f_name, self.cache_ids):
                 # The object is cached
@@ -850,7 +853,7 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
-                            self.update_object_in_cache(content, f_name)
+                            self.update_object_in_cache(content, f_name, arg.name)
                     else:
                         # It is None --> PSCO
                         pass
@@ -868,7 +871,7 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
-                            self.update_object_in_cache(content, f_name)
+                            self.update_object_in_cache(content, f_name, arg.name)
                     else:
                         # It is None --> PSCO
                         pass
@@ -881,9 +884,9 @@ class TaskWorker(TaskCommons):
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
                     serialize_to_file(arg.content, f_name)
-                    self.update_object_in_cache(arg.content, f_name)
+                    self.update_object_in_cache(arg.content, f_name, arg.name)
 
-    def update_object_in_cache(self, content, f_name):
+    def update_object_in_cache(self, content, f_name, name):
         # type: (..., str) -> None
         """ Updates the object into cache if possible
 
@@ -891,16 +894,17 @@ class TaskWorker(TaskCommons):
         :param f_name: File where to store the object (id at cache).
         :return: None
         """
-        if in_cache(f_name, self.cache_ids):
-            replace_object_into_cache(logger,
-                                      self.cache_queue,
-                                      content,
-                                      f_name)
-        else:
-            insert_object_into_cache_wrapper(logger,
-                                             self.cache_queue,
-                                             content,
-                                             f_name)
+        if name not in self.decorator_arguments["no_cache"]:
+            if in_cache(f_name, self.cache_ids):
+                replace_object_into_cache(logger,
+                                          self.cache_queue,
+                                          content,
+                                          f_name)
+            else:
+                insert_object_into_cache_wrapper(logger,
+                                                 self.cache_queue,
+                                                 content,
+                                                 f_name)
 
     def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
         # type: (int, list, list, bool) -> list

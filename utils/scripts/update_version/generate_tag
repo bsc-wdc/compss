@@ -41,7 +41,7 @@ usage() {
   tag="v${version}"
   git tag -f "${tag}"
   if [ "$commitChanges" == "true" ]; then
-    git push -f http://${credentials}@compss.bsc.es/gitlab/compss/framework.git ${tag}
+    git push -f http://${credentials}@gitlab.bsc.es/wdc/compss/framework.git ${tag}
   fi
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS

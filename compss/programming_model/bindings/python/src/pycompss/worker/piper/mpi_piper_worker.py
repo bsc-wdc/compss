@@ -48,6 +48,8 @@ from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
 from pycompss.worker.piper.commons.constants import HEADER
+from pycompss.worker.piper.cache.setup import cache_enabled
+from pycompss.worker.piper.cache.setup import initialize_cache_process
 
 from mpi4py import MPI
 
@@ -58,6 +60,8 @@ RANK = COMM.Get_rank()
 PROCESSES = {}  # IN_PIPE -> PROCESS ID
 TRACING = False
 WORKER_CONF = None
+CACHE_IDS = None
+CACHE_QUEUE = None
 
 
 def is_worker():
@@ -139,8 +143,8 @@ def compss_persistent_worker(config):
         # Initialize storage
         if __debug__:
             logger.debug(HEADER + "Starting persistent storage")
-        from storage.api import initWorker  # noqa
-        initWorker(config_file_path=config.storage_conf)
+        from storage.api import initWorker as initStorageAtWorker  # noqa
+        initStorageAtWorker(config_file_path=config.storage_conf)
 
     for i in range(0, config.tasks_x_node):
         child_in_pipe = config.pipes[i].input_pipe
@@ -205,8 +209,8 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Finish storage
         logger.debug(HEADER + "Stopping persistent storage")
-        from storage.api import finishWorker  # noqa
-        finishWorker()
+        from storage.api import finishWorker as finishStorageAtWorker  # noqa
+        finishStorageAtWorker()
 
     if __debug__:
         logger.debug(HEADER + "Finished")
@@ -254,7 +258,9 @@ def compss_persistent_executor(config):
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,
-                        config.stream_master_port)
+                        config.stream_master_port,
+                        CACHE_IDS,
+                        CACHE_QUEUE)
     executor(None, process_name, config.pipes[RANK - 1], conf)
 
     if persistent_storage:
@@ -274,6 +280,9 @@ def main():
     # Configure the global tracing variable from the argument
     global TRACING
     global WORKER_CONF
+    global CACHE_IDS
+    global CACHE_QUEUE
+
     TRACING = (int(sys.argv[4]) > 0)
 
     # Enable coverage if performed
@@ -286,11 +295,26 @@ def main():
     WORKER_CONF.update_params(sys.argv)
 
     if is_worker():
+        # Setup cache
+        cache, cache_size = cache_enabled(WORKER_CONF)
+        cache_params = initialize_cache_process(None, cache, cache_size, WORKER_CONF)
+        smm, cache_process, CACHE_QUEUE, CACHE_IDS = cache_params
+    else:
+        cache = False  # to stop only the cache from the main process
+
+    if is_worker():
         with trace_mpi_worker() if TRACING else dummy_context():
             compss_persistent_worker(WORKER_CONF)
     else:
         with trace_mpi_executor() if TRACING else dummy_context():
             compss_persistent_executor(WORKER_CONF)
+
+    if cache and is_worker():
+        cache_queue.put("QUIT")    # noqa
+        cache_process.join()       # noqa
+        cache_queue.close()        # noqa
+        cache_queue.join_thread()  # noqa
+        smm.shutdown()             # noqa
 
 
 if __name__ == '__main__':

@@ -51,8 +51,8 @@ from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
-from pycompss.worker.piper.cache.tracker import CacheTrackerConf
-from pycompss.worker.piper.cache.tracker import cache_tracker
+from pycompss.worker.piper.cache.setup import cache_enabled
+from pycompss.worker.piper.cache.setup import initialize_cache_process
 import pycompss.util.context as context
 
 # Persistent worker global variables
@@ -61,7 +61,6 @@ TRACING = False
 WORKER_CONF = None
 CACHE = None
 CACHE_PROCESS = None
-CACHE_QUEUE = None
 
 
 def shutdown_handler(signal, frame):  # noqa
@@ -94,6 +93,7 @@ def compss_persistent_worker(config):
     :return: None
     """
     global CACHE
+    global CACHE_PROCESS
 
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
@@ -122,34 +122,9 @@ def compss_persistent_worker(config):
     queues = []
 
     # Setup cache
-    if ":" in config.cache:
-        cache, cache_size = config.cache.split(":")
-        CACHE = True if cache == "true" else False
-        cache_size = int(cache_size)
-    else:
-        CACHE = True if config.cache == "true" else False
-        # Default cache_size (bytes) = total_memory (bytes) / 4
-        mem_info = dict((i.split()[0].rstrip(':'), int(i.split()[1]))
-                        for i in open('/proc/meminfo').readlines())
-        cache_size = int(mem_info["MemTotal"] / 4)
-    if CACHE:
-        # Cache can be used
-        # Create a proxy dictionary to share the information across workers
-        # within the same node
-        from multiprocessing import Manager
-        manager = Manager()
-        cache_ids = manager.dict()  # Proxy dictionary
-        # Start a new process to manage the cache contents.
-        from multiprocessing.managers import SharedMemoryManager
-        smm = SharedMemoryManager(address=('', 50000), authkey=b'compss_cache')
-        smm.start()
-        conf = CacheTrackerConf(logger,
-                                cache_size,
-                                None,
-                                cache_ids)
-        create_cache_tracker_process("cache_tracker", conf)
-    else:
-        cache_ids = None
+    CACHE, cache_size = cache_enabled(config)
+    cache_params = initialize_cache_process(logger, CACHE, cache_size, config)
+    smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
 
     # Create new executor processes
     conf = ExecutorConf(TRACING,
@@ -160,7 +135,7 @@ def compss_persistent_worker(config):
                         config.stream_master_name,
                         config.stream_master_port,
                         cache_ids,
-                        CACHE_QUEUE)
+                        cache_queue)
 
     for i in range(0, config.tasks_x_node):
         if __debug__:
@@ -245,10 +220,10 @@ def compss_persistent_worker(config):
         queue.join_thread()
 
     if CACHE:
-        CACHE_QUEUE.put("QUIT")    # noqa
+        cache_queue.put("QUIT")    # noqa
         CACHE_PROCESS.join()       # noqa
-        CACHE_QUEUE.close()        # noqa
-        CACHE_QUEUE.join_thread()  # noqa
+        cache_queue.close()        # noqa
+        cache_queue.join_thread()  # noqa
         smm.shutdown()
 
     if persistent_storage:
@@ -267,7 +242,7 @@ def compss_persistent_worker(config):
 
 
 def create_executor_process(process_name, conf, pipe):
-    # type: (str, ExecutorConf, ...) -> (int, queue)
+    # type: (str, ExecutorConf, ...) -> (int, Queue)
     """ Starts a new executor.
 
     :param process_name: Process name.
@@ -283,25 +258,6 @@ def create_executor_process(process_name, conf, pipe):
     PROCESSES[pipe.input_pipe] = process
     process.start()
     return process.pid, queue
-
-
-def create_cache_tracker_process(process_name, conf):
-    # type: (str, CacheTrackerConf) -> None
-    """ Starts a new cache tracker process.
-
-    :param process_name: Process name.
-    :param conf: cache config.
-    :return: None
-    """
-    global CACHE_PROCESS
-    global CACHE_QUEUE
-    queue = Queue()
-    process = Process(target=cache_tracker, args=(queue,
-                                                  process_name,
-                                                  conf))
-    CACHE_PROCESS = process
-    CACHE_QUEUE = queue
-    process.start()
 
 
 ############################

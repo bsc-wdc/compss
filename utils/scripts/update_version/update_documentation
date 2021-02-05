@@ -31,7 +31,7 @@ usage() {
   # Clone documentation repo
   cd ${trunk_dir}/..
   rm -rf documentation
-  git clone http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git documentation
+  git clone http://${credentials}@gitlab.bsc.es/wdc/documents/documentation.git documentation
 
 
 
@@ -87,8 +87,8 @@ usage() {
   git tag COMPSs_Manuals_v${version} -f
   if [ "$commitChanges" == "true" ]; then
       git commit -am "Adding documentation new tag v${version}"
-      git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git master
-      git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git --tags --force
+      git push http://${credentials}@gitlab.bsc.es/wdc/documents/documentation.git master
+      git push http://${credentials}@gitlab.bsc.es/wdc/documents/documentation.git --tags --force
   fi
   cd "${SCRIPT_DIR}" || exit 1
 

@@ -18,7 +18,9 @@ class ActionType(Enum):
 class JobStatus(Enum):
     CREATED = 0
     SUBMITTED = 1
-    COMPLETED = 2
+    RUNNING=2
+    STALLED=3
+    COMPLETED = 4
     FAILED = -1
 
 
@@ -38,6 +40,14 @@ class Job:
             if action.assigned_resource == resource:
                 self.action = action
                 action.jobs.append(self)
+
+    def stalled(self, timestamp):
+        self.status = JobStatus.STALLED
+        self._history.append([timestamp, "job "+self.job_id+" stalled"])
+
+    def unstalled(self, timestamp):
+        self.status = JobStatus.SUBMITTED
+        self._history.append([timestamp, "job "+self.job_id+" resumes execution"])
 
     def submitted(self, timestamp):
         self.status = JobStatus.SUBMITTED

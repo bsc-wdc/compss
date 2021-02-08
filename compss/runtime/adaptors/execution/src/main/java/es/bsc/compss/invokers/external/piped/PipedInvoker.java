@@ -232,8 +232,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         case NO_MORE_TASKS: {
                             if (this.appId != null) {
                                 this.context.getRuntimeAPI().noMoreTasks(this.appId);
-                                this.pipes.sendCommand(new SynchPipeCommand());
                             }
+                            this.pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;
                         case END_TASK:

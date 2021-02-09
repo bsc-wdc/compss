@@ -562,7 +562,12 @@ class TaskWorker(TaskCommons):
         :return: The object withing f_name
         """
         cache = self.cache_queue is not None
-        if np and cache and name not in self.decorator_arguments["no_cache"]:
+        if name in self.decorator_arguments:
+            use_cache = self.decorator_arguments[name].cache
+        else:
+            # if not explicitly said, the object is candidate to be cached
+            use_cache = True
+        if np and cache and use_cache:
             # Check if the object is already in cache
             if in_cache(f_name, self.cache_ids):
                 # The object is cached
@@ -896,7 +901,12 @@ class TaskWorker(TaskCommons):
         :return: None
         """
         cache = self.cache_queue is not None
-        if np and cache and name not in self.decorator_arguments["no_cache"]:
+        if name in self.decorator_arguments:
+            use_cache = self.decorator_arguments[name].cache
+        else:
+            # if not explicitly said, the object is candidate to be cached
+            use_cache = True
+        if np and cache and use_cache:
             if in_cache(f_name, self.cache_ids):
                 replace_object_into_cache(logger,
                                           self.cache_queue,

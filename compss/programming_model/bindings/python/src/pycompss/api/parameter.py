@@ -178,6 +178,7 @@ Prefix = _ParamDictKeys.PREFIX            # parameter prefix
 Depth = _ParamDictKeys.DEPTH              # collection recursive depth
 Weight = _ParamDictKeys.WEIGHT            # parameter weight
 Keep_rename = _ParamDictKeys.KEEP_RENAME  # parameter keep rename property
+Cache = _ParamDictKeys.CACHE              # enable/disable store in cache
 
 # Aliases for collection layout for native mpi tasks
 block_count = _MPILayoutKeys.block_count

@@ -101,3 +101,4 @@ class ParamDictKeys(object):
     # Private (see task/parameter.py)
     CONTENT_TYPE = 'content_type'
     IS_FILE_COLLECTION = 'is_file_collection'
+    CACHE = 'cache'

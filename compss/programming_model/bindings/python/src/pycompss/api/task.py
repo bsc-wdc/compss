@@ -110,7 +110,6 @@ class Task(PyCOMPSsDecorator):
             "numba_signature": None,  # vectorize and guvectorize signature
             "numba_declaration": None,  # guvectorize declaration
             "varargs_type": parameter.IN,  # Here for legacy purposes
-            "no_cache": []  # Specify parameters to avoid caching
         }
 
     def __init__(self, *args, **kwargs):  # noqa

@@ -168,8 +168,7 @@ SUPPORTED_ARGUMENTS = ["returns",
                        "numba_flags",
                        "numba_signature",
                        "numba_declaration",
-                       "tracing_hook",
-                       "no_cache"]
+                       "tracing_hook"]
 # Deprecated arguments. Still supported but shows a message when used.
 DEPRECATED_ARGUMENTS = ["isReplicated",
                         "isDistributed",

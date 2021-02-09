@@ -146,7 +146,7 @@ def __load_user_module__(app_path):
         _ = SourceFileLoader(app_name, app_path).load_module()
     else:
         import imp  # noqa
-        _ = imp.load_source(app_name, args.app_path)  # noqa
+        _ = imp.load_source(app_name, app_path)  # noqa
 
 
 def compss_main():

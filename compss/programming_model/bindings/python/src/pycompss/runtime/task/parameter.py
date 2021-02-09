@@ -171,6 +171,30 @@ class Parameter(object):
         return self.content_type is TYPE.DIRECTORY
 
 
+class COMPSsFile(object):
+    """
+    Class that represents a file in the worker.
+    """
+    __slots__ = ['source_path', 'destination_name', 'keep_source',
+                 'is_write_final', 'original_path']
+
+    def __init__(self, file_name):
+        if ":" in file_name:
+            fields = file_name.split(":")
+            self.source_path = fields[0]
+            self.destination_name = fields[1]
+            self.keep_source = True if fields[2] == "true" else False
+            self.is_write_final = True if fields[3] == "true" else False
+            self.original_path = fields[4]
+        else:
+            # Can be a collection wrapper or a stream
+            self.source_path = None
+            self.destination_name = None
+            self.keep_source = None
+            self.is_write_final = None
+            self.original_path = file_name
+
+
 # Parameter conversion dictionary.
 _param_conversion_dict_ = {
     ParamAliasKeys.IN: {},

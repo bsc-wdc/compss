@@ -35,6 +35,7 @@ from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
+from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -84,7 +85,7 @@ def build_task_parameter(p_type,      # type: int
             content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
-            file_name=p_value,
+            file_name=COMPSsFile(p_value),
             extra_content_type=p_c_type
         )
         return _param, 0
@@ -105,7 +106,7 @@ def build_task_parameter(p_type,      # type: int
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            file_name=p_value,
+            file_name=COMPSsFile(p_value),
             extra_content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.STRING:
@@ -659,7 +660,7 @@ def execute_task(process_name,              # type: str
                 obj = None
                 file_name = None
                 if self_elem.content is None:
-                    file_name = self_elem.file_name.split(':')[-1]
+                    file_name = self_elem.file_name.original_path
                     if __debug__:
                         logger.debug("Deserialize self from file.")
                     try:

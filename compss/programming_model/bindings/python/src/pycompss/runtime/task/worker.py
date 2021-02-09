@@ -317,7 +317,14 @@ class TaskWorker(TaskCommons):
         if content_type == type_file:
             if self.is_parameter_an_object(argument.name):
                 # The object is stored in some file, load and deserialize
-                f_name = argument.file_name.split(':')[-1]
+                # source name : destination name : keep source : is write final value : original name
+                # out o inout + is write final ==> no meter en cache ? (ahora solo dice si es diferente a un read)
+                # out + keep source ==> imposible
+                # noqa inout + keep source ==> buscar el segundo (destination name) + meter en cache despues con destination name
+                # si keep source = False -- voy a buscar el source name en vez de destination name.
+                #     no meter en cache si es IN y keep source == False
+                # si keep source = True -- hay que meterlo si no esta.
+                f_name = argument.file_name.original_path
                 if __debug__:
                     logger.debug("\t\t - It is an OBJECT. Deserializing from file: " + str(f_name))  # noqa: E501
                 argument.content = self.recover_object(f_name,
@@ -328,13 +335,13 @@ class TaskWorker(TaskCommons):
             else:
                 # The object is a FILE, just forward the path of the file
                 # as a string parameter
-                argument.content = argument.file_name.split(':')[-1]
+                argument.content = argument.file_name.original_path
                 if __debug__:
                     logger.debug("\t\t - It is FILE: " + str(argument.content))
         elif content_type == type_directory:
             if __debug__:
                 logger.debug("\t\t - It is a DIRECTORY")
-            argument.content = argument.file_name.split(":")[-1]
+            argument.content = argument.file_name.original_path
         elif content_type == type_external_stream:
             if __debug__:
                 logger.debug("\t\t - It is an EXTERNAL STREAM")
@@ -347,7 +354,7 @@ class TaskWorker(TaskCommons):
             # sure you have checked this parameter is a collection before
             # consulting it
             argument.collection_content = []
-            col_f_name = argument.file_name.split(':')[-1]
+            col_f_name = argument.file_name.original_path
 
             # maybe it is an inner-collection..
             _dec_arg = self.decorator_arguments.get(argument.name, None)
@@ -462,7 +469,7 @@ class TaskWorker(TaskCommons):
             # make sure you have checked this parameter is a dictionary
             # collection before consulting it
             argument.dict_collection_content = {}
-            dict_col_f_name = argument.file_name.split(':')[-1]
+            dict_col_f_name = argument.file_name.original_path
             # Uncomment if you want to check its contents:
             # print("Dictionary file name: " + str(dict_col_f_name))
             # print("Dictionary file contents:")
@@ -850,7 +857,7 @@ class TaskWorker(TaskCommons):
                 # handle collections recursively
                 for (content, elem) in __get_collection_objects__(arg.content, arg):  # noqa: E501
                     if elem.file_name:
-                        f_name = __get_file_name__(elem.file_name)
+                        f_name = elem.file_name.original_path
                         if __debug__:
                             logger.debug("\t - Serializing element: " +
                                          str(arg.name) + " to " + str(f_name))
@@ -868,7 +875,7 @@ class TaskWorker(TaskCommons):
                 # handle dictionary collections recursively
                 for (content, elem) in __get_dict_collection_objects__(arg.content, arg):  # noqa: E501
                     if elem.file_name:
-                        f_name = __get_file_name__(elem.file_name)
+                        f_name = elem.file_name.original_path
                         if __debug__:
                             logger.debug("\t - Serializing element: " +
                                          str(arg.name) + " to " + str(f_name))
@@ -881,7 +888,7 @@ class TaskWorker(TaskCommons):
                         # It is None --> PSCO
                         pass
             else:
-                f_name = __get_file_name__(arg.file_name)
+                f_name = arg.file_name.original_path
                 if __debug__:
                     logger.debug("Serializing object: " +
                                  str(arg.name) + " to " + str(f_name))
@@ -951,7 +958,7 @@ class TaskWorker(TaskCommons):
                 # This is due to the asymmetry in worker-master communications
                 # and because it also makes it easier for us to deal with
                 # returns in that format
-                f_name = __get_file_name__(param.file_name)
+                f_name = param.file_name.original_path
                 if __debug__:
                     logger.debug("Serializing return: " + str(f_name))
                 if python_mpi:
@@ -1197,16 +1204,6 @@ def __get_dict_collection_objects__(content, argument):
                 yield sub_el
     else:
         yield content, argument
-
-
-def __get_file_name__(file_path):
-    # type: (str) -> str
-    """ Retrieve the file name from an absolute file path.
-
-    :param file_path: Absolute file path.
-    :return: File name.
-    """
-    return file_path.split(':')[-1]
 
 
 def __get_ret_rank__(_ret_params):

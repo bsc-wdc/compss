@@ -114,6 +114,17 @@ class Loggers:
             label = "failedJob"
             FAILED = "Received a notification for job"
 
+    class WorkerPool:
+        label = "ThreadPool"
+
+        class BlockedRunner:
+            label = "blockedRunner"
+            STALLED = "Stalled execution"
+
+        class UnblockedRunner:
+            label = "unblockedRunner"
+            READY = "ready to continue"
+
     class Connection:
         label = "Connection"
 
@@ -237,6 +248,14 @@ class Parser:
                 if Loggers.JobManager.FailedJob.FAILED in message:
                     event = CompletedJobEvent(timestamp, message)
 
+        if logger == Loggers.WorkerPool.label:
+            if method == Loggers.WorkerPool.BlockedRunner.label:
+                if Loggers.WorkerPool.BlockedRunner.STALLED in message:
+                    event = StalledJobEvent(timestamp, message)
+            if method == Loggers.WorkerPool.UnblockedRunner.label:
+                if Loggers.WorkerPool.UnblockedRunner.READY in message:
+                    event = UnstalledJobEvent(timestamp, message)
+                    
         if logger == Loggers.Connection.label:
             if method == Loggers.Connection.RegisterChannel.label:
                 if Loggers.Connection.RegisterChannel.ASSOCIATING in message:
@@ -717,6 +736,61 @@ class SubmittedJobEvent(Event):
     def __str__(self):
         return "Job " + self.job_id + " submitted @ " + self.timestamp
 
+class StalledJobEvent(Event):
+    """
+    A job execution has reached a synch point and its resources are released
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new StalledJobEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: job submission event description
+        """
+        super(StalledJobEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.job_id = line_array[4]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        job = state.jobs.get_job(self.job_id)
+        job.stalled(self.timestamp)
+
+    def __str__(self):
+        return "Job " + self.job_id + " stalled @ " + self.timestamp
+
+class UnstalledJobEvent(Event):
+    """
+    A job execution on a synch point resumes its execution
+    """
+
+    def __init__(self, timestamp, message):
+        """
+        Constructs a new UnstalledJobEvent out of the message printed in the log
+
+        :param timestamp:
+        :param message: job submission event description
+        """
+        super(UnstalledJobEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.job_id = line_array[3]
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        job = state.jobs.get_job(self.job_id)
+        job.unstalled(self.timestamp)
+
+    def __str__(self):
+        return "Job " + self.job_id + " unstalled @ " + self.timestamp      
 
 class CompletedJobEvent(Event):
     """

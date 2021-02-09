@@ -63,7 +63,7 @@ def calculate_cache_size(cache, provided=None):
             # Default cache_size (bytes) = total_memory (bytes) / 4
             mem_info = dict((i.split()[0].rstrip(':'), int(i.split()[1]))
                             for i in open('/proc/meminfo').readlines())
-            cache_size = int(mem_info["MemTotal"] / 4)
+            cache_size = int(mem_info["MemTotal"] * 1024 / 4)
             return cache_size
     else:
         return 0

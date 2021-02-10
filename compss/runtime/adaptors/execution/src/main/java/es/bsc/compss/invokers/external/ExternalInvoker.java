@@ -200,8 +200,8 @@ public abstract class ExternalInvoker extends Invoker {
                 // Passing originalName link instead of renamed file
                 // String originalFile = np.getOriginalName();
                 String originalFile = "null";
-                if(np.getSourceDataId() != null) {
-                	originalFile = np.getOriginalName();
+                if (np.getSourceDataId() != null) {
+                    originalFile = np.getOriginalName();
                 }
                 String destFile = new File(np.getRenamedName()).getName();
                 if (!isRuntimeRenamed(destFile)) {

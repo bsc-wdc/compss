@@ -15,4 +15,28 @@
 #  limitations under the License.
 #
 
-from exaqute.ExaquteExecutionConstraints import ExaquteExecutionConstraints as ExecutionConstraints  # noqa
+from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_delete_object
+from pycompss.api.api import compss_delete_file
+
+def init():
+    pass
+
+def barrier():  # Wait
+    compss_barrier()
+
+
+def get_value_from_remote(obj):  # Gather
+    obj = compss_wait_on(obj)
+    return obj
+
+
+def delete_object(*objs):  # Release
+    for obj in objs:
+        compss_delete_object(obj)
+
+
+def delete_file(file_path):
+    compss_delete_file(file_path)
+

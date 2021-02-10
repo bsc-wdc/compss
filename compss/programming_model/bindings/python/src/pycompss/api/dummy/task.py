@@ -35,6 +35,8 @@ class Task(object):
 
     def __call__(self, f):
         def wrapped_f(*args, **kwargs):
+            if 'returns' in kwargs:
+                kwargs.pop('returns')
             return f(*args, **kwargs)
 
         return wrapped_f

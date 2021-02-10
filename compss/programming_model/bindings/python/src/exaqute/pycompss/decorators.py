@@ -15,11 +15,7 @@
 #  limitations under the License.
 #
 
-from pycompss.api.task import task
-from pycompss.api.api import compss_wait_on
-from pycompss.api.api import compss_barrier
-from pycompss.api.api import compss_delete_object
-from pycompss.api.api import compss_delete_file
+from pycompss.api.task import task as _task
 from pycompss.api.mpi import mpi as _mpi
 from pycompss.api.constraint import constraint
 from pycompss.api.parameter import * 
@@ -47,31 +43,24 @@ class mpi(_mpi):
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
-ExaquteTask=task
+class Task(_task):
+
+    def __call__(self, user_function):
+        self.user_function = user_function
+
+        @wraps(user_function)
+        def task_decorator(*args, **kwargs):
+            if 'keep' in kwargs:
+                kwargs.pop('keep')
+            return self.__decorator_body__(user_function, args, kwargs)
+
+        return task_decorator
+
+
 MPI=mpi
 Mpi=mpi
 CONSTRAINT=constraint
 Constraint=constraint
 IMPLEMENT=implement
 Implement=implement
-
-def barrier():  # Wait
-    compss_barrier()
-
-
-def get_value_from_remote(obj):  # Gather
-    obj = compss_wait_on(obj)
-    return obj
-
-
-def delete_object(*objs):  # Release
-    for obj in objs:
-        compss_delete_object(obj)
-
-
-def delete_file(file_path):
-    compss_delete_file(file_path)
-
-
-def compute(obj):  # Submit task
-    return obj
+task=Task

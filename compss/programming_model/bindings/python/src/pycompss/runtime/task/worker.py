@@ -317,19 +317,12 @@ class TaskWorker(TaskCommons):
         if content_type == type_file:
             if self.is_parameter_an_object(argument.name):
                 # The object is stored in some file, load and deserialize
-                # source name : destination name : keep source : is write final value : original name
-                # out o inout + is write final ==> no meter en cache ? (ahora solo dice si es diferente a un read)
-                # out + keep source ==> imposible
-                # noqa inout + keep source ==> buscar el segundo (destination name) + meter en cache despues con destination name
-                # si keep source = False -- voy a buscar el source name en vez de destination name.
-                #     no meter en cache si es IN y keep source == False
-                # si keep source = True -- hay que meterlo si no esta.
-                f_name = argument.file_name.original_path
                 if __debug__:
-                    logger.debug("\t\t - It is an OBJECT. Deserializing from file: " + str(f_name))  # noqa: E501
-                argument.content = self.recover_object(f_name,
-                                                       argument.name,
-                                                       argument.direction)
+                    logger.debug(
+                        "\t\t - It is an OBJECT. Deserializing from file: %s" %
+                        str(argument.file_name.original_path)
+                    )
+                argument.content = self.recover_object(argument)
                 if __debug__:
                     logger.debug("\t\t - Deserialization finished")
             else:
@@ -345,9 +338,7 @@ class TaskWorker(TaskCommons):
         elif content_type == type_external_stream:
             if __debug__:
                 logger.debug("\t\t - It is an EXTERNAL STREAM")
-            argument.content = self.recover_object(argument.file_name,
-                                                   argument.name,
-                                                   argument.direction)
+            argument.content = self.recover_object(argument)
         elif content_type == type_collection:
             argument.content = []
             # This field is exclusive for COLLECTION_T parameters, so make
@@ -559,16 +550,19 @@ class TaskWorker(TaskCommons):
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
 
-    def recover_object(self, f_name, name, direction):
-        # type: (str, str, parameter.DIRECTION) -> ...
+    def recover_object(self, argument):
+        # type: (Parameter) -> ...
         """ Recovers the object within a file.
 
-        :param f_name: File that contains an object.
-        :param name: Parameter name.
-        :param direction: Direction of the parameter
-        :return: The object withing f_name
+        :param argument: Parameter object for the argument to recover.
+        :return: The object associated to the given argument Parameter.
         """
+        name = argument.name
+        original_path = argument.file_name.original_path
+
         cache = self.cache_queue is not None
+        # Check if the user has defined that the parameter has or not to be
+        # cache explicitly
         if name in self.decorator_arguments:
             use_cache = self.decorator_arguments[name].cache
         else:
@@ -576,24 +570,32 @@ class TaskWorker(TaskCommons):
             use_cache = True
         if np and cache and use_cache:
             # Check if the object is already in cache
-            if in_cache(f_name, self.cache_ids):
+            if in_cache(original_path, self.cache_ids):
                 # The object is cached
                 retrieved, existing_shm = retrieve_object_from_cache(logger,
                                                                      self.cache_ids,
-                                                                     f_name)
+                                                                     original_path)
                 self.cached_references.append(existing_shm)
                 return retrieved
             else:
-                # Not in cache. Retrieve from file and put in cache
-                obj = deserialize_from_file(f_name)
-                if direction != parameter.DIRECTION.IN_DELETE:
+                # Not in cache. Retrieve from file and put in cache if possible
+                # source name : destination name : keep source : is write final value : original name
+                # out o inout + is write final ==> no meter en cache ? (ahora solo dice si es diferente a un read)
+                # out + keep source ==> imposible
+                # noqa inout + keep source ==> buscar el segundo (destination name) + meter en cache despues con destination name
+                # si keep source = False -- voy a buscar el source name en vez de destination name.
+                #     no meter en cache si es IN y keep source == False
+                # si keep source = True -- hay que meterlo si no esta.
+                obj = deserialize_from_file(original_path)
+                if argument.file_name.keep_source and \
+                        argument.direction != parameter.DIRECTION.IN_DELETE:
                     insert_object_into_cache_wrapper(logger,
                                                      self.cache_queue,
                                                      obj,
-                                                     f_name)
+                                                     original_path)
                 return obj
         else:
-            return deserialize_from_file(f_name)
+            return deserialize_from_file(original_path)
 
     def segregate_objects(self, args):
         # type: (tuple) -> (list, dict, list)
@@ -865,7 +867,7 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
-                            self.update_object_in_cache(content, f_name, arg.name)
+                            self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
                         pass
@@ -883,7 +885,7 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
-                            self.update_object_in_cache(content, f_name, arg.name)
+                            self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
                         pass
@@ -896,17 +898,19 @@ class TaskWorker(TaskCommons):
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
                     serialize_to_file(arg.content, f_name)
-                    self.update_object_in_cache(arg.content, f_name, arg.name)
+                    self.update_object_in_cache(arg.content, arg)
 
-    def update_object_in_cache(self, content, f_name, name):
-        # type: (..., str, str) -> None
+    def update_object_in_cache(self, content, argument):
+        # type: (..., Parameter) -> None
         """ Updates the object into cache if possible
 
         :param content: Object to be updated.
-        :param f_name: File where to store the object (id at cache).
-        :param name: Parameter name.
+        :param argument: Parameter object for the argument to be update.
         :return: None
         """
+        name = argument.name
+        original_path = argument.file_name.original_path
+
         cache = self.cache_queue is not None
         if name in self.decorator_arguments:
             use_cache = self.decorator_arguments[name].cache
@@ -914,16 +918,16 @@ class TaskWorker(TaskCommons):
             # if not explicitly said, the object is candidate to be cached
             use_cache = True
         if np and cache and use_cache:
-            if in_cache(f_name, self.cache_ids):
+            if in_cache(original_path, self.cache_ids):
                 replace_object_into_cache(logger,
                                           self.cache_queue,
                                           content,
-                                          f_name)
+                                          original_path)
             else:
                 insert_object_into_cache_wrapper(logger,
                                                  self.cache_queue,
                                                  content,
-                                                 f_name)
+                                                 original_path)
 
     def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
         # type: (int, list, list, bool) -> list

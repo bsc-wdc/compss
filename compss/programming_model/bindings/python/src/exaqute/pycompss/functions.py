@@ -15,24 +15,28 @@
 #  limitations under the License.
 #
 
-from exaqute.ExaquteTaskLocal import ExaquteTask
-from exaqute.ExaquteTask import from_args_to_vector
-from exaqute.ExaquteTask import from_vector_to_args
+from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_delete_object
+from pycompss.api.api import compss_delete_file
+
+def init():
+    pass
+
+def barrier():  # Wait
+    compss_barrier()
 
 
-@ExaquteTask(returns=1)
-def check_vector(*collection_in):
-    base_string = ""
-    for elem in from_args_to_vector(collection_in):
-        base_string += str(len(elem))
-    return base_string
+def get_value_from_remote(obj):  # Gather
+    obj = compss_wait_on(obj)
+    return obj
 
 
-def main():
-    vec = [[1, 2, 3], [4, 5]]
-    result = check_vector(*(from_vector_to_args(vec)))
-    print("Result: " + str(result))
+def delete_object(*objs):  # Release
+    for obj in objs:
+        compss_delete_object(obj)
 
 
-if __name__ == "__main__":
-    main()
+def delete_file(file_path):
+    compss_delete_file(file_path)
+

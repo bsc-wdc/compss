@@ -260,38 +260,44 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     f_name = __get_file_name__(f_name)
     if __debug__:
         logger.debug(HEADER + "Inserting into cache (%s): %s" % (str(type(obj)), str(f_name)))
-    if isinstance(obj, np.ndarray):
-        shape = obj.shape
-        d_type = obj.dtype
-        size = obj.nbytes
-        shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
-        within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
-        within_cache[:] = obj[:]  # Copy contents
-        new_cache_id = shm.name
-        cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa
-    elif isinstance(obj, list):
-        sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-        new_cache_id = sl.shm.name
-        size = total_sizeof(obj)
-        cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa
-    elif isinstance(obj, tuple):
-        sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-        new_cache_id = sl.shm.name
-        size = total_sizeof(obj)
-        cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa
-    elif isinstance(obj, dict):
-        # Convert dict to list of tuples
-        list_tuples = list(zip(obj.keys(), obj.values()))
-        sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
-        new_cache_id = sl.shm.name
-        size = total_sizeof(obj)
-        cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa
-    else:
+    try:
+        if isinstance(obj, np.ndarray):
+            shape = obj.shape
+            d_type = obj.dtype
+            size = obj.nbytes
+            shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
+            within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
+            within_cache[:] = obj[:]  # Copy contents
+            new_cache_id = shm.name
+            cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa
+        elif isinstance(obj, list):
+            sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+            new_cache_id = sl.shm.name
+            size = total_sizeof(obj)
+            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa
+        elif isinstance(obj, tuple):
+            sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+            new_cache_id = sl.shm.name
+            size = total_sizeof(obj)
+            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa
+        elif isinstance(obj, dict):
+            # Convert dict to list of tuples
+            list_tuples = list(zip(obj.keys(), obj.values()))
+            sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
+            new_cache_id = sl.shm.name
+            size = total_sizeof(obj)
+            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa
+        else:
+            if __debug__:
+                logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa
         if __debug__:
-            logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa
-    if __debug__:
-        logger.debug(HEADER + "Inserted into cache: " +
-                     str(f_name) + " as " + str(new_cache_id))
+            logger.debug(HEADER + "Inserted into cache: " +
+                         str(f_name) + " as " + str(new_cache_id))
+    except KeyError as e:
+        if __debug__:
+            logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa
+            logger.debug(str(e))
+
 
 
 def remove_object_from_cache(logger, cache_queue, f_name):  # noqa

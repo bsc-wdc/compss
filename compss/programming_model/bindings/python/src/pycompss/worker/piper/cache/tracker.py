@@ -299,7 +299,6 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             logger.debug(str(e))
 
 
-
 def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
     # type: (..., ..., ...) -> None
     """ Removes an object from cache.

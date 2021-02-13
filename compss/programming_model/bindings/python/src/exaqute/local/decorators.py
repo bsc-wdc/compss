@@ -4,6 +4,7 @@ from .internals import _check_init, ValueWrapper, _obj_to_value
 from .consts import IN, FILE_IN, FILE_OUT, INOUT, FILE_INOUT, COLLECTION_IN, COLLECTION_OUT, COLLECTION_INOUT
 import traceback
 from functools import wraps
+import os
 
 class Task(object):
     """
@@ -57,12 +58,11 @@ class Task(object):
 task = Task
 
 def constraint(computing_units=1):
-    if isinstance(computing_units, string):
+    if isinstance(computing_units, str):
         try:
             #can be cast to int
             computing_units=int(computing_units)
         except:
-            print("Is not castable to int")
             if computing_units.startswith("$"):
                 env_var=computing_units.replace("$","").replace("{","").replace("}","")
                 computing_units=int(os.environ[env_var])

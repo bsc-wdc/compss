@@ -104,6 +104,8 @@
     "pycompss.worker.commons.constants":             { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.worker.commons.executor":              { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.worker.commons.worker":                { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.worker.piper.cache.setup":             { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.worker.piper.cache.tracker":           { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.commons.constants":       { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.commons.executor":        { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.commons.utils":           { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },

@@ -46,10 +46,15 @@ except ImportError:
 HEADER = "[PYTHON CACHE] "
 SHARED_MEMORY_MANAGER = None
 
+# Supported shared objects (remind that nested lists are not supported).
 SHARED_MEMORY_TAG = "SharedMemory"
 SHAREABLE_LIST_TAG = "ShareableList"
 SHAREABLE_TUPLE_TAG = "ShareableTuple"
 SHAREABLE_DICT_TAG = "ShareableTuple"
+
+AUTH_KEY = b"compss_cache"
+IP = "127.0.0.1"
+PORT = 50000
 
 
 class CacheTrackerConf(object):
@@ -107,7 +112,7 @@ def cache_tracker(queue, process_name, conf):
             try:
                 action, message = msg
                 if action == "PUT":
-                    f_name, cache_id, shape, dtype, obj_size, shared_type = message
+                    f_name, cache_id, shape, dtype, obj_size, shared_type = message  # noqa: E501
                     if f_name in cache_ids:
                         # Any executor has already put the id
                         if __debug__:
@@ -183,16 +188,41 @@ def check_cache_status(conf, used_size, requested_size):
     return used_size - size_to_recover
 
 
-def initialize_shared_memory_manager():
+def load_shared_memory_manager():
     # type: () -> None
     """ Connects to the main shared memory manager initiated in piper_worker.py.
 
     :return: None
     """
     global SHARED_MEMORY_MANAGER
-    SHARED_MEMORY_MANAGER = SharedMemoryManager(address=('127.0.0.1', 50000),
-                                                authkey=b'compss_cache')
+    SHARED_MEMORY_MANAGER = SharedMemoryManager(address=(IP, PORT),
+                                                authkey=AUTH_KEY)
     SHARED_MEMORY_MANAGER.connect()
+
+
+def start_shared_memory_manager():
+    # type: () -> SharedMemoryManager
+    """ Starts the shared memory manager.
+
+    :return: Shared memory manager instance.
+    """
+    smm = SharedMemoryManager(address=('', PORT), authkey=AUTH_KEY)
+    smm.start()
+    return smm
+
+
+def stop_shared_memory_manager(smm):
+    # type: (SharedMemoryManager) -> None
+    """ Stops the given shared memory manager, releasing automatically the
+    objects contained in it.
+
+    Only needed to be stopped from the main worker process. It is not
+    necessary to disconnect each executor.
+
+    :param smm: Shared memory manager.
+    :return: None
+    """
+    smm.shutdown()
 
 
 def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
@@ -207,10 +237,10 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     identifier = __get_file_name__(identifier)
     if __debug__:
         logger.debug(HEADER + "Retrieving: " + str(identifier))
-    obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]
+    obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
     if shared_type == SHARED_MEMORY_TAG:
         existing_shm = SharedMemory(name=obj_id)
-        output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)
+        output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)    # noqa: E501
     elif shared_type == SHAREABLE_LIST_TAG:
         existing_shm = ShareableList(name=obj_id)
         output = list(existing_shm)
@@ -259,7 +289,8 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     """
     f_name = __get_file_name__(f_name)
     if __debug__:
-        logger.debug(HEADER + "Inserting into cache (%s): %s" % (str(type(obj)), str(f_name)))
+        logger.debug(HEADER + "Inserting into cache (%s): %s" %
+                     (str(type(obj)), str(f_name)))
     try:
         if isinstance(obj, np.ndarray):
             shape = obj.shape
@@ -269,33 +300,33 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
             within_cache[:] = obj[:]  # Copy contents
             new_cache_id = shm.name
-            cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa
+            cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa: E501
         elif isinstance(obj, list):
             sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
-            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa
+            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa: E501
         elif isinstance(obj, tuple):
             sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
-            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa
+            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa: E501
         elif isinstance(obj, dict):
             # Convert dict to list of tuples
             list_tuples = list(zip(obj.keys(), obj.values()))
             sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
-            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa
+            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa: E501
         else:
             if __debug__:
-                logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa
+                logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
         if __debug__:
             logger.debug(HEADER + "Inserted into cache: " +
                          str(f_name) + " as " + str(new_cache_id))
-    except KeyError as e:
+    except KeyError as e:  # noqa
         if __debug__:
-            logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa
+            logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
             logger.debug(str(e))
 
 

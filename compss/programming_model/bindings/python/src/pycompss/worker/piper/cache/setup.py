@@ -29,78 +29,90 @@ from multiprocessing import Queue
 
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import cache_tracker
+from pycompss.worker.piper.cache.tracker import start_shared_memory_manager as __start_smm__  # noqa: E501
+from pycompss.worker.piper.cache.tracker import stop_shared_memory_manager as __stop_smm__    # noqa: E501
 
 
-def cache_enabled(config):
-    # type: (PiperWorkerConfiguration) -> (bool, int)
+def is_cache_enabled(cache_config):
+    # type: (str) -> bool
     """ Check if the cache is enabled.
 
-    :param config: Piper worker configuration.
+    :param cache_config: Cache configuration defined on startup.
     :return: True if enabled, False otherwise. And size if enabled.
     """
-    if ":" in config.cache:
-        cache, cache_size = config.cache.split(":")
+    if ":" in cache_config:
+        cache, _ = cache_config.split(":")
         cache = True if cache == "true" else False
-        cache_size = calculate_cache_size(cache, cache_size)
     else:
-        cache = True if config.cache == "true" else False
-        cache_size = calculate_cache_size(cache)
-    return cache, cache_size
+        cache = True if cache_config == "true" else False
+    return cache
 
 
-def calculate_cache_size(cache, provided=None):
-    # type: (bool, str or None) -> int
-    """ Calculates the cache size.
-
-    :param cache: If the cache is enabled or not.
-    :param provided: If the user provided a size.
-    :return: The size in bytes.
-    """
-    if cache:
-        if provided:
-            return int(provided)
-        else:
-            # Default cache_size (bytes) = total_memory (bytes) / 4
-            mem_info = dict((i.split()[0].rstrip(':'), int(i.split()[1]))
-                            for i in open('/proc/meminfo').readlines())
-            cache_size = int(mem_info["MemTotal"] * 1024 / 4)
-            return cache_size
-    else:
-        return 0
-
-
-def initialize_cache_process(logger, cache, cache_size, config):
-    # type: (..., bool, int, PiperWorkerConfiguration) -> (..., Process, Queue, dict)
+def start_cache(logger, cache_config):
+    # type: (..., str) -> (..., Process, Queue, dict)
     """ Setup the cache process which keeps the consistency of the cache.
 
-    :return: None
+    :param logger: Logger.
+    :param cache_config: Cache configuration defined on startup.
+    :return: Shared memory manager, cache process, cache message queue and
+             cache ids dictionary
     """
-    if cache:
-        # Cache can be used
-        # Create a proxy dictionary to share the information across workers
-        # within the same node
-        from multiprocessing import Manager
-        manager = Manager()
-        cache_ids = manager.dict()  # Proxy dictionary
-        # Start a new process to manage the cache contents.
-        from multiprocessing.managers import SharedMemoryManager
-        smm = SharedMemoryManager(address=('', 50000), authkey=b'compss_cache')
-        smm.start()
-        conf = CacheTrackerConf(logger,
-                                cache_size,
-                                None,
-                                cache_ids)
-        cache_process, cache_queue = create_cache_tracker_process("cache_tracker", conf)  # noqa
-    else:
-        smm = None
-        cache_process = None
-        cache_queue = None
-        cache_ids = None
-
+    cache_size = __get_cache_size__(cache_config)
+    # Cache can be used
+    # Create a proxy dictionary to share the information across workers
+    # within the same node
+    from multiprocessing import Manager
+    manager = Manager()
+    cache_ids = manager.dict()  # Proxy dictionary
+    # Start a new process to manage the cache contents.
+    smm = __start_smm__()
+    conf = CacheTrackerConf(logger, cache_size, None, cache_ids)
+    cache_process, cache_queue = __create_cache_tracker_process__("cache_tracker", conf)  # noqa: E501
     return smm, cache_process, cache_queue, cache_ids
 
 
-def create_cache_tracker_process(process_name, conf):
+def stop_cache(shared_memory_manager, cache_queue, cache_process):
+    # type: (..., Queue, Process) -> None
+    """ Stops the cache process and performs the necessary cleanup.
+
+    :param shared_memory_manager: Shared memory manager.
+    :param cache_queue: Cache messaging queue.
+    :param cache_process: Cache process
+    :return: None
+    """
+    __destroy_cache_tracker_process__(cache_process, cache_queue)
+    __stop_smm__(shared_memory_manager)
+
+
+def __get_cache_size__(cache_config):
+    # type: (str) -> int
+    """ Retrieve the cache size for the given config.
+
+    :param cache_config: Cache configuration defined on startup.
+    :return: The cache size
+    """
+    if ":" in cache_config:
+        _, cache_size = cache_config.split(":")
+        cache_size = int(cache_size)
+    else:
+        cache_size = __get_default_cache_size__()
+    return cache_size
+
+
+def __get_default_cache_size__():
+    # type: () -> int
+    """ Returns the default cache size.
+
+    :return: The size in bytes.
+    """
+    # Default cache_size (bytes) = total_memory (bytes) / 4
+    mem_info = dict((i.split()[0].rstrip(':'), int(i.split()[1]))
+                    for i in open('/proc/meminfo').readlines())
+    cache_size = int(mem_info["MemTotal"] * 1024 / 4)
+    return cache_size
+
+
+def __create_cache_tracker_process__(process_name, conf):
     # type: (str, CacheTrackerConf) -> (Process, Queue)
     """ Starts a new cache tracker process.
 
@@ -109,8 +121,20 @@ def create_cache_tracker_process(process_name, conf):
     :return: None
     """
     queue = Queue()
-    process = Process(target=cache_tracker, args=(queue,
-                                                  process_name,
-                                                  conf))
+    process = Process(target=cache_tracker, args=(queue, process_name, conf))
     process.start()
     return process, queue
+
+
+def __destroy_cache_tracker_process__(cache_process, cache_queue):
+    # type: (Process, Queue) -> None
+    """ Stops the given cache tracker process.
+
+    :param cache_process: Cache process
+    :param cache_queue: Cache messaging queue.
+    :return: None
+    """
+    cache_queue.put("QUIT")    # noqa
+    cache_process.join()       # noqa
+    cache_queue.close()        # noqa
+    cache_queue.join_thread()  # noqa

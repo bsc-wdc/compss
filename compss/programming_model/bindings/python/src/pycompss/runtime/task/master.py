@@ -558,6 +558,7 @@ class TaskMaster(TaskCommons):
             return inspect.getargspec(function)  # noqa
 
     def process_parameters(self, *args, **kwargs):
+        # type: (list, dict) -> None
         """ Process all the input parameters.
 
         Basically, processing means "build a dictionary of <name, parameter>,
@@ -637,7 +638,7 @@ class TaskMaster(TaskCommons):
                         "@task")
 
     def build_parameter_object(self, arg_name, arg_object):
-        # type: (str, object, bool) -> Parameter
+        # type: (str, ...) -> Parameter
         """ Creates the Parameter object from an argument name and object.
 
         WARNING: Any modification in the param object will modify the
@@ -939,6 +940,12 @@ class TaskMaster(TaskCommons):
             set_impl_io(impl_io)
 
     def check_layout_params(self, impl_type_args):
+        # type: (list) -> None
+        """ Checks the layout format.
+
+        :param impl_type_args: Parameter arguments.
+        :return: None
+        """
         num_layouts = int(impl_type_args[6])
         if num_layouts > 0:
             for i in range(num_layouts):
@@ -1021,7 +1028,7 @@ class TaskMaster(TaskCommons):
         if parsed_computing_nodes is None:
             raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
         if parsed_computing_nodes <= 0:
-            logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa
+            logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa: E501
                            str(parsed_computing_nodes))
             parsed_computing_nodes = 1
 
@@ -1113,8 +1120,7 @@ class TaskMaster(TaskCommons):
         # Get is distributed
         if "isDistributed" in self.decorator_arguments:
             is_distributed = deco_arg_getter("isDistributed")
-            logger.warning(
-                "Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
+            logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
         else:
             is_distributed = deco_arg_getter("is_distributed")
         # Get time out
@@ -1131,7 +1137,7 @@ class TaskMaster(TaskCommons):
         return is_replicated, is_distributed, time_out, has_priority, has_target  # noqa: E501
 
     def add_return_parameters(self, returns=None):
-        # type: () -> int
+        # type: (bool) -> int
         """ Modify the return parameters accordingly to the return statement.
 
         :return: Creates and modifies self.returns and returns the number of
@@ -1163,8 +1169,8 @@ class TaskMaster(TaskCommons):
             # integer or a global variable.
             # In such case, build a list of objects of value length and
             # set it in ret_type.
-            # Global variable, value_of(Parameter) or string wrapping integer value
-            # (Evaluated in reverse orther)
+            # Global variable, value_of(Parameter) or string wrapping integer
+            # value (Evaluated in reverse order)
             num_rets = self.get_num_returns_from_string(_returns)
             # Construct hidden multi-return
             if num_rets > 1:

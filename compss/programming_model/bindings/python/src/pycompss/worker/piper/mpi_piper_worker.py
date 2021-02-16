@@ -48,8 +48,9 @@ from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
 from pycompss.worker.piper.commons.constants import HEADER
-from pycompss.worker.piper.cache.setup import cache_enabled
-from pycompss.worker.piper.cache.setup import initialize_cache_process
+from pycompss.worker.piper.cache.setup import is_cache_enabled
+from pycompss.worker.piper.cache.setup import start_cache
+from pycompss.worker.piper.cache.setup import stop_cache
 
 from mpi4py import MPI
 
@@ -296,11 +297,19 @@ def main():
 
     if is_worker():
         # Setup cache
-        cache, cache_size = cache_enabled(WORKER_CONF)
-        cache_params = initialize_cache_process(None, cache, cache_size, WORKER_CONF)
-        smm, cache_process, CACHE_QUEUE, CACHE_IDS = cache_params
+        if is_cache_enabled(WORKER_CONF.cache):
+            # Deploy the necessary processes
+            cache = True
+            cache_params = start_cache(None, WORKER_CONF.cache)
+        else:
+            # No cache
+            cache = False
+            cache_params = (None, None, None, None)
     else:
+        # Otherwise it is an executor
         cache = False  # to stop only the cache from the main process
+        cache_params = (None, None, None, None)
+    smm, cache_process, CACHE_QUEUE, CACHE_IDS = cache_params
 
     if is_worker():
         with trace_mpi_worker() if TRACING else dummy_context():
@@ -310,11 +319,7 @@ def main():
             compss_persistent_executor(WORKER_CONF)
 
     if cache and is_worker():
-        cache_queue.put("QUIT")    # noqa
-        cache_process.join()       # noqa
-        cache_queue.close()        # noqa
-        cache_queue.join_thread()  # noqa
-        smm.shutdown()             # noqa
+        stop_cache(smm, CACHE_QUEUE, cache_process)  # noqa
 
 
 if __name__ == '__main__':

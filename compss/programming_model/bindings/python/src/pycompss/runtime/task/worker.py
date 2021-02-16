@@ -232,8 +232,8 @@ class TaskWorker(TaskCommons):
 
         return new_types, new_values, self.decorator_arguments[target_label]
 
-    def reveal_objects(self, args, logger,
-                       python_mpi=False,
+    def reveal_objects(self, args, logger,         # noqa
+                       python_mpi=False,           # noqa
                        collections_layouts=None):  # noqa
         # type: (tuple, logger, bool, list) -> None
         """ Get the objects from the args message.
@@ -495,7 +495,7 @@ class TaskWorker(TaskCommons):
                     sub_name_value = "@value%s" % sub_name_value
 
                 sub_arg_key, _ = build_task_parameter(int(data_type_key),
-                                                      parameter.IOSTREAM.UNSPECIFIED,
+                                                      parameter.IOSTREAM.UNSPECIFIED,  # noqa: E501
                                                       "",
                                                       sub_name_key,
                                                       content_file_key,

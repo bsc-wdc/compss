@@ -51,8 +51,9 @@ from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
-from pycompss.worker.piper.cache.setup import cache_enabled
-from pycompss.worker.piper.cache.setup import initialize_cache_process
+from pycompss.worker.piper.cache.setup import is_cache_enabled
+from pycompss.worker.piper.cache.setup import start_cache
+from pycompss.worker.piper.cache.setup import stop_cache
 import pycompss.util.context as context
 
 # Persistent worker global variables
@@ -122,8 +123,14 @@ def compss_persistent_worker(config):
     queues = []
 
     # Setup cache
-    CACHE, cache_size = cache_enabled(config)
-    cache_params = initialize_cache_process(logger, CACHE, cache_size, config)
+    if is_cache_enabled(config.cache):
+        # Deploy the necessary processes
+        CACHE = True
+        cache_params = start_cache(logger, config.cache)
+    else:
+        # No cache
+        CACHE = False
+        cache_params = (None, None, None, None)
     smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
 
     # Create new executor processes
@@ -220,11 +227,7 @@ def compss_persistent_worker(config):
         queue.join_thread()
 
     if CACHE:
-        cache_queue.put("QUIT")    # noqa
-        CACHE_PROCESS.join()       # noqa
-        cache_queue.close()        # noqa
-        cache_queue.join_thread()  # noqa
-        smm.shutdown()
+        stop_cache(smm, cache_queue, CACHE_PROCESS)  # noqa
 
     if persistent_storage:
         # Finish storage

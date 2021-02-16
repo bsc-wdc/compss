@@ -58,7 +58,7 @@ from pycompss.worker.commons.constants import PROCESS_PING_EVENT
 from pycompss.worker.commons.constants import PROCESS_QUIT_EVENT
 from pycompss.worker.commons.constants import INIT_WORKER_POSTFORK_EVENT
 from pycompss.worker.commons.constants import FINISH_WORKER_POSTFORK_EVENT
-from pycompss.worker.piper.cache.tracker import initialize_shared_memory_manager
+from pycompss.worker.piper.cache.tracker import load_shared_memory_manager
 
 # Streaming imports
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
@@ -255,7 +255,7 @@ def executor(queue, process_name, pipe, conf):
 
         # Connect to Shared memory manager
         if conf.cache_queue:
-            initialize_shared_memory_manager()
+            load_shared_memory_manager()
 
         # Process properties
         alive = True
@@ -286,11 +286,6 @@ def executor(queue, process_name, pipe, conf):
                                         storage_loggers_handlers,
                                         conf.cache_queue,
                                         conf.cache_ids)
-                # import random
-                # a = str(random.randint(0, 10000000))
-                # b = str(random.randint(0, 10000000))
-                # conf.cache_queue.put(a + " " + b + " 1")
-
         # Stop storage
         if storage_conf != 'null':
             try:

@@ -125,7 +125,6 @@ public class Executor implements Runnable, InvocationRunner {
     protected boolean isRegistered;
     protected PipePair cPipes;
     protected PipePair pyPipes;
-    private Timer timer;
 
     protected Invocation invocation;
     protected Invoker invoker;
@@ -145,7 +144,6 @@ public class Executor implements Runnable, InvocationRunner {
         this.platform = platform;
         this.id = executorId;
         this.isRegistered = false;
-        this.timer = new Timer("Timer executor" + this.id);
     }
 
     /**
@@ -209,7 +207,6 @@ public class Executor implements Runnable, InvocationRunner {
                 }
             }
         }
-        this.timer.cancel();
     }
 
     private void processExecution(Execution execution) {
@@ -292,16 +289,7 @@ public class Executor implements Runnable, InvocationRunner {
             if (IS_TIMER_COMPSS_ENABLED) {
                 timeExecTaskStart = System.nanoTime();
             }
-            TimeOutTask timerTask = null;
-            long timeout = invocation.getTimeOut();
-            if (timeout > 0) {
-                timerTask = new TimeOutTask(invocation.getTaskId());
-                this.timer.schedule(timerTask, timeout);
-            }
             executeTask(twd.getWorkingDir());
-            if (timerTask != null) {
-                timerTask.cancel();
-            }
             if (IS_TIMER_COMPSS_ENABLED) {
                 final long timeExecTaskEnd = System.nanoTime();
                 final float timeExecTaskElapsed = (timeExecTaskEnd - timeExecTaskStart) / (float) NANO_TO_MS;
@@ -402,6 +390,7 @@ public class Executor implements Runnable, InvocationRunner {
         if (invocation.isDebugEnabled()) {
             out.println("[EXECUTOR] executeTask - Begin task execution");
         }
+        TimeOutTask timerTask = null;
         try {
             switch (invocation.getMethodImplementation().getMethodType()) {
                 case METHOD:
@@ -433,7 +422,8 @@ public class Executor implements Runnable, InvocationRunner {
                     invoker = new OpenCLInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
                     break;
             }
-            this.platform.registerRunningJob(invocation.getJobId(), invoker);
+            timerTask = new TimeOutTask(invocation.getTaskId());
+            this.platform.registerRunningJob(invocation, invoker, timerTask);
             if (invoker != null) {
                 invoker.runInvocation(this);
             } else {
@@ -449,6 +439,9 @@ public class Executor implements Runnable, InvocationRunner {
             jee.printStackTrace(err);
             throw jee;
         } finally {
+            if (timerTask != null) {
+                timerTask.cancel();
+            }
             if (invocation.isDebugEnabled()) {
                 out.println("[EXECUTOR] executeTask - End task execution");
             }

@@ -25,6 +25,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.Collection;
+import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
 
@@ -45,7 +46,7 @@ public interface ExecutorContext {
 
     public Collection<ExecutionPlatformMirror<?>> getMirrors();
 
-    public void registerRunningJob(int jobId, Invoker invoker);
+    public void registerRunningJob(Invocation invocation, Invoker invoker, TimerTask timeoutHandler);
 
     public void blockedRunner(Invocation invocation, InvocationRunner executor, InvocationResources assignedResources);
 

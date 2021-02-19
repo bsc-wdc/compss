@@ -38,6 +38,7 @@ import es.bsc.compss.util.RequestQueue;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 import org.junit.Test;
 
@@ -136,7 +137,7 @@ public class ExecutorTest {
         }
 
         @Override
-        public void registerRunningJob(int jobId, Invoker invoker) {
+        public void registerRunningJob(Invocation invocation, Invoker invoker, TimerTask timeout) {
 
         }
 

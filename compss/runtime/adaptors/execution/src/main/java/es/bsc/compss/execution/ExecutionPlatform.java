@@ -40,6 +40,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -71,6 +73,7 @@ public class ExecutionPlatform implements ExecutorContext {
     private final Semaphore stopSemaphore;
     private final Map<Class<?>, ExecutionPlatformMirror<?>> mirrors;
 
+    private Timer timer;
     private Set<Integer> toCancel;
     private Map<Integer, Invoker> executingJobs;
 
@@ -110,9 +113,11 @@ public class ExecutionPlatform implements ExecutorContext {
             }
         });
         this.finishedWorkerThreads = new LinkedList<>();
-        addWorkerThreads(config.getInitialSize());
+
         this.toCancel = new HashSet<>();
         this.executingJobs = new ConcurrentHashMap<>();
+
+        addWorkerThreads(config.getInitialSize());
     }
 
     /**
@@ -129,6 +134,7 @@ public class ExecutionPlatform implements ExecutorContext {
      */
     public final synchronized void start() {
         LOGGER.info("Starting execution platform " + this.platformName);
+        this.timer = new Timer(platformName + " deadline reapper");
         // Start is in inverse order so that Thread 1 is the last available
         for (Thread t : this.workerThreads.descendingSet()) {
             LOGGER.info("Starting Thread " + t.getName());
@@ -157,7 +163,7 @@ public class ExecutionPlatform implements ExecutorContext {
             mirror.stop();
         }
         this.mirrors.clear();
-
+        this.timer.cancel();
         this.started = false;
         LOGGER.info("Stopped execution platform " + this.platformName);
     }
@@ -261,11 +267,17 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     @Override
-    public void registerRunningJob(int jobId, Invoker invoker) {
+    public void registerRunningJob(Invocation invocation, Invoker invoker, TimerTask timeOutHandler) {
+        int jobId = invocation.getJobId();
         LOGGER.debug("Registering job " + jobId);
         this.executingJobs.put(jobId, invoker);
         if (this.toCancel.contains(jobId)) {
             cancelJob(jobId);
+        } else {
+            long timeout = invocation.getTimeOut();
+            if (timeout > 0) {
+                timer.schedule(timeOutHandler, timeout);
+            }
         }
     }
 

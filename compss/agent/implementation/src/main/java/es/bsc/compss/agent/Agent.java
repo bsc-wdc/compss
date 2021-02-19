@@ -43,6 +43,8 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
+import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.io.IOException;
@@ -135,12 +137,18 @@ public class Agent {
      * Stops the runtime within the Agent.
      */
     public static void stop() {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.valueOf("AGENT_STOP").getId(), Tracer.getAgentsEventsType());
+        }
         RUNTIME.stopIT(true);
         Iterator<AgentInterface<?>> itfs = INTERFACES.iterator();
         while (itfs.hasNext()) {
             AgentInterface<?> itf = itfs.next();
             itf.stop();
             itfs.remove();
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getAgentsEventsType());
         }
     }
 
@@ -162,6 +170,9 @@ public class Agent {
     public static long runTask(Lang lang, CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
         ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
         throws AgentException {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.valueOf("AGENT_RUN_TASK").getId(), Tracer.getAgentsEventsType());
+        }
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
         LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
@@ -236,6 +247,9 @@ public class Agent {
         } catch (Exception e) {
             LOGGER.error("Error submitting task", e);
             throw new AgentException(e);
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getAgentsEventsType());
         }
         return appId;
     }
@@ -337,6 +351,9 @@ public class Agent {
      * @throws AgentException could not create a configuration to start using this resource
      */
     public static void addResources(Resource<?, ?> r) throws AgentException {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.valueOf("AGENT_ADD_RESOURCE").getId(), Tracer.getAgentsEventsType());
+        }
         String workerName = r.getName();
         MethodResourceDescription description = r.getDescription();
 
@@ -350,6 +367,9 @@ public class Agent {
             Map<String, Object> resourcesConf = new HashMap<>();
             resourcesConf.put("Properties", r.getResourceConf());
             registerWorker(workerName, description, adaptor, projectConf, resourcesConf);
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getAgentsEventsType());
         }
     }
 
@@ -396,11 +416,17 @@ public class Agent {
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.valueOf("REMOVE_RESOURCES").getId(), Tracer.getAgentsEventsType());
+        }
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {
             ResourceManager.requestWorkerReduction(worker, reduction);
         } else {
             throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getAgentsEventsType());
         }
     }
 
@@ -411,10 +437,17 @@ public class Agent {
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeNode(String workerName) throws AgentException {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.valueOf("AGENT_REMOVE_NODE").getId(), Tracer.getAgentsEventsType());
+        }
         try {
             ResourceManager.requestWholeWorkerReduction(workerName);
         } catch (NullPointerException e) {
             throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getAgentsEventsType());
+            }
         }
     }
 

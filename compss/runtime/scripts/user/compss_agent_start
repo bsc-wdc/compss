@@ -22,6 +22,8 @@ source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
 #---------------------------------------------------------------------------------------
 DEFAULT_DC_ENABLED="false"
 DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
+DEFAULT_TRACING_ARGUMENT=${TRACING_BASIC}
+TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
 
 ###############################################
 ###############################################
@@ -56,6 +58,14 @@ COMPSs options:
 
   -d, --debug                             Enable debug. (Default: disabled)
 
+  --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | scorep | arm-map | arm-ddt | false)
+                                          True and basic levels will produce the same traces.
+                                          When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
+                                          Default: ${DEFAULT_TRACING}
+
+  --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
+                                          Default: None
+
   --hostname                              Name with which itself and other agents will identify the agent.
 
   --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
@@ -75,10 +85,13 @@ COMPSs options:
 
   --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
                                           Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
+
   --python_propagate_virtual_environment=<true>   Propagate the master virtual environment to the workers (true/false).
                                                   Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
+
   --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
                                           Default: $DEFAULT_PYTHON_MPI_WORKER
+
   --python_memory_profile                 Generate a memory profile of the master.
                                           Default: $DEFAULT_PYTHON_MEMORY_PROFILE
   --python_worker_cache=<string>          Python worker cache (true/size/false).
@@ -165,6 +178,10 @@ parse_options() {
         # Enable debug in log level
         log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
         ;;
+      t)
+        # Enable tracing
+        tracing=${DEFAULT_TRACING_ARGUMENT}
+        ;;
       h)
         usage
         exit 0
@@ -211,6 +228,30 @@ parse_options() {
           debug)
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            ;;
+          tracing=*)
+            # Tracing system
+            tracing=${OPTARG//tracing=/}
+              # Tracing level
+              if [ "${tracing}" == "false" ]; then
+                tracing=${TRACING_DEACTIVATED}
+              elif [ "${tracing}" == "basic" ] || [ $tracing == "true" ]; then
+                tracing=${TRACING_BASIC}
+              elif [ "${tracing}" == "advanced" ]; then
+                tracing=${TRACING_ADVANCED}
+              elif [ "${tracing}" == "scorep" ]; then
+                tracing=${TRACING_SCOREP}
+              elif [ "${tracing}" == "arm-map" ]; then
+                tracing=${TRACING_ARM-MAP}
+              elif [ "${tracing}" == "arm-ddt" ]; then
+                tracing=${TRACING_ARM-DDT}
+              else
+                arguments_error "${TRACING_ERROR}"
+              fi
+            ;;
+          tracing)
+            # Tracing system
+            tracing=${DEFAULT_TRACING_ARGUMENT}
             ;;
           input_profile=*)
             # Specify the file where there is stored the tasks profiles

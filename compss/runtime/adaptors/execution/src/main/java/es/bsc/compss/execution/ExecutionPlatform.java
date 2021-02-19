@@ -30,6 +30,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ThreadedProperties;
 
 import java.util.Collection;
@@ -180,6 +181,9 @@ public class ExecutionPlatform implements ExecutorContext {
         } else {
             startSem = this.startSemaphore;
         }
+        if (Tracer.basicModeEnabled()) {
+            Tracer.enablePThreads();
+        }
         for (int i = 0; i < numWorkerThreads; i++) {
             int id = this.nextThreadId++;
             Executor executor = new Executor(this.context, this, "executor" + id) {
@@ -201,6 +205,9 @@ public class ExecutionPlatform implements ExecutorContext {
                 t.start();
             }
         }
+        if (Tracer.basicModeEnabled()) {
+            Tracer.disablePThreads();
+        }
         if (this.started) {
             startSem.acquireUninterruptibly(numWorkerThreads);
         }
@@ -214,6 +221,9 @@ public class ExecutionPlatform implements ExecutorContext {
     public final synchronized void removeWorkerThreads(int numWorkerThreads) {
         if (numWorkerThreads > 0) {
             LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
+            if (Tracer.basicModeEnabled()) {
+                Tracer.enablePThreads();
+            }
             // Request N threads to finish
             for (int i = 0; i < numWorkerThreads; i++) {
                 this.queue.enqueue(new Execution(null, null));
@@ -224,6 +234,9 @@ public class ExecutionPlatform implements ExecutorContext {
             // Wait until all threads have completed their last request
             LOGGER.info("Waiting for " + numWorkerThreads + " threads finished");
             this.stopSemaphore.acquireUninterruptibly(numWorkerThreads);
+            if (Tracer.basicModeEnabled()) {
+                Tracer.disablePThreads();
+            }
 
             // Stop specific language components
             joinThreads();
@@ -297,6 +310,9 @@ public class ExecutionPlatform implements ExecutorContext {
             this.rm.releaseResources(jobId);
             this.addWorkerThreads(1);
             this.context.idleReservedResourcesDetected(invocation.getRequirements());
+            if (Tracer.basicModeEnabled()) {
+                Tracer.disablePThreads();
+            }
         }
     }
 

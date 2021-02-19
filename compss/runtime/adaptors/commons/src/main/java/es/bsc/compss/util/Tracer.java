@@ -26,6 +26,8 @@ import es.bsc.compss.types.uri.SimpleURI;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,6 +85,7 @@ public abstract class Tracer {
     private static final String INSIDE_TASK_DESC = "Events inside tasks";
     private static final String INSIDE_TASK_CPU_AFFINITY_DESC = "Tasks CPU affinity";
     private static final String INSIDE_TASK_GPU_AFFINITY_DESC = "Tasks GPU affinity";
+    private static final String AGENT_EVENTS_TYPE_DESC = "Agents events";
     private static final String INSIDE_WORKER_DESC = "Events inside worker";
     private static final String BINDING_MASTER_DESC = "Binding events";
     private static final String TASKTYPE_DESC = "Type of task";
@@ -109,6 +112,7 @@ public abstract class Tracer {
     protected static final int SYNC_TYPE = 8_000_666;
     protected static final int TASKS_CPU_AFFINITY_TYPE = 8_000_150; // Java assignment
     protected static final int TASKS_GPU_AFFINITY_TYPE = 8_000_160; // Java assignment
+    protected static final int AGENT_EVENTS_TYPE = 8_006_000;
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
     protected static final int INSIDE_TASKS_CPU_AFFINITY_TYPE = 60_000_150; // Python view
     protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160; // Python view
@@ -355,6 +359,10 @@ public abstract class Tracer {
         return TASKS_GPU_AFFINITY_TYPE;
     }
 
+    public static int getAgentsEventsType() {
+        return AGENT_EVENTS_TYPE;
+    }
+
     public static int getInsideTasksCPUAffinityEventsType() {
         return INSIDE_TASKS_CPU_AFFINITY_TYPE;
     }
@@ -489,7 +497,7 @@ public abstract class Tracer {
                 generateMasterPackage("package");
                 transferMasterPackage();
                 generateTrace("gentrace");
-                cleanMasterPackage();
+                // cleanMasterPackage();
             } else if (scorepEnabled()) {
                 // No master ScoreP trace - only Python Workers
                 generateTrace("gentrace-scorep");
@@ -539,6 +547,7 @@ public abstract class Tracer {
         defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
         defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
         defineEventsForType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC);
+        defineEventsForType(AGENT_EVENTS_TYPE, AGENT_EVENTS_TYPE_DESC);
         defineEventsForType(INSIDE_TASKS_CPU_AFFINITY_TYPE, INSIDE_TASK_CPU_AFFINITY_DESC);
         defineEventsForType(INSIDE_TASKS_GPU_AFFINITY_TYPE, INSIDE_TASK_GPU_AFFINITY_DESC);
         defineEventsForType(INSIDE_WORKER_TYPE, INSIDE_WORKER_DESC);
@@ -642,6 +651,7 @@ public abstract class Tracer {
         }
 
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
+        LOGGER.debug("______lanzando proceso " + script + "; " + mode + "; " + "." + "; " + "master");
         ProcessBuilder pb = new ProcessBuilder(script, mode, ".", "master");
         pb.environment().remove(LD_PRELOAD);
         Process p;
@@ -714,6 +724,8 @@ public abstract class Tracer {
             traceName = traceName.concat("_" + label);
         }
 
+        LOGGER.debug(
+            "______lanzando proceso " + script + "; " + mode + "; " + System.getProperty(COMPSsConstants.APP_LOG_DIR));
         ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName,
             String.valueOf(hostToSlots.size() + 1));
         Process p;
@@ -745,10 +757,17 @@ public abstract class Tracer {
         if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
                 String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
-                TraceMerger t = new TraceMerger(appLogDir, traceName);
+                LOGGER.debug("______pasando por trace merger de python");
+                PythonTraceMerger t = new PythonTraceMerger(appLogDir, traceName);
+                LOGGER.debug("______setting up python");
+                LOGGER.debug("______empezando merge");
                 t.merge();
+                LOGGER.debug("______merge acabado");
             } catch (Exception e) {
                 ErrorManager.warn("Error while trying to merge files", e);
+                LOGGER.debug("______    :" + e.toString());
+                StringWriter sw = new StringWriter(); // ______
+                e.printStackTrace(new PrintWriter(sw)); // ______
             }
         }
     }

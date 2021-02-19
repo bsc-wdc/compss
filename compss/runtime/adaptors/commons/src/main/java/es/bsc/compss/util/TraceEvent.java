@@ -183,6 +183,13 @@ public enum TraceEvent {
     PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(2013, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
     PYTHON_ATTRIBUTES_CLEANUP(2014, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
 
+    // Agent events
+    AGENT_ADD_RESOURCE(6002, Tracer.AGENT_EVENTS_TYPE, "Add resources agent"), // Add resources
+    AGENT_STOP(6003, Tracer.AGENT_EVENTS_TYPE, "Stop agent"), // Stop agent
+    AGENT_REMOVE_NODE(6004, Tracer.AGENT_EVENTS_TYPE, "Remove node agent"), // Stop agent
+    AGENT_REMOVE_RESOURCES(6005, Tracer.AGENT_EVENTS_TYPE, "Remove resources agent"), // Stop agent
+    AGENT_RUN_TASK(6006, Tracer.AGENT_EVENTS_TYPE, "Run task agent"), // Stop agent
+
     // Other
     READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count"); // Ready count
 

@@ -26,6 +26,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.util.ErrorManager;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -121,13 +122,7 @@ public class ExecutionManager {
      * @param otherCount Number of Other type of Computing Units
      */
     public void increaseCapabilities(int cpuCount, int gpuCount, int fpgaCount, int otherCount) {
-        /*
-         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
-         */
         this.cpuExecutors.addWorkerThreads(cpuCount);
-        /*
-         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
-         */
     }
 
     /**
@@ -139,13 +134,7 @@ public class ExecutionManager {
      * @param otherCount Number of Other type of Computing Units
      */
     public void reduceCapabilities(int cpuCount, int gpuCount, int fpgaCount, int otherCount) {
-        /*
-         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
-         */
         this.cpuExecutors.removeWorkerThreads(cpuCount);
-        /*
-         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
-         */
     }
 
     /**

@@ -2,15 +2,22 @@
 from exaqute.common import ExaquteException
 import traceback
 
-
 _exaqute_inited = False
 _temp_objects = None
 _accessed_objs = []
 
-def _traceback():
+def _traceback(pop_elems=1):
     stack = traceback.extract_stack(None, 6)
-    stack.pop()  # Last entry is not usefull, it is actually line above
+    stack.pop()  # Entry is not usefull, it is actually line above
     return "".join(traceback.format_list(stack))
+
+def _is_nested():
+    stack = traceback.extract_stack()
+    stack.pop()
+    stack.pop()
+    st = "".join(traceback.format_list(stack))
+    nested = "wrapped_task" in st
+    return nested
 
 
 class ValueWrapper:
@@ -28,22 +35,30 @@ class ValueWrapper:
             raise ExaquteException("Using deleted object")
         if not self.keep and self not in _temp_objects:
             raise ExaquteException("Using temporary object after submit point, object created at {}", self.traceback)
-        return self.value
+        return _obj_to_value(self.value)
 
 
 def _obj_to_value(obj):
-    if isinstance(obj, ValueWrapper):
-        return obj.unwrap_value()
+    t = type(obj)    
+    if t is list:
+        l = [_obj_to_value(o) for o in obj]
+        return l
+    if t is ValueWrapper:
+        uw_obj=obj.unwrap_value()
+        return uw_obj
     else:
-        if not obj in _accessed_objs:
-            _accessed_objs.append(obj)
-    return obj
+        if isinstance(obj, (int, bool, float, str)):
+            return obj
+        else:
+            if not id(obj) in _accessed_objs:
+                _accessed_objs.append(id(obj))
+            return obj
 
 def _check_accessed(obj):
-    return obj in _accessed_objs
+    return id(obj) in _accessed_objs
 
 def _delete_accessed(obj):
-    _accessed_objs.remove(obj)
+    _accessed_objs.remove(id(obj))
 
 def _init():
     global _exaqute_inited

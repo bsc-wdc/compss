@@ -1,6 +1,6 @@
 
 from exaqute.common import ExaquteException
-from .internals import _check_init, ValueWrapper, _obj_to_value
+from .internals import _check_init, ValueWrapper, _obj_to_value, _is_nested
 from .consts import IN, FILE_IN, FILE_OUT, INOUT, FILE_INOUT, COLLECTION_IN, COLLECTION_OUT, COLLECTION_INOUT
 import traceback
 from functools import wraps
@@ -15,10 +15,13 @@ class Task(object):
         self.args = args
         self.returns=None
         self.priority=False
+        self.keep=False
         if 'returns' in kwargs:
             self.returns = kwargs.pop('returns')
         if 'priority' in kwargs:
             self.priority = kwargs.pop('priority')
+        if 'keep' in kwargs:
+            self.keep = kwargs.pop('keep')
         for k, v in kwargs.items():
             if v not in (IN, INOUT, FILE_IN, FILE_OUT, FILE_INOUT, COLLECTION_IN, COLLECTION_OUT, COLLECTION_INOUT):
                 if not isinstance(v,dict):
@@ -27,8 +30,10 @@ class Task(object):
 
     def __call__(self, f):
         @wraps(f)
-        def wrapped_f(*args, **kwargs):
+        def wrapped_task(*args, **kwargs):
             _check_init()
+            if _is_nested():
+                return f(*args, **kwargs)
             if 'returns' in kwargs:
                 returns = kwargs.pop('returns')
             else:
@@ -36,13 +41,12 @@ class Task(object):
             if 'keep' in kwargs:
                 keep = kwargs.pop('keep')
             else:
-                keep = False
-            for obj in args:
-                _obj_to_value(obj)
+                keep = self.keep
+            new_args=[_obj_to_value(obj) for obj in args]
             for k,v in kwargs:
-                _obj_to_value(v)
+                kwargs[k]=_obj_to_value(v)
             if returns is not None:
-                result = f(*args, **kwargs)
+                result = f(*new_args, **kwargs)
                 if returns != 1:
                     if not hasattr(result, "__len__") or len(result) != returns:
                         raise ExaquteException("Invalid number of results returned (expected {})".format(returns))
@@ -50,9 +54,9 @@ class Task(object):
                 else:
                     return ValueWrapper(result, keep)
             else:
-                f(*args, **kwargs)
+                f(*new_args, **kwargs)
        
-        return wrapped_f
+        return wrapped_task
 
 
 task = Task
@@ -65,7 +69,10 @@ def constraint(computing_units=1):
         except:
             if computing_units.startswith("$"):
                 env_var=computing_units.replace("$","").replace("{","").replace("}","")
-                computing_units=int(os.environ[env_var])
+                try:
+                    computing_units=int(os.environ[env_var])
+                except:
+                    raise ExaquteException("Environment var: " + env_var + " not defined")
     if (not isinstance(computing_units, int) and computing_units > 0):
         raise ExaquteException("incorrect computing_units")
     return lambda x: x

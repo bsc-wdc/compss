@@ -44,6 +44,11 @@ class mpi(_mpi):
         return mpi_f
 
 class Task(_task):
+    def __init__(self, *args, **kwargs):
+        if 'keep' in kwargs:
+            kwargs.pop('keep')
+        super(Task, self).__init__(*args, **kwargs)
+
 
     def __call__(self, user_function):
         self.user_function = user_function

@@ -22,9 +22,8 @@ import numpy as np
 from random import Random
 
 from pycompss.api.api import compss_barrier as cb, compss_wait_on as cwo
-from pycompss.api.parameter import FILE_IN, COLLECTION_FILE_IN
-from pycompss.api.task import task
 from pycompss.dds import DDS
+from example_tasks import *
 
 
 def inside(_):
@@ -78,64 +77,6 @@ def has_converged(mu, old_mu, epsilon):
     return distance < (epsilon ** 2)
 
 
-@task(returns=dict)
-def cluster_points_partial(xp, mu, ind):
-    dic = {}
-    for x in enumerate(xp):
-
-        bestmukey = min([(i[0], np.linalg.norm(x[1] - mu[i[0]]))
-                         for i in enumerate(mu)], key=lambda t: t[1])[0]
-
-        if bestmukey not in dic:
-            dic[bestmukey] = [x[0] + ind]
-        else:
-            dic[bestmukey].append(x[0] + ind)
-
-    return dic
-
-
-@task(returns=dict)
-def partial_sum(xp, clusters, ind):
-    p = [(i, [(xp[j - ind]) for j in clusters[i]]) for i in clusters]
-    dic = {}
-    for i, l in p:
-        dic[i] = (len(l), np.sum(l, axis=0))
-    return dic
-
-
-# dict inout??
-@task(returns=dict, priority=True)
-def reduce_centers(a, b):
-    for key in b:
-        if key not in a:
-            a[key] = b[key]
-        else:
-            a[key] = (a[key][0] + b[key][0], a[key][1] + b[key][1])
-    return a
-
-
-def calculate_avg_similarity(fayl, clusterr):
-    """
-    Calculate average similarity of a file againt a list of files
-    :param fayl: file to be compared with its cluster
-    :param cluster: file names to be compared with the file
-    :return: average similarity
-    """
-    import spacy
-    nlp = spacy.load("en_core_web_sm")
-
-    d1 = nlp(unicode(open(fayl).read()))
-    total = 0
-
-    for other in cluster:
-        if other == fayl:
-            continue
-        d2 = nlp(unicode(open(other).read()))
-        total += d1.similarity(d2)
-
-    return total / len(cluster)
-
-
 def merge_reduce(f, data):
     from collections import deque
     q = deque(list(range(len(data))))
@@ -149,63 +90,15 @@ def merge_reduce(f, data):
             return data[x]
 
 
-def plot_k_means(dim, mu, clusters, data):
-    import pylab as plt
-    colors = ['b','g','r','c','m','y','k']
-    if dim == 2:
-        from matplotlib.patches import Circle
-        from matplotlib.collections import PatchCollection
-        fig, ax = plt.subplots(figsize=(10, 10))
-        patches = []
-        pcolors = []
-        for i in range(len(clusters)):
-            for key in clusters[i].keys():
-                d = clusters[i][key]
-                for j in d:
-                    j = j - i * len(data[0])
-                    C = Circle((data[i][j][0], data[i][j][1]), .05)
-                    pcolors.append(colors[key])
-                    patches.append(C)
-        collection = PatchCollection(patches)
-        collection.set_facecolor(pcolors)
-        ax.add_collection(collection)
+def wordcount_k_means():
+    f_path = sys.argv[1]
 
-        # todo: check this
-        x, y = mu
+    start_time = time.time()
 
-        plt.plot(x, y, '*', c='y', markersize=20)
-        plt.autoscale(enable=True, axis='both', tight=False)
-        plt.show()
-
-    elif dim == 3:
-        from mpl_toolkits.mplot3d import Axes3D
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        for i in range(len(clusters)):
-            for key in clusters[i].keys():
-                d = clusters[i][key]
-                for j in d:
-                    j = j - i * len(data[0])
-                    ax.scatter(data[i][j][0], data[i][j][1], data[i][j][2], 'o', c=colors[key])
-        x, y, z = zip(*mu)
-        for i in range(len(mu)):
-            ax.scatter(x[i], y[i], z[i], s=80, c='y', marker='D')
-        plt.show()
-
-    else:
-        print("No representable dim")
-
-
-def complex_wc():
-    files_path = sys.argv[1]
-
-    startTime = time.time()
-
-    # (key, value) pairs
-    total_wc_dict = DDS().load_files_from_dir(files_path).\
-        map_and_flatten(lambda x: x[1].split()) \
+    vocab = DDS().load_files_from_dir(f_path, num_of_parts=4)\
+        .flat_map(lambda x: x[1].split()) \
         .map(lambda x: ''.join(e for e in x if e.isalnum())) \
-        .distinct().collect()
+        .count_by_value(arity=2, as_dict=True, as_fo=True)
 
     def count_locally(element):
         from collections import Counter
@@ -214,7 +107,7 @@ def complex_wc():
         filtered_words = [word for word in text.split() if word.isalnum()]
         cnt = Counter(filtered_words)
 
-        for _word in total_wc_dict:
+        for _word in vocab.keys():
             if _word not in cnt:
                 cnt[_word] = 0
 
@@ -225,28 +118,31 @@ def complex_wc():
         values = [int(v) for k, v in element[1]]
         return np.array(values)
 
-    total = len(os.listdir(files_path))
-    max_iter = 10
-    frags = 2
+    total = len(os.listdir(f_path))
+    max_iter = 2
+    frags = 4
     epsilon = 1e-10
-    size = int(total / frags)
-    k = 2
-    dim = 2
-
-    # X
-    # dict ( index_in_wc_per_file : file_name )
+    size = total/frags
+    k = 4
+    # dim = len(vocabulary)
+    dim = 742
 
     # to acces file names by index returned from the clusters..
     # load_files_from_list will also sort them alphabetically
-    indexes = [os.path.join(files_path, f)
-               for f in sorted(os.listdir(files_path))]
+    indexes = [os.path.join(f_path, f)
+               for f in sorted(os.listdir(f_path))]
 
-    wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
-        .map(count_locally)\
-        .map(gen_array)\
-        .collect(keep_partitions=True)
+    # step 2
+    # wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
+    #     .map(count_locally, vocabulary)\
+    #     .map(gen_array)\
 
-    mu = wc_per_file[:2]
+    wc_per_file = list()
+
+    for fn in sorted(os.listdir(f_path)):
+        wc_per_file.append(task_count_locally(os.path.join(f_path, fn), vocab))
+
+    mu = [np.random.randint(1, 3, dim) for _ in range(frags)]
 
     old_mu = []
     clusters = []
@@ -254,10 +150,10 @@ def complex_wc():
 
     while n < max_iter and not has_converged(mu, old_mu, epsilon):
         old_mu = mu
-        clusters = [cluster_points_partial(wc_per_file[f], mu, f * size)
+        clusters = [cluster_points_partial([wc_per_file[f]], mu, int(f * size))
                     for f in range(frags)]
 
-        partial_result = [partial_sum(wc_per_file[f], clusters[f], f * size)
+        partial_result = [partial_sum([wc_per_file[f]], clusters[f], int(f * size))
                           for f in range(frags)]
 
         mu = merge_reduce(reduce_centers, partial_result)
@@ -267,11 +163,8 @@ def complex_wc():
         mu = [mu[c][1] / mu[c][0] for c in mu]
 
         while len(mu) < k:
-            # Add new random center if one of the centers has no points.
-            print("______ adding a new point..")
-            ind_p = np.random.randint(0, size)
-            ind_f = np.random.randint(0, frags)
-            mu.append(wc_per_file[ind_f][ind_p])
+            # Add a new random center if one of the centers has no points.
+            mu.append(np.random.randint(1, 3, dim))
 
         n += 1
 
@@ -284,22 +177,23 @@ def complex_wc():
         for _k in _d:
             cluster_sets[_k] += [indexes[i] for i in _d[_k]]
 
+    # step 4 and 5 combined
     sims_per_file = {}
 
     for k in cluster_sets:
         clus = cluster_sets[k]
         for fayl in clus:
-            sims_per_file[fayl] = calculate_avg_similarity(fayl, clus)
+            sims_per_file[fayl] = get_similar_files(fayl, clus)
 
-    import pdb; pdb.set_trace()
+    sims_per_file = cwo(sims_per_file)
+
+    for k in list(sims_per_file.keys())[:10]:
+        print(k, "-----------sims --------->", sims_per_file[k][:5])
 
     print("-----------------------------")
-    print("Kmeans Time {} (s)".format(time.time() - startTime))
-    print("-----------------------------")
-    print("Result:")
+    print("Kmeans Timed {} (s)".format(time.time() - start_time))
+
     print("Iterations: ", n)
-    print("Centers: ", mu)
-    # plot_k_means(dim, mu, clusters, wc_per_file)
 
 
 def word_count():
@@ -307,10 +201,10 @@ def word_count():
     path_file = sys.argv[1]
     start = time.time()
 
-    results = DDS().load_files_from_dir(path_file).\
-        map_and_flatten(lambda x: x[1].split()) \
+    results = DDS().load_files_from_dir(path_file) \
+        .flat_map(lambda x: x[1].split()) \
         .map(lambda x: ''.join(e for e in x if e.isalnum())) \
-        .count_by_value(arity=4, as_dict=True)
+        .count_by_value(as_dict=True)
 
     print("Results: " + str(results))
     print("Elapsed Time: ", time.time()-start)
@@ -340,7 +234,7 @@ def terasort():
     start_time = time.time()
 
     dds = DDS().load_files_from_dir(dir_path) \
-        .map_and_flatten(files_to_pairs) \
+        .flat_map(files_to_pairs) \
         .sort_by_key().save_as_text_file(dest_path)
 
     # compss_barrier()
@@ -355,7 +249,7 @@ def inverted_indexing():
 
     path = sys.argv[1]
     start_time = time.time()
-    result = DDS().load_files_from_dir(path).map_and_flatten(_invert_files)\
+    result = DDS().load_files_from_dir(path).flat_map(_invert_files)\
         .reduce_by_key(lambda a, b: a + b).collect()
     print(result[-1:])
     print("Elapsed Time {} (s)".format(time.time() - start_time))
@@ -403,7 +297,7 @@ def main_program():
     # terasort()
     # inverted_indexing()
     # transitive_closure()
-    complex_wc()
+    wordcount_k_means()
 
 
 if __name__ == '__main__':

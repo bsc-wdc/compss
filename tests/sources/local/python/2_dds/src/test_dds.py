@@ -69,7 +69,7 @@ def test_word_count():
         tmp_f.close()
 
     dds = DDS().load_files_from_dir(_dir) \
-        .map_and_flatten(lambda x: x[1].split())\
+        .flat_map(lambda x: x[1].split())\
         .filter(lambda x: "_" not in x)\
         .count_by_value(as_dict=True)
 
@@ -121,7 +121,7 @@ def inverted_indexing():
             tmp_f.close()
             pairs[word].append(file_path)
 
-    result = DDS().load_files_from_dir(_dir).map_and_flatten(_invert_files)\
+    result = DDS().load_files_from_dir(_dir).flat_map(_invert_files)\
         .reduce_by_key(lambda a, b: a + b).collect()
 
     shutil.rmtree(_dir)

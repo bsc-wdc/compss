@@ -45,7 +45,6 @@ def map_partition(func, partition, collection=list()):
     return res
 
 
-# todo: update it and remove the asterisk
 @task(col=COLLECTION_OUT, collection=COLLECTION_IN)
 def distribute_partition(col, func, partitioner_func, partition,
                          collection=list()):

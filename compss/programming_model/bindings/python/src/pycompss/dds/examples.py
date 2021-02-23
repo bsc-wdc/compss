@@ -15,7 +15,8 @@
 #  limitations under the License.
 #
 
-import os, sys
+import os
+import sys
 import time
 
 from random import Random

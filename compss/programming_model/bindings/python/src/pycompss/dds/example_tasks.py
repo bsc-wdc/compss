@@ -83,4 +83,3 @@ def get_similar_files(fayl, cluster, threshold=0.90):
         if s >= threshold:
             ret.append((other, s))
     return ret
-

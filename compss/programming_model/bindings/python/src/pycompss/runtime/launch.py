@@ -149,6 +149,24 @@ def __load_user_module__(app_path):
         _ = imp.load_source(app_name, app_path)  # noqa
 
 
+def __register_implementation_core_elements__():
+    # type: () -> None
+    """ Register the @implements core elements accumulated during the
+    initialization of the @implements decorators. They have not been
+    registered because the runtime was not started. And the load is
+    necessary to resolve all user imports before starting the runtime (it has
+    been found that starting the runtime and loading the user code may lead
+    to import errors with some libraries - reason: unknown).
+
+    :return: None
+    """
+    task_list = context.get_to_register()
+    for task, impl_signature in task_list:
+        task.register_task()
+        task.registered = True
+        task.signature = impl_signature
+
+
 def compss_main():
     # type: () -> None
     """ PyCOMPSs main function.
@@ -186,10 +204,15 @@ def compss_main():
     tracing = int(args.tracing)
 
     # Load user imports before starting the runtime
-    __load_user_module__(args.app_path)
+    with context.loading_context():
+        __load_user_module__(args.app_path)
 
     # Start the runtime
     compss_start(log_level, tracing, False)
+
+    # Register @implements core elements (they can not be registered in
+    # __load_user__module__).
+    __register_implementation_core_elements__()
 
     # Get application wall clock limit
     wall_clock = int(args.wall_clock)

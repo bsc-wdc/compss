@@ -333,9 +333,14 @@ class TaskMaster(TaskCommons):
             with event(UPDATE_CORE_ELEMENT, master=True):
                 self.update_core_element(impl_signature, impl_type_args,
                                          pre_defined_ce)
-            self.register_task()
-            self.registered = True
-            self.signature = impl_signature
+            if context.is_loading():
+                # This case will only happen with @implements since it calls
+                # explicitly to this call from his call.
+                context.add_to_register_later((self, impl_signature))
+            else:
+                self.register_task()
+                self.registered = True
+                self.signature = impl_signature
 
         # Did we call this function to only register the associated core
         # element? (This can happen with @implements)

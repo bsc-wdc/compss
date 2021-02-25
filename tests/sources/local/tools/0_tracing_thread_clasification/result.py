@@ -128,37 +128,38 @@ def checkThreadTranslations(threads, thIdentifiers, rowFile):
 
     lastThreadId = "1:1:1"
     while line:
-        tag = line[0:line.find("(")-1] #-1 cause of the empty space between the tag and the (X:Y:Z)
-        thId = line[line.find("(")+1:line.find(")")].replace(".",":")
-        checkThreadOrder(lastThreadId, thId)
-        expectedTag = ""
-        if thId == "1:1:1":
-            expectedTag = "MAIN APP"
-        elif thId.endswith(":1:1"):
-            expectedTag = "WORKER MAIN"
-        elif thId in thIdentifiers:
-            identifierEvent = thIdentifiers[thId]
-            if identifierEvent == "2":
-                expectedTag = "RUNTIME AP"
-            if identifierEvent == "3":
-                expectedTag = "RUNTIME TD"
-            if identifierEvent == "4":
-                expectedTag = "RUNTIME FS"
-            if identifierEvent == "5":
-                expectedTag = "RUNTIME TIMER"
-            if identifierEvent == "6":
-                expectedTag = "EXECUTOR"
-        if expectedTag == "":
-            raise Exception("Unknown thread in .row file")
-        if tag != expectedTag:
-            raise Exception("Unexpected tag in .row file. Expected " + expectedTag + " got " + tag)
+        if not line.startswith("THREAD "):
+            tag = line[0:line.find("(")-1] #-1 cause of the empty space between the tag and the (X:Y:Z)
+            thId = line[line.find("(")+1:line.find(")")].replace(".",":")
+            checkThreadOrder(lastThreadId, thId)
+            expectedTag = ""
+            if thId == "1:1:1":
+                expectedTag = "MAIN APP"
+            elif thId.endswith(":1:1"):
+                expectedTag = "WORKER MAIN"
+            elif thId in thIdentifiers:
+                identifierEvent = thIdentifiers[thId]
+                if identifierEvent == "2":
+                    expectedTag = "RUNTIME AP"
+                if identifierEvent == "3":
+                    expectedTag = "RUNTIME TD"
+                if identifierEvent == "4":
+                    expectedTag = "RUNTIME FS"
+                if identifierEvent == "5":
+                    expectedTag = "RUNTIME TIMER"
+                if identifierEvent == "6":
+                    expectedTag = "EXECUTOR"
+            if expectedTag == "":
+                raise Exception("Unknown thread in .row file")
+            if tag != expectedTag:
+                raise Exception("Unexpected tag in .row file. Expected " + expectedTag + " got " + tag)
 
-        if thId in threads:
-            threads[thId] = 1
-        for th in threads:
-            if th is None:
-                raise Exception("The thead " + th + " is not present in the .row file")
-        lastThreadId = thId
+            if thId in threads:
+                threads[thId] = 1
+            for th in threads:
+                if th is None:
+                    raise Exception("The thead " + th + " is not present in the .row file")
+            lastThreadId = thId
         line = reader.readline().rstrip()
 
 

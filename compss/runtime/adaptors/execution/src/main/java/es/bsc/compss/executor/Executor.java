@@ -161,6 +161,9 @@ public class Executor implements Runnable, InvocationRunner {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS.getId(), TraceEvent.EXECUTOR_COUNTS.getType());
             Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID.getId(), TraceEvent.EXECUTOR_THREAD_ID.getType());
+            if (Tracer.basicModeEnabled()) {
+                Tracer.disablePThreads(1);
+            }
         }
         start();
 

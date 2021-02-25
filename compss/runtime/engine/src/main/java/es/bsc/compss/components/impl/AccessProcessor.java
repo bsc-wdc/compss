@@ -137,12 +137,9 @@ public class AccessProcessor implements Runnable {
         processor = new Thread(this);
         processor.setName("Access Processor");
         if (Tracer.basicModeEnabled()) {
-            Tracer.enablePThreads();
+            Tracer.enablePThreads(1);
         }
         processor.start();
-        if (Tracer.basicModeEnabled()) {
-            Tracer.disablePThreads();
-        }
     }
 
     /**
@@ -158,6 +155,9 @@ public class AccessProcessor implements Runnable {
     public void run() {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.AP_THREAD_ID.getId(), TraceEvent.AP_THREAD_ID.getType());
+            if (Tracer.basicModeEnabled()) {
+                Tracer.disablePThreads(1);
+            }
         }
         while (keepGoing) {
             APRequest request = null;

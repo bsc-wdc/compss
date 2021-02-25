@@ -33,8 +33,17 @@ public class RowThreadIdComparator implements Comparator<String> {
      * Compares two threads Ids being in a string formated like "label (X:X:X)" .
      */
     public int compare(String a, String b) {
-        a = a.substring(a.indexOf("(") + 1, a.indexOf(")"));
-        b = b.substring(b.indexOf("(") + 1, b.indexOf(")"));
+        if (a.startsWith("THREAD ")) {
+            a = a.substring(7, a.length());
+        } else {
+            a = a.substring(a.indexOf("(") + 1, a.indexOf(")"));
+        }
+
+        if (b.startsWith("THREAD ")) {
+            b = b.substring(7, b.length());
+        } else {
+            b = b.substring(b.indexOf("(") + 1, b.indexOf(")"));
+        }
 
         String[] valuesA = a.split("\\.");
         String[] valuesB = b.split("\\.");

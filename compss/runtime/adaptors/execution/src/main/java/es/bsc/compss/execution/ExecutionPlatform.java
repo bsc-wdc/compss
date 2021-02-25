@@ -170,14 +170,19 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     private void startTimer() {
+        if (Tracer.basicModeEnabled()) {
+            Tracer.enablePThreads(1);
+        }
         this.timer = new Timer(platformName + " deadline reapper");
         if (Tracer.extraeEnabled()) {
             this.timer.schedule(new TimerTask() {
 
                 @Override
                 public void run() {
+                    if (Tracer.basicModeEnabled()) {
+                        Tracer.disablePThreads(1);
+                    }
                     Tracer.emitEvent(TraceEvent.TIMER_THREAD_ID.getId(), TraceEvent.TIMER_THREAD_ID.getType());
-
                 }
             }, 0);
         }
@@ -216,7 +221,7 @@ public class ExecutionPlatform implements ExecutorContext {
             startSem = this.startSemaphore;
         }
         if (Tracer.basicModeEnabled()) {
-            Tracer.enablePThreads();
+            Tracer.enablePThreads(numWorkerThreads);
         }
         for (int i = 0; i < numWorkerThreads; i++) {
             int id = this.nextThreadId++;
@@ -239,9 +244,6 @@ public class ExecutionPlatform implements ExecutorContext {
                 t.start();
             }
         }
-        if (Tracer.basicModeEnabled()) {
-            Tracer.disablePThreads();
-        }
         if (this.started) {
             startSem.acquireUninterruptibly(numWorkerThreads);
         }
@@ -255,10 +257,9 @@ public class ExecutionPlatform implements ExecutorContext {
     public final synchronized void removeWorkerThreads(int numWorkerThreads) {
         if (numWorkerThreads > 0) {
             LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
-            if (Tracer.basicModeEnabled()) {
-                Tracer.enablePThreads();
-            }
-            // Request N threads to finish
+            // if (Tracer.basicModeEnabled()) {
+            // Tracer.enablePThreads();
+            // } // Request N threads to finish
             for (int i = 0; i < numWorkerThreads; i++) {
                 this.queue.enqueue(new Execution(null, null));
             }
@@ -268,10 +269,9 @@ public class ExecutionPlatform implements ExecutorContext {
             // Wait until all threads have completed their last request
             LOGGER.info("Waiting for " + numWorkerThreads + " threads finished");
             this.stopSemaphore.acquireUninterruptibly(numWorkerThreads);
-            if (Tracer.basicModeEnabled()) {
-                Tracer.disablePThreads();
-            }
-
+            // if (Tracer.basicModeEnabled()) {
+            // Tracer.disablePThreads();
+            // }
             // Stop specific language components
             joinThreads();
             LOGGER.info("Stopped " + numWorkerThreads + " executors from execution platform " + this.platformName);

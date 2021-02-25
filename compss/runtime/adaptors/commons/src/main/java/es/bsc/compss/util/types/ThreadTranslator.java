@@ -21,9 +21,11 @@ import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +42,9 @@ public class ThreadTranslator {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
     // machineRuntimeIdentifiers returns for each machineId a map from a threadIdEvent to the thread
     private List<Map<Integer, String>> machineRuntimeIdentifiers = new ArrayList<Map<Integer, String>>();
-    private List<List<String>> machineExecutors = new ArrayList<List<String>>();
+    private List<Set<String>> machineThreads = new ArrayList<Set<String>>();
+    private List<Set<String>> machineExecutors = new ArrayList<Set<String>>();
+    private List<Set<String>> translatedMachineUnknowns = new ArrayList<Set<String>>();
     public Map<String, String> threadTranslations;
 
 
@@ -50,18 +54,22 @@ public class ThreadTranslator {
     /**
      * Processes the thread information.
      */
-    public void addThread(String threadId, int threadTypeId) {
+    public void addThread(String threadId, String threadTypeIdString) {
         int machineId = Integer.parseInt(PrvLine.getNodeId(threadId));
-        while (machineExecutors.size() <= (machineId)) {
-            machineExecutors.add(new ArrayList<String>());
-        }
-        while (machineRuntimeIdentifiers.size() < (machineId)) {
+        while (machineThreads.size() < (machineId)) {
+            machineThreads.add(new HashSet<String>());
+            machineExecutors.add(new HashSet<String>());
+            translatedMachineUnknowns.add(new HashSet<String>());
             machineRuntimeIdentifiers.add(new HashMap<Integer, String>());
         }
-        if (threadTypeId == Tracer.EXECUTOR_ID) {
-            machineExecutors.get(machineId - 1).add(threadId);
-        } else {
-            machineRuntimeIdentifiers.get(machineId - 1).put(threadTypeId, threadId);
+        machineThreads.get(machineId - 1).add(threadId);
+        if (threadTypeIdString != null) {
+            Integer threadTypeId = new Integer(threadTypeIdString);
+            if (threadTypeId == Tracer.EXECUTOR_ID) {
+                machineExecutors.get(machineId - 1).add(threadId);
+            } else if (threadTypeId != 0) { // != end event
+                machineRuntimeIdentifiers.get(machineId - 1).put(threadTypeId, threadId);
+            }
         }
     }
 
@@ -69,14 +77,17 @@ public class ThreadTranslator {
      * Returns the maps needed to translate the threads of the .prv based on the information received with addThread().
      */
     public Map<String, String> createThreadTranslationMap() {
+
         threadTranslations = new HashMap<String, String>();
         for (int i = 0; i < machineRuntimeIdentifiers.size(); i++) {
             // for thread 1.X.1 -> X.1.1, main thread has no event and thus is not by addThread()
             String iString = Integer.toString(i + 1);
             threadTranslations.put("1:" + iString + ":1", iString + ":1:1");
             Map<Integer, String> runtimeIdentifiers = machineRuntimeIdentifiers.get(i);
-            List<String> executorIdentifiers = machineExecutors.get(i);
-            int runtimeThreadsNum = 1;
+            Set<String> runtimeList = machineThreads.get(i);
+            Set<String> executorList = machineExecutors.get(i);
+            Set<String> translatedUnknownList = translatedMachineUnknowns.get(i);
+            int runtimeThreadsNum = 2;
             for (int ident = 0; ident < Tracer.EXECUTOR_ID; ident++) {
                 if (runtimeIdentifiers.containsKey(ident)) {
                     String oldThread = runtimeIdentifiers.get(ident);
@@ -87,11 +98,20 @@ public class ThreadTranslator {
                 }
             }
             int executorsNum = 1;
-            for (String oldThread : executorIdentifiers) {
+            for (String oldThread : executorList) {
                 String newThread = PrvLine.changeThreadNumber(oldThread, executorsNum++);
                 newThread = PrvLine.moveNodeIdToFirstPosition(newThread);
                 newThread = PrvLine.changeRuntimeNumber(newThread, false);
                 threadTranslations.put(oldThread, newThread);
+            }
+            for (String oldThread : runtimeList) {
+                if (!threadTranslations.containsKey(oldThread)) {
+                    String newThread = PrvLine.changeThreadNumber(oldThread, runtimeThreadsNum++);
+                    newThread = PrvLine.moveNodeIdToFirstPosition(newThread);
+                    newThread = PrvLine.changeRuntimeNumber(newThread, true);
+                    translatedUnknownList.add(newThread);
+                    threadTranslations.put(oldThread, newThread);
+                }
             }
         }
         return threadTranslations;
@@ -128,36 +148,39 @@ public class ThreadTranslator {
      * 
      * @throws Exception createThreadTranslationMap() not called before
      */
-    public Map<String, String> createLabelTranslationMap() throws Exception {
+    public List<String> getRowLabels() throws Exception {
         if (this.threadTranslations == null) {
             throw new Exception(
                 "createThreadTranslationMap() must be created before invocking createLabelTranslationMap()");
         }
-        Map<String, String> labelTranslations = new HashMap<String, String>();
-        labelTranslations.put("THREAD 1.1.1", "MAIN APP (1.1.1)");
+        List<String> labels = new ArrayList<String>();
+        labels.add("MAIN APP (1.1.1)");
         for (int i = 1; i < machineRuntimeIdentifiers.size(); i++) {
             String iString = Integer.toString(i + 1);
-            labelTranslations.put("THREAD 1." + iString + ".1", "WORKER MAIN (" + iString + ".1.1)");
+            labels.add("WORKER MAIN (" + iString + ".1.1)");
         }
 
         for (Map<Integer, String> runtimeIdentifiers : machineRuntimeIdentifiers) {
             for (Entry<Integer, String> identifier : runtimeIdentifiers.entrySet()) {
                 int eventIdentifier = identifier.getKey();
-                String oldLabel = "THREAD " + identifier.getValue().replace(":", ".");
                 String newThreadId = threadTranslations.get(identifier.getValue()).replace(":", ".");
                 String newLabel = createLabel(newThreadId, eventIdentifier);
-                labelTranslations.put(oldLabel, newLabel);
+                labels.add(newLabel);
             }
         }
-        for (List<String> executorIdentifiers : machineExecutors) {
+        for (Set<String> executorIdentifiers : machineExecutors) {
             for (String exec : executorIdentifiers) {
-                String oldLabel = "THREAD " + exec.replace(":", ".");
                 String newThreadId = threadTranslations.get(exec).replace(":", ".");
                 String newLabel = createLabel(newThreadId, Tracer.EXECUTOR_ID);
-                labelTranslations.put(oldLabel, newLabel);
+                labels.add(newLabel);
             }
         }
-        return labelTranslations;
+        for (Set<String> unknownIdentifiers : translatedMachineUnknowns) {
+            for (String unkn : unknownIdentifiers) {
+                labels.add("THREAD " + unkn.replace(":", "."));
+            }
+        }
+        return labels;
     }
 
     /**
@@ -166,7 +189,7 @@ public class ThreadTranslator {
     public int[] createRuntimeThreadNumberPerApp() {
         int[] result = new int[machineRuntimeIdentifiers.size()];
         for (int i = 0; i < result.length; i++) {
-            result[i] = machineRuntimeIdentifiers.get(i).size();
+            result[i] = machineThreads.get(i).size() - machineExecutors.get(i).size();
         }
         return result;
     }

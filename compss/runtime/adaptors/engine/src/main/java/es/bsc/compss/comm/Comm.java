@@ -141,7 +141,6 @@ public class Comm {
 
         // Load communication adaptors
         loadAdaptorsJars();
-
         // Start tracing system
         if (System.getProperty(COMPSsConstants.TRACING) != null
             && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {

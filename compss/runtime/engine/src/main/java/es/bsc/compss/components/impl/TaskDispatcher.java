@@ -119,12 +119,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         keepGoing = true;
 
         if (Tracer.basicModeEnabled()) {
-            Tracer.enablePThreads();
+            Tracer.enablePThreads(1);
         }
         dispatcher.start();
-        if (Tracer.basicModeEnabled()) {
-            Tracer.disablePThreads();
-        }
 
         LOGGER.info("Initialization finished");
     }
@@ -134,6 +131,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public void run() {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.TD_THREAD_ID.getId(), TraceEvent.TD_THREAD_ID.getType());
+            if (Tracer.basicModeEnabled()) {
+                Tracer.disablePThreads(1);
+            }
         }
         while (keepGoing) {
             String requestType = "Not defined";

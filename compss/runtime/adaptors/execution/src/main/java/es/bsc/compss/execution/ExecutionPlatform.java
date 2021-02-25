@@ -30,6 +30,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ThreadedProperties;
 
@@ -135,7 +136,7 @@ public class ExecutionPlatform implements ExecutorContext {
      */
     public final synchronized void start() {
         LOGGER.info("Starting execution platform " + this.platformName);
-        this.timer = new Timer(platformName + " deadline reapper");
+        startTimer();
         // Start is in inverse order so that Thread 1 is the last available
         for (Thread t : this.workerThreads.descendingSet()) {
             LOGGER.info("Starting Thread " + t.getName());
@@ -158,15 +159,48 @@ public class ExecutionPlatform implements ExecutorContext {
          */
         int size = this.workerThreads.size();
         removeWorkerThreads(size);
-
         LOGGER.info("Stopping mirrors for execution platform " + this.platformName);
         for (ExecutionPlatformMirror<?> mirror : this.mirrors.values()) {
             mirror.stop();
         }
         this.mirrors.clear();
-        this.timer.cancel();
+        stopTimer();
         this.started = false;
         LOGGER.info("Stopped execution platform " + this.platformName);
+    }
+
+    private void startTimer() {
+        this.timer = new Timer(platformName + " deadline reapper");
+        if (Tracer.extraeEnabled()) {
+            this.timer.schedule(new TimerTask() {
+
+                @Override
+                public void run() {
+                    Tracer.emitEvent(TraceEvent.TIMER_THREAD_ID.getId(), TraceEvent.TIMER_THREAD_ID.getType());
+
+                }
+            }, 0);
+        }
+    }
+
+    private void stopTimer() {
+        if (Tracer.extraeEnabled()) {
+            Semaphore sem = new Semaphore(0);
+            this.timer.schedule(new TimerTask() {
+
+                @Override
+                public void run() {
+                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TIMER_THREAD_ID.getType());
+                    sem.release();
+                }
+            }, 0);
+            try {
+                sem.acquire();
+            } catch (InterruptedException ie) {
+                // No need to do anything
+            }
+        }
+        this.timer.cancel();
     }
 
     /**
@@ -310,9 +344,6 @@ public class ExecutionPlatform implements ExecutorContext {
             this.rm.releaseResources(jobId);
             this.addWorkerThreads(1);
             this.context.idleReservedResourcesDetected(invocation.getRequirements());
-            if (Tracer.basicModeEnabled()) {
-                Tracer.disablePThreads();
-            }
         }
     }
 

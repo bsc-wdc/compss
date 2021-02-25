@@ -58,7 +58,7 @@ Usage: ${SCRIPT_NAME} [options] application_name application_arguments
                                             of the task.   
 
     --forward_to=<list>                     Forwards the stop action to other
-                                            agents, eht list shoud follow the
+                                            agents, the list shoud follow the
                                             format:
                                             <ip1>:<port1>;<ip2>:<port2>...
   Launch configuration:

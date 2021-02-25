@@ -45,6 +45,7 @@ import es.bsc.compss.util.CEIParser;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -131,6 +132,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     // Dispatcher thread
     @Override
     public void run() {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.TD_THREAD_ID.getId(), TraceEvent.TD_THREAD_ID.getType());
+        }
         while (keepGoing) {
             String requestType = "Not defined";
             try {
@@ -165,6 +169,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 }
                 continue;
             }
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TD_THREAD_ID.getType());
         }
     }
 

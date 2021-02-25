@@ -156,7 +156,7 @@ public class DataManagerImpl implements DataManager {
                 throw new InitializationException("Error loading storage configuration file: " + STORAGE_CONF, se);
             }
         }
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.basicModeEnabled()) {
             NIOTracer.enablePThreads();
         }
         WORKER_LOGGER.debug("Init executor for file ops in thread " + Thread.currentThread().getId() + "( "
@@ -168,6 +168,8 @@ public class DataManagerImpl implements DataManager {
 
                 public Object call() {
                     if (NIOTracer.extraeEnabled()) {
+                        NIOTracer.emitEvent(TraceEvent.FILE_SYS_THREAD_ID.getId(),
+                            TraceEvent.FILE_SYS_THREAD_ID.getType());
                         NIOTracer.emitEvent(TraceEvent.INIT_FS.getId(), TraceEvent.INIT_FS.getType());
                     }
                     WORKER_LOGGER.debug("Init executor for file ops in thread " + Thread.currentThread().getId() + "( "
@@ -185,7 +187,9 @@ public class DataManagerImpl implements DataManager {
             } catch (Exception e) {
                 // Nothing to do
             }
-            NIOTracer.disablePThreads();
+            if (NIOTracer.basicModeEnabled()) {
+                NIOTracer.disablePThreads();
+            }
         }
     }
 
@@ -234,8 +238,24 @@ public class DataManagerImpl implements DataManager {
                 WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
             }
         }
+        // Semaphore sem = new Semaphore(0);
+        // this.fileOpsExecutor.submit(new Callable<Object>() {
+
+        // public Object call() {
+        // NIOTracer.emitEvent(Tracer.EVENT_END, TraceEvent.FILE_SYS_THREAD_ID.getType());
+        // sem.release();
+        // return null;
+        // }
+        // });
+        // try {
+        // sem.acquire();
+        // } catch (InterruptedException e) {
+        // WORKER_LOGGER
+        // .warn("Tracer could not register end of event " + TraceEvent.FILE_SYS_THREAD_ID.getSignature());
+        // }
         fileOpsExecutor.shutdown();
         FileDeleter.shutdown();
+
     }
 
     @Override

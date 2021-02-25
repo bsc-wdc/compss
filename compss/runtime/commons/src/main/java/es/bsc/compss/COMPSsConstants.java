@@ -217,6 +217,8 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
     public static final String DEFAULT_PYTHON_WORKER_CACHE = "false";
 
+    public static final String DISABLE_CUSTOM_THREADS_TRACING = "compss.tracing.disableCustomThreads";
+
 
     /**
      * Private constructor to avoid instantiation.

@@ -78,6 +78,7 @@ import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -155,6 +156,9 @@ public class AccessProcessor implements Runnable {
 
     @Override
     public void run() {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.AP_THREAD_ID.getId(), TraceEvent.AP_THREAD_ID.getType());
+        }
         while (keepGoing) {
             APRequest request = null;
             try {
@@ -181,6 +185,9 @@ public class AccessProcessor implements Runnable {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
             }
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AP_THREAD_ID.getType());
         }
 
         LOGGER.info("AccessProcessor shutdown");

@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
 package es.bsc.compss.util;
 
 import java.io.File;
@@ -8,46 +24,32 @@ import java.io.IOException;
 public class PythonTraceMerger extends TraceMerger {
 
     private static final String PYTHON_WORKER_SUBDIR = "python";
-    private static final String PYTHON_WORKER_TRACE_SUFFIX = "_python_trace" + TRACE_EXTENSION;
-    private static final String TRACE_SUBDIR = "trace";
+    private static final String PYTHON_WORKER_TRACE_SUFFIX = "_python_trace" + Tracer.TRACE_PRV_FILE_EXTENTION;
+
+    private String workingDir;
 
 
     /**
      * Initilizes class atributes for python trace merging .
      * 
      * @param workingDir Working directory
-     * @param appName Application name
      * @throws IOException Error managing files
      */
-    public PythonTraceMerger(String workingDir, String appName) throws IOException {
-        String masterDir = workingDir + File.separator + TRACE_SUBDIR;
-        String workersDir =
-            workingDir + File.separator + TRACE_SUBDIR + File.separator + PythonTraceMerger.PYTHON_WORKER_SUBDIR;
-        LOGGER.debug("______masterDir" + masterDir);
-        LOGGER.debug("______workersDir" + workersDir);
+    public PythonTraceMerger(String workingDir) throws IOException {
+        final String masterDir = workingDir + File.separator + Tracer.TRACE_SUBDIR;
+        final String workersDir =
+            workingDir + File.separator + Tracer.TRACE_SUBDIR + File.separator + PythonTraceMerger.PYTHON_WORKER_SUBDIR;
 
-        // for (File f : workersTraces) {
-        // LOGGER.debug("______this.workersTraces.listFiles() " + f);
-        // }
-
-        // LOGGER.debug("______TraceMerger.workingDir" + TraceMerger.workingDir);
-        // LOGGER.debug("______masterTrace" + masterTrace);
-        // LOGGER.debug("______workersTraces" + workersTraces);
-        // LOGGER.debug("______masterTracePath" + masterTracePath);
-        // LOGGER.debug("______masterTracePcfPath" + masterTracePcfPath);
-        // LOGGER.debug("______workersTracePath" + workersTracePath);
-        // LOGGER.debug("______workersTracePcfPath" + workersTracePcfPath);
-        // LOGGER.debug("______masterWriter" + masterWriter);
-        // LOGGER.debug("______masterPcfWriter" + masterPcfWriter);
+        this.workingDir = workingDir;
 
         // Init master trace information
         final File masterF = new File(masterDir);
-        final String traceNamePrefix = (appName != null ? appName : "") + MASTER_TRACE_SUFFIX;
-        final File[] matchingMasterFiles = masterF
-            .listFiles((File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_EXTENSION));
+        final String traceNamePrefix = Tracer.getTraceNamePrefix();
+        final File[] matchingMasterFiles = masterF.listFiles((File dir, String name) -> name.startsWith(traceNamePrefix)
+            && name.endsWith(Tracer.TRACE_PRV_FILE_EXTENTION));
         if (matchingMasterFiles == null || matchingMasterFiles.length < 1) {
-            throw new FileNotFoundException(
-                "Master trace " + traceNamePrefix + "*" + TRACE_EXTENSION + " not found at directory " + masterDir);
+            throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + Tracer.TRACE_PRV_FILE_EXTENTION
+                + " not found at directory " + masterDir);
         }
         if (matchingMasterFiles.length > 1) {
             LOGGER.warn("Found more than one master trace, using " + matchingMasterFiles[0] + " to merge.");
@@ -58,16 +60,26 @@ public class PythonTraceMerger extends TraceMerger {
 
         final File workerF = new File(workersDir);
 
-        for (File f : workerF.listFiles()) {
-            LOGGER.debug("______this.workerF.listFiles() " + f);
-        }
-        LOGGER.debug("______this.workerF.listFiles()" + workerF.listFiles());
         File[] workersTraces = workerF.listFiles((File dir, String name) -> name.endsWith(PYTHON_WORKER_TRACE_SUFFIX));
-        for (File f : workersTraces) {
-            LOGGER.debug("______filWorkerTraces " + f);
-        }
+
         setUpWorkers(workersTraces);
         LOGGER.debug("Trace's merger initialization successful");
+    }
+
+    /**
+     * Removes temporal files.
+     */
+    public void removeTemporalFiles() {
+        if (!DEBUG) {
+            String workerFolder =
+                workingDir + File.separator + Tracer.TRACE_SUBDIR + File.separator + PYTHON_WORKER_SUBDIR;
+            LOGGER.debug("Removing folder " + workerFolder);
+            try {
+                removeFolder(workerFolder);
+            } catch (IOException ioe) {
+                LOGGER.warn("Could not remove python temporal tracing folder" + ioe.toString());
+            }
+        }
     }
 
     /**

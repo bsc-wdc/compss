@@ -131,6 +131,9 @@ COMPSs options:
   --summary                               Displays a task execution summary at the end of the application execution
                                           Default: ${DEFAULT_SUMMARY}
 
+  --jvm_opts="string"                     Extra options for the COMPSs Runtime JVM. Each option separed by "," and without blank spaces (Notice the quotes)
+
+
 Other options:
   --help                                  prints this message
 
@@ -335,6 +338,10 @@ parse_options() {
           scheduler_config_file=*)
             # Specify the file where COMPSs will store the tasks profile
             scheduler_config=${OPTARG//scheduler_config_file=/}
+            ;;
+          jvm_opts=*)
+            # Other java flags
+            jvm_master_opts=${OPTARG//jvm_opts=/}
             ;;
           summary)
             summary=true

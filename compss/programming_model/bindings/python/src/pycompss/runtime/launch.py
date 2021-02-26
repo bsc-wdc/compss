@@ -219,7 +219,7 @@ def compss_main():
 
     # Load user imports before starting the runtime
     with context.loading_context():
-        __load_user_module__(args.app_pathl, log_level)
+        __load_user_module__(args.app_path, log_level)
 
     # Start the runtime
     compss_start(log_level, tracing, False)

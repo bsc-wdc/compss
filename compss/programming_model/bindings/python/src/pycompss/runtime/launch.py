@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from pycompss.interactive import STREAMING
 
 # -*- coding: utf-8 -*-
 
@@ -75,6 +74,10 @@ from pycompss.streams.environment import stop_streaming
 
 # Global variable also task-master decorator
 APP_PATH = None
+# Other global variables
+STREAMING = None
+PERSISTENT_STORAGE = None
+LOGGER = None
 
 # Python version: to choose the appropriate log folder
 if IS_PYTHON3:
@@ -131,22 +134,31 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def __load_user_module__(app_path):
-    # type: (str) -> None
+def __load_user_module__(app_path, log_level):
+    # type: (str, str) -> None
     """ Loads the user module (resolve all user imports).
     This has shown to be necessary before doing "start_compss" in order
     to avoid segmentation fault in some libraries.
 
     :param app_path: Path to the file to be imported
+    :param log_level: Logging level
     :return: None
     """
     app_name = os.path.basename(app_path).split(".")[0]
-    if IS_PYTHON3:
-        from importlib.machinery import SourceFileLoader
-        _ = SourceFileLoader(app_name, app_path).load_module()
-    else:
-        import imp  # noqa
-        _ = imp.load_source(app_name, app_path)  # noqa
+    try:
+        if IS_PYTHON3:
+            from importlib.machinery import SourceFileLoader        # noqa
+            _ = SourceFileLoader(app_name, app_path).load_module()  # noqa
+        else:
+            import imp                                              # noqa
+            _ = imp.load_source(app_name, app_path)                 # noqa
+    except Exception:                                               # noqa
+        # Ignore any exception to try to run.
+        # This exception can be produce for example with applications
+        # that have code replacer and have imports to code that does not
+        # exist (e.g. using autoparallel)
+        if log_level != 'off':
+            print("WARNING: Could not load the application (this may be the cause of a running exception.")  # noqa: E501
 
 
 def __register_implementation_core_elements__():
@@ -186,7 +198,9 @@ def compss_main():
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start, compss_stop, compss_set_wall_clock
+    from pycompss.api.api import compss_start            # noqa
+    from pycompss.api.api import compss_stop             # noqa
+    from pycompss.api.api import compss_set_wall_clock   # noqa
 
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
@@ -205,7 +219,7 @@ def compss_main():
 
     # Load user imports before starting the runtime
     with context.loading_context():
-        __load_user_module__(args.app_path)
+        __load_user_module__(args.app_pathl, log_level)
 
     # Start the runtime
     compss_start(log_level, tracing, False)
@@ -549,8 +563,8 @@ def launch_pycompss_application(app,
             result = None
         else:
             if IS_PYTHON3:
-                from importlib.machinery import SourceFileLoader
-                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # noqa: E501
+                from importlib.machinery import SourceFileLoader  # noqa
+                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # noqa
             else:
                 import imp  # noqa
                 imported_module = imp.load_source(all_vars["file_name"], app)  # noqa

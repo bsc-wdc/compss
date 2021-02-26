@@ -213,6 +213,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     System.setProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK,
                         Boolean.toString(manager.getReuseResourcesOnBlock()));
                 }
+                if (System.getProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION) == null
+                    || System.getProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION).isEmpty()) {
+                    System.setProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION,
+                        Boolean.toString(manager.isNestedDetectionEnabled()));
+                }
                 setPropertyFromRuntime(COMPSsConstants.WORKER_CP, manager.getWorkerCP());
                 setPropertyFromRuntime(COMPSsConstants.WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
 
@@ -287,6 +292,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
         setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
         setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsConstants.DEFAULT_REUSE_RESOURCES_ON_BLOCK);
+        setDefaultProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION,
+            COMPSsConstants.DEFAULT_ENABLED_NESTED_TASKS_DETECTION);
         setDefaultProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
         setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
         setDefaultProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);
@@ -1589,7 +1596,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * FatalErrorHandler INTERFACE
      * ************************************************************************************************************
      */
-
     @Override
     public boolean handleError() {
         return handleFatalError();

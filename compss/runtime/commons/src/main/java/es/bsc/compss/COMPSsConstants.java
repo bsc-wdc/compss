@@ -131,6 +131,7 @@ public class COMPSsConstants {
 
     // LOCAL
     public static final String REUSE_RESOURCES_ON_BLOCK = "compss.execution.reuseOnBlock";
+    public static final String ENABLED_NESTED_TASKS_DETECTION = "compss.execution.nested.enabled";
 
     // Storage properties
     public static final String STORAGE_CONF = "compss.storage.conf";
@@ -205,6 +206,7 @@ public class COMPSsConstants {
     public static final String DEFAULT_PERSISTENT_C = "false";
 
     public static final String DEFAULT_REUSE_RESOURCES_ON_BLOCK = "true";
+    public static final String DEFAULT_ENABLED_NESTED_TASKS_DETECTION = "false";
 
     public static final String DEFAULT_PYTHON_INTERPRETER = "python";
     public static final String DEFAULT_PYTHON_VERSION = "2";

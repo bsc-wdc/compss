@@ -25,6 +25,7 @@
   #----------------------------------------------------------------------------------
   # Set environment variables
   export ComputingUnits="1"
+  export COMPSS_LOAD_SOURCE="false"
 
   #----------------------------------------------------------------------------------
   # Run application

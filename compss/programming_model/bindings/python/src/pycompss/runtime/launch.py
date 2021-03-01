@@ -78,6 +78,7 @@ APP_PATH = None
 STREAMING = None
 PERSISTENT_STORAGE = None
 LOGGER = None
+ENVIRONMENT_VARIABLE_LOAD = "COMPSS_LOAD_SOURCE"
 
 # Python version: to choose the appropriate log folder
 if IS_PYTHON3:
@@ -217,9 +218,14 @@ def compss_main():
     # Setup tracing
     tracing = int(args.tracing)
 
-    # Load user imports before starting the runtime
-    with context.loading_context():
-        __load_user_module__(args.app_path, log_level)
+    # Load user imports before starting the runtime (can be avoided if
+    # ENVIRONMENT_VARIABLE_LOAD is set to false).
+    # Reason: some cases like autoparallel can require to avoid loading.
+    if ENVIRONMENT_VARIABLE_LOAD not in os.environ \
+            or (ENVIRONMENT_VARIABLE_LOAD in os.environ
+                and os.environ[ENVIRONMENT_VARIABLE_LOAD] != "false"):
+        with context.loading_context():
+            __load_user_module__(args.app_path, log_level)
 
     # Start the runtime
     compss_start(log_level, tracing, False)

@@ -288,8 +288,8 @@ class DDS(object):
                 init = next(iterator)
             except StopIteration:
                 return []
-
-            return [reduce(f, iterator, init)]
+            import functools
+            return [functools.reduce(f, iterator, init)]
 
         local_results = self.map_partitions(local_reducer)\
             .collect(future_objects=True)

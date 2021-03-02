@@ -443,16 +443,21 @@ public class Executor implements Runnable {
     }
 
     private void emitingTaskStartEvents(Invocation invocation) {
-        int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits();
+        // Adding multiply by numNodes for the multinode case.
+        int numNodes = 1;
+        if (invocation.getSlaveNodesNames() != null) {
+            numNodes = invocation.getSlaveNodesNames().size() + 1;
+        }
+        int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits() * numNodes;
         Tracer.emitEvent(nCPUs, Tracer.getCPUCountEventsType());
-        int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits();
+        int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits() * numNodes;
         Tracer.emitEvent(nGPUs, Tracer.getGPUCountEventsType());
-        int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize();
+        int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize() * numNodes;
         if (memory < 0) {
             memory = 0;
         }
         Tracer.emitEvent(memory, Tracer.getMemoryEventsType());
-        int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW();
+        int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW() * numNodes;
         if (diskBW < 0) {
             diskBW = 0;
         }

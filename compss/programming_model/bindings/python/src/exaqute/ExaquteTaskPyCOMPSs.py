@@ -45,7 +45,11 @@ class mpi(_mpi):
         def mpi_f(*args, **kwargs):
             ret = self.__decorator_body__(user_function, args, kwargs)
             if context.in_master() and int(self.kwargs['processes']) == 1:
-                return [ret]
+                scale = self.kwargs.get('scale_by_cu',False)
+                if scale:
+                    return ret
+                else:
+                    return [ret]
             else:
                 return ret
 

@@ -17,6 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
+import gc
 import os
 import sys
 import shutil
@@ -222,15 +223,59 @@ class TaskWorker(TaskCommons):
                                                                  self_type,
                                                                  self_value)
 
-        # Clean cached references
-        if self.cached_references:
-            # Let the garbage collector act
-            self.cached_references = None
+            # Clean cached references
+            if self.cached_references:
+                # Let the garbage collector act
+                self.cached_references = None
+
+            # Release memory after task execution
+            self.__release_memory__(logger)
+
+            if __debug__ and "COMPSS_WORKER_PROFILE_PATH" in os.environ:
+                self.__report_heap__(logger)
 
         if __debug__:
             logger.debug("Finished @task decorator")
 
         return new_types, new_values, self.decorator_arguments[target_label]
+
+    @staticmethod
+    def __release_memory__(logger):  # noqa
+        # type: (...) -> None
+        """ Release memory after task execution explicitly.
+
+        :param logger: Logger destination.
+        :return: None
+        """
+        # Call garbage collector: The memory may not be freed to the SO,
+        # although the objects are removed.
+        gc.collect()
+        # Then try to deallocate the empty memory.
+        try:
+            import ctypes
+            libc = ctypes.CDLL("libc.so.6")
+            libc.malloc_trim(0)
+        except Exception:  # noqa
+            if __debug__:
+                logger.warning("Could NOT deallocate memory.")
+
+    @staticmethod
+    def __report_heap__(logger):  # noqa
+        # type: (...) -> None
+        """ Prints the heap status.
+
+        :param logger: Logger destination.
+        :return: None
+        """
+        logger.debug("Memory heap report:")
+        try:
+            import guppy  # noqa
+        except ImportError:
+            logger.warning("Could NOT import Guppy.")
+        else:
+            hpy = guppy.hpy()
+            logger.debug(hpy.heap())
+
 
     def reveal_objects(self, args, logger,         # noqa
                        python_mpi=False,           # noqa

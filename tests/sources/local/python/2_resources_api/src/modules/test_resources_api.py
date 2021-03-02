@@ -21,7 +21,7 @@ from pycompss.api.api import compss_get_number_of_resources
 from pycompss.api.api import compss_request_resources
 from pycompss.api.api import compss_free_resources
 
-TIME_RUNTIME_INITIAL_VMS = 20  # s
+TIME_RUNTIME_INITIAL_VMS = 30  # s
 TIME_PETITION = 30  # s
 NUM_SLEEPS = 10
 TIME_FOREVER = 60  # s
@@ -58,12 +58,13 @@ class TestResourcesApi(unittest.TestCase):
         compss_request_resources(num_resources, None)
 
         # Wait for completion
-        time.sleep(TIME_PETITION)
+        time.sleep(TIME_PETITION*num_resources)
 
         # Retrieve number of resources and check the increase
         cn2 = compss_get_number_of_resources()
         print("CN before = " + str(cn1) + " , CN after = " + str(cn2))
         self.assertEquals(cn1 + num_resources, cn2)
+        time.sleep(TIME_PETITION)
 
     def _scale_down(self, num_resources):
         print("- Scaling down " + str(num_resources))
@@ -75,7 +76,7 @@ class TestResourcesApi(unittest.TestCase):
         compss_free_resources(num_resources, None)
 
         # Wait for completion
-        time.sleep(TIME_PETITION)
+        time.sleep(TIME_PETITION*num_resources)
 
         # Retrieve number of resources and check the decrease
         cn2 = compss_get_number_of_resources()

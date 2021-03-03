@@ -132,7 +132,7 @@ def task_collect_samples(partition, num_of_samples, key_func):
 
 
 @task(collection=COLLECTION_IN)
-def map_and_save_text_file(func, index, path, partition, collection):
+def map_and_save_text_file(func, index, path, partition, collection=list()):
     """ Same as 'map_partition' function with the only difference that this one
     saves the result as a text file.
     :param func:
@@ -155,7 +155,7 @@ def map_and_save_text_file(func, index, path, partition, collection):
 
 
 @task(collection=COLLECTION_IN)
-def map_and_save_pickle(func, index, path, partition, collection):
+def map_and_save_pickle(func, index, path, partition, collection=list()):
     """ Same as 'map_partition' function with the only difference that this one
     saves the result as a pickle file.
     :param func:

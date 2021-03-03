@@ -60,7 +60,7 @@ def test_methods():
     unified = DDS().load(data).union(DDS().load(data)).collect()
     assert len(unified) == 20
 
-    dds = DDS().load(data).map_and_flatten(lambda x: [x, x*2]).collect()
+    dds = DDS().load(data).flat_map(lambda x: [x, x*2]).collect()
     assert 18 in dds
 
     dds = DDS().load(data).filter(lambda x: x > 5).collect()
@@ -69,8 +69,8 @@ def test_methods():
     dds = DDS().load(data).reduce(lambda x, y: x + y)
     assert dds == 45
 
-    dds = DDS().load(data).map_and_flatten(lambda x: list(range(x)))
-    assert dds.count_by_value(as_dict=True).get(0, 0) == 9
+    dds = DDS().load(data).flat_map(lambda x: list(range(x)))
+    assert dds.count_by_value().get(0, 0) == 9
 
     dds = DDS().load([("a", 1), ("b", 3)])\
         .join(DDS().load([("a", 2), ("b", 4)])).collect()

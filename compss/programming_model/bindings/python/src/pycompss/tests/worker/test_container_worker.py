@@ -26,6 +26,9 @@ from pycompss.api.task import task
 from pycompss.api.exceptions import COMPSsException
 
 
+CONTAINER_WORKER = "container_worker.py"
+
+
 @task()
 def simple():
     # Do nothing task
@@ -54,7 +57,7 @@ def test_container_worker_simple_task():
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
     sys.argv = [
-        "container_worker.py",
+        CONTAINER_WORKER,
         "test_container_worker",
         "simple",
         "false",
@@ -75,7 +78,7 @@ def test_container_worker_increment_task():
     sys_path_backup = list(sys.path)
     temp_file = tempfile.NamedTemporaryFile(delete=False).name
     sys.argv = [
-        "container_worker.py",
+        CONTAINER_WORKER,
         "test_container_worker",
         "increment",
         "false",
@@ -108,7 +111,7 @@ def test_container_worker_simple_task_compss_exception():
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
     sys.argv = [
-        "container_worker.py",
+        CONTAINER_WORKER,
         "test_container_worker",
         "simple_compss_exception",
         "false",
@@ -128,7 +131,7 @@ def test_container_worker_simple_task_exception():
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
     sys.argv = [
-        "container_worker.py",
+        CONTAINER_WORKER,
         "test_container_worker",
         "simple_exception",
         "false",

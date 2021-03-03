@@ -15,14 +15,16 @@
 #  limitations under the License.
 #
 
-class mpi(object):
+class Mpi(object):
     def __init__(self, *args, **kwargs):
-        raise Exception(
-            "Exaqute MPI decorator not implemented in the current scheduler")
+        raise Exception("Exaqute MPI decorator not implemented in the current scheduler")  # NOSONAR
 
     def __call__(self, f):
-        raise Exception(
-            "Exaqute MPI call code not implemented in the current scheduler")
+        raise Exception("Exaqute MPI call code not implemented in the current scheduler")  # NOSONAR
+
+
+mpi = Mpi
+MPI = Mpi
 
 
 class ExaquteTask(object):
@@ -34,7 +36,7 @@ class ExaquteTask(object):
         raise Exception("Exaqute task call code not implemented in the current scheduler")  # NOSONAR
 
 
-def get_value_from_remote(obj):
+def get_value_from_remote(obj):  # noqa
     raise Exception("Get value not implemented in the current scheduler")  # NOSONAR
 
 
@@ -42,11 +44,11 @@ def barrier():
     raise Exception("Barrier not implemented in the current scheduler")  # NOSONAR
 
 
-def delete_object(obj):
+def delete_object(obj):  # noqa
     raise Exception("Delete object not implemented in the current scheduler")  # NOSONAR
 
 
-def compute(obj):
+def compute(obj):  # noqa
     raise Exception("Compute not implemented in the current scheduler")  # NOSONAR
 
 

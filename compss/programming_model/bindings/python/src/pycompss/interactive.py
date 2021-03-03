@@ -472,8 +472,10 @@ def stop(sync=False, _hard_stop=False):
         for message in messages:
             sys.stderr.write("".join((message, '\n')))
 
-    # import pprint
-    # pprint.pprint(ipython.__dict__, width=1)
+    # Uncomment the following lines to see the ipython dictionary
+    # in a structured way:
+    #   import pprint
+    #   pprint.pprint(ipython.__dict__, width=1)
     if sync and not _hard_stop:
         sync_msg = "Synchronizing all future objects left on the user scope."
         print(sync_msg)

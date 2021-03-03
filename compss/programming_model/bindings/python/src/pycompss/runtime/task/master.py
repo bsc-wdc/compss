@@ -863,7 +863,7 @@ class TaskMaster(TaskCommons):
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular
                 # frames are included, but not class names found.
-                impl_signature = ".".join((self.module_name, self.function_name))
+                impl_signature = ".".join((self.module_name, self.function_name))  # noqa: E501
                 impl_type_args = [self.module_name, self.function_name]
 
         return impl_signature, impl_type_args
@@ -1207,7 +1207,7 @@ class TaskMaster(TaskCommons):
                               content_type=ret_type,
                               direction=ret_dir)
             else:
-                for (i, elem) in enumerate(to_return):
+                for (i, elem) in enumerate(to_return):  # noqa
                     ret_type = get_compss_type(elem)
                     self.returns[get_return_name(i)] = \
                         Parameter(content=elem,
@@ -1230,6 +1230,12 @@ class TaskMaster(TaskCommons):
             return to_return
 
     def get_num_returns_from_string(self, _returns):
+        # type: (...) -> int
+        """ Converts the returns to integer.
+
+        :param _returns: Returns as string.
+        :return: Number of returned parameters.
+        """
         try:
             # Return is hidden by an int as a string.
             # i.e., returns="var_int"
@@ -1237,12 +1243,12 @@ class TaskMaster(TaskCommons):
         except ValueError:
             if _returns.startswith(VALUE_OF):
                 #  from 'value_of ( xxx.yyy )' to [xxx, yyy]
-                param_ref = _returns.replace(VALUE_OF, '').replace('(', '').replace(')', '').strip().split('.')
+                param_ref = _returns.replace(VALUE_OF, '').replace('(', '').replace(')', '').strip().split('.')  # noqa: E501
                 if len(param_ref) > 0:
                     obj = self.parameters[param_ref[0]].content
                     return int(_get_object_property(param_ref, obj))
                 else:
-                    raise Exception("Incorrect value_of format in " + _returns)
+                    raise PyCOMPSsException("Incorrect value_of format in %s" % _returns)  # noqa: E501
             else:
                 # Return is hidden by a global variable. i.e., LT_ARGS
                 try:
@@ -1250,6 +1256,7 @@ class TaskMaster(TaskCommons):
                 except AttributeError:
                     # This is a numba jit declared task
                     num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
+                return int(num_rets)
 
     def update_return_if_no_returns(self, f):
         # type: (...) -> int

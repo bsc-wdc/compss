@@ -21,14 +21,14 @@ from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_delete_object
 from pycompss.api.api import compss_delete_file
 from pycompss.api.mpi import mpi as _mpi
-from pycompss.api.constraint import constraint
-from pycompss.api.parameter import * 
+from pycompss.api.parameter import *   # NOSONAR
 from pycompss.api.implement import implement 
 from pycompss.api.constraint import constraint
 import pycompss.util.context as context
 from functools import wraps
 
-class mpi(_mpi):
+
+class Mpi(_mpi):
 
     def __call__(self, user_function):
         """ Parse and set the mpi parameters within the task core element.
@@ -47,13 +47,6 @@ class mpi(_mpi):
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
-ExaquteTask=task
-MPI=mpi
-Mpi=mpi
-CONSTRAINT=constraint
-Constraint=constraint
-IMPLEMENT=implement
-Implement=implement
 
 def barrier():  # Wait
     compss_barrier()
@@ -75,3 +68,12 @@ def delete_file(file_path):
 
 def compute(obj):  # Submit task
     return obj
+
+
+ExaquteTask = task
+MPI = Mpi
+mpi = Mpi
+CONSTRAINT = constraint
+Constraint = constraint
+IMPLEMENT = implement
+Implement = implement

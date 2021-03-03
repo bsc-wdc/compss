@@ -35,6 +35,7 @@ except ImportError:
     import Queue as queue
 from pycompss.runtime.management.COMPSs import is_redirected
 from pycompss.runtime.management.COMPSs import get_redirection_file_names
+from pycompss.util.exceptions import PyCOMPSsException
 
 
 class StdWatcher(object):
@@ -107,7 +108,7 @@ class StdWatcher(object):
                                       args=(out_file_name, err_file_name))
             thread.start()
         else:
-            raise Exception("Can not find the stdout and stderr.")
+            raise PyCOMPSsException("Can not find the stdout and stderr.")
 
     def stop_watching(self, clean=True):
         # type: (bool) -> None

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
@@ -120,7 +121,10 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
      * @param loader loaderAPI implementation to detect data accesses
      */
     public void setupNestedSupport(COMPSsRuntime runtimeAPI, LoaderAPI loader) {
-        ((COMPSsMaster) this.getNode()).setRuntimeApi(runtimeAPI);
-        ((COMPSsMaster) this.getNode()).setLoaderApi(loader);
+        boolean enableNested = Boolean.parseBoolean(System.getProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION));
+        if (enableNested) {
+            ((COMPSsMaster) this.getNode()).setRuntimeApi(runtimeAPI);
+            ((COMPSsMaster) this.getNode()).setLoaderApi(loader);
+        }
     }
 }

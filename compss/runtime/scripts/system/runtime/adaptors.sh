@@ -24,6 +24,7 @@ DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
 #DEFAULT_COMMUNICATION_ADAPTOR=${GAT_ADAPTOR}
 
 DEFAULT_REUSE_RESOURCES_ON_BLOCK="true"
+DEFAULT_ENABLED_NESTED_TASKS_DETECTION="false"
 
 #----------------------------------------------
 # ERROR MESSAGES
@@ -66,6 +67,11 @@ check_adaptors_setup () {
   if [ -z "${reuse_resources_on_block}" ]; then
     reuse_resources_on_block=${DEFAULT_REUSE_RESOURCES_ON_BLOCK}
   fi
+
+  # Should nested task detection be enabled while executing on local resources
+  if [ -z "${enabled_nested_local}" ]; then
+    enabled_nested_local=${DEFAULT_ENABLED_NESTED_TASKS_DETECTION}
+  fi
 }
 
 
@@ -84,6 +90,7 @@ append_adaptors_jvm_options_to_file() {
 -Dgat.broker.adaptor=sshtrilead
 -Dgat.file.adaptor=sshtrilead
 -Dcompss.execution.reuseOnBlock=${reuse_resources_on_block}
+-Dcompss.execution.nested.enabled=${enabled_nested_local}
 EOT
 }
 

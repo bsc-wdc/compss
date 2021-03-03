@@ -438,6 +438,27 @@ public class RuntimeConfigManager {
     }
 
     /**
+     * Returns whether the detection of nested tasks is enabled during the execution of a tasks within the local
+     * resources.
+     *
+     * @return {@literal true} if the detection of nested tasks is enabled during the execution of a tasks within the
+     *         local resources is enabled; {@literal false}, otherwise.
+     */
+    public boolean isNestedDetectionEnabled() {
+        return config.getBoolean(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION);
+    }
+
+    /**
+     * Sets whether the detection of nested tasks is enabled during the execution of a tasks within the local resources.
+     *
+     * @param enable {@literal true} if the detection of nested tasks is enabled during the execution of a tasks within
+     *            the local resources is enabled; {@literal false}, otherwise.
+     */
+    public void setNestedDetectionEnabled(boolean enable) {
+        config.setProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION, enable);
+    }
+
+    /**
      * Sets the new CPU Affinity for the Workers.
      * 
      * @param isAffinityEnabled New CPU Affinity for the Workers.

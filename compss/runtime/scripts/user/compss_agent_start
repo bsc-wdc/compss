@@ -354,12 +354,16 @@ check_setup() {
     specific_log_dir="/tmp/${uuid}"
   fi
 
+  if [ -z "${enabled_nested_local}" ]; then
+    enabled_nested_local="true"
+  fi
+
   WORKING_DIR="${specific_log_dir}"
   rm -rf "${WORKING_DIR}"
   mkdir -p "${WORKING_DIR}"
   CONFIG_DIR="${WORKING_DIR}/cfgfiles/"
   mkdir -p "${CONFIG_DIR}"
-    
+ 
   check_compss_setup
 }
 

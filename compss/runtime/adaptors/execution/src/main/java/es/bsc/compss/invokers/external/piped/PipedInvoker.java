@@ -198,21 +198,27 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         }
                             break;
                         case BARRIER: {
-                            this.context.getRuntimeAPI().barrier(this.appId);
+                            if (this.appId != null) {
+                                this.context.getRuntimeAPI().barrier(this.appId);
+                            }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;
                         case BARRIER_NEW: {
                             NewBarrierPipeCommand nbpc = (NewBarrierPipeCommand) rcvdCommand;
                             boolean noMoreTasks = nbpc.isNoMoreTasks();
-                            this.context.getRuntimeAPI().barrier(this.appId, noMoreTasks);
+                            if (this.appId != null) {
+                                this.context.getRuntimeAPI().barrier(this.appId, noMoreTasks);
+                            }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;
                         case BARRIER_GROUP: {
                             BarrierTaskGroupPipeCommand bgpc = (BarrierTaskGroupPipeCommand) rcvdCommand;
                             String groupName = bgpc.getGroupName();
-                            this.context.getRuntimeAPI().barrierGroup(appId, groupName);
+                            if (this.appId != null) {
+                                this.context.getRuntimeAPI().barrierGroup(appId, groupName);
+                            }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;

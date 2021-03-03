@@ -22,7 +22,6 @@ import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
@@ -114,7 +113,7 @@ public class PythonMirror extends PipedMirror {
         // Add Python interpreter call
         cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
 
-        String profilePath = EnvironmentLoader.loadFromEnvironment("$COMPSS_WORKER_PROFILE_PATH");
+        String profilePath = System.getenv("COMPSS_WORKER_PROFILE_PATH");
         if (profilePath != null) {
             // Add profiling and its output path
             cmd.append("-m").append(TOKEN_SEP).append("mprof").append(TOKEN_SEP).append("run").append(TOKEN_SEP);

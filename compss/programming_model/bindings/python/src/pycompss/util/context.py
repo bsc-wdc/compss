@@ -111,7 +111,7 @@ def get_who_contextualized():
 
 
 def is_nesting_enabled():
-    # type: () -> None
+    # type: () -> bool
     """ Check if nesting is enabled.
 
     :returns: None
@@ -127,6 +127,16 @@ def enable_nesting():
     """
     global NESTING
     NESTING = True
+
+
+def disable_nesting():
+    # type: () -> None
+    """ Disable nesting.
+
+    :returns: None
+    """
+    global NESTING
+    NESTING = False
 
 
 @contextmanager

@@ -247,7 +247,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     elif shared_type == SHAREABLE_TUPLE_TAG:
         existing_shm = ShareableList(name=obj_id)
         output = tuple(existing_shm)
-    elif shared_type == SHAREABLE_LIST_TAG:
+    elif shared_type == SHAREABLE_DICT_TAG:
         existing_shm = ShareableList(name=obj_id)
         output = dict(existing_shm)
     else:

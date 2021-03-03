@@ -102,7 +102,7 @@ def read_objects(ods, sleep):
     return num_total
 
 
-@task(file_path=IN, returns=int)
+@task(returns=int)
 def process_object(obj):
     print("RECEIVED OBJECT: " + str(obj))
     return 1

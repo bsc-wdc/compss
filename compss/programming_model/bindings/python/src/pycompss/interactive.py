@@ -28,8 +28,6 @@ import sys
 import logging
 import time
 import tempfile
-import json
-import base64
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
@@ -43,6 +41,7 @@ from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import set_temporary_directory
+from pycompss.util.environment.configuration import export_current_flags
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
 from pycompss.util.environment.configuration import updated_variables_in_sc
@@ -269,8 +268,7 @@ def start(log_level="off",                     # type: str
                                   worker_cache)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
-    # Removes b' and ' to avoid issues with javascript
-    os.environ["PYCOMPSS_CURRENT_FLAGS"] = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]  # noqa
+    export_current_flags(all_vars)
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)

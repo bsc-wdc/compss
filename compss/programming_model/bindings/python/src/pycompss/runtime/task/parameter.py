@@ -425,6 +425,10 @@ _param_conversion_dict_ = {
         ParamDictKeys.CONTENT_TYPE: TYPE.COLLECTION,
         ParamDictKeys.DIRECTION: DIRECTION.IN_DELETE,
     },
+    ParamAliasKeys.DICT_COLLECTION_IN_DELETE: {
+        ParamDictKeys.CONTENT_TYPE: TYPE.DICT_COLLECTION,
+        ParamDictKeys.DIRECTION: DIRECTION.IN_DELETE,
+    },
     ParamAliasKeys.STREAM_IN: {
         ParamDictKeys.CONTENT_TYPE: TYPE.EXTERNAL_STREAM,
         ParamDictKeys.DIRECTION: DIRECTION.IN,

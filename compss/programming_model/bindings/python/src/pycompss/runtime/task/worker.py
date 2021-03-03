@@ -276,7 +276,6 @@ class TaskWorker(TaskCommons):
             hpy = guppy.hpy()
             logger.debug(hpy.heap())
 
-
     def reveal_objects(self, args, logger,         # noqa
                        python_mpi=False,           # noqa
                        collections_layouts=None):  # noqa

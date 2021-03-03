@@ -31,8 +31,6 @@ import sys
 import logging
 import traceback
 import argparse
-import json
-import base64
 
 # Project imports
 import pycompss.util.context as context
@@ -45,6 +43,7 @@ from pycompss.runtime.commons import set_object_conversion
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.environment.configuration import export_current_flags
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa
 from pycompss.util.environment.configuration import updated_variables_in_sc
@@ -488,8 +487,7 @@ def launch_pycompss_application(app,
                                   worker_cache)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
-    # Removes b' and ' to avoid issues with javascript
-    os.environ["PYCOMPSS_CURRENT_FLAGS"] = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]  # noqa
+    export_current_flags(all_vars)
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)

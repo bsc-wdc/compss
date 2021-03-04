@@ -143,23 +143,33 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         case ACCESSED_FILE: {
                             AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
                             String file = afpc.getFile();
-                            boolean accessed = this.context.getRuntimeAPI().isFileAccessed(this.appId, file);
-                            this.pipes.sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
+                            if (this.appId == null) {
+                                this.pipes.sendCommand(new SynchPipeCommand("1"));
+                            } else {
+                                boolean accessed = this.context.getRuntimeAPI().isFileAccessed(this.appId, file);
+                                this.pipes.sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
+                            }
                         }
                             break;
                         case OPEN_FILE: {
                             OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
                             String file = ofpc.getFile();
                             Direction dir = ofpc.getDirection();
-                            String finalLocation = this.context.getRuntimeAPI().openFile(this.appId, file, dir);
-                            this.pipes.sendCommand(new SynchPipeCommand(finalLocation));
+                            if (this.appId == null) {
+                                this.pipes.sendCommand(new SynchPipeCommand(file));
+                            } else {
+                                String finalLocation = this.context.getRuntimeAPI().openFile(this.appId, file, dir);
+                                this.pipes.sendCommand(new SynchPipeCommand(finalLocation));
+                            }
                         }
                             break;
                         case CLOSE_FILE: {
                             CloseFilePipeCommand ofpc = (CloseFilePipeCommand) rcvdCommand;
                             String file = ofpc.getFile();
                             Direction dir = ofpc.getDirection();
-                            this.context.getRuntimeAPI().closeFile(this.appId, file, dir);
+                            if (this.appId != null) {
+                                this.context.getRuntimeAPI().closeFile(this.appId, file, dir);
+                            }
                         }
                             break;
                         case DELETE_FILE: {
@@ -172,21 +182,27 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         case GET_FILE: {
                             GetFilePipeCommand gfpc = (GetFilePipeCommand) rcvdCommand;
                             String file = gfpc.getFile();
-                            this.context.getRuntimeAPI().getFile(this.appId, file);
+                            if (this.appId != null) {
+                                this.context.getRuntimeAPI().getFile(this.appId, file);
+                            }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;
                         case GET_DIRECTORY: {
                             GetDirectoryPipeCommand gfpc = (GetDirectoryPipeCommand) rcvdCommand;
                             String file = gfpc.getDirectory();
-                            context.getRuntimeAPI().getDirectory(this.appId, file);
+                            if (this.appId != null) {
+                                context.getRuntimeAPI().getDirectory(this.appId, file);
+                            }
                             pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;
                         case GET_OBJECT: {
                             GetObjectPipeCommand gfpc = (GetObjectPipeCommand) rcvdCommand;
                             String id = gfpc.getObjectId();
-                            this.context.getRuntimeAPI().getBindingObject(this.appId, id);
+                            if (this.appId != null) {
+                                this.context.getRuntimeAPI().getBindingObject(this.appId, id);
+                            }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;
@@ -226,13 +242,19 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             OpenTaskGroupPipeCommand otgpc = (OpenTaskGroupPipeCommand) rcvdCommand;
                             String groupName = otgpc.getGroupName();
                             boolean barrier = otgpc.isImplicitBarrier();
+                            if (this.appId == null) {
+                                this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
+                            }
                             this.context.getRuntimeAPI().openTaskGroup(groupName, barrier, this.appId);
+
                         }
                             break;
                         case CLOSE_TASK_GROUP: {
                             CloseTaskGroupPipeCommand otgpc = (CloseTaskGroupPipeCommand) rcvdCommand;
                             String groupName = otgpc.getGroupName();
-                            this.context.getRuntimeAPI().closeTaskGroup(groupName, this.appId);
+                            if (this.appId != null) {
+                                this.context.getRuntimeAPI().closeTaskGroup(groupName, this.appId);
+                            }
                         }
                             break;
                         case NO_MORE_TASKS: {

@@ -1351,6 +1351,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
+    public boolean verifyNodeIsRunning() {
+        return true;
+    }
+
+    @Override
     public COMPSsRuntime getRuntimeAPI() {
         return this.runtimeApi;
     }

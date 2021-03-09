@@ -75,4 +75,6 @@ public abstract class COMPSsWorker extends COMPSsNode {
      */
     public abstract void announceCreation() throws AnnounceException;
 
+    public abstract boolean verifyNodeIsRunning();
+
 }

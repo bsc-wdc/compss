@@ -448,4 +448,9 @@ public class GATWorkerNode extends COMPSsWorker {
         // TODO Nothing done at this version
 
     }
+
+    @Override
+    public boolean verifyNodeIsRunning() {
+        return true;
+    }
 }

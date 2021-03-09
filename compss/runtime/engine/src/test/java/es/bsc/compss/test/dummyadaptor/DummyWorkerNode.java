@@ -158,4 +158,9 @@ public class DummyWorkerNode extends COMPSsWorker {
     @Override
     public void removeObsoletes(List<MultiURI> obsoletes) {
     }
+
+    @Override
+    public boolean verifyNodeIsRunning() {
+        return true;
+    }
 }

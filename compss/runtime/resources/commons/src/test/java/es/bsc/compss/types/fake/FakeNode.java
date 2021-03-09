@@ -159,4 +159,9 @@ public class FakeNode extends COMPSsWorker {
 
     }
 
+    @Override
+    public boolean verifyNodeIsRunning() {
+        return true;
+    }
+
 }

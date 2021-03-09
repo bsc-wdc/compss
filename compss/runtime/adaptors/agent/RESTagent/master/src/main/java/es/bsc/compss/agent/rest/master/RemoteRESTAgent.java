@@ -372,4 +372,9 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     }
 
+    @Override
+    public boolean verifyNodeIsRunning() {
+        return true;
+    }
+
 }

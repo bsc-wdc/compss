@@ -296,4 +296,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
         this.monitor.reactivatedReservedResourcesDetected(resources);
     }
+
+    public abstract boolean verifyNodeIsRunning();
 }

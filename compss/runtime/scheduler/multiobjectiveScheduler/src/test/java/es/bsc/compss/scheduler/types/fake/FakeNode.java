@@ -119,4 +119,9 @@ public class FakeNode extends COMPSsNode {
     public void removeObsoletes(List<MultiURI> obsoletes) {
 
     }
+
+    @Override
+    public boolean verifyNodeIsRunning() {
+        return true;
+    }
 }

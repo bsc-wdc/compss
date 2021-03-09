@@ -175,7 +175,7 @@ public class ResourceOptimizer extends Thread {
 
                 // Remove obsoletes
                 periodicRemoveObsoletes();
-
+                periodicCheckWorkers();
                 // Wait until applying next optimization
                 try {
                     synchronized (this) {
@@ -245,6 +245,19 @@ public class ResourceOptimizer extends Thread {
             }
         }
 
+    }
+
+    private void periodicCheckWorkers() {
+        RUNTIME_LOGGER.info("[Resource Optimizer]__________periodicCheckWorkers:::: .");
+        List<Worker<? extends WorkerResourceDescription>> workers = ResourceManager.getAllWorkers();
+        for (Worker<? extends WorkerResourceDescription> w : workers) {
+            RUNTIME_LOGGER.info(":::::::::::::::::: verifying :::::::::::::::");
+            if (w.getNode().verifyNodeIsRunning()) {
+                RUNTIME_LOGGER.info("::::::::::: node verified ::::" + w.getNode().getName());
+            } else {
+                RUNTIME_LOGGER.info("::::::::::: node verification failed ::::::::" + w.getNode().getName());
+            }
+        }
     }
 
     /**

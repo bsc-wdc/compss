@@ -18,6 +18,7 @@ package es.bsc.compss.nio.master;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
@@ -32,6 +33,7 @@ import es.bsc.compss.nio.commands.CommandCancelTask;
 import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandPingWorker;
 import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandResourcesReduce;
@@ -86,6 +88,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
     protected NIONode node;
     private final NIOConfiguration config;
@@ -857,4 +860,20 @@ public class NIOWorkerNode extends COMPSsWorker {
         c.finishConnection();
 
     }
+
+    @Override
+    public boolean verifyNodeIsRunning() {
+        LOGGER.info("____verifyNodeIsRunning___________nio_worker node is still up: '" + this.getName() + "'");
+        LOGGER.info(" node information: '" + this.node.toString() + "'");
+        CommandPingWorker cmd = new CommandPingWorker(DEPLOYMENT_ID, this.getName());
+        // Send command check
+        Connection c = NIOAdaptor.getTransferManager().startConnection(this.node);
+        NIOAgent.registerOngoingCommand(c, cmd);
+        c.sendCommand(cmd);
+        c.receive();
+        c.finishConnection();
+        LOGGER.info("____verifyNodeIsRunning_________great!__________");
+        return true;
+    }
+
 }

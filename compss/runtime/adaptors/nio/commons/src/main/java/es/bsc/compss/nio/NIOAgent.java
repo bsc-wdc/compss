@@ -1012,6 +1012,15 @@ public abstract class NIOAgent {
     }
 
     /**
+     * Node is down, do something..
+     *
+     * @param c Connection.
+     */
+    public void handleNodeIsDownError(Connection c) {
+        LOGGER.error("___detected node failure..");
+    }
+
+    /**
      * Returns whether the persistent C storage is enabled or not.
      *
      * @return {@code true} if the persistent C storage is enabled, {@code false} otherwise.

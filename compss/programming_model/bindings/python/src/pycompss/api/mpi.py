@@ -126,7 +126,11 @@ class MPI(PyCOMPSsDecorator):
             # execution performs as parallel.
             # To disable: raise Exception(not_in_pycompss("mpi"))
             # TODO: Intercept @task parameters to get stream redirection
-            return self.__run_mpi__(args, kwargs)
+            if 'binary' in self.kwargs:
+                return self.__run_mpi__(args, kwargs)
+            else:
+                print("WARN: Python MPI as dummy is not fully supported. Executing decorated funtion.")
+                return user_function(*args, **kwargs)
 
         if __debug__:
             logger.debug("Executing mpi_f wrapper.")

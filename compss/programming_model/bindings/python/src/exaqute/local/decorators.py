@@ -47,7 +47,7 @@ class Task(object):
                 kwargs[k]=_obj_to_value(v)
             if returns is not None:
                 result = f(*new_args, **kwargs)
-                if returns != 1:
+                if returns > 1:
                     if not hasattr(result, "__len__") or len(result) != returns:
                         raise ExaquteException("Invalid number of results returned (expected {})".format(returns))
                     return [ValueWrapper(r, keep) for r in result]
@@ -80,7 +80,7 @@ def constraint(computing_units=1):
 class Mpi(object):
 
     def __init__(self, *args, **kwargs):
-        self.processes=1
+        self.processes = 1
         if 'processes' in kwargs:
             self.processes = kwargs['processes']
         else: 
@@ -95,10 +95,7 @@ class Mpi(object):
     def __call__(self, f):
         def wrapped_f(*args, **kwargs):
             _check_init()
-            if self.processes == 1:
-                return [f(*args, **kwargs)]
-            else:
-                return f(*args, **kwargs)
+            return f(*args, **kwargs)
         return wrapped_f
 
 mpi = Mpi

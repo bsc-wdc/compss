@@ -13,7 +13,7 @@ class Task(object):
 
     def __init__(self, *args, **kwargs):
         self.args = args
-        self.returns=None
+        self.returns=1
         self.priority=False
         self.keep=False
         if 'returns' in kwargs:
@@ -45,16 +45,13 @@ class Task(object):
             new_args=[_obj_to_value(obj) for obj in args]
             for k,v in kwargs:
                 kwargs[k]=_obj_to_value(v)
-            if returns is not None:
-                result = f(*new_args, **kwargs)
-                if returns > 1:
-                    if not hasattr(result, "__len__") or len(result) != returns:
-                        raise ExaquteException("Invalid number of results returned (expected {})".format(returns))
-                    return [ValueWrapper(r, keep) for r in result]
-                else:
-                    return ValueWrapper(result, keep)
+            result = f(*new_args, **kwargs)
+            if returns != 1:
+                if not hasattr(result, "__len__") or len(result) != returns:
+                    raise ExaquteException("Invalid number of results returned (expected {})".format(returns))
+                return [ValueWrapper(r, keep) for r in result]
             else:
-                f(*new_args, **kwargs)
+                return ValueWrapper(result, keep)
        
         return wrapped_task
 
@@ -66,15 +63,14 @@ def constraint(computing_units=1):
         try:
             #can be cast to int
             computing_units=int(computing_units)
-        except:
+        except Exception as e:
             if computing_units.startswith("$"):
                 env_var=computing_units.replace("$","").replace("{","").replace("}","")
                 try:
                     computing_units=int(os.environ[env_var])
                 except:
                     raise ExaquteException("Environment var: " + env_var + " not defined")
-    if (not isinstance(computing_units, int) and computing_units > 0):
-        raise ExaquteException("incorrect computing_units")
+    assert (isinstance(computing_units, int) and computing_units > 0)
     return lambda x: x
 
 class Mpi(object):

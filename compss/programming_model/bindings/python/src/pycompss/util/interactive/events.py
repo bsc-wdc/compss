@@ -28,9 +28,13 @@ import os
 
 from pycompss.util.interactive.outwatcher import STDW
 
-# IPython imports
-from IPython.display import display
-from IPython.display import Javascript
+try:
+    # IPython imports
+    from IPython.display import display
+    from IPython.display import Javascript
+except ImportError:
+    display = None
+    Javascript = None
 
 # Placeholder for post run cell messages
 POST_MESSAGE = None

@@ -138,6 +138,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final ConcurrentMap<Integer, NIOJob> RUNNING_JOBS = new ConcurrentHashMap<>();
 
+    private static final ConcurrentMap<String, NIOWorkerNode> ONGOING_WORKER_PINGS = new ConcurrentHashMap<>();
+
     private static final Map<Integer, TransferGroup> PENDING_TRANSFER_GROUPS = new HashMap<>();
 
     private static final Map<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
@@ -417,6 +419,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
         RUNNING_JOBS.put(job.getJobId(), job);
         worker.submitTask(job, obsoleteRenamings);
+    }
+
+    protected static void registerOngoingWorkerPing(NIOWorkerNode workerNode){
+        LOGGER.debug("Registering Worker Ping: " + workerNode.getName());
+        ONGOING_WORKER_PINGS.put(workerNode.getName(), workerNode);
     }
 
     protected static void cancelTask(NIOJob job) throws UnstartedNodeException {
@@ -1129,6 +1136,19 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             LOGGER.warn("Error sending command remove obsoletes after retries. Nothing else to do.");
         }
 
+    }
+
+    @Override
+    public void workerPongReceived(String nodeName) {
+        LOGGER.debug("Worker Pong received: " + nodeName);
+        ONGOING_WORKER_PINGS.remove(nodeName);
+    }
+
+    @Override
+    public void handleNodeIsDownError(String nodeName) {
+        LOGGER.warn("Removing Worker due to lost connection : " + nodeName);
+        NIOWorkerNode node = ONGOING_WORKER_PINGS.remove(nodeName);
+        node.disruptedConnection();
     }
 
     @Override

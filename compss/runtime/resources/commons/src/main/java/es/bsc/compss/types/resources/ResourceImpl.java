@@ -45,6 +45,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.Tracer;
 
@@ -687,5 +688,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     @Override
     public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
         // Should notify the resource user that such resources are no longer available
+    }
+
+    @Override
+    public void lostNode(){
+        ResourceManager.requestWholeWorkerReduction(this.name);
     }
 }

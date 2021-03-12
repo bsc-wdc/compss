@@ -421,7 +421,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         worker.submitTask(job, obsoleteRenamings);
     }
 
-    protected static void registerOngoingWorkerPing(NIOWorkerNode workerNode){
+    protected static void registerOngoingWorkerPing(NIOWorkerNode workerNode) {
         LOGGER.debug("Registering Worker Ping: " + workerNode.getName());
         ONGOING_WORKER_PINGS.put(workerNode.getName(), workerNode);
     }

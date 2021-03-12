@@ -691,7 +691,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     }
 
     @Override
-    public void lostNode(){
+    public void lostNode() {
         ResourceManager.requestWholeWorkerReduction(this.name);
     }
 }

@@ -299,7 +299,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract boolean verifyNodeIsRunning();
 
-    public void disruptedConnection(){
+    public void disruptedConnection() {
         this.monitor.lostNode();
     }
 }

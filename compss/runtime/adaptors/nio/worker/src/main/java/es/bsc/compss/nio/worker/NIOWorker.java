@@ -1316,6 +1316,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
+    public void workerPongReceived(String nodeName) {
+        // not necessary, handled only on the master
+    }
+
+    @Override
+    public void handleNodeIsDownError(String nodeName) {
+        // not necessary, handled only on the master
+    }
+
+    @Override
     public COMPSsRuntime getRuntimeAPI() {
         return null;
     }

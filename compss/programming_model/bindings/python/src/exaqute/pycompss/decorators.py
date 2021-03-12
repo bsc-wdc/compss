@@ -15,27 +15,27 @@
 #  limitations under the License.
 #
 
-from pycompss.api.task import task as _task
-from pycompss.api.mpi import mpi as _mpi
-from pycompss.api.parameter import *   # NOSONAR
-from pycompss.api.implement import implement 
-from pycompss.api.constraint import constraint
-import pycompss.util.context as context
 from functools import wraps
 
+import pycompss.util.context as context
+from pycompss.api.constraint import constraint
+from pycompss.api.implement import implement
+from pycompss.api.mpi import mpi as _mpi
+from pycompss.api.parameter import *  # noqa
+from pycompss.api.task import task as _task
 
-class Mpi(_mpi):
-
+class mpi(_mpi):
     def __call__(self, user_function):
-        """ Parse and set the mpi parameters within the task core element.
+        """Parse and set the mpi parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
         def mpi_f(*args, **kwargs):
             ret = self.__decorator_body__(user_function, args, kwargs)
-            if context.in_master() and int(self.kwargs['processes']) == 1:
+            if context.in_master() and int(self.kwargs["processes"]) == 1:
                 return [ret]
             else:
                 return ret
@@ -43,29 +43,29 @@ class Mpi(_mpi):
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
+
 class Task(_task):
     def __init__(self, *args, **kwargs):
-        if 'keep' in kwargs:
-            kwargs.pop('keep')
+        if "keep" in kwargs:
+            kwargs.pop("keep")
         super(Task, self).__init__(*args, **kwargs)
-
 
     def __call__(self, user_function):
         self.user_function = user_function
 
         @wraps(user_function)
         def task_decorator(*args, **kwargs):
-            if 'keep' in kwargs:
-                kwargs.pop('keep')
+            if "keep" in kwargs:
+                kwargs.pop("keep")
             return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator
 
 
-MPI=mpi
-Mpi=mpi
-CONSTRAINT=constraint
-Constraint=constraint
-IMPLEMENT=implement
-Implement=implement
-task=Task
+MPI = mpi
+Mpi = mpi
+CONSTRAINT = constraint
+Constraint = constraint
+IMPLEMENT = implement
+Implement = implement
+task = Task

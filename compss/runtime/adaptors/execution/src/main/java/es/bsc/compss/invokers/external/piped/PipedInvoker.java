@@ -80,6 +80,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     @Override
     public void invokeMethod() throws JobExecutionException, COMPSsException {
+        this.appId = null;
         int jobId = this.invocation.getJobId();
         if (!this.pipes.sendCommand((PipeCommand) this.command)) {
             LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
@@ -144,7 +145,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
                             String file = afpc.getFile();
                             if (this.appId == null) {
-                                this.pipes.sendCommand(new SynchPipeCommand("1"));
+                                this.pipes.sendCommand(new SynchPipeCommand("0"));
                             } else {
                                 boolean accessed = this.context.getRuntimeAPI().isFileAccessed(this.appId, file);
                                 this.pipes.sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));

@@ -255,6 +255,7 @@ public class ResourceOptimizer extends Thread {
             if (w.getNode().verifyNodeIsRunning()) {
                 RUNTIME_LOGGER.info("::::::::::: node verified ::::" + w.getNode().getName());
             } else {
+                // todo: always will return true, handle through cmd error method
                 RUNTIME_LOGGER.info("::::::::::: node verification failed ::::::::" + w.getNode().getName());
             }
         }

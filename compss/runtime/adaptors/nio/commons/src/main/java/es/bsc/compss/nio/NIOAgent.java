@@ -1012,15 +1012,6 @@ public abstract class NIOAgent {
     }
 
     /**
-     * Node is down, do something..
-     *
-     * @param c Connection.
-     */
-    public void handleNodeIsDownError(Connection c) {
-        LOGGER.error("___detected node failure..");
-    }
-
-    /**
      * Returns whether the persistent C storage is enabled or not.
      *
      * @return {@code true} if the persistent C storage is enabled, {@code false} otherwise.
@@ -1176,4 +1167,12 @@ public abstract class NIOAgent {
 
     public abstract void handleRemoveObsoletesCommandError(Connection c, CommandRemoveObsoletes commandRemoveObsoletes);
 
+    public abstract void workerPongReceived(String nodeName);
+
+    /**
+     * Node is down, do something..
+     *
+     * @param nodeName String
+     */
+    public abstract void handleNodeIsDownError(String nodeName);
 }

@@ -50,7 +50,8 @@ public class CommandPingWorkerACK implements Command {
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
-        // ACK received, but nothing to do
+        // ACK received, remove it from ongoing ping commands
+        agent.workerPongReceived(this.nodeName);
     }
 
     @Override

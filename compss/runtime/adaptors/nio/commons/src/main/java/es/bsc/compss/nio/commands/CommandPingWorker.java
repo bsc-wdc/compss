@@ -77,8 +77,7 @@ public class CommandPingWorker implements Command {
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        // todo: Nothing to do ??
-        agent.handleNodeIsDownError(c);
+        agent.handleNodeIsDownError(this.nodeName);
     }
 
 }

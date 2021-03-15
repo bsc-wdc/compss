@@ -100,7 +100,7 @@ class MultiNode(PyCOMPSsDecorator):
                 if context.is_nesting_enabled():
                     if not self.core_element_configured:
                         self.__configure_core_element__(kwargs)
-                    set_slurm_environment()
+                set_slurm_environment()
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator

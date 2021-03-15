@@ -18,7 +18,7 @@ import os
 import pickle
 
 from pycompss.api.api import compss_wait_on as cwo
-from pycompss.api.parameter import INOUT, IN, COLLECTION_OUT
+from pycompss.api.parameter import INOUT, IN, COLLECTION_OUT, COLLECTION_IN
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 
@@ -26,18 +26,17 @@ marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 FILE_NAME_LENGTH = 5
 
 
-@task(returns=1)
-def map_partition(func, partition, *collection):
+@task(returns=1, collection=COLLECTION_IN)
+def map_partition(func, partition, collection=list()):
     """ Map the given function to the partition.
 
     :param func: a functions that returns only one argument which is an iterable
     :param partition: the partition itself or a partition generator object
-    :param collection: if the partition is a collection of future objects, it
-            must be sent as *args...
+    :param collection: partition when partition is a collection
     :return: the transformed partition
     """
 
-    partition = partition or list(collection)
+    partition = partition or collection
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
 
@@ -46,8 +45,9 @@ def map_partition(func, partition, *collection):
     return res
 
 
-@task(col=COLLECTION_OUT)
-def distribute_partition(col, func, partitioner_func, partition, *collection):
+@task(col=COLLECTION_OUT, collection=COLLECTION_IN)
+def distribute_partition(col, func, partitioner_func, partition,
+                         collection=list()):
     """ Distribute (key, value) structured elements of the partition on
     'buckets'.
     :param col: empty 'buckets', must be repleced with COLLECTION_OUT..
@@ -56,10 +56,9 @@ def distribute_partition(col, func, partitioner_func, partition, *collection):
     :param partitioner_func: a function to find element's corresponding bucket
     :param partition: the partition itself or a partition generator object
     :param collection: if the partition is a collection of future objects, it
-            must be sent as *args...
     :return: fill the empty 'buckets' with the elements of the partition.
     """
-    partition = partition or list(collection)
+    partition = partition or collection
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
@@ -71,9 +70,9 @@ def distribute_partition(col, func, partitioner_func, partition, *collection):
         col[partitioner_func(k) % nop].append((k, v))
 
 
-@task(first=INOUT)
-def reduce_dicts(first, *args):
-    dicts = iter(args)
+@task(first=INOUT, rest=COLLECTION_IN)
+def reduce_dicts(first, rest):
+    dicts = iter(rest)
 
     for _dict in dicts:
         for k in _dict:
@@ -102,11 +101,11 @@ def task_dict_to_list(iterator, total_parts, partition_num):
     return ret
 
 
-@task(returns=1)
-def reduce_multiple(f, *args):
+@task(returns=1, parts=COLLECTION_IN)
+def reduce_multiple(f, parts):
     """
     """
-    partitions = iter(args)
+    partitions = iter(parts)
     try:
         res = next(partitions)[0]
     except StopIteration:
@@ -132,8 +131,8 @@ def task_collect_samples(partition, num_of_samples, key_func):
     return ret
 
 
-@task()
-def map_and_save_text_file(func, index, path, partition, *collection):
+@task(collection=COLLECTION_IN)
+def map_and_save_text_file(func, index, path, partition, collection=list()):
     """ Same as 'map_partition' function with the only difference that this one
     saves the result as a text file.
     :param func:
@@ -155,8 +154,8 @@ def map_and_save_text_file(func, index, path, partition, *collection):
         _.write("\n".join([str(item) for item in partition]))
 
 
-@task()
-def map_and_save_pickle(func, index, path, partition, *collection):
+@task(collection=COLLECTION_IN)
+def map_and_save_pickle(func, index, path, partition, collection=list()):
     """ Same as 'map_partition' function with the only difference that this one
     saves the result as a pickle file.
     :param func:

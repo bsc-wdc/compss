@@ -20,7 +20,7 @@ import os
 import pickle
 from collections import deque, defaultdict
 
-from pycompss.api.api import compss_wait_on as cwo
+from pycompss.api.api import compss_wait_on as cwo, compss_delete_object as cdo
 from pycompss.api.api import compss_barrier
 from pycompss.dds import heapq3
 from pycompss.dds.partition_generators import *
@@ -145,7 +145,7 @@ class DDS(object):
         :param num_of_parts: can be set to -1 to create one partition per file
         :return:
         """
-        files = os.listdir(dir_path)
+        files = sorted(os.listdir(dir_path))
         total = len(files)
         num_of_parts = total if num_of_parts < 0 else num_of_parts
         partition_sizes = [(total // num_of_parts)] * num_of_parts
@@ -217,13 +217,13 @@ class DDS(object):
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
         """
 
-        def mapper(iterator):
+        def mapper(partition):
             results = list()
-            for item in iterator:
-                results.append(func(item, *args, **kwargs))
+            for element in partition:
+                results.append(func(element, *args, **kwargs))
             return results
 
-        return self.map_partitions(mapper)
+        return ChildDDS(self, mapper)
 
     def map_partitions(self, func):
         """ Apply a function to each partition of this data set.
@@ -233,14 +233,14 @@ class DDS(object):
         """
         return ChildDDS(self, func)
 
-    def map_and_flatten(self, f, *args, **kwargs):
+    def flat_map(self, f, *args, **kwargs):
         """ Apply a function to each element of the dataset, and extend the
         derived element(s) if possible.
         :param f: A function that should return a list, tuple or another kind of
                   iterable
 
         >>> dds = DDS().load([2, 3, 4])
-        >>> sorted(dds.map_and_flatten(lambda x: range(1, x)).collect())
+        >>> sorted(dds.flat_map(lambda x: range(1, x)).collect())
         [1, 1, 1, 2, 2, 3]
         """
         def mapper(iterator):
@@ -288,8 +288,8 @@ class DDS(object):
                 init = next(iterator)
             except StopIteration:
                 return []
-
-            return [reduce(f, iterator, init)]
+            import functools
+            return [functools.reduce(f, iterator, init)]
 
         local_results = self.map_partitions(local_reducer)\
             .collect(future_objects=True)
@@ -312,7 +312,7 @@ class DDS(object):
                 branch = cwo(branch[0])
                 break
 
-            temp = reduce_multiple(f, *branch)
+            temp = reduce_multiple(f, branch)
             local_results.append(temp)
             branch = []
 
@@ -333,7 +333,7 @@ class DDS(object):
         return self.map(lambda x: (x, None))\
             .reduce_by_key(lambda x, _: x).map(lambda x: x[0])
 
-    def count_by_value(self, arity=2, as_dict=False):
+    def count_by_value(self, arity=2, as_dict=True, as_fo=False):
         """
         Amount of each element on this data set.
         :return: list of tuples (element, number)
@@ -366,10 +366,14 @@ class DDS(object):
 
             if len(branch) == 1:
                 break
-            reduce_dicts(*branch)
-            future_objects.append(branch[0])
+
+            first, branch = branch[0], branch[1:]
+            reduce_dicts(first, branch)
+            future_objects.append(first)
 
         if as_dict:
+            if as_fo:
+                return branch[0]
             branch[0] = cwo(branch[0])
             return dict(branch[0])
 
@@ -441,12 +445,10 @@ class DDS(object):
         if self.func:
             if self.paac:
                 for col in self.partitions:
-                    with event(3001, master=True):
-                        processed.append(map_partition(self.func, None, *col))
+                    processed.append(map_partition(self.func, None, col))
             else:
                 for _p in self.partitions:
-                    with event(3001, master=True):
-                        processed.append(map_partition(self.func, _p))
+                    processed.append(map_partition(self.func, _p))
             # Reset the function!
             self.func = None
         else:
@@ -480,7 +482,8 @@ class DDS(object):
         """
         if self.paac:
             for i, _p in enumerate(self.partitions):
-                map_and_save_text_file(self.func, i, path, None, *_p)
+                map_and_save_text_file(self.func, i, path, None, _p)
+                cdo(_p)
         else:
             for i, _p in enumerate(self.partitions):
                 map_and_save_text_file(self.func, i, path, _p)
@@ -495,7 +498,7 @@ class DDS(object):
         """
         if self.paac:
             for i, _p in enumerate(self.partitions):
-                map_and_save_pickle(self.func, i, path, None, *_p)
+                map_and_save_pickle(self.func, i, path, None, _p)
         else:
             for i, _p in enumerate(self.partitions):
                 map_and_save_pickle(self.func, i, path, _p)
@@ -562,7 +565,8 @@ class DDS(object):
                 col = [[] for _ in range(nop)]
                 with event(3002, master=True):
                     distribute_partition(col, self.func, partitioner_func, None,
-                                         *collection)
+                                         collection)
+                cdo(collection)
                 for _i in range(nop):
                     grouped[_i].append(col[_i])
         else:
@@ -607,7 +611,7 @@ class DDS(object):
         def dummy(key_value):
             return ((key_value[0], x) for x in f(key_value[1]))
 
-        return self.map_and_flatten(dummy)
+        return self.flat_map(dummy)
 
     def join(self, other, num_of_partitions=-1):
         """

@@ -15,12 +15,15 @@
 #  limitations under the License.
 #
 
+import os
 import sys
 import time
+
 from random import Random
 
-from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_wait_on as cwo
 from pycompss.dds import DDS
+from example_tasks import *
 
 
 def inside(_):
@@ -63,15 +66,145 @@ def _invert_files(pair):
     return list(res.items())
 
 
+def has_converged(mu, old_mu, epsilon):
+
+    if not old_mu:
+        return False
+
+    aux = [np.linalg.norm(old_mu[i] - mu[i]) for i in range(len(mu))]
+    distance = sum(aux)
+    print("Distance_T: " + str(distance))
+    return distance < (epsilon ** 2)
+
+
+def merge_reduce(f, data):
+    from collections import deque
+    q = deque(list(range(len(data))))
+    while len(q):
+        x = q.popleft()
+        if len(q):
+            y = q.popleft()
+            data[x] = f(data[x], data[y])
+            q.append(x)
+        else:
+            return data[x]
+
+
+def wordcount_k_means():
+    f_path = sys.argv[1]
+
+    start_time = time.time()
+
+    vocab = DDS().load_files_from_dir(f_path, num_of_parts=4)\
+        .flat_map(lambda x: x[1].split()) \
+        .map(lambda x: ''.join(e for e in x if e.isalnum())) \
+        .count_by_value(arity=2, as_dict=True, as_fo=True)
+
+    def count_locally(element):
+        from collections import Counter
+        file_name, text = element
+
+        filtered_words = [word for word in text.split() if word.isalnum()]
+        cnt = Counter(filtered_words)
+
+        for _word in vocab.keys():
+            if _word not in cnt:
+                cnt[_word] = 0
+
+        return file_name, sorted(cnt.items())
+
+    def gen_array(element):
+        import numpy as np
+        values = [int(v) for k, v in element[1]]
+        return np.array(values)
+
+    total = len(os.listdir(f_path))
+    max_iter = 2
+    frags = 4
+    epsilon = 1e-10
+    size = total/frags
+    k = 4
+    # dim = len(vocabulary)
+    dim = 742
+
+    # to acces file names by index returned from the clusters..
+    # load_files_from_list will also sort them alphabetically
+    indexes = [os.path.join(f_path, f)
+               for f in sorted(os.listdir(f_path))]
+
+    # step 2
+    # wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
+    #     .map(count_locally, vocabulary)\
+    #     .map(gen_array)\
+
+    wc_per_file = list()
+
+    for fn in sorted(os.listdir(f_path)):
+        wc_per_file.append(task_count_locally(os.path.join(f_path, fn), vocab))
+
+    mu = [np.random.randint(1, 3, dim) for _ in range(frags)]
+
+    old_mu = []
+    clusters = []
+    n = 0
+
+    while n < max_iter and not has_converged(mu, old_mu, epsilon):
+        old_mu = mu
+        clusters = [cluster_points_partial([wc_per_file[f]], mu, int(f * size))
+                    for f in range(frags)]
+
+        partial_result = [partial_sum([wc_per_file[f]], clusters[f], int(f * size))
+                          for f in range(frags)]
+
+        mu = merge_reduce(reduce_centers, partial_result)
+
+        mu = cwo(mu)
+
+        mu = [mu[c][1] / mu[c][0] for c in mu]
+
+        while len(mu) < k:
+            # Add a new random center if one of the centers has no points.
+            mu.append(np.random.randint(1, 3, dim))
+
+        n += 1
+
+    clusters_with_frag = cwo(clusters)
+
+    from collections import defaultdict
+    cluster_sets = defaultdict(list)
+
+    for _d in clusters_with_frag:
+        for _k in _d:
+            cluster_sets[_k] += [indexes[i] for i in _d[_k]]
+
+    # step 4 and 5 combined
+    sims_per_file = {}
+
+    for k in cluster_sets:
+        clus = cluster_sets[k]
+        for fayl in clus:
+            sims_per_file[fayl] = get_similar_files(fayl, clus)
+
+    sims_per_file = cwo(sims_per_file)
+
+    for k in list(sims_per_file.keys())[:10]:
+        print(k, "-----------sims --------->", sims_per_file[k][:5])
+
+    print("-----------------------------")
+    print("Kmeans Timed {} (s)".format(time.time() - start_time))
+
+    print("Iterations: ", n)
+
+
 def word_count():
 
     path_file = sys.argv[1]
     start = time.time()
 
-    results = DDS().load_files_from_dir(path_file).\
-        map_and_flatten(lambda x: x[1].split()) \
+    results = DDS().load_files_from_dir(path_file) \
+        .flat_map(lambda x: x[1].split()) \
         .map(lambda x: ''.join(e for e in x if e.isalnum())) \
-        .count_by_value(arity=4, as_dict=True)
+        .count_by_value(as_dict=True)
 
     print("Results: " + str(results))
     print("Elapsed Time: ", time.time()-start)
@@ -101,7 +234,7 @@ def terasort():
     start_time = time.time()
 
     dds = DDS().load_files_from_dir(dir_path) \
-        .map_and_flatten(files_to_pairs) \
+        .flat_map(files_to_pairs) \
         .sort_by_key().save_as_text_file(dest_path)
 
     # compss_barrier()
@@ -116,7 +249,7 @@ def inverted_indexing():
 
     path = sys.argv[1]
     start_time = time.time()
-    result = DDS().load_files_from_dir(path).map_and_flatten(_invert_files)\
+    result = DDS().load_files_from_dir(path).flat_map(_invert_files)\
         .reduce_by_key(lambda a, b: a + b).collect()
     print(result[-1:])
     print("Elapsed Time {} (s)".format(time.time() - start_time))
@@ -163,7 +296,8 @@ def main_program():
     # word_count()
     # terasort()
     # inverted_indexing()
-    transitive_closure()
+    # transitive_closure()
+    wordcount_k_means()
 
 
 if __name__ == '__main__':

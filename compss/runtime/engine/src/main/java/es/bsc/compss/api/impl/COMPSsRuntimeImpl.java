@@ -1116,7 +1116,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Destroy resources
         // No need to sync since task will be re-scheduled as soon as the workers are available
-        ResourceManager.freeResources(numResources);
+        if (numResources > 0) {
+            ResourceManager.freeResources(numResources);
+        }
     }
 
     /*

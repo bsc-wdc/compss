@@ -29,4 +29,5 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_local_instantiation():
     context.set_pycompss_context(context.MASTER)
     result = dummy_function(1, 2)
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 3, "Wrong expected result (should be 3)."

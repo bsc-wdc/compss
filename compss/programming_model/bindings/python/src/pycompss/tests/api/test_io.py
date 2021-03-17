@@ -30,6 +30,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_io_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_io = IO()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert my_io.decorator_name == "@io", "The decorator name must be @io."
 
 
@@ -38,6 +39,7 @@ def test_io_call():
     my_io = IO()
     f = my_io(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
@@ -50,6 +52,7 @@ def test_io_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         thrown
     ), "The ompss decorator did not raise an exception when invoked out of scope."  # noqa: E501
@@ -61,6 +64,7 @@ def test_io_existing_core_element():
     f = my_io(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         CORE_ELEMENT_KEY not in my_io.kwargs
     ), "Core Element is not defined in kwargs dictionary."

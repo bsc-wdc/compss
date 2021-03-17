@@ -30,6 +30,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_binary_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_bin = Binary(binary="date")
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         my_bin.decorator_name == "@binary"
     ), "The decorator name must be @binary."
@@ -40,6 +41,7 @@ def test_binary_call():
     my_bin = Binary(binary="date")
     f = my_bin(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
@@ -53,6 +55,7 @@ def test_binary_call():
 #         _ = f()
 #     except Exception:  # noqa
 #         thrown = True  # this is OK!
+#     context.set_pycompss_context(context.OUT_OF_SCOPE)
 #     assert thrown, \
 #         "The binary decorator did not raise an exception when invoked out of scope."  # noqa: E501
 

@@ -30,6 +30,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_implement_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_implementation = Implement(source_class="s_class", method="s_method")
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         my_implementation.decorator_name == "@implement"
     ), "The decorator name must be @implement."
@@ -40,6 +41,7 @@ def test_implement_call():
     my_implementation = Implement(source_class="s_class", method="s_method")
     f = my_implementation(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
@@ -48,6 +50,7 @@ def test_implement_call_old_mode():
     my_implementation = Implement(sourceClass="s_class", method="s_method")
     f = my_implementation(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
@@ -60,6 +63,7 @@ def test_implement_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         thrown
     ), "The implement decorator did not raise an exception when invoked out of scope."  # noqa: E501
@@ -73,6 +77,7 @@ def test_implement_existing_core_element():
     f = my_implementation(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         CORE_ELEMENT_KEY not in my_implementation.kwargs
     ), "Core Element is not defined in kwargs dictionary."

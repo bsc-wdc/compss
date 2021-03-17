@@ -23,7 +23,7 @@ from random import Random
 
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.dds import DDS
-from example_tasks import *
+from pycompss.dds.example_tasks import *
 
 
 def inside(_):
@@ -67,7 +67,7 @@ def _invert_files(pair):
 
 
 def has_converged(mu, old_mu, epsilon):
-
+    import numpy as np
     if not old_mu:
         return False
 
@@ -91,6 +91,8 @@ def merge_reduce(f, data):
 
 
 def wordcount_k_means():
+    import numpy as np
+
     f_path = sys.argv[1]
 
     start_time = time.time()
@@ -114,7 +116,6 @@ def wordcount_k_means():
         return file_name, sorted(cnt.items())
 
     def gen_array(element):
-        import numpy as np
         values = [int(v) for k, v in element[1]]
         return np.array(values)
 

@@ -83,6 +83,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/functions/test_data.py',
     'pycompss/tests/functions/test_elapsed_time.py',
     'pycompss/tests/functions/test_reduce.py',
+    'pycompss/tests/functions/test_profile.py',
     'pycompss/tests/runtime/test_object_tracker.py',
     'pycompss/tests/runtime/test_core_element.py',
     'pycompss/tests/runtime/test_management_direction.py',

@@ -30,7 +30,6 @@ from multiprocessing import Process
 from multiprocessing import Queue
 
 from pycompss.runtime.commons import range
-from pycompss.util.exceptions import NotImplementedException
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -52,12 +51,17 @@ from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
+from pycompss.worker.piper.cache.setup import is_cache_enabled
+from pycompss.worker.piper.cache.setup import start_cache
+from pycompss.worker.piper.cache.setup import stop_cache
 import pycompss.util.context as context
 
 # Persistent worker global variables
 PROCESSES = {}  # IN_PIPE -> PROCESS
 TRACING = False
 WORKER_CONF = None
+CACHE = None
+CACHE_PROCESS = None
 
 
 def shutdown_handler(signal, frame):  # noqa
@@ -72,6 +76,8 @@ def shutdown_handler(signal, frame):  # noqa
     for proc in PROCESSES.values():
         if proc.is_alive():
             proc.terminate()
+    if CACHE and CACHE_PROCESS.is_alive():  # noqa
+        CACHE_PROCESS.terminate()           # noqa
 
 
 ######################
@@ -87,6 +93,9 @@ def compss_persistent_worker(config):
     :param config: Piper Worker Configuration description.
     :return: None
     """
+    global CACHE
+    global CACHE_PROCESS
+
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
@@ -110,16 +119,30 @@ def compss_persistent_worker(config):
             from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
-    # Create new threads
+    # Create new processes
     queues = []
 
+    # Setup cache
+    if is_cache_enabled(config.cache):
+        # Deploy the necessary processes
+        CACHE = True
+        cache_params = start_cache(logger, config.cache)
+    else:
+        # No cache
+        CACHE = False
+        cache_params = (None, None, None, None)
+    smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
+
+    # Create new executor processes
     conf = ExecutorConf(TRACING,
                         config.storage_conf,
                         logger,
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,
-                        config.stream_master_port)
+                        config.stream_master_port,
+                        cache_ids,
+                        cache_queue)
 
     for i in range(0, config.tasks_x_node):
         if __debug__:
@@ -203,6 +226,9 @@ def compss_persistent_worker(config):
         queue.close()
         queue.join_thread()
 
+    if CACHE:
+        stop_cache(smm, cache_queue, CACHE_PROCESS)  # noqa
+
     if persistent_storage:
         # Finish storage
         if __debug__:
@@ -219,7 +245,7 @@ def compss_persistent_worker(config):
 
 
 def create_executor_process(process_name, conf, pipe):
-    # type: (str, dict, ...) -> (int, queue)
+    # type: (str, ExecutorConf, ...) -> (int, Queue)
     """ Starts a new executor.
 
     :param process_name: Process name.

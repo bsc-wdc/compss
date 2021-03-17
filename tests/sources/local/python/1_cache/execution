@@ -12,7 +12,7 @@
 
   # Global variables
   exit_value=1
-  app_name="matmul_autoparallel.py"
+  app_name="pycompss_cache.py"
 
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -23,14 +23,9 @@
   mkdir -p /tmp/COMPSsWorker01/
 
   #----------------------------------------------------------------------------------
-  # Set environment variables
-  export ComputingUnits="2"
-  export COMPSS_LOAD_SOURCE="false"
-
-  #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING PYTHON APPLICATION MATMUL AUTOPARALLEL"
+  echo "*** RUNNING PYTHON APPLICATION WITH WORKER CACHE"
 
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
@@ -39,15 +34,16 @@
     specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
-    expectedTime=100s
+    expectedTime=360s
 
-    m_size=4
-    b_size=4
-
-    if [ "${python_interpreter}" != 'python2' ]; then
-      # AutoParallel only supports python2
-      echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
-      continue
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
     fi
 
     # shellcheck disable=SC2086
@@ -62,10 +58,13 @@
       \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
       \
-      "${base_app_dir}/src/${app_name}" "${m_size}" "${b_size}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+      --python_worker_cache=true \
+      \
+      "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
     # Check timeout
     if [[ "$?" = "124" ]]; then

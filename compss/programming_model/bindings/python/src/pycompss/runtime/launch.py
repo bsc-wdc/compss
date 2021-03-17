@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from pycompss.interactive import STREAMING
 
 # -*- coding: utf-8 -*-
 
@@ -32,8 +31,6 @@ import sys
 import logging
 import traceback
 import argparse
-import json
-import base64
 
 # Project imports
 import pycompss.util.context as context
@@ -46,6 +43,7 @@ from pycompss.runtime.commons import set_object_conversion
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.environment.configuration import export_current_flags
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa
 from pycompss.util.environment.configuration import updated_variables_in_sc
@@ -75,6 +73,11 @@ from pycompss.streams.environment import stop_streaming
 
 # Global variable also task-master decorator
 APP_PATH = None
+# Other global variables
+STREAMING = None
+PERSISTENT_STORAGE = None
+LOGGER = None
+ENVIRONMENT_VARIABLE_LOAD = "COMPSS_LOAD_SOURCE"
 
 # Python version: to choose the appropriate log folder
 if IS_PYTHON3:
@@ -131,6 +134,51 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def __load_user_module__(app_path, log_level):
+    # type: (str, str) -> None
+    """ Loads the user module (resolve all user imports).
+    This has shown to be necessary before doing "start_compss" in order
+    to avoid segmentation fault in some libraries.
+
+    :param app_path: Path to the file to be imported
+    :param log_level: Logging level
+    :return: None
+    """
+    app_name = os.path.basename(app_path).split(".")[0]
+    try:
+        if IS_PYTHON3:
+            from importlib.machinery import SourceFileLoader        # noqa
+            _ = SourceFileLoader(app_name, app_path).load_module()  # noqa
+        else:
+            import imp                                              # noqa
+            _ = imp.load_source(app_name, app_path)                 # noqa
+    except Exception:                                               # noqa
+        # Ignore any exception to try to run.
+        # This exception can be produce for example with applications
+        # that have code replacer and have imports to code that does not
+        # exist (e.g. using autoparallel)
+        if log_level != 'off':
+            print("WARNING: Could not load the application (this may be the cause of a running exception.")  # noqa: E501
+
+
+def __register_implementation_core_elements__():
+    # type: () -> None
+    """ Register the @implements core elements accumulated during the
+    initialization of the @implements decorators. They have not been
+    registered because the runtime was not started. And the load is
+    necessary to resolve all user imports before starting the runtime (it has
+    been found that starting the runtime and loading the user code may lead
+    to import errors with some libraries - reason: unknown).
+
+    :return: None
+    """
+    task_list = context.get_to_register()
+    for task, impl_signature in task_list:
+        task.register_task()
+        task.registered = True
+        task.signature = impl_signature
+
+
 def compss_main():
     # type: () -> None
     """ PyCOMPSs main function.
@@ -150,7 +198,9 @@ def compss_main():
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start, compss_stop, compss_set_wall_clock
+    from pycompss.api.api import compss_start            # noqa
+    from pycompss.api.api import compss_stop             # noqa
+    from pycompss.api.api import compss_set_wall_clock   # noqa
 
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
@@ -167,8 +217,21 @@ def compss_main():
     # Setup tracing
     tracing = int(args.tracing)
 
+    # Load user imports before starting the runtime (can be avoided if
+    # ENVIRONMENT_VARIABLE_LOAD is set to false).
+    # Reason: some cases like autoparallel can require to avoid loading.
+    if ENVIRONMENT_VARIABLE_LOAD not in os.environ \
+            or (ENVIRONMENT_VARIABLE_LOAD in os.environ
+                and os.environ[ENVIRONMENT_VARIABLE_LOAD] != "false"):
+        with context.loading_context():
+            __load_user_module__(args.app_path, log_level)
+
     # Start the runtime
     compss_start(log_level, tracing, False)
+
+    # Register @implements core elements (they can not be registered in
+    # __load_user__module__).
+    __register_implementation_core_elements__()
 
     # Get application wall clock limit
     wall_clock = int(args.wall_clock)
@@ -307,6 +370,7 @@ def launch_pycompss_application(app,
                                 external_adaptation=False,        # type: bool
                                 propagate_virtual_environment=True,  # noqa type: bool
                                 mpi_worker=False,                 # type: bool
+                                worker_cache=False,               # type: bool or str
                                 *args, **kwargs
                                 ):  # NOSONAR
     # type: (...) -> None
@@ -359,6 +423,8 @@ def launch_pycompss_application(app,
     :param propagate_virtual_environment: Propagate virtual environment
                                           [ True | False ] (default: False)
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
+    :param worker_cache: Use the worker cache [ True | int(size) | False]
+                         (default: False)
     :param args: Positional arguments
     :param kwargs: Named arguments
     :return: Execution result
@@ -417,11 +483,11 @@ def launch_pycompss_application(app,
                                   scheduler_config,
                                   external_adaptation,
                                   propagate_virtual_environment,
-                                  mpi_worker)
+                                  mpi_worker,
+                                  worker_cache)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
-    # Removes b' and ' to avoid issues with javascript
-    os.environ["PYCOMPSS_CURRENT_FLAGS"] = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]  # noqa
+    export_current_flags(all_vars)
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)
@@ -501,8 +567,8 @@ def launch_pycompss_application(app,
             result = None
         else:
             if IS_PYTHON3:
-                from importlib.machinery import SourceFileLoader
-                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # noqa: E501
+                from importlib.machinery import SourceFileLoader  # noqa
+                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # noqa
             else:
                 import imp  # noqa
                 imported_module = imp.load_source(all_vars["file_name"], app)  # noqa

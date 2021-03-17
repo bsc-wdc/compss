@@ -17,6 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
+import gc
 import os
 import sys
 import shutil
@@ -42,6 +43,17 @@ from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.util.objects.util import group_iterable
 from pycompss.worker.commons.worker import build_task_parameter
+# The cache is only available currently for piper_worker.py and python >= 3.8
+# If supported in the future by another worker, add a common interface
+# with these two functions and import the appropriate.
+from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
+from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
+from pycompss.worker.piper.cache.tracker import replace_object_into_cache
+from pycompss.worker.piper.cache.tracker import in_cache
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 import logging
 logger = logging.getLogger(__name__)
@@ -54,7 +66,7 @@ class TaskWorker(TaskCommons):
     Process the task decorator and prepare call the user function.
     """
 
-    __slots__ = []
+    __slots__ = ['cache_ids', 'cache_queue', 'cached_references']
 
     def __init__(self,
                  decorator_arguments,
@@ -66,6 +78,12 @@ class TaskWorker(TaskCommons):
                                              user_function,
                                              on_failure,
                                              defaults)
+        # These variables are initialized on call since they are only for
+        # the worker
+        self.cache_ids = None
+        self.cache_queue = None
+        self.cached_references = []
+        # placeholder to keep the object references and avoid garbage collector
 
     def call(self, *args, **kwargs):
         # type: (tuple, dict) -> (list, list, list)
@@ -85,60 +103,8 @@ class TaskWorker(TaskCommons):
         if __debug__:
             logger.debug("Starting @task decorator worker call")
 
-        # Update the on_failure attribute (could be defined by @on_failure)
-        self.on_failure = kwargs.pop("on_failure", "RETRY")
-        self.defaults = kwargs.pop("defaults", {})
-
-        if __debug__:
-            logger.debug("Revealing objects")
-        # All parameters are in the same args list. At the moment we only know
-        # the type, the name and the "value" of the parameter. This value may
-        # be treated to get the actual object (e.g: deserialize it, query the
-        # database in case of persistent objects, etc.)
-        self.reveal_objects(args, logger,
-                            kwargs["compss_python_MPI"],
-                            kwargs["compss_collections_layouts"])
-        if __debug__:
-            logger.debug("Finished revealing objects")
-            logger.debug("Building task parameters structures")
-
-        # After this line all the objects in arg have a "content" field, now
-        # we will segregate them in User positional and variadic args
-        user_args, user_kwargs, ret_params = self.segregate_objects(args)
-        num_returns = len(ret_params)
-
-        if __debug__:
-            logger.debug("Finished building parameters structures.")
-
-        # Self definition (only used when defined in the task)
-        # Save the self object type and value before executing the task
-        # (it could be persisted inside if its a persistent object)
-        self_type = None
-        self_value = None
-        has_self = False
-        if args and not isinstance(args[0], Parameter):
-            if __debug__:
-                logger.debug("Detected self parameter")
-            # Then the first arg is self
-            has_self = True
-            self_type = get_compss_type(args[0])
-            if self_type == parameter.TYPE.EXTERNAL_PSCO:
-                if __debug__:
-                    logger.debug("\t - Self is a PSCO")
-                self_value = args[0].getID()
-            else:
-                # Since we are checking the type of the deserialized self
-                # parameter, get_compss_type will return that its type is
-                # parameter.TYPE.OBJECT, which although it is an object, self
-                # is always a file for the runtime. So we must force its type
-                # to avoid that the return message notifies that it has a new
-                # type "object" which is not supported for python objects in
-                # the runtime.
-                self_type = parameter.TYPE.FILE
-                self_value = 'null'
-
-        # Call the user function with all the reconstructed parameters and
-        # get the return values.
+        # Redirect stdout/stderr if necessary to show the prints/exceptions
+        # in the job out/err files
         redirect_std = True
         if kwargs['compss_log_files']:
             # Redirect all stdout and stderr during the user code execution
@@ -151,6 +117,65 @@ class TaskWorker(TaskCommons):
             logger.debug("Redirecting stdout to: " + str(job_out))
             logger.debug("Redirecting stderr to: " + str(job_err))
         with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
+
+            # Update the on_failure attribute (could be defined by @on_failure)
+            self.on_failure = kwargs.pop("on_failure", "RETRY")
+            self.defaults = kwargs.pop("defaults", {})
+
+            # Pop cache if available
+            self.cache_ids = kwargs.pop("cache_ids", None)
+            self.cache_queue = kwargs.pop("cache_queue", None)
+
+            if __debug__:
+                logger.debug("Revealing objects")
+            # All parameters are in the same args list. At the moment we only know
+            # the type, the name and the "value" of the parameter. This value may
+            # be treated to get the actual object (e.g: deserialize it, query the
+            # database in case of persistent objects, etc.)
+            self.reveal_objects(args, logger,
+                                kwargs["compss_python_MPI"],
+                                kwargs["compss_collections_layouts"])
+            if __debug__:
+                logger.debug("Finished revealing objects")
+                logger.debug("Building task parameters structures")
+
+            # After this line all the objects in arg have a "content" field, now
+            # we will segregate them in User positional and variadic args
+            user_args, user_kwargs, ret_params = self.segregate_objects(args)
+            num_returns = len(ret_params)
+
+            if __debug__:
+                logger.debug("Finished building parameters structures.")
+
+            # Self definition (only used when defined in the task)
+            # Save the self object type and value before executing the task
+            # (it could be persisted inside if its a persistent object)
+            self_type = None
+            self_value = None
+            has_self = False
+            if args and not isinstance(args[0], Parameter):
+                if __debug__:
+                    logger.debug("Detected self parameter")
+                # Then the first arg is self
+                has_self = True
+                self_type = get_compss_type(args[0])
+                if self_type == parameter.TYPE.EXTERNAL_PSCO:
+                    if __debug__:
+                        logger.debug("\t - Self is a PSCO")
+                    self_value = args[0].getID()
+                else:
+                    # Since we are checking the type of the deserialized self
+                    # parameter, get_compss_type will return that its type is
+                    # parameter.TYPE.OBJECT, which although it is an object, self
+                    # is always a file for the runtime. So we must force its type
+                    # to avoid that the return message notifies that it has a new
+                    # type "object" which is not supported for python objects in
+                    # the runtime.
+                    self_type = parameter.TYPE.FILE
+                    self_value = 'null'
+
+            # Call the user function with all the reconstructed parameters and
+            # get the return values.
             if __debug__:
                 logger.debug("Invoking user code")
             # Now execute the user code
@@ -161,48 +186,99 @@ class TaskWorker(TaskCommons):
             if __debug__:
                 logger.debug("Finished user code")
 
-        python_mpi = False
-        if kwargs["compss_python_MPI"]:
-            python_mpi = True
+            python_mpi = False
+            if kwargs["compss_python_MPI"]:
+                python_mpi = True
 
-        # Deal with defaults if any
-        if default_values:
-            self.manage_defaults(args, default_values)
+            # Deal with defaults if any
+            if default_values:
+                self.manage_defaults(args, default_values)
 
-        # Deal with INOUTs and COL_OUTs
-        self.manage_inouts(args, python_mpi)
+            # Deal with INOUTs and COL_OUTs
+            self.manage_inouts(args, python_mpi)
 
-        # Deal with COMPSsExceptions
-        if compss_exception is not None:
-            if __debug__:
-                logger.warning("Detected COMPSs Exception. Raising.")
-            raise compss_exception
+            # Deal with COMPSsExceptions
+            if compss_exception is not None:
+                if __debug__:
+                    logger.warning("Detected COMPSs Exception. Raising.")
+                raise compss_exception
 
-        # Deal with returns (if any)
-        user_returns = self.manage_returns(num_returns, user_returns,
-                                           ret_params, python_mpi)
+            # Deal with returns (if any)
+            user_returns = self.manage_returns(num_returns, user_returns,
+                                               ret_params, python_mpi)
 
-        # Check old targetDirection
-        if 'targetDirection' in self.decorator_arguments:
-            target_label = 'targetDirection'
-            logger.info("Detected deprecated targetDirection. Please, change it to target_direction")  # noqa: E501
-        else:
-            target_label = 'target_direction'
+            # Check old targetDirection
+            if 'targetDirection' in self.decorator_arguments:
+                target_label = 'targetDirection'
+                logger.info("Detected deprecated targetDirection. Please, change it to target_direction")  # noqa: E501
+            else:
+                target_label = 'target_direction'
 
-        # We must notify COMPSs when types are updated
-        new_types, new_values = self.manage_new_types_values(num_returns,
-                                                             user_returns,
-                                                             args,
-                                                             has_self,
-                                                             target_label,
-                                                             self_type,
-                                                             self_value)
+            # We must notify COMPSs when types are updated
+            new_types, new_values = self.manage_new_types_values(num_returns,
+                                                                 user_returns,
+                                                                 args,
+                                                                 has_self,
+                                                                 target_label,
+                                                                 self_type,
+                                                                 self_value)
+
+            # Clean cached references
+            if self.cached_references:
+                # Let the garbage collector act
+                self.cached_references = None
+
+            # Release memory after task execution
+            self.__release_memory__(logger)
+
+            if __debug__ and "COMPSS_WORKER_PROFILE_PATH" in os.environ:
+                self.__report_heap__(logger)
+
         if __debug__:
             logger.debug("Finished @task decorator")
 
         return new_types, new_values, self.decorator_arguments[target_label]
 
-    def reveal_objects(self, args, logger, python_mpi=False, collections_layouts=None):  # noqa
+    @staticmethod
+    def __release_memory__(logger):  # noqa
+        # type: (...) -> None
+        """ Release memory after task execution explicitly.
+
+        :param logger: Logger destination.
+        :return: None
+        """
+        # Call garbage collector: The memory may not be freed to the SO,
+        # although the objects are removed.
+        gc.collect()
+        # Then try to deallocate the empty memory.
+        try:
+            import ctypes
+            libc = ctypes.CDLL("libc.so.6")
+            libc.malloc_trim(0)
+        except Exception:  # noqa
+            if __debug__:
+                logger.warning("Could NOT deallocate memory.")
+
+    @staticmethod
+    def __report_heap__(logger):  # noqa
+        # type: (...) -> None
+        """ Prints the heap status.
+
+        :param logger: Logger destination.
+        :return: None
+        """
+        logger.debug("Memory heap report:")
+        try:
+            import guppy  # noqa
+        except ImportError:
+            logger.warning("Could NOT import Guppy.")
+        else:
+            hpy = guppy.hpy()
+            logger.debug(hpy.heap())
+
+    def reveal_objects(self, args, logger,         # noqa
+                       python_mpi=False,           # noqa
+                       collections_layouts=None):  # noqa
         # type: (tuple, logger, bool, list) -> None
         """ Get the objects from the args message.
 
@@ -288,33 +364,35 @@ class TaskWorker(TaskCommons):
         if content_type == type_file:
             if self.is_parameter_an_object(argument.name):
                 # The object is stored in some file, load and deserialize
-                f_name = argument.file_name.split(':')[-1]
                 if __debug__:
-                    logger.debug("\t\t - It is an OBJECT. Deserializing from file: " + str(f_name))  # noqa: E501
-                argument.content = deserialize_from_file(f_name)
+                    logger.debug(
+                        "\t\t - It is an OBJECT. Deserializing from file: %s" %
+                        str(argument.file_name.original_path)
+                    )
+                argument.content = self.recover_object(argument)
                 if __debug__:
                     logger.debug("\t\t - Deserialization finished")
             else:
                 # The object is a FILE, just forward the path of the file
                 # as a string parameter
-                argument.content = argument.file_name.split(':')[-1]
+                argument.content = argument.file_name.original_path
                 if __debug__:
                     logger.debug("\t\t - It is FILE: " + str(argument.content))
         elif content_type == type_directory:
             if __debug__:
                 logger.debug("\t\t - It is a DIRECTORY")
-            argument.content = argument.file_name.split(":")[-1]
+            argument.content = argument.file_name.original_path
         elif content_type == type_external_stream:
             if __debug__:
                 logger.debug("\t\t - It is an EXTERNAL STREAM")
-            argument.content = deserialize_from_file(argument.file_name)
+            argument.content = self.recover_object(argument)
         elif content_type == type_collection:
             argument.content = []
             # This field is exclusive for COLLECTION_T parameters, so make
             # sure you have checked this parameter is a collection before
             # consulting it
             argument.collection_content = []
-            col_f_name = argument.file_name.split(':')[-1]
+            col_f_name = argument.file_name.original_path
 
             # maybe it is an inner-collection..
             _dec_arg = self.decorator_arguments.get(argument.name, None)
@@ -429,7 +507,7 @@ class TaskWorker(TaskCommons):
             # make sure you have checked this parameter is a dictionary
             # collection before consulting it
             argument.dict_collection_content = {}
-            dict_col_f_name = argument.file_name.split(':')[-1]
+            dict_col_f_name = argument.file_name.original_path
             # Uncomment if you want to check its contents:
             # print("Dictionary file name: " + str(dict_col_f_name))
             # print("Dictionary file contents:")
@@ -461,7 +539,7 @@ class TaskWorker(TaskCommons):
                     sub_name_value = "@value%s" % sub_name_value
 
                 sub_arg_key, _ = build_task_parameter(int(data_type_key),
-                                                      parameter.IOSTREAM.UNSPECIFIED,
+                                                      parameter.IOSTREAM.UNSPECIFIED,  # noqa: E501
                                                       "",
                                                       sub_name_key,
                                                       content_file_key,
@@ -518,6 +596,53 @@ class TaskWorker(TaskCommons):
             # If we have not entered in any of these cases we will assume
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
+
+    def recover_object(self, argument):
+        # type: (Parameter) -> ...
+        """ Recovers the object within a file.
+
+        :param argument: Parameter object for the argument to recover.
+        :return: The object associated to the given argument Parameter.
+        """
+        name = argument.name
+        original_path = argument.file_name.original_path
+
+        cache = self.cache_queue is not None
+        # Check if the user has defined that the parameter has or not to be
+        # cache explicitly
+        if name in self.decorator_arguments:
+            use_cache = self.decorator_arguments[name].cache
+        else:
+            # if not explicitly said, the object is candidate to be cached
+            use_cache = True
+        if np and cache and use_cache:
+            # Check if the object is already in cache
+            if in_cache(original_path, self.cache_ids):
+                # The object is cached
+                retrieved, existing_shm = retrieve_object_from_cache(logger,
+                                                                     self.cache_ids,
+                                                                     original_path)
+                self.cached_references.append(existing_shm)
+                return retrieved
+            else:
+                # Not in cache. Retrieve from file and put in cache if possible
+                # source name : destination name : keep source : is write final value : original name
+                # out o inout + is write final ==> no meter en cache ? (ahora solo dice si es diferente a un read)
+                # out + keep source ==> imposible
+                # noqa inout + keep source ==> buscar el segundo (destination name) + meter en cache despues con destination name
+                # si keep source = False -- voy a buscar el source name en vez de destination name.
+                #     no meter en cache si es IN y keep source == False
+                # si keep source = True -- hay que meterlo si no esta.
+                obj = deserialize_from_file(original_path)
+                if argument.file_name.keep_source and \
+                        argument.direction != parameter.DIRECTION.IN_DELETE:
+                    insert_object_into_cache_wrapper(logger,
+                                                     self.cache_queue,
+                                                     obj,
+                                                     original_path)
+                return obj
+        else:
+            return deserialize_from_file(original_path)
 
     def segregate_objects(self, args):
         # type: (tuple) -> (list, dict, list)
@@ -781,7 +906,7 @@ class TaskWorker(TaskCommons):
                 # handle collections recursively
                 for (content, elem) in __get_collection_objects__(arg.content, arg):  # noqa: E501
                     if elem.file_name:
-                        f_name = __get_file_name__(elem.file_name)
+                        f_name = elem.file_name.original_path
                         if __debug__:
                             logger.debug("\t - Serializing element: " +
                                          str(arg.name) + " to " + str(f_name))
@@ -789,6 +914,7 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
+                            self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
                         pass
@@ -798,7 +924,7 @@ class TaskWorker(TaskCommons):
                 # handle dictionary collections recursively
                 for (content, elem) in __get_dict_collection_objects__(arg.content, arg):  # noqa: E501
                     if elem.file_name:
-                        f_name = __get_file_name__(elem.file_name)
+                        f_name = elem.file_name.original_path
                         if __debug__:
                             logger.debug("\t - Serializing element: " +
                                          str(arg.name) + " to " + str(f_name))
@@ -806,11 +932,12 @@ class TaskWorker(TaskCommons):
                             serialize_to_file_mpienv(content, f_name, False)
                         else:
                             serialize_to_file(content, f_name)
+                            self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
                         pass
             else:
-                f_name = __get_file_name__(arg.file_name)
+                f_name = arg.file_name.original_path
                 if __debug__:
                     logger.debug("Serializing object: " +
                                  str(arg.name) + " to " + str(f_name))
@@ -818,9 +945,38 @@ class TaskWorker(TaskCommons):
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
                     serialize_to_file(arg.content, f_name)
+                    self.update_object_in_cache(arg.content, arg)
 
-    @staticmethod
-    def manage_returns(num_returns, user_returns, ret_params, python_mpi):
+    def update_object_in_cache(self, content, argument):
+        # type: (..., Parameter) -> None
+        """ Updates the object into cache if possible
+
+        :param content: Object to be updated.
+        :param argument: Parameter object for the argument to be update.
+        :return: None
+        """
+        name = argument.name
+        original_path = argument.file_name.original_path
+
+        cache = self.cache_queue is not None
+        if name in self.decorator_arguments:
+            use_cache = self.decorator_arguments[name].cache
+        else:
+            # if not explicitly said, the object is candidate to be cached
+            use_cache = True
+        if np and cache and use_cache:
+            if in_cache(original_path, self.cache_ids):
+                replace_object_into_cache(logger,
+                                          self.cache_queue,
+                                          content,
+                                          original_path)
+            else:
+                insert_object_into_cache_wrapper(logger,
+                                                 self.cache_queue,
+                                                 content,
+                                                 original_path)
+
+    def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
         # type: (int, list, list, bool) -> list
         """ Manage task returns.
 
@@ -853,7 +1009,7 @@ class TaskWorker(TaskCommons):
                 # This is due to the asymmetry in worker-master communications
                 # and because it also makes it easier for us to deal with
                 # returns in that format
-                f_name = __get_file_name__(param.file_name)
+                f_name = param.file_name.original_path
                 if __debug__:
                     logger.debug("Serializing return: " + str(f_name))
                 if python_mpi:
@@ -865,6 +1021,10 @@ class TaskWorker(TaskCommons):
                     serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
                 else:
                     serialize_to_file(obj, f_name)
+                    insert_object_into_cache_wrapper(logger,
+                                                     self.cache_queue,
+                                                     obj,
+                                                     f_name)
         return user_returns
 
     def is_parameter_an_object(self, name):
@@ -1095,16 +1255,6 @@ def __get_dict_collection_objects__(content, argument):
                 yield sub_el
     else:
         yield content, argument
-
-
-def __get_file_name__(file_path):
-    # type: (str) -> str
-    """ Retrieve the file name from an absolute file path.
-
-    :param file_path: Absolute file path.
-    :return: File name.
-    """
-    return file_path.split(':')[-1]
 
 
 def __get_ret_rank__(_ret_params):

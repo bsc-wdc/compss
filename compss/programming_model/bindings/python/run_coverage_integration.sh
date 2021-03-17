@@ -55,6 +55,8 @@
   if [ "$ev" -ne 0 ]; then
     echo "[ERROR] Integration coverage3 XML generation failed with exit value: $ev"
     exit $ev
+  else
+    rm compss-*
   fi
 
   # RUN COVERAGE WITH NOTEBOOKS

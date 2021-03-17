@@ -28,8 +28,6 @@ import sys
 import logging
 import time
 import tempfile
-import json
-import base64
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
@@ -43,6 +41,7 @@ from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import set_temporary_directory
+from pycompss.util.environment.configuration import export_current_flags
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
 from pycompss.util.environment.configuration import updated_variables_in_sc
@@ -117,6 +116,7 @@ def start(log_level="off",                     # type: str
           external_adaptation=False,           # type: bool
           propagate_virtual_environment=True,  # type: bool
           mpi_worker=False,                    # type: bool
+          worker_cache=False,                  # type: bool or str
           verbose=False                        # type: bool
           ):  # NOSONAR
     # type: (...) -> None
@@ -196,6 +196,8 @@ def start(log_level="off",                     # type: str
                                           (default: False)
     :param mpi_worker: Use the MPI worker [ True|False ]
                        (default: False)
+    :param worker_cache: Use the worker cache [ True | int(size) | False]
+                         (default: False)
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
     :return: None
@@ -262,11 +264,11 @@ def start(log_level="off",                     # type: str
                                   scheduler_config,
                                   external_adaptation,
                                   propagate_virtual_environment,
-                                  mpi_worker)
+                                  mpi_worker,
+                                  worker_cache)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
-    # Removes b' and ' to avoid issues with javascript
-    os.environ["PYCOMPSS_CURRENT_FLAGS"] = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]  # noqa
+    export_current_flags(all_vars)
 
     # Check the provided flags
     flags, issues = check_flags(all_vars)
@@ -470,8 +472,10 @@ def stop(sync=False, _hard_stop=False):
         for message in messages:
             sys.stderr.write("".join((message, '\n')))
 
-    # import pprint
-    # pprint.pprint(ipython.__dict__, width=1)
+    # Uncomment the following lines to see the ipython dictionary
+    # in a structured way:
+    #   import pprint
+    #   pprint.pprint(ipython.__dict__, width=1)
     if sync and not _hard_stop:
         sync_msg = "Synchronizing all future objects left on the user scope."
         print(sync_msg)

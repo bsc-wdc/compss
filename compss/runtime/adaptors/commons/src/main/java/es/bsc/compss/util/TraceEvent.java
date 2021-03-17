@@ -136,6 +136,9 @@ public enum TraceEvent {
     GET_ID(16, Tracer.INSIDE_TASKS_TYPE, "Get object ID"), // GetID
     MAKE_PERSISTENT(17, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
     DELETE_PERSISTENT(18, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+    RETRIEVE_OBJECT_INTO_CACHE(19, Tracer.INSIDE_TASKS_TYPE, "Get object from cache"), // Get from cache
+    INSERT_OBJECT_INTO_CACHE(20, Tracer.INSIDE_TASKS_TYPE, "Put object in cache"), // Put in cache
+    REMOVE_OBJECT_FROM_CACHE(21, Tracer.INSIDE_TASKS_TYPE, "Remove object from cache"), // Remove from cache
 
     TASK_INSTANTIATION_PYTHON(25, Tracer.INSIDE_TASKS_TYPE, "Task instantiation"), // Task instantiation
 

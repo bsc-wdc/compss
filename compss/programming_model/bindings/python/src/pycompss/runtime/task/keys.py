@@ -81,6 +81,7 @@ class ParamAliasKeys(object):
     DICT_COLLECTION_IN = 'DICT_COLLECTION_IN'
     DICT_COLLECTION_INOUT = 'DICT_COLLECTION_INOUT'
     DICT_COLLECTION_OUT = 'DICT_COLLECTION_OUT'
+    DICT_COLLECTION_IN_DELETE = 'DICT_COLLECTION_IN_DELETE'
 
     STREAM_IN = 'STREAM_IN'
     STREAM_OUT = 'STREAM_OUT'
@@ -101,3 +102,4 @@ class ParamDictKeys(object):
     # Private (see task/parameter.py)
     CONTENT_TYPE = 'content_type'
     IS_FILE_COLLECTION = 'is_file_collection'
+    CACHE = 'cache'

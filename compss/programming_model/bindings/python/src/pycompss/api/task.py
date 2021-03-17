@@ -109,7 +109,7 @@ class Task(PyCOMPSsDecorator):
             "numba_flags": {},  # user defined extra numba flags
             "numba_signature": None,  # vectorize and guvectorize signature
             "numba_declaration": None,  # guvectorize declaration
-            "varargs_type": parameter.IN  # Here for legacy purposes
+            "varargs_type": parameter.IN,  # Here for legacy purposes
         }
 
     def __init__(self, *args, **kwargs):  # noqa

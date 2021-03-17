@@ -376,9 +376,16 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         if (pythonMpiWorker == null || pythonMpiWorker.isEmpty() || pythonMpiWorker.equals("null")) {
             pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
         }
+
+        // Get Python worker cache
+        String pythonWorkerCache = System.getProperty(COMPSsConstants.PYTHON_WORKER_CACHE);
+        if (pythonWorkerCache == null || pythonWorkerCache.isEmpty() || pythonWorkerCache.equals("null")) {
+            pythonWorkerCache = COMPSsConstants.DEFAULT_PYTHON_WORKER_CACHE;
+        }
+
         JavaParams javaParams = new JavaParams(classPath);
         PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVEnv, pythonPropagateVEnv,
-            pythonPath, pythonExtraeFile, pythonMpiWorker);
+            pythonPath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache);
         CParams cParams = new CParams(classPath);
 
         this.langParams[Lang.JAVA.ordinal()] = javaParams;

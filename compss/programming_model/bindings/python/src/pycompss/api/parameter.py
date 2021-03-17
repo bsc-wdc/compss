@@ -160,6 +160,7 @@ DICTIONARY = _Param(_ParamAliasKeys.DICT_COLLECTION)
 DICTIONARY_IN = _Param(_ParamAliasKeys.DICT_COLLECTION_IN)
 DICTIONARY_INOUT = _Param(_ParamAliasKeys.DICT_COLLECTION_INOUT)
 DICTIONARY_OUT = _Param(_ParamAliasKeys.DICT_COLLECTION_OUT)
+DICTIONARY_IN_DELETE = _Param(_ParamAliasKeys.DICT_COLLECTION_IN_DELETE)
 
 # Aliases for streams
 STREAM_IN = _Param(_ParamAliasKeys.STREAM_IN)
@@ -178,6 +179,7 @@ Prefix = _ParamDictKeys.PREFIX            # parameter prefix
 Depth = _ParamDictKeys.DEPTH              # collection recursive depth
 Weight = _ParamDictKeys.WEIGHT            # parameter weight
 Keep_rename = _ParamDictKeys.KEEP_RENAME  # parameter keep rename property
+Cache = _ParamDictKeys.CACHE              # enable/disable store in cache
 
 # Aliases for collection layout for native mpi tasks
 block_count = _MPILayoutKeys.block_count

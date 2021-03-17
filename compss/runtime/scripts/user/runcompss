@@ -176,6 +176,9 @@ show_opts() {
                                             Default: ${DEFAULT_PYTHON_MPI_WORKER}
     --python_memory_profile                 Generate a memory profile of the master.
                                             Default: ${DEFAULT_PYTHON_MEMORY_PROFILE}
+    --python_worker_cache=<string>          Python worker cache (true/size/false).
+                                            Only for NIO without mpi worker and python >= 3.8.
+                                            Default: ${DEFAULT_PYTHON_WORKER_CACHE}
     --wall_clock_limit=<int>				Maximum duration of the application (in seconds).
     										Default: ${DEFAULT_WALL_CLOCK_LIMIT}
 
@@ -511,6 +514,10 @@ get_args() {
           python_memory_profile)
             # Enable or disable the master memory profiling
             python_memory_profile=true
+            ;;
+          python_worker_cache=*)
+            # Enable or disable the worker cache
+            python_worker_cache=${OPTARG//python_worker_cache=/}
             ;;
           gen_coredump)
             # Enable coredump generation

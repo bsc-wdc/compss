@@ -30,14 +30,14 @@ DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
 ###############################################
 
 ###############################################
-# Display Usage 
+# Display Usage
 ###############################################
 usage() {
   cat << EOF
 Usage: $0 [OPTION]...
 
 COMPSs options:
-  
+
   --appdir=<path>                         Path for the application class folder.
                                           Default: ${DEFAULT_APPDIR}
 
@@ -57,7 +57,7 @@ COMPSs options:
   -d, --debug                             Enable debug. (Default: disabled)
 
   --hostname                              Name with which itself and other agents will identify the agent.
-  
+
   --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                           Default: Working Directory
 
@@ -66,7 +66,7 @@ COMPSs options:
   --log_level=<level>                     Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
                                           Default: ${DEFAULT_LOG_LEVEL}
 
-  --master_port=<int>                     Port to run the COMPSs master communications. 
+  --master_port=<int>                     Port to run the COMPSs master communications.
                                           (Only when ${NIO_ADAPTOR} is used. The value is overriden by the comm_port value.)
                                           Default: ${DEFAULT_MASTER_PORT}
 
@@ -81,11 +81,14 @@ COMPSs options:
                                           Default: $DEFAULT_PYTHON_MPI_WORKER
   --python_memory_profile                 Generate a memory profile of the master.
                                           Default: $DEFAULT_PYTHON_MEMORY_PROFILE
+  --python_worker_cache=<string>          Python worker cache (true/size/false).
+                                          Only for NIO without mpi worker and python >= 3.8.
+                                          Default: ${DEFAULT_PYTHON_WORKER_CACHE}
 
-  --project=<path>                        Path of the project file 
+  --project=<path>                        Path of the project file
                                           (Default: ${DEFAULT_PROJECT})
 
-  --resources=<path>                      Path of the resources file 
+  --resources=<path>                      Path of the resources file
                                           (Default: ${DEFAULT_RESOURCES})
 
   --rest_port=<int>                       Port on which the agent sets up a REST interface. (<=0: Disabled)
@@ -94,7 +97,7 @@ COMPSs options:
                                           (Default:${DEFAULT_REUSE_RESOURCES_ON_BLOCK})
 
   --scheduler=<className>                 Class that implements the Scheduler for COMPSs
-                                          Supported schedulers: 
+                                          Supported schedulers:
                                               ├── ${DATA_SCHEDULER}
                                               ├── ${FIFO_SCHEDULER}
                                               ├── ${FIFO_DATA_SCHEDULER}
@@ -122,7 +125,7 @@ EOF
 }
 
 ###############################################
-# Display Arguments & Environment error 
+# Display Arguments & Environment error
 ###############################################
 arguments_error() {
   local error_msg=$1
@@ -132,21 +135,22 @@ arguments_error() {
 }
 
 ###############################################
-# Display Runtime configuration 
+# Display Runtime configuration
 ###############################################
 display_settings () {
-  display_info "Options setup: 
+  display_info "Options setup:
         AGENT NAME: ${master_name}
         AGENT REST PORT: ${agent_rest_port}
         AGENT COMM PORT: ${agent_comm_port}
-        
+
         RESOURCES FILE: ${resFile}
         PROJECT FILE: ${projFile}
         COMM ADAPTOR: ${comm}
-        
+
         DEBUG: ${log_level}
         PYTHON INTERPRETER: ${python_interpreter}
-        MPI PYTHON: ${python_mpi_worker}"
+        MPI PYTHON: ${python_mpi_worker}
+        PYTHON CACHE: ${python_worker_cache}"
 
 }
 
@@ -192,7 +196,7 @@ parse_options() {
 	        classpath=*)
 	          # Additional classpath
 	          cp=${OPTARG//classpath=/}
-	          ;;            
+	          ;;
           comm=*)
             comm=${OPTARG//comm=/}
             ;;
@@ -211,7 +215,7 @@ parse_options() {
           input_profile=*)
             # Specify the file where there is stored the tasks profiles
             input_profile=${OPTARG//input_profile=/}
-            ;;            
+            ;;
 	        library_path=*)
 	          # Additional library path
 	          library_path=${OPTARG//library_path=/}
@@ -252,6 +256,10 @@ parse_options() {
             # Enable or disable the master memory profiling
             python_memory_profile=true
             ;;
+          python_worker_cache=*)
+            # Enable or disable the python worker cache
+            python_worker_cache=${OPTARG//python_worker_cache=/}
+            ;;
           project=*)
 	          # Custom project file
 	          projFile=${OPTARG//project=/}
@@ -278,7 +286,7 @@ parse_options() {
           reuse_resources_on_block=*)
             # Enable or disable the reusing resources
             reuse_resources_on_block=${OPTARG//reuse_resources_on_block=/}
-            ;;            
+            ;;
           scheduler=*)
             # Scheduler main class
             scheduler=${OPTARG//scheduler=/}
@@ -286,7 +294,7 @@ parse_options() {
           scheduler_config_file=*)
             # Specify the file where COMPSs will store the tasks profile
             scheduler_config=${OPTARG//scheduler_config_file=/}
-            ;;            
+            ;;
           summary)
             summary=true
             ;;
@@ -334,7 +342,7 @@ check_setup() {
     if [[ -z "${agent_rest_port}" ]]; then
 	      master_port=${agent_rest_port}
     fi
-  fi  
+  fi
 
   if [ -n "${agent_rest_port}" ]; then
     CLASSPATH="${CLASSPATH}:${COMPSS_HOME}Runtime/adaptors/CommAgent/worker/compss-adaptors-agent-comm-worker.jar"
@@ -363,14 +371,14 @@ check_setup() {
   mkdir -p "${WORKING_DIR}"
   CONFIG_DIR="${WORKING_DIR}/cfgfiles/"
   mkdir -p "${CONFIG_DIR}"
- 
+
   check_compss_setup
 }
 
 clean_script(){
   if [ -n "${WORKING_DIR}" ]; then
     rm -rf "${WORKING_DIR}"
-  fi  
+  fi
 
 }
 

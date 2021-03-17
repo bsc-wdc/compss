@@ -26,6 +26,8 @@ PyCOMPSs Util - configurators
 
 import os
 import sys
+import base64
+import json
 from tempfile import mkstemp
 import pycompss.runtime.binding as binding
 from pycompss.util.exceptions import PyCOMPSsException
@@ -43,6 +45,19 @@ DEFAULT_PROJECT_PATH = '/Runtime/configuration/xml/projects/'
 DEFAULT_RESOURCES_PATH = '/Runtime/configuration/xml/resources/'
 DEFAULT_LOG_PATH = '/Runtime/configuration/log/'
 DEFAULT_TRACING_PATH = '/Runtime/configuration/xml/tracing/'
+
+
+def export_current_flags(all_vars):
+    # type: (dict) -> None
+    """ Save all vars in global current flags so that events.py can restart
+    the notebook with the same flags.
+    Removes b' and ' to avoid issues with javascript
+
+    :param all_vars: Dictionary containing all flags
+    :return: None
+    """
+    all_flags = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]
+    os.environ["PYCOMPSS_CURRENT_FLAGS"] = all_flags
 
 
 def prepare_environment(interactive, o_c, storage_impl,
@@ -328,6 +343,7 @@ def create_init_config_file(compss_home,                    # type: str
                             python_virtual_environment,     # type: str
                             propagate_virtual_environment,  # type: bool
                             mpi_worker,                     # type: bool
+                            worker_cache,                   # type: bool or str
                             **kwargs        # noqa          # type: dict
                             ):  # NOSONAR
     # type: (...) -> None
@@ -392,6 +408,8 @@ def create_init_config_file(compss_home,                    # type: str
     :param propagate_virtual_environment: <Boolean> Propagate python virtual
                                           environment to workers
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
+    :param worker_cache: Use the worker cache [ True | int(size) | False ]
+                         (default: False)
     :param kwargs: Any other parameter
     :return: None
     """
@@ -588,6 +606,11 @@ def create_init_config_file(compss_home,                    # type: str
         jvm_options_file.write('-Dcompss.python.mpi_worker=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.mpi_worker=false\n')
+    if worker_cache:
+        jvm_options_file.write('-Dcompss.python.worker_cache=' +
+                               str(worker_cache).lower() + '\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.worker_cache=false\n')
 
     # Uncomment for debugging purposes
     # jvm_options_file.write('-Xcheck:jni\n')

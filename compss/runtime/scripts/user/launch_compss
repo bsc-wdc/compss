@@ -45,6 +45,7 @@ fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_PYTHON_MEMORY_PROFILE=false
+DEFAULT_PYTHON_WORKER_CACHE=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_IPYTHON=false
@@ -398,7 +399,8 @@ worker_cmd() {
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
             ${python_propagate_virtual_environment} \
             ${custom_extrae_config_file_python} \
-            ${python_mpi_worker}"
+            ${python_mpi_worker} \
+            ${python_worker_cache}"
 }
 
 ###############################################
@@ -1139,6 +1141,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        python_worker_cache=*)
+          python_worker_cache=${OPTARG//python_worker_cache=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
        scheduler=*)
           scheduler=${OPTARG//scheduler=/}
           # Keep it for runcompss (to add them to master)
@@ -1356,6 +1363,10 @@ check_args() {
 
   if [ -z "${python_memory_profile}" ]; then
     python_memory_profile=${DEFAULT_PYTHON_MEMORY_PROFILE}
+  fi
+
+  if [ -z "${python_worker_cache}" ]; then
+    python_worker_cache=${DEFAULT_PYTHON_WORKER_CACHE}
   fi
 
   if [ -z "${automatic_scaling}" ]; then
@@ -1751,6 +1762,7 @@ log_variables() {
   echo "Python extrae config file  ${custom_extrae_config_file_python}"
   echo "Python use MPI worker      ${python_mpi_worker}"
   echo "Python memory profile      ${python_memory_profile}"
+  echo "Python worker cache        ${python_worker_cache}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"

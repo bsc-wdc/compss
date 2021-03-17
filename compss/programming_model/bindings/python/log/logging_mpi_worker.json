@@ -97,6 +97,13 @@
     "pycompss.worker.commons.executor":              { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.commons.worker":                { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.external.mpi_worker":           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.cache.setup":             { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.cache.tracker":           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.commons.constants":       { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.commons.executor":        { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.commons.utils":           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.mpi_piper_worker":        { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.piper_worker":            { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
 
     "dataclay":                     { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "hecuba":                       { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },

@@ -28,9 +28,9 @@ PyCOMPSs Binding - Link
 
 import os
 import multiprocessing
+
 from pycompss.util.std.redirects import ipython_std_redirector
 from pycompss.util.std.redirects import not_std_redirector
-
 from pycompss.util.exceptions import PyCOMPSsException
 
 
@@ -161,7 +161,7 @@ def c_extension_link(in_queue, out_queue,
             elif command == SET_WALL_CLOCK:
                 compss.set_wall_clock(*parameters)
             else:
-                raise Exception("Unknown link command")
+                raise PyCOMPSsException("Unknown link command")
 
 
 def establish_link(logger=None):  # noqa

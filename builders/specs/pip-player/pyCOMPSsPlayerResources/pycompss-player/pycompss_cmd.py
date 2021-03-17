@@ -350,6 +350,7 @@ def _get_mounts(user_working_dir: str):
     user_dir = Mount(target=target_dir,
                      source=user_working_dir,
                      type='bind')
+    # WARNING: mounting .COMPSs makes it fail
     # compss_dir = os.environ['HOME'] + '/.COMPSs'
     # os.makedirs(compss_dir, exist_ok=True)
     #

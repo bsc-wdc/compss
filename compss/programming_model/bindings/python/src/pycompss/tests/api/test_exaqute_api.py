@@ -22,6 +22,9 @@ import tempfile
 from pycompss.util.exceptions import PyCOMPSsException
 
 
+ERROR_AMOUNTS = "ERROR: wrong number of amount_executions"
+
+
 def test_exaqute_example():
     from exaqute.ExaquteExamples import main
     main()
@@ -32,7 +35,7 @@ def test_exaqute_constraints():
     constraint = ExaquteExecutionConstraints()
     assert constraint.nodes == 1, "ERROR: wrong number of default nodes"
     assert constraint.cpus_per_task == 1, "ERROR: wrong number of default cpus_per_task"  # noqa: E501
-    assert constraint.amount_executions == 1, "ERROR: wrong number of amount_executions"  # noqa: E501
+    assert constraint.amount_executions == 1, ERROR_AMOUNTS  # noqa: E501
 
 
 def test_exaqute_parameter():
@@ -157,7 +160,7 @@ def test_exaqute_execution_characteristics():
     assert ec.generation_cpus_per_node == 2, "ERROR: wrong number of generation_cpus_per_node"
     assert ec.run_nodes == 3, "ERROR: wrong number of run_nodes"
     assert ec.run_cpus_per_node == 4, "ERROR: wrong number of run_cpus_per_node"
-    assert ec.amount_executions == 5, "ERROR: wrong number of amount_executions"
+    assert ec.amount_executions == 5, ERROR_AMOUNTS
 
 
 def test_exaqute_execution_constraints():
@@ -165,4 +168,4 @@ def test_exaqute_execution_constraints():
     constraint = ExecutionConstraints()
     assert constraint.nodes == 1, "ERROR: wrong number of default nodes"
     assert constraint.cpus_per_task == 1, "ERROR: wrong number of default cpus_per_task"  # noqa: E501
-    assert constraint.amount_executions == 1, "ERROR: wrong number of amount_executions"  # noqa: E501
+    assert constraint.amount_executions == 1, ERROR_AMOUNTS  # noqa: E501

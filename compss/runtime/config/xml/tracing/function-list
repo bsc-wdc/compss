@@ -16,3 +16,6 @@ get_by_id
 getID
 make_persistent
 delete_persistent
+retrieve_object_from_cache
+insert_object_into_cache
+remove_object_from_cache

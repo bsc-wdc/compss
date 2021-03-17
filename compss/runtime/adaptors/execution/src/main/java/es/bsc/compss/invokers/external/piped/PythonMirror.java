@@ -26,6 +26,8 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,6 +113,21 @@ public class PythonMirror extends PipedMirror {
         // Add Python interpreter call
         cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
 
+        String profilePath = System.getenv("COMPSS_WORKER_PROFILE_PATH");
+        if (profilePath != null) {
+            // Add profiling and its output path
+            cmd.append("-m").append(TOKEN_SEP).append("mprof").append(TOKEN_SEP).append("run").append(TOKEN_SEP);
+            cmd.append("--multiprocess").append(TOKEN_SEP).append("--include-children").append(TOKEN_SEP);
+            String profileFile = profilePath + "/";
+            try {
+                profileFile = profileFile + InetAddress.getLocalHost().getHostName() + ".dat";
+            } catch (UnknownHostException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            cmd.append("--output").append(TOKEN_SEP).append(profileFile).append(TOKEN_SEP);
+        }
+
         // Add PyCOMPSs worker main class
         if (this.pyParams.usePythonMpiWorker()) {
             cmd.append(this.pyCOMPSsHome).append(MPI_WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
@@ -127,6 +144,7 @@ public class PythonMirror extends PipedMirror {
         cmd.append(context.getStreamingBackend().name()).append(TOKEN_SEP);
         cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);
         cmd.append(context.getStreamingMasterPort()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.getPythonWorkerCache()).append(TOKEN_SEP);
 
         cmd.append(this.size).append(TOKEN_SEP);
         String executorPipes = this.basePipePath + "executor";

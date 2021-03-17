@@ -17,6 +17,8 @@
   if [ ${exit_code} -ne 0 ]; then
     echo "ERROR: FAILED unittests with Python 2"
     exit ${exit_code}
+  else
+    rm compss-*
   fi
 
   python3 nose_tests.py -s -v True
@@ -24,6 +26,8 @@
   if [ ${exit_code} -ne 0 ]; then
     echo "ERROR: FAILED unittests with Python 3"
     exit ${exit_code}
+  else
+    rm compss-*
   fi
 
   # Only with setuptools 

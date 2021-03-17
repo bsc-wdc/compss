@@ -26,6 +26,7 @@ PyCOMPSs Binding - Management - Runtime
 
 from pycompss.runtime.management.link import establish_interactive_link
 from pycompss.runtime.management.link import establish_link
+from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
@@ -60,11 +61,9 @@ def load_runtime(external_process=False, _logger=None):
 
     if external_process:
         # For interactive python environments
-        from pycompss.runtime.management.link import establish_interactive_link
         _COMPSs, _STDOUT, _STDERR = establish_interactive_link(_logger, True)
     else:
         # Normal python environments
-        from pycompss.runtime.management.link import establish_link
         _COMPSs = establish_link(_logger)
 
 
@@ -78,7 +77,7 @@ def is_redirected():
     elif _STDOUT is not None and _STDERR is not None:
         return True
     else:
-        raise Exception("Inconsistent status of _STDOUT and _STDERR")
+        raise PyCOMPSsException("Inconsistent status of _STDOUT and _STDERR")
 
 
 def get_redirection_file_names():
@@ -89,7 +88,7 @@ def get_redirection_file_names():
     if is_redirected():
         return _STDOUT, _STDERR
     else:
-        raise Exception("The runtime stdout and stderr are  not being redirected.")  # noqa: E501
+        raise PyCOMPSsException("The runtime stdout and stderr are  not being redirected.")  # noqa: E501
 
 
 ######################################################
@@ -294,7 +293,7 @@ def free_resources(app_id, num_resources, group_name):
 
 
 def set_wall_clock(app_id, wcl):
-    # type: (long, long) -> None
+    # type: (float, float) -> None
     """ Call to set_wall_clock.
 
     :param app_id: Application identifier.

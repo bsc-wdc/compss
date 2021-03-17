@@ -35,6 +35,7 @@ from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
+from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -84,7 +85,7 @@ def build_task_parameter(p_type,      # type: int
             content_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
-            file_name=p_value,
+            file_name=COMPSsFile(p_value),
             extra_content_type=p_c_type
         )
         return _param, 0
@@ -105,7 +106,7 @@ def build_task_parameter(p_type,      # type: int
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            file_name=p_value,
+            file_name=COMPSsFile(p_value),
             extra_content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.STRING:
@@ -471,14 +472,16 @@ def import_user_module(path, logger):
     return module
 
 
-def execute_task(process_name,     # type: str
-                 storage_conf,     # type: str
-                 params,           # type: list
-                 tracing,          # type: bool
-                 logger,           # type: ...
-                 log_files,        # type: tuple
-                 python_mpi=False,  # type: bool
-                 collections_layouts=None  # type: list
+def execute_task(process_name,              # type: str
+                 storage_conf,              # type: str
+                 params,                    # type: list
+                 tracing,                   # type: bool
+                 logger,                    # type: ...
+                 log_files,                 # type: tuple
+                 python_mpi=False,          # type: bool
+                 collections_layouts=None,  # type: list
+                 cache_queue=None,          # type: ...
+                 cache_ids=None,            # type: ...
                  ):
     # type: (...) -> (str, list, list, bool, str)
     """ ExecuteTask main method.
@@ -492,6 +495,8 @@ def execute_task(process_name,     # type: str
                       None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
     :param collections_layouts: collections layouts for python MPI tasks
+    :param cache_queue: Cache tracker communication queue
+    :param cache_ids: Cache proxy dictionary (read-only)
     :return: exit_code, new_types, new_values, timed_out and except_msg
     """
     if __debug__:
@@ -533,7 +538,9 @@ def execute_task(process_name,     # type: str
         'compss_return_length': return_length,
         'compss_log_files': log_files,
         'compss_python_MPI': python_mpi,
-        'compss_collections_layouts': collections_layouts
+        'compss_collections_layouts': collections_layouts,
+        'cache_queue': cache_queue,
+        'cache_ids': cache_ids
     }
 
     if __debug__:
@@ -653,7 +660,7 @@ def execute_task(process_name,     # type: str
                 obj = None
                 file_name = None
                 if self_elem.content is None:
-                    file_name = self_elem.file_name.split(':')[-1]
+                    file_name = self_elem.file_name.original_path
                     if __debug__:
                         logger.debug("Deserialize self from file.")
                     try:

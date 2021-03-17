@@ -25,6 +25,7 @@ PyCOMPSs Util - Context
 """
 
 import inspect
+from contextlib import contextmanager
 
 MASTER = 'MASTER'
 WORKER = 'WORKER'
@@ -34,9 +35,12 @@ _WHO = OUT_OF_SCOPE
 _WHERE = OUT_OF_SCOPE
 
 NESTING = False
+LOADING = False
+TO_REGISTER = []
 
 
 def in_master():
+    # type: () -> bool
     """
     Determine if the execution is being performed in the master node
 
@@ -46,6 +50,7 @@ def in_master():
 
 
 def in_worker():
+    # type: () -> bool
     """
     Determine if the execution is being performed in a worker node.
 
@@ -55,6 +60,7 @@ def in_worker():
 
 
 def in_pycompss():
+    # type: () -> bool
     """
     Determine if the execution is being performed within the PyCOMPSs scope.
 
@@ -64,6 +70,7 @@ def in_pycompss():
 
 
 def set_pycompss_context(where):
+    # type: (str) -> None
     """
     Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE)
 
@@ -82,6 +89,7 @@ def set_pycompss_context(where):
 
 
 def get_pycompss_context():
+    # type: () -> str
     """
     Returns PyCOMPSs context name.
     * For debugging purposes.
@@ -92,6 +100,7 @@ def get_pycompss_context():
 
 
 def get_who_contextualized():
+    # type: () -> str
     """
     Returns PyCOMPSs contextualization caller.
     * For debugging purposes.
@@ -102,6 +111,7 @@ def get_who_contextualized():
 
 
 def is_nesting_enabled():
+    # type: () -> bool
     """ Check if nesting is enabled.
 
     :returns: None
@@ -110,9 +120,82 @@ def is_nesting_enabled():
 
 
 def enable_nesting():
+    # type: () -> None
     """ Enable nesting.
 
     :returns: None
     """
     global NESTING
     NESTING = True
+
+
+def disable_nesting():
+    # type: () -> None
+    """ Disable nesting.
+
+    :returns: None
+    """
+    global NESTING
+    NESTING = False
+
+
+@contextmanager
+def loading_context():
+    # type: () -> None
+    """ Context which sets the loading mode (intended to be used only with
+    the @implements decorators, since they try to register on loading).
+
+    :return: None
+    """
+    __enable_loading__()
+    yield
+    __disable_loading__()
+
+
+def is_loading():
+    # type: () -> bool
+    """ Check if is loading is enabled.
+
+    :returns: None
+    """
+    return LOADING is True
+
+
+def __enable_loading__():
+    # type: () -> None
+    """ Enable loading.
+
+    :returns: None
+    """
+    global LOADING
+    LOADING = True
+
+
+def add_to_register_later(core_element):
+    # type: (...) -> None
+    """ Accumulate core elements to be registered later.
+
+    :param core_element: Core element to be registered
+    :return: None
+    """
+    global TO_REGISTER
+    TO_REGISTER.append(core_element)
+
+
+def get_to_register():
+    # type: () -> list
+    """ Retrieve the to register list.
+
+    :return: To register list
+    """
+    return TO_REGISTER
+
+
+def __disable_loading__():
+    # type: () -> None
+    """ Enable loading.
+
+    :returns: None
+    """
+    global LOADING
+    LOADING = False

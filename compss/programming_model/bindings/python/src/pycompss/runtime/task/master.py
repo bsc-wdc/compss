@@ -333,9 +333,14 @@ class TaskMaster(TaskCommons):
             with event(UPDATE_CORE_ELEMENT, master=True):
                 self.update_core_element(impl_signature, impl_type_args,
                                          pre_defined_ce)
-            self.register_task()
-            self.registered = True
-            self.signature = impl_signature
+            if context.is_loading():
+                # This case will only happen with @implements since it calls
+                # explicitly to this call from his call.
+                context.add_to_register_later((self, impl_signature))
+            else:
+                self.register_task()
+                self.registered = True
+                self.signature = impl_signature
 
         # Did we call this function to only register the associated core
         # element? (This can happen with @implements)
@@ -558,6 +563,7 @@ class TaskMaster(TaskCommons):
             return inspect.getargspec(function)  # noqa
 
     def process_parameters(self, *args, **kwargs):
+        # type: (list, dict) -> None
         """ Process all the input parameters.
 
         Basically, processing means "build a dictionary of <name, parameter>,
@@ -637,7 +643,7 @@ class TaskMaster(TaskCommons):
                         "@task")
 
     def build_parameter_object(self, arg_name, arg_object):
-        # type: (str, object, bool) -> Parameter
+        # type: (str, ...) -> Parameter
         """ Creates the Parameter object from an argument name and object.
 
         WARNING: Any modification in the param object will modify the
@@ -857,7 +863,7 @@ class TaskMaster(TaskCommons):
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular
                 # frames are included, but not class names found.
-                impl_signature = ".".join((self.module_name, self.function_name))
+                impl_signature = ".".join((self.module_name, self.function_name))  # noqa: E501
                 impl_type_args = [self.module_name, self.function_name]
 
         return impl_signature, impl_type_args
@@ -939,6 +945,12 @@ class TaskMaster(TaskCommons):
             set_impl_io(impl_io)
 
     def check_layout_params(self, impl_type_args):
+        # type: (list) -> None
+        """ Checks the layout format.
+
+        :param impl_type_args: Parameter arguments.
+        :return: None
+        """
         num_layouts = int(impl_type_args[6])
         if num_layouts > 0:
             for i in range(num_layouts):
@@ -1021,7 +1033,7 @@ class TaskMaster(TaskCommons):
         if parsed_computing_nodes is None:
             raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
         if parsed_computing_nodes <= 0:
-            logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa
+            logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa: E501
                            str(parsed_computing_nodes))
             parsed_computing_nodes = 1
 
@@ -1113,8 +1125,7 @@ class TaskMaster(TaskCommons):
         # Get is distributed
         if "isDistributed" in self.decorator_arguments:
             is_distributed = deco_arg_getter("isDistributed")
-            logger.warning(
-                "Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
+            logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
         else:
             is_distributed = deco_arg_getter("is_distributed")
         # Get time out
@@ -1131,7 +1142,7 @@ class TaskMaster(TaskCommons):
         return is_replicated, is_distributed, time_out, has_priority, has_target  # noqa: E501
 
     def add_return_parameters(self, returns=None):
-        # type: () -> int
+        # type: (bool) -> int
         """ Modify the return parameters accordingly to the return statement.
 
         :return: Creates and modifies self.returns and returns the number of
@@ -1163,8 +1174,8 @@ class TaskMaster(TaskCommons):
             # integer or a global variable.
             # In such case, build a list of objects of value length and
             # set it in ret_type.
-            # Global variable, value_of(Parameter) or string wrapping integer value
-            # (Evaluated in reverse orther)
+            # Global variable, value_of(Parameter) or string wrapping integer
+            # value (Evaluated in reverse order)
             num_rets = self.get_num_returns_from_string(_returns)
             # Construct hidden multi-return
             if num_rets > 1:
@@ -1196,7 +1207,7 @@ class TaskMaster(TaskCommons):
                               content_type=ret_type,
                               direction=ret_dir)
             else:
-                for (i, elem) in enumerate(to_return):
+                for (i, elem) in enumerate(to_return):  # noqa
                     ret_type = get_compss_type(elem)
                     self.returns[get_return_name(i)] = \
                         Parameter(content=elem,
@@ -1219,6 +1230,12 @@ class TaskMaster(TaskCommons):
             return to_return
 
     def get_num_returns_from_string(self, _returns):
+        # type: (...) -> int
+        """ Converts the returns to integer.
+
+        :param _returns: Returns as string.
+        :return: Number of returned parameters.
+        """
         try:
             # Return is hidden by an int as a string.
             # i.e., returns="var_int"
@@ -1226,12 +1243,12 @@ class TaskMaster(TaskCommons):
         except ValueError:
             if _returns.startswith(VALUE_OF):
                 #  from 'value_of ( xxx.yyy )' to [xxx, yyy]
-                param_ref = _returns.replace(VALUE_OF, '').replace('(', '').replace(')', '').strip().split('.')
+                param_ref = _returns.replace(VALUE_OF, '').replace('(', '').replace(')', '').strip().split('.')  # noqa: E501
                 if len(param_ref) > 0:
                     obj = self.parameters[param_ref[0]].content
                     return int(_get_object_property(param_ref, obj))
                 else:
-                    raise Exception("Incorrect value_of format in " + _returns)
+                    raise PyCOMPSsException("Incorrect value_of format in %s" % _returns)  # noqa: E501
             else:
                 # Return is hidden by a global variable. i.e., LT_ARGS
                 try:
@@ -1239,6 +1256,7 @@ class TaskMaster(TaskCommons):
                 except AttributeError:
                     # This is a numba jit declared task
                     num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
+                return int(num_rets)
 
     def update_return_if_no_returns(self, f):
         # type: (...) -> int

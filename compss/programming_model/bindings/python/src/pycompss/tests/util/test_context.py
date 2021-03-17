@@ -81,9 +81,13 @@ def test_get_context():
 
 def test_enable_nesting():
     from pycompss.util.context import enable_nesting
+    from pycompss.util.context import disable_nesting
     from pycompss.util.context import is_nesting_enabled
     not_enabled = is_nesting_enabled()
     enable_nesting()
     is_enabled = is_nesting_enabled()
+    disable_nesting()
+    is_disabled = is_nesting_enabled()
     assert not_enabled is False, "ERROR: Nesting must not be enabled by default."  # noqa: E501
     assert is_enabled is True, "ERROR: Nesting has not been enabled."
+    assert is_disabled is False, "ERROR: Nesting has not been disabled."

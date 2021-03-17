@@ -198,7 +198,11 @@ public abstract class ExternalInvoker extends Invoker {
         switch (type) {
             case FILE_T:
                 // Passing originalName link instead of renamed file
-                String originalFile = np.getOriginalName();
+                // String originalFile = np.getOriginalName();
+                String originalFile = "null";
+                if (np.getSourceDataId() != null) {
+                    originalFile = np.getOriginalName();
+                }
                 String destFile = new File(np.getRenamedName()).getName();
                 if (!isRuntimeRenamed(destFile)) {
                     // Treat corner case: Destfile is original name. Parameter is INPUT with shared disk, so

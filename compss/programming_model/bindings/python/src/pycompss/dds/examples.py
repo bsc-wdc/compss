@@ -23,7 +23,11 @@ from random import Random
 
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.dds import DDS
-from pycompss.dds.example_tasks import *
+from pycompss.dds.example_tasks import cluster_points_partial
+from pycompss.dds.example_tasks import partial_sum
+from pycompss.dds.example_tasks import task_count_locally
+from pycompss.dds.example_tasks import reduce_centers
+from pycompss.dds.example_tasks import get_similar_files
 
 
 def inside(_):
@@ -89,6 +93,27 @@ def merge_reduce(f, data):
         else:
             return data[x]
 
+# # Used only in step 2 of wordcount k-means
+# def __count_locally__(element):
+#     from collections import Counter
+#     file_name, text = element
+#
+#     filtered_words = [word for word in text.split() if word.isalnum()]
+#     cnt = Counter(filtered_words)
+#
+#     for _word in vocab.keys():
+#         if _word not in cnt:
+#             cnt[_word] = 0
+#
+#     return file_name, sorted(cnt.items())
+#
+#
+# # Used only in step 2 of wordcount k-means
+# def __gen_array__(element):
+#     import numpy as np
+#     values = [int(v) for k, v in element[1]]
+#     return np.array(values)
+
 
 def wordcount_k_means():
     import numpy as np
@@ -102,30 +127,13 @@ def wordcount_k_means():
         .map(lambda x: ''.join(e for e in x if e.isalnum())) \
         .count_by_value(arity=2, as_dict=True, as_fo=True)
 
-    def count_locally(element):
-        from collections import Counter
-        file_name, text = element
-
-        filtered_words = [word for word in text.split() if word.isalnum()]
-        cnt = Counter(filtered_words)
-
-        for _word in vocab.keys():
-            if _word not in cnt:
-                cnt[_word] = 0
-
-        return file_name, sorted(cnt.items())
-
-    def gen_array(element):
-        values = [int(v) for k, v in element[1]]
-        return np.array(values)
-
     total = len(os.listdir(f_path))
     max_iter = 2
     frags = 4
     epsilon = 1e-10
     size = total/frags
     k = 4
-    # dim = len(vocabulary)
+    # The number of dimensions corresponds to: dim = len(vocabulary)
     dim = 742
 
     # to acces file names by index returned from the clusters..
@@ -135,8 +143,8 @@ def wordcount_k_means():
 
     # step 2
     # wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
-    #     .map(count_locally, vocabulary)\
-    #     .map(gen_array)\
+    #     .map(__count_locally__, vocabulary)\
+    #     .map(__gen_array__)\
 
     wc_per_file = list()
 

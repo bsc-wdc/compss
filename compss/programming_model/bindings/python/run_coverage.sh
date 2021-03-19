@@ -32,6 +32,13 @@
     echo "[INFO] Coverage3 tests finished."
   }
 
+  clean_temps() {
+    echo "[INFO] Cleaning"
+    rm src/pycompss/tests/dds/dataset/pickles/00001
+    rm src/pycompss/tests/dds/dataset/tmp/00001
+    git co src/pycompss/tests/dds/dataset/pickles/00000
+  }
+
 
   #
   # MAIN
@@ -48,6 +55,7 @@
 
   # Run coverage on pycompss folder
   run_python2
+  clean_temps
 
   # Generate XML file
 #  python2 -m coverage xml
@@ -59,6 +67,7 @@
 
   # Run coverage on pycompss folder
   run_python3
+  clean_temps
 
   # Generate XML file
   python3 -m coverage xml

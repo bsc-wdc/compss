@@ -48,13 +48,13 @@ def test_on_failure_unsupported_call():
     context.set_pycompss_context(context.MASTER)
     thrown = False
     try:
-        my_on_failure = on_failure(management="UNDEFINED")
+        _ = on_failure(management="UNDEFINED")
     except Exception:  # noqa
         thrown = True
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert(
         thrown
-    ) , "The on_failure decorator did not raised an exception with unsupported management value."  # noqa: E501
+    ), "The on_failure decorator did not raised an exception with unsupported management value."  # noqa: E501
 
 
 def test_on_failure_call_outside():

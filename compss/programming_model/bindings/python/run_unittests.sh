@@ -1,5 +1,13 @@
 #!/bin/bash -e
 
+
+  clean_temps() {
+    echo "[INFO] Cleaning"
+    rm src/pycompss/tests/dds/dataset/pickles/00001
+    rm src/pycompss/tests/dds/dataset/tmp/00001
+    git co src/pycompss/tests/dds/dataset/pickles/00000
+  }
+
   #
   # MAIN
   #
@@ -17,6 +25,7 @@
     echo "ERROR: FAILED unittests with Python 2"
     exit ${exit_code}
   fi
+  clean_temps
 
   # Clean pyc files
   find . -type f -name '*.pyc' -exec rm {} \;
@@ -27,6 +36,7 @@
     echo "ERROR: FAILED unittests with Python 3"
     exit ${exit_code}
   fi
+  clean_temps
 
   # Clean all __pycache__
   # Not necessary for normal unittests, probably for integration.

@@ -16,6 +16,7 @@
 #
 
 from pycompss.api.task import task
+from pycompss.api.reduction import reduction
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import COLLECTION_INOUT
@@ -81,6 +82,22 @@ def sum_all_sides_of_dictionary(value):
     return keys, result
 
 
+# REDUCE WITH COLLECTIONS
+
+@reduction(chunk_size="2")
+@task(returns=1, col=COLLECTION_IN)
+def my_reduction(col):
+    r = 0
+    for i in col:
+        r += i
+    return r
+
+
+@task(returns=1)
+def increment(v):
+    return v + 1
+
+
 def main():
     initial = []
     generate_collection(initial)
@@ -98,6 +115,17 @@ def main():
     assert len(keys) == 3 and "a" in keys and "b" in keys and "c" in keys,\
         "ERROR: Unexpected keys (%s != abc (in any order))." % str(keys)
     assert result == 36, "ERROR: Unexpected result (%s != 36)." % str(result)
+
+    # Reduction
+    num_tasks = 5
+    a = [x for x in range(1, num_tasks + 1)]
+    result = []
+    for element in a:
+        result.append(increment(element))
+    # Reduction task
+    final = my_reduction(result)
+    final = compss_wait_on(final)
+    assert final == 20, "ERROR: Unexpected result (%s != 20)." % str(result)
 
 # Uncomment for command line check:
 # if __name__ == '__main__':

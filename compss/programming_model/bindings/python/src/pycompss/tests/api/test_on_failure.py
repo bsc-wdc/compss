@@ -61,15 +61,8 @@ def test_on_failure_call_outside():
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     my_on_failure = on_failure(management="IGNORE")
     f = my_on_failure(dummy_function)
-    thrown = True
-    try:
-        _ = f()
-    except Exception:  # noqa
-        thrown = False  # this is OK!
+    _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        thrown
-    ), "The on_failure decorator did raised an exception when invoked out of scope."  # noqa: E501
 
 
 def test_on_failure_existing_core_element():

@@ -51,9 +51,11 @@ string read_result_from_pipe(){
 		printf("\n[BINDING-COMMONS] ERROR: Pipe is not set");
 	    return NULL;
 	}
-	ifstream file(result_pipe);
-    string line;
-    getline(file, line);
+    string line="";
+    while (line.length() == 0) {
+        ifstream file(result_pipe);
+        getline(file, line);
+    }
     return line;
 }
 

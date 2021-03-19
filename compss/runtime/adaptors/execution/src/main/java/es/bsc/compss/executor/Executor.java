@@ -139,7 +139,7 @@ public class Executor implements Runnable, InvocationRunner {
      * @param executorId Executor Identifier
      */
     public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
-        LOGGER.info("Executor init");
+        LOGGER.info("Executor " + executorId + " init");
         this.context = context;
         this.platform = platform;
         this.id = executorId;
@@ -176,7 +176,7 @@ public class Executor implements Runnable, InvocationRunner {
         if (Tracer.extraeEnabled()) {
             emitAffinityEndEvents();
         }
-        LOGGER.info("Executor finished");
+        LOGGER.info("Executor " + this.id + " finished");
         Collection<ExecutionPlatformMirror<?>> mirrors = platform.getMirrors();
         for (ExecutionPlatformMirror<?> mirror : mirrors) {
             mirror.unregisterExecutor(id);

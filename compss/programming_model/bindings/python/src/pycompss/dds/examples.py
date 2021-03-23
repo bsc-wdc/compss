@@ -115,7 +115,7 @@ def merge_reduce(f, data):
 #     return np.array(values)
 
 
-def wordcount_k_means():
+def wordcount_k_means(dim=742):
     import numpy as np
 
     f_path = sys.argv[1]
@@ -134,7 +134,7 @@ def wordcount_k_means():
     size = total/frags
     k = 4
     # The number of dimensions corresponds to: dim = len(vocabulary)
-    dim = 742
+    # dim = 742  # added as parameter to allow unittests with different dataset
 
     # to acces file names by index returned from the clusters..
     # load_files_from_list will also sort them alphabetically

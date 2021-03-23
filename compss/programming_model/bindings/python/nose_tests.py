@@ -105,7 +105,8 @@ FILES_WHITE_LIST = [
     'pycompss/tests/worker/test_gat.py',
     'pycompss/tests/worker/test_piper.py',
     'pycompss/tests/worker/test_mpi_piper.py',
-    'pycompss/tests/worker/test_external_mpi.py'
+    'pycompss/tests/worker/test_external_mpi.py',
+    'pycompss/tests/worker/test_piper_worker_cache.py'
 ]
 FILES_BLACK_LIST = [
 ]

@@ -50,7 +50,8 @@ SHARED_MEMORY_MANAGER = None
 SHARED_MEMORY_TAG = "SharedMemory"
 SHAREABLE_LIST_TAG = "ShareableList"
 SHAREABLE_TUPLE_TAG = "ShareableTuple"
-SHAREABLE_DICT_TAG = "ShareableTuple"
+# Currently dicts are unsupported since conversion requires nesting of lists.
+# SHAREABLE_DICT_TAG = "ShareableTuple"
 
 AUTH_KEY = b"compss_cache"
 IP = "127.0.0.1"
@@ -247,9 +248,10 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     elif shared_type == SHAREABLE_TUPLE_TAG:
         existing_shm = ShareableList(name=obj_id)
         output = tuple(existing_shm)
-    elif shared_type == SHAREABLE_DICT_TAG:
-        existing_shm = ShareableList(name=obj_id)
-        output = dict(existing_shm)
+    # Currently unsupported since conversion requires lists of lists.
+    # elif shared_type == SHAREABLE_DICT_TAG:
+    #     existing_shm = ShareableList(name=obj_id)
+    #     output = dict(existing_shm)
     else:
         raise PyCOMPSsException("Unknown cacheable type.")
     if __debug__:
@@ -311,13 +313,14 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
             cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa: E501
-        elif isinstance(obj, dict):
-            # Convert dict to list of tuples
-            list_tuples = list(zip(obj.keys(), obj.values()))
-            sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
-            new_cache_id = sl.shm.name
-            size = total_sizeof(obj)
-            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa: E501
+        # Unsupported dicts since they are lists of lists when converted.
+        # elif isinstance(obj, dict):
+        #     # Convert dict to list of tuples
+        #     list_tuples = list(zip(obj.keys(), obj.values()))
+        #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
+        #     new_cache_id = sl.shm.name
+        #     size = total_sizeof(obj)
+        #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa: E501
         else:
             if __debug__:
                 logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501

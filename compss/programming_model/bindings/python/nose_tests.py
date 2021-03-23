@@ -87,6 +87,8 @@ FILES_WHITE_LIST = [
     'pycompss/tests/runtime/test_object_tracker.py',
     'pycompss/tests/runtime/test_core_element.py',
     'pycompss/tests/runtime/test_management_direction.py',
+    'pycompss/tests/runtime/test_link.py',
+    'pycompss/tests/runtime/test_COMPSs.py',
     'pycompss/tests/streams/test_distro_stream_client.py',
     'pycompss/tests/util/test_arguments.py',
     'pycompss/tests/util/test_context.py',

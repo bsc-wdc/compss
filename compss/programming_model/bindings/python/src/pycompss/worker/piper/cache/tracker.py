@@ -176,17 +176,23 @@ def check_cache_status(conf, used_size, requested_size):
     size_to_recover = used_size + requested_size - max_size
     # Select how many to evict
     to_evict = list()
+    position = 0
+    recovered_size = 0
+    keys = list(sorted_cache_ids.keys())
     while size_to_recover > 0:
-        for k, v in sorted_cache_ids.items():
-            to_evict.append(k)
-            size_to_recover = size_to_recover - v[3]
+        key = keys[position]
+        value = sorted_cache_ids[key]
+        to_evict.append(key)
+        size_to_recover = size_to_recover - value[3]
+        recovered_size = recovered_size + value[3]
+        position = position + 1
+
     if __debug__:
         logger.debug(HEADER + "Evicting %d entries" % (len(to_evict)))
     # Evict
     for entry in to_evict:
         cache_ids.pop(entry)
-
-    return used_size - size_to_recover
+    return used_size - recovered_size
 
 
 def load_shared_memory_manager():

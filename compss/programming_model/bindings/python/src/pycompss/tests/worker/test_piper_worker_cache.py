@@ -30,6 +30,7 @@ from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
 from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
 from pycompss.worker.piper.cache.tracker import remove_object_from_cache
 from pycompss.worker.piper.cache.tracker import replace_object_into_cache
+from pycompss.worker.piper.cache.tracker import in_cache
 
 
 def test_is_cache_enabled():
@@ -48,6 +49,7 @@ def test_is_cache_enabled():
 
 def test_piper_worker_cache():
     if sys.version_info >= (3, 8):
+        # Initiate cache
         smm, cache_process, cache_queue, cache_ids = start_cache(logging,
                                                                  "Default")
         load_shared_memory_manager()
@@ -93,6 +95,57 @@ def test_piper_worker_cache():
         assert (
             is_ok
         ), "ERROR: List has not been removed."
+        # Check if in cache
+        assert (
+            in_cache(np_obj_name, cache_ids)
+        ), "ERROR: numpy object not in cache. And it should be."
+        assert (
+            not in_cache(list_obj_name, cache_ids)
+        ), "ERROR: list object should not be in cache."
+        assert (
+            not in_cache(list_obj_name, {})
+        ), "ERROR: in cache should return False if dict is empty."
+        # Stop cache
+        stop_cache(smm, cache_queue, cache_process)
+    else:
+        print("WARNING: Could not perform cache test since python version is lower than 3.8")  # noqa: E501
+
+
+def test_piper_worker_cache_stress():
+    if sys.version_info >= (3, 8):
+        # Initiate cache
+        smm, cache_process, cache_queue, cache_ids = start_cache(logging,
+                                                                 "true:100")
+        load_shared_memory_manager()
+        # Create multiple objects:
+        amount = 40
+        np_objs = [np.random.rand(4) for _ in range(amount)]
+        np_objs_names = ["name" + str(i) for i in range(amount)]
+        # Check insertions
+        for i in range(amount):
+            insert_object_into_cache_wrapper(logging, cache_queue,
+                                             np_objs[i], np_objs_names[i])
+        # Stop cache
+        stop_cache(smm, cache_queue, cache_process)
+    else:
+        print("WARNING: Could not perform cache test since python version is lower than 3.8")  # noqa: E501
+
+
+def test_piper_worker_cache_reuse():
+    if sys.version_info >= (3, 8):
+        # Initiate cache
+        smm, cache_process, cache_queue, cache_ids = start_cache(logging,
+                                                                 "true:100")
+        load_shared_memory_manager()
+        # Create multiple objects and store with the same name:
+        amount = 10
+        np_objs = [np.random.rand(4) for _ in range(amount)]
+        np_objs_names = ["name" for i in range(amount)]
+        # Check insertions
+        for i in range(amount):
+            insert_object_into_cache_wrapper(logging, cache_queue,
+                                             np_objs[i], np_objs_names[i])
+        # Stop cache
         stop_cache(smm, cache_queue, cache_process)
     else:
         print("WARNING: Could not perform cache test since python version is lower than 3.8")  # noqa: E501

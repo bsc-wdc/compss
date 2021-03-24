@@ -93,7 +93,6 @@ def test_inverted_indexing_example():
 
 
 def main():
-
     # Examples to run
     test_pi_estimation_example()
     test_transitive_closure_example()
@@ -101,4 +100,3 @@ def main():
     test_wordcount_k_means_example()
     test_terasort_example()
     test_inverted_indexing_example()
-

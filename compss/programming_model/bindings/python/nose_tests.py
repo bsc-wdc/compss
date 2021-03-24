@@ -93,6 +93,7 @@ FILES_WHITE_LIST = [
     'pycompss/tests/streams/test_distro_stream_client.py',
     'pycompss/tests/util/test_arguments.py',
     'pycompss/tests/util/test_context.py',
+    'pycompss/tests/util/test_exceptions.py',
     'pycompss/tests/util/test_jvm_parser.py',
     'pycompss/tests/util/test_mpi_helper.py',
     'pycompss/tests/util/test_objects.py',

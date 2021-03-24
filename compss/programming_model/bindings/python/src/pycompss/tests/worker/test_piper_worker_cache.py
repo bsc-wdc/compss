@@ -33,6 +33,9 @@ from pycompss.worker.piper.cache.tracker import replace_object_into_cache
 from pycompss.worker.piper.cache.tracker import in_cache
 
 
+NOT_PYTHON_3_8 = "WARNING: Could not perform cache test since python version is lower than 3.8"  # noqa: E501
+
+
 def test_is_cache_enabled():
     if sys.version_info >= (3, 8):
         case1 = is_cache_enabled("true")
@@ -44,7 +47,7 @@ def test_is_cache_enabled():
         case4 = is_cache_enabled("True:1000")
         assert not case4, "Unexpected return. Expected: <bool> False"
     else:
-        print("WARNING: Could not perform cache test since python version is lower than 3.8")  # noqa: E501
+        print(NOT_PYTHON_3_8)
 
 
 def test_piper_worker_cache():
@@ -108,7 +111,7 @@ def test_piper_worker_cache():
         # Stop cache
         stop_cache(smm, cache_queue, cache_process)
     else:
-        print("WARNING: Could not perform cache test since python version is lower than 3.8")  # noqa: E501
+        print(NOT_PYTHON_3_8)
 
 
 def test_piper_worker_cache_stress():
@@ -128,7 +131,7 @@ def test_piper_worker_cache_stress():
         # Stop cache
         stop_cache(smm, cache_queue, cache_process)
     else:
-        print("WARNING: Could not perform cache test since python version is lower than 3.8")  # noqa: E501
+        print(NOT_PYTHON_3_8)
 
 
 def test_piper_worker_cache_reuse():
@@ -140,7 +143,7 @@ def test_piper_worker_cache_reuse():
         # Create multiple objects and store with the same name:
         amount = 10
         np_objs = [np.random.rand(4) for _ in range(amount)]
-        np_objs_names = ["name" for i in range(amount)]
+        np_objs_names = ["name" for _ in range(amount)]
         # Check insertions
         for i in range(amount):
             insert_object_into_cache_wrapper(logging, cache_queue,
@@ -148,4 +151,4 @@ def test_piper_worker_cache_reuse():
         # Stop cache
         stop_cache(smm, cache_queue, cache_process)
     else:
-        print("WARNING: Could not perform cache test since python version is lower than 3.8")  # noqa: E501
+        print(NOT_PYTHON_3_8)

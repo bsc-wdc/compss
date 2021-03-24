@@ -17,8 +17,10 @@
 import os
 import pickle
 
-from pycompss.api.api import compss_wait_on as cwo
-from pycompss.api.parameter import INOUT, IN, COLLECTION_OUT, COLLECTION_IN
+from pycompss.api.parameter import INOUT
+from pycompss.api.parameter import IN
+from pycompss.api.parameter import COLLECTION_OUT
+from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 

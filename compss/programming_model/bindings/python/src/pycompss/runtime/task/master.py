@@ -844,28 +844,20 @@ class TaskMaster(TaskCommons):
             # Avoid reference cycles
             del frame
 
-        if len(app_frames) == 1:
-            # The task is defined within the main app file.
-            # This case is never reached with Python 3 since it includes
-            # frames that are not present with Python 2.
-            impl_signature = ".".join((self.module_name, self.function_name))
-            impl_type_args = [self.module_name, self.function_name]
+        if len(app_frames) != 1 and self.class_name:
+            # Within class or subclass
+            impl_signature = ".".join((self.module_name, self.class_name,
+                                       self.function_name))
+            impl_type_args = [".".join((self.module_name, self.class_name)),
+                              self.function_name]
         else:
-            if self.class_name:
-                # Within class or subclass
-                impl_signature = ".".join((self.module_name,
-                                           self.class_name,
-                                           self.function_name))
-                impl_type_args = [".".join((self.module_name,
-                                            self.class_name)),
-                                  self.function_name]
-            else:
-                # Not in a class or subclass
-                # This case can be reached in Python 3, where particular
-                # frames are included, but not class names found.
-                impl_signature = ".".join((self.module_name, self.function_name))  # noqa: E501
-                impl_type_args = [self.module_name, self.function_name]
-
+            # The task is defined within the main app file.
+            # Not in a class or subclass
+            # This case can be reached in Python 3, where particular
+            # frames are included, but not class names found.
+            impl_signature = ".".join((self.module_name,
+                                       self.function_name))
+            impl_type_args = [self.module_name, self.function_name]
         return impl_signature, impl_type_args
 
     def update_core_element(self, impl_signature, impl_type_args,

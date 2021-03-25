@@ -19,16 +19,20 @@ import os
 import sys
 import time
 
-from random import Random
+import random
 
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.dds import DDS
-from example_tasks import *
+from pycompss.dds.example_tasks import cluster_points_partial
+from pycompss.dds.example_tasks import partial_sum
+from pycompss.dds.example_tasks import task_count_locally
+from pycompss.dds.example_tasks import reduce_centers
+from pycompss.dds.example_tasks import get_similar_files
 
 
 def inside(_):
-    import random
-    x, y = random.random(), random.random()  # NOSONAR
+    x = random.random()  # NOSONAR
+    y = random.random()  # NOSONAR
     if (x * x) + (y * y) < 1:
         return True
 
@@ -36,7 +40,7 @@ def inside(_):
 def _generate_graph():
     num_edges = 10
     num_vertices = 5
-    rand = Random(42)
+    rand = random.Random(42)
 
     edges = set()
     while len(edges) < num_edges:
@@ -67,7 +71,7 @@ def _invert_files(pair):
 
 
 def has_converged(mu, old_mu, epsilon):
-
+    import numpy as np
     if not old_mu:
         return False
 
@@ -89,8 +93,34 @@ def merge_reduce(f, data):
         else:
             return data[x]
 
+# # Used only in step 2 of wordcount k-means
+# def __count_locally__(element):
+#     from collections import Counter
+#     file_name, text = element
+#
+#     filtered_words = [word for word in text.split() if word.isalnum()]
+#     cnt = Counter(filtered_words)
+#
+#     for _word in vocab.keys():
+#         if _word not in cnt:
+#             cnt[_word] = 0
+#
+#     return file_name, sorted(cnt.items())
+#
+#
+# # Used only in step 2 of wordcount k-means
+# def __gen_array__(element):
+#     import numpy as np
+#     values = [int(v) for k, v in element[1]]
+#     return np.array(values)
 
-def wordcount_k_means():
+
+def wordcount_k_means(dim=742):
+    """
+    TODO: Missing documentation
+    """
+    import numpy as np
+
     f_path = sys.argv[1]
 
     start_time = time.time()
@@ -100,42 +130,24 @@ def wordcount_k_means():
         .map(lambda x: ''.join(e for e in x if e.isalnum())) \
         .count_by_value(arity=2, as_dict=True, as_fo=True)
 
-    def count_locally(element):
-        from collections import Counter
-        file_name, text = element
-
-        filtered_words = [word for word in text.split() if word.isalnum()]
-        cnt = Counter(filtered_words)
-
-        for _word in vocab.keys():
-            if _word not in cnt:
-                cnt[_word] = 0
-
-        return file_name, sorted(cnt.items())
-
-    def gen_array(element):
-        import numpy as np
-        values = [int(v) for k, v in element[1]]
-        return np.array(values)
-
     total = len(os.listdir(f_path))
     max_iter = 2
     frags = 4
     epsilon = 1e-10
     size = total/frags
     k = 4
-    # dim = len(vocabulary)
-    dim = 742
+    # The number of dimensions corresponds to: dim = len(vocabulary)
+    # dim = 742  # added as parameter to allow unittests with different dataset
 
-    # to acces file names by index returned from the clusters..
+    # to access file names by index returned from the clusters..
     # load_files_from_list will also sort them alphabetically
     indexes = [os.path.join(f_path, f)
                for f in sorted(os.listdir(f_path))]
 
     # step 2
     # wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
-    #     .map(count_locally, vocabulary)\
-    #     .map(gen_array)\
+    #     .map(__count_locally__, vocabulary)\
+    #     .map(__gen_array__)\
 
     wc_per_file = list()
 
@@ -152,20 +164,14 @@ def wordcount_k_means():
         old_mu = mu
         clusters = [cluster_points_partial([wc_per_file[f]], mu, int(f * size))
                     for f in range(frags)]
-
         partial_result = [partial_sum([wc_per_file[f]], clusters[f], int(f * size))
                           for f in range(frags)]
-
         mu = merge_reduce(reduce_centers, partial_result)
-
         mu = cwo(mu)
-
         mu = [mu[c][1] / mu[c][0] for c in mu]
-
         while len(mu) < k:
             # Add a new random center if one of the centers has no points.
             mu.append(np.random.randint(1, 3, dim))
-
         n += 1
 
     clusters_with_frag = cwo(clusters)
@@ -192,12 +198,13 @@ def wordcount_k_means():
 
     print("-----------------------------")
     print("Kmeans Timed {} (s)".format(time.time() - start_time))
-
     print("Iterations: ", n)
 
 
 def word_count():
-
+    """
+    TODO: Missing documentation
+    """
     path_file = sys.argv[1]
     start = time.time()
 
@@ -225,10 +232,12 @@ def pi_estimation():
 
 def terasort():
     """
+    TODO: Missing documentation
     """
 
     dir_path = sys.argv[1]
     dest_path = sys.argv[2]
+    # Commented out code for unknown reason:
     # partitions = sys.argv[2] if len(sys.argv) > 2 else -1
 
     start_time = time.time()
@@ -237,6 +246,7 @@ def terasort():
         .flat_map(files_to_pairs) \
         .sort_by_key().save_as_text_file(dest_path)
 
+    # Commented out code for unknown reason:
     # compss_barrier()
     # test = DDS().load_pickle_files(dest_path).map(lambda x: x).collect()
     # print(test[-1:])
@@ -246,7 +256,9 @@ def terasort():
 
 
 def inverted_indexing():
-
+    """
+    TODO: Missing documentation
+    """
     path = sys.argv[1]
     start_time = time.time()
     result = DDS().load_files_from_dir(path).flat_map(_invert_files)\
@@ -256,11 +268,13 @@ def inverted_indexing():
 
 
 def transitive_closure(partitions=None):
-
-    # path = sys.argv[1]
+    """
+    TODO: Missing documentation
+    """
     if not partitions:
         partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
-    #
+    # Commented out code for unknown reason:
+    # path = sys.argv[1]
     # od = DDS().load_text_file(path, partitions) \
     #     .map(lambda line: (int(line.split(",")[0]), int(line.split(",")[1])))\
     #     .collect(future_objects=True)
@@ -270,7 +284,6 @@ def transitive_closure(partitions=None):
     # Because join() joins on keys, the edges are stored in reversed order.
     edges = DDS().load(od, -1).map(lambda x_y: (x_y[1], x_y[0]))
 
-    old_count = 0
     next_count = DDS().load(od, -1).count()
 
     while True:
@@ -291,7 +304,11 @@ def transitive_closure(partitions=None):
 
 
 def main_program():
+    """
+    TODO: Missing documentation
+    """
     print("________RUNNING EXAMPLES_________")
+    # Available examples:
     # pi_estimation()
     # word_count()
     # terasort()

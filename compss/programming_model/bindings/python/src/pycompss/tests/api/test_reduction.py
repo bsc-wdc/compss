@@ -40,6 +40,7 @@ def test_reduction_instantiation():
     assert (
         my_reduction.decorator_name == "@reduction"
     ), "The decorator name must be @reduction."
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
 
 
 def test_reduction_call():
@@ -47,6 +48,7 @@ def test_reduction_call():
     my_reduction = reduction()
     f = my_reduction(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
@@ -59,6 +61,7 @@ def test_reduction_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         thrown
     ), "The compss decorator did not raise an exception when invoked out of scope."  # noqa: E501
@@ -70,6 +73,7 @@ def test_reduction_chunk_size_parameter():
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "chunk_size" in my_reduction.kwargs
     ), CHUNK_SIZE_ERROR
@@ -84,6 +88,7 @@ def test_reduction_chunk_size_str_parameter():
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "chunk_size" in my_reduction.kwargs
     ), CHUNK_SIZE_ERROR
@@ -100,6 +105,7 @@ def test_reduction_chunk_size_str_exception_parameter():
         _ = reduction(chunk_size=chunk_size)
     except PyCOMPSsException:
         ok = True
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         ok
     ), EXPECTED_EXCEPTION_ERROR
@@ -113,6 +119,7 @@ def test_reduction_chunk_size_other_exception_parameter():
         _ = reduction(chunk_size=chunk_size)
     except PyCOMPSsException:
         ok = True
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         ok
     ), EXPECTED_EXCEPTION_ERROR
@@ -125,6 +132,7 @@ def test_reduction_chunk_size_str_env_var_parameter():
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "chunk_size" in my_reduction.kwargs
     ), CHUNK_SIZE_ERROR
@@ -140,6 +148,7 @@ def test_reduction_chunk_size_str_env_var_brackets_parameter():
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "chunk_size" in my_reduction.kwargs
     ), CHUNK_SIZE_ERROR
@@ -157,6 +166,7 @@ def test_reduction_chunk_size_str_env_var_exception_parameter():
         _ = reduction(chunk_size=chunk_size)
     except PyCOMPSsException:
         ok = True
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         ok
     ), EXPECTED_EXCEPTION_ERROR
@@ -168,6 +178,7 @@ def test_reduction_is_reduce_parameter():
     my_reduction = reduction(is_reduce=is_reduce)
     f = my_reduction(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "is_reduce" in my_reduction.kwargs
     ), "is_reduce is not defined in kwargs dictionary."
@@ -182,6 +193,7 @@ def test_reduction_existing_core_element():
     f = my_reduction(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         CORE_ELEMENT_KEY not in my_reduction.kwargs
     ), "Core Element is not defined in kwargs dictionary."

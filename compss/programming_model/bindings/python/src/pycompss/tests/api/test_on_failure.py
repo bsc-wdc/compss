@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.IO import IO
+from pycompss.api.on_failure import on_failure
 from pycompss.runtime.task.core_element import CE
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 import pycompss.util.context as context
@@ -27,44 +27,51 @@ def dummy_function(*args, **kwargs):  # noqa
     return 1
 
 
-def test_io_instantiation():
+def test_on_failure_instantiation():
     context.set_pycompss_context(context.MASTER)
-    my_io = IO()
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert my_io.decorator_name == "@io", "The decorator name must be @io."
+    my_on_failure = on_failure(management="IGNORE")
+    assert (
+        my_on_failure.decorator_name == "@onfailure"
+    ), "The decorator name must be @onfailure: "
 
 
-def test_io_call():
+def test_on_failure_call():
     context.set_pycompss_context(context.MASTER)
-    my_io = IO()
-    f = my_io(dummy_function)
+    my_on_failure = on_failure(management="IGNORE")
+    f = my_on_failure(dummy_function)
     result = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
-def test_io_call_outside():
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
-    my_io = IO()
-    f = my_io(dummy_function)
+def test_on_failure_unsupported_call():
+    context.set_pycompss_context(context.MASTER)
     thrown = False
     try:
-        _ = f()
+        _ = on_failure(management="UNDEFINED")
     except Exception:  # noqa
-        thrown = True  # this is OK!
+        thrown = True
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
+    assert(
         thrown
-    ), "The ompss decorator did not raise an exception when invoked out of scope."  # noqa: E501
+    ), "The on_failure decorator did not raised an exception with unsupported management value."  # noqa: E501
 
 
-def test_io_existing_core_element():
+def test_on_failure_call_outside():
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    my_on_failure = on_failure(management="IGNORE")
+    f = my_on_failure(dummy_function)
+    _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
+
+
+def test_on_failure_existing_core_element():
     context.set_pycompss_context(context.MASTER)
-    my_io = IO()
-    f = my_io(dummy_function)
+    my_on_failure = on_failure(management="IGNORE")
+    f = my_on_failure(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
-        CORE_ELEMENT_KEY not in my_io.kwargs
+        CORE_ELEMENT_KEY not in my_on_failure.kwargs
     ), "Core Element is not defined in kwargs dictionary."

@@ -23,6 +23,7 @@ loaded on master and sent to workers, or read from files on worker nodes.
 """
 import pickle
 import sys
+from pycompss.util.exceptions import DDSException
 
 
 class IPartitionGenerator(object):
@@ -66,11 +67,9 @@ class IteratorLoader(IPartitionGenerator):
         if isinstance(self.iterable, dict):
             sorted_keys = sorted(self.iterable.keys())
             for key in sorted_keys[self.start:self.end]:
-                # yield key, self.iterable[key]
                 ret.append((key, self.iterable[key]))
         elif isinstance(self.iterable, list):
             for item in iter(self.iterable[self.start:self.end]):
-                # yield item
                 ret.append(item)
         else:
             index = 0
@@ -79,9 +78,7 @@ class IteratorLoader(IPartitionGenerator):
                 if index > self.end:
                     break
                 elif index > self.start:
-                    # yield item
                     ret.append(item)
-
         return ret
 
 
@@ -96,7 +93,7 @@ class WorkerFileLoader(IPartitionGenerator):
         self.chunk_size = chunk_size
 
         if self.single_file and not chunk_size:
-            raise Exception("Missing chunk_size argument...")
+            raise DDSException("Missing chunk_size argument...")
 
     def retrieve_data(self):
 

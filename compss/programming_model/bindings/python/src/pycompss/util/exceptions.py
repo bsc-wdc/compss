@@ -103,3 +103,12 @@ def task_cancel(signum, frame):  # noqa
     :raises: CancelError exception.
     """
     raise CancelError
+
+
+class DDSException(Exception):
+    """
+    Generic DDS exception
+    """
+
+    def __init__(self, message):
+        super(DDSException, self).__init__(message)

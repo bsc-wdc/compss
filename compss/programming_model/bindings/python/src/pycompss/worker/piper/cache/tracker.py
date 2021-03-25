@@ -50,7 +50,8 @@ SHARED_MEMORY_MANAGER = None
 SHARED_MEMORY_TAG = "SharedMemory"
 SHAREABLE_LIST_TAG = "ShareableList"
 SHAREABLE_TUPLE_TAG = "ShareableTuple"
-SHAREABLE_DICT_TAG = "ShareableTuple"
+# Currently dicts are unsupported since conversion requires nesting of lists.
+# SHAREABLE_DICT_TAG = "ShareableTuple"
 
 AUTH_KEY = b"compss_cache"
 IP = "127.0.0.1"
@@ -175,17 +176,23 @@ def check_cache_status(conf, used_size, requested_size):
     size_to_recover = used_size + requested_size - max_size
     # Select how many to evict
     to_evict = list()
+    position = 0
+    recovered_size = 0
+    keys = list(sorted_cache_ids.keys())
     while size_to_recover > 0:
-        for k, v in sorted_cache_ids.items():
-            to_evict.append(k)
-            size_to_recover = size_to_recover - v[3]
+        key = keys[position]
+        value = sorted_cache_ids[key]
+        to_evict.append(key)
+        size_to_recover = size_to_recover - value[3]
+        recovered_size = recovered_size + value[3]
+        position = position + 1
+
     if __debug__:
         logger.debug(HEADER + "Evicting %d entries" % (len(to_evict)))
     # Evict
     for entry in to_evict:
         cache_ids.pop(entry)
-
-    return used_size - size_to_recover
+    return used_size - recovered_size
 
 
 def load_shared_memory_manager():
@@ -247,9 +254,10 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     elif shared_type == SHAREABLE_TUPLE_TAG:
         existing_shm = ShareableList(name=obj_id)
         output = tuple(existing_shm)
-    elif shared_type == SHAREABLE_DICT_TAG:
-        existing_shm = ShareableList(name=obj_id)
-        output = dict(existing_shm)
+    # Currently unsupported since conversion requires lists of lists.
+    # elif shared_type == SHAREABLE_DICT_TAG:
+    #     existing_shm = ShareableList(name=obj_id)
+    #     output = dict(existing_shm)
     else:
         raise PyCOMPSsException("Unknown cacheable type.")
     if __debug__:
@@ -311,13 +319,14 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
             cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa: E501
-        elif isinstance(obj, dict):
-            # Convert dict to list of tuples
-            list_tuples = list(zip(obj.keys(), obj.values()))
-            sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
-            new_cache_id = sl.shm.name
-            size = total_sizeof(obj)
-            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa: E501
+        # Unsupported dicts since they are lists of lists when converted.
+        # elif isinstance(obj, dict):
+        #     # Convert dict to list of tuples
+        #     list_tuples = list(zip(obj.keys(), obj.values()))
+        #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
+        #     new_cache_id = sl.shm.name
+        #     size = total_sizeof(obj)
+        #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa: E501
         else:
             if __debug__:
                 logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501

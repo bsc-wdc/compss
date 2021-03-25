@@ -34,6 +34,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_multinode_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_multinode = MultiNode()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         my_multinode.decorator_name == "@multinode"
     ), "The decorator name must be @multinode."
@@ -48,6 +49,7 @@ def test_multinode_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         thrown
     ), "The multinode decorator did not raise an exception when invoked out of scope."  # noqa: E501
@@ -58,6 +60,7 @@ def test_multinode_call_master():
     my_multinode = MultiNode()
     f = my_multinode(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -76,6 +79,7 @@ def test_multinode_call_worker():
     del os.environ["COMPSS_NUM_THREADS"]
     del os.environ["COMPSS_HOSTNAMES"]
     # Check result
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -106,6 +110,7 @@ def test_multinode_call_worker_with_slurm():
     del os.environ["SLURM_MEM_PER_NODE"]
     del os.environ["SLURM_MEM_PER_CPU"]
     # Check result
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -115,6 +120,7 @@ def test_multinode_existing_core_element():
     f = my_multinode(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         CORE_ELEMENT_KEY not in my_multinode.kwargs
     ), "Core Element is not defined in kwargs dictionary."

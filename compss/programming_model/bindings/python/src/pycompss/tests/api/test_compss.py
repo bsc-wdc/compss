@@ -30,6 +30,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_compss_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_compss = COMPSs(app_name="date")
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         my_compss.decorator_name == "@compss"
     ), "The decorator name must be @compss."
@@ -40,6 +41,7 @@ def test_compss_call():
     my_compss = COMPSs(app_name="date")
     f = my_compss(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
@@ -52,6 +54,7 @@ def test_compss_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         thrown
     ), "The compss decorator did not raise an exception when invoked out of scope."  # noqa: E501
@@ -63,6 +66,7 @@ def test_compss_appName_parameter():  # NOSONAR
     my_compss = COMPSs(app_name="date", appName=app_name)
     f = my_compss(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "appName" in my_compss.kwargs
     ), "appName is not defined in kwargs dictionary."
@@ -77,6 +81,7 @@ def test_compss_runcompss_parameter():
     my_compss = COMPSs(app_name="date", runcompss=runcompss)
     f = my_compss(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "runcompss" in my_compss.kwargs
     ), "Runcompss is not defined in kwargs dictionary."
@@ -91,6 +96,7 @@ def test_compss_flags_parameter():
     my_compss = COMPSs(app_name="date", flags=flags)
     f = my_compss(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "flags" in my_compss.kwargs
     ), "flags is not defined in kwargs dictionary."
@@ -105,6 +111,7 @@ def test_compss_worker_in_master_parameter():
     my_compss = COMPSs(app_name="date", worker_in_master=worker_in_master)
     f = my_compss(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "worker_in_master" in my_compss.kwargs
     ), "worker_in_master is not defined in kwargs dictionary."
@@ -119,6 +126,7 @@ def test_compss_workerInMaster_parameter():  # NOSONAR
     my_compss = COMPSs(app_name="date", workerInMaster=worker_in_master)
     f = my_compss(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "workerInMaster" in my_compss.kwargs
     ), "workerInMaster is not defined in kwargs dictionary."
@@ -133,6 +141,7 @@ def test_compss_existing_core_element():
     f = my_compss(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         CORE_ELEMENT_KEY not in my_compss.kwargs
     ), "Core Element is not defined in kwargs dictionary."

@@ -30,6 +30,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_constraint_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_constraint = Constraint()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         my_constraint.decorator_name == "@constraint"
     ), "The decorator name must be @constraint."
@@ -40,6 +41,7 @@ def test_constraint_call():
     my_constraint = Constraint()
     f = my_constraint(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
@@ -48,6 +50,7 @@ def test_constraint_call_outside():
     my_constraint = Constraint()
     f = my_constraint(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     # Does not raise exception (dummy instead)
 
 
@@ -57,6 +60,7 @@ def test_constraint_existing_core_element():
     f = my_constraint(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         CORE_ELEMENT_KEY not in my_constraint.kwargs
     ), "Core Element is not defined in kwargs dictionary."

@@ -26,6 +26,7 @@ import signal
 import traceback
 import base64
 
+import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
@@ -43,10 +44,13 @@ from pycompss.util.serialization.serializer import SerializerException
 from pycompss.util.exceptions import TimeOutError
 from pycompss.util.exceptions import task_timed_out
 from pycompss.util.exceptions import task_cancel
-from pycompss.util.storages.persistent import storage_task_context
-from pycompss.util.storages.persistent import is_psco
-from pycompss.util.storages.persistent import get_by_id
-import pycompss.api.parameter as parameter
+from pycompss.util.storages.persistent import load_storage_library
+# First load the storage library
+load_storage_library()
+# Then import the appropriate functions
+from pycompss.util.storages.persistent import storage_task_context  # noqa: E402
+from pycompss.util.storages.persistent import is_psco               # noqa: E402
+from pycompss.util.storages.persistent import get_by_id             # noqa: E402
 
 
 def build_task_parameter(p_type,      # type: int

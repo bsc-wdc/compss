@@ -149,11 +149,11 @@ def event(event_id, master=False, inside=False,
     :return: None
     """
     if TRACING:
-        event_group, event_id = __get_proper_type_event(event_id,
-                                                        master,
-                                                        inside,
-                                                        cpu_affinity,
-                                                        gpu_affinity)
+        event_group, event_id = __get_proper_type_event__(event_id,
+                                                          master,
+                                                          inside,
+                                                          cpu_affinity,
+                                                          gpu_affinity)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
     yield  # here the code runs
     if TRACING:
@@ -177,16 +177,16 @@ def emit_manual_event(event_id, master=False, inside=False,
     :return: None
     """
     if TRACING:
-        event_group, event_id = __get_proper_type_event(event_id,
-                                                        master,
-                                                        inside,
-                                                        cpu_affinity,
-                                                        gpu_affinity)
+        event_group, event_id = __get_proper_type_event__(event_id,
+                                                          master,
+                                                          inside,
+                                                          cpu_affinity,
+                                                          gpu_affinity)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
 
 
-def __get_proper_type_event(event_id, master, inside,
-                            cpu_affinity, gpu_affinity):
+def __get_proper_type_event__(event_id, master, inside,
+                              cpu_affinity, gpu_affinity):
     # type: (int or str, bool, bool, bool, bool) -> (int, int)
     """ Parses the flags to retrieve the appropriate event_group.
     It also parses the event_id in case of affinity since it is received
@@ -207,10 +207,10 @@ def __get_proper_type_event(event_id, master, inside,
         if inside:
             if cpu_affinity:
                 event_group = TASK_CPU_AFFINITY_EVENTS
-                event_id = __parse_affinity_event_id(event_id)
+                event_id = __parse_affinity_event_id__(event_id)
             elif gpu_affinity:
                 event_group = TASK_GPU_AFFINITY_EVENTS
-                event_id = __parse_affinity_event_id(event_id)
+                event_id = __parse_affinity_event_id__(event_id)
             else:
                 event_group = TASK_EVENTS
         else:
@@ -218,7 +218,7 @@ def __get_proper_type_event(event_id, master, inside,
     return event_group, event_id
 
 
-def __parse_affinity_event_id(event_id):
+def __parse_affinity_event_id__(event_id):
     # type: (int or str) -> int
     """ Parses the affinity event identifier.
 

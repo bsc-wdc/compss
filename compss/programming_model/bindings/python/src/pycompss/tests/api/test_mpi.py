@@ -33,6 +33,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_mpi_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_mpi = MPI(runner=MPI_RUNNER)
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert my_mpi.decorator_name == "@mpi", "The decorator name must be @mpi."
 
 
@@ -41,6 +42,7 @@ def test_mpi_call():
     my_mpi = MPI(runner=MPI_RUNNER)
     f = my_mpi(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -53,6 +55,7 @@ def test_mpi_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert thrown, \
         "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
@@ -66,6 +69,7 @@ def test_mpi_call_outside_with_computing_nodes_old_style():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert thrown, \
         "The mpi decorator did not raise an exception when invoked out of scope (computingNodes)."  # noqa: E501
 
@@ -79,6 +83,7 @@ def test_mpi_call_outside_with_computing_nodes():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert thrown, \
         "The mpi decorator did not raise an exception when invoked out of scope (computing_nodes)."  # noqa: E501
 
@@ -89,6 +94,7 @@ def test_mpi_layout_empty_parameter():
     my_mpi = MPI(runner=MPI_RUNNER, _layout={"_layout": layout})
     f = my_mpi(dummy_function)
     _ = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         "_layout" in my_mpi.kwargs
     ), "_layout is not defined in kwargs dictionary."
@@ -99,6 +105,7 @@ def test_mpi_binary():
     my_mpi = MPI(runner=MPI_RUNNER, binary="date", flags="flags")
     f = my_mpi(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -109,6 +116,7 @@ def test_mpi_binary_scale_bool_true():
     )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -119,6 +127,7 @@ def test_mpi_binary_scale_bool_false():
     )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -129,6 +138,7 @@ def test_mpi_binary_scale_str():
     )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1
 
 
@@ -141,6 +151,7 @@ def test_mpi_binary_scale_incorrect():
         _ = f()
     except Exception:  # noqa
         exception = True
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert exception, "Unsupported scale_by_cu value exception not raised."
 
 
@@ -150,6 +161,7 @@ def test_mpi_existing_core_element():
     f = my_mpi(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         CORE_ELEMENT_KEY not in my_mpi.kwargs
     ), "Core Element is not defined in kwargs dictionary."

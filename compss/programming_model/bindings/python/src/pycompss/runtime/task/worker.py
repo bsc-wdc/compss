@@ -733,12 +733,10 @@ class TaskWorker(TaskCommons):
             from numba import cfunc
             numba_mode = self.decorator_arguments['numba']
             numba_flags = self.decorator_arguments['numba_flags']
-            if type(numba_mode) is dict:
+            if type(numba_mode) is dict or \
+                    numba_mode is True or \
+                    numba_mode == 'jit':
                 # Use the flags defined by the user
-                numba_flags['cache'] = True  # Always force cache
-                user_returns = jit(self.user_function,
-                                   **numba_flags)(*user_args, **user_kwargs)
-            elif numba_mode is True or numba_mode == 'jit':
                 numba_flags['cache'] = True  # Always force cache
                 user_returns = jit(self.user_function,
                                    **numba_flags)(*user_args, **user_kwargs)

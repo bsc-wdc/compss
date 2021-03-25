@@ -18,24 +18,43 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
+
+APPLICATION_NAME = "increment"
+APPLICATION = "increment.py"
+FOLDER = "resources"
+PACKAGE = "main"
 
 
 def test_launch_application():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "..", "resources", "increment.py")
+    app = os.path.join(current_path, "..", FOLDER, APPLICATION)
     launch_pycompss_application(
-        app, "main", debug=True, trace=False, app_name="increment"
+        app, PACKAGE, debug=True, trace=False, app_name=APPLICATION_NAME
     )
+
+
+def test_launch_application_with_cache():
+    if sys.version_info >= (3, 8):
+        from pycompss.runtime.launch import launch_pycompss_application
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        app = os.path.join(current_path, "..", FOLDER, APPLICATION)
+        launch_pycompss_application(
+            app, PACKAGE, debug=True, trace=False, app_name=APPLICATION_NAME,
+            worker_cache=True
+        )
+    else:
+        print("WARNING: Cache not tested because python version is not >= 3.8")
 
 
 def test_launch_application_mpi_worker():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "..", "resources", "increment.py")
+    app = os.path.join(current_path, "..", FOLDER, APPLICATION)
     launch_pycompss_application(
-        app, "main", debug=True, trace=False, app_name="increment",
+        app, PACKAGE, debug=True, trace=False, app_name=APPLICATION_NAME,
         mpi_worker=True
     )

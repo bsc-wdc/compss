@@ -17,17 +17,19 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.local import local
-import pycompss.util.context as context
+from pycompss.runtime.management.link import c_extension_link
+from multiprocessing import Queue
+from pycompss.util.exceptions import PyCOMPSsException
 
 
-@local
-def dummy_function(*args, **kwargs):  # noqa
-    return sum(args)
-
-
-def test_local_instantiation():
-    context.set_pycompss_context(context.MASTER)
-    result = dummy_function(1, 2)
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert result == 3, "Wrong expected result (should be 3)."
+def test_c_extension_link_wrong_message():
+    in_queue = Queue()
+    in_queue.put("UNSUPPORTED")
+    is_ok = False
+    try:
+        c_extension_link(in_queue, None, False, None, None)
+    except PyCOMPSsException:
+        is_ok = True
+    assert (
+        is_ok
+    ), "ERROR: Exception not raised when undefined message received in link."

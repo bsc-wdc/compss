@@ -17,17 +17,22 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.local import local
 import pycompss.util.context as context
+context.set_pycompss_context(context.OUT_OF_SCOPE)
+
+from pycompss.api.api import compss_wait_on     # noqa
+from pycompss.api.on_failure import on_failure  # noqa
+from pycompss.api.task import Task              # noqa
 
 
-@local
-def dummy_function(*args, **kwargs):  # noqa
-    return sum(args)
+@on_failure(management="IGNORE")  # NOSONAR
+@Task(returns=1)
+def increment(value):
+    return value + 1
 
 
-def test_local_instantiation():
-    context.set_pycompss_context(context.MASTER)
-    result = dummy_function(1, 2)
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert result == 3, "Wrong expected result (should be 3)."
+def test_dummy_task():
+    initial = 3
+    result = increment(initial)
+    result = compss_wait_on(result)
+    assert result == initial + 1, "ERROR: Unexpected exit code with dummy @on_failure."

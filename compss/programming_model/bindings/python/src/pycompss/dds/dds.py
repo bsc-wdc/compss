@@ -17,14 +17,28 @@
 import bisect
 import itertools
 import os
-import pickle
 from collections import deque, defaultdict
 
-from pycompss.api.api import compss_wait_on as cwo, compss_delete_object as cdo
+from pycompss.api.api import compss_wait_on as cwo
+from pycompss.api.api import compss_delete_object as cdo
 from pycompss.api.api import compss_barrier
 from pycompss.dds import heapq3
-from pycompss.dds.partition_generators import *
-from pycompss.dds.tasks import *
+from pycompss.dds.partition_generators import IPartitionGenerator
+from pycompss.dds.partition_generators import BasicDataLoader
+from pycompss.dds.partition_generators import IteratorLoader
+from pycompss.dds.partition_generators import WorkerFileLoader
+from pycompss.dds.partition_generators import PickleLoader
+from pycompss.dds.partition_generators import read_in_chunks
+from pycompss.dds.partition_generators import read_lines
+from pycompss.dds.tasks import map_partition
+from pycompss.dds.tasks import distribute_partition
+from pycompss.dds.tasks import reduce_dicts
+from pycompss.dds.tasks import task_dict_to_list
+from pycompss.dds.tasks import reduce_multiple
+from pycompss.dds.tasks import task_collect_samples
+from pycompss.dds.tasks import map_and_save_text_file
+from pycompss.dds.tasks import map_and_save_pickle
+from pycompss.dds.tasks import marker
 from pycompss.util.tracing.helpers import event
 
 
@@ -415,7 +429,6 @@ class DDS(object):
         3
         """
         return self.map_partitions(lambda i: [sum(1 for _ in i)]).sum()
-        # return self.map(lambda x: 1).sum()
 
     def foreach(self, f):
         """

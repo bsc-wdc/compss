@@ -18,6 +18,14 @@ from pycompss.api.task import task
 from pycompss.api.constraint import constraint
 from pycompss.api.api import compss_wait_on
 from pycompss.api.local import local
+from pycompss.api.implement import implement
+
+
+@implement(source_class="increment", method="increment")
+@constraint(computing_units=2)
+@task(returns=1)
+def super_increment(value):
+    return value + 1
 
 
 @task(returns=1)

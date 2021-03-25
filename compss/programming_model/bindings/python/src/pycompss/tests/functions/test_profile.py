@@ -17,17 +17,13 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.local import local
-import pycompss.util.context as context
 
+def test_profile():
+    from pycompss.functions.profile import profile
 
-@local
-def dummy_function(*args, **kwargs):  # noqa
-    return sum(args)
+    @profile
+    def increment(value):
+        return value + 1
 
-
-def test_local_instantiation():
-    context.set_pycompss_context(context.MASTER)
-    result = dummy_function(1, 2)
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert result == 3, "Wrong expected result (should be 3)."
+    result = increment(1)
+    assert result == 2, "ERROR: Got unexpected result."

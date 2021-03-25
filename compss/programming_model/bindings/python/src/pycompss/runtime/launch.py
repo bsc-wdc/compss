@@ -573,7 +573,10 @@ def launch_pycompss_application(app,
                 import imp  # noqa
                 imported_module = imp.load_source(all_vars["file_name"], app)  # noqa
             method_to_call = getattr(imported_module, func)
-            result = method_to_call(*args, **kwargs)
+            try:
+                result = method_to_call(*args, **kwargs)
+            except TypeError:
+                result = method_to_call()
     # Recover the system arguments
     sys.argv = saved_argv
 

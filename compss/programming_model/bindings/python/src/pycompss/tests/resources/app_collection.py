@@ -18,6 +18,7 @@
 from pycompss.api.task import task
 from pycompss.api.reduction import reduction
 from pycompss.api.api import compss_wait_on
+from pycompss.api.parameter import COLLECTION
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import COLLECTION_INOUT
 from pycompss.api.parameter import DICTIONARY_IN
@@ -98,6 +99,14 @@ def increment(v):
     return v + 1
 
 
+@task(returns=COLLECTION)
+def generate_collection_return():
+    value = [Poligon(2),
+             Poligon(10),
+             Poligon(20)]
+    return value
+
+
 def main():
     initial = []
     generate_collection(initial)
@@ -126,6 +135,15 @@ def main():
     final = my_reduction(result)
     final = compss_wait_on(final)
     assert final == 20, "ERROR: Unexpected result (%s != 20)." % str(result)
+
+    # Collection return
+    result = generate_collection_return()
+    results = compss_wait_on(result)
+    assert len(results) == 3, "ERROR: The generated collection does not have the expected length."  # noqa: E501
+    assert results[0].get_sides() == 2 and \
+           results[1].get_sides() == 10 and \
+           results[2].get_sides() == 20, "ERROR: The collection contents are not as expected"  # noqa: E501
+
 
 # Uncomment for command line check:
 # if __name__ == '__main__':

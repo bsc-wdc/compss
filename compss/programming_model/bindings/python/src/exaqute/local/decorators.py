@@ -61,7 +61,7 @@ class Task(object):
             else:
                 keep = self.keep
             new_args = [_obj_to_value(obj) for obj in args]
-            for k, v in kwargs:
+            for k, v in kwargs.items():
                 kwargs[k] = _obj_to_value(v)
             result = f(*new_args, **kwargs)
             if returns != 1:

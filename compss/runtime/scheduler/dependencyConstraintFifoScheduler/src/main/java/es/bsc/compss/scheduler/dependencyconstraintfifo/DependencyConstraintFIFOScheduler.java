@@ -35,12 +35,12 @@ import org.json.JSONObject;
 /**
  * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode + data locality.
  */
-public class DependencyConstrainFIFOScheduler extends ReadyScheduler {
+public class DependencyConstraintFIFOScheduler extends ReadyScheduler {
 
     /**
      * Constructs a new FIFODataScheduler instance.
      */
-    public DependencyConstrainFIFOScheduler() {
+    public DependencyConstraintFIFOScheduler() {
         super();
     }
 

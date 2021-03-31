@@ -24,6 +24,13 @@ PyCOMPSs Exceptions
 """
 
 
+class SerializerException(Exception):
+    """
+    Exception on serialization
+    """
+    pass
+
+
 class PyCOMPSsException(Exception):
     """
     Generic PyCOMPSs exception

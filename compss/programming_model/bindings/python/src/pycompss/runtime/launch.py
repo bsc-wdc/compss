@@ -42,6 +42,7 @@ from pycompss.runtime.commons import set_temporary_directory
 from pycompss.runtime.commons import set_object_conversion
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.environment.configuration import export_current_flags
 from pycompss.util.environment.configuration import prepare_environment
@@ -52,7 +53,6 @@ from pycompss.util.environment.configuration import check_infrastructure_variabl
 from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
-from pycompss.util.serialization.serializer import SerializerException
 from pycompss.util.warnings.modules import show_optional_module_warnings
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues

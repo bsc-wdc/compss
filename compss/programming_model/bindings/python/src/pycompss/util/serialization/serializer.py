@@ -47,6 +47,7 @@ import types
 import traceback
 
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.util.exceptions import SerializerException
 from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.serialization.extended_support import convert_to_generator
 from pycompss.util.serialization.extended_support import GeneratorIndicator
@@ -79,20 +80,22 @@ except ImportError:
         import cPickle as numpy  # noqa
     NUMPY_AVAILABLE = False
 
-lib2idx = {
+try:
+    import pyarrow
+    PYARROW_AVAILABLE = True
+except ImportError:
+    pyarrow = None
+    PYARROW_AVAILABLE = False
+
+# GLOBALS
+
+LIB2IDX = {
     pickle: 0,
     numpy: 1,
-    dill: 2
+    dill: 2,
+    pyarrow: 3
 }
-
-idx2lib = dict([(v, k) for (k, v) in lib2idx.items()])
-
-
-class SerializerException(Exception):
-    """
-    Exception on serialization
-    """
-    pass
+IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
 
 
 def get_serializer_priority(obj=()):
@@ -104,7 +107,10 @@ def get_serializer_priority(obj=()):
     """
     if object_belongs_to_module(obj, 'numpy'):
         return [numpy, pickle, dill]
-    return [pickle, dill]
+    elif object_belongs_to_module(obj, 'pyarrow'):
+        return [pyarrow, pickle, dill]
+    else:
+        return [pickle, dill]
 
 
 def get_serializers():
@@ -141,7 +147,7 @@ def serialize_to_handler(obj, handler):
         # Reset the handlers pointer to the first position
         handler.seek(original_position)
         serializer = serializer_priority[i]
-        handler.write(bytearray('%04d' % lib2idx[serializer], 'utf8'))
+        handler.write(bytearray('%04d' % LIB2IDX[serializer], 'utf8'))
         # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
             try:
@@ -159,6 +165,12 @@ def serialize_to_handler(obj, handler):
                         (isinstance(obj, numpy.ndarray) or
                          isinstance(obj, numpy.matrix)):
                     serializer.save(handler, obj, allow_pickle=False)
+                elif serializer is pyarrow and \
+                        PYARROW_AVAILABLE and \
+                        object_belongs_to_module(obj, "pyarrow"):
+                    writer = pyarrow.ipc.new_file(handler, obj.schema)  # noqa
+                    writer.write(obj)
+                    writer.close()
                 else:
                     serializer.dump(obj,
                                     handler,
@@ -239,26 +251,31 @@ def deserialize_from_handler(handler):
 
     :param handler: File name from where the object is going to be
                     deserialized.
-    :return: The object.
+    :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
     original_position = None
     try:
         original_position = handler.tell()
-        serializer = idx2lib[int(handler.read(4))]
+        serializer = IDX2LIB[int(handler.read(4))]
     except KeyError:
-        # The first 4 bytes return a value that is not within idx2lib
+        # The first 4 bytes return a value that is not within IDX2LIB
         handler.seek(original_position)
         error_message = 'Handler does not refer to a valid PyCOMPSs object'
         raise SerializerException(error_message)
 
+    close_handler = True
     try:
         if DISABLE_GC:
             # Disable the garbage collector while serializing -> performance?
             gc.disable()
         if serializer is numpy and NUMPY_AVAILABLE:
             ret = serializer.load(handler, allow_pickle=False)
+        elif serializer is pyarrow and PYARROW_AVAILABLE:
+            ret = pyarrow.ipc.open_file(handler)
+            if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
+                close_handler = False
         else:
             ret = serializer.load(handler)
         # Special case: deserialized obj wraps a generator
@@ -270,7 +287,7 @@ def deserialize_from_handler(handler):
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
-        return ret
+        return ret, close_handler
     except Exception:
         if DISABLE_GC:
             gc.enable()
@@ -292,8 +309,9 @@ def deserialize_from_file(file_name):
     :return: A deserialized object
     """
     handler = open(file_name, 'rb')
-    ret = deserialize_from_handler(handler)
-    handler.close()
+    ret, close_handler = deserialize_from_handler(handler)
+    if close_handler:
+        handler.close()
     return ret
 
 
@@ -305,8 +323,9 @@ def deserialize_from_string(serialized_content):
     :return: A deserialized object
     """
     handler = BytesIO(serialized_content)  # noqa
-    ret = deserialize_from_handler(handler)
-    handler.close()
+    ret, close_handler = deserialize_from_handler(handler)
+    if close_handler:
+        handler.close()
     return ret
 
 

@@ -40,7 +40,7 @@ from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
-from pycompss.util.serialization.serializer import SerializerException
+from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import TimeOutError
 from pycompss.util.exceptions import task_timed_out
 from pycompss.util.exceptions import task_cancel

@@ -81,11 +81,11 @@ from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.interactive.helpers import update_tasks_code_file
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import serialize_to_file
-from pycompss.util.serialization.serializer import SerializerException
 from pycompss.util.objects.properties import get_module_name
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import get_id

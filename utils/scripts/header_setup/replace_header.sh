@@ -30,7 +30,7 @@
   cpyrghts=(`awk -f "$SCRIPT_DIR/extract_header_$lang.awk" "$file" |
     grep --no-filename --only-matching --ignore-case -e "${cpyrght_re}[[:blank:]]\{1,\}${date_re}[[:blank:]]\{1,\}.*"`)
 
-  placeholder='Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)'
+  placeholder='Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)'
 
   # If any copyright have been already added, copy it to be sure none is lost.
   # If no licence has been applied, consider it is a BSC file and add the BSC
@@ -53,4 +53,3 @@
 
   awk -f "$SCRIPT_DIR/remove_header_$lang.awk" "$file" >> "$SCRIPT_DIR/tmp"
   mv "$SCRIPT_DIR/tmp" "$file"
-

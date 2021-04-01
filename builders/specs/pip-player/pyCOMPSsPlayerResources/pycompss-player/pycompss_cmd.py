@@ -121,7 +121,7 @@ def exec_in_daemon(cmd: str):
     """
     print("Executing cmd: %s" % cmd)
     if not _is_running(master_name):
-        _start_daemon()
+        start_daemon()
 
     master = _get_master()
     _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
@@ -136,7 +136,7 @@ def start_monitoring():
     """
     print("Starting Monitor")
     if not _is_running(master_name):
-        _start_daemon()
+        start_daemon()
 
     cmd = "/etc/init.d/compss-monitor start"
     master = _get_master()

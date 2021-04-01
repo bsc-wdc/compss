@@ -49,7 +49,7 @@ from pycompss.runtime.constants import UPDATE_CORE_ELEMENT
 from pycompss.runtime.constants import PROCESS_RETURN
 from pycompss.runtime.constants import PROCESS_OTHER_ARGUMENTS
 from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
-from pycompss.runtime.constants import SERIALIZE_OBJECTS
+from pycompss.runtime.constants import SERIALIZE_OBJECT
 from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
 from pycompss.runtime.management.direction import get_compss_direction
@@ -102,6 +102,8 @@ logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
+    from concurrent.futures import ThreadPoolExecutor  # noqa
+    from concurrent.futures import wait                # noqa
     _PYTHON_TO_COMPSS = {int: TYPE.INT,  # int # long
                          float: TYPE.DOUBLE,  # float
                          bool: TYPE.BOOLEAN,  # bool
@@ -1451,31 +1453,59 @@ class TaskMaster(TaskCommons):
         # type: () -> None
         """ Infer COMPSs types for the task parameters and serialize them.
 
+        :return: None
+        """
+        if IS_PYTHON3:
+            # Concurrent:
+            with ThreadPoolExecutor() as executor:
+                futures = []
+                for k in self.parameters:
+                    futures.append(executor.submit(self._serialize_object, k))
+                wait(futures)
+        else:
+            # Sequential:
+            for k in self.parameters:
+                self._serialize_object(k)
+            # Threaded: (somehow takes more time than sequential?)
+            # threads = []
+            # # Serialize each object in a different thread (non blocking IO)
+            # for k in self.parameters:
+            #     io_thread = threading.Thread(target=self._serialize_object,
+            #                                  args=(k,))
+            #     threads.append(io_thread)
+            #     io_thread.start()
+            # # Wait for all threads to finish
+            # for thread in threads:
+            #     thread.join()
+
+    def _serialize_object(self, k):
+        # type: (str) -> None
+        """ Infer COMPSs types for a single task parameter and serializes it.
+
         WARNING: Updates self.parameters dictionary.
 
-        :return: Tuple of task_kwargs updated and a dictionary containing
-                 if the objects are future elements.
+        :param k: Name of the element in self.parameters
+        :return: None
         """
         max_obj_arg_size = 320000
-        for k in self.parameters:
-            with event(SERIALIZE_OBJECTS, master=True):
-                # Check user annotations concerning this argument
-                p = self.parameters[k]
-                # Convert small objects to string if OBJECT_CONVERSION enabled
-                # Check if the object is small in order not to serialize it.
-                if get_object_conversion():
-                    p, written_bytes = self._convert_parameter_obj_to_string(p,
-                                                                             max_obj_arg_size,     # noqa: E501
-                                                                             policy="objectSize")  # noqa: E501
-                    max_obj_arg_size -= written_bytes
-                else:
-                    # Serialize objects into files
-                    p = _serialize_object_into_file(k, p)
-                # Update k parameter's Parameter object
-                self.parameters[k] = p
+        with event(SERIALIZE_OBJECT, master=True):
+            # Check user annotations concerning this argument
+            p = self.parameters[k]
+            # Convert small objects to string if OBJECT_CONVERSION enabled
+            # Check if the object is small in order not to serialize it.
+            if get_object_conversion():
+                p, written_bytes = self._convert_parameter_obj_to_string(p,
+                                                                         max_obj_arg_size,  # noqa: E501
+                                                                         policy="objectSize")  # noqa: E501
+                max_obj_arg_size -= written_bytes
+            else:
+                # Serialize objects into files
+                p = _serialize_object_into_file(k, p)
+            # Update k parameter's Parameter object
+            self.parameters[k] = p
 
-                if __debug__:
-                    logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
+            if __debug__:
+                logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
 
     def _build_values_types_directions(self):
         # type: () -> (list, list, list, list, list)

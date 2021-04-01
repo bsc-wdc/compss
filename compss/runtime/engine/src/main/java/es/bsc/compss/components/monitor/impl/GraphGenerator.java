@@ -114,7 +114,7 @@ public class GraphGenerator {
             // Open a full graph working copy
             try {
                 full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_TMP_FILE));
-                openGraphFile(full_graph);
+                openFullGraphFile(full_graph);
                 openDependenceGraph(full_graph);
             } catch (IOException ioe) {
                 LOGGER.error("Error generating graph file", ioe);
@@ -149,7 +149,7 @@ public class GraphGenerator {
 
     /**
      * Returns whether the graph generator is enabled or not.
-     * 
+     *
      * @return {@code true} if the graph generator is enabled, {@code false} otherwise.
      */
     public static boolean isEnabled() {
@@ -158,7 +158,7 @@ public class GraphGenerator {
 
     /**
      * Returns the final monitor directory path.
-     * 
+     *
      * @return The final monitor directory path.
      */
     public static String getMonitorDirPath() {
@@ -175,7 +175,7 @@ public class GraphGenerator {
     public BufferedWriter getAndOpenCurrentGraph() {
         try {
             current_graph = new BufferedWriter(new FileWriter(CURRENT_GRAPH_FILE));
-            openGraphFile(current_graph);
+            openCurrentGraphFile(current_graph);
         } catch (IOException e) {
             LOGGER.error(ERROR_OPEN_CURRENT_GRAPH);
             return null;
@@ -249,7 +249,7 @@ public class GraphGenerator {
 
     /**
      * Adds a synchro node to the graph.
-     * 
+     *
      * @param synchId New synchronization point.
      */
     public void addSynchroToGraph(int synchId) {
@@ -270,7 +270,7 @@ public class GraphGenerator {
 
     /**
      * Adds a barrier node to the graph.
-     * 
+     *
      * @param synchId New barrier point.
      */
     public void addBarrierToGraph(int synchId) {
@@ -285,7 +285,7 @@ public class GraphGenerator {
 
     /**
      * Adds a task node to the graph.
-     * 
+     *
      * @param task New task.
      */
     public void addTaskToGraph(Task task) {
@@ -304,7 +304,7 @@ public class GraphGenerator {
 
     /**
      * Adds a new stream node to the graph.
-     * 
+     *
      * @param label Stream node label name.
      */
     public void addStreamToGraph(String label) {
@@ -319,7 +319,7 @@ public class GraphGenerator {
 
     /**
      * Adds an edge to the graph from {@code src} to {@code tgt} with label {@code label}.
-     * 
+     *
      * @param src Source node.
      * @param tgt Target node.
      * @param edgeType Edge Type.
@@ -368,7 +368,7 @@ public class GraphGenerator {
     /**
      * Adds an edge to the graph from a commutative group to a task from {@code src} to {@code tgt} with label
      * {@code label}.
-     * 
+     *
      * @param src Node from which the dependency arrow starts.
      * @param tgt Node to which the task is dependent.
      * @param label Data Id and version of the dependency.
@@ -408,7 +408,7 @@ public class GraphGenerator {
 
     /**
      * Adds a commutative group to the graph.
-     * 
+     *
      * @param identifier Identifier of the group.
      */
     public void addCommutativeGroupToGraph(String identifier) {
@@ -433,7 +433,7 @@ public class GraphGenerator {
 
     /**
      * Adds a reduce task to the graph.
-     * 
+     *
      * @param identifier Identifier of the task.
      */
     public void addReduceTaskToGraph(int identifier) {
@@ -458,7 +458,7 @@ public class GraphGenerator {
 
     /**
      * Adds a task group to the graph.
-     * 
+     *
      * @param identifier Group identifier
      */
     public void addTaskGroupToGraph(String identifier) {
@@ -503,7 +503,7 @@ public class GraphGenerator {
      * PRIVATE STATIC METHODS
      ****************************************************************************************************************/
     private static void emptyFullGraph() throws IOException {
-        openGraphFile(full_graph);
+        openFullGraphFile(full_graph);
         openDependenceGraph(full_graph);
         closeDependenceGraph(full_graph);
         openLegend(full_graph);
@@ -512,13 +512,27 @@ public class GraphGenerator {
     }
 
     private static void emptyCurrentGraph() throws IOException {
-        openGraphFile(current_graph);
+        openCurrentGraphFile(current_graph);
         openDependenceGraph(current_graph);
         closeDependenceGraph(current_graph);
         closeGraphFile(current_graph);
     }
 
-    private static void openGraphFile(BufferedWriter graph) throws IOException {
+    private static void openFullGraphFile(BufferedWriter graph) throws IOException {
+        graph.write("digraph {");
+        graph.newLine();
+        graph.write("  newrank=true;");
+        graph.newLine();
+        graph.write("  rankdir=TB;");
+        graph.newLine();
+        graph.write("  labeljust=\"l\";");
+        graph.newLine();
+        graph.write("  compound= true;");
+        graph.newLine();
+        graph.flush();
+    }
+
+    private static void openCurrentGraphFile(BufferedWriter graph) throws IOException {
         graph.write("digraph {");
         graph.newLine();
         graph.write("  rankdir=TB;");

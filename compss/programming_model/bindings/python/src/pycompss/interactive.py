@@ -57,6 +57,10 @@ from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.util.interactive.utils import parameters_to_dict
 from pycompss.util.interactive.outwatcher import STDW
 from pycompss.util.interactive.graphs import show_graph
+from pycompss.util.interactive.state import show_tasks_info
+from pycompss.util.interactive.state import show_tasks_status
+from pycompss.util.interactive.state import show_statistics
+from pycompss.util.interactive.state import show_resources_status
 
 # Tracing imports
 from pycompss.util.tracing.helpers import emit_manual_event
@@ -633,6 +637,43 @@ def complete_task_graph(fit=False, refresh_rate=1, timeout=0):
         print("      Please, enable it by setting the graph flag when" +
               " starting PyCOMPSs.")
         return None
+
+
+def tasks_info():
+    # type: () -> None
+    """ Show tasks info.
+
+    :return: None
+    """
+    show_tasks_info(LOG_PATH)
+
+
+def tasks_status():
+    # type: () -> None
+    """ Show tasks status.
+
+    :return: None
+    """
+    show_tasks_status(LOG_PATH)
+
+
+def statistics():
+    # type: () -> None
+    """ Show statistics info.
+
+    :return: None
+    """
+    show_statistics(LOG_PATH)
+
+
+def resources_status():
+    # type: () -> None
+    """ Show resources status info.
+
+    :return: None
+    """
+    show_resources_status(LOG_PATH)
+
 
 # ########################################################################### #
 # ########################################################################### #

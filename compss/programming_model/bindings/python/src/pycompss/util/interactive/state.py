@@ -42,12 +42,27 @@ try:
     import matplotlib.pyplot as plt      # noqa
     MISSING_DEPENDENCY = "numpy"         # noqa
     import numpy as np                   # noqa
+    np.random.seed(0)
     MISSING_DEPENDENCY = None            # noqa
 except ImportError:
     HTML = None
     display = None
     plt = None
     np = None
+
+try:
+    import ipywidgets as widgets        # noqa
+except ImportError:
+    widgets = None
+
+
+def supports_dynamic_state():
+    # type: () -> bool
+    """ Checks if the state can be displayed with widgets.
+
+    :return: True if widgets available. False otherwise.
+    """
+    return widgets is not None
 
 
 def get_compss_state_xml(log_path):
@@ -124,6 +139,23 @@ def show_tasks_info(log_path):
     :param log_path: Absolute path of the log folder.
     :return: None
     """
+    if supports_dynamic_state():
+        def f(i):  # noqa
+            __show_tasks_info__(log_path)
+
+        play = __get_play_widget(f)
+        display(play)  # noqa
+    else:
+        __show_tasks_info__(log_path)
+
+
+def __show_tasks_info__(log_path):
+    # type: (str) -> None
+    """ Show tasks info.
+
+    :param log_path: Absolute path of the log folder.
+    :return: None
+    """
     cores_info = parse_state_xml(log_path, "CoresInfo")
     labels = ["Signature",
               "ExecutedCount",
@@ -157,7 +189,6 @@ def show_tasks_info(log_path):
         max_ = task_max[i] - task_mean[i]
         errs[0].append(min_)
         errs[1].append(max_)
-        task_mean[i] = task_mean[i]
     ax1.errorbar(task_names, task_mean, yerr=errs, lw=3, fmt="ok")
     ax1.set_ylabel("Time (seconds)")
     ax1.set_xlabel("Task name")
@@ -181,13 +212,32 @@ def show_tasks_status(log_path):
     :param log_path: Absolute path of the log folder.
     :return: None
     """
+    if supports_dynamic_state():
+        def f(i):  # noqa
+            __show_tasks_status__(log_path)
+
+        play = __get_play_widget(f)
+        display(play)  # noqa
+    else:
+        __show_tasks_info__(log_path)
+
+
+def __show_tasks_status__(log_path):
+    # type: (str) -> None
+    """ Show tasks status.
+
+    :param log_path: Absolute path of the log folder.
+    :return: None
+    """
     tasks_info_dict = parse_state_xml(log_path, "TasksInfo")
     # Display graph
     labels = ["InProgress", "Completed"]
     sizes = [tasks_info_dict[labels[0]], tasks_info_dict[labels[1]]]
     explode = (0, 0)
     fig1, ax1 = plt.subplots()
-    ax1.pie(sizes, explode=explode, labels=labels, shadow=True, startangle=90)
+    colors = ["b", "g"]
+    ax1.pie(sizes, explode=explode, labels=labels,
+            colors=colors, shadow=True, startangle=90)
     ax1.axis('equal')
     plt.show()
     # Display table with values
@@ -202,6 +252,23 @@ def show_statistics(log_path):
     :param log_path: Absolute path of the log folder.
     :return: None
     """
+    if supports_dynamic_state():
+        def f(i):  # noqa
+            __show_statistics__(log_path)
+
+        play = __get_play_widget(f)
+        display(play)  # noqa
+    else:
+        __show_statistics__(log_path)
+
+
+def __show_statistics__(log_path):
+    # type: (str) -> None
+    """ Show statistics info.
+
+    :param log_path: Absolute path of the log folder.
+    :return: None
+    """
     statistics_dict = parse_state_xml(log_path, "Statistics")
     # Display table with values
     labels = [statistics_dict["Key"]]
@@ -210,6 +277,23 @@ def show_statistics(log_path):
 
 
 def show_resources_status(log_path):
+    # type: (str) -> None
+    """ Show resources status info.
+
+    :param log_path: Absolute path of the log folder.
+    :return: None
+    """
+    if supports_dynamic_state():
+        def f(i):  # noqa
+            __show_resources_status__(log_path)
+
+        play = __get_play_widget(f)
+        display(play)  # noqa
+    else:
+        __show_resources_status__(log_path)
+
+
+def __show_resources_status__(log_path):
     # type: (str) -> None
     """ Show resources status info.
 
@@ -238,3 +322,22 @@ def __plain_lists__(dictionary):
     labels.pop()
     values.pop()
     return labels, values
+
+
+def __get_play_widget(function):
+    # type: (...) -> ...
+    """ Generate play widget.
+
+    :param function: Function to associate with Play.
+    :return: Play widget.
+    """
+    play = widgets.interactive(function,
+                               i=widgets.Play(value=0,
+                                              min=0,
+                                              max=500,
+                                              step=1,
+                                              interval=5000,
+                                              description="Press play",
+                                              disabled=False)
+                               )
+    return play

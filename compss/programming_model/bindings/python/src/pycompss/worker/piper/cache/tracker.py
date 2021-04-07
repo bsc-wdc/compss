@@ -300,6 +300,7 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
         logger.debug(HEADER + "Inserting into cache (%s): %s" %
                      (str(type(obj)), str(f_name)))
     try:
+        inserted = True
         if isinstance(obj, np.ndarray):
             shape = obj.shape
             d_type = obj.dtype
@@ -328,11 +329,11 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
         #     size = total_sizeof(obj)
         #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa: E501
         else:
+            inserted = False
             if __debug__:
                 logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
-        if __debug__:
-            logger.debug(HEADER + "Inserted into cache: " +
-                         str(f_name) + " as " + str(new_cache_id))
+        if __debug__ and inserted:
+            logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
     except KeyError as e:  # noqa
         if __debug__:
             logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501

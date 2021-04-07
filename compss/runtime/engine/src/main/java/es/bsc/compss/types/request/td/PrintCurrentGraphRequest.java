@@ -151,7 +151,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
 
             // Add another room for each worker
             for (Worker<? extends WorkerResourceDescription> worker : ResourceManager.getAllWorkers()) {
-                this.graph.write(prefix + prefix + "subthis.graph cluster_room" + roomIndex + " {");
+                this.graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
                 this.graph.newLine();
                 this.graph.write(prefix + prefix + prefix + "label = \"" + worker.getName() + "\"");
                 this.graph.newLine();
@@ -159,7 +159,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
                 this.graph.newLine();
 
                 // Create a box for running tasks
-                this.graph.write(prefix + prefix + prefix + "subthis.graph cluster_box" + roomIndex + "1 {");
+                this.graph.write(prefix + prefix + prefix + "subgraph cluster_box" + roomIndex + "1 {");
                 this.graph.newLine();
                 this.graph.write(prefix + prefix + prefix + prefix + "label = \"Running\"");
                 this.graph.newLine();
@@ -184,7 +184,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
                 this.graph.write(prefix + prefix + prefix + "}");
                 this.graph.newLine();
 
-                this.graph.write(prefix + prefix + prefix + "subthis.graph cluster_box" + roomIndex + "2 {");
+                this.graph.write(prefix + prefix + prefix + "subgraph cluster_box" + roomIndex + "2 {");
                 this.graph.newLine();
                 this.graph.write(prefix + prefix + prefix + prefix + "label = \"Resource Blocked\"");
                 this.graph.newLine();
@@ -221,7 +221,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
             this.graph.newLine();
 
             /* Subthis.graph for pending tasks ********************************** */
-            this.graph.write(prefix + "subthis.graph cluster2 {");
+            this.graph.write(prefix + "subgraph cluster2 {");
             this.graph.newLine();
             this.graph.write(prefix + prefix + "label = \"Pending\"");
             this.graph.newLine();

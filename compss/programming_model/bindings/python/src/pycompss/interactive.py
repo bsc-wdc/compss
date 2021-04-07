@@ -56,6 +56,11 @@ from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.util.interactive.utils import parameters_to_dict
 from pycompss.util.interactive.outwatcher import STDW
+from pycompss.util.interactive.graphs import show_graph
+from pycompss.util.interactive.state import show_tasks_info
+from pycompss.util.interactive.state import show_tasks_status
+from pycompss.util.interactive.state import show_statistics
+from pycompss.util.interactive.state import show_resources_status
 
 # Tracing imports
 from pycompss.util.tracing.helpers import emit_manual_event
@@ -589,30 +594,44 @@ def __hard_stop__(debug, sync, logger, ipython):
     return None
 
 
-def __show_current_graph__(fit=False):
-    # type: (bool) -> ...
+def current_task_graph(fit=False, refresh_rate=1, timeout=0):
+    # type: (bool, int, int) -> ...
     """ Show current graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
+    :param refresh_rate: Update the current task graph every "refresh_rate"
+                         seconds. Default 1 second if timeout != 0.
+    :param timeout: Time during the current task graph is going to be updated.
     :return: None
     """
     if GRAPHING:
-        return __show_graph__(name="current_graph", fit=fit)
+        return show_graph(log_path=LOG_PATH,
+                          name="current_graph",
+                          fit=fit,
+                          refresh_rate=refresh_rate,
+                          timeout=timeout)
     else:
         print("Oops! Graph is not enabled in this execution.")
         print("      Please, enable it by setting the graph flag when" +
               " starting PyCOMPSs.")
 
 
-def __show_complete_graph__(fit=False):
-    # type: (bool) -> ...
+def complete_task_graph(fit=False, refresh_rate=1, timeout=0):
+    # type: (bool, int, int) -> ...
     """ Show complete graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
+    :param refresh_rate: Update the current task graph every "refresh_rate"
+                         seconds. Default 1 second if timeout != 0
+    :param timeout: Time during the current task graph is going to be updated.
     :return: None
     """
     if GRAPHING:
-        return __show_graph__(name="complete_graph", fit=fit)
+        return show_graph(log_path=LOG_PATH,
+                          name="complete_graph",
+                          fit=fit,
+                          refresh_rate=refresh_rate,
+                          timeout=timeout)
     else:
         print("Oops! Graph is not enabled in this execution.")
         print("      Please, enable it by setting the graph flag when" +
@@ -620,40 +639,40 @@ def __show_complete_graph__(fit=False):
         return None
 
 
-def __show_graph__(name="complete_graph", fit=False):
-    # type: (str, bool) -> ...
-    """ Show graph.
+def tasks_info():
+    # type: () -> None
+    """ Show tasks info.
 
-    :param name: Graph to show (default: "complete_graph")
-    :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
-    try:
-        from graphviz import Source  # noqa
-    except ImportError:
-        print("Oops! graphviz is not available.")
-        return None
-    monitor_file = open(LOG_PATH + "/monitor/" + name + ".dot", 'r')
-    text = monitor_file.read()
-    monitor_file.close()
-    if fit:
-        try:
-            # Convert to png and show full picture
-            filename = LOG_PATH + "/monitor/" + name
-            extension = "png"
-            import os
-            if os.path.exists(filename + '.' + extension):
-                os.remove(filename + '.' + extension)
-            s = Source(text, filename=filename, format=extension)
-            s.render()
-            from IPython.display import Image  # noqa
-            image = Image(filename=filename + '.' + extension)
-            return image
-        except Exception:
-            print("Oops! Failed rendering the graph.")
-            raise
-    else:
-        return Source(text)
+    show_tasks_info(LOG_PATH)
+
+
+def tasks_status():
+    # type: () -> None
+    """ Show tasks status.
+
+    :return: None
+    """
+    show_tasks_status(LOG_PATH)
+
+
+def statistics():
+    # type: () -> None
+    """ Show statistics info.
+
+    :return: None
+    """
+    show_statistics(LOG_PATH)
+
+
+def resources_status():
+    # type: () -> None
+    """ Show resources status info.
+
+    :return: None
+    """
+    show_resources_status(LOG_PATH)
 
 
 # ########################################################################### #

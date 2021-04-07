@@ -46,7 +46,7 @@
   verLT "$dotV"
 
   # Format output fileName
-  if [[ $dotGraph == *.dot ]]; then 
+  if [[ $dotGraph == *.dot ]]; then
     pdfGraph=${dotGraph::${#dotGraph}-4}.pdf
   else
     pdfGraph=${dotGraph}.pdf
@@ -69,11 +69,10 @@
     # If is greater or equal than base version, generate full graph
     echo "INFO: Generating Graph with legend"
 
-    dot -Tpdf -Gnewrank=true "$dotGraph" > "$pdfGraph"
+    dot -Tpdf "$dotGraph" > "$pdfGraph"
   fi
-  
+
   echo "DONE"
 
   # Uncomment the next line to automatically open the generated graph
   #evince $pdfGraph
-

@@ -1,4 +1,5 @@
 digraph {
+  newrank=true;
   rankdir=TB;
   labeljust="l";
   compound= true;
@@ -10,7 +11,7 @@ Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor
 subgraph clusterTasksfailedGroup {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9"; 
+color="#A9A9A9";
 label="failedGroup";
 
 1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -37,7 +38,7 @@ Synchro1 -> 7 [label="d1v2"];
 subgraph clusterTasksfailedGroup2 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9"; 
+color="#A9A9A9";
 label="failedGroup2";
 
 9[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];

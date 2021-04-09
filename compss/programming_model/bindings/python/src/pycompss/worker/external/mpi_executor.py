@@ -29,6 +29,7 @@ import signal
 import logging
 import os
 import sys
+import typing
 from mpi4py import MPI
 
 import pycompss.util.context as context
@@ -49,6 +50,7 @@ from pycompss.worker.commons.worker import execute_task
 
 
 def shutdown_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ MPI exception signal handler
 
     Do not remove the parameters.
@@ -83,7 +85,7 @@ def executor(process_name, command):
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
-    if log_level == 'true' or log_level == "debug":
+    if log_level == "true" or log_level == "debug":
         # Debug
         log_json = "".join((worker_path,
                             "/../../../log/logging_mpi_worker_debug.json"))
@@ -100,7 +102,8 @@ def executor(process_name, command):
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
     try:
-        logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)  # noqa
+        lh0_formatter = logger_handlers[0].formatter              # type: typing.Any
+        logger_formatter = logging.Formatter(lh0_formatter._fmt)  # type: typing.Any
     except IndexError:
         logger_formatter = None
 
@@ -133,13 +136,12 @@ def executor(process_name, command):
 @emit_event(PROCESS_TASK_EVENT)
 def process_task(current_line,     # type: str
                  process_name,     # type: str
-                 logger,           # type: ...
+                 logger,           # type: typing.Any
                  log_json,         # type: str
-                 logger_handlers,  # type: ...
+                 logger_handlers,  # type: typing.Any
                  logger_level,     # type: int
-                 logger_formatter  # type: ...
-                 ):
-    # type: (...) -> (str, str)
+                 logger_formatter  # type: typing.Any
+                 ):                # type: (...) -> typing.Tuple[str, str]
     """ Process command received from the current_line.
 
     :param current_line: Current command (line) to process.
@@ -160,42 +162,40 @@ def process_task(current_line,     # type: str
         logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
                      % (str(process_name), str(current_line)))
 
-    current_line = current_line.split()
-    if current_line[0] == EXECUTE_TASK_TAG:
-        num_collection_params = int(current_line[-1])
+    splitted_current_line = current_line.split()
+    if splitted_current_line[0] == EXECUTE_TASK_TAG:
+        num_collection_params = int(splitted_current_line[-1])
+        collections_layouts = dict()
         if num_collection_params > 0:
-            collections_layouts = dict()
-            raw_layouts = current_line[((num_collection_params * -4) - 1):-1]
+            raw_layouts = splitted_current_line[((num_collection_params * -4) - 1):-1]
             for i in range(num_collection_params):
                 param = raw_layouts[i * 4]
                 layout = [int(raw_layouts[(i * 4) + 1]),
                           int(raw_layouts[(i * 4) + 2]),
                           int(raw_layouts[(i * 4) + 3])]
                 collections_layouts[param] = layout
-        else:
-            collections_layouts = None
 
         # Remove the last elements: cpu and gpu bindings and collection params
-        current_line = current_line[0:-3]
+        current_line_filtered = splitted_current_line[0:-3]
 
         # task jobId command
-        job_id = current_line[1]
-        job_out = current_line[2]
-        job_err = current_line[3]
-        # current_line[4] = <boolean> = tracing
-        # current_line[5] = <integer> = task id
-        # current_line[6] = <boolean> = debug
-        # current_line[7] = <string>  = storage conf.
-        # current_line[8] = <string>  = operation type (e.g. METHOD)
-        # current_line[9] = <string>  = module
-        # current_line[10]= <string>  = method
-        # current_line[11]= <string>  = time out
-        # current_line[12]= <integer> = Number of slaves (worker nodes)==#nodes
+        job_id = current_line_filtered[1]
+        job_out = current_line_filtered[2]
+        job_err = current_line_filtered[3]
+        # current_line_filtered[4] = <boolean> = tracing
+        # current_line_filtered[5] = <integer> = task id
+        # current_line_filtered[6] = <boolean> = debug
+        # current_line_filtered[7] = <string>  = storage conf.
+        # current_line_filtered[8] = <string>  = operation type (e.g. METHOD)
+        # current_line_filtered[9] = <string>  = module
+        # current_line_filtered[10]= <string>  = method
+        # current_line_filtered[11]= <string>  = time out
+        # current_line_filtered[12]= <integer> = Number of slaves (worker nodes)==#nodes
         # <<list of slave nodes>>
-        # current_line[12 + #nodes] = <integer> = computing units
-        # current_line[13 + #nodes] = <boolean> = has target
-        # current_line[14 + #nodes] = <string>  = has return (always 'null')
-        # current_line[15 + #nodes] = <integer> = Number of parameters
+        # current_line_filtered[12 + #nodes] = <integer> = computing units
+        # current_line_filtered[13 + #nodes] = <boolean> = has target
+        # current_line_filtered[14 + #nodes] = <string>  = has return (always "null")
+        # current_line_filtered[15 + #nodes] = <integer> = Number of parameters
         # <<list of parameters>>
         #       !---> type, stream, prefix , value
 
@@ -203,7 +203,7 @@ def process_task(current_line,     # type: str
             logger.debug("[PYTHON EXECUTOR] [%s] Received task with id: %s" %
                          (str(process_name), str(job_id)))
             logger.debug("[PYTHON EXECUTOR] [%s] - TASK CMD: %s" %
-                         (str(process_name), str(current_line)))
+                         (str(process_name), str(current_line_filtered)))
 
         # Swap logger from stream handler to file handler
         # All task output will be redirected to job.out/err
@@ -223,19 +223,19 @@ def process_task(current_line,     # type: str
             logger.debug("Received task in process: %s" %
                          str(process_name))
             logger.debug(" - TASK CMD: %s" %
-                         str(current_line))
+                         str(current_line_filtered))
 
         try:
             # Setup out/err wrappers
-            out = open(job_out, 'a')
-            err = open(job_err, 'a')
+            out = open(job_out, "a")
+            err = open(job_err, "a")
             sys.stdout = out
             sys.stderr = err
 
             # Setup process environment
-            cn = int(current_line[12])
-            cn_names = ','.join(current_line[13:13 + cn])
-            cu = int(current_line[13 + cn])
+            cn = int(current_line_filtered[11])
+            cn_names = ",".join(current_line_filtered[12:12 + cn])
+            cu = int(current_line_filtered[13 + cn])
             os.environ["COMPSS_NUM_NODES"] = str(cn)
             os.environ["COMPSS_HOSTNAMES"] = cn_names
             os.environ["COMPSS_NUM_THREADS"] = str(cu)
@@ -252,13 +252,15 @@ def process_task(current_line,     # type: str
             python_mpi = True
             result = execute_task(process_name,
                                   storage_conf,
-                                  current_line[9:],
+                                  current_line_filtered[9:],
                                   tracing,
                                   logger,
                                   log_json,
                                   (job_out, job_err),
                                   python_mpi,
-                                  collections_layouts)
+                                  collections_layouts,
+                                  None,
+                                  None)
             exit_value, new_types, new_values, time_out, except_msg = result
 
             # Restore out/err wrappers
@@ -315,7 +317,7 @@ def process_task(current_line,     # type: str
             # And contains a pair of elements per parameter:
             #     - Parameter new type.
             #     - Parameter new value:
-            #         - 'null' if it is NOT a PSCO
+            #         - "null" if it is NOT a PSCO
             #         - PSCOId (String) if is a PSCO
             # Example:
             #     4 null 9 null 12 <pscoid>
@@ -339,7 +341,7 @@ def process_task(current_line,     # type: str
         if __debug__:
             logger.debug("Cleaning environment.")
 
-        del os.environ['COMPSS_HOSTNAMES']
+        del os.environ["COMPSS_HOSTNAMES"]
 
         # Restore loggers
         if __debug__:
@@ -358,7 +360,7 @@ def process_task(current_line,     # type: str
     else:
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" %
-                         (str(process_name), str(current_line)))
+                         (str(process_name), str(current_line_filtered)))
         exit_value = 7
         message = " ".join((END_TASK_TAG,
                             str(job_id),
@@ -368,11 +370,12 @@ def process_task(current_line,     # type: str
 
 
 def main():
+    # type: () -> None
     # Set the binding in worker mode
     context.set_pycompss_context(context.WORKER)
 
     executor("MPI Process-{0}".format(MPI.COMM_WORLD.rank), sys.argv[1])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

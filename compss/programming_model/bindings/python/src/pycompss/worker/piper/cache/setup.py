@@ -24,6 +24,9 @@ PyCOMPSs Cache setup
     IMPORTANT: Only used with python >= 3.8.
 """
 
+import typing
+from multiprocessing import Process
+from multiprocessing import Queue
 from pycompss.util.process.manager import Process  # just typing
 from pycompss.util.process.manager import Queue    # just typing
 from pycompss.util.process.manager import new_queue
@@ -31,8 +34,10 @@ from pycompss.util.process.manager import new_manager
 from pycompss.util.process.manager import create_process
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import cache_tracker
-from pycompss.worker.piper.cache.tracker import start_shared_memory_manager as __start_smm__  # noqa: E501
-from pycompss.worker.piper.cache.tracker import stop_shared_memory_manager as __stop_smm__    # noqa: E501
+from pycompss.worker.piper.cache.tracker import start_shared_memory_manager \
+    as __start_smm__
+from pycompss.worker.piper.cache.tracker import stop_shared_memory_manager \
+    as __stop_smm__
 
 
 def is_cache_enabled(cache_config):
@@ -44,18 +49,20 @@ def is_cache_enabled(cache_config):
     """
     if ":" in cache_config:
         cache, _ = cache_config.split(":")
-        cache = True if cache.lower() == "true" else False
+        cache_status = True if cache.lower() == "true" else False
     else:
-        cache = True if cache_config.lower() == "true" else False
-    return cache
+        cache_status = True if cache_config.lower() == "true" else False
+    return cache_status
 
 
 def start_cache(logger, cache_config, cache_profiler, log_dir):
-    # type: (..., str, bool, string) -> (..., Process, Queue, dict)
+    # type: (typing.Any, str, bool, str) -> typing.Tuple[typing.Any, Process, Queue, typing.Any]
     """ Setup the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
     :param cache_config: Cache configuration defined on startup.
+    :param cache_profiler: If cache profiling is enabled or not.
+    :param log_dir: Log directory where to store the profiling.
     :return: Shared memory manager, cache process, cache message queue and
              cache ids dictionary
     """
@@ -64,25 +71,28 @@ def start_cache(logger, cache_config, cache_profiler, log_dir):
     # Create a proxy dictionary to share the information across workers
     # within the same node
     manager = new_manager()
-    cache_ids = manager.dict()  # Proxy dictionary
+    # Proxy dictionary
+    cache_ids = manager.dict()  # type: typing.Any
     profiler_dict = {}
     profiler_get_struct = [[], [], []]  # Filename, Parameter, Function
     # Start a new process to manage the cache contents.
     smm = __start_smm__()
-    conf = CacheTrackerConf(logger, cache_size, None, cache_ids, profiler_dict, profiler_get_struct, log_dir,
+    conf = CacheTrackerConf(logger, cache_size, "default", cache_ids,
+                            profiler_dict, profiler_get_struct, log_dir,
                             cache_profiler)
-    cache_process, cache_queue = __create_cache_tracker_process__("cache_tracker", conf)  # noqa: E501
+    cache_process, cache_queue = \
+        __create_cache_tracker_process__("cache_tracker", conf)
     return smm, cache_process, cache_queue, cache_ids
 
 
 def stop_cache(shared_memory_manager, cache_queue, cache_profiler, cache_process):
-    # type: (..., Queue, bool, Process) -> None
+    # type: (typing.Any, Queue, bool, Process) -> None
     """ Stops the cache process and performs the necessary cleanup.
 
     :param shared_memory_manager: Shared memory manager.
     :param cache_queue: Cache messaging queue.
+    :param cache_profiler: If cache profiling is enabled or not.
     :param cache_process: Cache process
-    :param profiler_dict: Cache profiler dictionary
     :return: None
     """
     if cache_profiler:
@@ -99,8 +109,8 @@ def __get_cache_size__(cache_config):
     :return: The cache size
     """
     if ":" in cache_config:
-        _, cache_size = cache_config.split(":")
-        cache_size = int(cache_size)
+        _, cache_s = cache_config.split(":")
+        cache_size = int(cache_s)
     else:
         cache_size = __get_default_cache_size__()
     return cache_size
@@ -113,14 +123,14 @@ def __get_default_cache_size__():
     :return: The size in bytes.
     """
     # Default cache_size (bytes) = total_memory (bytes) / 4
-    mem_info = dict((i.split()[0].rstrip(':'), int(i.split()[1]))
-                    for i in open('/proc/meminfo').readlines())
+    mem_info = dict((i.split()[0].rstrip(":"), int(i.split()[1]))
+                    for i in open("/proc/meminfo").readlines())
     cache_size = int(mem_info["MemTotal"] * 1024 / 4)
     return cache_size
 
 
 def __create_cache_tracker_process__(process_name, conf):
-    # type: (str, CacheTrackerConf) -> (Process, Queue)
+    # type: (str, CacheTrackerConf) -> typing.Tuple[Process, Queue]
     """ Starts a new cache tracker process.
 
     :param process_name: Process name.

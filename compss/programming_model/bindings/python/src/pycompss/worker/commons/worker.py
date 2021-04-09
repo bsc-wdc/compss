@@ -25,13 +25,13 @@ import sys
 import signal
 import traceback
 import base64
+import typing
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.commons import range
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
@@ -60,13 +60,12 @@ def build_task_parameter(p_type,      # type: int
                          p_stream,    # type: int
                          p_prefix,    # type: str
                          p_name,      # type: str
-                         p_value,     # type: object
-                         p_c_type,    # type: str
+                         p_value,     # type: str
+                         p_c_type,    # type: int
                          args=None,   # type: list
-                         pos=None,    # type: int
-                         logger=None  # noqa # type: ...
-                         ):
-    # type: (...) -> (Parameter, int)
+                         pos=0,       # type: int
+                         logger=None  # type: typing.Any
+                         ):           # type: (...) -> typing.Tuple[Parameter, int]
     """
     Build task parameter object from the given parameters.
 
@@ -77,7 +76,7 @@ def build_task_parameter(p_type,      # type: int
     :param p_value: Parameter value.
     :param p_c_type: Parameter Python Type.
     :param args: Arguments (Default: None).
-    :param pos: Position (Default: None).
+    :param pos: Position (Default: 0).
     :param logger: Logger where to push the logging messages.
     :return: Parameter object and the number fo substrings.
     """
@@ -93,7 +92,7 @@ def build_task_parameter(p_type,      # type: int
             stream=p_stream,
             prefix=p_prefix,
             file_name=COMPSsFile(p_value),
-            extra_content_type=p_c_type
+            extra_content_type=str(p_c_type)
         )
         return _param, 0
     elif p_type == parameter.TYPE.EXTERNAL_PSCO:
@@ -104,7 +103,7 @@ def build_task_parameter(p_type,      # type: int
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            extra_content_type=p_c_type
+            extra_content_type=str(p_c_type)
         ), 1
     elif p_type == parameter.TYPE.EXTERNAL_STREAM:
         # Next position contains R/W but we do not need it. Currently skipped.
@@ -114,7 +113,7 @@ def build_task_parameter(p_type,      # type: int
             prefix=p_prefix,
             name=p_name,
             file_name=COMPSsFile(p_value),
-            extra_content_type=p_c_type
+            extra_content_type=str(p_c_type)
         ), 1
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
@@ -129,34 +128,33 @@ def build_task_parameter(p_type,      # type: int
         # Note that we prepend a sharp to all strings in order to avoid
         # getting empty encodings in the case of empty strings, so we need
         # to remove it when decoding
-        aux = base64.b64decode(aux.encode())
-        aux = aux[1:]
+        new_aux = base64.b64decode(aux.encode())[1:]
 
-        if aux:
+        if new_aux:
             #######
             # Check if the string is really an object
             # Required in order to recover objects passed as parameters.
             # - Option object_conversion
-            real_value = aux
+            real_value = new_aux
             try:
                 # try to recover the real object
                 if IS_PYTHON3:
                     # decode removes double backslash, and encode returns
                     # the result as binary
-                    p_bin_str = aux.decode(STR_ESCAPE).encode()
-                    aux = deserialize_from_string(p_bin_str,
-                                                  show_exception=False)
+                    p_bin_str = str(new_aux.decode(STR_ESCAPE).encode())
+                    deserialized_aux = deserialize_from_string(p_bin_str)  # noqa
                 else:
                     # decode removes double backslash, and str casts the output
-                    aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)),
-                                                  show_exception=False)
+                    deserialized_aux = deserialize_from_string(str(new_aux.decode(STR_ESCAPE)))
             except (SerializerException, ValueError, EOFError):
                 # was not an object
-                aux = str(real_value.decode())
+                deserialized_aux = str(real_value.decode())
             #######
+        else:
+            deserialized_aux = new_aux
 
-        if IS_PYTHON3 and isinstance(aux, bytes):
-            aux = aux.decode('utf-8')
+        if IS_PYTHON3 and isinstance(deserialized_aux, bytes):
+            deserialized_aux = deserialized_aux.decode('utf-8')
 
         if __debug__:
             logger.debug("\t * Value: %s" % aux)
@@ -166,13 +164,13 @@ def build_task_parameter(p_type,      # type: int
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            content=aux,
-            extra_content_type=p_c_type
+            content=deserialized_aux,
+            extra_content_type=str(p_c_type)
         ), num_substrings
     else:
         # Basic numeric types. These are passed as command line arguments
         # and only a cast is needed
-        val = None
+        val = None  # type: typing.Any
         if p_type == parameter.TYPE.INT:
             val = int(p_value)  # noqa
         elif p_type == parameter.TYPE.LONG:
@@ -186,7 +184,7 @@ def build_task_parameter(p_type,      # type: int
             val = float(p_value)  # noqa
             p_type = parameter.TYPE.FLOAT
             if __debug__:
-                logger.debug("Changing type from DOUBLE to FLOAT")
+                logger.debug("Changing type from DOUBLE to FLOAT")  # type: ignore
         elif p_type == parameter.TYPE.BOOLEAN:
             val = (p_value == 'true')
         return Parameter(
@@ -195,13 +193,13 @@ def build_task_parameter(p_type,      # type: int
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            extra_content_type=p_c_type
+            extra_content_type=str(p_c_type)
         ), 0
 
 
 @emit_event(GET_TASK_PARAMS_EVENT, master=False, inside=True)
 def get_task_params(num_params, logger, args):  # noqa
-    # type: (int, ..., list) -> list
+    # type: (int, typing.Any, list) -> list
     """ Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters
@@ -250,9 +248,9 @@ def get_task_params(num_params, logger, args):  # noqa
     return ret
 
 
-def task_execution(logger,              # type: ...
+def task_execution(logger,              # type: typing.Any
                    process_name,        # type: str
-                   module,              # type: ...
+                   module,              # type: typing.Any
                    method_name,         # type: str
                    time_out,            # type: int
                    types,               # type: list
@@ -261,7 +259,7 @@ def task_execution(logger,              # type: ...
                    persistent_storage,  # type: bool
                    storage_conf         # type: str
                    ):
-    # type: (...) -> (int, list, list, str, bool, str)
+    # type: (...) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]
     """ Task execution function.
 
     :param logger: Logger
@@ -434,12 +432,11 @@ def _get_return_values_for_exception(types, values):
 def task_returns(exit_code,         # type: int
                  new_types,         # type: list
                  new_values,        # type: list
-                 target_direction,  # type: ...
+                 target_direction,  # type: typing.Union[None, Parameter]
                  timed_out,         # type: bool
                  return_message,    # type: str
-                 logger             # noqa
-                 ):
-    # type: (...) -> (int, list, list, str, bool, str)
+                 logger             # type: typing.Any
+                 ):  # type: (...) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]
     """ Unified task return function.
 
     :param exit_code: Exit value (0 ok, 1 error).
@@ -472,7 +469,7 @@ def task_returns(exit_code,         # type: int
 
 @emit_event(IMPORT_USER_MODULE_EVENT, master=False, inside=True)
 def import_user_module(path, logger):
-    # type: (str, ...) -> ...
+    # type: (str, typing.Any) -> typing.Any
     """ Import the user module.
 
     :param path: Path to the user module.
@@ -487,7 +484,7 @@ def import_user_module(path, logger):
             # Force reload in interactive mode. The user may have
             # overwritten a function or task.
             if py_version < (3, 0):
-                reload(module)  # noqa
+                reload(module)      # type: ignore
             elif py_version < (3, 4):
                 import imp          # noqa
                 imp.reload(module)  # noqa
@@ -508,16 +505,15 @@ def execute_task(process_name,              # type: str
                  storage_conf,              # type: str
                  params,                    # type: list
                  tracing,                   # type: bool
-                 logger,                    # type: ...
+                 logger,                    # type: typing.Any
                  logger_cfg,                # type: str
                  log_files,                 # type: tuple
                  python_mpi=False,          # type: bool
-                 collections_layouts=None,  # type: list
-                 cache_queue=None,          # type: ...
-                 cache_ids=None,            # type: ...
+                 collections_layouts=None,  # type: dict
+                 cache_queue=None,          # type: typing.Any
+                 cache_ids=None,            # type: typing.Any
                  cache_profiler=False,      # type: bool
-                 ):
-    # type: (...) -> (str, list, list, bool, str)
+                 ):  # -> (str, list, list, bool, str)
     """ ExecuteTask main method.
 
     :param process_name: Process name.
@@ -704,7 +700,7 @@ def execute_task(process_name,              # type: str
                 obj = get_by_id(self_elem.content)
             else:
                 obj = None
-                file_name = None
+                file_name = "None"
                 if self_elem.content is None:
                     file_name = self_elem.file_name.original_path
                     if __debug__:

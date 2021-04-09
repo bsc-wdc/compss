@@ -24,6 +24,7 @@ import ast
 import threading
 import inspect
 import base64
+import typing
 from collections import OrderedDict
 from collections import deque
 
@@ -37,7 +38,6 @@ from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.commons import TRACING_TASK_NAME_TO_ID
 from pycompss.runtime.constants import EXTRACT_CORE_ELEMENT
@@ -66,6 +66,7 @@ from pycompss.runtime.management.object_tracker import OT_not_track
 from pycompss.runtime.task.commons import TaskCommons
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.parameter import Parameter
+from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import get_parameter_copy
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.parameter import UNDEFINED_CONTENT_TYPE
@@ -105,6 +106,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
+_PYTHON_TO_COMPSS = dict()  # type: dict
 if IS_PYTHON3:
     from concurrent.futures import ThreadPoolExecutor  # noqa
     from concurrent.futures import wait                # noqa
@@ -131,11 +133,11 @@ if IS_PYTHON3:
                          }
 else:
     import types
-    _PYTHON_TO_COMPSS = {types.IntType: TYPE.INT,          # noqa # int
-                         types.LongType: TYPE.LONG,        # noqa # long
-                         types.FloatType: TYPE.DOUBLE,     # noqa # float
-                         types.BooleanType: TYPE.BOOLEAN,  # noqa # bool
-                         types.StringType: TYPE.STRING,    # noqa # str
+    _PYTHON_TO_COMPSS = {types.IntType: TYPE.INT,          # type: ignore # int
+                         types.LongType: TYPE.LONG,        # type: ignore # long
+                         types.FloatType: TYPE.DOUBLE,     # type: ignore # float
+                         types.BooleanType: TYPE.BOOLEAN,  # type: ignore # bool
+                         types.StringType: TYPE.STRING,    # type: ignore # str
                          # The type of instances of user-defined classes
                          # types.InstanceType: TYPE.OBJECT,
                          # The type of methods of user-defined class instances
@@ -145,20 +147,20 @@ else:
                          # The type of modules
                          # types.ModuleType: TYPE.OBJECT,
                          # The type of tuples (e.g. (1, 2, 3, "Spam"))
-                         types.TupleType: TYPE.OBJECT,     # noqa
+                         types.TupleType: TYPE.OBJECT,     # type: ignore
                          # The type of lists (e.g. [0, 1, 2, 3])
-                         types.ListType: TYPE.OBJECT,
+                         types.ListType: TYPE.OBJECT,      # type: ignore
                          # The type of dictionaries (e.g. {"Bacon":1,"Ham":0})
-                         types.DictType: TYPE.OBJECT,
+                         types.DictType: TYPE.OBJECT,      # type: ignore
                          # The type of generic objects
-                         types.ObjectType: TYPE.OBJECT     # noqa
+                         types.ObjectType: TYPE.OBJECT     # type: ignore
                          }
 
-MANDATORY_ARGUMENTS = {}
+MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 # List since the parameter names are included before checking for unexpected
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
-SUPPORTED_ARGUMENTS = ["returns",
+SUPPORTED_ARGUMENTS = {"returns",
                        "cache_returns",
                        "priority",
                        "on_failure",
@@ -175,29 +177,29 @@ SUPPORTED_ARGUMENTS = ["returns",
                        "numba_flags",
                        "numba_signature",
                        "numba_declaration",
-                       "tracing_hook"]
+                       "tracing_hook"}
 # Deprecated arguments. Still supported but shows a message when used.
-DEPRECATED_ARGUMENTS = ["isReplicated",
+DEPRECATED_ARGUMENTS = {"isReplicated",
                         "isDistributed",
                         "varargsType",
-                        "targetDirection"]
+                        "targetDirection"}
 # All supported arguments
-ALL_SUPPORTED_ARGUMENTS = SUPPORTED_ARGUMENTS + DEPRECATED_ARGUMENTS
+ALL_SUPPORTED_ARGUMENTS = SUPPORTED_ARGUMENTS.union(DEPRECATED_ARGUMENTS)
 # Some attributes cause memory leaks, we must delete them from memory after
 # master call
-ATTRIBUTES_TO_BE_REMOVED = ["decorator_arguments",
+ATTRIBUTES_TO_BE_REMOVED = {"decorator_arguments",
                             "param_args",
                             "param_varargs",
                             "param_defaults",
                             "first_arg_name",
                             "parameters",
                             "returns",
-                            "multi_return"]
+                            "multi_return"}
 
 # This lock allows tasks to be launched with the Threading module while
 # ensuring that no attribute is overwritten
 MASTER_LOCK = threading.Lock()
-VALUE_OF = 'value_of'
+VALUE_OF = "value_of"
 
 
 class TaskMaster(TaskCommons):
@@ -218,39 +220,40 @@ class TaskMaster(TaskCommons):
                  "on_failure", "defaults"]
 
     def __init__(self,
-                 decorator_arguments,
-                 user_function,
-                 core_element,
-                 registered,
-                 signature,
-                 interactive,
-                 module,
-                 function_arguments,
-                 function_name,
-                 module_name,
-                 function_type,
-                 class_name,
-                 hints,
-                 on_failure,
-                 defaults):
+                 decorator_arguments,  # type: typing.Dict[str, Parameter]
+                 user_function,        # type: typing.Any
+                 core_element,         # type: CE
+                 registered,           # type: bool
+                 signature,            # type: str
+                 interactive,          # type: bool
+                 module,               # type: typing.Any
+                 function_arguments,   # type: tuple
+                 function_name,        # type: str
+                 module_name,          # type: str
+                 function_type,        # type: int
+                 class_name,           # type: str
+                 hints,                # type: typing.Any
+                 on_failure,           # type: str
+                 defaults              # type: dict
+                 ):  # type: (...) -> None
         # Initialize TaskCommons
         super(TaskMaster, self).__init__(decorator_arguments,
                                          user_function,
                                          on_failure,
                                          defaults)
         # Add more argument related attributes that will be useful later
-        self.param_defaults = None
+        self.param_defaults = None  # type: typing.Union[None, tuple]
         # Add function related attributed that will be useful later
         self.first_arg_name = None
         self.computing_nodes = None
         self.processes_per_node = None
-        self.parameters = None
+        self.parameters = OrderedDict()  # type: OrderedDict
         self.function_name = function_name
         self.module_name = module_name
         self.function_type = function_type
         self.class_name = class_name
         # Add returns related attributes that will be useful later
-        self.returns = None
+        self.returns = OrderedDict()      # type: OrderedDict
         self.multi_return = False
         # Task won't be registered until called from the master for the first
         # time or have a different signature
@@ -269,7 +272,7 @@ class TaskMaster(TaskCommons):
         self.hints = hints
 
     def call(self, *args, **kwargs):
-        # type: (tuple, dict) -> (object, bool, str)
+        # type: (*typing.Any, **typing.Any) -> tuple
         """ Main task code at master side.
 
         This part deals with task calls in the master's side
@@ -316,12 +319,12 @@ class TaskMaster(TaskCommons):
             if self.param_defaults is None:
                 self.param_defaults = ()
         explicit_num_returns = None
-        if 'returns' in kwargs:
-            explicit_num_returns = kwargs.pop('returns')
+        if "returns" in kwargs:
+            explicit_num_returns = kwargs.pop("returns")
 
         # Process the parameters, give them a proper direction
         with event(PROCESS_PARAMETERS, master=True):
-            self.process_parameters(*args, **kwargs)
+            self.process_parameters(args, kwargs)
 
         # Compute the function path, class (if any), and name
         with event(GET_FUNCTION_INFORMATION, master=True):
@@ -411,8 +414,8 @@ class TaskMaster(TaskCommons):
         if self.class_name == "":
             path = self.module_name
         else:
-            path = ".".join((self.module_name, self.class_name))
-        signature = ".".join((path, self.function_name))
+            path = ".".join([str(self.module_name), str(self.class_name)])
+        signature = ".".join([str(path), str(self.function_name)])
 
         if __debug__:
             logger.debug("TASK: %s of type %s, in module %s, in class %s" %
@@ -469,12 +472,12 @@ class TaskMaster(TaskCommons):
                 self.hints)
 
     def check_if_interactive(self):
-        # type: () -> (bool, ...)
+        # type: () -> typing.Tuple[bool, typing.Any]
         """ Check if running in interactive mode.
 
         :return: True if interactive. False otherwise.
         """
-        mod = inspect.getmodule(self.user_function)
+        mod = inspect.getmodule(self.user_function)  # type: typing.Any
         module_name = mod.__name__
         if context.in_pycompss() and \
                 (module_name == "__main__" or
@@ -486,7 +489,7 @@ class TaskMaster(TaskCommons):
             return False, None
 
     def update_if_interactive(self, mod):
-        # type: (...) -> None
+        # type: (typing.Any) -> None
         """ Update the code for jupyter notebook.
 
         Update the user code if in interactive mode and the session has
@@ -516,7 +519,7 @@ class TaskMaster(TaskCommons):
             print("Found task: " + str(self.user_function.__name__))
 
     def extract_core_element(self, kwargs):
-        # type: (dict) -> (CE, bool)
+        # type: (dict) -> typing.Tuple[bool, bool]
         """ Get or instantiate the Task's core element.
 
         Extract the core element if created in a higher level decorator,
@@ -569,6 +572,7 @@ class TaskMaster(TaskCommons):
 
     @staticmethod
     def _getargspec(function):
+        # type: (typing.Any) -> tuple
         """ Private method that retrieves the function argspec.
 
         :param function: Function to analyse.
@@ -586,7 +590,7 @@ class TaskMaster(TaskCommons):
             # of getfullargspec).
             return inspect.getargspec(function)  # noqa
 
-    def process_parameters(self, *args, **kwargs):
+    def process_parameters(self, args, kwargs):
         # type: (list, dict) -> None
         """ Process all the input parameters.
 
@@ -619,7 +623,6 @@ class TaskMaster(TaskCommons):
 
         # Process the positional arguments and fill self.parameters with
         # their corresponding Parameter object
-        self.parameters = OrderedDict()
 
         # Some of these positional arguments may have been not
         # explicitly defined
@@ -633,23 +636,24 @@ class TaskMaster(TaskCommons):
                                                                     arg_object)
 
         # Check defaults
-        num_defaults = len(self.param_defaults)
-        if num_defaults > 0:
-            # Give default values to all the parameters that have a
-            # default value and are not already set
-            # As an important observation, defaults are matched as follows:
-            # defaults[-1] goes with positionals[-1]
-            # defaults[-2] goes with positionals[-2]
-            # ...
-            # Also, |defaults| <= |positionals|
-            for (arg_name, default_value) in reversed(
-                    list(zip(list(reversed(self.param_args))[:num_defaults],
-                             list(reversed(self.param_defaults))))):
-                if arg_name not in self.parameters:
-                    real_arg_name = get_kwarg_name(arg_name)
-                    self.parameters[real_arg_name] = \
-                        self.build_parameter_object(real_arg_name,
-                                                    default_value)
+        if self.param_defaults:
+            num_defaults = len(self.param_defaults)
+            if num_defaults > 0:
+                # Give default values to all the parameters that have a
+                # default value and are not already set
+                # As an important observation, defaults are matched as follows:
+                # defaults[-1] goes with positionals[-1]
+                # defaults[-2] goes with positionals[-2]
+                # ...
+                # Also, |defaults| <= |positionals|
+                for (arg_name, default_value) in reversed(
+                        list(zip(list(reversed(self.param_args))[:num_defaults],
+                                 list(reversed(self.param_defaults))))):
+                    if arg_name not in self.parameters:
+                        real_arg_name = get_kwarg_name(arg_name)
+                        self.parameters[real_arg_name] = \
+                            self.build_parameter_object(real_arg_name,
+                                                        default_value)
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
         # This will allow us to determine the class of each parameter
@@ -671,10 +675,9 @@ class TaskMaster(TaskCommons):
             if name not in supported_kwargs:
                 supported_kwargs.append(name)
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_arguments = (ALL_SUPPORTED_ARGUMENTS +
-                               self.param_args +
-                               supported_varargs +
-                               supported_kwargs)
+        supported_arguments = ALL_SUPPORTED_ARGUMENTS.union(self.param_args)
+        supported_arguments = supported_arguments.union(supported_varargs)
+        supported_arguments = supported_arguments.union(supported_kwargs)
         check_arguments(MANDATORY_ARGUMENTS,
                         DEPRECATED_ARGUMENTS,
                         supported_arguments,
@@ -682,7 +685,7 @@ class TaskMaster(TaskCommons):
                         "@task")
 
     def build_parameter_object(self, arg_name, arg_object):
-        # type: (str, ...) -> Parameter
+        # type: (str, typing.Any) -> Parameter
         """ Creates the Parameter object from an argument name and object.
 
         WARNING: Any modification in the param object will modify the
@@ -765,7 +768,7 @@ class TaskMaster(TaskCommons):
 
         :return: None, it just modifies self.module_name.
         """
-        mod = inspect.getmodule(self.user_function)
+        mod = inspect.getmodule(self.user_function)  # type: typing.Any
         self.module_name = mod.__name__
         # If it is a task within a class, the module it will be where the one
         # where the class is defined, instead of the one where the task is
@@ -822,8 +825,8 @@ class TaskMaster(TaskCommons):
         # Since these methods don't have self, nor cls, they are considered as
         # FUNCTIONS to the runtime
         if IS_PYTHON3:
-            name = self.function_name
-            qualified_name = self.user_function.__qualname__
+            name = str(self.function_name)
+            qualified_name = str(self.user_function.__qualname__)
             if name != qualified_name:
                 # Then there is a class definition before the name in the
                 # qualified name
@@ -831,7 +834,7 @@ class TaskMaster(TaskCommons):
                 # -1 to remove the last point
 
     def set_code_strings(self, f, ce_type):
-        # type: (..., str) -> None
+        # type: (typing.Any, str) -> None
         """ This function is used to set if the strings must be coded or not.
 
         IMPORTANT! modifies f adding __code_strings__ which is used in binding.
@@ -859,7 +862,7 @@ class TaskMaster(TaskCommons):
                          (self.function_name, self.module_name, str(ce_type)))
 
     def get_signature(self):
-        # type: () -> (str, list)
+        # type: () -> typing.Tuple[str, list]
         """ This function is used to find out the function signature.
 
         The information is needed in order to compare the implementation
@@ -875,7 +878,7 @@ class TaskMaster(TaskCommons):
         app_frames = []
         # Ignore self.get_signature and call functions from the frame.
         # Sightly faster than inspect.currentframe().
-        frame = sys._getframe(2)  # noqa
+        frame = sys._getframe(2)  # type: typing.Any
         try:
             while frame:
                 # This loop does like inspect.getouterframes(frame)
@@ -892,18 +895,20 @@ class TaskMaster(TaskCommons):
 
         if len(app_frames) != 1 and self.class_name:
             # Within class or subclass
-            impl_signature = ".".join((self.module_name, self.class_name,
-                                       self.function_name))
-            impl_type_args = [".".join((self.module_name, self.class_name)),
+            impl_signature = ".".join([str(self.module_name),
+                                       str(self.class_name),
+                                       str(self.function_name)])
+            impl_type_args = [".".join([str(self.module_name),
+                                        str(self.class_name)]),
                               self.function_name]
         else:
             # The task is defined within the main app file.
             # Not in a class or subclass
             # This case can be reached in Python 3, where particular
             # frames are included, but not class names found.
-            impl_signature = ".".join((self.module_name,
-                                       self.function_name))
-            impl_type_args = [self.module_name, self.function_name]
+            impl_signature = ".".join([str(self.module_name),
+                                       str(self.function_name)])
+            impl_type_args = [str(self.module_name), str(self.function_name)]
         return impl_signature, impl_type_args
 
     def update_core_element(self, impl_signature, impl_type_args,
@@ -924,7 +929,7 @@ class TaskMaster(TaskCommons):
 
         # Include the registering info related to @task
         impl_type = "METHOD"
-        impl_constraints = {}
+        impl_constraints = dict()  # type: dict
         impl_io = False
 
         if __debug__:
@@ -968,8 +973,12 @@ class TaskMaster(TaskCommons):
             # if the parameter with layout exists.
             if get_impl_type() == "PYTHON_MPI":
                 self.check_layout_params(get_impl_type_args())
-                set_impl_signature(".".join(("MPI", impl_signature)))
-                set_impl_type_args(impl_type_args + get_impl_type_args()[1:])
+                set_impl_signature(".".join(["MPI", impl_signature]))
+                impl_type_args_new = get_impl_type_args()
+                if impl_type_args_new:
+                    set_impl_type_args(impl_type_args + impl_type_args_new[1:])
+                else:
+                    set_impl_type_args(impl_type_args)
             if get_impl_io() is None:
                 set_impl_io(impl_io)
         else:
@@ -1154,7 +1163,7 @@ class TaskMaster(TaskCommons):
         return parsed_computing_nodes
 
     def process_reduction(self):
-        # type: () -> (bool, int)
+        # type: () -> typing.Tuple[bool, int]
         """ Process the reduction parameter.
 
         :return: Is reduction and chunk size.
@@ -1182,7 +1191,7 @@ class TaskMaster(TaskCommons):
                         parsed_chunk_size = int(os.environ[env_var])
                     except ValueError:
                         raise PyCOMPSsException(
-                            cast_env_to_int_error('ChunkSize')
+                            cast_env_to_int_error("ChunkSize")
                         )
                 else:
                     # Dynamic global variable
@@ -1225,7 +1234,7 @@ class TaskMaster(TaskCommons):
         return parsed_is_reduce, parsed_chunk_size
 
     def check_task_hints(self):
-        # type: () -> (bool, bool, bool, int, bool, bool)
+        # type: () -> tuple
         """ Process the @task hints.
 
         :return: The value of all possible hints.
@@ -1262,10 +1271,8 @@ class TaskMaster(TaskCommons):
         :return: Creates and modifies self.returns and returns the number of
                  returns.
         """
-        self.returns = OrderedDict()
-
         if returns:
-            _returns = returns
+            _returns = returns  # type: typing.Any
         else:
             _returns = self.decorator_arguments["returns"]
 
@@ -1283,6 +1290,7 @@ class TaskMaster(TaskCommons):
         # return a single object or [a single object] in some cases
         self.multi_return = True
         defined_type = False
+        to_return = None  # type: typing.Any
         if isinstance(_returns, str):
             # Check if the returns statement contains an string with an
             # integer or a global variable.
@@ -1321,7 +1329,7 @@ class TaskMaster(TaskCommons):
                               content_type=ret_type,
                               direction=ret_dir)
             else:
-                for (i, elem) in enumerate(to_return):  # noqa
+                for i, elem in enumerate(to_return):  # noqa
                     ret_type = get_compss_type(elem)
                     self.returns[get_return_name(i)] = \
                         Parameter(content=elem,
@@ -1346,7 +1354,7 @@ class TaskMaster(TaskCommons):
             return to_return
 
     def get_num_returns_from_string(self, _returns):
-        # type: (...) -> int
+        # type: (typing.Any) -> int
         """ Converts the returns to integer.
 
         :param _returns: Returns as string.
@@ -1358,8 +1366,8 @@ class TaskMaster(TaskCommons):
             return int(_returns)
         except ValueError:
             if _returns.startswith(VALUE_OF):
-                #  from 'value_of ( xxx.yyy )' to [xxx, yyy]
-                param_ref = _returns.replace(VALUE_OF, '').replace('(', '').replace(')', '').strip().split('.')  # noqa: E501
+                #  from "value_of ( xxx.yyy )" to [xxx, yyy]
+                param_ref = _returns.replace(VALUE_OF, "").replace("(", "").replace(")", "").strip().split(".")  # noqa: E501
                 if len(param_ref) > 0:
                     obj = self.parameters[param_ref[0]].content
                     return int(_get_object_property(param_ref, obj))
@@ -1375,7 +1383,7 @@ class TaskMaster(TaskCommons):
                 return int(num_rets)
 
     def update_return_if_no_returns(self, f):
-        # type: (...) -> int
+        # type: (typing.Any) -> int
         """ Look for returns if no returns is specified.
 
         Checks the code looking for return statements if no returns is
@@ -1419,6 +1427,7 @@ class TaskMaster(TaskCommons):
         # It is python2 or could not find type-hinting
         source_code = get_wrapped_source(f).strip()
 
+        code = []  # type: list
         if self.first_arg_name == "self" or \
                 source_code.startswith("@classmethod"):
             # It is a task defined within a class (can not parse the code
@@ -1426,7 +1435,7 @@ class TaskMaster(TaskCommons):
             # Alternatively, the only way I see is to parse it manually
             # line by line.
             ret_mask = []
-            code = source_code.split('\n')
+            code = source_code.split("\n")
             for line in code:
                 if "return " in line:
                     ret_mask.append(True)
@@ -1495,7 +1504,7 @@ class TaskMaster(TaskCommons):
         return len(self.returns)
 
     def _build_return_objects(self, num_returns):
-        # type: (int) -> object
+        # type: (int) -> typing.Any
         """ Build the return objects.
 
         Build the return object from the self.return dictionary and include
@@ -1510,7 +1519,7 @@ class TaskMaster(TaskCommons):
         :param num_returns: Number of returned elements.
         :return: Future object/s.
         """
-        fo = None
+        fo = None  # type: typing.Any
         if num_returns == 0:
             # No return
             return fo
@@ -1642,7 +1651,7 @@ class TaskMaster(TaskCommons):
                 logger.debug("Final type for parameter %s: %d" % (k, p.content_type))  # noqa: E501
 
     def _build_values_types_directions(self):
-        # type: () -> (list, list, list, list, list)
+        # type: () -> tuple
         """
         Build the values list, the values types list and the values directions
         list.
@@ -1732,7 +1741,7 @@ class TaskMaster(TaskCommons):
     def _convert_parameter_obj_to_string(p,
                                          max_obj_arg_size,
                                          policy="objectSize"):
-        # type: (Parameter, int, str) -> (Parameter, int)
+        # type: (Parameter, int, str) -> typing.Tuple[Parameter, int]
         """ Convert object to string.
 
         Convert small objects into strings that can fit into the task
@@ -1751,9 +1760,10 @@ class TaskMaster(TaskCommons):
         if IS_PYTHON3:
             base_string = str
         else:
-            base_string = basestring  # noqa
+            base_string = basestring  # type: ignore
 
         num_bytes = 0
+        real_value = None  # type: typing.Any
         if policy == "objectSize":
             # Check if the object is small in order to serialize it.
             # This alternative evaluates the size of the object before
@@ -1802,10 +1812,13 @@ class TaskMaster(TaskCommons):
                         # if max_obj_arg_size > 320000:
                         #     max_obj_arg_size = 320000
         elif policy == "serializedSize":
+            PicklingError = None  # type: typing.Any
             if IS_PYTHON3:
-                from pickle import PicklingError
+                from pickle import PicklingError as p_e_3
+                PicklingError = p_e_3
             else:
-                from cPickle import PicklingError  # noqa
+                from cPickle import PicklingError as p_e_2  # noqa
+                PicklingError = p_e_2
             # Check if the object is small in order to serialize it.
             # This alternative evaluates the size after serializing the
             # parameter
@@ -1816,7 +1829,7 @@ class TaskMaster(TaskCommons):
                 real_value = p.content
                 try:
                     v = serialize_to_string(p.content)
-                    v = v.encode(STR_ESCAPE)  # noqa
+                    v = str(v.encode(STR_ESCAPE))  # noqa
                     # check object size
                     num_bytes = sys.getsizeof(v)
                     if __debug__:
@@ -1859,6 +1872,7 @@ class TaskMaster(TaskCommons):
 
 
 def _get_object_property(param_ref, obj):
+    # type: (list, typing.Any) -> typing.Any
     if len(param_ref) == 1:
         return obj
     else:
@@ -1926,12 +1940,12 @@ def _serialize_object_into_file(name, p):
     elif p.content_type == TYPE.EXTERNAL_PSCO:
         _manage_persistent_object(p)
     elif p.content_type == TYPE.INT:
-        if p.content > JAVA_MAX_INT or p.content < JAVA_MIN_INT:
+        if p.content > JAVA_MAX_INT or p.content < JAVA_MIN_INT:  # type: ignore
             # This must go through Java as a long to prevent overflow with
             # Java integer
             p.content_type = TYPE.LONG
     elif p.content_type == TYPE.LONG:
-        if p.content > JAVA_MAX_LONG or p.content < JAVA_MIN_LONG:
+        if p.content > JAVA_MAX_LONG or p.content < JAVA_MIN_LONG:  # type: ignore
             # This must be serialized to prevent overflow with Java long
             p.content_type = TYPE.OBJECT
             _skip_file_creation = (p.direction == DIRECTION.OUT)
@@ -1949,7 +1963,7 @@ def _serialize_object_into_file(name, p):
         # We will build the value field later
         # (which will be used to reconstruct the collection in the worker)
         if p.is_file_collection:
-            new_object = [
+            new_object_col = [
                 Parameter(
                      content=x,
                      content_type=TYPE.FILE,
@@ -1960,7 +1974,7 @@ def _serialize_object_into_file(name, p):
                 for x in p.content
             ]
         else:
-            new_object = [
+            new_object_col = [
                 _serialize_object_into_file(
                     name,
                     Parameter(
@@ -1973,7 +1987,7 @@ def _serialize_object_into_file(name, p):
                 )
                 for x in p.content
             ]
-        p.content = new_object
+        p.content = new_object_col
         # Give this object an identifier inside the binding
         if p.direction != DIRECTION.IN_DELETE:
             _, _ = OT_track(p.content, collection=True)
@@ -1981,7 +1995,7 @@ def _serialize_object_into_file(name, p):
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
         # (which will be used to reconstruct the collection in the worker)
-        new_object = {}
+        new_object_dict = dict()
         for k, v in p.content.items():
             key = _serialize_object_into_file(
                 name,
@@ -2003,8 +2017,8 @@ def _serialize_object_into_file(name, p):
                     extra_content_type=str(type(v).__name__)
                 )
             )
-            new_object[key] = value
-        p.content = new_object
+            new_object_dict[key] = value
+        p.content = new_object_dict
         # Give this object an identifier inside the binding
         if p.direction != DIRECTION.IN_DELETE:
             _, _ = OT_track(p.content, collection=True)
@@ -2047,11 +2061,11 @@ def _turn_into_file(p, skip_creation=False):
             if not skip_creation:
                 serialize_to_file(p.content, compss_file)
     # Set file name in Parameter object
-    p.file_name = file_name
+    p.file_name = COMPSsFile(file_name)
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
-    # type: (Parameter, bool, int) -> (int, int, int, int, str, str, float, bool)  # noqa: E501
+    # type: (Parameter, bool, int) -> tuple
     """ Extract the information of a single parameter.
 
     :param param: Parameter object.
@@ -2073,6 +2087,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
             "builtins", str(param.content.__class__.__name__))
 
+    typ = None    # type: typing.Any
+    value = None  # type: typing.Any
     if param.content_type == TYPE.FILE or param.is_future:
         # If the parameter is a file or is future, the content is in a file
         # and we register it as file
@@ -2133,7 +2149,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
                 code_strings,
                 param.depth - 1
             )
-            value += ' %s %s %s' % (x_type, x_value, x_con_type)
+            value += " %s %s %s" % (x_type, x_value, x_con_type)
     elif param.content_type == TYPE.DICT_COLLECTION or \
             (collection_depth > 0 and is_dict(param.content)):
         # An object will be considered a dictionary collection if at least one
@@ -2164,20 +2180,20 @@ def _extract_parameter(param, code_strings, collection_depth=0):
                 param.depth - 1
             )
             if k_con_type != con_type:
-                value += ' %s %s %s' % (k_type, k_value, k_con_type)
+                value = "%s %s %s %s" % (value, k_type, k_value, k_con_type)
             else:
                 # remove last dict_collection._classname if key is a dict_collection  # noqa: E501
-                value += ' %s %s' % (k_type, k_value)
+                value = "%s %s %s" % (value, k_type, k_value)
             v_value, v_type, _, _, _, v_con_type, _, _ = _extract_parameter(
                 v,
                 code_strings,
                 param.depth - 1
             )
             if v_con_type != con_type:
-                value += ' %s %s %s' % (v_type, v_value, v_con_type)
+                value = "%s %s %s %s" % (value, v_type, v_value, v_con_type)
             else:
                 # remove last dict_collection._classname if value is a dict_collection  # noqa: E501
-                value += ' %s %s' % (v_type, v_value)
+                value = "%s %s %s" % (value, v_type, v_value)
     else:
         # Keep the original value and type
         value = param.content

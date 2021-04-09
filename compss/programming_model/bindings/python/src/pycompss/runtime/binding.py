@@ -26,6 +26,7 @@ PyCOMPSs Binding - Binding
 import os
 import re
 import signal
+import typing
 from shutil import rmtree
 
 import pycompss.runtime.management.COMPSs as COMPSs
@@ -73,6 +74,8 @@ from pycompss.runtime.constants import PROCESS_TASK_EVENT
 if __debug__:
     import logging
     logger = logging.getLogger(__name__)
+
+object_conversion = False
 
 
 # ########################################################################### #
@@ -478,7 +481,7 @@ def free_resources(num_resources, group_name):
 
 
 def set_wall_clock(wall_clock_limit):
-    # type: (long) -> node
+    # type: (int) -> None
     """ Sets the application wall clock limit.
 
     :param wall_clock_limit: Wall clock limit in seconds.
@@ -588,9 +591,12 @@ def register_ce(core_element):  # noqa
     """
     # Retrieve Core element fields
     ce_signature = core_element.get_ce_signature()
-    impl_signature = core_element.get_impl_signature()
-    impl_constraints = core_element.get_impl_constraints()
-    impl_type = core_element.get_impl_type()
+    impl_signature_base = core_element.get_impl_signature()
+    impl_signature = None if impl_signature_base == "" else impl_signature_base
+    impl_constraints_base = core_element.get_impl_constraints()
+    impl_constraints = None if impl_constraints_base == "" else impl_constraints_base
+    impl_type_base = core_element.get_impl_type()
+    impl_type = None if impl_type_base == "" else str(impl_type_base)
     impl_io = str(core_element.get_impl_io())
     impl_type_args = core_element.get_impl_type_args()
 
@@ -614,7 +620,7 @@ def register_ce(core_element):  # noqa
         logger.debug("\t - Implementation type: %s" %
                      impl_type)
         logger.debug("\t - Implementation type arguments: %s" %
-                     ' '.join(impl_type_args))
+                     " ".join(impl_type_args))
 
     # Call runtime with the appropriate parameters
     COMPSs.register_core_element(ce_signature,
@@ -629,7 +635,7 @@ def register_ce(core_element):  # noqa
 
 @emit_event(WAIT_ON_EVENT, master=True)
 def wait_on(*args, **kwargs):
-    # type: (tuple, dict) -> object
+    # type: (*typing.Any, **typing.Any) -> typing.Any
     """ Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in
@@ -641,14 +647,17 @@ def wait_on(*args, **kwargs):
     """
     ret = list(map(wait_on_object, args,
                    [kwargs.get("mode", "rw")] * len(args)))
-    ret = ret[0] if len(ret) == 1 else ret
+    if len(ret) == 1:
+        ret_lst = ret[0]
+    else:
+        ret_lst = ret
     # Check if there are empty elements return elements that need to be removed
-    if isinstance(ret, LIST_TYPE):
+    if isinstance(ret_lst, LIST_TYPE):
         # Look backwards the list removing the first EmptyReturn elements
-        for elem in reversed(ret):
+        for elem in reversed(ret_lst):
             if isinstance(elem, EmptyReturn):
-                ret.remove(elem)
-    return ret
+                ret_lst.remove(elem)
+    return ret_lst
 
 
 @emit_event(PROCESS_TASK_EVENT, master=True)
@@ -697,6 +706,7 @@ def process_task(signature,             # type: str
     :param distributed: Boolean indicating if the task must be distributed
     :param on_failure: Action on failure
     :param time_out: Time for a task time out
+    :param is_http: If it is an http task (service)
     :return: The future object related to the task return
     """
     app_id = 0
@@ -856,4 +866,14 @@ def _clean_temps():
 
 
 def _wall_clock_exceed(signum, frame):
+    # type: (int, typing.Any) -> None
+    """ Task wall clock exceeded action: raise PyCOMPSs exception.
+
+    Do not remove the parameters.
+
+    :param signum: Signal number.
+    :param frame: Frame.
+    :return: None
+    :raises: PyCOMPSsException exception.
+    """
     raise PyCOMPSsException("Application has reached its wall clock limit")

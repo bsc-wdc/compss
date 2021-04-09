@@ -26,10 +26,11 @@ PyCOMPSs Binding - Management - Object tracker
 import os
 import time
 import uuid
+import typing
 
-import pycompss.util.context as context
 from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_temporary_directory
+from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
@@ -51,17 +52,18 @@ class ObjectTracker(object):
                  "reporting", "reporting_info", "initial_time"]
 
     def __init__(self):
+        # type: () -> None
         # Dictionary to contain the conversion from object id to the
         # filename where it is stored (mapping).
         # The filename will be used for requesting an object to
         # the runtime (its corresponding version).
-        self.file_names = {}
+        self.file_names = dict()             # type: typing.Dict[str, str]
         # Set that contains the object identifiers of the objects to pending
         # to be synchronized.
-        self.pending_to_synchronize = set()
+        self.pending_to_synchronize = set()  # type: typing.Set[str]
         # Set of identifiers of the objects that have been accessed by the
         # main program
-        self.written_objects = set()
+        self.written_objects = set()         # type: typing.Set[str]
         # Identifier handling
         self.current_id = 1
         # Object identifiers will be of the form _runtime_id-_current_id
@@ -73,10 +75,10 @@ class ObjectTracker(object):
         # NOTE: it can not be done in the other way since the memory addresses
         #       can be reused, not guaranteeing their uniqueness, and causing
         #       weird behaviour.
-        self.obj_id_to_obj = {}
+        self.obj_id_to_obj = dict()      # type: typing.Dict[str, typing.Any]
         # Dictionary to contain the object address (currently the id(obj)) to
         # the identifier provided by the binding.
-        self.address_to_obj_id = {}
+        self.address_to_obj_id = dict()  # type: typing.Dict[typing.Any, str]
 
         # Boolean to store tracking information
         # CAUTION: Enabling reporting increases the memory usage since
@@ -84,12 +86,12 @@ class ObjectTracker(object):
         #          when a new object is tracked or stopped tracking.
         self.reporting = False
         # Report info: Contains tuples composed by the values to be reported.
-        self.reporting_info = []
+        self.reporting_info = []  # type: typing.List[tuple]
         # Store the initial time as reference for the reporting.
-        self.initial_time = 0
+        self.initial_time = 0.0
 
     def track(self, obj, collection=False):
-        # type: (object, bool) -> (str, str)
+        # type: (typing.Any, bool) -> typing.Tuple[str, str]
         """ Start tracking an object.
 
         Collections are not stored into a file. Consequently, we just register
@@ -102,7 +104,7 @@ class ObjectTracker(object):
         """
         if collection:
             obj_id = self._register_object(obj, True)
-            file_name = None
+            file_name = "None"
             if __debug__:
                 logger.debug("Tracking collection %s" % obj_id)
         else:
@@ -120,16 +122,17 @@ class ObjectTracker(object):
         return obj_id, file_name
 
     def not_track(self, collection=False):
+        # type: (bool) -> typing.Tuple[str, str]
         obj_id = "%s-%d" % (self.runtime_id, self.current_id)
         if collection:
-            file_name = None
+            file_name = "None"
         else:
             file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
         self.current_id += 1
         return obj_id, file_name
 
     def stop_tracking(self, obj, collection=False):
-        # type: (object, bool) -> None
+        # type: (typing.Any, bool) -> None
         """ Stop tracking the given object.
 
         :param obj: Object to stop tracking.
@@ -151,18 +154,18 @@ class ObjectTracker(object):
         self.report_now()
 
     def get_object_id(self, obj):
-        # type: (object) -> str or None
+        # type: (typing.Any) -> str
         """ Returns the object identifier.
 
         This function is a wrapper of is_tracked.
 
         :param obj: Object to check.
-        :return: Object identifier if under tracking. None otherwise.
+        :return: Object identifier if under tracking. Empty string otherwise.
         """
         return self.is_tracked(obj)
 
     def is_tracked(self, obj):
-        # type: (object) -> str or None
+        # type: (typing.Any) -> str
         """ Checks if the given object is being tracked.
 
         Due to the length that the obj_id_to_address dictionary can reach, if
@@ -170,13 +173,13 @@ class ObjectTracker(object):
         into the dictionary.
 
         :param obj: Object to check.
-        :return: Object identifier if under tracking. None otherwise.
+        :return: Object identifier if under tracking. Empty string otherwise.
         """
         address = self._get_object_address(obj)
         if address in self.address_to_obj_id:
             return self.address_to_obj_id[address]
         else:
-            return None
+            return ""
 
     def get_all_file_names(self):
         # type: () -> tuple
@@ -198,7 +201,7 @@ class ObjectTracker(object):
         return self.file_names[obj_id]
 
     def is_obj_pending_to_synchronize(self, obj):
-        # type: (object) -> bool
+        # type: (typing.Any) -> bool
         """ Checks if the given object is pending to be synchronized.
 
         :param obj: Object to check.
@@ -252,7 +255,7 @@ class ObjectTracker(object):
         return self.get_file_name(obj_id)
 
     def update_mapping(self, obj_id, obj):
-        # type: (str, object) -> None
+        # type: (str, typing.Any) -> None
         """ Updates the object into the object tracker.
 
         :param obj_id: Object identifier.
@@ -263,7 +266,7 @@ class ObjectTracker(object):
         # mapping
         new_obj_id = self._register_object(obj, True, True)
         old_file_name = self.get_file_name(obj_id)
-        new_file_name = old_file_name.replace(obj_id, new_obj_id)
+        new_file_name = old_file_name.replace(obj_id, str(new_obj_id))
         self._set_file_name(new_obj_id, new_file_name, written=True)
 
     def clean_object_tracker(self):
@@ -291,9 +294,10 @@ class ObjectTracker(object):
     #            PRIVATE FUNCTIONS              #
     #############################################
 
-    def _register_object(self, obj, assign_new_key=False,
+    def _register_object(self, obj,
+                         assign_new_key=False,
                          force_insertion=False):
-        # type: (object, bool, bool) -> str or None
+        # type: (typing.Any, bool, bool) -> str
         """ Registers an object into the object tracker.
 
         If not found or we are forced to, we create a new identifier for this
@@ -334,6 +338,8 @@ class ObjectTracker(object):
             self.address_to_obj_id[address] = new_id
             return new_id
 
+        raise PyCOMPSsException("Reached unexpected object registry case.")
+
     def _set_file_name(self, obj_id, filename, written=False):
         # type: (str, str, bool) -> None
         """ Set a filename for the given object identifier.
@@ -367,7 +373,7 @@ class ObjectTracker(object):
         self.pending_to_synchronize.remove(obj_id)
 
     def _pop_object_id(self, obj_id):
-        # type: (object) -> object or None
+        # type: (str) -> typing.Any
         """ Pop an object from the dictionary.
 
         :param obj_id: Object identifier to pop.
@@ -375,11 +381,11 @@ class ObjectTracker(object):
         """
         obj = self.obj_id_to_obj.pop(obj_id)
         address = self._get_object_address(obj)
-        self.address_to_obj_id.pop(address)
+        return self.address_to_obj_id.pop(address)
 
     @staticmethod
     def _get_object_address(obj):
-        # type: (object) -> int
+        # type: (typing.Any) -> int
         """ Retrieves the object memory address.
 
         :param obj: Object to get the memory address.

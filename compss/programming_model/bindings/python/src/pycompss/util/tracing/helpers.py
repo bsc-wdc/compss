@@ -23,8 +23,11 @@ PyCOMPSs Tracing helpers
     This file contains a set of context managers and decorators to ease the
     tracing events emission.
 """
+
 import time
+import typing
 from contextlib import contextmanager
+
 from pycompss.util.context import in_master
 from pycompss.util.context import in_worker
 from pycompss.worker.commons.constants import SYNC_EVENTS
@@ -36,13 +39,13 @@ from pycompss.worker.commons.constants import INSIDE_WORKER_TYPE
 from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
 from pycompss.runtime.constants import BINDING_MASTER_TYPE
 
-PYEXTRAE = None
-TRACING = False
+PYEXTRAE = None  # type: typing.Any
+TRACING = False  # type: bool
 
 
 @contextmanager
 def dummy_context():
-    # type: () -> None
+    # type: () -> typing.Iterator[None]
     """ Context which deactivates the tracing flag and nothing else.
 
     :return: None
@@ -54,7 +57,7 @@ def dummy_context():
 
 @contextmanager
 def trace_multiprocessing_worker():
-    # type: () -> None
+    # type: () -> typing.Iterator[None]
     """ Sets up the tracing for the multiprocessing worker.
 
     :return: None
@@ -75,7 +78,7 @@ def trace_multiprocessing_worker():
 
 @contextmanager
 def trace_mpi_worker():
-    # type: () -> None
+    # type: () -> typing.Iterator[None]
     """ Sets up the tracing for the mpi worker.
 
     :return: None
@@ -96,7 +99,7 @@ def trace_mpi_worker():
 
 @contextmanager
 def trace_mpi_executor():
-    # type: () -> None
+    # type: () -> typing.Iterator[None]
     """ Sets up the tracing for each mpi executor.
 
     :return: None
@@ -109,7 +112,7 @@ def trace_mpi_executor():
     yield  # here the mpi executor runs
 
 
-class emit_event(object):  # noqa
+class EmitEvent(object):  # noqa
 
     def __init__(self,
                  event_id,            # type: int
@@ -138,9 +141,13 @@ class emit_event(object):  # noqa
 
 
 @contextmanager
-def event(event_id, master=False, inside=False,
-          cpu_affinity=False, gpu_affinity=False, cpu_number=False):
-    # type: (int or str, bool, bool, bool, bool, bool) -> None
+def event(event_id,            # type: int
+          master=False,        # type: bool
+          inside=False,        # type: bool
+          cpu_affinity=False,  # type: bool
+          gpu_affinity=False,  # type: bool
+          cpu_number=False     # type: bool
+          ):                   # type: (...) -> typing.Iterator[None]
     """ Emits an event wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -174,10 +181,13 @@ def event(event_id, master=False, inside=False,
         PYEXTRAE.eventandcounters(event_group, 0)         # noqa
 
 
-def emit_manual_event(event_id, master=False, inside=False,
-                      cpu_affinity=False, gpu_affinity=False,
-                      cpu_number=False):
-    # type: (int or str, bool, bool, bool, bool, bool) -> (int, int)
+def emit_manual_event(event_id,            # type: int
+                      master=False,        # type: bool
+                      inside=False,        # type: bool
+                      cpu_affinity=False,  # type: bool
+                      gpu_affinity=False,  # type: bool
+                      cpu_number=False     # type: bool
+                      ):                   # type: (...) -> None
     """ Emits a single event with the desired code.
 
     Does nothing if tracing is disabled.
@@ -205,26 +215,25 @@ def emit_manual_event(event_id, master=False, inside=False,
 
 def emit_manual_event_explicit(event_group, event_id):
     # type: (int, int) -> None
-    """ Emits a single event with the desired code.
+    """ Emits a single event for a group.
 
     Does nothing if tracing is disabled.
 
+    :param event_group: Event group to emit.
     :param event_id: Event identifier to emit.
-    :param master: If the event is emitted as master.
-    :param inside: If the event is produced inside the worker.
-    :param cpu_affinity: If the event is produced inside the worker for
-                         cpu affinity.
-    :param gpu_affinity: If the event is produced inside the worker for
-                         gpu affinity.
     :return: None
     """
     if TRACING:
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
 
 
-def __get_proper_type_event__(event_id, master, inside,
-                              cpu_affinity, gpu_affinity, cpu_number):
-    # type: (int or str, bool, bool, bool, bool, bool) -> (int, int)
+def __get_proper_type_event__(event_id,      # type: int
+                              master,        # type: bool
+                              inside,        # type: bool
+                              cpu_affinity,  # type: bool
+                              gpu_affinity,  # type: bool
+                              cpu_number,    # type: bool
+                              ):             # type: (...) -> typing.Tuple[int, int]
     """ Parses the flags to retrieve the appropriate event_group.
     It also parses the event_id in case of affinity since it is received
     as string.
@@ -261,7 +270,7 @@ def __get_proper_type_event__(event_id, master, inside,
 
 
 def __parse_affinity_event_id__(event_id):
-    # type: (int or str) -> int
+    # type: (typing.Any) -> int
     """ Parses the affinity event identifier.
 
     :param event_id: Event identifier
@@ -273,7 +282,7 @@ def __parse_affinity_event_id__(event_id):
         except ValueError:
             # The event_id is a string with multiple cores
             # Get only the first core
-            event_id = int(event_id.split(',')[0].split('-')[0])
+            event_id = int(event_id.split(",")[0].split("-")[0])
         event_id += 1  # since it starts with 0
     return event_id
 

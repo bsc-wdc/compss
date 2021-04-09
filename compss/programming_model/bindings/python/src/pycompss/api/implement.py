@@ -24,7 +24,9 @@ PyCOMPSs API - Implement (Versioning)
     definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -38,11 +40,11 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'source_class',
-                       'method'}
-SUPPORTED_ARGUMENTS = {'source_class',
-                       'method'}
-DEPRECATED_ARGUMENTS = {'sourceClass'}
+MANDATORY_ARGUMENTS = {"source_class",
+                       "method"}
+SUPPORTED_ARGUMENTS = {"source_class",
+                       "method"}
+DEPRECATED_ARGUMENTS = {"sourceClass"}
 
 
 class Implement(PyCOMPSsDecorator):
@@ -51,9 +53,10 @@ class Implement(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ['first_register']
+    __slots__ = ["first_register"]
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -64,7 +67,7 @@ class Implement(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments.
         """
         self.first_register = False
-        decorator_name = "".join(('@', Implement.__name__.lower()))
+        decorator_name = "".join(("@", Implement.__name__.lower()))
         super(Implement, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -75,6 +78,7 @@ class Implement(PyCOMPSsDecorator):
                             decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the implement parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -82,6 +86,7 @@ class Implement(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def implement_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             # This is executed only when called.
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("implement"))
@@ -112,7 +117,7 @@ class Implement(PyCOMPSsDecorator):
         return implement_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @implement.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -125,13 +130,13 @@ class Implement(PyCOMPSsDecorator):
             logger.debug("Configuring @implement core element.")
 
         # Resolve @implement specific parameters
-        if 'sourceClass' in self.kwargs:
-            another_class = self.kwargs['sourceClass']
-            self.kwargs['source_class'] = self.kwargs.pop('sourceClass')
+        if "sourceClass" in self.kwargs:
+            another_class = self.kwargs["sourceClass"]
+            self.kwargs["source_class"] = self.kwargs.pop("sourceClass")
         else:
-            another_class = self.kwargs['source_class']
-        another_method = self.kwargs['method']
-        ce_signature = '.'.join((another_class, another_method))
+            another_class = self.kwargs["source_class"]
+        another_method = self.kwargs["method"]
+        ce_signature = ".".join((another_class, another_method))
         impl_type = "METHOD"
         # impl_args = [another_class, another_method] - set by @task
 

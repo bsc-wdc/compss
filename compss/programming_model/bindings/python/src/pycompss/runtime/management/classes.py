@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs Binding - Management - Classes
-======================================================
+=======================================
     This file contains the internal classes.
 """
 

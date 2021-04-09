@@ -25,11 +25,15 @@ PyCOMPSs Interactive utils Graphs
 
 import os
 import time
+import typing
 
 
-def show_graph(log_path, name="complete_graph", fit=False,
-               refresh_rate=1, timeout=0):
-    # type: (str, str, bool, int, int) -> ...
+def show_graph(log_path,               # type: str
+               name="complete_graph",  # type: str
+               fit=False,              # type: bool
+               refresh_rate=1,         # type: int
+               timeout=0               # type: int
+               ):                      # type: (...) -> None
     """ Show graph.
 
     :param log_path: Folder where the logs are.
@@ -50,7 +54,8 @@ def show_graph(log_path, name="complete_graph", fit=False,
     # Check refresh rate and timeout
     assert timeout >= 0, "ERROR: timeout has to be >= 0"
     if timeout > 0:
-        assert refresh_rate < timeout, "ERROR: refresh_rate can not be higher than timeout"  # noqa: E501
+        assert refresh_rate < timeout, \
+            "ERROR: refresh_rate can not be higher than timeout"
     # Set file name
     file_name = os.path.join(log_path, "monitor", name)
     # Act
@@ -70,7 +75,7 @@ def show_graph(log_path, name="complete_graph", fit=False,
 
 
 def __get_graph_snapshot__(file_name, fit, source):
-    # type: (str, bool, ...) -> ...
+    # type: (str, bool, typing.Any) -> typing.Any
     """ Reads the graph file and returns it as graphviz object.
     It is able to fit the size if indicated.
 
@@ -80,22 +85,23 @@ def __get_graph_snapshot__(file_name, fit, source):
     :return: The graph snapshot to be rendered
     """
     # Read graph file
-    monitor_file = open(file_name + ".dot", 'r')
+    monitor_file = open(file_name + ".dot", "r")
     text = monitor_file.read()
     monitor_file.close()
     if fit:
         try:
             # Convert to png and show full picture
             extension = "jpeg"
-            if os.path.exists(file_name + '.' + extension):
-                os.remove(file_name + '.' + extension)
+            file = "%s.%s" % (file_name, extension)
+            if os.path.exists(file):
+                os.remove(file)
             s = source(text, filename=file_name, format=extension)
             s.render()
             from IPython.display import Image  # noqa
-            image = Image(filename=file_name + '.' + extension)
+            image = Image(filename=file)
             return image
-        except Exception:
+        except Exception as e:
             print("Oops! Failed rendering the graph.")
-            raise
+            raise e
     else:
         return source(text)

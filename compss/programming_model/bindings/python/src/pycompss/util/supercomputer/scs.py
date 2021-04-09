@@ -25,7 +25,7 @@ PyCOMPSs Utils - Supercomputer helpers
 """
 
 import os
-import subprocess
+import typing
 
 
 def get_master_node():
@@ -37,7 +37,7 @@ def get_master_node():
 
     :return: Master node name.
     """
-    return os.environ['COMPSS_MASTER_NODE']
+    return os.environ["COMPSS_MASTER_NODE"]
 
 
 def get_master_port():
@@ -49,7 +49,7 @@ def get_master_port():
 
     :return: Master port.
     """
-    return os.environ['COMPSS_MASTER_PORT']
+    return os.environ["COMPSS_MASTER_PORT"]
 
 
 def get_worker_nodes():
@@ -61,11 +61,11 @@ def get_worker_nodes():
 
     :return: List of worker nodes.
     """
-    return os.environ['COMPSS_WORKER_NODES']
+    return os.environ["COMPSS_WORKER_NODES"]
 
 
 def get_xmls():
-    # type: () -> (str, str)
+    # type: () -> typing.Tuple[str, str]
     """ Get the project and resources.
 
     They are taken from the environment variable exported from the
@@ -73,8 +73,8 @@ def get_xmls():
 
     :return: the project and resources paths.
     """
-    project = os.environ['COMPSS_PROJECT_XML']
-    resources = os.environ['COMPSS_RESOURCES_XML']
+    project = os.environ["COMPSS_PROJECT_XML"]
+    resources = os.environ["COMPSS_RESOURCES_XML"]
     return project, resources
 
 
@@ -87,7 +87,7 @@ def get_uuid():
 
     :return: UUID as string.
     """
-    return os.environ['COMPSS_UUID']
+    return os.environ["COMPSS_UUID"]
 
 
 def get_base_log_dir():
@@ -99,7 +99,7 @@ def get_base_log_dir():
 
     :return: Base log directory.
     """
-    return os.environ['COMPSS_BASE_LOG_DIR']
+    return os.environ["COMPSS_BASE_LOG_DIR"]
 
 
 def get_specific_log_dir():
@@ -111,7 +111,7 @@ def get_specific_log_dir():
 
     :return: Specific log directory.
     """
-    return os.environ['COMPSS_SPECIFIC_LOG_DIR']
+    return os.environ["COMPSS_SPECIFIC_LOG_DIR"]
 
 
 def get_log_level():
@@ -123,7 +123,7 @@ def get_log_level():
 
     :return: Log level.
     """
-    return os.environ['COMPSS_LOG_LEVEL']
+    return os.environ["COMPSS_LOG_LEVEL"]
 
 
 def get_tracing():
@@ -135,7 +135,7 @@ def get_tracing():
 
     :return: Tracing boolean.
     """
-    return 'true' == os.environ['COMPSS_TRACING']
+    return "true" == os.environ["COMPSS_TRACING"]
 
 
 def get_storage_conf():
@@ -147,4 +147,4 @@ def get_storage_conf():
 
     :return: Storage configuration file path.
     """
-    return os.environ['COMPSS_STORAGE_CONF']
+    return os.environ["COMPSS_STORAGE_CONF"]

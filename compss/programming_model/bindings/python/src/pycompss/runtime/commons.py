@@ -25,6 +25,7 @@ PyCOMPSs Binding - Commons
 
 import sys
 import os
+import typing
 from tempfile import mkdtemp
 
 ########################################
@@ -87,14 +88,6 @@ DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
 #####################################################
 # Builtin functions depending on the python version #
 #####################################################
-
-if IS_PYTHON3:
-    # Python 3 does not have
-    range = range   # noqa
-else:
-    # Python 2 xrange is more memory efficient than xrange
-    range = xrange  # noqa
-
 
 ###############################################
 # Global variables set from different modules #

@@ -25,27 +25,41 @@ PyCOMPSs Cache tracker
 """
 
 import os
+import typing
 from collections import OrderedDict
+
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
-from pycompss.util.tracing.helpers import emit_event
+from pycompss.util.tracing.helpers import EmitEvent
 from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
 from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
-from pycompss.util.process.manager import SharedMemory
-from pycompss.util.process.manager import ShareableList
-from pycompss.util.process.manager import SharedMemoryManager  # just typing
-from pycompss.util.process.manager import create_shared_memory_manager
+from pycompss.worker.commons.constants import TASK_EVENTS_SERIALIZE_SIZE_CACHE
+from pycompss.worker.commons.constants import TASK_EVENTS_DESERIALIZE_SIZE_CACHE
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
+
+from multiprocessing import Queue
+try:
+    from pycompss.util.process.manager import SharedMemory
+    from pycompss.util.process.manager import ShareableList
+    from pycompss.util.process.manager import SharedMemoryManager  # just typing
+    from pycompss.util.process.manager import create_shared_memory_manager
+except ImportError:
+    # Unsupported in python < 3.8
+    SharedMemory = None         # type: ignore
+    ShareableList = None        # type: ignore
+    SharedMemoryManager = None  # type: ignore
 try:
     import numpy as np
 except ImportError:
     np = None
+
 from pycompss.worker.commons.constants import BINDING_SERIALIZATION_CACHE_SIZE_TYPE    # noqa: E501
 from pycompss.worker.commons.constants import BINDING_DESERIALIZATION_CACHE_SIZE_TYPE  # noqa: E501
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 
 HEADER = "[PYTHON CACHE] "
-SHARED_MEMORY_MANAGER = None
+SHARED_MEMORY_MANAGER = None  # type: typing.Any
 
 # Supported shared objects (remind that nested lists are not supported).
 SHARED_MEMORY_TAG = "SharedMemory"
@@ -65,10 +79,13 @@ class CacheTrackerConf(object):
     Cache tracker configuration
     """
 
-    __slots__ = ['logger', 'size', 'policy', 'cache_ids', 'profiler_dict', 'profiler_get_struct', 'log_dir',
-                 'cache_profiler']
+    __slots__ = ["logger", "size", "policy", "cache_ids",
+                 "profiler_dict", "profiler_get_struct", "log_dir",
+                 "cache_profiler"]
 
-    def __init__(self, logger, size, policy, cache_ids, profiler_dict, profiler_get_struct, log_dir, cache_profiler):
+    def __init__(self, logger, size, policy, cache_ids,
+                 profiler_dict, profiler_get_struct, log_dir, cache_profiler):
+        # type: (typing.Any, int, str, typing.Any, dict, typing.Any, str, bool) -> None
         """
         Constructs a new cache tracker configuration.
 
@@ -89,7 +106,7 @@ class CacheTrackerConf(object):
 
 
 def cache_tracker(queue, process_name, conf):
-    # type: (..., str, CacheTrackerConf) -> None
+    # type: (Queue, str, CacheTrackerConf) -> None
     """ Process main body
 
     :param queue: Queue where to put exception messages.
@@ -241,7 +258,7 @@ def start_shared_memory_manager():
 
     :return: Shared memory manager instance.
     """
-    smm = create_shared_memory_manager(address=('', PORT),
+    smm = create_shared_memory_manager(address=("", PORT),
                                        authkey=AUTH_KEY)
     smm.start()
     return smm
@@ -261,14 +278,17 @@ def stop_shared_memory_manager(smm):
     smm.shutdown()
 
 
-@emit_event(RETRIEVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
-def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, parameter, user_function, cache_profiler):  # noqa
-    # type: (..., ..., str) -> ...
+@EmitEvent(RETRIEVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
+def retrieve_object_from_cache(logger, cache_ids, identifier, parameter_name, user_function, cache_profiler):  # noqa
+    # type: (typing.Any, typing.Any, str, str, typing.Any, bool) -> typing.Any
     """ Retrieve an object from the given cache proxy dict.
 
     :param logger: Logger where to push messages.
     :param cache_ids: Cache proxy dictionary.
     :param identifier: Object identifier.
+    :param parameter_name: Parameter name.
+    :param user_function: Function name.
+    :param cache_profiler: If cache profiling is enabled.
     :return: The object from cache.
     """
     emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, 0)
@@ -277,6 +297,8 @@ def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, param
         logger.debug(HEADER + "Retrieving: " + str(identifier))
     obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
     size = 0
+    output = None        # type: typing.Any
+    existing_shm = None  # type: typing.Any
     if shared_type == SHARED_MEMORY_TAG:
         existing_shm = SharedMemory(name=obj_id)
         size = len(existing_shm.buf)
@@ -300,17 +322,16 @@ def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, param
     emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, size)
 
     filename = filename_cleaned(identifier)
-    parameter = parameter
-    function = function_cleaned(user_function)
+    function_name = function_cleaned(user_function)
     if cache_profiler:
-        cache_queue.put(("GET", (filename, parameter, function)))
+        cache_queue.put(("GET", (filename, parameter_name, function_name)))
 
     cache_ids[identifier][4] = obj_hits + 1
     return output, existing_shm
 
 
 def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (..., ..., ..., ...) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Any) -> None
     """ Put an object into cache filter to avoid event emission when not
     supported.
 
@@ -318,6 +339,8 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter
     :param cache_queue: Cache notification queue.
     :param obj: Object to store.
     :param f_name: File name that corresponds to the object (used as id).
+    :param parameter: Parameter name.
+    :param user_function: Function.
     :return: None
     """
 
@@ -329,15 +352,16 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter
         insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function)
 
 
-@emit_event(INSERT_OBJECT_INTO_CACHE_EVENT, master=False, inside=True)
 def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (..., ..., ..., ...) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Any) -> None
     """ Put an object into cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
     :param obj: Object to store.
     :param f_name: File name that corresponds to the object (used as id).
+    :param parameter: Parameter name.
+    :param user_function: Function.
     :return: None
     """
     function = function_cleaned(user_function)
@@ -395,9 +419,9 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_f
             logger.debug(str(e))
 
 
-@emit_event(REMOVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
+@EmitEvent(REMOVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
 def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
-    # type: (..., ..., ...) -> None
+    # type: (typing.Any, Queue, str) -> None
     """ Removes an object from cache.
 
     :param logger: Logger where to push messages.
@@ -414,13 +438,15 @@ def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
 
 
 def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (..., ..., ..., ..., ..., ...) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Any) -> None
     """ Put an object into cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
     :param obj: Object to store.
     :param f_name: File name that corresponds to the object (used as id).
+    :param parameter: Parameter name.
+    :param user_function: Function.
     :return: None
     """
     f_name = __get_file_name__(f_name)

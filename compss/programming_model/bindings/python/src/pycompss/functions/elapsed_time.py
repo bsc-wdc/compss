@@ -24,11 +24,13 @@ PyCOMPSs Functions: Elapsed time decorator
 """
 
 from decorator import decorator  # noqa
+import typing
 import time
 
 
 @decorator  # Mandatory in order to preserver the argspec
 def timeit(func, *a, **k):
+    # type: (typing.Any, tuple, dict) -> typing.Tuple[typing.Any, float]
     """ Elapsed time decorator.
 
     :param func: Function to be measured (can be a decorated function, usually
@@ -37,8 +39,7 @@ def timeit(func, *a, **k):
     :param k: kwargs
     :return: a list with [the function result, The elapsed time]
     """
-
     ts = time.time()
     result = func(*a, **k)
     te = time.time()
-    return [result, (te - ts)]
+    return result, (te - ts)

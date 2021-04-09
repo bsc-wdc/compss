@@ -24,103 +24,101 @@ PyCOMPSs Utils - External Storage
     Isolates the API signature calls.
 """
 
+import typing
+
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.tracing.helpers import emit_event
-from pycompss.worker.commons.constants import GET_BY_ID_EVENT
+from pycompss.util.tracing.helpers import EmitEvent
 from pycompss.worker.commons.constants import GETID_EVENT
-from pycompss.worker.commons.constants import MAKE_PERSISTENT_EVENT
-from pycompss.worker.commons.constants import DELETE_PERSISTENT_EVENT
-from pycompss.runtime.constants import INIT_STORAGE_EVENT as MASTER_INIT_STORAGE_EVENT  # noqa: E501
-from pycompss.runtime.constants import STOP_STORAGE_EVENT as MASTER_STOP_STORAGE_EVENT  # noqa: E501
+from pycompss.runtime.constants import INIT_STORAGE_EVENT \
+    as MASTER_INIT_STORAGE_EVENT
+from pycompss.runtime.constants import STOP_STORAGE_EVENT \
+    as MASTER_STOP_STORAGE_EVENT
 from pycompss.worker.commons.constants import INIT_STORAGE_EVENT
 from pycompss.worker.commons.constants import STOP_STORAGE_EVENT
 
 # Globals
 # Contain the actual storage api functions set on initialization
-INIT = None
-FINISH = None
-GET_BY_ID = None
-TaskContext = None
-DUMMY_STORAGE = False
-
-
-class dummy_task_context(object):
-    """
-    Dummy task context to be used with storage frameworks.
-    """
-
-    def __init__(self, logger, values, config_file_path=None):
-        self.logger = logger
-        err_msg = "Unexpected call to dummy storage task context."
-        self.logger.error(err_msg)
-        self.values = values
-        self.config_file_path = config_file_path
-        raise PyCOMPSsException(err_msg)
-
-    def __enter__(self):
-        # Ready to start the task
-        err_msg = "Unexpected call to dummy storage task context __enter__"
-        self.logger.error(err_msg)
-        raise PyCOMPSsException(err_msg)
-
-    def __exit__(self, type, value, traceback):
-        # Task finished
-        err_msg = "Unexpected call to dummy storage task context __exit__"
-        self.logger.error(err_msg)
-        raise PyCOMPSsException(err_msg)
+INIT = None         # type: typing.Any
+FINISH = None       # type: typing.Any
+get_by_id = None    # type: typing.Any
+TaskContext = None  # type: typing.Any
 
 
 def load_storage_library():  # noqa
+    # type: () -> None
     """ Import the proper storage libraries
 
     :return: None
     """
     global INIT
     global FINISH
-    global GET_BY_ID
+    global get_by_id
     global TaskContext
-    global DUMMY_STORAGE
-    error_msg = "UNDEFINED"
-
-    def dummy_init(config_file_path=None):  # noqa
-        raise PyCOMPSsException("Unexpected call to init from storage. Reason: %s" %
-                                error_msg)
-
-    def dummy_finish():
-        raise PyCOMPSsException("Unexpected call to finish from storage. Reason: %s" %
-                                error_msg)
-
-    def dummy_get_by_id(id):  # noqa
-        raise PyCOMPSsException("Unexpected call to getByID. Reason: %s" % error_msg)
 
     try:
         # Try to import the external storage API module methods
-        from storage.api import init as real_init                 # noqa
-        from storage.api import finish as real_finish             # noqa
-        from storage.api import getByID as real_get_by_id         # noqa
-        from storage.api import TaskContext as real_task_context  # noqa
-        DUMMY_STORAGE = False
+        from storage.api import init                               # noqa
+        from storage.api import finish                             # noqa
+        from storage.api import getByID as get_by_id_from_storage  # noqa
+        from storage.api import TaskContext as task_context        # noqa
         print("INFO: Storage API successfully imported.")
     except ImportError as e:
         # print("INFO: No storage API defined.")
         # Defined methods throwing exceptions.
-        error_msg = str(e)
-        DUMMY_STORAGE = True
+        error_msg = e
+
+        def init(config_file_path=None):  # noqa
+            # type: (str) -> None
+            raise PyCOMPSsException("Unexpected call to init from storage. Reason: %s" %
+                                    error_msg)
+
+        def finish():
+            # type: () -> None
+            raise PyCOMPSsException("Unexpected call to finish from storage. Reason: %s" %
+                                    error_msg)
+
+        def get_by_id_from_storage(id):  # noqa
+            # type: (str) -> None
+            raise PyCOMPSsException("Unexpected call to getByID. Reason: %s" % error_msg)
+
+        class task_context(object):  # type: ignore
+            """
+            Dummy task context to be used with storage frameworks.
+            """
+
+            def __init__(self, logger, values, config_file_path=None):
+                # type: (typing.Any, typing.Any, str) -> None
+                self.logger = logger
+                err_msg = "Unexpected call to dummy storage task context. " \
+                          "Reason: %s" % error_msg
+                self.logger.error(err_msg)
+                self.values = values
+                self.config_file_path = config_file_path
+                raise PyCOMPSsException(err_msg)
+
+            def __enter__(self):
+                # type: () -> None
+                # Ready to start the task
+                err_msg = "Unexpected call to dummy storage task context __enter__"
+                self.logger.error(err_msg)
+                raise PyCOMPSsException(err_msg)
+
+            def __exit__(self, type, value, traceback):
+                # type: (typing.Any, typing.Any, typing.Any) -> None
+                # Task finished
+                err_msg = "Unexpected call to dummy storage task context __exit__"
+                self.logger.error(err_msg)
+                raise PyCOMPSsException(err_msg)
 
     # Prepare the imports
-    if DUMMY_STORAGE:
-        INIT = dummy_init
-        FINISH = dummy_finish
-        GET_BY_ID = dummy_get_by_id
-        TaskContext = dummy_task_context
-    else:
-        INIT = real_init
-        FINISH = real_finish
-        GET_BY_ID = real_get_by_id
-        TaskContext = real_task_context
+    INIT = init
+    FINISH = finish
+    get_by_id = get_by_id_from_storage
+    TaskContext = task_context  # Renamed for importing it from the worker
 
 
 def is_psco(obj):
+    # type: (typing.Any) -> bool
     """ Checks if obj is a persistent object (external storage).
 
     :param obj: Object to check.
@@ -134,6 +132,7 @@ def is_psco(obj):
 
 
 def has_id(obj):
+    # type: (typing.Any) -> bool
     """ Checks if the object has a getID method.
 
     :param obj: Object to check.
@@ -145,8 +144,9 @@ def has_id(obj):
         return False
 
 
-@emit_event(GETID_EVENT, master=False, inside=True)
+@EmitEvent(GETID_EVENT, master=False, inside=True)
 def get_id(psco):
+    # type: (typing.Any) -> str
     """ Retrieve the persistent object identifier.
 
     :param psco: Persistent object.
@@ -155,18 +155,9 @@ def get_id(psco):
     return psco.getID()
 
 
-@emit_event(GET_BY_ID_EVENT, master=False, inside=True)
-def get_by_id(identifier):
-    """ Retrieve the actual object from a persistent object identifier.
-
-    :param identifier: Persistent object identifier.
-    :return: The object that corresponds to the id.
-    """
-    return GET_BY_ID(identifier)  # noqa
-
-
-@emit_event(MASTER_INIT_STORAGE_EVENT, master=True)
+@EmitEvent(MASTER_INIT_STORAGE_EVENT, master=True)
 def master_init_storage(storage_conf, logger):  # noqa
+    # type: (str, typing.Any) -> bool
     """ Call to init storage from the master.
 
     This function emits the event in the master.
@@ -188,8 +179,9 @@ def use_storage(storage_conf):
     return storage_conf != "" and not storage_conf == "null"
 
 
-@emit_event(INIT_STORAGE_EVENT)
+@EmitEvent(INIT_STORAGE_EVENT)
 def init_storage(storage_conf, logger):  # noqa
+    # type: (str, typing.Any) -> bool
     """ Call to init storage.
 
     This function emits the event in the worker.
@@ -202,6 +194,7 @@ def init_storage(storage_conf, logger):  # noqa
 
 
 def __init_storage__(storage_conf, logger):  # noqa
+    # type: (str, typing.Any) -> bool
     """ Call to init storage.
 
     Initializes the persistent storage with the given storage_conf file.
@@ -223,8 +216,9 @@ def __init_storage__(storage_conf, logger):  # noqa
         return False
 
 
-@emit_event(MASTER_STOP_STORAGE_EVENT, master=True)
+@EmitEvent(MASTER_STOP_STORAGE_EVENT, master=True)
 def master_stop_storage(logger):
+    # type: (typing.Any) -> None
     """ Stops the persistent storage.
 
     This function emits the event in the master.
@@ -235,8 +229,9 @@ def master_stop_storage(logger):
     __stop_storage__(logger)
 
 
-@emit_event(STOP_STORAGE_EVENT)
+@EmitEvent(STOP_STORAGE_EVENT)
 def stop_storage(logger):
+    # type: (typing.Any) -> None
     """ Stops the persistent storage.
 
     This function emits the event in the worker.
@@ -248,6 +243,7 @@ def stop_storage(logger):
 
 
 def __stop_storage__(logger):  # noqa
+    # type: (typing.Any) -> None
     """ Stops the persistent storage.
 
     :param logger: Logger where to log the messages.

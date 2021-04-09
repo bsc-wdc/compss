@@ -24,7 +24,9 @@ PyCOMPSs Util - Object sizing algorithm
 """
 
 from __future__ import print_function
-from sys import getsizeof, stderr
+import typing
+from sys import getsizeof
+from sys import stderr
 from itertools import chain
 from collections import deque
 from collections import Iterator
@@ -77,8 +79,8 @@ def total_sizeof(o, handlers=None, verbose=False):
                     dict: _dict_handler,
                     set: iter,
                     frozenset: iter,
-                    }
-    if type(o) not in all_handlers.keys() and hasattr(o, '__dict__'):
+                    }  # type: typing.Dict[typing.Any, typing.Any]
+    if type(o) not in all_handlers.keys() and hasattr(o, "__dict__"):
         # It is something else include its __dict__
         all_handlers[type(o)] = _user_object_handler
     if handlers is not None:

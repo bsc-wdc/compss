@@ -24,7 +24,9 @@ PyCOMPSs API - MPI
     definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
@@ -35,25 +37,23 @@ from pycompss.util.arguments import check_arguments
 from pycompss.util.arguments import UNASSIGNED
 from pycompss.util.exceptions import PyCOMPSsException
 
-
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'runner'}
-SUPPORTED_ARGUMENTS = {'binary',
-                       'processes',
-                       'working_dir',
-                       'runner',
-                       'flags',
-                       'processes_per_node',
-                       'scale_by_cu',
-                       'params',
-                       'fail_by_exit_value'}
-DEPRECATED_ARGUMENTS = {'computing_nodes',
-                        'computingNodes',
-                        'workingDir'}
+MANDATORY_ARGUMENTS = {"runner"}
+SUPPORTED_ARGUMENTS = {"binary",
+                       "processes",
+                       "working_dir",
+                       "runner",
+                       "flags",
+                       "processes_per_node",
+                       "scale_by_cu",
+                       "params",
+                       "fail_by_exit_value"}
+DEPRECATED_ARGUMENTS = {"computing_nodes",
+                        "computingNodes",
+                        "workingDir"}
 
 
 class MPI(PyCOMPSsDecorator):
@@ -65,6 +65,7 @@ class MPI(PyCOMPSsDecorator):
     __slots__ = ['task_type', 'decorator_name']
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -95,6 +96,7 @@ class MPI(PyCOMPSsDecorator):
                             self.decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the mpi parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -103,12 +105,14 @@ class MPI(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def mpi_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return self.__decorator_body__(user_function, args, kwargs)
 
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
     def __decorator_body__(self, user_function, args, kwargs):
+        # type: (typing.Any, tuple, dict) -> typing.Any
         if not self.scope:
             # Execute the mpi as with PyCOMPSs so that sequential
             # execution performs as parallel.
@@ -159,25 +163,25 @@ class MPI(PyCOMPSsDecorator):
 
         return ret
 
-    def __run_mpi__(self, *args, **kwargs):
-        # type: (..., dict) -> int
+    def __run_mpi__(self, args, kwargs):
+        # type: (tuple, dict) -> int
         """ Runs the mpi binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs['runner']]
-        if 'processes' in self.kwargs:
-            cmd += ['-np', self.kwargs['processes']]
-        elif 'computing_nodes' in self.kwargs:
-            cmd += ['-np', self.kwargs['computing_nodes']]
-        elif 'computingNodes' in self.kwargs:
-            cmd += ['-np', self.kwargs['computingNodes']]
+        cmd = [self.kwargs["runner"]]
+        if "processes" in self.kwargs:
+            cmd += ["-np", self.kwargs["processes"]]
+        elif "computing_nodes" in self.kwargs:
+            cmd += ["-np", self.kwargs["computing_nodes"]]
+        elif "computingNodes" in self.kwargs:
+            cmd += ["-np", self.kwargs["computingNodes"]]
 
-        if 'flags' in self.kwargs:
-            cmd += self.kwargs['flags'].split()
-        cmd += [self.kwargs['binary']]
+        if "flags" in self.kwargs:
+            cmd += self.kwargs["flags"].split()
+        cmd += [self.kwargs["binary"]]
 
         return run_command(cmd, args, kwargs)
 
@@ -186,7 +190,8 @@ class MPI(PyCOMPSsDecorator):
         """ Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(param_name, block_count, block_length, stride)
-        :raises PyCOMPSsException: If the collection layout does not contain block_count.
+        :raises PyCOMPSsException: If the collection layout does not contain
+                                   block_count.
         """
 
         num_layouts = 0
@@ -205,7 +210,10 @@ class MPI(PyCOMPSsDecorator):
                         (stride != -1 and block_count == -1):
                     msg = "Error: collection_layout must contain block_count!"
                     raise PyCOMPSsException(msg)
-                layout_params.extend([param_name, str(block_count), str(block_length), str(stride)])
+                layout_params.extend([param_name,
+                                      str(block_count),
+                                      str(block_length),
+                                      str(stride)])
         layout_params.insert(0, str(num_layouts))
         return layout_params
 
@@ -249,7 +257,7 @@ class MPI(PyCOMPSsDecorator):
             return -1
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -263,17 +271,17 @@ class MPI(PyCOMPSsDecorator):
 
         # Resolve @mpi specific parameters
         if "binary" in self.kwargs:
-            binary = self.kwargs['binary']
+            binary = self.kwargs["binary"]
             impl_type = "MPI"
         else:
             binary = UNASSIGNED
             impl_type = "PYTHON_MPI"
             self.task_type = impl_type
 
-        runner = self.kwargs['runner']
+        runner = self.kwargs["runner"]
 
-        if 'flags' in self.kwargs:
-            flags = self.kwargs['flags']
+        if "flags" in self.kwargs:
+            flags = self.kwargs["flags"]
         else:
             flags = UNASSIGNED  # Empty or '[unassigned]'
 
@@ -308,13 +316,13 @@ class MPI(PyCOMPSsDecorator):
                                        str(proc),
                                        binary))
         impl_args = [binary,
-                     self.kwargs['working_dir'],
+                     self.kwargs["working_dir"],
                      runner,
                      ppn,
                      flags,
                      scale_by_cu_str,
-                     self.kwargs.get('params', UNASSIGNED),
-                     self.kwargs['fail_by_exit_value']]
+                     self.kwargs.get("params", UNASSIGNED),
+                     self.kwargs["fail_by_exit_value"]]
 
         if impl_type == "PYTHON_MPI":
             impl_args = impl_args + collection_layout_params
@@ -345,20 +353,20 @@ class MPI(PyCOMPSsDecorator):
         :return: Scale by cu value as string.
         :raises PyCOMPSsException: If scale_by_cu is not bool or string.
         """
-        if 'scale_by_cu' in self.kwargs:
-            scale_by_cu = self.kwargs['scale_by_cu']
+        if "scale_by_cu" in self.kwargs:
+            scale_by_cu = self.kwargs["scale_by_cu"]
             if isinstance(scale_by_cu, bool):
                 if scale_by_cu:
-                    scale_by_cu_str = 'true'
+                    scale_by_cu_str = "true"
                 else:
-                    scale_by_cu_str = 'false'
-            elif str(scale_by_cu).lower() in ['true', 'false']:
+                    scale_by_cu_str = "false"
+            elif str(scale_by_cu).lower() in ["true", "false"]:
                 scale_by_cu_str = str(scale_by_cu).lower()
             else:
-                raise PyCOMPSsException("Incorrect format for scale_by_cu property. "
-                                            "It should be boolean or an environment variable")  # noqa: E501
+                raise PyCOMPSsException("Incorrect format for scale_by_cu property. "  # noqa: E501
+                                        "It should be boolean or 'true' or 'false'")   # noqa: E501
         else:
-            scale_by_cu_str = 'false'
+            scale_by_cu_str = "false"
         return scale_by_cu_str
 
 
@@ -367,3 +375,4 @@ class MPI(PyCOMPSsDecorator):
 # ########################################################################### #
 
 mpi = MPI
+Mpi = MPI

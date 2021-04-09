@@ -24,6 +24,7 @@ PyCOMPSs Binding - Management - Object Synchronization
 """
 
 import logging
+import typing
 
 import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.runtime.management.direction import get_compss_direction
@@ -46,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 
 def wait_on_object(obj, mode):
-    # type: (..., str) -> object
+    # type: (typing.Any, str) -> object
     """ Waits on an object.
 
     :param obj: Object to wait on.
@@ -67,7 +68,7 @@ def wait_on_object(obj, mode):
 
 
 def _synchronize(obj, mode):
-    # type: (object, int) -> object
+    # type: (typing.Any, int) -> typing.Any
     """ Synchronization function.
 
     This method retrieves the value of a future object.
@@ -83,6 +84,8 @@ def _synchronize(obj, mode):
     # Must be implemented first in the Runtime, then in the bindings common
     # C API and finally add the boolean here
     app_id = 0
+    obj_id = ""  # noqa
+
     if is_psco(obj):
         obj_id = get_id(obj)
         if not OT_is_pending_to_synchronize(obj_id):
@@ -137,7 +140,7 @@ def _synchronize(obj, mode):
 
 
 def _wait_on_iterable(iter_obj, compss_mode):
-    # type: (..., int) -> object
+    # type: (typing.Any, int) -> typing.Any
     """ Wait on an iterable object (Recursive).
 
     Currently supports lists and dictionaries (syncs the values).

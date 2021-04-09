@@ -24,7 +24,9 @@ PyCOMPSs API - BINARY
     definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 from pycompss.util.arguments import UNASSIGNED
@@ -38,14 +40,14 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'binary'}
-SUPPORTED_ARGUMENTS = {'binary',
-                       'working_dir',
-                       'params',
-                       'fail_by_exit_value'}
-DEPRECATED_ARGUMENTS = {'workingDir',
-                        'engine',
-                        'image'}
+MANDATORY_ARGUMENTS = {"binary"}
+SUPPORTED_ARGUMENTS = {"binary",
+                       "working_dir",
+                       "params",
+                       "fail_by_exit_value"}
+DEPRECATED_ARGUMENTS = {"workingDir",
+                        "engine",
+                        "image"}
 
 
 class Binary(PyCOMPSsDecorator):
@@ -54,9 +56,8 @@ class Binary(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -66,7 +67,7 @@ class Binary(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', Binary.__name__.lower()))
+        decorator_name = "".join(("@", Binary.__name__.lower()))
         super(Binary, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -77,6 +78,7 @@ class Binary(PyCOMPSsDecorator):
                             decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the binary parameters within the task core element.
 
         :param user_function: Function to decorate
@@ -85,6 +87,7 @@ class Binary(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def binary_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 # Execute the binary as with PyCOMPSs so that sequential
                 # execution performs as parallel.
@@ -109,20 +112,20 @@ class Binary(PyCOMPSsDecorator):
         binary_f.__doc__ = user_function.__doc__
         return binary_f
 
-    def __run_binary__(self, *args, **kwargs):
-        # type: (..., dict) -> int
+    def __run_binary__(self, args, kwargs):
+        # type: (tuple, dict) -> int
         """ Runs the binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs['binary']]
+        cmd = [self.kwargs["binary"]]
         return_code = run_command(cmd, args, kwargs)
         return return_code
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @binary.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -136,20 +139,20 @@ class Binary(PyCOMPSsDecorator):
 
         # Resolve the working directory
         self.__resolve_working_dir__()
-        _working_dir = self.kwargs['working_dir']
+        _working_dir = self.kwargs["working_dir"]
 
         # Resolve the fail by exit value
         self.__resolve_fail_by_exit_value__()
-        _fail_by_ev = self.kwargs['fail_by_exit_value']
+        _fail_by_ev = self.kwargs["fail_by_exit_value"]
 
         # Resolve binary
-        _binary = str(self.kwargs['binary'])
+        _binary = str(self.kwargs["binary"])
 
         if CORE_ELEMENT_KEY in kwargs and \
-                kwargs[CORE_ELEMENT_KEY].get_impl_type() == 'CONTAINER':
+                kwargs[CORE_ELEMENT_KEY].get_impl_type() == "CONTAINER":
             # @container decorator sits on top of @binary decorator
             # Note: impl_type and impl_signature are NOT modified
-            # ('CONTAINER' and 'CONTAINER.function_name' respectively)
+            # ("CONTAINER" and "CONTAINER.function_name" respectively)
 
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
 
@@ -158,7 +161,7 @@ class Binary(PyCOMPSsDecorator):
 
             impl_args = [_engine,  # engine
                          _image,  # image
-                         'CET_BINARY',  # internal_type
+                         "CET_BINARY",  # internal_type
                          _binary,  # internal_binary
                          UNASSIGNED,  # internal_func
                          _working_dir,  # working_dir
@@ -169,12 +172,12 @@ class Binary(PyCOMPSsDecorator):
         else:
             # @container decorator does NOT sit on top of @binary decorator
 
-            _binary = str(self.kwargs['binary'])
+            _binary = str(self.kwargs["binary"])
 
-            impl_type = 'BINARY'
-            impl_signature = '.'.join((impl_type, _binary))
+            impl_type = "BINARY"
+            impl_signature = ".".join((impl_type, _binary))
 
-            impl_args = [_binary,  # internal_binary
+            impl_args = [_binary,       # internal_binary
                          _working_dir,  # working_dir
                          self.kwargs.get('params', UNASSIGNED),
                          _fail_by_ev]  # fail_by_ev

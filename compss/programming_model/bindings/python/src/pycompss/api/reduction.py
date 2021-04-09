@@ -25,7 +25,9 @@ PyCOMPSs API - Reduction
 """
 
 import os
+import typing
 from functools import wraps
+
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
@@ -34,15 +36,14 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 
-
 if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {}
-SUPPORTED_ARGUMENTS = {'chunk_size',
-                       'is_reduce'}
-DEPRECATED_ARGUMENTS = set()
+MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = {"chunk_size",
+                       "is_reduce"}
+DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class Reduction(PyCOMPSsDecorator):
@@ -52,6 +53,7 @@ class Reduction(PyCOMPSsDecorator):
     """
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """
         Store arguments passed to the decorator
         # self = itself.
@@ -61,7 +63,7 @@ class Reduction(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        decorator_name = "".join(('@', self.__class__.__name__.lower()))
+        decorator_name = "".join(("@", self.__class__.__name__.lower()))
         super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -75,6 +77,7 @@ class Reduction(PyCOMPSsDecorator):
             self.__process_reduction_params__()
 
     def __call__(self, func):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the reduce parameters within the task core element.
 
         :param func: Function to decorate
@@ -82,6 +85,7 @@ class Reduction(PyCOMPSsDecorator):
         """
         @wraps(func)
         def reduce_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise PyCOMPSsException(not_in_pycompss("reduction"))
 
@@ -90,8 +94,8 @@ class Reduction(PyCOMPSsDecorator):
 
             # Set the chunk size and is_reduce variables in kwargs for their
             # usage in @task decorator
-            kwargs['chunk_size'] = self.kwargs['chunk_size']
-            kwargs['is_reduce'] = self.kwargs['is_reduce']
+            kwargs["chunk_size"] = self.kwargs["chunk_size"]
+            kwargs["is_reduce"] = self.kwargs["is_reduce"]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -109,10 +113,10 @@ class Reduction(PyCOMPSsDecorator):
         :return: None
         """
         # Resolve @reduce specific parameters
-        if 'chunk_size' not in self.kwargs:
+        if "chunk_size" not in self.kwargs:
             chunk_size = 0
         else:
-            chunk_size = self.kwargs['chunk_size']
+            chunk_size = self.kwargs["chunk_size"]
             if isinstance(chunk_size, int):
                 # Nothing to do, it is already an integer
                 pass
@@ -120,20 +124,23 @@ class Reduction(PyCOMPSsDecorator):
                 # Convert string to int
                 chunk_size = self.__parse_chunk_size__(chunk_size)
             else:
-                raise PyCOMPSsException("ERROR: Wrong chunk_size value at @reduction decorator.")  # noqa: E501
+                raise PyCOMPSsException(
+                    "ERROR: Wrong chunk_size value at @reduction decorator.")
 
-        if 'is_reduce' not in self.kwargs:
+        if "is_reduce" not in self.kwargs:
             is_reduce = True
         else:
-            is_reduce = self.kwargs['is_reduce']
+            is_reduce = self.kwargs["is_reduce"]
 
         if __debug__:
-            logger.debug("The task is_reduce flag is set to: %s" % str(is_reduce))  # noqa: E501
-            logger.debug("This Reduction task will have %s sized chunks" % str(chunk_size))  # noqa: E501
+            logger.debug("The task is_reduce flag is set to: %s" %
+                         str(is_reduce))
+            logger.debug("This Reduction task will have %s sized chunks" %
+                         str(chunk_size))
 
         # Set the chunk_size variable in kwargs for its usage in @task
-        self.kwargs['chunk_size'] = chunk_size
-        self.kwargs['is_reduce'] = is_reduce
+        self.kwargs["chunk_size"] = chunk_size
+        self.kwargs["is_reduce"] = is_reduce
 
     @staticmethod
     def __parse_chunk_size__(chunk_size):
@@ -145,26 +152,26 @@ class Reduction(PyCOMPSsDecorator):
         :raises PyCOMPSsException: Can not cast string to int error.
         """
         # Check if it is an environment variable to be loaded
-        if chunk_size.strip().startswith('$'):
+        if chunk_size.strip().startswith("$"):
             # Chunk size is an ENV variable, load it
             env_var = chunk_size.strip()[1:]  # Remove $
-            if env_var.startswith('{'):
+            if env_var.startswith("{"):
                 env_var = env_var[1:-1]  # remove brackets
             try:
-                chunk_size = int(os.environ[env_var])
+                parsed_chunk_size = int(os.environ[env_var])
             except ValueError:
-                raise PyCOMPSsException(cast_env_to_int_error('chunk_size'))
+                raise PyCOMPSsException(cast_env_to_int_error("chunk_size"))
         else:
             # ChunkSize is in string form, cast it
             try:
-                chunk_size = int(chunk_size)
+                parsed_chunk_size = int(chunk_size)
             except ValueError:
-                raise PyCOMPSsException(cast_string_to_int_error('chunk_size'))
-        return chunk_size
+                raise PyCOMPSsException(cast_string_to_int_error("chunk_size"))
+        return parsed_chunk_size
 
 
 # ########################################################################### #
-# ################### REDUCTION DECORATOR ALTERNATIVE NAME ##################### #
+# ################# REDUCTION DECORATOR ALTERNATIVE NAME #################### #
 # ########################################################################### #
 
 reduction = Reduction

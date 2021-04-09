@@ -31,6 +31,7 @@ import sys
 import logging
 import traceback
 import argparse
+import typing
 
 # Project imports
 import pycompss.util.context as context
@@ -93,6 +94,12 @@ initialize_multiprocessing()
 
 
 def stop_all(exit_code):
+    # type: (int) -> None
+    """ Stop everything smoothly.
+
+    :param exit_code: Exit code.
+    :return: None
+    """
     from pycompss.api.api import compss_stop
     global STREAMING
     global PERSISTENT_STORAGE
@@ -100,11 +107,9 @@ def stop_all(exit_code):
     # Stop STREAMING
     if STREAMING:
         stop_streaming()
-
     # Stop persistent storage
     if PERSISTENT_STORAGE:
         master_stop_storage(LOGGER)
-
     compss_stop(exit_code)
     sys.stdout.flush()
     sys.stderr.flush()
@@ -112,7 +117,7 @@ def stop_all(exit_code):
 
 
 def parse_arguments():
-    # type: () -> ...
+    # type: () -> typing.Any
     """ Parse PyCOMPSs arguments.
 
     :return: Argument's parser.
@@ -154,7 +159,7 @@ def __load_user_module__(app_path, log_level):
     try:
         if IS_PYTHON3:
             from importlib.machinery import SourceFileLoader        # noqa
-            _ = SourceFileLoader(app_name, app_path).load_module()  # noqa
+            _ = SourceFileLoader(app_name, app_path).load_module()  # type: ignore
         else:
             import imp                                              # noqa
             _ = imp.load_source(app_name, app_path)                 # noqa
@@ -255,7 +260,7 @@ def compss_main():
 
     # Setup logging
     binding_log_path = get_log_path()
-    log_path = os.path.join(os.getenv("COMPSS_HOME"),
+    log_path = os.path.join(str(os.getenv("COMPSS_HOME")),
                             "Bindings",
                             "python",
                             str(_PYTHON_VERSION),
@@ -296,7 +301,7 @@ def compss_main():
                 with open(APP_PATH) as f:
                     exec(compile(f.read(), APP_PATH, "exec"), globals())
             else:
-                execfile(APP_PATH, globals())  # noqa
+                execfile(APP_PATH, globals())  # type: ignore
 
         # End
         if __debug__:
@@ -345,22 +350,22 @@ def launch_pycompss_application(app,
                                 debug=False,                      # type: bool
                                 graph=False,                      # type: bool
                                 trace=False,                      # type: bool
-                                monitor=None,                     # type: int
-                                project_xml=None,                 # type: str
-                                resources_xml=None,               # type: str
+                                monitor=-1,                       # type: int
+                                project_xml="",                   # type: str
+                                resources_xml="",                 # type: str
                                 summary=False,                    # type: bool
                                 task_execution="compss",          # type: str
-                                storage_impl=None,                # type: str
-                                storage_conf=None,                # type: str
-                                streaming_backend=None,           # type: str
-                                streaming_master_name=None,       # type: str
-                                streaming_master_port=None,       # type: str
+                                storage_impl="",                  # type: str
+                                storage_conf="",                  # type: str
+                                streaming_backend="",             # type: str
+                                streaming_master_name="",         # type: str
+                                streaming_master_port="",         # type: str
                                 task_count=50,                    # type: int
-                                app_name=None,                    # type: str
-                                uuid=None,                        # type: str
-                                base_log_dir=None,                # type: str
-                                specific_log_dir=None,            # type: str
-                                extrae_cfg=None,                  # type: str
+                                app_name="",                      # type: str
+                                uuid="",                          # type: str
+                                base_log_dir="",                  # type: str
+                                specific_log_dir="",              # type: str
+                                extrae_cfg="",                    # type: str
                                 comm="NIO",                       # type: str
                                 conn=DEFAULT_CONN,                # type: str
                                 master_name="",                   # type: str
@@ -375,9 +380,9 @@ def launch_pycompss_application(app,
                                 profile_output="",                # type: str
                                 scheduler_config="",              # type: str
                                 external_adaptation=False,        # type: bool
-                                propagate_virtual_environment=True,  # noqa type: bool
+                                propagate_virtual_environment=True,  # type: bool
                                 mpi_worker=False,                 # type: bool
-                                worker_cache=False,               # type: bool or str
+                                worker_cache=False,               # type: typing.Union[bool, str]
                                 shutdown_in_node_failure=False,   # type: bool
                                 io_executors=0,                   # type: int
                                 env_script="",                    # type: str
@@ -464,7 +469,8 @@ def launch_pycompss_application(app,
     # Check that COMPSs is available
     if "COMPSS_HOME" not in os.environ:
         # Do not allow to continue if COMPSS_HOME is not defined
-        raise PyCOMPSsException("ERROR: COMPSS_HOME is not defined in the environment")  # noqa: E501
+        raise PyCOMPSsException(
+            "ERROR: COMPSS_HOME is not defined in the environment")
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
@@ -601,22 +607,22 @@ def launch_pycompss_application(app,
                                all_vars["streaming_master_port"])
 
     saved_argv = sys.argv
-    sys.argv = args
+    sys.argv = list(args)
     # Execution:
     with event(APPLICATION_RUNNING_EVENT, master=True):
         if func is None or func == "__main__":
             if IS_PYTHON3:
                 exec(open(app).read())
             else:
-                execfile(app)  # noqa
+                execfile(app)  # type: ignore
             result = None
         else:
             if IS_PYTHON3:
                 from importlib.machinery import SourceFileLoader  # noqa
-                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # noqa
+                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # type: ignore
             else:
                 import imp  # noqa
-                imported_module = imp.load_source(all_vars["file_name"], app)  # noqa
+                imported_module = imp.load_source(all_vars["file_name"], app)                 # noqa
             method_to_call = getattr(imported_module, func)
             try:
                 result = method_to_call(*args, **kwargs)

@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs Persistent Worker
-===========================
+==========================
     This file contains the worker code.
 """
 
@@ -28,6 +28,7 @@ import sys
 import signal
 from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_temporary_directory
+import typing
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
@@ -76,6 +77,7 @@ def is_worker():
 
 
 def shutdown_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Shutdown handler.
 
     Do not remove the parameters.
@@ -91,6 +93,7 @@ def shutdown_handler(signal, frame):  # noqa
 
 
 def user_signal_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ User signal handler.
 
     Do not remove the parameters.
@@ -129,7 +132,7 @@ def compss_persistent_worker(config):
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
-    persistent_storage = (config.storage_conf != 'null')
+    persistent_storage = (config.storage_conf != "null")
 
     logger, _, _, _ = load_loggers(config.debug, persistent_storage)
 
@@ -159,7 +162,7 @@ def compss_persistent_worker(config):
         logger.debug(HEADER + "Control pipe: " + str(config.control_pipe))
     # Read command from control pipe
     alive = True
-    control_pipe = config.control_pipe
+    control_pipe = config.control_pipe  # type: typing.Any
     while alive:
         command = control_pipe.read_command()
         if command != "":
@@ -191,10 +194,10 @@ def compss_persistent_worker(config):
 
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
-                pid = PROCESSES.get(in_pipe)
+                cancel_pid = str(PROCESSES.get(in_pipe))
                 if __debug__:
-                    logger.debug(HEADER + "Signaling process with PID " + pid + " to cancel a task")
-                os.kill(int(pid), signal.SIGUSR2)  # NOSONAR cancellation produced by COMPSs
+                    logger.debug(HEADER + "Signaling process with PID " + cancel_pid + " to cancel a task")
+                os.kill(int(cancel_pid), signal.SIGUSR2)  # NOSONAR cancellation produced by COMPSs
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
@@ -241,7 +244,7 @@ def compss_persistent_executor(config):
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
-    persistent_storage = (config.storage_conf != 'null')
+    persistent_storage = (config.storage_conf != "null")
 
     logger, logger_cfg, storage_loggers, _ = load_loggers(config.debug, persistent_storage)
 
@@ -286,6 +289,11 @@ def compss_persistent_executor(config):
 ############################
 
 def main():
+    # type: () -> None
+    """ Main mpi piper worker
+
+    :return: None
+    """
     # Configure the global tracing variable from the argument
     global TRACING
     global WORKER_CONF
@@ -312,18 +320,18 @@ def main():
 
     if is_worker():
         # Setup cache
-        if is_cache_enabled(WORKER_CONF.cache):
+        if is_cache_enabled(str(WORKER_CONF.cache)):
             # Deploy the necessary processes
             cache = True
-            cache_params = start_cache(None, WORKER_CONF.cache, cache_profiler, log_dir)
+            cache_params = start_cache(None, str(WORKER_CONF.cache), cache_profiler, log_dir)
         else:
             # No cache
             cache = False
-            cache_params = (None, None, None, None)
+            cache_params = (None, None, None, None)  # type: ignore
     else:
         # Otherwise it is an executor
         cache = False  # to stop only the cache from the main process
-        cache_params = (None, None, None, None)
+        cache_params = (None, None, None, None)  # type: ignore
     smm, cache_process, CACHE_QUEUE, CACHE_IDS = cache_params
 
     if is_worker():
@@ -337,5 +345,5 @@ def main():
         stop_cache(smm, CACHE_QUEUE, cache_profiler, cache_process)  # noqa
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

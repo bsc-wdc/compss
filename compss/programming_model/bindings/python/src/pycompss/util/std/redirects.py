@@ -30,6 +30,7 @@ import ctypes
 import io
 import os
 import sys
+import typing
 
 from pycompss.runtime.commons import IS_PYTHON3
 
@@ -44,7 +45,7 @@ else:
 
 @contextmanager
 def not_std_redirector():
-    # type: () -> None
+    # type: () -> typing.Iterator[None]
     """ Context which does nothing.
 
     Use this context instead of the std_redirector context to avoid
@@ -57,7 +58,7 @@ def not_std_redirector():
 
 @contextmanager
 def std_redirector(out_filename, err_filename):
-    # type: (str, str) -> None
+    # type: (str, str) -> typing.Iterator[None]
     """ Stdout and stderr redirector to the given out and err file names.
 
     :param out_filename: Output file filename (where to redirect stdout)
@@ -130,7 +131,7 @@ def std_redirector(out_filename, err_filename):
 
 @contextmanager
 def ipython_std_redirector(out_filename, err_filename):
-    # type: (str, str) -> None
+    # type: (str, str) -> typing.Iterator[None]
     """ Stdout and stderr redirector within ipython environments to the given
     out and err file names.
 

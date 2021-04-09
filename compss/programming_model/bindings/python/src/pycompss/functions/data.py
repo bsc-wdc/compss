@@ -24,11 +24,12 @@ PyCOMPSs Functions: Data generators
 """
 
 import random
+import typing
 from pycompss.api.task import task
 
 
 def generator(size, num_frag, seed=None, distribution='random', wait=False):
-    # type: (tuple, int, int, str, bool) -> object
+    # type: (tuple, int, int, str, bool) -> typing.Any
     """ Data generator.
 
     Generates a list of fragments.
@@ -40,7 +41,6 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
     :param wait: if we want to wait for result. Default False
     :return: random dataset
     """
-
     data = None
     frag_size = int(size[0] / num_frag)
     if distribution == 'random':
@@ -68,7 +68,6 @@ def _gen_random(size, frag_size, seed):
     :param seed: Random seed
     :return: a fragment of elements
     """
-
     random.seed(seed)
     return [[random.random() for _ in range(size)] for _ in range(frag_size)]  # NOSONAR
 
@@ -104,7 +103,7 @@ def _gen_uniform(size, frag_size, seed):
 
 
 def chunks(lst, n, balanced=False):
-    # type: (list, int, bool) -> list
+    # type: (list, int, bool) -> typing.Iterator[typing.Any]
     """ List splitter into fragments.
 
     WARNING: Not tested!

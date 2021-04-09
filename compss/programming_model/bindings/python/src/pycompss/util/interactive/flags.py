@@ -23,6 +23,8 @@ PyCOMPSs Util - Interactive Mode Flags checker
     Provides auxiliary methods for the interactive mode flags checking
 """
 
+import typing
+
 # None type
 NONE_TYPE = type(None)
 
@@ -31,49 +33,49 @@ NONE_TYPE = type(None)
 #   - value = [ [supported types], [supported values]]
 #       - supported values is optional
 REQUIRED_FLAGS = {
-    'log_level': [[str], ['trace', 'debug', 'info', 'api', 'off']],
-    'debug': [[bool]],
-    'o_c': [[bool]],
-    'graph': [[bool]],
-    'trace': [[bool, str], [True, False, 'scorep', 'arm-map', 'arm-ddt']],
-    'monitor': [[int, NONE_TYPE]],
-    'project_xml': [[str, NONE_TYPE]],
-    'resources_xml': [[str, NONE_TYPE]],
-    'summary': [[bool]],
-    'task_execution': [[str]],
-    'storage_impl': [[str, NONE_TYPE]],
-    'storage_conf': [[str, NONE_TYPE]],
-    'streaming_backend': [[str, NONE_TYPE]],
-    'streaming_master_name': [[str, NONE_TYPE]],
-    'streaming_master_port': [[str, NONE_TYPE]],
-    'task_count': [[int]],
-    'app_name': [[str]],
-    'uuid': [[str, NONE_TYPE]],
-    'base_log_dir': [[str, NONE_TYPE]],
-    'specific_log_dir': [[str, NONE_TYPE]],
-    'extrae_cfg': [[str, NONE_TYPE]],
-    'comm': [[str], ['NIO', 'GAT']],
-    'conn': [[str], ['es.bsc.compss.connectors.DefaultSSHConnector',
-                     'es.bsc.compss.connectors.DefaultNoSSHConnector']],
-    'master_name': [[str]],
-    'master_port': [[str]],
-    'scheduler': [[str]],
-    'jvm_workers': [[str]],
-    'cpu_affinity': [[str]],
-    'gpu_affinity': [[str]],
-    'fpga_affinity': [[str]],
-    'fpga_reprogram': [[str]],
-    'profile_input': [[str]],
-    'profile_output': [[str]],
-    'scheduler_config': [[str]],
-    'external_adaptation': [[bool]],
-    'propagate_virtual_environment': [[bool]],
-    'mpi_worker': [[bool]],
+    "log_level": [[str], ["trace", "debug", "info", "api", "off"]],
+    "debug": [[bool]],
+    "o_c": [[bool]],
+    "graph": [[bool]],
+    "trace": [[bool, str], [True, False, "scorep", "arm-map", "arm-ddt"]],
+    "monitor": [[int, NONE_TYPE]],
+    "project_xml": [[str, NONE_TYPE]],
+    "resources_xml": [[str, NONE_TYPE]],
+    "summary": [[bool]],
+    "task_execution": [[str]],
+    "storage_impl": [[str, NONE_TYPE]],
+    "storage_conf": [[str, NONE_TYPE]],
+    "streaming_backend": [[str, NONE_TYPE]],
+    "streaming_master_name": [[str, NONE_TYPE]],
+    "streaming_master_port": [[str, NONE_TYPE]],
+    "task_count": [[int]],
+    "app_name": [[str]],
+    "uuid": [[str, NONE_TYPE]],
+    "base_log_dir": [[str, NONE_TYPE]],
+    "specific_log_dir": [[str, NONE_TYPE]],
+    "extrae_cfg": [[str, NONE_TYPE]],
+    "comm": [[str], ["NIO", "GAT"]],
+    "conn": [[str], ["es.bsc.compss.connectors.DefaultSSHConnector",
+                     "es.bsc.compss.connectors.DefaultNoSSHConnector"]],
+    "master_name": [[str]],
+    "master_port": [[str]],
+    "scheduler": [[str]],
+    "jvm_workers": [[str]],
+    "cpu_affinity": [[str]],
+    "gpu_affinity": [[str]],
+    "fpga_affinity": [[str]],
+    "fpga_reprogram": [[str]],
+    "profile_input": [[str]],
+    "profile_output": [[str]],
+    "scheduler_config": [[str]],
+    "external_adaptation": [[bool]],
+    "propagate_virtual_environment": [[bool]],
+    "mpi_worker": [[bool]],
 }
 
 
 def check_flags(all_vars):
-    # type: (dict) -> (bool, list)
+    # type: (dict) -> typing.Tuple[bool, list]
     """ Checks that the provided flags are supported.
 
     :param all_vars: Flags dictionary
@@ -88,7 +90,7 @@ def check_flags(all_vars):
         # There are missing flags
         is_ok = False
         for missing_flag in missing_flags:
-            issues.append("Missing flag: " + missing_flag)
+            issues.append("Missing flag: %s" % missing_flag)
         return is_ok, issues
     else:
         # Check that each element is of the correct type and supported value
@@ -101,7 +103,7 @@ def check_flags(all_vars):
 
 
 def __check_flag__(all_vars, flag, requirements):
-    # type: (dict, str, list) -> list
+    # type: (dict, str, typing.Any) -> list
     """ Checks the given flag against the requirements looking for issues.
 
     :param all_vars: All variables.
@@ -141,4 +143,4 @@ def print_flag_issues(issues):
     """
     print("[ERROR] The following flag issues were detected:")
     for issue in issues:
-        print("\t - " + issue)
+        print("\t - %s" % issue)

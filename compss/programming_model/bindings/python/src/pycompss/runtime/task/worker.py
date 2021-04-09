@@ -21,6 +21,7 @@ import gc
 import os
 import sys
 import shutil
+import typing
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
@@ -53,8 +54,15 @@ from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
 from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
 from pycompss.worker.piper.cache.tracker import replace_object_into_cache
 from pycompss.worker.piper.cache.tracker import in_cache
+
+if __debug__:
+    import logging
+    logger = logging.getLogger(__name__)
+
+np = None  # type: typing.Any
 try:
-    import numpy as np
+    import numpy
+    np = numpy
 except ImportError:
     np = None
 
@@ -70,13 +78,14 @@ class TaskWorker(TaskCommons):
     Process the task decorator and prepare call the user function.
     """
 
-    __slots__ = ['cache_ids', 'cache_queue', 'cached_references', 'cache_profiler']
+    __slots__ = ["cache_ids", "cache_queue", "cached_references", "cache_profiler"]  # noqa: E501
 
     def __init__(self,
-                 decorator_arguments,
-                 user_function,
-                 on_failure,
-                 defaults):
+                 decorator_arguments,  # type: typing.Dict[str, Parameter]
+                 user_function,        # type: typing.Any
+                 on_failure,           # type: str
+                 defaults              # type: dict
+                 ):                    # type: (...) -> None
         # Initialize TaskCommons
         super(self.__class__, self).__init__(decorator_arguments,
                                              user_function,
@@ -84,17 +93,17 @@ class TaskWorker(TaskCommons):
                                              defaults)
         # These variables are initialized on call since they are only for
         # the worker
-        self.cache_ids = None
-        self.cache_queue = None
-        self.cached_references = []
+        self.cache_ids = None        # type: typing.Any
+        self.cache_queue = None      # type: typing.Any
+        self.cached_references = []  # type: typing.List[typing.Any]
         self.cache_profiler = False
         # placeholder to keep the object references and avoid garbage collector
 
     def call(self, *args, **kwargs):
-        # type: (tuple, dict) -> (list, list, list, list)
+        # type: (*typing.Any, **typing.Any) -> typing.Tuple[list, list, Parameter]
         """ Main task code at worker side.
 
-        This function deals with task calls in the worker's side
+        This function deals with task calls in the worker"s side
         Note that the call to the user function is made by the worker,
         not by the user code.
 
@@ -105,7 +114,7 @@ class TaskWorker(TaskCommons):
         global logger
         # Grab logger from kwargs (shadows outer logger since it is set by
         # the worker).
-        logger = kwargs['compss_logger']  # noqa
+        logger = kwargs["compss_logger"]  # noqa
         with swap_logger_name(logger, __name__):
             if __debug__:
                 logger.debug("Starting @task decorator worker call")
@@ -113,10 +122,10 @@ class TaskWorker(TaskCommons):
             # Redirect stdout/stderr if necessary to show the prints/exceptions
             # in the job out/err files
             redirect_std = True
-            if kwargs['compss_log_files']:
+            if kwargs["compss_log_files"]:
                 # Redirect all stdout and stderr during the user code execution
                 # to job out and err files.
-                job_out, job_err = kwargs['compss_log_files']
+                job_out, job_err = kwargs["compss_log_files"]
             else:
                 job_out, job_err = None, None
                 redirect_std = False
@@ -163,7 +172,7 @@ class TaskWorker(TaskCommons):
                 # Self definition (only used when defined in the task)
                 # Save the self object type and value before executing the task
                 # (it could be persisted inside if its a persistent object)
-                self_type = None
+                self_type = -1
                 self_value = None
                 has_self = False
                 if args and not isinstance(args[0], Parameter):
@@ -185,7 +194,7 @@ class TaskWorker(TaskCommons):
                         # type "object" which is not supported for python objects in
                         # the runtime.
                         self_type = parameter.TYPE.FILE
-                        self_value = 'null'
+                        self_value = "null"
 
                 # Call the user function with all the reconstructed parameters and
                 # get the return values.
@@ -194,7 +203,7 @@ class TaskWorker(TaskCommons):
                 # Now execute the user code
                 result = self.execute_user_code(user_args,
                                                 user_kwargs,
-                                                kwargs['compss_tracing'])
+                                                kwargs["compss_tracing"])
                 user_returns, compss_exception, default_values = result
                 if __debug__:
                     logger.debug("Finished user code")
@@ -221,11 +230,11 @@ class TaskWorker(TaskCommons):
                                                    ret_params, python_mpi)
 
                 # Check old targetDirection
-                if 'targetDirection' in self.decorator_arguments:
-                    target_label = 'targetDirection'
+                if "targetDirection" in self.decorator_arguments:
+                    target_label = "targetDirection"
                     logger.info("Detected deprecated targetDirection. Please, change it to target_direction")  # noqa: E501
                 else:
-                    target_label = 'target_direction'
+                    target_label = "target_direction"
 
                 # We must notify COMPSs when types are updated
                 new_types, new_values = self.manage_new_types_values(num_returns,
@@ -239,7 +248,7 @@ class TaskWorker(TaskCommons):
                 # Clean cached references
                 if self.cached_references:
                     # Let the garbage collector act
-                    self.cached_references = None
+                    self.cached_references = []  # loose all references
 
                 # Release memory after task execution
                 self.__release_memory__()
@@ -254,7 +263,7 @@ class TaskWorker(TaskCommons):
 
     @staticmethod
     def __release_memory__():  # noqa
-        # type: (...) -> None
+        # type: () -> None
         """ Release memory after task execution explicitly.
 
         :return: None
@@ -273,7 +282,7 @@ class TaskWorker(TaskCommons):
 
     @staticmethod
     def __report_heap__():  # noqa
-        # type: (...) -> None
+        # type: () -> None
         """ Prints the heap status.
 
         :return: None
@@ -289,10 +298,11 @@ class TaskWorker(TaskCommons):
             if __debug__:
                 logger.debug(hpy.heap())
 
-    def reveal_objects(self, args,                 # noqa
-                       python_mpi=False,           # noqa
-                       collections_layouts=None):  # noqa
-        # type: (tuple, bool, list) -> None
+    def reveal_objects(self,
+                       args,                     # type: tuple
+                       collections_layouts,      # type: typing.Dict[str, typing.Dict[str, int]]
+                       python_mpi=False,         # type: bool
+                       ):                        # type: (...) -> None
         """ Get the objects from the args message.
 
         This function takes the arguments passed from the persistent worker
@@ -318,8 +328,7 @@ class TaskWorker(TaskCommons):
                 obj.content = value
 
         # Deal with all the parameters that are NOT returns
-        for arg in [x for x in args if
-                    isinstance(x, Parameter) and not is_return(x.name)]:
+        for arg in [x for x in args if isinstance(x, Parameter) and not is_return(x.name)]:
             self.retrieve_content(arg, "", python_mpi, collections_layouts)
 
     @staticmethod
@@ -341,10 +350,13 @@ class TaskWorker(TaskCommons):
         except (ImportError, AttributeError):
             return False
 
-    def retrieve_content(self, argument, name_prefix,
-                         python_mpi, collections_layouts,
-                         depth=0):
-        # type: (Parameter, str, bool, list, int) -> None
+    def retrieve_content(self,
+                         argument,             # type: Parameter
+                         name_prefix,          # type: str
+                         python_mpi,           # type: bool
+                         collections_layouts,  # type: typing.Dict[str, typing.Dict[str, int]]
+                         depth=0               # type: int
+                         ):                    # type: (...) -> None
         """ Retrieve the content of a particular argument.
 
         :param argument: Argument.
@@ -403,14 +415,14 @@ class TaskWorker(TaskCommons):
             # sure you have checked this parameter is a collection before
             # consulting it
             argument.collection_content = []
-            col_f_name = argument.file_name.original_path
+            col_f_name = str(argument.file_name.original_path)
 
             # maybe it is an inner-collection..
             _dec_arg = self.decorator_arguments.get(argument.name, None)
             _col_dir = _dec_arg.direction if _dec_arg else None
             _col_dep = _dec_arg.depth if _dec_arg else depth
             if __debug__:
-                logger.debug("\t\t - It is a COLLECTION: " + str(col_f_name))
+                logger.debug("\t\t - It is a COLLECTION: " + col_f_name)
                 logger.debug("\t\t\t - Depth: " + str(_col_dep))
 
             # Check if this collection is in layout
@@ -431,11 +443,14 @@ class TaskWorker(TaskCommons):
                 if __debug__:
                     logger.debug("Rank distribution is: " + str(rank_distribution))  # noqa: E501
 
-            for (i, line) in enumerate(open(col_f_name, 'r')):
+            for (i, line) in enumerate(open(col_f_name, "r")):
                 if in_mpi_collection_env and i not in rank_distribution:
                     # Isn't this my offset? skip
                     continue
-                data_type, content_file, content_type = line.strip().split()
+                elems = line.strip().split()
+                data_type = elems[0]
+                content_file = elems[1]
+                content_type_elem = elems[2]
                 # Same naming convention as in COMPSsRuntimeImpl.java
                 sub_name = "%s.%d" % (argument.name, i)
                 if name_prefix:
@@ -455,18 +470,18 @@ class TaskWorker(TaskCommons):
                                                       content_file,
                                                       argument.content_type, logger=logger)
 
-                    # if direction of the collection is 'out', it means we
+                    # if direction of the collection is "out", it means we
                     # haven't received serialized objects from the Master
-                    # (even though parameters have 'file_name', those files
+                    # (even though parameters have "file_name", those files
                     # haven't been created yet). plus, inner collections of
-                    # col_out params do NOT have 'direction', we identify
-                    # them by 'depth'..
+                    # col_out params do NOT have "direction", we identify
+                    # them by "depth"..
                     if _col_dir == parameter.DIRECTION.OUT or \
                             ((_col_dir is None) and _col_dep > 0):
                         # if we are at the last level of COL_OUT param,
-                        # create 'empty' instances of elements
+                        # create "empty" instances of elements
                         if _col_dep == 1:
-                            temp = create_object_by_con_type(content_type)
+                            temp = create_object_by_con_type(content_type_elem)
                             sub_arg.content = temp
                             # In case that only one element is used in this
                             # mpi rank, the collection list is removed
@@ -522,7 +537,7 @@ class TaskWorker(TaskCommons):
             # Uncomment if you want to check its contents:
             # print("Dictionary file name: " + str(dict_col_f_name))
             # print("Dictionary file contents:")
-            # with open(dict_col_f_name, 'r') as f:
+            # with open(dict_col_f_name, "r") as f:
             #     print(f.read())
 
             # Maybe it is an inner-dict-collection
@@ -530,7 +545,7 @@ class TaskWorker(TaskCommons):
             _dict_col_dir = _dec_arg.direction if _dec_arg else None
             _dict_col_dep = _dec_arg.depth if _dec_arg else depth
 
-            with open(dict_col_f_name, 'r') as dict_file:
+            with open(dict_col_f_name, "r") as dict_file:
                 lines = dict_file.readlines()
             entries = group_iterable(lines, 2)
             i = 0
@@ -562,17 +577,17 @@ class TaskWorker(TaskCommons):
                                                         content_file_value,
                                                         argument.content_type, logger=logger)
 
-                # if direction of the dictionary collection is 'out', it
+                # if direction of the dictionary collection is "out", it
                 # means we haven't received serialized objects from the
-                # Master (even though parameters have 'file_name', those
+                # Master (even though parameters have "file_name", those
                 # files haven't been created yet). plus, inner dictionary
                 # collections of dict_col_out params do NOT have
-                # 'direction', we identify them by 'depth'..
+                # "direction", we identify them by "depth"..
                 if _dict_col_dir == parameter.DIRECTION.OUT or \
                         ((_dict_col_dir is None) and _dict_col_dep > 0):
 
                     # if we are at the last level of DICT_COL_OUT param,
-                    # create 'empty' instances of elements
+                    # create "empty" instances of elements
                     if _dict_col_dep == 1:
                         temp_k = create_object_by_con_type(content_type_key)    # noqa: E501
                         temp_v = create_object_by_con_type(content_type_value)  # noqa: E501
@@ -581,19 +596,29 @@ class TaskWorker(TaskCommons):
                         argument.content[sub_arg_key.content] = sub_arg_value.content  # noqa: E501
                         argument.dict_collection_content[sub_arg_key] = sub_arg_value  # noqa: E501
                     else:
-                        self.retrieve_content(sub_arg_key, sub_name_key,
-                                              None, None,
+                        self.retrieve_content(sub_arg_key,
+                                              sub_name_key,
+                                              python_mpi,
+                                              collections_layouts,
                                               depth=_dict_col_dep - 1)
-                        self.retrieve_content(sub_arg_value, sub_name_value,
-                                              None, None,
+                        self.retrieve_content(sub_arg_value,
+                                              sub_name_value,
+                                              python_mpi,
+                                              collections_layouts,
                                               depth=_dict_col_dep - 1)
                         argument.content[sub_arg_key.content] = sub_arg_value.content  # noqa: E501
                         argument.dict_collection_content[sub_arg_key] = sub_arg_value  # noqa: E501
                 else:
                     # Recursively call the retrieve method, fill the
                     # content field in our new taskParameter object
-                    self.retrieve_content(sub_arg_key, sub_name_key, None, None)
-                    self.retrieve_content(sub_arg_value, sub_name_value, None, None)
+                    self.retrieve_content(sub_arg_key,
+                                          sub_name_key,
+                                          python_mpi,
+                                          collections_layouts)
+                    self.retrieve_content(sub_arg_value,
+                                          sub_name_value,
+                                          python_mpi,
+                                          collections_layouts)
                     argument.content[sub_arg_key.content] = sub_arg_value.content  # noqa: E501
                     argument.dict_collection_content[sub_arg_key] = sub_arg_value  # noqa: E501
         elif not self.storage_supports_pipelining() and \
@@ -609,7 +634,7 @@ class TaskWorker(TaskCommons):
             # available and properly casted by the python worker
 
     def recover_object(self, argument):
-        # type: (Parameter) -> ...
+        # type: (Parameter) -> typing.Any
         """ Recovers the object within a file.
 
         :param argument: Parameter object for the argument to recover.
@@ -678,7 +703,7 @@ class TaskWorker(TaskCommons):
             return deserialize_from_file(original_path)
 
     def segregate_objects(self, args):
-        # type: (tuple) -> (list, dict, list)
+        # type: (tuple) -> typing.Tuple[list, dict, list]
         """ Split a list of arguments.
 
         Segregates a list of arguments in user positional, variadic and
@@ -690,7 +715,7 @@ class TaskWorker(TaskCommons):
         # User args
         user_args = []
         # User named args (kwargs)
-        user_kwargs = {}
+        user_kwargs = dict()
         # Return parameters, save them apart to match the user returns with
         # the internal parameters
         ret_params = []
@@ -716,8 +741,12 @@ class TaskWorker(TaskCommons):
         return user_args, user_kwargs, ret_params
 
     @emit_event(EXECUTE_USER_CODE_EVENT, master=False, inside=True)
-    def execute_user_code(self, user_args, user_kwargs, tracing):
-        # type: (list, dict, bool) -> (object, COMPSsException)
+    def execute_user_code(self,
+                          user_args,    # type: list
+                          user_kwargs,  # type: dict
+                          tracing       # type: bool
+                          ):
+        # type: (...) -> typing.Tuple[typing.Any, typing.Optional[COMPSsException], typing.Optional[dict]]
         """ Executes the user code.
 
         Disables the tracing hook if tracing is enabled. Restores it
@@ -739,7 +768,7 @@ class TaskWorker(TaskCommons):
             if TRACING_HOOK_ENV_VAR in os.environ:
                 hook_enabled = os.environ[TRACING_HOOK_ENV_VAR] == "true"
                 global_tracing_hook = hook_enabled
-            if self.decorator_arguments['tracing_hook'] or global_tracing_hook:
+            if self.decorator_arguments["tracing_hook"] or global_tracing_hook:
                 # The user wants to keep the tracing hook
                 pass
             else:
@@ -753,10 +782,10 @@ class TaskWorker(TaskCommons):
                 sys.setprofile(None)
                 restore_hook = True
 
-        user_returns = None
-        compss_exception = None
-        default_values = None
-        if self.decorator_arguments['numba']:
+        user_returns = None      # type: typing.Any
+        compss_exception = None  # type: typing.Optional[COMPSsException]
+        default_values = None    # type: typing.Optional[dict]
+        if self.decorator_arguments["numba"]:
             # Import all supported functionalities
             from numba import jit
             from numba import njit
@@ -765,46 +794,46 @@ class TaskWorker(TaskCommons):
             from numba import guvectorize
             from numba import stencil
             from numba import cfunc
-            numba_mode = self.decorator_arguments['numba']
-            numba_flags = self.decorator_arguments['numba_flags']
+            numba_mode = self.decorator_arguments["numba"]
+            numba_flags = self.decorator_arguments["numba_flags"]
             if type(numba_mode) is dict or \
                     numba_mode is True or \
-                    numba_mode == 'jit':
+                    numba_mode == "jit":
                 # Use the flags defined by the user
-                numba_flags['cache'] = True  # Always force cache
+                numba_flags["cache"] = True  # Always force cache
                 user_returns = jit(self.user_function,
                                    **numba_flags)(*user_args, **user_kwargs)
                 # Alternative way of calling:
                 # user_returns = jit(cache=True)(self.user_function) \
                 #                   (*user_args, **user_kwargs)
-            elif numba_mode == 'generated_jit':
+            elif numba_mode == "generated_jit":
                 user_returns = generated_jit(self.user_function,
                                              **numba_flags)(*user_args,
                                                             **user_kwargs)
-            elif numba_mode == 'njit':
-                numba_flags['cache'] = True  # Always force cache
+            elif numba_mode == "njit":
+                numba_flags["cache"] = True  # Always force cache
                 user_returns = njit(self.user_function,
                                     **numba_flags)(*user_args, **user_kwargs)
-            elif numba_mode == 'vectorize':
-                numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+            elif numba_mode == "vectorize":
+                numba_signature = self.decorator_arguments["numba_signature"]  # noqa: E501
                 user_returns = vectorize(
                     numba_signature,
                     **numba_flags
                 )(self.user_function)(*user_args, **user_kwargs)
-            elif numba_mode == 'guvectorize':
-                numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
-                numba_decl = self.decorator_arguments['numba_declaration']
+            elif numba_mode == "guvectorize":
+                numba_signature = self.decorator_arguments["numba_signature"]  # noqa: E501
+                numba_decl = self.decorator_arguments["numba_declaration"]
                 user_returns = guvectorize(
                     numba_signature,
                     numba_decl,
                     **numba_flags
                 )(self.user_function)(*user_args, **user_kwargs)
-            elif numba_mode == 'stencil':
+            elif numba_mode == "stencil":
                 user_returns = stencil(
                     **numba_flags
                 )(self.user_function)(*user_args, **user_kwargs)
-            elif numba_mode == 'cfunc':
-                numba_signature = self.decorator_arguments['numba_signature']  # noqa: E501
+            elif numba_mode == "cfunc":
+                numba_signature = self.decorator_arguments["numba_signature"]  # noqa: E501
                 user_returns = cfunc(
                     numba_signature
                 )(self.user_function).ctypes(*user_args, **user_kwargs)
@@ -819,10 +848,10 @@ class TaskWorker(TaskCommons):
                 user_returns, default_values = self.manage_exception()
                 compss_exception = ce
                 # Check old targetDirection
-                if 'targetDirection' in self.decorator_arguments:
-                    target_label = 'targetDirection'
+                if "targetDirection" in self.decorator_arguments:
+                    target_label = "targetDirection"
                 else:
-                    target_label = 'target_direction'
+                    target_label = "target_direction"
                 compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
             except Exception as exc:  # noqa
                 if self.on_failure == "IGNORE":
@@ -839,7 +868,7 @@ class TaskWorker(TaskCommons):
         return user_returns, compss_exception, default_values
 
     def manage_exception(self):
-        # type () -> (tuple, dict)
+        # type: () -> typing.Tuple[typing.Optional[tuple], typing.Optional[dict]]
         """ Deal with exceptions (on failure action).
 
         :return: The default return and values.
@@ -876,7 +905,7 @@ class TaskWorker(TaskCommons):
                 arg.content = default_values[arg.name]
             else:
                 # Update file
-                shutil.copyfile(default_values[arg.name], arg.content)
+                shutil.copyfile(str(default_values[arg.name]), str(arg.content))
 
     def manage_inouts(self, args, python_mpi):
         # type: (tuple, bool) -> None
@@ -932,7 +961,7 @@ class TaskWorker(TaskCommons):
             if not (_is_inout or _is_col_out or _is_dict_col_out):
                 continue
 
-            # Now it is 'INOUT' or 'COLLECTION_OUT' or 'DICT_COLLECTION_OUT'
+            # Now it is "INOUT" or "COLLECTION_OUT" or "DICT_COLLECTION_OUT"
             # object param, serialize to a file.
             if arg.content_type == parameter.TYPE.COLLECTION:
                 if __debug__:
@@ -982,7 +1011,7 @@ class TaskWorker(TaskCommons):
                     self.update_object_in_cache(arg.content, arg)
 
     def update_object_in_cache(self, content, argument):
-        # type: (..., Parameter) -> None
+        # type: (typing.Any, Parameter) -> None
         """ Updates the object into cache if possible
 
         :param content: Object to be updated.
@@ -1125,10 +1154,9 @@ class TaskWorker(TaskCommons):
                                 args,          # type: tuple
                                 has_self,      # type: bool
                                 target_label,  # type: str
-                                self_type,     # type: str
-                                self_value     # type: object
-                                ):
-        # type: (...) -> (list, list)
+                                self_type,     # type: int
+                                self_value     # type: typing.Any
+                                ):             # type: (...) -> typing.Tuple[list, list]
         """ Manage new types and values.
 
         We must notify COMPSs when types are updated
@@ -1150,30 +1178,28 @@ class TaskWorker(TaskCommons):
             logger.debug("Building types update")
 
         def build_collection_types_values(_content, _arg, direction):
+            # type: (typing.Any, Parameter, str) -> list
             """ Retrieve collection type-value recursively"""
-            coll = []
+            coll = []  # type: list
             for (_cont, _elem) in zip(_arg.content, _arg.collection_content):
                 if isinstance(_elem, str):
-                    coll.append((parameter.TYPE.FILE, 'null'))
+                    coll.append([parameter.TYPE.FILE, "null"])
                 else:
-                    if _elem.content_type == \
-                            parameter.TYPE.COLLECTION:
+                    if _elem.content_type == parameter.TYPE.COLLECTION:
                         coll.append(build_collection_types_values(_cont,
                                                                   _elem,
                                                                   direction))
-                    elif _elem.content_type == \
-                            parameter.TYPE.EXTERNAL_PSCO \
+                    elif _elem.content_type == parameter.TYPE.EXTERNAL_PSCO \
                             and is_psco(_cont) \
                             and direction != parameter.DIRECTION.IN:
-                        coll.append((_elem.content_type, _cont.getID()))
-                    elif _elem.content_type == \
-                            parameter.TYPE.FILE \
+                        coll.append([_elem.content_type, _cont.getID()])
+                    elif _elem.content_type == parameter.TYPE.FILE \
                             and is_psco(_cont) \
                             and direction != parameter.DIRECTION.IN:
-                        coll.append((parameter.TYPE.EXTERNAL_PSCO,
-                                     _cont.getID()))
+                        coll.append([parameter.TYPE.EXTERNAL_PSCO,
+                                     _cont.getID()])
                     else:
-                        coll.append((_elem.content_type, 'null'))
+                        coll.append([_elem.content_type, "null"])
             return coll
 
         # Add parameter types and value
@@ -1199,7 +1225,7 @@ class TaskWorker(TaskCommons):
                         new_values.append(arg.content.getID())
                     else:
                         new_types.append(arg.content_type)
-                        new_values.append('null')
+                        new_values.append("null")
                 elif arg.content_type == parameter.TYPE.COLLECTION:
                     # There is a collection that can contain persistent objects
                     collection_new_values = \
@@ -1211,7 +1237,7 @@ class TaskWorker(TaskCommons):
                 else:
                     # Any other return object: same type and null value
                     new_types.append(arg.content_type)
-                    new_values.append('null')
+                    new_values.append("null")
 
         # Add self type and value if exist
         if has_self:
@@ -1230,7 +1256,7 @@ class TaskWorker(TaskCommons):
                         self_value = args[0].getID()
                     else:
                         self_type = parameter.TYPE.FILE
-                        self_value = 'null'
+                        self_value = "null"
             new_types.append(self_type)
             new_values.append(self_value)
 
@@ -1252,16 +1278,16 @@ class TaskWorker(TaskCommons):
                             if is_psco(elem.content):
                                 collection_ret_values.append(elem.key)
                             else:
-                                collection_ret_values.append('null')
+                                collection_ret_values.append("null")
                         else:
-                            collection_ret_values.append('null')
+                            collection_ret_values.append("null")
                     new_types.append(parameter.TYPE.COLLECTION)
                     new_values.append(collection_ret_values)
                 else:
                     # Returns can only be of type FILE, so avoid the last
                     # update of ret_type
                     ret_type = parameter.TYPE.FILE
-                    ret_value = 'null'
+                    ret_value = "null"
                 new_types.append(ret_type)
                 new_values.append(ret_value)
 

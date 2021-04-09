@@ -19,17 +19,20 @@
 
 """
 PyCOMPSs Util - Context
-===================
+=======================
     This file contains the methods to detect the origin of the call stack.
     Useful to detect if we are in the master or in the worker.
 """
 
 import inspect
+import typing
 from contextlib import contextmanager
 
-MASTER = 'MASTER'
-WORKER = 'WORKER'
-OUT_OF_SCOPE = 'OUT_OF_SCOPE'
+from pycompss.runtime.task.core_element import CE
+
+MASTER = "MASTER"
+WORKER = "WORKER"
+OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
 _WHO = OUT_OF_SCOPE
 _WHERE = OUT_OF_SCOPE
@@ -78,13 +81,13 @@ def set_pycompss_context(where):
     :return: None
     """
     assert where in [MASTER, WORKER, OUT_OF_SCOPE], \
-        'PyCOMPSs context must be %s, %s or %s' % \
+        "PyCOMPSs context must be %s, %s or %s" % \
         (MASTER, WORKER, OUT_OF_SCOPE)
     global _WHERE
     _WHERE = where
     global _WHO
-    caller_stack = inspect.stack()[1]
-    caller_module = inspect.getmodule(caller_stack[0])
+    caller_stack = str(inspect.stack()[1])
+    caller_module = str(inspect.getmodule(caller_stack[0]))
     _WHO = caller_module
 
 
@@ -141,7 +144,7 @@ def disable_nesting():
 
 @contextmanager
 def loading_context():
-    # type: () -> None
+    # type: () -> typing.Iterator[None]
     """ Context which sets the loading mode (intended to be used only with
     the @implements decorators, since they try to register on loading).
 
@@ -172,7 +175,7 @@ def __enable_loading__():
 
 
 def add_to_register_later(core_element):
-    # type: (...) -> None
+    # type: (typing.Any) -> None
     """ Accumulate core elements to be registered later.
 
     :param core_element: Core element to be registered

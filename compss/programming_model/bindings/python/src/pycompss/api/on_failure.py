@@ -24,7 +24,9 @@ PyCOMPSs API - ON_FAILURE
     management definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.util.arguments import check_mandatory_arguments
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
@@ -54,6 +56,7 @@ class OnFailure(PyCOMPSsDecorator):
     __slots__ = ["on_failure_action", "defaults"]
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -63,7 +66,7 @@ class OnFailure(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', OnFailure.__name__.lower()))
+        decorator_name = "".join(("@", OnFailure.__name__.lower()))
         super(OnFailure, self).__init__(decorator_name, *args, **kwargs)
 
         if self.scope:
@@ -77,11 +80,14 @@ class OnFailure(PyCOMPSsDecorator):
             self.on_failure_action = kwargs.pop("management")
             # Check supported management values
             if self.on_failure_action not in SUPPORTED_MANAGEMENT:
-                raise PyCOMPSsException("ERROR: Unsupported on failure action: " + self.on_failure_action)  # noqa: E501
+                raise PyCOMPSsException(
+                    "ERROR: Unsupported on failure action: %s" %
+                    self.on_failure_action)
             # Keep all defaults in a dictionary
             self.defaults = kwargs
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the on_failure within the task core element.
 
         :param user_function: Function to decorate.
@@ -89,6 +95,7 @@ class OnFailure(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def constrained_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 from pycompss.api.dummy.on_failure import on_failure \
                     as dummy_on_failure
@@ -118,7 +125,7 @@ class OnFailure(PyCOMPSsDecorator):
         return constrained_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @on_failure.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

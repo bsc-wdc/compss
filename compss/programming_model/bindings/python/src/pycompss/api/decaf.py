@@ -24,7 +24,9 @@ PyCOMPSs API - DECAF
     definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -38,19 +40,19 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'df_script'}
-SUPPORTED_ARGUMENTS = {'computing_nodes',
-                       'working_dir',
-                       'runner',
-                       'df_executor',
-                       'df_lib',
-                       'df_script',
-                       'fail_by_exit_value'}
-DEPRECATED_ARGUMENTS = {'computingNodes',
-                        'workingDir',
-                        'dfExecutor',
-                        'dfLib',
-                        'dfScript'}
+MANDATORY_ARGUMENTS = {"df_script"}
+SUPPORTED_ARGUMENTS = {"computing_nodes",
+                       "working_dir",
+                       "runner",
+                       "df_executor",
+                       "df_lib",
+                       "df_script",
+                       "fail_by_exit_value"}
+DEPRECATED_ARGUMENTS = {"computingNodes",
+                        "workingDir",
+                        "dfExecutor",
+                        "dfLib",
+                        "dfScript"}
 
 
 class Decaf(PyCOMPSsDecorator):
@@ -59,9 +61,8 @@ class Decaf(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator
 
         self = itself.
@@ -71,7 +72,7 @@ class Decaf(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', Decaf.__name__.lower()))
+        decorator_name = "".join(("@", Decaf.__name__.lower()))
         super(Decaf, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -85,6 +86,7 @@ class Decaf(PyCOMPSsDecorator):
             self.__process_computing_nodes__(decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the decaf parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -92,6 +94,7 @@ class Decaf(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def decaf_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("decaf"))
 
@@ -105,7 +108,7 @@ class Decaf(PyCOMPSsDecorator):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -117,7 +120,7 @@ class Decaf(PyCOMPSsDecorator):
         return decaf_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @decaf.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -130,43 +133,43 @@ class Decaf(PyCOMPSsDecorator):
             logger.debug("Configuring @decaf core element.")
 
         # Resolve @decaf specific parameters
-        if 'runner' in self.kwargs:
-            runner = self.kwargs['runner']
+        if "runner" in self.kwargs:
+            runner = self.kwargs["runner"]
         else:
-            runner = 'mpirun'
+            runner = "mpirun"
 
-        if 'dfScript' in self.kwargs:
-            df_script = self.kwargs['dfScript']
+        if "dfScript" in self.kwargs:
+            df_script = self.kwargs["dfScript"]
         else:
-            df_script = self.kwargs['df_script']
+            df_script = self.kwargs["df_script"]
 
-        if 'df_executor' in self.kwargs:
-            df_executor = self.kwargs['df_executor']
-        elif 'dfExecutor' in self.kwargs:
-            df_executor = self.kwargs['dfExecutor']
+        if "df_executor" in self.kwargs:
+            df_executor = self.kwargs["df_executor"]
+        elif "dfExecutor" in self.kwargs:
+            df_executor = self.kwargs["dfExecutor"]
         else:
-            df_executor = '[unassigned]'  # Empty or '[unassigned]'
+            df_executor = "[unassigned]"  # Empty or "[unassigned]"
 
-        if 'df_lib' in self.kwargs:
-            df_lib = self.kwargs['df_lib']
-        elif 'dfLib' in self.kwargs:
-            df_lib = self.kwargs['dfLib']
+        if "df_lib" in self.kwargs:
+            df_lib = self.kwargs["df_lib"]
+        elif "dfLib" in self.kwargs:
+            df_lib = self.kwargs["dfLib"]
         else:
-            df_lib = '[unassigned]'  # Empty or '[unassigned]'
+            df_lib = "[unassigned]"  # Empty or "[unassigned]"
 
         # Resolve the working directory
         self.__resolve_working_dir__()
         # Resolve the fail by exit value
         self.__resolve_fail_by_exit_value__()
 
-        impl_type = 'DECAF'
-        impl_signature = '.'.join((impl_type, df_script))
+        impl_type = "DECAF"
+        impl_signature = ".".join((impl_type, df_script))
         impl_args = [df_script,
                      df_executor,
                      df_lib,
-                     self.kwargs['working_dir'],
+                     self.kwargs["working_dir"],
                      runner,
-                     self.kwargs['fail_by_exit_value']]
+                     self.kwargs["fail_by_exit_value"]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

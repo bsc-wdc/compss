@@ -25,15 +25,16 @@ PyCOMPSs Dummy API
 """
 
 import os
+import typing
 
 
-def compss_start(log_level='off', tracing=0, interactive=False):  # noqa
+def compss_start(log_level="off", tracing=0, interactive=False):  # noqa
     # type: (str, int, bool) -> None
     """ Dummy runtime start.
 
     Does nothing.
 
-    :param log_level: Log level ['trace'|'debug'|'info'|'api'|'off'].
+    :param log_level: Log level ["trace"|"debug"|"info"|"api"|"off"].
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
@@ -54,7 +55,7 @@ def compss_stop(code=0, _hard_stop=False):  # noqa
 
 
 def compss_file_exists(*file_name):
-    # type: (*str) -> bool or [bool]
+    # type: (*str) -> typing.Union[bool, typing.List[bool]]
     """ Dummy compss_file_exists.
 
     Check if the file exists.
@@ -68,22 +69,22 @@ def compss_file_exists(*file_name):
         return [os.path.exists(f_name) for f_name in file_name]
 
 
-def compss_open(file_name, mode='r'):
-    # type: (str, str) -> object
+def compss_open(file_name, mode="r"):
+    # type: (str, str) -> typing.Any
     """ Dummy compss_open.
 
     Open the given file with the defined mode (see builtin open).
 
     :param file_name: The file name to open.
     :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r.
-    :return: An object of 'file' type.
+    :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
     """
     return open(file_name, mode)
 
 
 def compss_delete_file(*file_name):  # noqa
-    # type: (*str) -> bool or [bool]
+    # type: (*str) -> typing.Union[bool, typing.List[bool]]
     """ Dummy compss_delete.
 
     Does nothing and always return True.
@@ -122,7 +123,7 @@ def compss_wait_on_directory(*directory_name):  # noqa
 
 
 def compss_delete_object(*obj):  # noqa
-    # type: (*str) -> bool or [bool]
+    # type: (*typing.Any) -> typing.Union[bool, typing.List[bool]]
     """ Dummy compss_delete_object.
 
     Does nothing and always return True.
@@ -161,7 +162,7 @@ def compss_barrier_group(group_name):  # noqa
 
 
 def compss_wait_on(*args, **kwargs):  # noqa
-    # type: (*object, dict) -> None
+    # type: (*typing.Any, **typing.Any) -> typing.Any
     """ Dummy compss_wait_on.
 
     Does nothing.
@@ -213,7 +214,7 @@ def compss_free_resources(num_resources, group_name):  # noqa
 
 
 def compss_set_wall_clock(wall_clock_limit):  # noqa
-    # type: (int, str) -> None
+    # type: (int) -> None
     """ Sets the application wall_clock_limit.
 
     Does nothing.
@@ -238,9 +239,11 @@ class TaskGroup(object):
         pass
 
     def __enter__(self):
+        # type: () -> None
         # Dummy: do nothing
         pass
 
     def __exit__(self, type, value, traceback):  # noqa
+        # type: (typing.Any, typing.Any, typing.Any) -> None
         # Dummy: do nothing
         pass

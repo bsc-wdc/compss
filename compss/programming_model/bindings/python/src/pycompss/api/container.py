@@ -24,7 +24,9 @@ PyCOMPSs API - CONTAINER
     definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -36,17 +38,16 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'engine',
-                       'image'}
-SUPPORTED_ARGUMENTS = {'engine',
-                       'image'}
-DEPRECATED_ARGUMENTS = {'fail_by_exit_value',
-                        'workingDir',
-                        'working_dir',
-                        'binary'}
+MANDATORY_ARGUMENTS = {"engine",
+                       "image"}
+SUPPORTED_ARGUMENTS = {"engine",
+                       "image"}
+DEPRECATED_ARGUMENTS = {"fail_by_exit_value",
+                        "workingDir",
+                        "working_dir",
+                        "binary"}
 
 
 class Container(PyCOMPSsDecorator):
@@ -55,9 +56,8 @@ class Container(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """
         Store arguments passed to the decorator
         # self = itself.
@@ -67,7 +67,7 @@ class Container(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        decorator_name = '@' + Container.__name__.lower()
+        decorator_name = "@" + Container.__name__.lower()
         super(Container, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
@@ -80,6 +80,7 @@ class Container(PyCOMPSsDecorator):
                             decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """
         Parse and set the container parameters within the task core element.
 
@@ -89,6 +90,7 @@ class Container(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def container_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("container"))
 
@@ -110,7 +112,7 @@ class Container(PyCOMPSsDecorator):
         return container_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, str) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @container.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -123,18 +125,18 @@ class Container(PyCOMPSsDecorator):
             logger.debug("Configuring @container core element.")
 
         # Resolve @container (mandatory) specific parameters
-        _engine = self.kwargs['engine']
-        _image = self.kwargs['image']
+        _engine = self.kwargs["engine"]
+        _image = self.kwargs["image"]
 
         _func = str(user_function.__name__)
 
         # Type and signature
         impl_type = "CONTAINER"
-        impl_signature = '.'.join((impl_type, _func))
+        impl_signature = ".".join([impl_type, _func])
 
         unassigned = "[unassigned]"
-        impl_args = [_engine,  # engine
-                     _image,  # image
+        impl_args = [_engine,     # engine
+                     _image,      # image
                      unassigned,  # internal_type
                      unassigned,  # internal_binary
                      unassigned,  # internal_func

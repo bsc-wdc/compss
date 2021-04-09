@@ -23,6 +23,8 @@ PyCOMPSs Dummy API - Container
     This file contains the dummy class container used as decorator.
 """
 
+import typing
+
 
 class Container(object):
     """
@@ -30,11 +32,14 @@ class Container(object):
     """
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f):
+        # type: (typing.Any) -> typing.Any
         def wrapped_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return f(*args, **kwargs)
 
         return wrapped_f

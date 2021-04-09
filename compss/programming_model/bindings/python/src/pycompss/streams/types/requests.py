@@ -17,9 +17,6 @@
 
 # -*- coding: utf-8 -*-
 
-# For better print formatting
-from __future__ import print_function
-
 # Imports
 import logging
 from abc import abstractmethod
@@ -68,12 +65,11 @@ class Request(object):
             + type: string
     """
 
-    def __init__(self, rt=None):
-        """
-        Creates a new Request instance.
+    def __init__(self, rt):
+        # type: (str) -> None
+        """ Creates a new Request instance.
 
-        :param rt: Request type.
-            + type: RequestType
+        :param rt: Request type (RequestType)
         """
         self.rt = rt
 
@@ -81,100 +77,91 @@ class Request(object):
         self.wait_sem = Semaphore(0)
 
         self.error_code = -1
-        self.error_msg = None
-        self.response_msg = None
+        self.error_msg = "None"
+        self.response_msg = "None"
 
     def get_type(self):
-        """
-        Returns the request type.
+        # type: () -> str
+        """ Returns the request type.
 
-        :return: The request type.
-            + type: RequestType
+        :return: The request type (RequestType).
         """
         return self.rt
 
     def is_processed(self):
-        """
-        Returns whether the request has been processed or not.
+        # type: () -> bool
+        """ Returns whether the request has been processed or not.
 
-        :return: True if the request has been processed, False otherwise
-            + type: boolean
+        :return: True if the request has been processed, False otherwise.
         """
         return self.has_been_processed
 
     def wait_processed(self):
-        """
-        Locks the current thread until the request has been processed.
+        # type: () -> None
+        """ Locks the current thread until the request has been processed.
 
         :return: None.
         """
         self.wait_sem.acquire()
 
     def get_error_code(self):
-        """
-        Returns the request error code.
+        # type: () -> int
+        """ Returns the request error code.
 
         :return: The request error code.
-            + type: int
         """
         return self.error_code
 
     def get_error_msg(self):
-        """
-        Returns the request error message.
+        # type: () -> str
+        """ Returns the request error message.
 
         :return: The request error message.
-            + type: string
         """
         return self.error_msg
 
     def get_response_msg(self):
-        """
-        Returns the request response message.
+        # type: () -> str
+        """ Returns the request response message.
 
         :return: The request response message.
-            + type: string
         """
         return self.response_msg
 
     @abstractmethod
     def get_request_msg(self):
-        """
-        Returns the request message to send to the server.
+        # type: () -> str
+        """ Returns the request message to send to the server.
 
-        :return: The request message to send to the server
-            + type: string
+        :return: The request message to send to the server.
         """
         pass
 
     def set_processed(self):
-        """
-        Marks the request as processed.
+        # type: () -> None
+        """ Marks the request as processed.
 
         :return: None.
         """
         self.has_been_processed = True
         self.wait_sem.release()
 
-    def set_error(self, error_code=None, error_msg=None):
-        """
-        Sets a new error code and message to the current request.
+    def set_error(self, error_code, error_msg):
+        # type: (int, str) -> None
+        """ Sets a new error code and message to the current request.
 
         :param error_code: Error code.
-            + type: int
         :param error_msg: Error message.
-            + type: string
         :return: None.
         """
         self.error_code = error_code
         self.error_msg = error_msg
 
     def set_response(self, msg):
-        """
-        Sets a new response message to the current request.
+        # type: (str) -> None
+        """ Sets a new response message to the current request.
 
         :param msg: New response message.
-            + type: string
         :return: None.
         """
         self.error_code = 0
@@ -202,18 +189,14 @@ class RegisterStreamRequest(Request):
     """
 
     def __init__(self, alias, stream_type, access_mode, internal_stream_info):
-        """
-        Creates a new RegisterStreamRequest instance.
+        # type: (str, str, str, list) -> None
+        """ Creates a new RegisterStreamRequest instance.
 
         :param alias: Associated stream alias.
-            + type: string
-        :param stream_type: Associated stream type.
-            + type: StreamType
-        :param access_mode: Associated stream access mode.
-            + type: ConsumerMode
+        :param stream_type: Associated stream type (StreamType)
+        :param access_mode: Associated stream access mode (ConsumerMode)
         :param internal_stream_info: Associated information about the internal
-                                     stream implementation.
-            + type: List<string>
+                                     stream implementation (List<string>)
         """
         super(RegisterStreamRequest, self).__init__(rt=REGISTER_STREAM)
         self.alias = alias
@@ -222,10 +205,15 @@ class RegisterStreamRequest(Request):
         self.internal_stream_info = internal_stream_info
 
     def get_request_msg(self):
-        s = str(self.rt)
-        s = s + " " + str(self.stream_type)
-        s = s + " " + str(self.access_mode)
-        s = s + " " + str(self.alias)
+        # type: () -> str
+        """ Get request message.
+
+        :return: Message.
+        """
+        s = " ".join((str(self.rt),
+                      str(self.stream_type),
+                      str(self.access_mode),
+                      str(self.alias)))
         if self.internal_stream_info is not None:
             for info in self.internal_stream_info:
                 s = s + " " + str(info)
@@ -235,14 +223,11 @@ class RegisterStreamRequest(Request):
 class StopRequest(Request):
     """
     Request to stop the client.
-
-    Attributes:
     """
 
     def __init__(self):
-        """
-        Creates a new StopRequest instance.
-        """
+        # type: () -> None
+        """ Creates a new StopRequest instance. """
         super(StopRequest, self).__init__(rt=STOP)
 
     def get_request_msg(self):
@@ -253,17 +238,19 @@ class StopRequest(Request):
 class BootstrapServerRequest(Request):
     """
     Request to retrieve the bootstrap server information.
-
-    Attributes:
     """
 
     def __init__(self):
-        """
-        Creates a new BootstrapServerRequest instance.
-        """
+        # type: () -> None
+        """ Creates a new BootstrapServerRequest instance. """
         super(BootstrapServerRequest, self).__init__(rt=BOOTSTRAP_SERVER)
 
     def get_request_msg(self):
+        # type: () -> str
+        """ Get request message.
+
+        :return: Message.
+        """
         s = str(self.rt)
         return s
 
@@ -278,8 +265,8 @@ class StreamStatusRequest(Request):
     """
 
     def __init__(self, stream_id):
-        """
-        Creates a new StreamStatusRequest instance.
+        # type: (str) -> None
+        """ Creates a new StreamStatusRequest instance.
 
         :param stream_id: Stream Id.
         """
@@ -287,9 +274,12 @@ class StreamStatusRequest(Request):
         self.stream_id = stream_id
 
     def get_request_msg(self):
-        s = str(self.rt)
-        s = s + " " + str(self.stream_id)
-        return s
+        # type: () -> str
+        """ Get request message.
+
+        :return: Message.
+        """
+        return "%s %s" % (str(self.rt), str(self.stream_id))
 
 
 class CloseStreamRequest(Request):
@@ -302,8 +292,8 @@ class CloseStreamRequest(Request):
     """
 
     def __init__(self, stream_id):
-        """
-        Creates a new CloseStreamRequest instance.
+        # type: (str) -> None
+        """ Creates a new CloseStreamRequest instance.
 
         :param stream_id: Stream Id.
         """
@@ -311,9 +301,12 @@ class CloseStreamRequest(Request):
         self.stream_id = stream_id
 
     def get_request_msg(self):
-        s = str(self.rt)
-        s = s + " " + str(self.stream_id)
-        return s
+        # type: () -> str
+        """ Get request message.
+
+        :return: Message.
+        """
+        return "%s %s" % (str(self.rt), str(self.stream_id))
 
 
 class PollRequest(Request):
@@ -326,8 +319,8 @@ class PollRequest(Request):
     """
 
     def __init__(self, stream_id):
-        """
-        Creates a new PollRequest instance.
+        # type: (str) -> None
+        """ Creates a new PollRequest instance.
 
         :param stream_id: Stream Id.
         """
@@ -335,9 +328,12 @@ class PollRequest(Request):
         self.stream_id = stream_id
 
     def get_request_msg(self):
-        s = str(self.rt)
-        s = s + " " + str(self.stream_id)
-        return s
+        # type: () -> str
+        """ Get request message.
+
+        :return: Message.
+        """
+        return "%s %s" % (str(self.rt), str(self.stream_id))
 
 
 class PublishRequest(Request):
@@ -352,20 +348,22 @@ class PublishRequest(Request):
     """
 
     def __init__(self, stream_id, msg):
-        """
-        Creates a new PublishREquest instance.
+        # type: (str, str) -> None
+        """ Creates a new PublishRequest instance.
 
-        :param stream_id: Stream Id.
-            + type: UUID
+        :param stream_id: Stream Id (UUID).
         :param msg: Message to publish.
-            + type: str
         """
         super(PublishRequest, self).__init__(rt=PUBLISH)
         self.stream_id = stream_id
         self.msg = msg
 
     def get_request_msg(self):
-        s = str(self.rt)
-        s = s + " " + str(self.stream_id)
-        s = s + " " + str(self.msg)
-        return s
+        # type: () -> str
+        """ Get request message.
+
+        :return: Message.
+        """
+        return " ".join((str(self.rt),
+                         str(self.stream_id),
+                         str(self.msg)))

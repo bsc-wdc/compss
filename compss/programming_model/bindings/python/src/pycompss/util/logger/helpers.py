@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs Util - logs
-=====================
+====================
     This file contains all logging methods.
 """
 
@@ -40,16 +40,16 @@ def get_logging_cfg_file(log_level):
     # type: (str) -> str
     """ Retrieves the logging configuration file.
 
-    :param log_level: Log level [ 'trace'|'debug'|'info'|'api'|'off' ].
+    :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
     :return: Logging configuration file.
     :raise PyCOMPSsException: Unsupported log level.
     """
     cfg_files = {
-        'trace': 'logging_debug.json',  # trace level == debug level
-        'debug': 'logging_debug.json',
-        'info': 'logging_info.json',
-        'api': 'logging_off.json',      # api level == off level
-        'off': 'logging_off.json'
+        "trace": "logging_debug.json",  # trace level == debug level
+        "debug": "logging_debug.json",
+        "info": "logging_info.json",
+        "api": "logging_off.json",      # api level == off level
+        "off": "logging_off.json"
     }
     if log_level in cfg_files:
         logging_cfg_file = cfg_files[log_level]
@@ -122,20 +122,20 @@ def init_logging_worker(log_config_file, tracing):
     if os.path.exists(log_config_file):
         conf = __read_log_config_file__(log_config_file)
         if tracing:
-            # The workspace is within the folder 'workspace/python'
+            # The workspace is within the folder "workspace/python"
             # Remove the last folder
             handler = "error_worker_file_handler"
             if handler in conf["handlers"]:
                 errors_file = conf["handlers"][handler].get("filename")
-                conf["handlers"][handler]["filename"] = '../' + errors_file
+                conf["handlers"][handler]["filename"] = "../" + errors_file
             handler = "info_worker_file_handler"
             if handler in conf["handlers"]:
                 info_file = conf["handlers"][handler].get("filename")
-                conf["handlers"][handler]["filename"] = '../' + info_file
+                conf["handlers"][handler]["filename"] = "../" + info_file
             handler = "debug_worker_file_handler"
             if handler in conf["handlers"]:
                 debug_file = conf["handlers"][handler].get("filename")
-                conf["handlers"][handler]["filename"] = '../' + debug_file
+                conf["handlers"][handler]["filename"] = "../" + debug_file
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR

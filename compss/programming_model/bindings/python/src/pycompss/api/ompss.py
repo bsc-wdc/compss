@@ -24,7 +24,9 @@ PyCOMPSs API - OMPSS
     definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -38,13 +40,13 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'binary'}
-SUPPORTED_ARGUMENTS = {'computing_nodes',
-                       'working_dir',
-                       'binary',
-                       'fail_by_exit_value'}
-DEPRECATED_ARGUMENTS = {'computingNodes',
-                        'workingDir'}
+MANDATORY_ARGUMENTS = {"binary"}
+SUPPORTED_ARGUMENTS = {"computing_nodes",
+                       "working_dir",
+                       "binary",
+                       "fail_by_exit_value"}
+DEPRECATED_ARGUMENTS = {"computingNodes",
+                        "workingDir"}
 
 
 class OmpSs(PyCOMPSsDecorator):
@@ -53,9 +55,8 @@ class OmpSs(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -65,7 +66,7 @@ class OmpSs(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', OmpSs.__name__.lower()))
+        decorator_name = "".join(("@", OmpSs.__name__.lower()))
         super(OmpSs, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -79,6 +80,7 @@ class OmpSs(PyCOMPSsDecorator):
             self.__process_computing_nodes__(decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the ompss parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -86,6 +88,7 @@ class OmpSs(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def ompss_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("ompss"))
 
@@ -99,7 +102,7 @@ class OmpSs(PyCOMPSsDecorator):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -111,7 +114,7 @@ class OmpSs(PyCOMPSsDecorator):
         return ompss_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @ompss.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -124,7 +127,7 @@ class OmpSs(PyCOMPSsDecorator):
             logger.debug("Configuring @ompss core element.")
 
         # Resolve @ompss specific parameters
-        binary = self.kwargs['binary']
+        binary = self.kwargs["binary"]
 
         # Resolve the working directory
         self.__resolve_working_dir__()
@@ -134,8 +137,8 @@ class OmpSs(PyCOMPSsDecorator):
         impl_type = "OMPSS"
         impl_signature = "".join(("OMPSS.", binary))
         impl_args = [binary,
-                     self.kwargs['working_dir'],
-                     self.kwargs['fail_by_exit_value']]
+                     self.kwargs["working_dir"],
+                     self.kwargs["fail_by_exit_value"]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

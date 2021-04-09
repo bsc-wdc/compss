@@ -23,31 +23,31 @@ PyCOMPSs Util - JVM Configuration Parser
     This file contains all methods required to parse the jvm options file.
 """
 
+import typing
+
 
 def convert_to_dict(jvm_opt_file):
-    # type: (str) -> dict
+    # type: (str) -> typing.Dict[str, typing.Any]
     """ JVM parameter file converter to dictionary.
 
     :param jvm_opt_file: JVM parameters file.
     :return: Dictionary with the parameters specified on the file.
     """
-    opts = {}
+    opts = dict()  # type: typing.Dict[str, typing.Any]
     with open(jvm_opt_file) as fp:
         for line in fp:
             line = line.strip()
             if line:
                 if line.startswith("-XX:"):
                     # These parameters have no value
-                    key = line.split(":")[1].replace('\n', '')
+                    key = line.split(":")[1].replace("\n", "")
                     opts[key] = True
                 elif line.startswith("-D"):
                     key = line.split("=")[0]
-                    value = line.split("=")[1].replace('\n', '')
+                    value = line.split("=")[1].replace("\n", "")
                     value = value.strip()
-                    if not value:
-                        value = None
                     opts[key] = value
                 else:
-                    key = line.replace('\n', '')
+                    key = line.replace("\n", "")
                     opts[key] = True
     return opts

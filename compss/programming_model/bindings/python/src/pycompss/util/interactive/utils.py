@@ -19,9 +19,11 @@
 
 """
 PyCOMPSs Interactive utils
-==============================================
+==========================
     Provides auxiliary methods for the interactive mode
 """
+
+import typing
 
 
 def parameters_to_dict(log_level,                      # type: str
@@ -61,7 +63,7 @@ def parameters_to_dict(log_level,                      # type: str
                        external_adaptation,            # type: bool
                        propagate_virtual_environment,  # type: bool
                        mpi_worker,                     # type: bool
-                       worker_cache,                   # type: str
+                       worker_cache,                   # type: typing.Union[bool, str]
                        shutdown_in_node_failure,       # type: bool
                        io_executors,                   # type: int
                        env_script,                     # type: str
@@ -72,8 +74,7 @@ def parameters_to_dict(log_level,                      # type: str
                        extrae_cfg_python,              # type: str
                        wcl,                            # type: int
                        cache_profiler,                 # type: bool
-                       ):  # NOSONAR
-    # type: (...) -> dict
+                       ):  # type: (...) -> dict
     """ Converts the given parameters into a dictionary """
     all_vars = {"log_level": log_level,
                 "debug": debug,

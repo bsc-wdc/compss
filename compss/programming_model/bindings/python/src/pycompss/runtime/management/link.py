@@ -27,6 +27,7 @@ PyCOMPSs Binding - Link
 """
 
 import os
+import typing
 
 from pycompss.util.process.manager import new_process
 from pycompss.util.process.manager import new_queue
@@ -74,6 +75,7 @@ if __debug__:
 
 
 def shutdown_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Shutdown handler.
 
     Do not remove the parameters.
@@ -88,7 +90,7 @@ def shutdown_handler(signal, frame):  # noqa
 
 def c_extension_link(in_queue, out_queue,
                      redirect_std, out_file_name, err_file_name):
-    # type: (..., ..., bool, str, str) -> None
+    # type: (Queue, Queue, bool, str, str) -> None
     """ Main C extension process.
 
     :param in_queue: Queue to receive messages.
@@ -173,7 +175,7 @@ def c_extension_link(in_queue, out_queue,
 
 
 def establish_link(logger=None):  # noqa
-    # type: (...) -> ...
+    # type: (typing.Any) -> typing.Any
     """ Loads the compss C extension within the same process.
 
     Does not implement support for stdout and stderr redirecting as the
@@ -199,7 +201,7 @@ def establish_link(logger=None):  # noqa
 
 
 def establish_interactive_link(logger=None, redirect_std=False):  # noqa
-    # type: (..., bool) -> ...
+    # type: (typing.Any, bool) -> typing.Tuple[typing.Any, str, str]
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
@@ -218,13 +220,12 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
     global OUT_QUEUE
     global RELOAD
 
+    out_file_name = ""
+    err_file_name = ""
     if redirect_std:
         pid = str(os.getpid())
         out_file_name = "compss-" + pid + ".out"
         err_file_name = "compss-" + pid + ".err"
-    else:
-        out_file_name = None
-        err_file_name = None
 
     if RELOAD:
         IN_QUEUE = new_queue()
@@ -398,13 +399,12 @@ class COMPSs(object):
 
     @staticmethod
     def register_core_element(ce_signature,      # type: str
-                              impl_signature,    # type: str
-                              impl_constraints,  # type: str
-                              impl_type,         # type: str
+                              impl_signature,    # type: typing.Optional[str]
+                              impl_constraints,  # type: typing.Optional[str]
+                              impl_type,         # type: typing.Optional[str]
                               impl_io,           # type: str
-                              impl_type_args     # type: list
-                              ):
-        # type: (...) -> None
+                              impl_type_args     # type: typing.List[str]
+                              ):                 # type: (...) -> None
         IN_QUEUE.put((REGISTER_CORE_ELEMENT,
                       ce_signature,
                       impl_signature,
@@ -435,8 +435,7 @@ class COMPSs(object):
                      content_types,      # type: list
                      weights,            # type: list
                      keep_renames        # type: list
-                     ):  # NOSONAR
-        # type: (...) -> None
+                     ):
         IN_QUEUE.put((PROCESS_TASK,
                       app_id,
                       signature,
@@ -535,5 +534,5 @@ class COMPSs(object):
 
     @staticmethod
     def set_wall_clock(app_id, wcl):
-        # type: (long, long) -> None
+        # type: (int, int) -> None
         IN_QUEUE.put((SET_WALL_CLOCK, app_id, wcl))

@@ -23,6 +23,8 @@ PyCOMPSs Exceptions
     This file defines the internal PyCOMPSs exceptions.
 """
 
+import typing
+
 
 class SerializerException(Exception):
     """
@@ -37,6 +39,7 @@ class PyCOMPSsException(Exception):
     """
 
     def __init__(self, message):
+        # type: (str) -> None
         super(PyCOMPSsException, self).__init__(message)
 
 
@@ -46,8 +49,9 @@ class NotInPyCOMPSsException(Exception):
     """
 
     def __init__(self, message):
-        super(NotInPyCOMPSsException, self).__init__("Outside PyCOMPSs scope: " +
-                                                     message)
+        # type: (str) -> None
+        msg = "Outside PyCOMPSs scope: %s" % message
+        super(NotInPyCOMPSsException, self).__init__(msg)
 
 
 class NotImplementedException(Exception):
@@ -56,9 +60,9 @@ class NotImplementedException(Exception):
     """
 
     def __init__(self, functionality):
-        super(NotImplementedException, self).__init__("Functionality " +
-                                                      functionality +
-                                                      " not implemented yet.")
+        # type: (str) -> None
+        msg = "Functionality %s not implemented yet." % functionality
+        super(NotImplementedException, self).__init__(msg)
 
 
 class MissingImplementedException(Exception):
@@ -67,9 +71,9 @@ class MissingImplementedException(Exception):
     """
 
     def __init__(self, functionality):
-        super(MissingImplementedException, self).__init__("Missing " +
-                                                          functionality +
-                                                          ". Needs to be overridden.")
+        # type: (str) -> None
+        msg = "Missing %s. Needs to be overridden." % functionality
+        super(MissingImplementedException, self).__init__(msg)
 
 
 class TimeOutError(Exception):
@@ -87,6 +91,7 @@ class CancelError(Exception):
 
 
 def task_timed_out(signum, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Task time out signal handler
 
     Do not remove the parameters.
@@ -100,6 +105,7 @@ def task_timed_out(signum, frame):  # noqa
 
 
 def task_cancel(signum, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Task cancel signal handler.
 
     Do not remove the parameters.
@@ -118,4 +124,5 @@ class DDSException(Exception):
     """
 
     def __init__(self, message):
+        # type: (str) -> None
         super(DDSException, self).__init__(message)

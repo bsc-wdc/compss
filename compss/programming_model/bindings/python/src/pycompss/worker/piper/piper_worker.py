@@ -33,6 +33,8 @@ from pycompss.util.process.manager import new_queue
 from pycompss.util.process.manager import create_process
 from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_temporary_directory
+import typing
+
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -60,7 +62,8 @@ from pycompss.worker.piper.cache.setup import stop_cache
 import pycompss.util.context as context
 
 # Persistent worker global variables
-PROCESSES = {}  # IN_PIPE -> PROCESS
+# PROCESSES = IN_PIPE -> PROCESS
+PROCESSES = dict()  # type: typing.Dict[str, typing.Any]
 TRACING = False
 WORKER_CONF = None
 CACHE = None
@@ -68,6 +71,7 @@ CACHE_PROCESS = None
 
 
 def shutdown_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Shutdown handler.
 
     Do not remove the parameters.
@@ -128,14 +132,14 @@ def compss_persistent_worker(config):
         cache_profiler = True
 
     # Setup cache
-    if is_cache_enabled(config.cache):
+    if is_cache_enabled(str(config.cache)):
         # Deploy the necessary processes
         CACHE = True
-        cache_params = start_cache(logger, config.cache, cache_profiler, log_dir)
+        cache_params = start_cache(logger, str(config.cache), cache_profiler, log_dir)
     else:
         # No cache
         CACHE = False
-        cache_params = (None, None, None, None)
+        cache_params = (None, None, None, None)  # type: ignore
     smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
 
     # Create new executor processes
@@ -164,7 +168,7 @@ def compss_persistent_worker(config):
     # Read command from control pipe
     alive = True
     process_counter = config.tasks_x_node
-    control_pipe = config.control_pipe
+    control_pipe = config.control_pipe  # type: typing.Any
     while alive:
         command = control_pipe.read_command(retry_period=1)
         if command != "":
@@ -186,7 +190,7 @@ def compss_persistent_worker(config):
             elif line[0] == QUERY_EXECUTOR_ID_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
-                proc = PROCESSES.get(in_pipe)
+                proc = PROCESSES.get(in_pipe)  # type: typing.Any
                 pid = proc.pid
                 control_pipe.write(" ".join((REPLY_EXECUTOR_ID_TAG,
                                              out_pipe,
@@ -195,12 +199,12 @@ def compss_persistent_worker(config):
 
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
-                proc = PROCESSES.get(in_pipe)
-                pid = proc.pid
+                cancel_proc = PROCESSES.get(in_pipe)  # type: typing.Any
+                cancel_pid = str(cancel_proc.pid)
                 if __debug__:
                     logger.debug(HEADER + "Signaling process with PID " +
-                                 str(pid) + " to cancel a task")
-                os.kill(pid, signal.SIGUSR2)  # NOSONAR cancellation produced by COMPSs
+                                 cancel_pid + " to cancel a task")
+                os.kill(int(pid), signal.SIGUSR2)  # NOSONAR cancellation produced by COMPSs
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
                 in_pipe = line[1]
@@ -255,7 +259,7 @@ def compss_persistent_worker(config):
 
 
 def create_executor_process(process_name, conf, pipe):
-    # type: (str, ExecutorConf, ...) -> (int, Queue)
+    # type: (str, ExecutorConf, Pipe) -> typing.Tuple[int, Queue]
     """ Starts a new executor.
 
     :param process_name: Process name.
@@ -271,7 +275,7 @@ def create_executor_process(process_name, conf, pipe):
                                    conf))
     PROCESSES[pipe.input_pipe] = process
     process.start()
-    return process.pid, queue
+    return int(str(process.pid)), queue
 
 
 ############################
@@ -279,6 +283,11 @@ def create_executor_process(process_name, conf, pipe):
 ############################
 
 def main():
+    # type: () -> None
+    """ Main piper worker
+
+    :return: None
+    """
     global TRACING
     global WORKER_CONF
     # Configure the global tracing variable from the argument

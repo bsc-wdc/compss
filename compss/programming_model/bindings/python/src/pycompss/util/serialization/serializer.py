@@ -43,11 +43,12 @@ PyCOMPSs Util - Data serializer/deserializer
 """
 
 import os
-import struct
 import gc
 import json
+import struct
 import types
 import traceback
+import typing
 from io import BytesIO
 
 from pycompss.runtime.commons import IS_PYTHON3
@@ -61,42 +62,39 @@ from pycompss.runtime.constants import BINDING_DESERIALIZATION_SIZE_TYPE
 from pycompss.runtime.constants import BINDING_SERIALIZATION_OBJECT_NUM_TYPE
 from pycompss.runtime.constants import BINDING_DESERIALIZATION_OBJECT_NUM_TYPE
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from pycompss.util.tracing.helpers import emit_event
+from pycompss.util.tracing.helpers import EmitEvent
 from pycompss.worker.commons.constants import DESERIALIZE_FROM_BYTES_EVENT
 from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_MPIENV_EVENT
-
 
 DISABLE_GC = False
 
 if IS_PYTHON3:
     import pickle as pickle  # Uses _pickle if available
 else:
-    import cPickle as pickle  # noqa
+    import cPickle as pickle  # type: ignore
 
 try:
     import dill  # noqa
 except ImportError:
     if IS_PYTHON3:
-        import pickle as dill
+        import pickle as dill  # type: ignore
     else:
-        import cPickle as dill  # noqa
+        import cPickle as dill  # type: ignore
 
 try:
     import numpy
-
     NUMPY_AVAILABLE = True
 except ImportError:
     if IS_PYTHON3:
-        import pickle as numpy
+        import pickle as numpy  # type: ignore
     else:
-        import cPickle as numpy  # noqa
+        import cPickle as numpy  # type: ignore
     NUMPY_AVAILABLE = False
 
 try:
     import pyarrow
-
     PYARROW_AVAILABLE = True
 except ImportError:
     pyarrow = None
@@ -118,7 +116,7 @@ FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
 
 
 def get_serializer_priority(obj=()):
-    # type: (object) -> list
+    # type: (typing.Any) -> list
     """ Computes the priority of the serializers.
 
     :param obj: Object to be analysed.
@@ -146,7 +144,7 @@ def get_serializers():
 
 
 def serialize_to_handler(obj, handler):
-    # type: (object, ...) -> None
+    # type: (typing.Any, typing.Any) -> None
     """ Serialize an object to a handler.
 
     :param obj: Object to be serialized.
@@ -229,9 +227,9 @@ def serialize_to_handler(obj, handler):
         raise SerializerException('Cannot serialize object %s' % obj)
 
 
-@emit_event(SERIALIZE_TO_FILE_EVENT, master=False, inside=True)
+@EmitEvent(SERIALIZE_TO_FILE_EVENT, master=False, inside=True)
 def serialize_to_file(obj, file_name):
-    # type: (object, str) -> None
+    # type: (typing.Any, str) -> None
     """ Serialize an object to a file.
 
     :param obj: Object to be serialized.
@@ -244,9 +242,9 @@ def serialize_to_file(obj, file_name):
     handler.close()
 
 
-@emit_event(SERIALIZE_TO_FILE_MPIENV_EVENT, master=False, inside=True)
+@EmitEvent(SERIALIZE_TO_FILE_MPIENV_EVENT, master=False, inside=True)
 def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
-    # type: (object, str, bool) -> None
+    # type: (typing.Any, str, bool) -> None
     """ Serialize an object to a file for Python MPI Tasks.
 
     :param obj: Object to be serialized.
@@ -269,7 +267,7 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
 
 
 def serialize_to_string(obj):
-    # type: (object) -> bytes
+    # type: (typing.Any) -> str
     """ Serialize an object to a string.
 
     :param obj: Object to be serialized.
@@ -279,16 +277,15 @@ def serialize_to_string(obj):
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
     handler.close()
-    return ret
+    return str(ret)
 
 
-def deserialize_from_handler(handler, show_exception=True):
-    # type: (..., bool) -> object
+def deserialize_from_handler(handler):
+    # type: (typing.Any) -> typing.Any
     """ Deserialize an object from a file.
 
     :param handler: File name from where the object is going to be
                     deserialized.
-    :param show_exception: Show exception if happen (only with debug).
     :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
@@ -352,9 +349,9 @@ def deserialize_from_handler(handler, show_exception=True):
         raise SerializerException('Cannot deserialize object')
 
 
-@emit_event(DESERIALIZE_FROM_FILE_EVENT, master=False, inside=True)
+@EmitEvent(DESERIALIZE_FROM_FILE_EVENT, master=False, inside=True)
 def deserialize_from_file(file_name):
-    # type: (str) -> object
+    # type: (str) -> typing.Any
     """ Deserialize the contents in a given file.
 
     :param file_name: Name of the file with the contents to be deserialized
@@ -367,18 +364,18 @@ def deserialize_from_file(file_name):
     return ret
 
 
-@emit_event(DESERIALIZE_FROM_BYTES_EVENT, master=False, inside=True)
-def deserialize_from_string(serialized_content, show_exception=True):
-    # type: (str, bool) -> object
+@EmitEvent(DESERIALIZE_FROM_BYTES_EVENT, master=False, inside=True)
+def deserialize_from_string(serialized_content):
+    # type: (str) -> typing.Any
     """ Deserialize the contents in a given string.
 
     :param serialized_content: A string with serialized contents
     :param show_exception: Show exception if happen (only with debug).
     :return: A deserialized object
     """
-    handler = BytesIO(serialized_content)  # noqa
-    ret, close_handler = deserialize_from_handler(handler,
-                                                  show_exception=show_exception)  # noqa: E501
+    serialized_content_bytes = str.encode(serialized_content)
+    handler = BytesIO(serialized_content_bytes)
+    ret, close_handler = deserialize_from_handler(handler)
     if close_handler:
         handler.close()
     return ret

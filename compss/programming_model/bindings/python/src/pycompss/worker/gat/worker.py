@@ -37,12 +37,6 @@ from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.gat.commons.constants import PROCESS_CREATION
-from pycompss.worker.gat.commons.constants import PARAMETER_PROCESSING
-from pycompss.worker.gat.commons.constants import LOGGING
-from pycompss.worker.gat.commons.constants import MODULES_IMPORT
-from pycompss.worker.gat.commons.constants import WORKER_END
-from pycompss.worker.gat.commons.constants import PROCESS_DESTRUCTION
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
@@ -83,7 +77,10 @@ def compss_worker(tracing, task_id, storage_conf, params, log_json):
                           logger,
                           log_json,
                           (),
-                          False)
+                          False,
+                          dict(),
+                          None,
+                          None)
     # Result contains:
     # exit_code, new_types, new_values, timed_out, except_msg = result
     exit_code, _, _, _, _ = result

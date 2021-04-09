@@ -24,6 +24,8 @@ PyCOMPSs Binding - Management - Runtime
     Loads the external C module.
 """
 
+import typing
+
 from pycompss.runtime.management.link import establish_interactive_link
 from pycompss.runtime.management.link import establish_link
 from pycompss.util.exceptions import PyCOMPSsException
@@ -36,10 +38,10 @@ if __debug__:
 # See ext/compssmodule.cc
 # Keep the COMPSs runtime link in this module so that any module can access
 # it through the module methods.
-_COMPSs = None
+_COMPSs = None  # type: typing.Any
 # Files where the std may be redirected with interactive
-_STDOUT = None
-_STDERR = None
+_STDOUT = ""
+_STDERR = ""
 
 
 ######################################################
@@ -47,7 +49,7 @@ _STDERR = None
 ######################################################
 
 def load_runtime(external_process=False, _logger=None):
-    # type: (bool, ...) -> None
+    # type: (bool, typing.Any) -> None
     """ Loads the external C extension module.
 
     :param external_process: Loads the runtime in an external process if true.
@@ -68,19 +70,21 @@ def load_runtime(external_process=False, _logger=None):
 
 
 def is_redirected():
+    # type: () -> bool
     """ Check if the stdout and stderr are being redirected.
 
     :return: If stdout/stderr are being redirected.
     """
-    if _STDOUT is None and _STDERR is None:
+    if _STDOUT == "" and _STDERR == "":
         return False
-    elif _STDOUT is not None and _STDERR is not None:
+    elif _STDOUT != "" and _STDERR != "":
         return True
     else:
         raise PyCOMPSsException("Inconsistent status of _STDOUT and _STDERR")
 
 
 def get_redirection_file_names():
+    # type: () -> typing.Tuple[str, str]
     """ Retrieves the stdout and stderr file names.
 
     :return: The stdout and stderr file names.
@@ -88,7 +92,8 @@ def get_redirection_file_names():
     if is_redirected():
         return _STDOUT, _STDERR
     else:
-        raise PyCOMPSsException("The runtime stdout and stderr are  not being redirected.")  # noqa: E501
+        message = "The runtime stdout and stderr are  not being redirected."
+        raise PyCOMPSsException(message)
 
 
 ######################################################
@@ -304,13 +309,12 @@ def set_wall_clock(app_id, wcl):
 
 
 def register_core_element(ce_signature,      # type: str
-                          impl_signature,    # type: str
-                          impl_constraints,  # type: str
-                          impl_type,         # type: str
+                          impl_signature,    # type: typing.Optional[str]
+                          impl_constraints,  # type: typing.Optional[str]
+                          impl_type,         # type: typing.Optional[str]
                           impl_io,           # type: str
-                          impl_type_args     # type: list
-                          ):
-    # type: (...) -> None
+                          impl_type_args     # type: typing.List[str]
+                          ):                 # type: (...) -> None
     """ Call to register_core_element.
 
     :param ce_signature: Core element signature
@@ -350,8 +354,7 @@ def process_task(app_id,             # type: int
                  content_types,      # type: list
                  weights,            # type: list
                  keep_renames        # type: list
-                 ):  # NOSONAR
-    # type: (...) -> None
+                 ):
     """ Call to process_task.
 
     :param app_id: Application identifier

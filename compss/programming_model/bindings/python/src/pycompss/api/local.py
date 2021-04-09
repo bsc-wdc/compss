@@ -27,6 +27,7 @@ PyCOMPSs API - LocalTask
 """
 
 import gc
+import typing
 
 from pycompss.api.api import compss_wait_on
 from pycompss.util.objects.replace import replace
@@ -36,6 +37,7 @@ import pycompss.util.context as context
 
 
 def local(input_function):
+    # type: (typing.Any) -> typing.Any
     """ Local decorator.
 
     :param input_function: Input function.
@@ -45,6 +47,7 @@ def local(input_function):
         # Return dummy local decorator
 
         def wrapped_function(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return input_function(*args, **kwargs)
 
         return wrapped_function
@@ -52,12 +55,13 @@ def local(input_function):
     else:
 
         def sync_if_needed(obj):
-            # type: (object) -> None
+            # type: (typing.Any) -> None
             if OT_is_obj_pending_to_synchronize(obj):
                 new_val = compss_wait_on(obj)
                 replace(obj, new_val)
 
         def wrapped_function(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             gc.collect()
             _args = []
             _kwargs = {}

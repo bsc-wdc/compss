@@ -19,16 +19,18 @@
 
 """
 PyCOMPSs Functions: Profiling decorator
-==========================================
+=======================================
     This file defines the time it decorator to be used below the task decorator.
 """
 
+import typing
 from decorator import decorator  # noqa
 from memory_profiler import profile as mem_profile
 
 
 @decorator  # Mandatory in order to preserver the argspec
 def profile(func, *a, **k):
+    # type: (typing.Any, tuple, dict) -> typing.Any
     """ Memory profiler decorator.
 
     :param func: Function to be profiled (can be a decorated function, usually

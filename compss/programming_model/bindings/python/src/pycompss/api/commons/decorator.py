@@ -26,9 +26,11 @@ PyCOMPSs DECORATOR COMMONS
 import os
 import sys
 import subprocess
+import typing
 from contextlib import contextmanager
 
 import pycompss.util.context as context
+from pycompss.runtime.task.core_element import CE
 from pycompss.util.exceptions import MissingImplementedException
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -37,7 +39,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 # Global name to be used within kwargs for the core element.
-CORE_ELEMENT_KEY = 'compss_core_element'
+CORE_ELEMENT_KEY = "compss_core_element"
 
 
 class PyCOMPSsDecorator(object):
@@ -45,15 +47,16 @@ class PyCOMPSsDecorator(object):
     This class implements all common code of the PyCOMPSs decorators.
     """
 
-    __slots__ = ['decorator_name', 'args', 'kwargs',
-                 'scope', 'core_element', 'core_element_configured']
+    __slots__ = ["decorator_name", "args", "kwargs",
+                 "scope", "core_element", "core_element_configured"]
 
     def __init__(self, decorator_name, *args, **kwargs):  # noqa
+        # type: (str, *typing.Any, **typing.Any) -> None
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
-        self.core_element = None
+        self.core_element = CE()
         self.core_element_configured = False
         # This enables the decorator to get info from the caller
         # (e.g. self.source_frame_info.filename or
@@ -63,10 +66,10 @@ class PyCOMPSsDecorator(object):
 
         if __debug__ and self.scope:
             # Log only in the master
-            logger.debug("Init " + decorator_name + " decorator...")
+            logger.debug("Init %s decorator..." % decorator_name)
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """
         Include the registering info related to the decorator which inherits
 
@@ -91,13 +94,13 @@ class PyCOMPSsDecorator(object):
 
         :return: None
         """
-        if 'working_dir' in self.kwargs:
+        if "working_dir" in self.kwargs:
             # Accepted argument
             pass
-        elif 'workingDir' in self.kwargs:
-            self.kwargs['working_dir'] = self.kwargs.pop('workingDir')
+        elif "workingDir" in self.kwargs:
+            self.kwargs["working_dir"] = self.kwargs.pop("workingDir")
         else:
-            self.kwargs['working_dir'] = '[unassigned]'
+            self.kwargs["working_dir"] = "[unassigned]"
 
     def __resolve_fail_by_exit_value__(self):
         # type: () -> None
@@ -108,27 +111,28 @@ class PyCOMPSsDecorator(object):
 
         :return: None
         """
-        if 'fail_by_exit_value' in self.kwargs:
-            fail_by_ev = self.kwargs['fail_by_exit_value']
+        if "fail_by_exit_value" in self.kwargs:
+            fail_by_ev = self.kwargs["fail_by_exit_value"]
             if isinstance(fail_by_ev, bool):
-                self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
+                self.kwargs["fail_by_exit_value"] = str(fail_by_ev)
             elif isinstance(fail_by_ev, str):
                 # Accepted argument
                 pass
             elif isinstance(fail_by_ev, int):
-                self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
+                self.kwargs["fail_by_exit_value"] = str(fail_by_ev)
             else:
                 raise PyCOMPSsException("Incorrect format for fail_by_exit_value property. "    # noqa: E501
                                         "It should be boolean or an environment variable")      # noqa: E501
         else:
-            self.kwargs['fail_by_exit_value'] = 'false'
+            self.kwargs["fail_by_exit_value"] = "false"
 
     def __process_computing_nodes__(self, decorator_name):
         # type: (str) -> None
         """
         Processes the computing_nodes from the decorator.
-        We only ensure that the correct self.kwargs entry exists since its value
-        will be parsed and resolved by the master.process_computing_nodes.
+        We only ensure that the correct self.kwargs entry exists since its
+        value will be parsed and resolved by the
+        master.process_computing_nodes.
         Used in decorators:
             - mpi
             - multinode
@@ -137,21 +141,20 @@ class PyCOMPSsDecorator(object):
 
         :return: None
         """
-        if 'computing_nodes' not in self.kwargs:
-            if 'computingNodes' not in self.kwargs:
+        if "computing_nodes" not in self.kwargs:
+            if "computingNodes" not in self.kwargs:
                 # No annotation present, adding default value
-                self.kwargs['computing_nodes'] = 1
+                self.kwargs["computing_nodes"] = 1
             else:
                 # Legacy annotation present, switching
-                self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')  # noqa: E501
+                self.kwargs["computing_nodes"] = self.kwargs.pop("computingNodes")  # noqa: E501
         else:
             # Valid annotation found, nothing to do
             pass
 
         if __debug__:
-            logger.debug("This " + decorator_name + " task will have " +
-                         str(self.kwargs['computing_nodes']) +
-                         " computing nodes.")
+            logger.debug("This %s task will have %s computing nodes." %
+                         (decorator_name, str(self.kwargs["computing_nodes"])))
 
 
 ###################
@@ -160,7 +163,7 @@ class PyCOMPSsDecorator(object):
 
 @contextmanager
 def keep_arguments(args, kwargs, prepend_strings=True):
-    # type: (tuple, dict, bool) -> None
+    # type: (tuple, dict, bool) -> typing.Iterator[None]
     """
     Context which saves and restores the function arguments.
     It also enables or disables the PREPEND_STRINGS property from @task.
@@ -174,7 +177,7 @@ def keep_arguments(args, kwargs, prepend_strings=True):
     saved = None
     slf = None
     if len(args) > 0:
-        # The 'self' for a method function is passed as args[0]
+        # The "self" for a method function is passed as args[0]
         slf = args[0]
 
         # Replace and store the attributes
@@ -236,5 +239,5 @@ def run_command(cmd, args, kwargs):
     if out_message:
         print(out_message)
     if err_message:
-        sys.stderr.write(err_message + '\n')
+        sys.stderr.write(err_message + "\n")
     return proc.returncode

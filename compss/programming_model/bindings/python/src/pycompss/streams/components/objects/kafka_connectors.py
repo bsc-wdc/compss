@@ -17,11 +17,9 @@
 
 # -*- coding: utf-8 -*-
 
-# For better print formatting
-from __future__ import print_function
-
 # Imports
 import logging
+import typing
 
 #
 # Logger definition
@@ -44,11 +42,10 @@ class ODSPublisher(object):
     """
 
     def __init__(self, bootstrap_server):
-        """
-        Creates a new ODSPublisher instance
+        # type: (str) -> None
+        """ Creates a new ODSPublisher instance.
 
-        :param bootstrap_server: Associated boostrap server
-            + type: string
+        :param bootstrap_server: Associated boostrap server.
         """
         logger.debug("Creating Publisher...")
 
@@ -61,7 +58,7 @@ class ODSPublisher(object):
         bootstrap_server_info = str(bootstrap_server).split(":")
         bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))  # noqa: E501
         bootstrap_server_port = str(bootstrap_server_info[1])
-        self.kafka_producer = KafkaProducer(bootstrap_servers=bootstrap_server_ip + ":" + bootstrap_server_port,  # noqa: E501
+        self.kafka_producer = KafkaProducer(bootstrap_servers="%s:%s" % (bootstrap_server_ip, bootstrap_server_port),  # noqa: E501
                                             acks="all",
                                             retries=0,
                                             batch_size=16384,
@@ -75,30 +72,28 @@ class ODSPublisher(object):
         logger.debug("DONE Creating Publisher")
 
     def publish(self, topic, message):
-        """
-        Publishes the given message to the given topic.
+        # type: (typing.Union[bytes, str], str) -> None
+        """ Publishes the given message to the given topic.
 
         :param topic: Message topic.
-            + type: string
         :param message: Message to publish.
-            + type: string
         :return: None
         """
         if __debug__:
-            logger.debug("Publishing Message to " + str(topic) + " ...")
+            logger.debug("Publishing Message to %s ..." % str(topic))
 
         # Fix topic if required
-        if type(topic) == bytes:
-            topic = topic.decode('utf-8')
+        if isinstance(topic, bytes):
+            topic_fix = str(topic.decode('utf-8'))
         else:
-            topic = str(topic)
+            topic_fix = str(topic)
 
         # Serialize message
         import pickle
         serialized_message = pickle.dumps(message)
 
         # Send message
-        self.kafka_producer.send(topic, value=serialized_message)
+        self.kafka_producer.send(topic_fix, value=serialized_message)
         self.kafka_producer.flush()
         logger.debug("DONE Publishing Message")
 
@@ -109,7 +104,7 @@ class ODSPublisher(object):
 
 class ODSConsumer(object):
     """
-    ODS COnsumer connector implementation.
+    ODS Consumer connector implementation.
 
     Attributes:
         - topic: Registered topic name on the Kafka backend
@@ -121,22 +116,20 @@ class ODSConsumer(object):
     """
 
     def __init__(self, bootstrap_server, topic, access_mode):
-        """
-        Creates a new ODSConsumer instance.
+        # type: (str, str, str) -> None
+        """ Creates a new ODSConsumer instance.
 
         :param bootstrap_server: Associated boostrap server.
-            + type: string
         :param topic: Topic where to consume records.
-            + type: string
         :param access_mode: Consumer access mode.
-            + type: string
         """
         logger.debug("Creating Consumer...")
 
-        if type(topic) == bytes:
-            self.topic = topic.decode('utf-8')
+        if isinstance(topic, bytes):
+            topic_fix = str(topic.decode('utf-8'))  # noqa
         else:
-            self.topic = str(topic)
+            topic_fix = str(topic)
+        self.topic = topic_fix
         self.access_mode = access_mode
 
         # Parse configuration
@@ -148,7 +141,7 @@ class ODSConsumer(object):
         bootstrap_server_info = str(bootstrap_server).split(":")
         bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))  # noqa: E501
         bootstrap_server_port = str(bootstrap_server_info[1])
-        self.kafka_consumer = KafkaConsumer(bootstrap_servers=bootstrap_server_ip + ":" + bootstrap_server_port,  # noqa: E501
+        self.kafka_consumer = KafkaConsumer(bootstrap_servers="%s:%s" % (bootstrap_server_ip, bootstrap_server_port),  # noqa: E501
                                             enable_auto_commit=True,
                                             auto_commit_interval_ms=200,
                                             group_id=self.topic,
@@ -167,13 +160,11 @@ class ODSConsumer(object):
         logger.debug("DONE Creating Consumer")
 
     def poll(self, timeout):
-        """
-        Polls messages from the subscribed topics.
+        # type: (int) -> list
+        """ Polls messages from the subscribed topics.
 
-        :param timeout: Poll timeout
-            + type: int
-        :return: List of polled messages (can be empty but not None).
-            + type: List<String>
+        :param timeout: Poll timeout.
+        :return: List of polled messages (strings - can be empty but not None)
         """
         if __debug__:
             logger.debug("Polling Messages from " + str(self.topic) + " ...")

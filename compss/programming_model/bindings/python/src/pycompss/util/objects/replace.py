@@ -20,8 +20,11 @@
 """
 SOURCE CODE TAKEN FROM BEN KURTOVIC'S GITHUB REPO replace.py FILE
 https://gist.github.com/earwig/28a64ffb94d51a608e3d
+
++ Added typing
 """
 
+import typing
 import ctypes
 from ctypes import pythonapi as api
 import sys
@@ -151,7 +154,8 @@ class B(object):  # NOSONAR
 
 
 class X(object):  # NOSONAR
-    pass          # NOSONAR
+    cattr = None  # type: typing.Any
+    iattr = None  # type: typing.Any
 
 
 def sure(obj):
@@ -166,12 +170,16 @@ def gen(obj):
         yield obj
 
 
-class S(object):            # NOSONAR
-    __slots__ = ("p", "q")  # NOSONAR
+class S(object):              # NOSONAR
+    # __slots__ = ("p", "q")  # NOSONAR
+    p = None  # type: typing.Any
+    q = None  # type: typing.Any
 
 
-class T(object):            # NOSONAR
-    __slots__ = ("p", "q")  # NOSONAR
+class T(object):              # NOSONAR
+    # __slots__ = ("p", "q")  # NOSONAR
+    p = None  # type: typing.Any
+    q = None  # type: typing.Any
 
 
 class U(object):  # NOSONAR

@@ -25,7 +25,9 @@ PyCOMPSs API - MultiNode
 """
 
 import os
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -39,10 +41,14 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {}
-SUPPORTED_ARGUMENTS = {'computing_nodes'}
-DEPRECATED_ARGUMENTS = {'computingNodes'}
-SLURM_SKIP_VARS = ["SLURM_JOBID", "SLURM_JOB_ID", "SLURM_USER", "SLURM_QOS", "SLURM_PARTITION"]
+MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = {"computing_nodes"}
+DEPRECATED_ARGUMENTS = {"computingNodes"}
+SLURM_SKIP_VARS = ["SLURM_JOBID",
+                   "SLURM_JOB_ID",
+                   "SLURM_USER",
+                   "SLURM_QOS",
+                   "SLURM_PARTITION"]
 
 
 class MultiNode(PyCOMPSsDecorator):
@@ -51,9 +57,8 @@ class MultiNode(PyCOMPSsDecorator):
     __call__ methods, useful on MultiNode task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -63,7 +68,7 @@ class MultiNode(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        decorator_name = "".join(('@', MultiNode.__name__.lower()))
+        decorator_name = "".join(("@", MultiNode.__name__.lower()))
         super(MultiNode, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -77,6 +82,7 @@ class MultiNode(PyCOMPSsDecorator):
             self.__process_computing_nodes__(decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the multinode parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -85,6 +91,7 @@ class MultiNode(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def multinode_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("MultiNode"))
 
@@ -101,7 +108,7 @@ class MultiNode(PyCOMPSsDecorator):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -116,7 +123,7 @@ class MultiNode(PyCOMPSsDecorator):
         return multinode_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @multinode.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -188,6 +195,7 @@ def remove_slurm_environment():
             if key not in SLURM_SKIP_VARS:
                 old_slurm_env[key] = value
                 os.environ.pop(key)
+    return old_slurm_env
 
 
 def reset_slurm_environment(old_slurm_env=None):

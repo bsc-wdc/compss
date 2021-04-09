@@ -30,6 +30,8 @@ import logging
 import os
 import sys
 import time
+import typing
+from multiprocessing import Queue
 try:
     THREAD_AFFINITY = True
     import thread_affinity  # noqa
@@ -77,6 +79,7 @@ HEADER = "*[PYTHON EXECUTOR] "
 
 
 def shutdown_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Shutdown handler
 
     Do not remove the parameters.
@@ -94,9 +97,10 @@ class Pipe(object):
     Bi-directional communication channel
     """
 
-    __slots__ = ['input_pipe', 'input_pipe_open', 'output_pipe']
+    __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
 
     def __init__(self, input_pipe, output_pipe):
+        # type: (str, str) -> None
         """ Constructs a new Pipe.
 
         :param input_pipe: Input pipe for the thread. To receive messages from
@@ -105,7 +109,7 @@ class Pipe(object):
                             the runtime.
         """
         self.input_pipe = input_pipe
-        self.input_pipe_open = None
+        self.input_pipe_open = None  # type: typing.Any
         self.output_pipe = output_pipe
 
     def read_command(self, retry_period=0.5):
@@ -117,11 +121,10 @@ class Pipe(object):
         :return: the first command available on the pipe.
         """
         if self.input_pipe_open is None:
-            print("PYTHON_DEBUG Opening pipe " + self.input_pipe)
             self.input_pipe_open = open(self.input_pipe, 'r')
             # Non blocking open:
             # fd = os.open(self.input_pipe, os.O_RDWR)
-            # self.input_pipe_open = os.fdopen(fd, 'r')
+            # self.input_pipe_open = os.fdopen(fd, "r")
 
         line = self.input_pipe_open.readline()
         if line == "":
@@ -137,7 +140,7 @@ class Pipe(object):
         :param message: message sent through the pipe
         :return: None
         """
-        with open(self.output_pipe, 'w') as out_pipe:
+        with open(self.output_pipe, "w") as out_pipe:
             out_pipe.write("".join((message, "\n")))
 
     def close(self):
@@ -151,6 +154,11 @@ class Pipe(object):
             self.input_pipe_open = None
 
     def __str__(self):
+        # type: () -> str
+        """ Representation of the Pipe.
+
+        :return: String representing the Pipe object.
+        """
         return " ".join(("PIPE IN", self.input_pipe,
                          "PIPE OUT", self.output_pipe))
 
@@ -160,17 +168,28 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    __slots__ = ['debug', 'tmp_dir',
-                 'tracing', 'storage_conf', 'logger', 'logger_cfg',
-                 'persistent_storage', 'storage_loggers',
-                 'stream_backend', 'stream_master_ip', 'stream_master_port',
-                 'cache_ids', 'cache_queue', 'cache_profiler']
+    __slots__ = ["debug", "tmp_dir",
+                 "tracing", "storage_conf", "logger", "logger_cfg",
+                 "persistent_storage", "storage_loggers",
+                 "stream_backend", "stream_master_ip", "stream_master_port",
+                 "cache_ids", "cache_queue", "cache_profiler"]
 
-    def __init__(self, debug, tmp_dir,
-                 tracing, storage_conf, logger, logger_cfg,
-                 persistent_storage, storage_loggers,
-                 stream_backend, stream_master_ip, stream_master_port,
-                 cache_ids=None, cache_queue=None, cache_profiler=False):
+    def __init__(self,
+                 debug,                # type: bool
+                 tmp_dir,              # type: str
+                 tracing,              # type: bool
+                 storage_conf,         # type: str
+                 logger,               # type: typing.Any
+                 logger_cfg,           # type: str
+                 persistent_storage,   # type: bool
+                 storage_loggers,      # type: typing.Any
+                 stream_backend,       # type: str
+                 stream_master_ip,     # type: str
+                 stream_master_port,   # type: str
+                 cache_ids=None,       # type: dict
+                 cache_queue=None,     # type: Queue
+                 cache_profiler=False  # type: bool
+                 ):  # type: (...) -> None
         """
         Constructs a new executor configuration.
 
@@ -211,7 +230,7 @@ class ExecutorConf(object):
 ######################
 
 def executor(queue, process_name, pipe, conf):
-    # type: (..., str, Pipe, ...) -> None
+    # type: (typing.Union[None, Queue], str, Pipe, typing.Any) -> None
     """Thread main body - Overrides Threading run method.
 
     Iterates over the input pipe in order to receive tasks (with their
@@ -259,7 +278,7 @@ def executor(queue, process_name, pipe, conf):
         COMPSs.load_runtime(external_process=False, _logger=logger)
         COMPSs.set_pipes(pipe.output_pipe, pipe.input_pipe)
 
-        if storage_conf != 'null':
+        if storage_conf != "null":
             try:
                 from storage.api import initWorkerPostFork  # noqa
                 with event(INIT_WORKER_POSTFORK_EVENT):
@@ -271,7 +290,7 @@ def executor(queue, process_name, pipe, conf):
 
         # Start the streaming backend if necessary
         streaming = False
-        if conf.stream_backend not in [None, 'null', 'NONE']:
+        if conf.stream_backend not in [None, "null", "NONE"]:
             streaming = True
 
         if streaming:
@@ -281,7 +300,7 @@ def executor(queue, process_name, pipe, conf):
             try:
                 DistroStreamClientHandler.init_and_start(
                     master_ip=conf.stream_master_ip,
-                    master_port=int(conf.stream_master_port))
+                    master_port=conf.stream_master_port)
             except Exception as e:
                 logger.error(e)
                 raise e
@@ -325,7 +344,7 @@ def executor(queue, process_name, pipe, conf):
                                         conf.cache_profiler
                                         )
         # Stop storage
-        if storage_conf != 'null':
+        if storage_conf != "null":
             try:
                 from storage.api import finishWorkerPostFork  # noqa
                 with event(FINISH_WORKER_POSTFORK_EVENT):
@@ -357,21 +376,20 @@ def executor(queue, process_name, pipe, conf):
 def process_message(current_line,              # type: str
                     process_name,              # type: str
                     pipe,                      # type: Pipe
-                    queue,                     # type: ...
+                    queue,                     # type: typing.Union[None, Queue]
                     tracing,                   # type: bool
-                    logger,                    # type: ...
+                    logger,                    # type: typing.Any
                     logger_cfg,                # type: str
                     logger_handlers,           # type: list
                     logger_level,              # type: int
-                    logger_formatter,          # type: ...
+                    logger_formatter,          # type: typing.Any
                     storage_conf,              # type: str
                     storage_loggers,           # type: list
                     storage_loggers_handlers,  # type: list
-                    cache_queue=None,          # type: queue
-                    cache_ids=None,            # type: ...
+                    cache_queue=None,          # type: Queue
+                    cache_ids=None,            # type: typing.Any
                     cache_profiler=False,      # type: bool
-                    ):
-    # type: (...) -> bool
+                    ):                         # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
 
     :param current_line: Current command (line) to process
@@ -396,10 +414,10 @@ def process_message(current_line,              # type: str
         logger.debug(HEADER + "[%s] Processing message: %s" %
                      (str(process_name), str(current_line)))
 
-    current_line = current_line.split()
-    if current_line[0] == EXECUTE_TASK_TAG:
+    current_line_split = current_line.split()
+    if current_line_split[0] == EXECUTE_TASK_TAG:
         # Process task
-        return process_task(current_line,
+        return process_task(current_line_split,
                             process_name,
                             pipe,
                             queue,
@@ -415,38 +433,37 @@ def process_message(current_line,              # type: str
                             cache_queue,
                             cache_ids,
                             cache_profiler)
-    elif current_line[0] == PING_TAG:
+    elif current_line_split[0] == PING_TAG:
         # Response -> Pong
         return process_ping(pipe, logger, process_name)
-    elif current_line[0] == QUIT_TAG:
+    elif current_line_split[0] == QUIT_TAG:
         # Received quit message -> Suicide
         return process_quit(logger, process_name)
     else:
         if __debug__:
             logger.debug(HEADER + "[%s] Unexpected message: %s" %
-                         (str(process_name), str(current_line)))
-        raise PyCOMPSsException("Unexpected message: %s" % str(current_line))
+                         (str(process_name), str(current_line_split)))
+        raise PyCOMPSsException("Unexpected message: %s" % str(current_line_split))
 
 
 @emit_event(PROCESS_TASK_EVENT)
 def process_task(current_line,              # type: list
                  process_name,              # type: str
                  pipe,                      # type: Pipe
-                 queue,                     # type: ...
+                 queue,                     # type: Queue
                  tracing,                   # type: bool
-                 logger,                    # type: ...
+                 logger,                    # type: typing.Any
                  logger_cfg,                # type: str
                  logger_handlers,           # type: list
                  logger_level,              # type: int
-                 logger_formatter,          # type: ...
+                 logger_formatter,          # type: typing.Any
                  storage_conf,              # type: str
                  storage_loggers,           # type: list
                  storage_loggers_handlers,  # type: list
-                 cache_queue,               # type: queue
-                 cache_ids,                 # type: ...
+                 cache_queue,               # type: Queue
+                 cache_ids,                 # type: typing.Any
                  cache_profiler,            # type: bool
-                 ):
-    # type: (...) -> bool
+                 ):                         # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
 
     :param current_line: Current command (line) to process.
@@ -503,7 +520,7 @@ def process_task(current_line,              # type: list
     # <<list of slave nodes>>
     # current_line[12 + #nodes] = <integer> = computing units
     # current_line[13 + #nodes] = <boolean> = has target
-    # current_line[14 + #nodes] = <string>  = has return (always 'null')
+    # current_line[14 + #nodes] = <string>  = has return (always "null")
     # current_line[15 + #nodes] = <integer> = Number of parameters
     # <<list of parameters>>
     #       !---> type, stream, prefix , value
@@ -557,7 +574,7 @@ def process_task(current_line,              # type: list
 
         # Setup process environment
         cn = int(current_line[12])
-        cn_names = ','.join(current_line[13:13 + cn])
+        cn_names = ",".join(current_line[13:13 + cn])
         cu = current_line[13 + cn]
         if __debug__:
             logger.debug("Process environment:")
@@ -623,7 +640,7 @@ def process_task(current_line,              # type: list
         # And contains a pair of elements per parameter:
         #     - Parameter new type.
         #     - Parameter new value:
-        #         - 'null' if it is NOT a PSCO
+        #         - "null" if it is NOT a PSCO
         #         - PSCOId (String) if is a PSCO
         # Example:
         #     4 null 9 null 12 <pscoid>
@@ -685,7 +702,7 @@ def process_task(current_line,              # type: list
 
 @emit_event(PROCESS_PING_EVENT)
 def process_ping(pipe, logger, process_name):  # noqa
-    # type: (Pipe, ..., str) -> bool
+    # type: (Pipe, typing.Any, str) -> bool
     """ Process ping message.
 
     Response: Pong.
@@ -706,7 +723,7 @@ def process_ping(pipe, logger, process_name):  # noqa
 
 @emit_event(PROCESS_QUIT_EVENT)
 def process_quit(logger, process_name):  # noqa
-    # type: (..., str) -> bool
+    # type: (typing.Any, str) -> bool
     """ Process quit message.
 
     Response: False.
@@ -722,7 +739,7 @@ def process_quit(logger, process_name):  # noqa
 
 @emit_event(BIND_CPUS_EVENT, master=False, inside=True)
 def bind_cpus(cpus, process_name, logger):  # noqa
-    # type: (str, str, ...) -> bool
+    # type: (str, str, typing.Any) -> bool
     """ Bind the given CPUs for core affinity to this process.
 
     :param cpus: Target CPUs.
@@ -730,25 +747,26 @@ def bind_cpus(cpus, process_name, logger):  # noqa
     :param logger: Logger.
     :return: True if success, False otherwise.
     """
-    os.environ['COMPSS_BINDED_CPUS'] = cpus
+    os.environ["COMPSS_BINDED_CPUS"] = cpus
     if __debug__:
         logger.debug(HEADER + "[%s] Assigning affinity %s" %
                      (str(process_name), str(cpus)))
-    cpus = list(map(int, cpus.split(",")))
+    cpus_list = cpus.split(",")
+    cpus_map = list(map(int, cpus_list))
     try:
-        thread_affinity.setaffinity(cpus)
+        thread_affinity.setaffinity(cpus_map)
     except Exception:  # noqa
         if __debug__:
             logger.error(HEADER +
                          "[%s] WARNING: could not assign affinity %s" %
-                         (str(process_name), str(cpus)))
+                         (str(process_name), str(cpus_map)))
         return False
     return True
 
 
 @emit_event(BIND_GPUS_EVENT, master=False, inside=True)
 def bind_gpus(gpus, process_name, logger):  # noqa
-    # type: (str, str, ...) -> None
+    # type: (str, str, typing.Any) -> None
     """ Bind the given GPUs to this process.
 
     :param gpus: Target GPUs.
@@ -756,9 +774,9 @@ def bind_gpus(gpus, process_name, logger):  # noqa
     :param logger: Logger.
     :return: None
     """
-    os.environ['COMPSS_BINDED_GPUS'] = gpus
-    os.environ['CUDA_VISIBLE_DEVICES'] = gpus
-    os.environ['GPU_DEVICE_ORDINAL'] = gpus
+    os.environ["COMPSS_BINDED_GPUS"] = gpus
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpus
+    os.environ["GPU_DEVICE_ORDINAL"] = gpus
     if __debug__:
         logger.debug(HEADER + "[%s] Assigning GPU %s" %
                      (str(process_name), str(gpus)))
@@ -803,7 +821,7 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
 
 @emit_event(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_compss_exception_message(except_msg, job_id):
-    # type: (str, int) -> (str, str)
+    # type: (str, int) -> typing.Tuple[str, str]
     """ Generate a COMPSs exception message.
 
     :param except_msg: Exception stacktrace.
@@ -843,10 +861,10 @@ def clean_environment(cpus, gpus):
     :param gpus: Binded gpus.
     :return: None
     """
-    if cpus != "-" and 'COMPSS_BINDED_CPUS' in os.environ:
-        del os.environ['COMPSS_BINDED_CPUS']
+    if cpus != "-" and "COMPSS_BINDED_CPUS" in os.environ:
+        del os.environ["COMPSS_BINDED_CPUS"]
     if gpus != "-":
-        del os.environ['COMPSS_BINDED_GPUS']
-        del os.environ['CUDA_VISIBLE_DEVICES']
-        del os.environ['GPU_DEVICE_ORDINAL']
-    del os.environ['COMPSS_HOSTNAMES']
+        del os.environ["COMPSS_BINDED_GPUS"]
+        del os.environ["CUDA_VISIBLE_DEVICES"]
+        del os.environ["GPU_DEVICE_ORDINAL"]
+    del os.environ["COMPSS_HOSTNAMES"]

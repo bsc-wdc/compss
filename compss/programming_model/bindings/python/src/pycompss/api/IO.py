@@ -19,12 +19,14 @@
 
 """
 PyCOMPSs API - IO
-=====================
+=================
     This file contains the class constraint, needed for the IO task
     definition through the decorator.
 """
 
+import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -38,9 +40,9 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {}
-SUPPORTED_ARGUMENTS = {''}
-DEPRECATED_ARGUMENTS = {''}
+MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = {""}
+DEPRECATED_ARGUMENTS = {""}
 
 
 class IO(PyCOMPSsDecorator):
@@ -49,9 +51,8 @@ class IO(PyCOMPSsDecorator):
     __call__ methods, useful on IO task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -61,7 +62,7 @@ class IO(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', IO.__name__.lower()))
+        decorator_name = "".join(("@", IO.__name__.lower()))
         super(IO, self).__init__(decorator_name, *args, **kwargs)
         if self.scope:
             # Check the arguments
@@ -72,6 +73,7 @@ class IO(PyCOMPSsDecorator):
                             decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ Parse and set the IO parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -79,6 +81,7 @@ class IO(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def io_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("IO"))
 
@@ -100,7 +103,7 @@ class IO(PyCOMPSsDecorator):
         return io_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """ Include the registering info related to @IO.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

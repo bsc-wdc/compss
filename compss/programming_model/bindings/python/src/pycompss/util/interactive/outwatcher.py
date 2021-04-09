@@ -27,15 +27,17 @@ PyCOMPSs Util - Interactive Output watcher
 import os
 import time
 import threading
-try:
-    # Python 3
-    import queue
-except ImportError:
-    # Python 2
-    import Queue as queue
+import typing
 from pycompss.runtime.management.COMPSs import is_redirected
 from pycompss.runtime.management.COMPSs import get_redirection_file_names
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.runtime.commons import IS_PYTHON3
+if IS_PYTHON3:
+    # Python 3
+    import queue
+else:
+    # Python 2
+    import Queue
 
 
 class StdWatcher(object):
@@ -50,12 +52,17 @@ class StdWatcher(object):
     """
 
     def __init__(self):
+        # type: () -> None
         self.running = False
-        self.messages = queue.Queue()
+        self.messages = None  # type: typing.Any
+        if IS_PYTHON3:
+            self.messages = queue.Queue()
+        else:
+            self.messages = Queue.Queue()
 
     @staticmethod
     def __watcher__(fd_out, fd_err):
-        # type: (..., ...) -> str
+        # type: (typing.Any, typing.Any) -> typing.Iterator[str]
         """ Static method that checks the stderr file descriptor looking
         for new lines added at the end.
         It is enabled to also look into the stdout file descriptor, but
@@ -82,8 +89,8 @@ class StdWatcher(object):
         :param err_file_name: Error file name.
         :return: None
         """
-        fd_out = open(out_file_name, 'r')
-        fd_err = open(err_file_name, 'r')
+        fd_out = open(out_file_name, "r")
+        fd_err = open(err_file_name, "r")
         for line in self.__watcher__(fd_out, fd_err):
             if self.running:
                 if line.startswith("[ERRMGR]"):
@@ -139,4 +146,5 @@ class StdWatcher(object):
         return current_messages
 
 
+# Global instance of the STD watcher
 STDW = StdWatcher()

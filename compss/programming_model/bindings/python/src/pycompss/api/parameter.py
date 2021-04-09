@@ -89,7 +89,7 @@ class PREFIX(object):
     """
     Used as enum for prefix
     """
-    PREFIX = 'null'  # NOSONAR
+    PREFIX = "null"  # NOSONAR
 
 
 class _Param(object):
@@ -97,6 +97,7 @@ class _Param(object):
     Private class which hides the parameter key to be used.
     """
     def __init__(self, key):
+        # type: (str) -> None
         self.key = key
 
 

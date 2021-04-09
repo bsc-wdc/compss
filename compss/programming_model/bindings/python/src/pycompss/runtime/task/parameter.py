@@ -25,6 +25,7 @@ PyCOMPSs runtime - Parameter
 
 import sys
 import copy
+import typing
 
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.task.keys import ParamAliasKeys
@@ -49,18 +50,20 @@ from pycompss.util.storages.persistent import has_id
 from pycompss.util.storages.persistent import get_id
 
 # Try to import numpy
+np = None  # type: typing.Union[None, typing.Any]
 try:
-    import numpy as np
+    import numpy
+    np = numpy
 except ImportError:
-    np = None
+    pass
 
 # Python max and min integer values
 if IS_PYTHON3:
     PYTHON_MAX_INT = sys.maxsize
     PYTHON_MIN_INT = -sys.maxsize - 1
 else:
-    PYTHON_MAX_INT = sys.maxint       # noqa
-    PYTHON_MIN_INT = -sys.maxint - 1  # noqa
+    PYTHON_MAX_INT = sys.maxint       # type: ignore
+    PYTHON_MIN_INT = -sys.maxint - 1  # type: ignore
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647
 JAVA_MIN_INT = -2147483648
@@ -68,10 +71,49 @@ JAVA_MAX_LONG = PYTHON_MAX_INT
 JAVA_MIN_LONG = PYTHON_MIN_INT
 
 # Python3 has no ints and longs, only ints that are longs
-PYCOMPSS_LONG = int if IS_PYTHON3 else long  # noqa
+PYCOMPSS_LONG = int  # type: typing.Any
+if not IS_PYTHON3:
+    PYCOMPSS_LONG = float  # noqa
 
-# Content type format is <module_path>:<class_name>, separated by colon (':')
+# Content type format is <module_path>:<class_name>, separated by colon (":")
 UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
+
+
+class COMPSsFile(object):
+    """
+    Class that represents a file in the worker.
+    """
+    __slots__ = ["source_path", "destination_name", "keep_source",
+                 "is_write_final", "original_path"]
+
+    def __init__(self, file_name="None"):
+        # type: (str) -> None
+        self.source_path = "None"        # type: str
+        self.destination_name = "None"   # type: str
+        self.keep_source = False         # type: bool
+        self.is_write_final = False      # type: bool
+        self.original_path = file_name   # type: str
+        if ":" in file_name:
+            fields = file_name.split(":")
+            self.source_path = fields[0]
+            self.destination_name = fields[1]
+            self.keep_source = True if fields[2] == "true" else False
+            self.is_write_final = True if fields[3] == "true" else False
+            self.original_path = fields[4]
+        else:
+            # Can be a collection wrapper or a stream
+            pass
+
+    def __repr__(self):
+        # type: () -> str
+        return "Source: %s, Destination: %s, " \
+               "Keep source: %s, Is write final: %s, " \
+               "Original path: %s" % \
+               (self.source_path,
+                self.destination_name,
+                self.keep_source,
+                self.is_write_final,
+                self.original_path)
 
 
 class Parameter(object):
@@ -80,29 +122,30 @@ class Parameter(object):
     Used to group all parameter variables.
     """
 
-    __slots__ = ['name', 'content', 'content_type', 'direction', 'stream',
-                 'prefix', 'file_name', 'is_future', 'is_file_collection',
-                 'collection_content', 'dict_collection_content',
-                 'depth', 'extra_content_type', 'weight', 'keep_rename',
-                 'cache']
+    __slots__ = ["name", "content", "content_type", "direction", "stream",
+                 "prefix", "file_name", "is_future", "is_file_collection",
+                 "collection_content", "dict_collection_content",
+                 "depth", "extra_content_type", "weight", "keep_rename",
+                 "cache"]
 
     def __init__(self,
-                 name=None,
-                 content=None,
-                 content_type=None,
-                 direction=DIRECTION.IN,
-                 stream=IOSTREAM.UNSPECIFIED,
-                 prefix=PREFIX.PREFIX,
-                 file_name=None,
-                 is_future=False,
-                 is_file_collection=False,
-                 collection_content=None,
-                 dict_collection_content=None,
-                 depth=1,
-                 extra_content_type=UNDEFINED_CONTENT_TYPE,
-                 weight="1.0",
-                 keep_rename=True,
-                 cache=True):  # NOSONAR
+                 name="None",                                # type: str
+                 content="",                                 # type: typing.Any
+                 content_type=-1,                            # type: int
+                 direction=DIRECTION.IN,                     # type: int
+                 stream=IOSTREAM.UNSPECIFIED,                # type: int
+                 prefix=PREFIX.PREFIX,                       # type: str
+                 file_name=COMPSsFile(),                     # type: COMPSsFile
+                 is_future=False,                            # type: bool
+                 is_file_collection=False,                   # type: bool
+                 collection_content="",                      # type: typing.Any
+                 dict_collection_content=None,               # type: typing.Any
+                 depth=1,                                    # type: int
+                 extra_content_type=UNDEFINED_CONTENT_TYPE,  # type: str
+                 weight="1.0",                               # type: str
+                 keep_rename=True,                           # type: bool
+                 cache=True                                  # type: bool
+                 ):
         self.name = name
         self.content = content  # placeholder for parameter content
         self.content_type = content_type
@@ -122,16 +165,16 @@ class Parameter(object):
 
     def __repr__(self):
         # type: () -> str
-        return 'Parameter(name=%s\n' \
-               '          type=%s, direction=%s, stream=%s, prefix=%s\n' \
-               '          extra_content_type=%s\n' \
-               '          file_name=%s\n' \
-               '          is_future=%s\n' \
-               '          is_file_collection=%s, depth=%s\n' \
-               '          weight=%s\n' \
-               '          keep_rename=%s\n' \
-               '          cache=%s\n' \
-               '          content=%s)' % \
+        return "Parameter(name=%s\n" \
+               "          type=%s, direction=%s, stream=%s, prefix=%s\n" \
+               "          extra_content_type=%s\n" \
+               "          file_name=%s\n" \
+               "          is_future=%s\n" \
+               "          is_file_collection=%s, depth=%s\n" \
+               "          weight=%s\n" \
+               "          keep_rename=%s\n" \
+               "          cache=%s\n" \
+               "          content=%s)" % \
                (str(self.name),
                 str(self.content_type), str(self.direction), str(self.stream), str(self.prefix),  # noqa: E501
                 str(self.extra_content_type),
@@ -166,41 +209,6 @@ class Parameter(object):
         :return: True if param represents an DIRECTORY.
         """
         return self.content_type is TYPE.DIRECTORY
-
-
-class COMPSsFile(object):
-    """
-    Class that represents a file in the worker.
-    """
-    __slots__ = ['source_path', 'destination_name', 'keep_source',
-                 'is_write_final', 'original_path']
-
-    def __init__(self, file_name):
-        if ":" in file_name:
-            fields = file_name.split(":")
-            self.source_path = fields[0]
-            self.destination_name = fields[1]
-            self.keep_source = True if fields[2] == "true" else False
-            self.is_write_final = True if fields[3] == "true" else False
-            self.original_path = fields[4]
-        else:
-            # Can be a collection wrapper or a stream
-            self.source_path = None
-            self.destination_name = None
-            self.keep_source = None
-            self.is_write_final = None
-            self.original_path = file_name
-
-    def __repr__(self):
-        # type: () -> str
-        return "Source: %s, Destination: %s, " \
-               "Keep source: %s, Is write final: %s, " \
-               "Original path: %s" % \
-               (self.source_path,
-                self.destination_name,
-                self.keep_source,
-                self.is_write_final,
-                self.original_path)
 
 
 # Parameter conversion dictionary.
@@ -474,11 +482,11 @@ _param_conversion_dict_ = {
         ParamDictKeys.KEEP_RENAME: False,
         ParamDictKeys.CACHE: False
     }
-}
+}  # type: dict
 
 
 def is_param(obj):
-    # type: (object) -> bool
+    # type: (typing.Any) -> bool
     """ Check if given object is a parameter.
     Avoids internal _param_ import.
 
@@ -489,7 +497,7 @@ def is_param(obj):
 
 
 def is_parameter(obj):
-    # type: (object) -> bool
+    # type: (typing.Any) -> bool
     """ Check if given object is a parameter.
     Avoids internal Parameter import.
 
@@ -518,12 +526,13 @@ def get_parameter_copy(parameter):
              be equivalent, but not equal).
     """
     assert is_parameter(parameter), \
-        'Input parameter is not Parameter (is %s)' % parameter.__class__.__name__  # noqa: E501
+        "Input parameter is not Parameter (is %s)" % \
+        parameter.__class__.__name__
     return copy.deepcopy(parameter)
 
 
 def is_dict_specifier(value):
-    # type: (object) -> bool
+    # type: (typing.Any) -> bool
     """ Check if value is a supported dictionary.
     Check if a parameter of the task decorator is a dictionary that specifies
     at least Type (and therefore can include things like Prefix, see binary
@@ -571,7 +580,7 @@ def get_parameter_from_dictionary(d):
 
 
 def get_compss_type(value, depth=0):
-    # type: (object, int) -> int
+    # type: (typing.Any, int) -> int
     """ Retrieve the value type mapped to COMPSs types.
 
     :param value: Value to analyse.
@@ -583,8 +592,8 @@ def get_compss_type(value, depth=0):
     if has_id(value):
         # If has method getID maybe is a PSCO
         try:
-            if get_id(value) not in [None, 'None']:
-                # the 'getID' + id == criteria for persistent object
+            if get_id(value) not in [None, "None"]:
+                # the "getID" + id == criteria for persistent object
                 return TYPE.EXTERNAL_PSCO
             else:
                 return TYPE.OBJECT
@@ -630,3 +639,4 @@ def get_compss_type(value, depth=0):
     else:
         # Default type
         return TYPE.OBJECT
+    return -1

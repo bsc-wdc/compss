@@ -19,11 +19,12 @@
 
 """
 PyCOMPSs Util - MPI
-=====================
+===================
     This file contains all MPI helper methods.
 """
 
 from mpi4py import MPI
+import typing
 
 comm = MPI.COMM_WORLD
 size = comm.size
@@ -31,19 +32,19 @@ rank = comm.rank
 
 
 def rank_distributor(collection_layout):
-    # type: (tuple) -> list
+    # type: (typing.Dict[str, int]) -> list
     """
     Distributes mpi ranks to data given a collection layout
 
     :param collection_layout: Layout of the collection.
     :return distribution: distribution of rank x
     """
-    block_count, block_length, stride = collection_layout
-    if block_count == -1:
+    cl_block_count, cl_block_length, cl_stride = collection_layout
+    if cl_block_count == -1:
         block_count = size
-    if stride == -1:
+    if cl_stride == -1:
         stride = 1
-    if block_length == -1:
+    if cl_block_length == -1:
         block_length = 1
     distribution = []
     if block_count == size:
@@ -57,7 +58,7 @@ def rank_distributor(collection_layout):
         block = rank
         while block < block_count:
             offset = block * stride
-            distribution = distribution + list(range(offset,
-                                                     offset + block_length))
+            offset_bl = offset + block_length
+            distribution = distribution + list(range(offset, offset_bl))
             block = block + size
     return distribution

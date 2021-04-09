@@ -25,6 +25,7 @@ PyCOMPSs API - Task
 
 from __future__ import print_function
 import sys
+import typing
 from functools import wraps
 
 import pycompss.api.parameter as parameter
@@ -82,6 +83,7 @@ class Task(PyCOMPSsDecorator):
 
     @staticmethod
     def _get_default_decorator_values():
+        # type: () -> dict
         """ Default value for decorator arguments.
 
         By default, do not use jit (if true -> use nopython mode,
@@ -113,6 +115,7 @@ class Task(PyCOMPSsDecorator):
         }
 
     def __init__(self, *args, **kwargs):  # noqa
+        # type: (*typing.Any, **typing.Any) -> None
         """ Task constructor.
 
         This part is called in the decoration process, not as an
@@ -125,17 +128,12 @@ class Task(PyCOMPSsDecorator):
                (i.e Parameter.IN, etc) to a more convenient internal
                representation.
 
+        :param args: Decorator positional parameters (ignored).
         :param kwargs: Decorator parameters. A task decorator has no positional
                        arguments.
-        :param user_function: User function to execute.
-        :param core_element: Core element for the task (only used in master,
-                             but needed here to keep it between task
-                             invocations).
-        :param registered: If the core element has already been registered.
-        :param signature: The user function signature.
         """
         self.task_type = "METHOD"
-        decorator_name = "".join(('@', Task.__name__.lower()))
+        decorator_name = "".join(("@", Task.__name__.lower()))
         super(Task, self).__init__(decorator_name, *args, **kwargs)
 
         self.decorator_arguments = kwargs
@@ -181,21 +179,22 @@ class Task(PyCOMPSsDecorator):
         # Function to execute as task
         self.user_function = None
         # Global variables common for all tasks of this kind
-        self.registered = None
-        self.signature = None
+        self.registered = False
+        self.signature = ""
         # Saved from the initial task
-        self.interactive = None
+        self.interactive = False
         self.module = None
-        self.function_arguments = None
-        self.function_name = None
-        self.module_name = None
-        self.function_type = None
-        self.class_name = None
+        self.function_arguments = tuple()  # type: tuple
+        self.function_name = ""
+        self.module_name = ""
+        self.function_type = -1
+        self.class_name = ""
         self.hints = None
-        self.on_failure = None
-        self.defaults = None
+        self.on_failure = ""
+        self.defaults = dict()  # type: dict
 
     def __call__(self, user_function):
+        # type: (typing.Any) -> typing.Any
         """ This function is called in all explicit function calls.
 
         Note that in PyCOMPSs a single function call will be transformed into
@@ -218,11 +217,13 @@ class Task(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def task_decorator(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator
 
     def __decorator_body__(self, user_function, args, kwargs):
+        # type: (typing.Any, tuple, dict) -> typing.Any
         # Determine the context and decide what to do
         if context.in_master():
             # @task being executed in the master
@@ -317,6 +318,7 @@ class Task(PyCOMPSsDecorator):
         return self._sequential_call(*args, **kwargs)
 
     def _sequential_call(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> typing.Any
         """ Sequential task execution.
 
         The easiest case: just call the user function and return whatever it
@@ -335,6 +337,7 @@ class Task(PyCOMPSsDecorator):
 
     @staticmethod
     def __check_core_element__(kwargs, user_function):
+        # type: (dict, typing.Any) -> None
         """ Check Core Element for containers.
 
         :param kwargs: Keyword arguments

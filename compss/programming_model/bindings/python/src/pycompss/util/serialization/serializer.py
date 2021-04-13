@@ -189,7 +189,7 @@ def serialize_to_handler(obj, handler):
                 success = False
         i += 1
     emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, handler.tell())
-    emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, 0)
+    emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, 0)
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()

@@ -569,20 +569,22 @@ public class ExecutionAction extends AllocatableAction {
             } else {
                 int jobId = job.getJobId();
                 JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
-
+                JOB_LOGGER.error("Job " + job.getJobId() + ", running Task " + this.task.getId() + " on worker "
+                    + this.getAssignedResource().getName() + ", has failed.");
+                ErrorManager.warn("Job " + job.getJobId() + ", running Task " + this.task.getId() + " on worker "
+                    + this.getAssignedResource().getName() + ", has failed.");
                 ++this.executionErrors;
                 if (this.transferErrors + this.executionErrors < SUBMISSION_CHANCES
                     && this.task.getOnFailure() == OnFailure.RETRY) {
-                    JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
-                        + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
-                    ErrorManager.warn("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
-                        + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
+                    JOB_LOGGER.error("Resubmitting job to the same worker.");
+                    ErrorManager.warn("Resubmitting job to the same worker.");
                     job.setHistory(JobHistory.RESUBMITTED);
                     this.profile.start();
                     JobDispatcher.dispatch(job);
                 } else {
                     if (this.task.getOnFailure() == OnFailure.IGNORE) {
                         // Update info about the generated/updated data
+                        ErrorManager.warn("Ignoring failure.");
                         doOutputTransfers(job);
                     }
                     notifyError();

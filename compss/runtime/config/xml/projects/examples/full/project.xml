@@ -19,6 +19,7 @@
             <LibraryPath>/usr/lib/</LibraryPath>
             <Classpath>/home/user/apps/jar/example.jar</Classpath>
             <Pythonpath>/home/user/apps/</Pythonpath>
+            <EnvironmentScript>/home/user/apps/env.sh</EnvironmentScript>
         </Application>
         <LimitOfTasks>4</LimitOfTasks>
         <Adaptors>

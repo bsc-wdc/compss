@@ -97,8 +97,8 @@ public class ConnectorProxy {
                 sd.getInstallation().getWorkingDir(), sd.getInstallation().getInstallDir(),
                 sd.getInstallation().getAppDir(), sd.getInstallation().getClasspath(),
                 sd.getInstallation().getPythonPath(), sd.getInstallation().getLibraryPath(),
-                hd.getTotalCPUComputingUnits(), hd.getTotalGPUComputingUnits(), hd.getTotalFPGAComputingUnits(),
-                sd.getInstallation().getLimitOfTasks(), hostId);
+                sd.getInstallation().getEnvScriptPath(), hd.getTotalCPUComputingUnits(), hd.getTotalGPUComputingUnits(),
+                hd.getTotalFPGAComputingUnits(), sd.getInstallation().getLimitOfTasks(), hostId);
         } else {
             return null;
         }

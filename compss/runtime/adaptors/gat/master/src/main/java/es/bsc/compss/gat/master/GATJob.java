@@ -318,6 +318,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(getHostName());
         lArgs.add(getResourceNode().getInstallDir());
         lArgs.add(getResourceNode().getAppDir());
+        lArgs.add(getResourceNode().getEnvScriptPath());
         lArgs.add(getResourceNode().getLibPath());
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(STORAGE_CONF);

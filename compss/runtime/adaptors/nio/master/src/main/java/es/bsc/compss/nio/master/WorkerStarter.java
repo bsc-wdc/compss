@@ -289,6 +289,7 @@ public class WorkerStarter {
         String classpathFromFile = this.nw.getClasspath();
         String pythonpathFromFile = this.nw.getPythonpath();
         String libPathFromFile = this.nw.getLibPath();
+        String envScriptPathFromFile = this.nw.getEnvScriptPaht();
         String workerName = this.nw.getName();
         int totalCPU = this.nw.getTotalComputingUnits();
         int totalGPU = this.nw.getTotalGPUs();
@@ -297,8 +298,8 @@ public class WorkerStarter {
         int limitOfTasks = this.nw.getLimitOfTasks();
         try {
             return new NIOStarterCommand(workerName, workerPort, masterName, workingDir, installDir, appDir,
-                classpathFromFile, pythonpathFromFile, libPathFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks,
-                hostId).getStartCommand();
+                classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptPathFromFile, totalCPU, totalGPU,
+                totalFPGA, limitOfTasks, hostId).getStartCommand();
         } catch (Exception e) {
             throw new InitNodeException(e);
         }

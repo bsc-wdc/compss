@@ -201,6 +201,18 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     /**
+     * Gets the environment script path.
+     * 
+     * @return The environment script path
+     */
+    public String getEnvScriptPath() {
+        String envScriptPath = this.config.getEnvScript();
+        envScriptPath = (envScriptPath == null || envScriptPath.isEmpty()) ? "null" : envScriptPath;
+
+        return envScriptPath;
+    }
+
+    /**
      * Returns the total number of computing units.
      *
      * @return The total number of computing units

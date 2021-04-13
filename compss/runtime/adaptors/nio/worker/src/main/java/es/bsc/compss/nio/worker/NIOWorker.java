@@ -85,10 +85,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StubItf;
@@ -278,13 +281,34 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                         WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + workingDir);
                     }
                     try {
-                        removeFolder(workingDir);
+                        removeWorkingDir(workingDir);
                     } catch (IOException ioe) {
                         WORKER_LOGGER.error("Exception", ioe);
                     }
                 }
+
             });
         }
+    }
+
+    private void removeWorkingDir(String workingDir) throws IOException {
+        File dir = new File(workingDir);
+        remove(dir);
+        // Check if parent WD is empty
+        Path parent = dir.getParentFile().toPath();
+        if (isDirectoryEmpty(parent)) {
+            Files.delete(parent);
+        }
+
+    }
+
+    private boolean isDirectoryEmpty(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> entries = Files.list(path)) {
+                return !entries.findFirst().isPresent();
+            }
+        }
+        return false;
     }
 
     @Override
@@ -739,11 +763,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private void remove(File f) throws IOException {
         if (f.exists()) {
             if (f.isDirectory()) {
-                for (File child : f.listFiles()) {
-                    remove(child);
-                }
+                FileUtils.deleteDirectory(f);
+            } else {
+                Files.delete(f.toPath());
             }
-            Files.delete(f.toPath());
         }
     }
 

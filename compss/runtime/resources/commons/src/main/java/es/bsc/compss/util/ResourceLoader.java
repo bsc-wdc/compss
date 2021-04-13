@@ -432,6 +432,7 @@ public class ResourceLoader {
             config.setLibraryPath(app.getLibraryPath());
             config.setClasspath(app.getClasspath());
             config.setPythonpath(app.getPythonpath());
+            config.setEnvScript(app.getEnvironmentScript());
         }
 
         /* Pass all the information to the ResourceManager to insert it into the Runtime ** */
@@ -742,6 +743,7 @@ public class ResourceLoader {
             config.setLibraryPath(app.getLibraryPath());
             config.setClasspath(app.getClasspath());
             config.setPythonpath(app.getClasspath());
+            config.setEnvScript(app.getEnvironmentScript());
         }
         List<PackageType> packages = project.getPackages(imProject);
         for (PackageType pack : packages) {

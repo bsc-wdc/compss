@@ -131,6 +131,10 @@ check_compss_setup () {
   # Change jvm master opts separation character "," by " "
   jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
 
+  # Application Dir
+  if [ -z "$appdir" ]; then
+    appdir=$DEFAULT_APPDIR
+  fi
 
   # Classpath
   if [ -z "$cp" ]; then
@@ -267,14 +271,19 @@ prepare_coverage() {
         final2+="${i},"
     done
     final2=${final2%?}
-    if [[ $jvm_worker_opts == *"-agentpath"* ]] || [[ $jvm_worker_opts == *"-javaagent"* ]]; then
-	    echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
+    if [ -z "$options" ]; then
+        jacoco_worker_expression="-javaagent:${final2}"
     else
-	    if [ -z "$options" ]; then
-		    jvm_workers_opts+=",-javaagent:${final2}"
-	    else
-		    jvm_workers_opts+=",-javaagent:${final2}#${options}"
-    	    fi
+        jacoco_worker_expression="-javaagent:${final2}#${options}"
+    fi
+    if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ];then
+        jvm_workers_opts="${jacoco_worker_expression}"
+    else
+        if [[ $jvm_workers_opts == *"-agentpath"* ]] || [[ $jvm_workers_opts == *"-javaagent"* ]]; then
+	    echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
+        else
+	    jvm_workers_opts+=",${jacoco_worker_expression}"
+        fi
     fi
 
     #Adding coverage for python
@@ -314,9 +323,30 @@ prepare_runtime_environment() {
   start_stream_backends
 
   if [ -n "${gen_core}" ]; then
-    echo "[RUNCOMPSS] Setting coredump generation."
-    ulimit -c unlimited
+    prepare_coredump_generation
   fi
+
+  if [ -n "${keepWD}" ]; then
+    prepare_keep_workingdir
+  fi
+}
+
+prepare_coredump_generation() {
+    display_info "[COMPSS] Setting coredump generation."
+    ulimit -c unlimited
+    if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ];then
+        jvm_workers_opts="-Dcompss.worker.gen_coredump=true"
+    else
+        jvm_workers_opts+=",-Dcompss.worker.gen_coredump=true"
+    fi
+}
+
+prepare_keep_workingdir() {
+    if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ];then
+        jvm_workers_opts="-Dcompss.worker.removeWD=false"
+    else
+        jvm_workers_opts+=",-Dcompss.worker.removeWD=false"
+    fi
 }
 
 #----------------------------------------------

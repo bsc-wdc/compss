@@ -1126,11 +1126,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
 
         return new NIOStarterCommand(workerName, workerPort, masterName, workingDir, installDir, appDir,
-            classpathFromFile, pythonpathFromFile, libPathFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks,
-            hostId);
+            classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptFromFile, totalCPU, totalGPU, totalFPGA,
+            limitOfTasks, hostId);
     }
 
 }

@@ -23,6 +23,7 @@ import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
@@ -32,6 +33,8 @@ import es.bsc.compss.types.allocatableactions.MultiNodeGroup;
 import es.bsc.compss.types.allocatableactions.ReduceExecutionAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 
 import java.util.Collection;
 
@@ -173,6 +176,10 @@ public class ExecuteTasksRequest extends TDRequest {
 
         LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as multiNodeTask with " + numNodes
             + " nodes");
+        if (exceedsMaxResources(numNodes, this.task.getTaskDescription().getCoreElement())) {
+            ErrorManager.error("Task " + this.task.getId() + " can't be executed because exceeds the maximum number "
+                + "of available cores.");
+        }
         // Can use one or more resources depending on the computingNodes
         MultiNodeGroup group = new MultiNodeGroup(numNodes);
         for (int i = 0; i < numNodes; ++i) {
@@ -183,6 +190,10 @@ public class ExecuteTasksRequest extends TDRequest {
             group.addAction(action);
             ts.newAllocatableAction(action);
         }
+    }
+
+    private boolean exceedsMaxResources(int numNodes, CoreElement coreElement) {
+        return numNodes > ResourceManager.getAvailableSlots()[coreElement.getCoreId()];
     }
 
     @Override

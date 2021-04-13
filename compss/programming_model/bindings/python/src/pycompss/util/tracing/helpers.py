@@ -185,6 +185,25 @@ def emit_manual_event(event_id, master=False, inside=False,
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
 
 
+def emit_manual_event_explicit(event_group, event_id):
+    # type: (int, int) -> None
+    """ Emits a single event with the desired code.
+
+    Does nothing if tracing is disabled.
+
+    :param event_id: Event identifier to emit.
+    :param master: If the event is emitted as master.
+    :param inside: If the event is produced inside the worker.
+    :param cpu_affinity: If the event is produced inside the worker for
+                         cpu affinity.
+    :param gpu_affinity: If the event is produced inside the worker for
+                         gpu affinity.
+    :return: None
+    """
+    if TRACING:
+        PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
+
+
 def __get_proper_type_event__(event_id, master, inside,
                               cpu_affinity, gpu_affinity):
     # type: (int or str, bool, bool, bool, bool) -> (int, int)

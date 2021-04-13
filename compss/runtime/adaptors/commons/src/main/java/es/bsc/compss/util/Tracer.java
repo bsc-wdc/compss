@@ -103,6 +103,8 @@ public abstract class Tracer {
     private static final String AGENT_EVENTS_TYPE_DESC = "Agents events";
     private static final String INSIDE_WORKER_DESC = "Events inside worker";
     private static final String BINDING_MASTER_DESC = "Binding events";
+    private static final String BINDING_SERIALIZATION_SIZE_DESC = "Binding serialization size events";
+    private static final String BINDING_DESERIALIZATION_SIZE_DESC = "Binding deserialization sizie events";
     private static final String TASKTYPE_DESC = "Type of task";
     private static final String READY_COUNT_DESC = "Ready queue count";
     private static final String CPU_COUNT_DESC = "Number of requested CPUs";
@@ -137,6 +139,8 @@ public abstract class Tracer {
     protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160; // Python view
     protected static final int INSIDE_WORKER_TYPE = 60_000_200;
     protected static final int BINDING_MASTER_TYPE = 60_000_300;
+    protected static final int BINDING_SERIALIZATION_SIZE_TYPE = 60_000_600;
+    protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 60_000_601;
 
     public static final int EVENT_END = 0;
 
@@ -716,6 +720,8 @@ public abstract class Tracer {
         defineEventsForType(BINDING_MASTER_TYPE, BINDING_MASTER_DESC);
         defineEventsForType(THREAD_IDENTIFICATION_EVENTS, RUNTIME_THREAD_EVENTS_DESC);
         defineEventsForType(EXECUTOR_COUNTS, EXECUTOR_COUNTS_DESC);
+        defineEventsForType(BINDING_SERIALIZATION_SIZE_TYPE, BINDING_SERIALIZATION_SIZE_DESC);
+        defineEventsForType(BINDING_DESERIALIZATION_SIZE_TYPE, BINDING_DESERIALIZATION_SIZE_DESC);
 
         defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
         // Definition of Scheduling and Transfer time events

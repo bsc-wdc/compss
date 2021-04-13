@@ -54,6 +54,7 @@ from pycompss.util.serialization.extended_support import GeneratorIndicator
 from pycompss.util.objects.properties import object_belongs_to_module
 from pycompss.runtime.constants import SERIALIZATION_SIZE_EVENTS
 from pycompss.runtime.constants import DESERIALIZATION_SIZE_EVENTS
+
 from pycompss.runtime.constants import SERIALIZATION_OBJECT_NUM
 from pycompss.runtime.constants import DESERIALIZATION_OBJECT_NUM
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
@@ -190,6 +191,7 @@ def serialize_to_handler(obj, handler):
         i += 1
     emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, handler.tell())
     emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, 0)
+
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()
@@ -265,6 +267,7 @@ def deserialize_from_handler(handler):
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
+
     emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
     emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, hash(os.path.basename(handler.name))
                                % ((sys.maxsize + 1) * 2))
@@ -302,6 +305,7 @@ def deserialize_from_handler(handler):
             gc.collect()
         emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, handler.tell())
         emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, 0)
+
         return ret, close_handler
     except Exception:
         if DISABLE_GC:

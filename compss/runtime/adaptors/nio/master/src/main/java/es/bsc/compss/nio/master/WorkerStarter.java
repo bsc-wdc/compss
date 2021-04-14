@@ -198,6 +198,7 @@ public class WorkerStarter {
         }
         String[] command = generateStartCommand(port, masterName, tracingHostId);
         do {
+            boolean error = false;
             ProcessOut po = executeCommand(user, name, command);
             if (po == null) {
                 // Queue System managed worker starter
@@ -206,9 +207,22 @@ public class WorkerStarter {
             } else if (po.getExitValue() == 0) {
                 // Success
                 String output = po.getOutput();
-                String[] lines = output.split("\n");
-                pid = Integer.parseInt(lines[lines.length - 1]);
+                try {
+                    if (!output.isEmpty()) {
+                        String[] lines = output.split("\n");
+                        pid = Integer.parseInt(lines[lines.length - 1]);
+                    } else {
+                        throw new Exception("Output is empty.");
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("Incorrect Worker starter response: " + e.getMessage());
+                    pid = -1;
+                    error = true;
+                }
             } else {
+                error = true;
+            }
+            if (error) {
                 if (timer > MAX_WAIT_FOR_SSH) {
                     // Timeout
                     throw new InitNodeException(

@@ -173,12 +173,13 @@ public class ExecuteTasksRequest extends TDRequest {
 
     private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes,
         ResourceScheduler<T> specificResource) {
-
+        boolean toBlocked = false;
         LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as multiNodeTask with " + numNodes
             + " nodes");
         if (exceedsMaxResources(numNodes, this.task.getTaskDescription().getCoreElement())) {
-            ErrorManager.error("Task " + this.task.getId() + " can't be executed because exceeds the maximum number "
-                + "of available cores.");
+            ErrorManager.warn("Task " + this.task.getId() + " can't be executed because exceeds the maximum number "
+                + "of available cores. Adding actions to blocked.");
+            toBlocked = true;
         }
         // Can use one or more resources depending on the computingNodes
         MultiNodeGroup group = new MultiNodeGroup(numNodes);
@@ -188,12 +189,16 @@ public class ExecuteTasksRequest extends TDRequest {
                     this.task.getTaskDescription().getCoreElement().getCoreId()),
                 ts.getOrchestrator(), this.ap, this.task, group);
             group.addAction(action);
-            ts.newAllocatableAction(action);
+            if (toBlocked) {
+                ts.addToBlocked(action);
+            } else {
+                ts.newAllocatableAction(action);
+            }
         }
     }
 
     private boolean exceedsMaxResources(int numNodes, CoreElement coreElement) {
-        return numNodes > ResourceManager.getAvailableSlots()[coreElement.getCoreId()];
+        return numNodes > ResourceManager.getTotalSlots()[coreElement.getCoreId()];
     }
 
     @Override

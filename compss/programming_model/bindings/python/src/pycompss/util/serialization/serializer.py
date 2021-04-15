@@ -143,6 +143,7 @@ def serialize_to_handler(obj, handler):
     """
     emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, 0)
     emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, hash(os.path.basename(handler.name)) % ((sys.maxsize + 1) * 2))
+
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -267,6 +268,7 @@ def deserialize_from_handler(handler):
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
+    emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
 
     emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
     emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, hash(os.path.basename(handler.name))

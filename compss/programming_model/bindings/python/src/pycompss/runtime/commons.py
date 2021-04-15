@@ -109,7 +109,7 @@ _TEMP_OBJ_PREFIX = '/compss-serialized-obj_'
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 _OBJECT_CONVERSION = False
-
+TRACING_TASK_NAME_TO_ID = dict()
 
 ##########################################################
 # GETTERS AND SETTERS (see launch.py and interactive.py) #

@@ -136,6 +136,7 @@ def serialize_to_handler(obj, handler):
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
+    emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, 0)
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -183,7 +184,6 @@ def serialize_to_handler(obj, handler):
                 success = False
         i += 1
     emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, handler.tell())
-    emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, 0)
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()
@@ -259,6 +259,7 @@ def deserialize_from_handler(handler):
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
+    emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
 
     original_position = None
     try:
@@ -293,7 +294,6 @@ def deserialize_from_handler(handler):
             gc.enable()
             gc.collect()
         emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, handler.tell())
-        emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
         return ret, close_handler
     except Exception:
         if DISABLE_GC:

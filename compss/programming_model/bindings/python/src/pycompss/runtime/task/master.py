@@ -39,6 +39,7 @@ from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_object_conversion
+from pycompss.runtime.commons import TRACING_TASK_NAME_TO_ID
 from pycompss.runtime.constants import EXTRACT_CORE_ELEMENT
 from pycompss.runtime.constants import INSPECT_FUNCTION_ARGUMENTS
 from pycompss.runtime.constants import PROCESS_PARAMETERS
@@ -96,6 +97,8 @@ import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
 from pycompss.util.tracing.helpers import event
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
+from pycompss.worker.commons.constants import TASK_FUNC_TYPE
 
 import logging
 logger = logging.getLogger(__name__)
@@ -276,6 +279,18 @@ class TaskMaster(TaskCommons):
         # calling the same task concurrently
         MASTER_LOCK.acquire()
 
+        # Compute the function path, class (if any), and name
+        with event(GET_FUNCTION_INFORMATION, master=True):
+            self.compute_user_function_information()
+
+        with event(GET_FUNCTION_SIGNATURE, master=True):
+            impl_signature, impl_type_args = self.get_signature()
+
+        if impl_signature not in TRACING_TASK_NAME_TO_ID:
+            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID)+1
+
+        emit_manual_event_explicit(TASK_FUNC_TYPE, TRACING_TASK_NAME_TO_ID[impl_signature])
+
         # Check if we are in interactive mode and update if needed
         if not self.interactive:
             self.interactive, self.module = self.check_if_interactive()
@@ -317,16 +332,10 @@ class TaskMaster(TaskCommons):
         with event(PROCESS_PARAMETERS, master=True):
             self.process_parameters(*args, **kwargs)
 
-        # Compute the function path, class (if any), and name
-        with event(GET_FUNCTION_INFORMATION, master=True):
-            self.compute_user_function_information()
-
         # Prepare the core element registration information
         with event(PREPARE_CORE_ELEMENT, master=True):
             self.set_code_strings(self.user_function,
                                   self.core_element.get_impl_type())
-        with event(GET_FUNCTION_SIGNATURE, master=True):
-            impl_signature, impl_type_args = self.get_signature()
 
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
@@ -429,6 +438,8 @@ class TaskMaster(TaskCommons):
             for at in ATTRIBUTES_TO_BE_REMOVED:
                 if hasattr(self, at):
                     delattr(self, at)
+
+        emit_manual_event_explicit(TASK_FUNC_TYPE, 0)
 
         # Release the lock
         MASTER_LOCK.release()

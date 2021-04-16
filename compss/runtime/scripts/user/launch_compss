@@ -356,7 +356,8 @@ worker_cmd() {
 
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
 
-  WCMD="$WCMD ${library_path} \
+  WCMD="$WCMD ${env_script} \
+            ${library_path} \
             ${appdir} \
             ${cp} \
             ${streaming_backend} \
@@ -1062,6 +1063,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+	env_script=*)
+	  env_script=${OPTARG//env_script=/}
+	  # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         log_level=*)
           log_level=${OPTARG//log_level=/}
           # Keep it for runcompss (to add them to master)
@@ -1146,7 +1152,7 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-       scheduler=*)
+        scheduler=*)
           scheduler=${OPTARG//scheduler=/}
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
@@ -1182,7 +1188,7 @@ get_args() {
           # Remove from runcompss since launcher will add it
           master_port=${OPTARG//master_port=/}
           ;;
-	      worker_port_range=*)
+	worker_port_range=*)
           # Remove from runcompss since launcher will add it
           worker_port_range=${OPTARG//worker_port_range=/}
           ;;
@@ -1244,6 +1250,16 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
+	gen_coredump)
+	  # Generate the coredump
+	  gen_coredump=true
+          args_pass="$args_pass --$OPTARG"
+	  ;;
+	keep_workingdir)
+	  #Keep the working dir after execution
+	  keep_wd=true
+	  args_pass="$args_pass --$OPTARG"
+	  ;;
         *)
           # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
@@ -1561,6 +1577,10 @@ check_args() {
     display_error "${ERROR_LANGUAGE}"
   fi
 
+  if [ -z "${env_script}"]; then
+    env_script="null"
+  fi
+
   # Library path
   if [ -z "${library_path}" ]; then
     library_path=${DEFAULT_LIBRARY_PATH}
@@ -1612,8 +1632,41 @@ check_args() {
   else
     streaming_master_port="null"
   fi
+
+  if [ -n "${keep_wd}" ]; then
+    prepare_keep_workingdir
+  fi
+
+  if [ -n "${gen_coredump}" ]; then
+    prepare_coredump_generation
+  fi
 }
 
+prepare_coredump_generation() {
+    if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ];then
+        jvm_workers_opts="-Dcompss.worker.gen_coredump=true"
+    else
+        jvm_workers_opts+=",-Dcompss.worker.gen_coredump=true"
+    fi
+    if [ -z "${jvm_worker_in_master_opts}" ] || [ "${jvm_worker_in_master_opts}" = \"\" ];then
+        jvm_worker_in_master_opts="-Dcompss.worker.gen_coredump=true"
+    else
+        jvm_worker_in_master_opts+=",-Dcompss.worker.gen_coredump=true"
+    fi
+}
+
+prepare_keep_workingdir() {
+    if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ];then
+        jvm_workers_opts="-Dcompss.worker.removeWD=false"
+    else
+        jvm_workers_opts+=",-Dcompss.worker.removeWD=false"
+    fi
+    if [ -z "${jvm_worker_in_master_opts}" ] || [ "${jvm_worker_in_master_opts}" = \"\" ];then
+        jvm_worker_in_master_opts="-Dcompss.worker.removeWD=false"
+    else
+        jvm_worker_in_master_opts+=",-Dcompss.worker.removeWD=false"
+    fi
+}
 
 ###############################################
 # Sets job variables
@@ -2015,7 +2068,7 @@ wait_for_completion() {
 ###############################################
 cleanup() {
   # Avoid clean up if removeWD=flase worker flag is set
-  if [[ "$jvm_workers_opts" == *"-Dcompss.worker.removeWD=false"* ]]; then
+  if [[ -n "$keep_wd" ]]; then
     echo "[WARN] Flag removeWD set to false. Not cleaning Workers WD"
     echo "[WARN] Flag removeWD set to false. Not cleaning XML files"
   else
@@ -2024,7 +2077,7 @@ cleanup() {
        echo "[LAUNCH_COMPSS] Cleanup Worker TMP files"
     fi
     for node in ${worker_nodes}; do
-      local sandboxWD=${worker_working_dir}/${uuid}
+      local sandboxWD=${worker_working_dir}/
       if [ ! -z "${NODE_NAME_QUEUE}" ]; then
         node=$(${NODE_NAME_QUEUE} ${node})
       fi

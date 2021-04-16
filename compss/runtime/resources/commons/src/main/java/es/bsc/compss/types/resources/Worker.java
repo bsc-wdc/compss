@@ -199,6 +199,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 }
                 if (executableCore) {
                     this.executableCores.add(coreId);
+                    coreSimultaneousTasks[coreId] = limitIdealSimultaneousTasks(idealSimultaneousTasks[coreId]);
                 }
             }
         }

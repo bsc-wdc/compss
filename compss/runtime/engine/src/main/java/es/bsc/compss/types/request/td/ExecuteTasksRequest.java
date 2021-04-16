@@ -23,6 +23,7 @@ import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
@@ -32,6 +33,8 @@ import es.bsc.compss.types.allocatableactions.MultiNodeGroup;
 import es.bsc.compss.types.allocatableactions.ReduceExecutionAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 
 import java.util.Collection;
 
@@ -170,9 +173,14 @@ public class ExecuteTasksRequest extends TDRequest {
 
     private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes,
         ResourceScheduler<T> specificResource) {
-
+        boolean toBlocked = false;
         LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as multiNodeTask with " + numNodes
             + " nodes");
+        if (exceedsMaxResources(numNodes, this.task.getTaskDescription().getCoreElement())) {
+            ErrorManager.warn("Task " + this.task.getId() + " can't be executed because exceeds the maximum number "
+                + "of available cores. Adding actions to blocked.");
+            toBlocked = true;
+        }
         // Can use one or more resources depending on the computingNodes
         MultiNodeGroup group = new MultiNodeGroup(numNodes);
         for (int i = 0; i < numNodes; ++i) {
@@ -181,8 +189,16 @@ public class ExecuteTasksRequest extends TDRequest {
                     this.task.getTaskDescription().getCoreElement().getCoreId()),
                 ts.getOrchestrator(), this.ap, this.task, group);
             group.addAction(action);
-            ts.newAllocatableAction(action);
+            if (toBlocked) {
+                ts.addToBlocked(action);
+            } else {
+                ts.newAllocatableAction(action);
+            }
         }
+    }
+
+    private boolean exceedsMaxResources(int numNodes, CoreElement coreElement) {
+        return numNodes > ResourceManager.getTotalSlots()[coreElement.getCoreId()];
     }
 
     @Override

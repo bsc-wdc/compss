@@ -45,15 +45,16 @@
     unset PMI_SIZE
 
     # Get parameters
-    libPath=$1
-    appDir=$2
-    cp=$3
-    streaming=$4
-    numJvmFlags=$5
+    envScriptPath=$1
+    libPath=$2
+    appDir=$3
+    cp=$4
+    streaming=$5
+    numJvmFlags=$6
 
     jvmFlags=""
     for i in $(seq 1 "$numJvmFlags"); do
-      pos=$((5 + i))
+      pos=$((6 + i))
       jvmFlags="${jvmFlags} ${!pos}"
     done
     #Changed to support Coverage mode
@@ -63,7 +64,7 @@
     jvmFlags="${jvmFlags/ffff/$uuid}"
 
     # Shift parameters for script and leave only the NIOWorker parameters
-    paramsToShift=$((5 + numJvmFlags))
+    paramsToShift=$((6 + numJvmFlags))
     shift ${paramsToShift}
 
     FPGAargs=""
@@ -171,6 +172,14 @@
     else
       eraseWD="true"
     fi
+    # Calculate generate coredump
+    if [[ "$jvmFlags" == *"-Dcompss.worker.gen_coredump=true"* ]]; then
+      genCoredump="true"
+    else
+      genCoredump="false"
+    fi
+    
+    
   }
 
   setup_extrae() {
@@ -203,6 +212,11 @@
             export LD_LIBRARY_PATH=$LIBRARY_PATH
             echo "[  INFO] LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
         fi
+    fi
+
+    # Set lib path
+    if [ "${envScriptPath}" != "null" ]; then
+        source "$envScriptPath"
     fi
 
     # Create sandbox
@@ -239,7 +253,12 @@
     if [ "$cp" == "null" ]; then
   	cp=""
     fi
-
+    
+    # Coredump
+    if [ "$genCoredump" == "true" ]; then
+        ulimit -c unlimited
+    fi
+    
     # Export environment
     export CLASSPATH=$cpNW:$CLASSPATH
     export PYTHONPATH=$pythonpath:$PYTHONPATH
@@ -313,6 +332,42 @@ EOT
         echo "[persistent_worker.sh] Clean WD ${workingDir}"
       fi
       rm -rf "${workingDir}"
+      # Check if parent of workingDir (uuid) is empty. If empty remove it
+      local parentdir="$(dirname "${workingDir}")"
+      if [ -d "${parentdir}" ]; then
+        if [ "$(ls -A ${parentdir})" ]; then
+          if [ "$debug" == "true" ]; then
+            echo "[persistent_worker.sh] Not Cleaning parent WD because not empty"
+          fi
+        else
+          if [ "$debug" == "true" ]; then
+            echo "[persistent_worker.sh] Cleaning parent WD"
+          fi
+          rm ${parentdir}
+        fi
+      else
+        if [ "$debug" == "true" ]; then
+          echo "[persistent_worker.sh] Not Cleaning parent WD because doesn't exists"
+        fi
+      fi
+      # Check if tmp directory of worker workingdir is empty. If empty remove it
+      local tmpdir="$(dirname "${parentdir}")"
+      if [ -d "${tmpdir}" ]; then
+        if [ "$(ls -A ${tmpdir})" ]; then
+          if [ "$debug" == "true" ]; then
+            echo "[persistent_worker.sh] Not Cleaning tmp WD because not empty"
+          fi
+        else
+          if [ "$debug" == "true" ]; then
+            echo "[persistent_worker.sh] Cleaning tmp WD"
+          fi
+          rm ${tmpdir}
+        fi
+      else
+        if [ "$debug" == "true" ]; then
+          echo "[persistent_worker.sh] Not Cleaning parent WD because doesn't exists"
+        fi
+      fi
     else
       if [ "$debug" == "true" ]; then
         echo "[persistent_worker.sh] Not cleaning WD ${workingDir}"

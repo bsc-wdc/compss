@@ -80,6 +80,7 @@ append_worker_jvm_options_to_file() {
   local jvm_options_file=${1}
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.worker.cp=${CLASSPATH}
+-Dcompss.worker.appdir=${appdir}
 -Dcompss.worker.jvm_opts=${jvm_workers_opts}
 -Dcompss.worker.cpu_affinity=${worker_cpu_affinity}
 -Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
@@ -87,6 +88,11 @@ append_worker_jvm_options_to_file() {
 -Dcompss.worker.fpga_reprogram=${fpga_prog}
 -Dcompss.worker.io_executors=${worker_io_executors}
 EOT
+  if [ -n ${env_script_path} ];then
+    cat >> "${jvm_options_file}" << EOT
+-Dcompss.worker.env_script=${env_script_path}
+EOT
+  fi
 }
 
 

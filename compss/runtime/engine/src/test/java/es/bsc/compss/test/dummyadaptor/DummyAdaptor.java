@@ -80,7 +80,7 @@ public class DummyAdaptor implements CommAdaptor {
     @Override
     public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptPathFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
         return null;
     }
 

@@ -125,6 +125,9 @@ show_opts() {
                                             Default: ${DEFAULT_APPDIR}
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
                                             Default: ${DEFAULT_PYTHONPATH}
+    --env_script=<path>		            Path to the script file where the application environment variables are defined.
+    					    COMPSs sources this script before running the application.
+    					    Default: Empty
     --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
     --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (no sandbox is created)
@@ -168,6 +171,8 @@ show_opts() {
                                             Default: false
     --gen_coredump                          Enable master coredump generation
                                             Default: false
+    --keep_workingdir                       Do not remove the worker working directory after the execution
+                                            Default: false
     --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
                                             Default: ${DEFAULT_PYTHON_INTERPRETER} Version: ${DEFAULT_PYTHON_VERSION}
     --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
@@ -179,8 +184,8 @@ show_opts() {
     --python_worker_cache=<string>          Python worker cache (true/size/false).
                                             Only for NIO without mpi worker and python >= 3.8.
                                             Default: ${DEFAULT_PYTHON_WORKER_CACHE}
-    --wall_clock_limit=<int>				Maximum duration of the application (in seconds).
-    										Default: ${DEFAULT_WALL_CLOCK_LIMIT}
+    --wall_clock_limit=<int>		    Maximum duration of the application (in seconds).
+    					    Default: ${DEFAULT_WALL_CLOCK_LIMIT}
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -252,12 +257,12 @@ get_args() {
         log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
         ;;
       -)
-	      # Check more complex arguments
-	      case "$OPTARG" in
-	        help)
-	          # Display help
-	          usage 0
-	          ;;
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
           version)
             # Show version
             show_full_version
@@ -278,19 +283,19 @@ get_args() {
             show_recipe
             exit 0
             ;;
-	        project=*)
-	          # Custom project file
-	          projFile=${OPTARG//project=/}
-	          if [ ! -f "$projFile" ]; then
-	            display_warning "Project XML file '$projFile' could not be found."
-	          fi
-	          ;;
-	        resources=*)
-	          # Custom resources file
-	          resFile=${OPTARG//resources=/}
-	          if [ ! -f "$resFile" ]; then
-	            display_warning "Resources XML file '$resFile' could not be found."
-	          fi
+          project=*)
+            # Custom project file
+            projFile=${OPTARG//project=/}
+            if [ ! -f "$projFile" ]; then
+  	      display_warning "Project XML file '$projFile' could not be found."
+	    fi
+	    ;;
+	  resources=*)
+	    # Custom resources file
+	    resFile=${OPTARG//resources=/}
+    	    if [ ! -f "$resFile" ]; then
+              display_warning "Resources XML file '$resFile' could not be found."
+            fi
             ;;
           summary)
             summary=true
@@ -310,14 +315,14 @@ get_args() {
           streaming_master_port=*)
             streaming_master_port=${OPTARG//streaming_master_port=/}
             ;;
-	        task_execution=*)
-	          # Task execution under COMPSs or Storage
-	          taskExecution=${OPTARG//task_execution=/}
-	          ;;
-	        lang=*)
-	          # Language selection
-	          lang=${OPTARG//lang=/}
-	          ;;
+          task_execution=*)
+            # Task execution under COMPSs or Storage
+            taskExecution=${OPTARG//task_execution=/}
+            ;;
+          lang=*)
+            # Language selection
+            lang=${OPTARG//lang=/}
+            ;;
           log_level=*)
             # Enable different log_levels by user selection
             log_level=${OPTARG//log_level=/}
@@ -326,14 +331,14 @@ get_args() {
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
-	        graph=*)
-	          # Graph generation at the end of the execution with user option
-	          graph=${OPTARG//graph=/}
-	          ;;
-	        graph)
-	          # Graph generation at the end of the execution by default arg
-	          graph=${DEFAULT_GRAPH_ARGUMENT}
-	          ;;
+          graph=*)
+            # Graph generation at the end of the execution with user option
+            graph=${OPTARG//graph=/}
+            ;;
+          graph)
+            # Graph generation at the end of the execution by default arg
+            graph=${DEFAULT_GRAPH_ARGUMENT}
+            ;;
           tracing=*)
             # Tracing system
             tracing=${OPTARG//tracing=/}
@@ -370,34 +375,38 @@ get_args() {
             # Custom trace_label
             trace_label=${OPTARG//trace_label=/}
             ;;
-	        monitoring=*)
-	          # Value between monitor steps (ms)
-	          monitoring=${OPTARG//monitoring=/}
-	          ;;
-	        monitoring)
-	          # Value between monitor steps (ms)
-	          monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
-	          ;;
-	        comm=*)
-	          # Communication adaptor main class
-	          comm=${OPTARG//comm=/}
-	          ;;
-	        conn=*)
-  	        # Communication connector main class
-	          conn=${OPTARG//conn=/}
-	          ;;
+          monitoring=*)
+            # Value between monitor steps (ms)
+            monitoring=${OPTARG//monitoring=/}
+            ;;
+          monitoring)
+            # Value between monitor steps (ms)
+            monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+            ;;
+          comm=*)
+            # Communication adaptor main class
+            comm=${OPTARG//comm=/}
+            ;;
+          conn=*)
+            # Communication connector main class
+            conn=${OPTARG//conn=/}
+            ;;
           scheduler=*)
             # Scheduler main class
             scheduler=${OPTARG//scheduler=/}
             ;;
-	        classpath=*)
-	          # Additional classpath
-	          cp=${OPTARG//classpath=/}
-	          ;;
-	        library_path=*)
-	          # Additional library path
-	          library_path=${OPTARG//library_path=/}
-	          ;;
+          classpath=*)
+            # Additional classpath
+            cp=${OPTARG//classpath=/}
+            ;;
+          library_path=*)
+            # Additional library path
+	    library_path=${OPTARG//library_path=/}
+	    ;;
+          env_script=*)
+	    # Application Environment script path
+	    env_script_path=${OPTARG//env_script=/}
+	    ;;
           jvm_master_opts=*)
             # Master JVM option
             jvm_master_opts=${OPTARG//jvm_master_opts=/}
@@ -451,7 +460,7 @@ get_args() {
             # Set a custom specific log dir
             specific_log_dir=${OPTARG//specific_log_dir=/}
             ;;
-	        uuid=*)
+	  uuid=*)
             # Preset an Application UUID
             uuid=${OPTARG//uuid=/}
             ;;
@@ -523,20 +532,24 @@ get_args() {
             # Enable coredump generation
             gen_core=true
             ;;
+	  keep_workingdir)
+            # Enable coredump generation
+            keepWD=true
+            ;;
           wall_clock_limit=*)
-          	# Set wall_clock_limit
+            # Set wall_clock_limit
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
-  	      *)
-	        # Flag didn't match any patern. Raise exception
-	        arguments_error "Bad argument: $OPTARG"
-	        ;;
-	      esac
-	      ;;
+  	  *)
+	    # Flag didn't match any patern. Raise exception
+	    arguments_error "Bad argument: $OPTARG"
+	    ;;
+	esac
+	;;
       *)
-	      # Flag didn't match any patern. End of COMPSs flags
-	      break
-	      ;;
+	# Flag didn't match any patern. End of COMPSs flags
+	break
+	;;
     esac
   done
   # Shift COMPSs arguments
@@ -598,5 +611,8 @@ check_args
 # Trap to ensure clean end
 trap clean_env EXIT
 
+if [ -n "${env_script_path}" ]; then
+  source "${env_script_path}"
+fi       
 # Real runtime execution
 start_compss_app

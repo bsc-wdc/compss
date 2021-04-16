@@ -41,6 +41,7 @@ public class MethodConfiguration extends Configuration {
     private String classpath = "";
     private String pythonpath = "";
     private String libraryPath = "";
+    private String envScript = "";
 
     // Only used for NIO but declared here for connectors
     private int minPort;
@@ -79,6 +80,7 @@ public class MethodConfiguration extends Configuration {
         this.classpath = clone.classpath;
         this.pythonpath = clone.pythonpath;
         this.libraryPath = clone.libraryPath;
+        this.envScript = clone.envScript;
 
         this.minPort = clone.minPort;
         this.maxPort = clone.maxPort;
@@ -390,6 +392,28 @@ public class MethodConfiguration extends Configuration {
             this.libraryPath = "";
         } else {
             this.libraryPath = libraryPath;
+        }
+    }
+
+    /**
+     * Get the application's environment script path.
+     * 
+     * @return The application's library path.
+     */
+    public String getEnvScript() {
+        return this.envScript;
+    }
+
+    /**
+     * Set the application required environment script path.
+     * 
+     * @param envScriptPath Application environment script path
+     */
+    public void setEnvScript(String envScriptPath) {
+        if (envScriptPath == null) {
+            this.envScript = "";
+        } else {
+            this.envScript = envScriptPath;
         }
     }
 

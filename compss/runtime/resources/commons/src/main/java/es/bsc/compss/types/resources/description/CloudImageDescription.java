@@ -394,6 +394,7 @@ public class CloudImageDescription {
         sb.append(prefix).append("\t").append("LIBRARY_PATH = ").append(this.getConfig().getLibraryPath()).append("\n");
         sb.append(prefix).append("\t").append("CLASSPATH = ").append(this.getConfig().getClasspath()).append("\n");
         sb.append(prefix).append("\t").append("PYTHONPATH = ").append(this.getConfig().getPythonpath()).append("\n");
+        sb.append(prefix).append("\t").append("ENV_SCRIPT = ").append(this.getConfig().getEnvScript()).append("\n");
         sb.append(prefix).append("\t").append("USER = ").append(this.getConfig().getUser()).append("\n");
         sb.append(prefix).append("\t").append("PASSWORD = ")
             .append(this.getProperties().get(AbstractSSHConnector.PROPERTY_PASSW_NAME)).append("\n");

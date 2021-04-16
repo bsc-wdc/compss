@@ -14,17 +14,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+IN = "in"
+INOUT = "inout"
+FILE_IN = "filein"
+FILE_OUT = "fileout"
+FILE_INOUT = "fileinout"
 
-class ExecutionCharacteristics(object):
+COLLECTION_IN = "collection_in"
+COLLECTION_INOUT = "collection_inout"
+COLLECTION_OUT = "collection_out"
 
-    def __init__(self,
-                 generation_nodes,
-                 generation_cpus_per_node,
-                 run_nodes,
-                 run_cpus_per_node,
-                 amount_executions):
-        self.generation_nodes = generation_nodes
-        self.generation_cpus_per_node = generation_cpus_per_node
-        self.run_nodes = run_nodes
-        self.run_cpus_per_node = run_cpus_per_node
-        self.amount_executions = amount_executions
+# Aliases for parameter definition as dictionary
+Type = 'type'  # parameter type
+
+# available at PyCOMPSs but not used in XMC ( specfic
+#Direction = 'direction'  # parameter type
+#StdIOStream = 'stream'  # parameter stream
+#Prefix = 'prefix'  # parameter prefix
+
+Depth = 'depth'  # collection recursive depth
+
+# data layout for Collections in MPI
+block_count = 'block_count'
+block_length = 'block_length'
+stride = 'stride'
+

@@ -254,6 +254,7 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private Exception executeTaskWrapper() {
+        boolean cleanSandBox = true; // included to keep the sandbox if job fails
         if (Tracer.extraeEnabled()) {
             emitingTaskStartEvents();
         }
@@ -303,7 +304,9 @@ public class Executor implements Runnable, InvocationRunner {
             }
             // todo: second trace
             unbindOriginalFileNamesToRenames(false);
+
         } catch (Exception e) {
+            cleanSandBox = false;
             LOGGER.error(e.getMessage(), e);
             // Writing in the task .err/.out
             this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
@@ -340,6 +343,7 @@ public class Executor implements Runnable, InvocationRunner {
             try {
                 checkJobFiles(invocation);
             } catch (JobExecutionException e) {
+                cleanSandBox = false;
                 LOGGER.error(e.getMessage(), e);
                 // Writing in the task .err/.out
                 this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
@@ -359,10 +363,11 @@ public class Executor implements Runnable, InvocationRunner {
                     releaseResources(jobId);
                 }
 
-                // Always clean the task sandbox working dir
-                LOGGER.debug("Cleaning task sandbox for Job " + jobId);
-                cleanTaskSandbox(twd, jobId);
-
+                // Clean the task sandbox working dir if no error
+                if (cleanSandBox) {
+                    LOGGER.debug("Cleaning task sandbox for Job " + jobId);
+                    cleanTaskSandbox(twd, jobId);
+                }
                 // Always end task tracing
                 if (Tracer.extraeEnabled()) {
                     emitTaskEndEvents();

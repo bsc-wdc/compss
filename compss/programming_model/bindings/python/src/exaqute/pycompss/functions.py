@@ -15,24 +15,28 @@
 #  limitations under the License.
 #
 
-IN = None
-INOUT = None
+from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_delete_object
+from pycompss.api.api import compss_delete_file
 
-FILE_IN = None
-FILE_OUT = None
-FILE_INOUT = None
+def init():
+    pass
 
-COLLECTION_IN = None
-COLLECTION_INOUT = None
-COLLECTION_OUT = None
+def barrier():  # Wait
+    compss_barrier()
 
-# Aliases for parameter definition as dictionary
-Type = 'type'  # parameter type
-Direction = 'direction'  # parameter type
-StdIOStream = 'stream'  # parameter stream
-Prefix = 'prefix'  # parameter prefix
-Depth = 'depth'  # collection recursive depth
 
-lock_count = 'block_count'
-block_length = 'block_length'
-stride = 'stride'
+def get_value_from_remote(obj):  # Gather
+    obj = compss_wait_on(obj)
+    return obj
+
+
+def delete_object(*objs):  # Release
+    for obj in objs:
+        compss_delete_object(obj)
+
+
+def delete_file(file_path):
+    compss_delete_file(file_path)
+

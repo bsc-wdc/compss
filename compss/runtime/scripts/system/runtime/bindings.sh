@@ -184,9 +184,6 @@ check_bindings_setup () {
 
   # Options ONLY for C
   # ------------------------
-  if [ -z "$appdir" ]; then
-    appdir=$DEFAULT_APPDIR
-  fi
 
   if [ -z "$persistent_worker_c" ]; then
     persistent_worker_c=${DEFAULT_PERSISTENT_WORKER_C}
@@ -243,7 +240,6 @@ add_bindings_jvm_opts_c() {
   local jvm_options_file=${1}
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.worker.persistent.c=${persistent_worker_c}
--Dcompss.worker.appdir=${appdir}
 EOT
 }
 

@@ -1573,13 +1573,14 @@ public class ProjectFile {
      * @param libPath Application library path
      * @param cp Application classpath
      * @param pypath Application python path
+     * @param envScript Path to script to set environment variables
      * @param limitOfTasks Limit of tasks
      * @param adaptors List of Adaptors
      * @return Instance of added Compute Node description object.
      * @throws InvalidElementException Exception validating input data.
      */
     public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, String appDir,
-        String libPath, String cp, String pypath, int limitOfTasks, List<AdaptorType> adaptors)
+        String libPath, String cp, String pypath, String envScript, int limitOfTasks, List<AdaptorType> adaptors)
         throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
@@ -1589,7 +1590,7 @@ public class ProjectFile {
             }
         }
 
-        return addComputeNode(name, installDir, workingDir, user, appDir, libPath, cp, pypath, limitOfTasks,
+        return addComputeNode(name, installDir, workingDir, user, appDir, libPath, cp, pypath, envScript, limitOfTasks,
             adaptorsList);
     }
 
@@ -1604,16 +1605,17 @@ public class ProjectFile {
      * @param libPath Application library path
      * @param cp Application classpath
      * @param pypath Application python path
+     * @param envScript Path to script to set environment variables
      * @param limitOfTasks Limit of tasks
      * @param adaptors List of Adaptors
      * @return Instance of added Compute Node description object.
      * @throws InvalidElementException Exception validating input data.
      */
     public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, String appDir,
-        String libPath, String cp, String pypath, int limitOfTasks, AdaptorsListType adaptors)
+        String libPath, String cp, String pypath, String envScript, int limitOfTasks, AdaptorsListType adaptors)
         throws InvalidElementException {
 
-        ApplicationType app = createApplication(appDir, libPath, cp, pypath);
+        ApplicationType app = createApplication(appDir, libPath, cp, pypath, envScript);
 
         return addComputeNode(name, installDir, workingDir, user, app, limitOfTasks, adaptors);
     }
@@ -2162,9 +2164,11 @@ public class ProjectFile {
      * @param libPath Library path
      * @param cp Class path
      * @param pypath Python path
+     * @param environmentScript Path to script to set environment variables
      * @return Created application description object
      */
-    public static ApplicationType createApplication(String appDir, String libPath, String cp, String pypath) {
+    public static ApplicationType createApplication(String appDir, String libPath, String cp, String pypath,
+        String environmentScript) {
         ApplicationType app = new ApplicationType();
         // Optional parameters
         if (appDir != null && !appDir.isEmpty()) {
@@ -2178,6 +2182,9 @@ public class ProjectFile {
         }
         if (pypath != null && !pypath.isEmpty()) {
             app.setPythonpath(pypath);
+        }
+        if (environmentScript != null && !environmentScript.isEmpty()) {
+            app.setEnvironmentScript(environmentScript);
         }
         return app;
 
@@ -2213,7 +2220,7 @@ public class ProjectFile {
      * @return created Image description object
      */
     public static ImageType createImage(String name, String installDir, String workingDir, int limitOfTasks) {
-        return createImage(name, installDir, workingDir, null, null, null, null, null, limitOfTasks, null, null);
+        return createImage(name, installDir, workingDir, null, null, null, null, null, null, limitOfTasks, null, null);
     }
 
     /**
@@ -2227,13 +2234,15 @@ public class ProjectFile {
      * @param libPath Library path
      * @param cp Class path
      * @param pypath Python path
+     * @param envScript Path to script to set environment variables
      * @param limitOfTasks Limit of tasks
      * @param pack Package Description
      * @param adaptors Adaptors list description object
      * @return Created Image description object
      */
     public static ImageType createImage(String name, String installDir, String workingDir, String user, String appDir,
-        String libPath, String cp, String pypath, int limitOfTasks, PackageType pack, AdaptorsListType adaptors) {
+        String libPath, String cp, String pypath, String envScript, int limitOfTasks, PackageType pack,
+        AdaptorsListType adaptors) {
 
         ImageType image = new ImageType();
 
@@ -2249,7 +2258,7 @@ public class ProjectFile {
             JAXBElement<String> userJaxb = new JAXBElement<String>(new QName("User"), String.class, user);
             image.getInstallDirOrWorkingDirOrUser().add(userJaxb);
         }
-        ApplicationType app = createApplication(appDir, libPath, cp, pypath);
+        ApplicationType app = createApplication(appDir, libPath, cp, pypath, envScript);
         JAXBElement<ApplicationType> appsJaxb =
             new JAXBElement<ApplicationType>(new QName("Application"), ApplicationType.class, app);
         image.getInstallDirOrWorkingDirOrUser().add(appsJaxb);

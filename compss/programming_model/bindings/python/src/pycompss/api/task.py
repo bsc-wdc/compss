@@ -218,89 +218,92 @@ class Task(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def task_decorator(*args, **kwargs):
-            # Determine the context and decide what to do
-            if context.in_master():
-                # @task being executed in the master
-                # Each task will have a TaskMaster, so its content will
-                # not be shared.
-                self.__check_core_element__(kwargs, user_function)
-                with event(TASK_INSTANTIATION, master=True):
-                    master = TaskMaster(self.decorator_arguments,
-                                        self.user_function,
-                                        self.core_element,
-                                        self.registered,
-                                        self.signature,
-                                        self.interactive,
-                                        self.module,
-                                        self.function_arguments,
-                                        self.function_name,
-                                        self.module_name,
-                                        self.function_type,
-                                        self.class_name,
-                                        self.hints,
-                                        self.on_failure,
-                                        self.defaults)
-                result = master.call(*args, **kwargs)
-                fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
-                del master
-                return fo
-            elif context.in_worker():
-                if "compss_key" in kwargs.keys():
-                    # @task being executed in the worker
-                    with event(WORKER_TASK_INSTANTIATION,
-                               master=False, inside=True):
-                        worker = TaskWorker(self.decorator_arguments,
-                                            self.user_function,
-                                            self.on_failure,
-                                            self.defaults)
-                    result = worker.call(*args, **kwargs)
-                    del worker
-                    if context.is_nesting_enabled():
-                        from pycompss.runtime.binding import barrier
-                        barrier(no_more_tasks=True)
-                    return result
-                else:
-                    if context.is_nesting_enabled():
-                        # nested @task executed in the worker
-                        # Each task will have a TaskMaster, so its content will
-                        # not be shared.
-                        with event(TASK_INSTANTIATION, master=True):
-                            master = TaskMaster(self.decorator_arguments,
-                                                self.user_function,
-                                                self.core_element,
-                                                self.registered,
-                                                self.signature,
-                                                self.interactive,
-                                                self.module,
-                                                self.function_arguments,
-                                                self.function_name,
-                                                self.module_name,
-                                                self.function_type,
-                                                self.class_name,
-                                                self.hints,
-                                                self.on_failure,
-                                                self.defaults)
-                            result = master.call(*args, **kwargs)
-                            fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
-                        del master
-                        return fo
-                    else:
-                        # Called from another task within the worker
-                        # Ignore the @task decorator and run it sequentially
-                        message = "".join(("WARNING: Calling task: ",
-                                           str(user_function.__name__),
-                                           " from this task.\n",
-                                           "         It will be executed sequentially ",  # noqa: E501
-                                           "within the caller task."))
-                        print(message, file=sys.stderr)
-                        return self._sequential_call(*args, **kwargs)
-            # We are neither in master nor in the worker, or the user has
-            # stopped the interactive session.
-            # Therefore, the user code is being executed with no
-            # launch_compss/enqueue_compss/runcompss/interactive session
-            return self._sequential_call(*args, **kwargs)
+            return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator
+
+    def __decorator_body__(self, user_function, args, kwargs):
+        # Determine the context and decide what to do
+        if context.in_master():
+            # @task being executed in the master
+            # Each task will have a TaskMaster, so its content will
+            # not be shared.
+            self.__check_core_element__(kwargs, user_function)
+            with event(TASK_INSTANTIATION, master=True):
+                master = TaskMaster(self.decorator_arguments,
+                                    self.user_function,
+                                    self.core_element,
+                                    self.registered,
+                                    self.signature,
+                                    self.interactive,
+                                    self.module,
+                                    self.function_arguments,
+                                    self.function_name,
+                                    self.module_name,
+                                    self.function_type,
+                                    self.class_name,
+                                    self.hints,
+                                    self.on_failure,
+                                    self.defaults)
+            result = master.call(*args, **kwargs)
+            fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
+            del master
+            return fo
+        elif context.in_worker():
+            if "compss_key" in kwargs.keys():
+                # @task being executed in the worker
+                with event(WORKER_TASK_INSTANTIATION,
+                           master=False, inside=True):
+                    worker = TaskWorker(self.decorator_arguments,
+                                        self.user_function,
+                                        self.on_failure,
+                                        self.defaults)
+                result = worker.call(*args, **kwargs)
+                del worker
+                if context.is_nesting_enabled():
+                    from pycompss.runtime.binding import barrier
+                    barrier(no_more_tasks=True)
+                return result
+            else:
+                if context.is_nesting_enabled():
+                    # nested @task executed in the worker
+                    # Each task will have a TaskMaster, so its content will
+                    # not be shared.
+                    with event(TASK_INSTANTIATION, master=True):
+                        master = TaskMaster(self.decorator_arguments,
+                                            self.user_function,
+                                            self.core_element,
+                                            self.registered,
+                                            self.signature,
+                                            self.interactive,
+                                            self.module,
+                                            self.function_arguments,
+                                            self.function_name,
+                                            self.module_name,
+                                            self.function_type,
+                                            self.class_name,
+                                            self.hints,
+                                            self.on_failure,
+                                            self.defaults)
+                        result = master.call(*args, **kwargs)
+                        fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
+                    del master
+                    return fo
+                else:
+                    # Called from another task within the worker
+                    # Ignore the @task decorator and run it sequentially
+                    message = "".join(("WARNING: Calling task: ",
+                                       str(user_function.__name__),
+                                       " from this task.\n",
+                                       "         It will be executed sequentially ",  # noqa: E501
+                                       "within the caller task."))
+                    print(message, file=sys.stderr)
+                    return self._sequential_call(*args, **kwargs)
+        # We are neither in master nor in the worker, or the user has
+        # stopped the interactive session.
+        # Therefore, the user code is being executed with no
+        # launch_compss/enqueue_compss/runcompss/interactive session
+        return self._sequential_call(*args, **kwargs)
 
     def _sequential_call(self, *args, **kwargs):
         """ Sequential task execution.

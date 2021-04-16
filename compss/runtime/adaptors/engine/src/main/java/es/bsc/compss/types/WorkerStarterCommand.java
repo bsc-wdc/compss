@@ -76,7 +76,11 @@ public abstract class WorkerStarterCommand implements StarterCommand {
             && !System.getProperty(COMPSsConstants.WORKER_APPDIR).isEmpty()
                 ? System.getProperty(COMPSsConstants.WORKER_APPDIR)
                 : "";
-
+    private static final String WORKER_ENV_SCRIPT_FROM_ENVIRONMENT =
+        System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT) != null
+            && !System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT).isEmpty()
+                ? System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT)
+                : "";
     // Deployment ID
     protected static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
@@ -90,6 +94,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected String workerClasspath = "";
     protected String workerPythonpath = "";
     protected String workerLibPath = "";
+    protected String workerEnvScriptPath = "";
     protected String[] jvmFlags;
     protected String[] fpgaArgs;
     protected String workerDebug;
@@ -123,6 +128,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
      * @param classpathFromFile worker classpath in projects.xml file
      * @param pythonpathFromFile worker python path in projects.xml file
      * @param libPathFromFile worker library path path in project.xml file
+     * @param envScriptPathFromFile worker
      * @param totalCPU total CPU computing units
      * @param totalGPU total GPU
      * @param totalFPGA total FPGA
@@ -131,7 +137,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
      */
     public WorkerStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptPathFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
 
         this.workerName = workerName;
         this.workerPort = workerPort;
@@ -150,6 +156,19 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         } else {
             if (!WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty()) {
                 this.appDir = WORKER_APPDIR_FROM_ENVIRONMENT;
+            }
+        }
+
+        if (!envScriptPathFromFile.isEmpty()) {
+            if (!WORKER_ENV_SCRIPT_FROM_ENVIRONMENT.isEmpty()) {
+                LOGGER.warn("Path passed via env_script option and xml EnvironmentPath field."
+                    + "The path provided by the xml will be used");
+            }
+            this.workerEnvScriptPath = envScriptPathFromFile;
+
+        } else {
+            if (!WORKER_ENV_SCRIPT_FROM_ENVIRONMENT.isEmpty()) {
+                this.workerEnvScriptPath = WORKER_ENV_SCRIPT_FROM_ENVIRONMENT;
             }
         }
 

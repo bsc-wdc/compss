@@ -12,22 +12,26 @@ get_host_parameters () {
     nodeName=$1
     installDir=$2
     appDir=$3
-    libPath=$4
+    envScript=$4
+    if [ "$envScript" != "null" ]; then
+      source "$envScript"
+    fi
+    libPath=$5
     if [ "$libPath" != "null" ]; then
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
     fi
-    workingDir=$5
+    workingDir=$6
     if [ ! -d "$workingDir" ]; then
       mkdir -p "$workingDir"
     fi
     export COMPSS_WORKING_DIR=$workingDir
-    storageConf=$6
-    streaming=$7
-    streamingMasterName=$8
-    streamingPort=$9
-    debug=${10}
-    rmfilesNum=${11}
-    shift $((11 + rmfilesNum))
+    storageConf=$7
+    streaming=$8
+    streamingMasterName=$9
+    streamingPort=${10}
+    debug=${11}
+    rmfilesNum=${12}
+    shift $((12 + rmfilesNum))
 
     tracing=$1
     shift 1

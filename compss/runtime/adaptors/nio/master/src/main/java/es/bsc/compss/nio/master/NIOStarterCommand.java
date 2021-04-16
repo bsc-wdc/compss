@@ -52,7 +52,8 @@ public class NIOStarterCommand extends WorkerStarterCommand {
      * @param appDir worker application install directory
      * @param classpathFromFile worker classpath in projects.xml file
      * @param pythonpathFromFile worker python path in projects.xml file
-     * @param libPathFromFile worker library path path in project.xml file
+     * @param libPathFromFile worker library path in project.xml file
+     * @param envScriptPathFromFile worker environment script path in project.xml file
      * @param totalCPU total CPU computing units
      * @param totalGPU total GPU
      * @param totalFPGA total FPGA
@@ -60,11 +61,11 @@ public class NIOStarterCommand extends WorkerStarterCommand {
      * @param hostId tracing worker identifier
      */
     public NIOStarterCommand(String workerName, int workerPort, String masterName, String workingDir, String installDir,
-        String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile, int totalCPU,
-        int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        String envScriptPathFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
 
         super(workerName, workerPort, masterName, workingDir, installDir, appDir, classpathFromFile, pythonpathFromFile,
-            libPathFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks, hostId);
+            libPathFromFile, envScriptPathFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks, hostId);
 
         this.scriptName = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + SCRIPT_PATH
             + STARTER_SCRIPT_NAME;
@@ -85,20 +86,22 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[0] = this.scriptName;
 
         /* Values ONLY for persistent_worker.sh ****************** */
-        cmd[1] = this.workerLibPath.isEmpty() ? "null" : this.workerLibPath;
+        cmd[1] = this.workerEnvScriptPath.isEmpty() ? "null" : this.workerEnvScriptPath;
+
+        cmd[2] = this.workerLibPath.isEmpty() ? "null" : this.workerLibPath;
 
         if (appDir.isEmpty()) {
             LOGGER.warn("No path passed via appdir option neither xml AppDir field");
-            cmd[2] = "null";
+            cmd[3] = "null";
         } else {
-            cmd[2] = appDir;
+            cmd[3] = appDir;
         }
 
-        cmd[3] = this.workerClasspath.isEmpty() ? "null" : this.workerClasspath;
+        cmd[4] = this.workerClasspath.isEmpty() ? "null" : this.workerClasspath;
 
-        cmd[4] = Comm.getStreamingBackend().name();
+        cmd[5] = Comm.getStreamingBackend().name();
 
-        cmd[5] = String.valueOf(this.jvmFlags.length);
+        cmd[6] = String.valueOf(this.jvmFlags.length);
         for (int i = 0; i < this.jvmFlags.length; ++i) {
             cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = this.jvmFlags[i];
         }
@@ -139,7 +142,7 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = this.sandboxedWorkingDir;
         cmd[nextPosition++] = this.installDir;
 
-        cmd[nextPosition++] = cmd[2];
+        cmd[nextPosition++] = cmd[3];
         cmd[nextPosition++] = this.workerLibPath.isEmpty() ? "null" : this.workerLibPath;
         cmd[nextPosition++] = this.workerClasspath.isEmpty() ? "null" : this.workerClasspath;
         cmd[nextPosition++] = this.workerPythonpath.isEmpty() ? "null" : this.workerPythonpath;

@@ -136,9 +136,10 @@ public class Converter {
      * @return Installation description.
      */
     private static InstallationDescription getInstallationDescription(MethodConfiguration config) {
-        InstallationDescription installDesc = new InstallationDescription(config.getAdaptorName(), config.getMinPort(),
-            config.getMaxPort(), config.getInstallDir(), config.getAppDir(), config.getClasspath(),
-            config.getPythonpath(), config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
+        InstallationDescription installDesc =
+            new InstallationDescription(config.getAdaptorName(), config.getMinPort(), config.getMaxPort(),
+                config.getInstallDir(), config.getAppDir(), config.getClasspath(), config.getPythonpath(),
+                config.getLibraryPath(), config.getEnvScript(), config.getWorkingDir(), config.getLimitOfTasks());
         return installDesc;
     }
 

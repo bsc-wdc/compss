@@ -212,6 +212,15 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     /**
+     * Returns the environment script path.
+     *
+     * @return The environment script path.
+     */
+    public String getEnvScriptPaht() {
+        return this.config.getEnvScript();
+    }
+
+    /**
      * Returns the limit of tasks of the worker node.
      *
      * @return The limit of tasks of the worker node.

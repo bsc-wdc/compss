@@ -369,7 +369,7 @@ public class TaskScheduler {
      *
      * @param action Blocked AllocatableAction.
      */
-    protected void addToBlocked(AllocatableAction action) {
+    public void addToBlocked(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Blocked Action: " + action);
         this.blockedActions.addAction(action);
     }

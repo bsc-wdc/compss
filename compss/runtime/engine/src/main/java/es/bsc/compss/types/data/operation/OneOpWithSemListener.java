@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.operation;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
 
@@ -51,7 +52,7 @@ public class OneOpWithSemListener extends EventListener {
             logger.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
                 + ", file role is OPEN_FILE" + ", operation end state is FAILED");
         }
-
+        ErrorManager.warn("Open file tranfer " + fOp.getName() + " failed. Check runtime.log for more details.");
         sem.release();
     }
 

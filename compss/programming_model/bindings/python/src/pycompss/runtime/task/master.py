@@ -1455,28 +1455,31 @@ class TaskMaster(TaskCommons):
 
         :return: None
         """
-        if IS_PYTHON3:
-            # Concurrent:
-            with ThreadPoolExecutor() as executor:
-                futures = []
-                for k in self.parameters:
-                    futures.append(executor.submit(self._serialize_object, k))
-                wait(futures)
-        else:
-            # Sequential:
-            for k in self.parameters:
-                self._serialize_object(k)
-            # Threaded: (somehow takes more time than sequential?)
-            # threads = []
-            # # Serialize each object in a different thread (non blocking IO)
-            # for k in self.parameters:
-            #     io_thread = threading.Thread(target=self._serialize_object,
-            #                                  args=(k,))
-            #     threads.append(io_thread)
-            #     io_thread.start()
-            # # Wait for all threads to finish
-            # for thread in threads:
-            #     thread.join()
+        for k in self.parameters:
+            self._serialize_object(k)
+        # # To enable paralelization with python 3.
+        # if IS_PYTHON3:
+        #     # Concurrent:
+        #     with ThreadPoolExecutor() as executor:
+        #         futures = []
+        #         for k in self.parameters:
+        #             futures.append(executor.submit(self._serialize_object, k))
+        #         wait(futures)
+        # else:
+        #     # Sequential:
+        #     for k in self.parameters:
+        #         self._serialize_object(k)
+        #     # Threaded: (somehow takes more time than sequential?)
+        #     # threads = []
+        #     # # Serialize each object in a different thread (non blocking IO)
+        #     # for k in self.parameters:
+        #     #     io_thread = threading.Thread(target=self._serialize_object,
+        #     #                                  args=(k,))
+        #     #     threads.append(io_thread)
+        #     #     io_thread.start()
+        #     # # Wait for all threads to finish
+        #     # for thread in threads:
+        #     #     thread.join()
 
     def _serialize_object(self, k):
         # type: (str) -> None

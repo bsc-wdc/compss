@@ -378,7 +378,7 @@ class ObjectDistroStream(DistroStreamImpl):
     TOPIC_SYSTEM_MESSAGES = "system-messages"
     DEFAULT_KAFKA_TIMEOUT = 200  # ms
 
-    def __init__(self, alias, access_mode=AT_MOST_ONCE):
+    def __init__(self, alias="", access_mode=AT_MOST_ONCE):
         # type: (str, str) -> None
         """
         Creates a new ObjectDistroStream instance.
@@ -408,7 +408,7 @@ class ObjectDistroStream(DistroStreamImpl):
         """
         from pycompss.streams.components.objects.kafka_connectors import ODSPublisher  # noqa: E501
         if self.publisher is None:
-            if self.bootstrap_server is None:
+            if self.bootstrap_server == "None":
                 self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()  # noqa: E501
 
             logger.info("Creating internal producer...")
@@ -422,7 +422,7 @@ class ObjectDistroStream(DistroStreamImpl):
         """
         from pycompss.streams.components.objects.kafka_connectors import ODSConsumer  # noqa: E501
         if self.consumer is None:
-            if self.bootstrap_server is None:
+            if self.bootstrap_server == "None":
                 self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()  # noqa: E501
 
             logger.info("Creating internal consumer...")

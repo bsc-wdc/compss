@@ -66,7 +66,7 @@ class DistroStreamClientHandler(object):
         pass
 
     @staticmethod
-    def init_and_start(master_ip, master_port):
+    def init_and_start(master_ip="", master_port=""):
         # type: (str, str) -> None
         """ Initializes and starts the client.
 

@@ -68,12 +68,13 @@ def test_who_contextualized():
 def test_get_context():
     from pycompss.util.context import set_pycompss_context
     from pycompss.util.context import get_pycompss_context
+    set_pycompss_context(OUT_OF_SCOPE)
     pre_context = get_pycompss_context()
     set_pycompss_context(MASTER)
     master_context = get_pycompss_context()
     set_pycompss_context(WORKER)
     worker_context = get_pycompss_context()
-    assert pre_context == OUT_OF_SCOPE, "ERROR: The context was not OUT_OF_SCOPE before setting."  # noqa: E501
+    assert pre_context == OUT_OF_SCOPE, "ERROR: The context was not OUT_OF_SCOPE before setting"  # noqa: E501
     assert master_context == MASTER, "ERROR: The context was not in MASTER."
     assert worker_context == WORKER, "ERROR: The context was not in WORKER."
     set_pycompss_context(OUT_OF_SCOPE)

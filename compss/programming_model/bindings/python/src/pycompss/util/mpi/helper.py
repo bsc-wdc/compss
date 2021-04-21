@@ -32,19 +32,19 @@ rank = comm.rank
 
 
 def rank_distributor(collection_layout):
-    # type: (typing.Dict[str, int]) -> list
+    # type: (typing.Tuple[int, int, int]) -> list
     """
     Distributes mpi ranks to data given a collection layout
 
     :param collection_layout: Layout of the collection.
     :return distribution: distribution of rank x
     """
-    cl_block_count, cl_block_length, cl_stride = collection_layout
-    if cl_block_count == -1:
+    block_count, block_length, stride = collection_layout
+    if block_count == -1:
         block_count = size
-    if cl_stride == -1:
+    if stride == -1:
         stride = 1
-    if cl_block_length == -1:
+    if block_length == -1:
         block_length = 1
     distribution = []
     if block_count == size:

@@ -140,7 +140,7 @@ class ObjectTracker(object):
         :return: None
         """
         obj_id = self.is_tracked(obj)
-        if obj_id is not None:
+        if obj_id != "":
             if collection:
                 if __debug__:
                     logger.debug("Stop tracking collection %s" % obj_id)
@@ -208,7 +208,7 @@ class ObjectTracker(object):
         :return: True if pending. False otherwise.
         """
         obj_id = self.is_tracked(obj)
-        if obj_id is None:
+        if obj_id == "":
             return False
         else:
             return self.is_pending_to_synchronize(obj_id)
@@ -319,7 +319,7 @@ class ObjectTracker(object):
         assert not force_insertion or assign_new_key
 
         identifier = self.is_tracked(obj)
-        if identifier is not None:
+        if identifier != "":
             if force_insertion:
                 self.obj_id_to_obj.pop(identifier)
                 address = self._get_object_address(obj)

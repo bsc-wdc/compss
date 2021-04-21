@@ -170,16 +170,18 @@ def gen(obj):
         yield obj
 
 
-class S(object):              # NOSONAR
-    # __slots__ = ("p", "q")  # NOSONAR
-    p = None  # type: typing.Any
-    q = None  # type: typing.Any
+class S(object):            # NOSONAR
+    __slots__ = ("p", "q")  # NOSONAR
+    # p = None  # type: typing.Any
+    # q = None  # type: typing.Any
+    pass
 
 
-class T(object):              # NOSONAR
-    # __slots__ = ("p", "q")  # NOSONAR
-    p = None  # type: typing.Any
-    q = None  # type: typing.Any
+class T(object):            # NOSONAR
+    __slots__ = ("p", "q")  # NOSONAR
+    # p = None  # type: typing.Any
+    # q = None  # type: typing.Any
+    pass
 
 
 class U(object):  # NOSONAR

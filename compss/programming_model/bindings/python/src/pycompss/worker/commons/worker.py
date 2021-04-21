@@ -141,8 +141,8 @@ def build_task_parameter(p_type,      # type: int
                 if IS_PYTHON3:
                     # decode removes double backslash, and encode returns
                     # the result as binary
-                    p_bin_str = str(new_aux.decode(STR_ESCAPE).encode())
-                    deserialized_aux = deserialize_from_string(p_bin_str)  # noqa
+                    p_bin = new_aux.decode(STR_ESCAPE).encode()
+                    deserialized_aux = deserialize_from_string(p_bin)  # noqa
                 else:
                     # decode removes double backslash, and str casts the output
                     deserialized_aux = deserialize_from_string(str(new_aux.decode(STR_ESCAPE)))
@@ -701,7 +701,7 @@ def execute_task(process_name,              # type: str
             else:
                 obj = None
                 file_name = "None"
-                if self_elem.content is None:
+                if self_elem.content == "":
                     file_name = self_elem.file_name.original_path
                     if __debug__:
                         logger.debug("\t- Deserialize self from file.")

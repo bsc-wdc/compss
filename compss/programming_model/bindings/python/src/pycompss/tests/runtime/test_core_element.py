@@ -30,10 +30,10 @@ ERROR_IMPL_TYPE_ARGS = "ERROR: Wrong impl_type_args value."
 def test_core_element():
     signature = "my_signature"
     impl_signature = "my_impl_signature"
-    impl_constraints = "impl_constraints"
+    impl_constraints = {"impl_constraints": ""}
     impl_type = "impl_type"
-    impl_io = "impl_io"
-    impl_type_args = "impl_type_args"
+    impl_io = False
+    impl_type_args = ["impl_type_args"]
     core_element = CE(signature,
                       impl_signature,
                       impl_constraints,
@@ -76,7 +76,7 @@ def test_core_element():
     # Check impl_io
     result = core_element.get_impl_io()
     assert result == impl_io, ERROR_IMPL_IO
-    new_impl_io = "my_new_impl_io"
+    new_impl_io = True
     core_element.set_impl_io(new_impl_io)
     result = core_element.get_impl_io()
     assert result == new_impl_io, ERROR_IMPL_IO
@@ -84,7 +84,7 @@ def test_core_element():
     # Check impl_type_args
     result = core_element.get_impl_type_args()
     assert result == impl_type_args, ERROR_IMPL_TYPE_ARGS
-    new_impl_type_args = "my_new_impl_type_args"
+    new_impl_type_args = ["my_new_impl_type_args"]
     core_element.set_impl_type_args(new_impl_type_args)
     result = core_element.get_impl_type_args()
     assert result == new_impl_type_args, ERROR_IMPL_TYPE_ARGS
@@ -97,8 +97,8 @@ def test_core_element():
                "\t - Impl. signature  : my_new_impl_signature\n" \
                "\t - Impl. constraints: my_new_impl_constraints:value;\n" \
                "\t - Impl. type       : my_new_impl_type\n" \
-               "\t - Impl. io         : my_new_impl_io\n" \
-               "\t - Impl. type args  : my_new_impl_type_args"
+               "\t - Impl. io         : True\n" \
+               "\t - Impl. type args  : [\'my_new_impl_type_args\']"
     assert representation == expected, "ERROR: Wrong representation."
 
     # Reset
@@ -108,10 +108,10 @@ def test_core_element():
     representation = core_element.__repr__()
     assert isinstance(representation, str), "ERROR: Received wrong representation type."  # noqa: E501
     expected = "CORE ELEMENT: \n" \
-               "\t - CE signature     : None\n" \
-               "\t - Impl. signature  : None\n" \
-               "\t - Impl. constraints: None\n" \
-               "\t - Impl. type       : None\n" \
-               "\t - Impl. io         : None\n" \
-               "\t - Impl. type args  : None"
+               "\t - CE signature     : \n" \
+               "\t - Impl. signature  : \n" \
+               "\t - Impl. constraints: {}\n" \
+               "\t - Impl. type       : \n" \
+               "\t - Impl. io         : False\n" \
+               "\t - Impl. type args  : []"
     assert representation == expected, "ERROR: Wrong empty representation."

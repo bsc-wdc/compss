@@ -87,7 +87,7 @@ def prepare_environment(interactive,   # type: bool
                         debug,         # type: bool
                         trace,         # type: bool
                         mpi_worker     # type: bool
-                        ):  # type: (...) -> dict
+                        ):             # type: (...) -> dict
     """ Setup the environment variable and retrieve their content.
 
     :param interactive: True | False If the environment is interactive or not.
@@ -195,7 +195,7 @@ def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
     :return: Dictionary containing the updated monitor, graph and log_level
              values.
     """
-    if monitor is not None:
+    if monitor != -1:
         # Enable the graph if the monitoring is enabled
         graph = True
         # Set log level info
@@ -296,13 +296,13 @@ def check_infrastructure_variables(project_xml, resources_xml, compss_home,
                                 python_interpreter, python_version and
                                 python_virtual_environment)
     """
-    if project_xml is None:
+    if project_xml == "":
         project_xml = compss_home + DEFAULT_PROJECT_PATH + \
                       "default_project.xml"
-    if resources_xml is None:
+    if resources_xml == "":
         resources_xml = compss_home + DEFAULT_RESOURCES_PATH + \
                         "default_resources.xml"
-    app_name = file_name if app_name is None else app_name
+    app_name = file_name if app_name == "" else app_name
     external_adaptation_str = "true" if external_adaptation else "false"
     major_version = str(sys.version_info[0])
     python_interpreter = "python" + major_version
@@ -380,7 +380,7 @@ def create_init_config_file(compss_home,                    # type: str
                             wcl,                            # type: int
                             cache_profiler,                 # type: bool
                             **kwargs                        # type: dict
-                            ): # type: (...) -> None
+                            ):  # type: (...) -> None
     """
     Creates the initialization files for the runtime start (java options file).
 
@@ -476,7 +476,7 @@ def create_init_config_file(compss_home,                    # type: str
     jvm_options_file.write('-Dcompss.to.file=false\n')
     jvm_options_file.write('-Dcompss.appName=' + app_name + '\n')
 
-    if uuid is None:
+    if uuid == "":
         import uuid as _uuid
         my_uuid = str(_uuid.uuid4())
     else:
@@ -488,14 +488,14 @@ def create_init_config_file(compss_home,                    # type: str
     else:
         jvm_options_file.write('-Dcompss.shutdown_in_node_failure=false\n')
 
-    if base_log_dir is None:
+    if base_log_dir == "":
         # It will be within $HOME/.COMPSs
         jvm_options_file.write("-Dcompss.baseLogDir=\n")
     else:
         jvm_options_file.write("-Dcompss.baseLogDir=" +
                                base_log_dir + "\n")
 
-    if specific_log_dir is None:
+    if specific_log_dir == "":
         jvm_options_file.write("-Dcompss.specificLogDir=\n")
     else:
         jvm_options_file.write("-Dcompss.specificLogDir=" +
@@ -522,7 +522,7 @@ def create_init_config_file(compss_home,                    # type: str
     else:
         jvm_options_file.write("-Dcompss.graph=false\n")
 
-    if monitor is None:
+    if monitor == -1:
         jvm_options_file.write("-Dcompss.monitor=0\n")
     else:
         jvm_options_file.write("-Dcompss.monitor=" + str(monitor) + "\n")

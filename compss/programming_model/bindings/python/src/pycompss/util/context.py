@@ -28,14 +28,12 @@ import inspect
 import typing
 from contextlib import contextmanager
 
-from pycompss.runtime.task.core_element import CE
-
 MASTER = "MASTER"
 WORKER = "WORKER"
 OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
-_WHO = OUT_OF_SCOPE
-_WHERE = OUT_OF_SCOPE
+_WHO = OUT_OF_SCOPE    # type: typing.Any
+_WHERE = OUT_OF_SCOPE  # type: typing.Any
 
 NESTING = False
 LOADING = False
@@ -86,8 +84,8 @@ def set_pycompss_context(where):
     global _WHERE
     _WHERE = where
     global _WHO
-    caller_stack = str(inspect.stack()[1])
-    caller_module = str(inspect.getmodule(caller_stack[0]))
+    caller_stack = inspect.stack()[1]
+    caller_module = inspect.getmodule(caller_stack[0])
     _WHO = caller_module
 
 

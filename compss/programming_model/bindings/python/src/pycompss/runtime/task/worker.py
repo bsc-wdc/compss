@@ -369,6 +369,7 @@ class TaskWorker(TaskCommons):
         """
         if __debug__:
             logger.debug("\t - Revealing: " + str(argument.name))
+            logger.debug("\t - checking: " + str(get_name_from_kwarg(argument.name)))
         # This case is special, as a FILE can actually mean a FILE or an
         # object that is serialized in a file
         if is_vararg(argument.name):
@@ -1117,13 +1118,13 @@ class TaskWorker(TaskCommons):
         original_name = get_name_from_kwarg(name)
         # Get the args parameter object
         if is_vararg(original_name):
-            return self.get_varargs_direction().content_type is None
+            return self.get_varargs_direction().content_type == -1
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
             annotated = [parameter.TYPE.COLLECTION,
                          parameter.TYPE.DICT_COLLECTION,
                          parameter.TYPE.EXTERNAL_STREAM,
-                         None]
+                         -1]
             return self.decorator_arguments[original_name].content_type in annotated  # noqa: E501
         # The parameter is not annotated in the decorator, so (by default)
         # return True

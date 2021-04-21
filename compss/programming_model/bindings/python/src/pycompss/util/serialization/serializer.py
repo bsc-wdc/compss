@@ -267,7 +267,7 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
 
 
 def serialize_to_string(obj):
-    # type: (typing.Any) -> str
+    # type: (typing.Any) -> typing.Union[str, bytes]
     """ Serialize an object to a string.
 
     :param obj: Object to be serialized.
@@ -277,7 +277,10 @@ def serialize_to_string(obj):
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
     handler.close()
-    return str(ret)
+    if IS_PYTHON3:
+        return ret
+    else:
+        return str(ret)
 
 
 def deserialize_from_handler(handler):
@@ -366,14 +369,18 @@ def deserialize_from_file(file_name):
 
 @EmitEvent(DESERIALIZE_FROM_BYTES_EVENT, master=False, inside=True)
 def deserialize_from_string(serialized_content):
-    # type: (str) -> typing.Any
+    # type: (type.Union[str, bytes]) -> typing.Any
     """ Deserialize the contents in a given string.
 
     :param serialized_content: A string with serialized contents
     :param show_exception: Show exception if happen (only with debug).
     :return: A deserialized object
     """
-    serialized_content_bytes = str.encode(serialized_content)
+    # if IS_PYTHON3:
+    #     serialized_content_bytes = str.encode(serialized_content)
+    # else:
+    #     serialized_content_bytes = serialized_content
+    serialized_content_bytes = serialized_content
     handler = BytesIO(serialized_content_bytes)
     ret, close_handler = deserialize_from_handler(handler)
     if close_handler:

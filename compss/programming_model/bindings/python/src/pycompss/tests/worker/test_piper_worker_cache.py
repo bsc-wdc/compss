@@ -90,6 +90,7 @@ def test_piper_worker_cache():
         ), "ERROR: List retrieved from cache differs from inserted"
         # Remove object
         remove_object_from_cache(logging, cache_queue, list_obj_name)
+        time.sleep(0.5)
         is_ok = False
         try:
             _, _ = retrieve_object_from_cache(logging, cache_ids, list_obj_name)  # noqa: E501

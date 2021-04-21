@@ -192,7 +192,7 @@ class Parameter(object):
 
         :return: True if param represents an object (IN, INOUT, OUT).
         """
-        return self.content_type is None
+        return self.content_type == -1
 
     def is_file(self):
         # type: () -> bool

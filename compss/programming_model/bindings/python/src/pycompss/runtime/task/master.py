@@ -844,7 +844,7 @@ class TaskMaster(TaskCommons):
         :return: None
         """
         default = "METHOD"
-        if ce_type is None:
+        if ce_type != "":
             ce_type = default
 
         if ce_type == default or \
@@ -949,7 +949,7 @@ class TaskMaster(TaskCommons):
             get_impl_type = self.core_element.get_impl_type
             get_impl_type_args = self.core_element.get_impl_type_args
             get_impl_io = self.core_element.get_impl_io
-            if get_ce_signature() is None:
+            if get_ce_signature() == "":
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
             elif get_ce_signature() != impl_signature and not upper_decorator:
@@ -963,11 +963,11 @@ class TaskMaster(TaskCommons):
                 # a signature
                 set_impl_signature(impl_signature)
                 set_impl_type_args(impl_type_args)
-            if get_impl_constraints() is None:
+            if not get_impl_constraints():
                 set_impl_constraints(impl_constraints)
-            if get_impl_type() is None:
+            if not get_impl_type():
                 set_impl_type(impl_type)
-            if get_impl_type_args() is None:
+            if not get_impl_type_args():
                 set_impl_type_args(impl_type_args)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
@@ -979,7 +979,7 @@ class TaskMaster(TaskCommons):
                     set_impl_type_args(impl_type_args + impl_type_args_new[1:])
                 else:
                     set_impl_type_args(impl_type_args)
-            if get_impl_io() is None:
+            if not get_impl_io():
                 set_impl_io(impl_io)
         else:
             # @task is in the top of the decorators stack.
@@ -1692,7 +1692,10 @@ class TaskMaster(TaskCommons):
                 self.parameters[name],
                 code_strings
             )
-            values.append(val)
+            if isinstance(val, COMPSsFile):
+                values.append(val.original_path)
+            else:
+                values.append(val)
             compss_types.append(typ)
             compss_directions.append(direc)
             compss_streams.append(st)
@@ -1709,7 +1712,10 @@ class TaskMaster(TaskCommons):
                 self.parameters[slf_name],
                 code_strings
             )
-            values.append(val)
+            if isinstance(val, COMPSsFile):
+                values.append(val.original_path)
+            else:
+                values.append(val)
             compss_types.append(typ)
             compss_directions.append(direc)
             compss_streams.append(st)
@@ -2039,7 +2045,7 @@ def _turn_into_file(p, skip_creation=False):
     :return: None
     """
     obj_id = OT_is_tracked(p.content)
-    if obj_id is None:
+    if obj_id == "":
         # This is the first time a task accesses this object
         if p.direction == DIRECTION.IN_DELETE:
             obj_id, file_name = OT_not_track()
@@ -2149,7 +2155,10 @@ def _extract_parameter(param, code_strings, collection_depth=0):
                 code_strings,
                 param.depth - 1
             )
-            value += " %s %s %s" % (x_type, x_value, x_con_type)
+            if isinstance(x_value, COMPSsFile):
+                value += " %s %s %s" % (x_type, x_value.original_path, x_con_type)
+            else:
+                value += " %s %s %s" % (x_type, x_value, x_con_type)
     elif param.content_type == TYPE.DICT_COLLECTION or \
             (collection_depth > 0 and is_dict(param.content)):
         # An object will be considered a dictionary collection if at least one
@@ -2179,21 +2188,34 @@ def _extract_parameter(param, code_strings, collection_depth=0):
                 code_strings,
                 param.depth - 1
             )
+            real_k_type = k_type
+            if isinstance(k_type, COMPSsFile):
+                real_k_type = k_type.original_path
+            real_k_value = k_value
+            if isinstance(k_value, COMPSsFile):
+                real_k_value = k_value.original_path
             if k_con_type != con_type:
-                value = "%s %s %s %s" % (value, k_type, k_value, k_con_type)
+
+                value = "%s %s %s %s" % (value, real_k_type, real_k_value, k_con_type)
             else:
                 # remove last dict_collection._classname if key is a dict_collection  # noqa: E501
-                value = "%s %s %s" % (value, k_type, k_value)
+                value = "%s %s %s" % (value, real_k_type, real_k_value)
             v_value, v_type, _, _, _, v_con_type, _, _ = _extract_parameter(
                 v,
                 code_strings,
                 param.depth - 1
             )
+            real_v_type = v_type
+            if isinstance(v_type, COMPSsFile):
+                real_v_type = v_type.original_path
+            real_v_value = v_value
+            if isinstance(v_value, COMPSsFile):
+                real_v_value = v_value.original_path
             if v_con_type != con_type:
-                value = "%s %s %s %s" % (value, v_type, v_value, v_con_type)
+                value = "%s %s %s %s" % (value, real_v_type, real_v_value, v_con_type)
             else:
                 # remove last dict_collection._classname if value is a dict_collection  # noqa: E501
-                value = "%s %s %s" % (value, v_type, v_value)
+                value = "%s %s %s" % (value, real_v_type, real_v_value)
     else:
         # Keep the original value and type
         value = param.content

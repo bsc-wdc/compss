@@ -43,11 +43,11 @@ def init_streaming(streaming_backend,
     :return: True if initialized successfully, False otherwise.
     """
     # Fix options if necessary
-    if streaming_master_name is None or \
+    if streaming_master_name == "" or \
             not streaming_master_name or \
             streaming_master_name == "null":
         streaming_master_name = "localhost"
-    if streaming_master_port is None or \
+    if streaming_master_port == "" or \
             not streaming_master_port or \
             streaming_master_port == "null":
         streaming_master_port = "49049"

@@ -83,7 +83,7 @@ class CE(object):
         return self.impl_constraints
 
     def get_impl_type(self):
-        # type: () -> str
+        # type: () -> typing.Optional[str]
         return self.impl_type
 
     def get_impl_io(self):

@@ -834,7 +834,7 @@ class TaskMaster(TaskCommons):
                 # -1 to remove the last point
 
     def set_code_strings(self, f, ce_type):
-        # type: (typing.Any, str) -> None
+        # type: (typing.Any, typing.Optional[str]) -> None
         """ This function is used to set if the strings must be coded or not.
 
         IMPORTANT! modifies f adding __code_strings__ which is used in binding.

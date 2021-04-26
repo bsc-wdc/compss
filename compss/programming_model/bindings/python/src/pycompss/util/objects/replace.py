@@ -172,16 +172,18 @@ def gen(obj):
 
 class S(object):            # NOSONAR
     __slots__ = ("p", "q")  # NOSONAR
-    # p = None  # type: typing.Any
-    # q = None  # type: typing.Any
-    pass
+
+    def __init__(self):
+        self.p = None  # type: typing.Any
+        self.q = None  # type: typing.Any
 
 
 class T(object):            # NOSONAR
     __slots__ = ("p", "q")  # NOSONAR
-    # p = None  # type: typing.Any
-    # q = None  # type: typing.Any
-    pass
+
+    def __init__(self):
+        self.p = None  # type: typing.Any
+        self.q = None  # type: typing.Any
 
 
 class U(object):  # NOSONAR

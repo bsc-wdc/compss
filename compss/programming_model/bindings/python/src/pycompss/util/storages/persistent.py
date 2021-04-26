@@ -38,10 +38,10 @@ from pycompss.worker.commons.constants import STOP_STORAGE_EVENT
 
 # Globals
 # Contain the actual storage api functions set on initialization
-INIT = None         # type: typing.Any
-FINISH = None       # type: typing.Any
-get_by_id = None    # type: typing.Any
-TaskContext = None  # type: typing.Any
+INIT = None            # type: typing.Any
+FINISH = None          # type: typing.Any
+get_by_id_func = None  # type: typing.Any
+TaskContext = None     # type: typing.Any
 
 
 def load_storage_library():  # noqa
@@ -52,7 +52,7 @@ def load_storage_library():  # noqa
     """
     global INIT
     global FINISH
-    global get_by_id
+    global get_by_id_func
     global TaskContext
 
     try:
@@ -113,7 +113,7 @@ def load_storage_library():  # noqa
     # Prepare the imports
     INIT = init
     FINISH = finish
-    get_by_id = get_by_id_from_storage
+    get_by_id_func = get_by_id_from_storage
     TaskContext = task_context  # Renamed for importing it from the worker
 
 

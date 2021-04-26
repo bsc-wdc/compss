@@ -113,17 +113,17 @@ FILES_BLACK_LIST = [
 ]
 INTEGRATION_WHITE_LIST = [
     # Include here all tests that require the runtime installed
-    # 'pycompss/tests/dds/test_dds_examples.py',  # ok
-    # 'pycompss/tests/integration/test_launch_application.py',  # ok
-    # 'pycompss/tests/integration/test_launch_application_collection.py',  # ok
-    # 'pycompss/tests/integration/test_launch_application_tracing.py',  # ok
-    # 'pycompss/tests/integration/test_launch_application_storage.py',  # ok
-    # 'pycompss/tests/integration/test_launch_synthetic_application.py',  # ok
-    # 'pycompss/tests/integration/test_launch_functions.py',  # ok
-    # 'pycompss/tests/integration/test_launch_0_basic1.py',  # ok
-    'pycompss/tests/integration/test_launch_stream_objects.py',
-    # 'pycompss/tests/integration/test_runcompss_application.py',  # ok
-    # 'pycompss/tests/main/test_notebook.py',  # ok
+    'pycompss/tests/dds/test_dds_examples.py',
+    'pycompss/tests/integration/test_launch_application.py',
+    'pycompss/tests/integration/test_launch_application_collection.py',
+    'pycompss/tests/integration/test_launch_application_tracing.py',
+    'pycompss/tests/integration/test_launch_application_storage.py',
+    'pycompss/tests/integration/test_launch_synthetic_application.py',
+    'pycompss/tests/integration/test_launch_functions.py',
+    'pycompss/tests/integration/test_launch_0_basic1.py',
+    # 'pycompss/tests/integration/test_launch_stream_objects.py',  # FAILS
+    'pycompss/tests/integration/test_runcompss_application.py',
+    'pycompss/tests/main/test_notebook.py',
 ]
 
 

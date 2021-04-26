@@ -112,4 +112,7 @@ class PiperWorkerConfiguration(object):
         for pipe in self.pipes:
             logger.debug(HEADER + "                 * " + str(pipe))
         logger.debug(HEADER + "Storage conf.  : " + str(self.storage_conf))
+        logger.debug(HEADER + "Stream backend : " + str(self.stream_backend))
+        logger.debug(HEADER + "Stream master  : " + str(self.stream_master_name))  # noqa: E501
+        logger.debug(HEADER + "Stream port    : " + str(self.stream_master_port))  # noqa: E501
         logger.debug(HEADER + "-----------------------------")

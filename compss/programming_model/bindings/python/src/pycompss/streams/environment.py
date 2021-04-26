@@ -54,8 +54,8 @@ def init_streaming(streaming_backend,
 
     # Check if the stream backend is enabled
     if streaming_backend != "" \
-            and streaming_backend != "" \
             and streaming_backend != "null" \
+            and streaming_backend != "None" \
             and streaming_backend != "NONE":
         streaming_enabled = True
     else:

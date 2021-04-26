@@ -97,11 +97,11 @@ def test_serialize_deserialize_np_to_file_no_gc():
 
 
 def test_serialize_deserialize_string():
-    from pycompss.util.serialization.serializer import serialize_to_string
-    from pycompss.util.serialization.serializer import deserialize_from_string
     obj = ["hello", 1, "world", 2, [5, 4, 3, 2, 1], None]
-    serialized = serialize_to_string(obj)
-    result = deserialize_from_string(serialized)
+    from pycompss.util.serialization.serializer import serialize_to_bytes
+    from pycompss.util.serialization.serializer import deserialize_from_bytes
+    serialized = serialize_to_bytes(obj)
+    result = deserialize_from_bytes(serialized)
     assert result == obj, "ERROR: Serialization and deserialization to/from string retrieved wrong object."  # noqa: E501
 
 

@@ -594,7 +594,7 @@ def register_ce(core_element):  # noqa
     impl_signature_base = core_element.get_impl_signature()
     impl_signature = None if impl_signature_base == "" else impl_signature_base
     impl_constraints_base = core_element.get_impl_constraints()
-    impl_constraints = None if impl_constraints_base == "" else impl_constraints_base
+    impl_constraints = dict() if impl_constraints_base == "" else impl_constraints_base
     impl_type_base = core_element.get_impl_type()
     impl_type = None if impl_type_base == "" else str(impl_type_base)
     impl_io = str(core_element.get_impl_io())

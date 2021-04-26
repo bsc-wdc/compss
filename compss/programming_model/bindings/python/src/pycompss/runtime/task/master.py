@@ -87,7 +87,7 @@ from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.interactive.helpers import update_tasks_code_file
 from pycompss.util.serialization import serializer
-from pycompss.util.serialization.serializer import serialize_to_string
+from pycompss.util.serialization.serializer import serialize_to_bytes
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.objects.properties import get_module_name
 from pycompss.util.objects.sizer import total_sizeof
@@ -591,7 +591,7 @@ class TaskMaster(TaskCommons):
             return inspect.getargspec(function)  # noqa
 
     def process_parameters(self, args, kwargs):
-        # type: (list, dict) -> None
+        # type: (tuple, dict) -> None
         """ Process all the input parameters.
 
         Basically, processing means "build a dictionary of <name, parameter>,
@@ -1797,8 +1797,8 @@ class TaskMaster(TaskCommons):
                         logger.debug("The object size is less than 320 kb.")  # noqa: E501
                     real_value = p.content
                     try:
-                        v = serialize_to_string(p.content)
-                        p.content = v.encode(STR_ESCAPE)  # noqa
+                        v = serialize_to_bytes(p.content)
+                        p.content = str(v).encode(STR_ESCAPE)  # noqa
                         p.content_type = TYPE.STRING
                         if __debug__:
                             logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501
@@ -1834,10 +1834,10 @@ class TaskMaster(TaskCommons):
                     and not isinstance(p.content, base_string):
                 real_value = p.content
                 try:
-                    v = serialize_to_string(p.content)
-                    v = str(v.encode(STR_ESCAPE))  # noqa
+                    v = serialize_to_bytes(p.content)
+                    v_str = str(str(v).encode(STR_ESCAPE))  # noqa
                     # check object size
-                    num_bytes = sys.getsizeof(v)
+                    num_bytes = sys.getsizeof(v_str)
                     if __debug__:
                         megabytes = num_bytes / 1000000  # truncate
                         logger.debug("Object size %d bytes (%d Mb)." %
@@ -1848,7 +1848,7 @@ class TaskMaster(TaskCommons):
                         # arguments list too long error.
                         if __debug__:
                             logger.debug("The object size is less than 320 kb")  # noqa: E501
-                        p.content = v
+                        p.content = v_str
                         p.content_type = TYPE.STRING
                         if __debug__:
                             logger.debug("Inferred type modified (Object converted to String).")  # noqa: E501

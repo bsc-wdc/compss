@@ -37,10 +37,10 @@ from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import COMPSsFile
-from pycompss.util.tracing.helpers import emit_event
+from pycompss.util.tracing.helpers import EmitEvent
 from pycompss.worker.commons.constants import GET_TASK_PARAMS_EVENT
 from pycompss.worker.commons.constants import IMPORT_USER_MODULE_EVENT
-from pycompss.util.serialization.serializer import deserialize_from_string
+from pycompss.util.serialization.serializer import deserialize_from_bytes
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.exceptions import SerializerException
@@ -138,14 +138,10 @@ def build_task_parameter(p_type,      # type: int
             real_value = new_aux
             try:
                 # try to recover the real object
-                if IS_PYTHON3:
-                    # decode removes double backslash, and encode returns
-                    # the result as binary
-                    p_bin = new_aux.decode(STR_ESCAPE).encode()
-                    deserialized_aux = deserialize_from_string(p_bin)  # noqa
-                else:
-                    # decode removes double backslash, and str casts the output
-                    deserialized_aux = deserialize_from_string(str(new_aux.decode(STR_ESCAPE)))
+                # Decode removes double backslash, and encode returns
+                # the result as binary
+                p_bin = new_aux.decode(STR_ESCAPE).encode()
+                deserialized_aux = deserialize_from_bytes(p_bin)  # noqa
             except (SerializerException, ValueError, EOFError):
                 # was not an object
                 deserialized_aux = str(real_value.decode())
@@ -197,7 +193,7 @@ def build_task_parameter(p_type,      # type: int
         ), 0
 
 
-@emit_event(GET_TASK_PARAMS_EVENT, master=False, inside=True)
+@EmitEvent(GET_TASK_PARAMS_EVENT, master=False, inside=True)
 def get_task_params(num_params, logger, args):  # noqa
     # type: (int, typing.Any, list) -> list
     """ Get and prepare the input parameters from string to lists.
@@ -467,7 +463,7 @@ def task_returns(exit_code,         # type: int
             return_message)
 
 
-@emit_event(IMPORT_USER_MODULE_EVENT, master=False, inside=True)
+@EmitEvent(IMPORT_USER_MODULE_EVENT, master=False, inside=True)
 def import_user_module(path, logger):
     # type: (str, typing.Any) -> typing.Any
     """ Import the user module.

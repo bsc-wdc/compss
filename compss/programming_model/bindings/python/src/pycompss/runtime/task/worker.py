@@ -300,7 +300,7 @@ class TaskWorker(TaskCommons):
 
     def reveal_objects(self,
                        args,                     # type: tuple
-                       collections_layouts,      # type: typing.Dict[str, typing.Dict[str, int]]
+                       collections_layouts,      # type: typing.Dict[str, typing.Tuple[int, int, int]]
                        python_mpi=False,         # type: bool
                        ):                        # type: (...) -> None
         """ Get the objects from the args message.
@@ -354,7 +354,7 @@ class TaskWorker(TaskCommons):
                          argument,             # type: Parameter
                          name_prefix,          # type: str
                          python_mpi,           # type: bool
-                         collections_layouts,  # type: typing.Dict[str, typing.Dict[str, int]]
+                         collections_layouts,  # type: typing.Dict[str, typing.Tuple[int, int, int]]
                          depth=0               # type: int
                          ):                    # type: (...) -> None
         """ Retrieve the content of a particular argument.

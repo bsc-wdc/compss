@@ -50,6 +50,7 @@ import types
 import traceback
 import typing
 from io import BytesIO
+from io import StringIO
 
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.exceptions import SerializerException
@@ -266,9 +267,9 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
         serialize_to_file(obj, file_name)
 
 
-def serialize_to_string(obj):
-    # type: (typing.Any) -> typing.Union[str, bytes]
-    """ Serialize an object to a string.
+def serialize_to_bytes(obj):
+    # type: (typing.Any) -> bytes
+    """ Serialize an object to a byte array.
 
     :param obj: Object to be serialized.
     :return: The serialized content
@@ -277,10 +278,7 @@ def serialize_to_string(obj):
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
     handler.close()
-    if IS_PYTHON3:
-        return ret
-    else:
-        return str(ret)
+    return ret
 
 
 def deserialize_from_handler(handler):
@@ -368,19 +366,13 @@ def deserialize_from_file(file_name):
 
 
 @EmitEvent(DESERIALIZE_FROM_BYTES_EVENT, master=False, inside=True)
-def deserialize_from_string(serialized_content):
-    # type: (type.Union[str, bytes]) -> typing.Any
-    """ Deserialize the contents in a given string.
+def deserialize_from_bytes(serialized_content_bytes):
+    # type: (bytes) -> typing.Any
+    """ Deserialize the contents in a given byte array.
 
-    :param serialized_content: A string with serialized contents
-    :param show_exception: Show exception if happen (only with debug).
+    :param serialized_content_bytes: A byte array with serialized contents
     :return: A deserialized object
     """
-    # if IS_PYTHON3:
-    #     serialized_content_bytes = str.encode(serialized_content)
-    # else:
-    #     serialized_content_bytes = serialized_content
-    serialized_content_bytes = serialized_content
     handler = BytesIO(serialized_content_bytes)
     ret, close_handler = deserialize_from_handler(handler)
     if close_handler:

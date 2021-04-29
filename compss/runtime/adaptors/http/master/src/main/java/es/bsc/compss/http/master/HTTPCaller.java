@@ -14,9 +14,6 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.RequestDispatcher;
 import es.bsc.compss.util.RequestQueue;
-import es.bsc.compss.worker.COMPSsException;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,85 +40,79 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 break;
             }
             try {
-                TaskDescription taskParams = job.getTaskParams();
                 Map<String, Object> namedParameters = new HashMap<>();
 
-                for (Parameter par : taskParams.getParameters()) {
-                    final Direction parameterDirection = par.getDirection();
+                final TaskDescription taskParams = job.getTaskParams();
+                processTaskParameters(taskParams, namedParameters);
 
-                    if (parameterDirection == Direction.IN || parameterDirection == Direction.IN_DELETE) {
-                        switch (par.getType()) {
-                            case OBJECT_T:
-                            case PSCO_T:
-                            case EXTERNAL_PSCO_T:
-                                DependencyParameter dependencyParameter = (DependencyParameter) par;
-                                addParameterToMapOfParameters(namedParameters, par,
-                                    getObjectValue(dependencyParameter));
-                                break;
-
-                            case FILE_T:
-                                LOGGER.error("Error: HTTP CAN'T USE BINDING FILES AS PARAMETERS!");
-                                // Skip
-                                break;
-
-                            case STREAM_T:
-                            case EXTERNAL_STREAM_T:
-                                LOGGER.error("Error: HTTP CAN'T USE STREAMS AS PARAMETERS!");
-                                // Skip
-                                break;
-
-                            case BINDING_OBJECT_T:
-                                LOGGER.error("Error: HTTP CAN'T USE BINDING OBJECTS AS PARAMETERS!");
-                                // Skip
-                                break;
-
-                            default:
-                                // Basic or String
-                                BasicTypeParameter basicTypeParameter = (BasicTypeParameter) par;
-                                addParameterToMapOfParameters(namedParameters, par, basicTypeParameter.getValue());
-                        }
-                    } else if (parameterDirection == Direction.OUT) {
-                        LOGGER.debug("Out parameter of HTTPCaller: " + par);
-                    }
-                }
-
-                /*
-                 * HTTPImplementation service = (HTTPImplementation) job.getImplementation(); service.getBaseUrl();
-                 * service.getMethodType(); //hashMap d'adalt // TODO Aldo work here, retornar de moment String
-                 * 
-                 * Response response = HTTPController.performRequest(); if (response.responseCode >= 200 &&
-                 * response.responseCode < 300) { //ok } else { //potser si ha definit altres status code com a ok
-                 * //fail }
-                 */
-
-                // use namedParameters
+                HTTPImplementation httpImplementation = (HTTPImplementation) job.getImplementation();
 
                 LOGGER.debug("Executing HTTP request...");
 
-                // TODO Aldo: change with real implementation
+                // String url = replaceUrlParameters(httpImplementation.getBaseUrl(), namedParameters);
+                // TODO Aldo: replace parameters in URL
 
-                int[] mockResultInt = new int[] { 1,
-                    2,
-                    4,
-                    9 };
+                final String methodType = httpImplementation.getMethodType();
+                final String baseUrl = httpImplementation.getBaseUrl();
 
-                Object[] result = new Object[] { mockResultInt };
+                Response response = HTTPController.performRequest(methodType, baseUrl);
 
-                if (result.length > 0) {
-                    job.setReturnValue(result[0]);
-                }
+                int responseCode = response.getResponseCode();
+                if (responseCode >= 200 && responseCode < 300) {
+                    // int[] mockResultInt = new int[]{1, 2, 4, 9};
 
-                job.getListener().jobCompleted(job);
-            } catch (Exception e) {
-                if (e instanceof COMPSsException) {
-                    job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED, (COMPSsException) e);
+                    job.setReturnValue(response.getResponseBody());
+                    job.getListener().jobCompleted(job);
                 } else {
                     job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
                 }
-                LOGGER.error(SUBMIT_ERROR, e);
-                return;
-            }
 
+            } catch (Exception e) {
+                job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
+                LOGGER.error(SUBMIT_ERROR, e);
+            }
+        }
+    }
+
+    private void processTaskParameters(TaskDescription taskParams, Map<String, Object> namedParameters)
+        throws CannotLoadException {
+
+        for (Parameter par : taskParams.getParameters()) {
+            final Direction parameterDirection = par.getDirection();
+
+            if (parameterDirection == Direction.IN || parameterDirection == Direction.IN_DELETE) {
+                switch (par.getType()) {
+                    case OBJECT_T:
+                    case PSCO_T:
+                    case EXTERNAL_PSCO_T:
+                        DependencyParameter dependencyParameter = (DependencyParameter) par;
+                        addParameterToMapOfParameters(namedParameters, par, getObjectValue(dependencyParameter));
+                        break;
+
+                    case FILE_T:
+                        LOGGER.error("Error: HTTP CAN'T USE BINDING FILES AS PARAMETERS!");
+                        // Skip
+                        break;
+
+                    case STREAM_T:
+                    case EXTERNAL_STREAM_T:
+                        LOGGER.error("Error: HTTP CAN'T USE STREAMS AS PARAMETERS!");
+                        // Skip
+                        break;
+
+                    case BINDING_OBJECT_T:
+                        LOGGER.error("Error: HTTP CAN'T USE BINDING OBJECTS AS PARAMETERS!");
+                        // Skip
+                        break;
+
+                    default:
+                        // Basic or String
+                        BasicTypeParameter basicTypeParameter = (BasicTypeParameter) par;
+                        addParameterToMapOfParameters(namedParameters, par, basicTypeParameter.getValue());
+                }
+            } else if (parameterDirection == Direction.OUT) {
+                LOGGER.debug("Out parameter of HTTPCaller: " + par);
+            }
         }
     }
 

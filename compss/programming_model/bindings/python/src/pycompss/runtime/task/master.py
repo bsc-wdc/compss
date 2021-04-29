@@ -897,28 +897,7 @@ class TaskMaster(object):
 
         :return: Implementation signature and implementation type arguments.
         """
-        # Get the task signature
-        # To do this, we will check the frames
-        # frames = inspect.getouterframes(inspect.currentframe())
-        app_frames = []
-        # Ignore self.get_signature and call functions from the frame.
-        # Sightly faster than inspect.currentframe().
-        frame = sys._getframe(2)  # type: typing.Any
-        try:
-            while frame:
-                # This loop does like inspect.getouterframes(frame)
-                # but it is more efficient since it does only get the needed
-                # information.
-                frame_name = frame.f_code.co_name
-                if frame_name == "compss_main":
-                    break
-                app_frames.append(frame_name)
-                frame = frame.f_back
-        finally:
-            # Avoid reference cycles
-            del frame
-
-        if len(app_frames) != 1 and self.class_name:
+        if self.class_name != "":
             # Within class or subclass
             impl_signature = ".".join([str(self.module_name),
                                        str(self.class_name),

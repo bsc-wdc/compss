@@ -578,7 +578,12 @@ class TaskMaster(TaskCommons):
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
         self.computing_nodes = kwargs.pop("computing_nodes", 1)
-        self.on_failure = kwargs.pop("on_failure", "RETRY")
+        if "on_failure" in self.decorator_arguments:
+            self.on_failure = self.decorator_arguments["on_failure"]
+            # if task defines on_failure property the decorator is ignored
+            kwargs.pop("on_failure")
+        else:
+            self.on_failure = kwargs.pop("on_failure", "RETRY")
         self.defaults = kwargs.pop("defaults", {})
         # We take the reduce and chunk size set for the reduce decorator,
         # otherwise we set them to 0.

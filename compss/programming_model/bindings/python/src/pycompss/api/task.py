@@ -96,7 +96,6 @@ class Task(PyCOMPSsDecorator):
             "target_direction": parameter.INOUT,
             "returns": False,
             "priority": False,
-            "on_failure": "RETRY",
             "defaults": {},
             "time_out": 0,
             "is_replicated": False,

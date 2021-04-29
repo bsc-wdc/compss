@@ -53,9 +53,8 @@ def write_file(file_path):
         print("EXCEPTION")
         raise ServiceExit()
 
-
-@on_failure(management="IGNORE")
-@task(file_path=FILE_OUT)
+@on_failure(management="RETRY")
+@task(file_path=FILE_OUT, on_failure="IGNORE")
 def raise_failure_with_out(file_path):
     print("Nothing done")
 
@@ -76,12 +75,12 @@ def test_on_failure_retry(file_name):
 
     # Launch NUM_TASKS CONCURRENT
     for i in range(NUM_TASKS):
-        try:
-            write_file(file_name)
-        except Exception as e:
-            print(e.value)
-            print('Exiting main program')
-            sys.exit(0)
+        #try:
+        write_file(file_name)
+        #except Exception as e:
+        #    print(str(e))
+        #    print('Exiting main program')
+        #    sys.exit(0)
 
     # Synchronize final value
     with open(file_name) as f:

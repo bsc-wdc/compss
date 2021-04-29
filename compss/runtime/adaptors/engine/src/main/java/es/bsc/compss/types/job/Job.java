@@ -26,6 +26,8 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.Resource;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -64,6 +66,8 @@ public abstract class Job<T extends COMPSsWorker> {
     protected final Implementation impl;
     protected final Resource worker;
     protected final JobListener listener;
+    protected final List<Integer> predecessors;
+    protected final Integer numSuccessors;
 
     protected JobHistory history;
     protected int transferId;
@@ -78,7 +82,8 @@ public abstract class Job<T extends COMPSsWorker> {
      * @param res Assigned Resource
      * @param listener Listener to notify job events
      */
-    public Job(int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
+    public Job(int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener,
+        List<Integer> predecessors, Integer numSuccessors) {
         this.jobId = nextJobId++;
         this.taskId = taskId;
         this.history = JobHistory.NEW;
@@ -86,7 +91,8 @@ public abstract class Job<T extends COMPSsWorker> {
         this.impl = impl;
         this.worker = res;
         this.listener = listener;
-
+        this.predecessors = predecessors;
+        this.numSuccessors = numSuccessors;
         /*
          * Setup job environment variables ****************************************
          * 
@@ -305,4 +311,21 @@ public abstract class Job<T extends COMPSsWorker> {
         return this.taskParams.getTimeOut();
     }
 
+    /**
+     * Returns the predecessors of a task.
+     *
+     * @return predecessors of the task
+     */
+    public List<Integer> getPredecessors() {
+        return this.predecessors;
+    }
+
+    /**
+     * Returns the number of successors of a task.
+     *
+     * @return number of successors of the task
+     */
+    public Integer getNumSuccessors() {
+        return this.numSuccessors;
+    }
 }

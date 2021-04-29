@@ -60,8 +60,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
 
     public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl,
-        Resource res, JobListener listener) {
-        super(taskId, task, impl, res, listener);
+        Resource res, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
+        super(taskId, task, impl, res, listener, predecessors, numSuccessors);
     }
 
     @Override

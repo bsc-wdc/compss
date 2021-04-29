@@ -76,6 +76,10 @@ public interface Invocation {
      */
     public boolean isDebugEnabled();
 
+    public List<Integer> getPredecessors();
+
+    public Integer getNumSuccessors();
+
     public List<? extends InvocationParam> getParams();
 
     public InvocationParam getTarget();

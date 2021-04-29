@@ -115,6 +115,7 @@ TRACING_TASK_NAME_TO_ID = dict()
 # GETTERS AND SETTERS (see launch.py and interactive.py) #
 ##########################################################
 
+
 def get_temporary_directory():
     # type: () -> str
     """ Temporary directory getter.

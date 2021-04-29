@@ -276,9 +276,9 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
-        return new NIOJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
+        return new NIOJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener, predecessors, numSuccessors);
     }
 
     @Override

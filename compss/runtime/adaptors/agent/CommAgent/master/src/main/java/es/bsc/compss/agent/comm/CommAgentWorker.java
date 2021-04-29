@@ -114,8 +114,9 @@ class CommAgentWorker extends NIOWorkerNode {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
-        return new CommAgentJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
+        return new CommAgentJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener, predecessors,
+            numSuccessors);
     }
 
     @Override

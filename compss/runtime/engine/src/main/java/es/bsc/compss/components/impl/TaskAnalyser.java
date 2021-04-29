@@ -61,7 +61,10 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -118,7 +121,6 @@ public class TaskAnalyser implements GraphHandler {
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
         this.reduceTasksNames = new ArrayList<>();
-
         LOGGER.info("Initialization finished");
     }
 
@@ -189,6 +191,7 @@ public class TaskAnalyser implements GraphHandler {
             // add a direct dependency from last sync to task.
             addEdgeFromMainToTask(currentTask);
         }
+
     }
 
     private boolean processTaskParameters(Application app, Task currentTask, int constrainingParam) {
@@ -294,6 +297,19 @@ public class TaskAnalyser implements GraphHandler {
      */
     public void endTask(AbstractTask aTask) {
         int taskId = aTask.getId();
+
+        // Adding predecessors for task dependency tracing
+        if (Tracer.isActivated()) {
+            for (AbstractTask at : aTask.getSuccessors()) {
+                ArrayList<Integer> predecessors = new ArrayList<>();
+                if (Tracer.taskHasPredecessors(at.getId())) {
+                    predecessors = Tracer.getPredecessors(at.getId());
+                }
+                predecessors.add(taskId);
+                Tracer.setPredecessors(at.getId(), predecessors);
+            }
+        }
+
         long start = System.currentTimeMillis();
         if (aTask instanceof Task) {
             Task task = (Task) aTask;
@@ -737,7 +753,6 @@ public class TaskAnalyser implements GraphHandler {
         } else {
             // Basic types do not produce access dependencies
         }
-
         // Return data Id
         return hasParamEdge;
     }
@@ -891,6 +906,7 @@ public class TaskAnalyser implements GraphHandler {
 
         com.setFinalVersion(((RWAccessId) daId).getWVersionId());
         boolean hasParamEdge = checkDependencyForCommutative(currentTask, dp, com);
+
         registerOutputValues(com, dp, false, dai);
 
         return hasParamEdge;

@@ -60,6 +60,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
@@ -69,6 +70,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -489,8 +491,18 @@ public class ExecutionAction extends AllocatableAction {
         }
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         List<String> slaveNames = new ArrayList<>(); // No salves
+
+        // Get predecessors for task dependency tracing
+        List<Integer> predecessors = null;
+        if (Tracer.isActivated()) {
+            predecessors = Tracer.getPredecessors(this.task.getId());
+        }
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
-            slaveNames, listener);
+            slaveNames, listener, predecessors, this.task.getSuccessors().size());
+        // Remove predecessors from map for task dependency tracing
+        if (Tracer.isActivated()) {
+            Tracer.removePredecessor(this.task.getId());
+        }
         this.currentJob = job;
         job.setTransferGroupId(transferGroupId);
         job.setHistory(JobHistory.NEW);

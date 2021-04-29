@@ -38,6 +38,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -177,8 +179,8 @@ public abstract class Tracer {
     public static boolean tracerAlreadyLoaded = false;
 
     private static int numPthreadsEnabled = 0;
-
-
+    // Hashmap of the predecessors
+    private static HashMap<Integer, ArrayList<Integer>> predecessorsMap;
 
     /**
      * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
@@ -201,6 +203,7 @@ public abstract class Tracer {
 
         hostId = new AtomicInteger(1);
         hostToSlots = new HashMap<>();
+        predecessorsMap = new HashMap<>();
 
         if (!logDirPath.endsWith(File.separator)) {
             logDirPath += logDirPath;
@@ -463,6 +466,22 @@ public abstract class Tracer {
 
     public static TraceEvent getAcessProcessorRequestEvent(String eventType) {
         return TraceEvent.valueOf(eventType);
+    }
+
+    public static boolean taskHasPredecessors(Integer taskId) {
+        return predecessorsMap.containsKey(taskId);
+    }
+
+    public static ArrayList<Integer> getPredecessors(int taskId) {
+        return predecessorsMap.get(taskId);
+    }
+
+    public static void removePredecessor(int taskId) {
+        predecessorsMap.remove(taskId);
+    }
+
+    public static void setPredecessors(int taskId, ArrayList<Integer> predecessors) {
+        predecessorsMap.put(taskId, predecessors);
     }
 
     /**

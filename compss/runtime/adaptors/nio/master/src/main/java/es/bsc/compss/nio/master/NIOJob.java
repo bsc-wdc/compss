@@ -52,9 +52,9 @@ public class NIOJob extends Job<NIOWorkerNode> {
      * @param listener Listener.
      */
     public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
-        super(taskId, taskParams, impl, res, listener);
+        super(taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
     }
 
@@ -121,7 +121,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
         NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, parallelismSource,
             this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, numParams,
             absMethodImpl.getRequirements(), this.slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(),
-            this.jobId, this.history, this.transferId, this.getOnFailure(), this.getTimeOut());
+            this.jobId, this.history, this.transferId, this.getOnFailure(), this.getTimeOut(), this.getPredecessors(),
+            this.getNumSuccessors());
 
         return nt;
     }

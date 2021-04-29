@@ -920,9 +920,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
-        return new LocalJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
+        return new LocalJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener, predecessors,
+            numSuccessors);
     }
 
     @Override

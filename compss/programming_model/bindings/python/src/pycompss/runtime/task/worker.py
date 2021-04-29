@@ -26,6 +26,8 @@ import typing
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.task.commons import TaskCommons
+from pycompss.runtime.task.commons import get_varargs_direction
+from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
@@ -102,8 +104,6 @@ class TaskWorker(object):
         self.param_varargs = None  # type: typing.Any
         self.on_failure = on_failure
         self.defaults = defaults
-        self.get_varargs_direction = tc.get_varargs_direction
-        self.get_default_direction = tc.get_default_direction
 
         # These variables are initialized on call since they are only for
         # the worker
@@ -946,7 +946,9 @@ class TaskWorker(object):
                 continue
 
             original_name = get_name_from_kwarg(arg.name)
-            real_direction = self.get_default_direction(original_name)
+            real_direction = get_default_direction(original_name,
+                                                   self.decorator_arguments,
+                                                   self.param_args)
             param = self.decorator_arguments.get(original_name, real_direction)
             # Update args
             arg.direction = param.direction
@@ -1061,7 +1063,7 @@ class TaskWorker(object):
                                                  self.user_function)
 
     def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
-        # type: (int, typing.Any, list, bool) -> list
+        # type: (int, typing.Any, list, bool) -> typing.Any
         """ Manage task returns.
 
         WARNING: Modifies ret_params, which is included into args.
@@ -1132,7 +1134,10 @@ class TaskWorker(object):
         original_name = get_name_from_kwarg(name)
         # Get the args parameter object
         if is_vararg(original_name):
-            return self.get_varargs_direction().content_type == -1
+            self.param_varargs, varargs_direction = get_varargs_direction(
+                self.param_varargs,
+                self.decorator_arguments)
+            return varargs_direction.content_type == -1
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
             annotated = [parameter.TYPE.COLLECTION,
@@ -1155,7 +1160,10 @@ class TaskWorker(object):
         original_name = get_name_from_kwarg(name)
         # Get the args parameter object
         if is_vararg(original_name):
-            return self.get_varargs_direction().is_file_collection
+            self.param_varargs, varargs_direction = get_varargs_direction(
+                self.param_varargs,
+                self.decorator_arguments)
+            return varargs_direction.is_file_collection
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
             return self.decorator_arguments[original_name].is_file_collection
@@ -1165,7 +1173,7 @@ class TaskWorker(object):
 
     def manage_new_types_values(self,
                                 num_returns,   # type: int
-                                user_returns,  # type: list
+                                user_returns,  # type: typing.Any
                                 args,          # type: tuple
                                 has_self,      # type: bool
                                 target_label,  # type: str
@@ -1231,7 +1239,9 @@ class TaskWorker(object):
             else:
                 original_name = get_name_from_kwarg(arg.name)
                 param = self.decorator_arguments.get(original_name,
-                                                     self.get_default_direction(original_name))  # noqa: E501
+                                                     get_default_direction(original_name,
+                                                                           self.decorator_arguments,
+                                                                           self.param_args))
                 if arg.content_type == parameter.TYPE.EXTERNAL_PSCO or \
                         arg.content_type == parameter.TYPE.FILE:
                     # It was originally a persistent object

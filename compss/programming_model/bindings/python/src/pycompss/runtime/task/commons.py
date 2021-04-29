@@ -51,43 +51,49 @@ class TaskCommons(object):
         self.on_failure = on_failure
         self.defaults = defaults
 
-    def get_varargs_direction(self):
-        # type: () -> Parameter
-        """ Returns the direction of the varargs arguments.
 
-        Can be defined in the decorator in two ways:
-            args = dir, where args is the name of the variadic args tuple.
-            varargs_type = dir (for legacy reasons).
+def get_varargs_direction(param_varargs, decorator_arguments):
+    # type: (typing.Any, typing.Any) -> typing.Tuple[typing.Any, Parameter]
+    """ Returns the direction of the varargs arguments.
 
-        :return: Direction of the varargs arguments.
-        """
-        if self.param_varargs not in self.decorator_arguments:
-            if "varargsType" in self.decorator_arguments:
-                self.param_varargs = "varargsType"
-                return self.decorator_arguments["varargsType"]
-            return self.decorator_arguments["varargs_type"]
-        return self.decorator_arguments[self.param_varargs]
+    Can be defined in the decorator in two ways:
+        args = dir, where args is the name of the variadic args tuple.
+        varargs_type = dir (for legacy reasons).
 
-    def get_default_direction(self, var_name):
-        # type: (str) -> Parameter
-        """ Returns the default direction for a given parameter.
+    :param param_varargs: Parameter varargs.
+    :param decorator_arguments: Decorator arguments.
+    :return: Direction of the varargs arguments.
+    """
+    if param_varargs not in decorator_arguments:
+        if "varargsType" in decorator_arguments:
+            param_varargs = "varargsType"
+            return param_varargs, decorator_arguments[param_varargs]
+        return param_varargs, decorator_arguments["varargs_type"]
+    return param_varargs, decorator_arguments[param_varargs]
 
-        :param var_name: Variable name.
-        :return: An identifier of the direction.
-        """
-        # We are the "self" or "cls" in an instance or class method that
-        # modifies the given class, so we are an INOUT, CONCURRENT or
-        # COMMUTATIVE
-        self_dirs = [parameter.DIRECTION.INOUT,
-                     parameter.DIRECTION.CONCURRENT,
-                     parameter.DIRECTION.COMMUTATIVE]
-        if "targetDirection" in self.decorator_arguments:
-            target_label = "targetDirection"
-        else:
-            target_label = "target_direction"
-        if self.decorator_arguments[target_label].direction in self_dirs and \
-                var_name in ["self", "cls"] and \
-                self.param_args and \
-                self.param_args[0] == var_name:
-            return self.decorator_arguments[target_label]
-        return get_new_parameter("IN")
+
+def get_default_direction(var_name, decorator_arguments, param_args):
+    # type: (str, typing.Any, typing.List[typing.Any]) -> Parameter
+    """ Returns the default direction for a given parameter.
+
+    :param var_name: Variable name.
+    :param decorator_arguments: Decorator arguments.
+    :param param_args: Parameter args.
+    :return: An identifier of the direction.
+    """
+    # We are the "self" or "cls" in an instance or class method that
+    # modifies the given class, so we are an INOUT, CONCURRENT or
+    # COMMUTATIVE
+    self_dirs = [parameter.DIRECTION.INOUT,
+                 parameter.DIRECTION.CONCURRENT,
+                 parameter.DIRECTION.COMMUTATIVE]
+    if "targetDirection" in decorator_arguments:
+        target_label = "targetDirection"
+    else:
+        target_label = "target_direction"
+    if decorator_arguments[target_label].direction in self_dirs and \
+            var_name in ["self", "cls"] and \
+            param_args and \
+            param_args[0] == var_name:
+        return decorator_arguments[target_label]
+    return get_new_parameter("IN")

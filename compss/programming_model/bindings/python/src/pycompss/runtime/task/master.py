@@ -64,6 +64,8 @@ from pycompss.runtime.management.object_tracker import OT_pop_written_obj
 from pycompss.runtime.management.object_tracker import OT_stop_tracking
 from pycompss.runtime.management.object_tracker import OT_not_track
 from pycompss.runtime.task.commons import TaskCommons
+from pycompss.runtime.task.commons import get_varargs_direction
+from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import COMPSsFile
@@ -253,8 +255,6 @@ class TaskMaster(object):
         self.param_varargs = None  # type: typing.Any
         self.on_failure = on_failure
         self.defaults = defaults
-        self.get_varargs_direction = tc.get_varargs_direction
-        self.get_default_direction = tc.get_default_direction
 
         # Add more argument related attributes that will be useful later
         self.param_defaults = None       # type: typing.Union[None, tuple]
@@ -714,10 +714,15 @@ class TaskMaster(object):
         # Is the argument a vararg? or a kwarg? Then check the direction
         # for varargs or kwargs
         if is_vararg(arg_name):
-            param = get_parameter_copy(self.get_varargs_direction())
+            self.param_varargs, varargs_direction = get_varargs_direction(
+                self.param_varargs,
+                self.decorator_arguments)
+            param = get_parameter_copy(varargs_direction)
         elif is_kwarg(arg_name):
             real_name = get_name_from_kwarg(arg_name)
-            default_direction = self.get_default_direction(real_name)
+            default_direction = get_default_direction(real_name,
+                                                      self.decorator_arguments,
+                                                      self.param_args)
             param = self.decorator_arguments.get(real_name,
                                                  default_direction)
         else:
@@ -729,7 +734,9 @@ class TaskMaster(object):
             # will have priority over the default
             # direction resolution, even if this implies a contradiction
             # with the target_direction flag
-            default_direction = self.get_default_direction(arg_name)
+            default_direction = get_default_direction(arg_name,
+                                                      self.decorator_arguments,
+                                                      self.param_args)
             param = self.decorator_arguments.get(arg_name,
                                                  default_direction)
 
@@ -745,7 +752,10 @@ class TaskMaster(object):
         # If the parameter is a DIRECTORY or FILE update the file_name
         # or content type depending if object. Otherwise update content.
         if param.is_file() or param.is_directory():
-            param.file_name = arg_object
+            if isinstance(arg_object, COMPSsFile):
+                param.file_name = arg_object
+            else:
+                param.file_name = COMPSsFile(arg_object)
             # todo: beautify this
             param.extra_content_type = "FILE"
         else:
@@ -1692,7 +1702,7 @@ class TaskMaster(object):
         compss_streams = []
         compss_prefixes = []
         extra_content_types = []
-        slf_name = None
+        slf_name = ""
         weights = []
         keep_renames = []
         code_strings = self.user_function.__code_strings__
@@ -1703,7 +1713,6 @@ class TaskMaster(object):
             slf_name = arg_names.pop(0)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         for name in arg_names:
             val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
                 self.parameters[name],
@@ -1759,8 +1768,6 @@ class TaskMaster(object):
             extra_content_types.append(p.extra_content_type)
             weights.append(p.weight)
             keep_renames.append(p.keep_rename)
-        print(values)
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
         return values, names, compss_types, compss_directions, \
                compss_streams, compss_prefixes, extra_content_types, \

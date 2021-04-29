@@ -756,8 +756,8 @@ def execute_task(process_name,              # type: str
                                      " automatically updated by the storage.")
                 else:
                     if __debug__:
-                        logger.debug("Serializing self to file: %s" %
-                                     file_name)
+                        logger.debug("Serializing self (%r) to file: %s" %
+                                     (obj, file_name))
                     try:
                         serialize_to_file(obj, file_name)
                     except Exception:  # noqa
@@ -770,7 +770,7 @@ def execute_task(process_name,              # type: str
                         logger.exception(''.join(line for line in lines))
                         exit_code = 1
                     if __debug__:
-                        logger.debug("Obj: %r" % obj)
+                        logger.debug("Serialized successfully")
         else:
             # Class method - class is not included in values (e.g. values=[7])
             types.append(None)  # class must be first type

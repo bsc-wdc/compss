@@ -186,8 +186,6 @@ public abstract class Tracer {
     // Hashmap of the predecessors
     private static HashMap<Integer, ArrayList<Integer>> predecessorsMap;
 
-
-
     /**
      * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
      * (master) sets its nodeID (taskID in extrae) to 0, and its number of tasks to 1 (a single program).

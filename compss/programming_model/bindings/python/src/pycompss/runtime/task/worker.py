@@ -483,7 +483,7 @@ class TaskWorker(object):
                                                       "",
                                                       sub_name,
                                                       content_file,
-                                                      argument.content_type, logger=logger)
+                                                      str(argument.content_type), logger=logger)
 
                     # if direction of the collection is "out", it means we
                     # haven't received serialized objects from the Master
@@ -584,13 +584,13 @@ class TaskWorker(object):
                                                       "",
                                                       sub_name_key,
                                                       content_file_key,
-                                                      argument.content_type, logger=logger)
+                                                      str(argument.content_type), logger=logger)
                 sub_arg_value, _ = build_task_parameter(int(data_type_value),  # noqa: E501
                                                         parameter.IOSTREAM.UNSPECIFIED,
                                                         "",
                                                         sub_name_value,
                                                         content_file_value,
-                                                        argument.content_type, logger=logger)
+                                                        str(argument.content_type), logger=logger)
 
                 # if direction of the dictionary collection is "out", it
                 # means we haven't received serialized objects from the

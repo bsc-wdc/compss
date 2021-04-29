@@ -29,6 +29,7 @@ import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Container;
 import es.bsc.compss.types.annotations.task.Decaf;
+import es.bsc.compss.types.annotations.task.HTTP;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
 import es.bsc.compss.types.annotations.task.MultiNode;
@@ -158,6 +159,7 @@ public class ITFParser {
                 // Simple annotations
                 && !annot.annotationType().getName().equals(Method.class.getName())
                 && !annot.annotationType().getName().equals(Service.class.getName())
+                && !annot.annotationType().getName().equals(HTTP.class.getName())
                 && !annot.annotationType().getName().equals(Binary.class.getName())
                 && !annot.annotationType().getName().equals(Container.class.getName())
                 && !annot.annotationType().getName().equals(MPI.class.getName())
@@ -515,6 +517,31 @@ public class ITFParser {
             try {
                 implDef = ImplementationDescription.defineImplementation(TaskType.SERVICE.toString(), serviceSignature,
                     null, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(), serviceAnnot.port());
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+            ced.addImplementation(implDef);
+        }
+
+        /*
+         * HTTP
+         */
+        for (HTTP httpAnnotation : m.getAnnotationsByType(HTTP.class)) {
+            LOGGER.debug("   * Processing @HTTP annotation");
+
+            // Warning for ignoring streams
+            if (hasStreams) {
+                ErrorManager.warn(
+                    "Java HTTP " + methodName + " does not support stream annotations. SKIPPING stream annotation");
+            }
+
+            calleeMethodSignature.insert(0, httpAnnotation.declaringClass() + ".");
+
+            // Register HTTP implementation
+            ImplementationDescription<?, ?> implDef = null;
+            try {
+                implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(),
+                    calleeMethodSignature.toString(), null, httpAnnotation.methodType(), httpAnnotation.baseUrl());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

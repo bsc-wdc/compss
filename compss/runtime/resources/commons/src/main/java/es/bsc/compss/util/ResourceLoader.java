@@ -23,6 +23,7 @@ import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.HTTPWorker;
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.project.jaxb.ApplicationType;
@@ -49,11 +50,13 @@ import es.bsc.compss.types.project.jaxb.SoftwareListType;
 import es.bsc.compss.types.project.jaxb.StorageType;
 import es.bsc.compss.types.resources.DataResourceDescription;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
+import es.bsc.compss.types.resources.HTTPResourceDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.ResourcesFile;
 import es.bsc.compss.types.resources.ServiceResourceDescription;
 import es.bsc.compss.types.resources.ServiceWorker;
+import es.bsc.compss.types.resources.configuration.HTTPConfiguration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
@@ -76,6 +79,7 @@ import org.xml.sax.SAXException;
 
 public class ResourceLoader {
 
+    private static final int HTTP_CONNECTIONS = 10;
     // Resources XML and XSD
     private static String resources_XML;
     private static String resources_XSD;
@@ -212,8 +216,10 @@ public class ResourceLoader {
             cloudProviderExist = loadCloud(cloud);
         }
 
+        boolean httpResourceExists = loadHTTPResource(HTTP_CONNECTIONS);
+
         // Availability checker
-        if (!computeNodeExist && !serviceExist && !cloudProviderExist) {
+        if (!computeNodeExist && !serviceExist && !cloudProviderExist && !httpResourceExists) {
             throw new NoResourceAvailableException();
         }
     }
@@ -487,6 +493,36 @@ public class ResourceLoader {
         LOGGER.debug("Adding service worker " + wsdl);
 
         ServiceWorker newResource = new ServiceWorker(wsdl, srd, config);
+        ResourceManager.addStaticResource(newResource);
+
+        return true;
+    }
+
+    private static boolean loadHTTPResource(int connections) {
+        final HTTPResourceDescription srd = new HTTPResourceDescription(connections);
+
+        HTTPConfiguration config = null;
+        try {
+            config = (HTTPConfiguration) Comm.constructConfiguration(COMPSsConstants.HTTP_ADAPTOR, new HashMap<>(),
+                new HashMap<>());
+        } catch (ConstructConfigurationException cce) {
+            ErrorManager.warn("HTTP configuration constructor failed", cce);
+            return false;
+        }
+
+        // If we have reached this point the mp is SURELY not null
+
+        /* Add properties given by the project file **************************************** */
+        if (connections >= 0) {
+            config.setLimitOfTasks(connections);
+        } else {
+            config.setLimitOfTasks(Integer.MAX_VALUE);
+        }
+
+        /* Pass all the information to the ResourceManager to insert it into the Runtime ** */
+        LOGGER.debug("Adding HTTP worker");
+
+        HTTPWorker newResource = new HTTPWorker("httpWorker", srd, config);
         ResourceManager.addStaticResource(newResource);
 
         return true;

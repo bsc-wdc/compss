@@ -122,6 +122,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
                 return getName().compareTo(t.getName());
             case WORKER:
                 return -1;
+            case HTTP:
             case MASTER:
                 return -1;
             default:

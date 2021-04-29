@@ -253,6 +253,8 @@ public class ExecutionAction extends AllocatableAction {
                     case METHOD:
                         transferJobData(dp, listener);
                         break;
+
+                    case HTTP:
                     case SERVICE:
                         if (dp.getDirection() != Direction.INOUT) {
                             // For services we only transfer IN parameters because the only
@@ -431,6 +433,8 @@ public class ExecutionAction extends AllocatableAction {
                     case METHOD:
                         removeTmpData(dp);
                         break;
+
+                    case HTTP:
                     case SERVICE:
                         if (dp.getDirection() != Direction.INOUT) {
                             // For services we only transfer IN parameters because the only
@@ -638,6 +642,7 @@ public class ExecutionAction extends AllocatableAction {
             case METHOD:
                 doMethodOutputTransfers(job);
                 break;
+            case HTTP:
             case SERVICE:
                 doServiceOutputTransfers(job);
                 break;

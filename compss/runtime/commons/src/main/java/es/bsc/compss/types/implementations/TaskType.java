@@ -21,5 +21,6 @@ package es.bsc.compss.types.implementations;
  */
 public enum TaskType {
     METHOD, // Generic method type
-    SERVICE // Services type
+    SERVICE, // Services type
+    HTTP
 }

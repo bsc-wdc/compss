@@ -182,6 +182,7 @@ public class COMPSsConstants {
     public static final String DEFAULT_SCHEDULER = "es.bsc.compss.components.impl.TaskScheduler";
 
     public static final String SERVICE_ADAPTOR = "es.bsc.compss.ws.master.WSAdaptor";
+    public static final String HTTP_ADAPTOR = "es.bsc.compss.http.master.HTTPAdaptor";
 
     // private static final String DEFAULT_ADAPTOR = "es.bsc.compss.gat.master.GATAdaptor";
     public static final String DEFAULT_ADAPTOR = "es.bsc.compss.nio.master.NIOAdaptor";

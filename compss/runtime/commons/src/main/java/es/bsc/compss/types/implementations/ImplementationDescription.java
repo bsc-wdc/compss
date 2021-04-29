@@ -21,6 +21,7 @@ import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.HTTPDefinition;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
@@ -29,6 +30,7 @@ import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.implementations.definition.ServiceDefinition;
+import es.bsc.compss.types.resources.HTTPResourceDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ServiceResourceDescription;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -88,6 +90,10 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
 
             id = new ImplementationDescription<>((D) new ServiceDefinition(namespace, serviceName, operation, port),
                 implSignature, (T) new ServiceResourceDescription(serviceName, namespace, port, 1));
+
+        } else if (implType.toUpperCase().compareTo(TaskType.HTTP.toString()) == 0) {
+            id = new ImplementationDescription<>((D) new HTTPDefinition(implTypeArgs, 0), implSignature,
+                (T) new HTTPResourceDescription(1));
         } else {
             MethodType mt;
             try {
@@ -235,6 +241,9 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
         if (implDefinition.getTaskType().equals(TaskType.METHOD)) {
             return new AbstractMethodImplementation(coreId, implId,
                 (ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition>) this);
+        } else if (implDefinition.getTaskType().equals(TaskType.HTTP)) {
+            return new HTTPImplementation(coreId, implId,
+                (ImplementationDescription<HTTPResourceDescription, HTTPDefinition>) this);
         } else {
             return new ServiceImplementation(coreId, implId,
                 (ImplementationDescription<ServiceResourceDescription, ServiceDefinition>) this);

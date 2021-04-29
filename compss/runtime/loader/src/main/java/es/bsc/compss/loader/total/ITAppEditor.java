@@ -32,6 +32,7 @@ import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
+import es.bsc.compss.types.annotations.task.HTTP;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.MultiNode;
 import es.bsc.compss.types.annotations.task.OmpSs;
@@ -39,7 +40,6 @@ import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.util.EnvironmentLoader;
-
 import java.io.File;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
@@ -47,7 +47,6 @@ import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -96,7 +95,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Modifies the current application to instrument the task methods with remote invocations.
-     * 
+     *
      * @param remoteMethods List of ITF remote methods.
      * @param instrCandidates List of detected methods in the main code.
      * @param itApiVar COMPSs API pointer.
@@ -120,7 +119,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Returns the application class.
-     * 
+     *
      * @return The application class.
      */
     public CtClass getAppClass() {
@@ -423,8 +422,9 @@ public class ITAppEditor extends ExprEditor {
         }
 
         // Specific implementation values
-        boolean isMethod =
-            !(declaredMethod.isAnnotationPresent(Service.class) || declaredMethod.isAnnotationPresent(Services.class));
+        boolean isMethod = !(declaredMethod.isAnnotationPresent(Service.class)
+            || declaredMethod.isAnnotationPresent(Services.class) || declaredMethod.isAnnotationPresent(HTTP.class));
+
         if (isMethod) {
             executeTask.append(LANG).append(','); // language set to null
 
@@ -480,14 +480,25 @@ public class ITAppEditor extends ExprEditor {
 
             executeTask.append("\"").append(className).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
-        } else {
-            // Service
+
+        } else if (declaredMethod.isAnnotationPresent(Service.class)
+            || declaredMethod.isAnnotationPresent(Services.class)) {
             Service serviceAnnot = declaredMethod.getAnnotation(Service.class);
 
             executeTask.append("\"").append(serviceAnnot.namespace()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.name()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.port()).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
+
+        } else if (declaredMethod.isAnnotationPresent(HTTP.class)) {
+            HTTP httpAnnotation = declaredMethod.getAnnotation(HTTP.class);
+
+            executeTask.append("\"").append(httpAnnotation.methodType()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.baseUrl()).append("\"").append(',');
+
+            String declareMethodFullyQualifiedName = httpAnnotation.declaringClass() + "." + declaredMethod.getName();
+
+            executeTask.append("\"").append(declareMethodFullyQualifiedName).append("\"").append(',');
         }
 
         // Add scheduler common values
@@ -515,6 +526,10 @@ public class ITAppEditor extends ExprEditor {
             executeTask.append(",null);");
         } else {
             Annotation[][] paramAnnot = declaredMethod.getParameterAnnotations();
+
+            // TODO (below line): add handling of return type
+            // declaredMethod.getReturnType();
+
             CallInformation callInformation = processParameters(declaredMethod, paramAnnot, paramTypes, isVoid,
                 isStatic, isMethod, numParams, retType);
             executeTask.append(callInformation.getToAppend());
@@ -551,7 +566,10 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append(infoParam.getDirection()).append(",");
             toAppend.append(infoParam.getStream()).append(",");
             toAppend.append(infoParam.getPrefix() + ",");
-            toAppend.append("\"\"" + ","); // Parameter Name
+            // TODO Aldo: removeto line below
+            // toAppend.append("\"\"" + ","); // Parameter Name
+
+            toAppend.append(infoParam.getName() + ","); // Parameter Name TODO Aldo: fix error
             toAppend.append("\"\"" + ","); // Parameter Content Type
             toAppend.append(infoParam.getWeight() + ",");
             toAppend.append("new Boolean(" + infoParam.getKeepRename() + ")");
@@ -583,6 +601,7 @@ public class ITAppEditor extends ExprEditor {
         Direction paramDirection = par.direction();
         StdIOStream paramStream = par.stream();
         String paramPrefix = par.prefix();
+        String paramName = par.name(); // TODO Aldo: use this
         String paramWeight = par.weight();
         boolean paramKeepRenames = par.keepRename();
 
@@ -615,7 +634,7 @@ public class ITAppEditor extends ExprEditor {
 
         // Build the parameter information and return
         ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(),
-            type, paramDirection, paramStream, paramPrefix, paramWeight, paramKeepRenames);
+            type, paramDirection, paramStream, paramPrefix, paramName, paramWeight, paramKeepRenames);
         return infoParam;
     }
 
@@ -1076,18 +1095,20 @@ public class ITAppEditor extends ExprEditor {
         private final Direction direction;
         private final StdIOStream stream;
         private final String prefix;
+        private final String name;
         private final String weight;
         private final boolean keepRename;
 
 
         public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction,
-            StdIOStream stream, String prefix, String weight, boolean keepRename) {
+            StdIOStream stream, String prefix, String name, String weight, boolean keepRename) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;
             this.direction = direction;
             this.stream = stream;
             this.prefix = prefix;
+            this.name = name;
             this.weight = weight;
             this.keepRename = keepRename;
         }
@@ -1116,14 +1137,17 @@ public class ITAppEditor extends ExprEditor {
             return "\"" + this.prefix + "\"";
         }
 
+        public String getName() {
+            return "\"" + this.name + "\"";
+        }
+
         public String getWeight() {
-            return "\"" + weight + "\"";
+            return "\"" + this.weight + "\"";
         }
 
         public boolean getKeepRename() {
             return this.keepRename;
         }
-
     }
 
     private class ReturnInformation {

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.ws.master;
+package es.bsc.compss.http.master;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
@@ -35,22 +35,30 @@ import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
+import es.bsc.compss.types.resources.configuration.HTTPConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.ws.master.configuration.WSConfiguration;
-
 import java.util.List;
 
 
-public class ServiceInstance extends COMPSsWorker {
+public class HTTPInstance extends COMPSsWorker {
 
-    private WSConfiguration config;
+    private final String httpWorkerName;
+    private final HTTPConfiguration config;
 
 
-    public ServiceInstance(WSConfiguration config, NodeMonitor monitor) {
+    /**
+     * Set the documentation for this schema.
+     * 
+     * @param config the configuration
+     * @param monitor the monitor
+     * @param httpWorkerName the http worker name
+     */
+    public HTTPInstance(HTTPConfiguration config, NodeMonitor monitor, String httpWorkerName) {
         super(monitor);
         this.config = config;
+        this.httpWorkerName = httpWorkerName;
     }
 
     @Override
@@ -58,37 +66,9 @@ public class ServiceInstance extends COMPSsWorker {
         // Do nothing
     }
 
-    public String getWsdl() {
-        return this.config.getWsdl();
-    }
-
-    public void setServiceName(String serviceName) {
-        this.config.setServiceName(serviceName);
-    }
-
-    public String getServiceName() {
-        return this.config.getServiceName();
-    }
-
-    public void setNamespace(String namespace) {
-        this.config.setNamespace(namespace);
-    }
-
-    public String getNamespace() {
-        return this.config.getNamespace();
-    }
-
-    public void setPort(String port) {
-        this.config.setPort(port);
-    }
-
-    public String getPort() {
-        return this.config.getPort();
-    }
-
     @Override
     public String getName() {
-        return this.config.getWsdl();
+        return this.httpWorkerName;
     }
 
     @Override
@@ -98,9 +78,9 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
-        return new WSJob(taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
+        return new HTTPJob(taskId, taskParams, impl, res, listener);
     }
 
     @Override
@@ -201,8 +181,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public void shutdownExecutionManager(ExecutorShutdownListener sl) {
-        // No executor for services
-        // TODO: check that. Maybe "sl.notifyEnd();"
+        sl.notifyEnd();
     }
 
     @Override
@@ -212,35 +191,30 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public String getClasspath() {
-        // No classpath for services
+        // No classpath for http
         return "";
     }
 
     @Override
     public String getPythonpath() {
-        // No pythonpath for services
+        // No pythonpath for http
         return "";
     }
 
     @Override
     public void increaseComputingCapabilities(ResourceDescription description) {
         // Does not apply.
-        // The computing capabilities of a service is not controlled by the service user
+        // The computing capabilities of a http is not controlled by the http user
     }
 
     @Override
     public void reduceComputingCapabilities(ResourceDescription description) {
         // Does not apply.
-        // The computing capabilities of a service is not controlled by the service user
+        // The computing capabilities of a http is not controlled by the http user
     }
 
     @Override
     public void removeObsoletes(List<MultiURI> obsoletes) {
         // No need to do anything
-    }
-
-    @Override
-    public void verifyNodeIsRunning() {
-        // TODO should be verified that the worker is up.
     }
 }

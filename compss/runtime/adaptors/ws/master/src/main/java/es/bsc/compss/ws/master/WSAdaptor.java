@@ -39,10 +39,6 @@ public class WSAdaptor implements CommAdaptor {
 
     // Logging
     public static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    public static final boolean DEBUG = LOGGER.isDebugEnabled();
-
-    // Tracing
-    protected static boolean tracing;
 
 
     @Override

@@ -80,81 +80,86 @@ class PyCOMPSsDecorator(object):
         """
         raise MissingImplementedException("__configure_core_element__")
 
-    #########################################
-    # VERY USUAL FUNCTIONS THAT MODIFY SELF #
-    #########################################
 
-    def __resolve_working_dir__(self):
-        # type: () -> None
-        """
-        Resolve the working directory considering deprecated naming.
-        Updates self.kwargs:
-            - Removes workingDir if exists.
-            - Updates working_dir with the working directory.
+##############################################
+# VERY USUAL FUNCTIONS THAT MODIFY SOMETHING #
+##############################################
 
-        :return: None
-        """
-        if "working_dir" in self.kwargs:
+def resolve_working_dir(kwargs):
+    # type: (typing.Any) -> None
+    """
+    Resolve the working directory considering deprecated naming.
+    Updates kwargs:
+        - Removes workingDir if exists.
+        - Updates working_dir with the working directory.
+
+    :return: None
+    """
+    if "working_dir" in kwargs:
+        # Accepted argument
+        pass
+    elif "workingDir" in kwargs:
+        kwargs["working_dir"] = kwargs.pop("workingDir")
+    else:
+        kwargs["working_dir"] = "[unassigned]"
+
+
+def resolve_fail_by_exit_value(kwargs):
+    # type: (typing.Any) -> None
+    """
+    Resolve the fail by exit value.
+    Updates kwargs:
+        - Updates fail_by_exit_value if necessary.
+
+    :return: None
+    """
+    if "fail_by_exit_value" in kwargs:
+        fail_by_ev = kwargs["fail_by_exit_value"]
+        if isinstance(fail_by_ev, bool):
+            kwargs["fail_by_exit_value"] = str(fail_by_ev)
+        elif isinstance(fail_by_ev, str):
             # Accepted argument
             pass
-        elif "workingDir" in self.kwargs:
-            self.kwargs["working_dir"] = self.kwargs.pop("workingDir")
+        elif isinstance(fail_by_ev, int):
+            kwargs["fail_by_exit_value"] = str(fail_by_ev)
         else:
-            self.kwargs["working_dir"] = "[unassigned]"
+            raise PyCOMPSsException("Incorrect format for fail_by_exit_value property. "    # noqa: E501
+                                    "It should be boolean or an environment variable")      # noqa: E501
+    else:
+        kwargs["fail_by_exit_value"] = "false"
 
-    def __resolve_fail_by_exit_value__(self):
-        # type: () -> None
-        """
-        Resolve the fail by exit value.
-        Updates self.kwargs:
-            - Updates fail_by_exit_value if necessary.
 
-        :return: None
-        """
-        if "fail_by_exit_value" in self.kwargs:
-            fail_by_ev = self.kwargs["fail_by_exit_value"]
-            if isinstance(fail_by_ev, bool):
-                self.kwargs["fail_by_exit_value"] = str(fail_by_ev)
-            elif isinstance(fail_by_ev, str):
-                # Accepted argument
-                pass
-            elif isinstance(fail_by_ev, int):
-                self.kwargs["fail_by_exit_value"] = str(fail_by_ev)
-            else:
-                raise PyCOMPSsException("Incorrect format for fail_by_exit_value property. "    # noqa: E501
-                                        "It should be boolean or an environment variable")      # noqa: E501
+def process_computing_nodes(decorator_name, kwargs):
+    # type: (str, typing.Any) -> None
+    """
+    Processes the computing_nodes from the decorator.
+    We only ensure that the correct self.kwargs entry exists since its
+    value will be parsed and resolved by the
+    master.process_computing_nodes.
+    Used in decorators:
+        - mpi
+        - multinode
+        - compss
+        - decaf
+
+    WARNING: Updates kwargs.
+
+    :return: None
+    """
+    if "computing_nodes" not in kwargs:
+        if "computingNodes" not in kwargs:
+            # No annotation present, adding default value
+            kwargs["computing_nodes"] = 1
         else:
-            self.kwargs["fail_by_exit_value"] = "false"
+            # Legacy annotation present, switching
+            kwargs["computing_nodes"] = kwargs.pop("computingNodes")
+    else:
+        # Valid annotation found, nothing to do
+        pass
 
-    def __process_computing_nodes__(self, decorator_name):
-        # type: (str) -> None
-        """
-        Processes the computing_nodes from the decorator.
-        We only ensure that the correct self.kwargs entry exists since its
-        value will be parsed and resolved by the
-        master.process_computing_nodes.
-        Used in decorators:
-            - mpi
-            - multinode
-            - compss
-            - decaf
-
-        :return: None
-        """
-        if "computing_nodes" not in self.kwargs:
-            if "computingNodes" not in self.kwargs:
-                # No annotation present, adding default value
-                self.kwargs["computing_nodes"] = 1
-            else:
-                # Legacy annotation present, switching
-                self.kwargs["computing_nodes"] = self.kwargs.pop("computingNodes")  # noqa: E501
-        else:
-            # Valid annotation found, nothing to do
-            pass
-
-        if __debug__:
-            logger.debug("This %s task will have %s computing nodes." %
-                         (decorator_name, str(self.kwargs["computing_nodes"])))
+    if __debug__:
+        logger.debug("This %s task will have %s computing nodes." %
+                     (decorator_name, str(kwargs["computing_nodes"])))
 
 
 ###################

@@ -28,7 +28,9 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import run_command
@@ -78,16 +80,11 @@ class MPI(object):
         self.task_type = "mpi"
         self.decorator_name = "".join(('@', MPI.__name__.lower()))
         # super(MPI, self).__init__(decorator_name, *args, **kwargs)
-        # Instantiate superclass explicitly to support mypy.
-        pd = PyCOMPSsDecorator(self.decorator_name, *args, **kwargs)
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
-        self.__resolve_working_dir__ = pd.__resolve_working_dir__
-        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
-        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
@@ -299,9 +296,9 @@ class MPI(object):
         scale_by_cu_str = self.__resolve_scale_by_cu__()
 
         # Resolve the working directory
-        self.__resolve_working_dir__()
+        resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
-        self.__resolve_fail_by_exit_value__()
+        resolve_fail_by_exit_value(self.kwargs)
         # Resolve parameter collection layout
         collection_layout_params = self.__resolve_collection_layout_params__()
 

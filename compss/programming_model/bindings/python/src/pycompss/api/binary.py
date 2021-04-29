@@ -30,7 +30,8 @@ from functools import wraps
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 from pycompss.util.arguments import UNASSIGNED
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import run_command
@@ -69,17 +70,12 @@ class Binary(object):
         """
         decorator_name = "".join(("@", Binary.__name__.lower()))
         # super(Binary, self).__init__(decorator_name, *args, **kwargs)
-        # Instantiate superclass explicitly to support mypy.
-        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
-        self.__resolve_working_dir__ = pd.__resolve_working_dir__
-        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
-        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -149,11 +145,11 @@ class Binary(object):
             logger.debug("Configuring @binary core element.")
 
         # Resolve the working directory
-        self.__resolve_working_dir__()
+        resolve_working_dir(self.kwargs)
         _working_dir = self.kwargs["working_dir"]
 
         # Resolve the fail by exit value
-        self.__resolve_fail_by_exit_value__()
+        resolve_fail_by_exit_value(self.kwargs)
         _fail_by_ev = self.kwargs["fail_by_exit_value"]
 
         # Resolve binary

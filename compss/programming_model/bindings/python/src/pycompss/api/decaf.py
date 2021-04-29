@@ -31,7 +31,9 @@ import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -74,17 +76,12 @@ class Decaf(object):
         """
         decorator_name = "".join(("@", Decaf.__name__.lower()))
         # super(Decaf, self).__init__(decorator_name, *args, **kwargs)
-        # Instantiate superclass explicitly to support mypy.
-        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
-        self.__resolve_working_dir__ = pd.__resolve_working_dir__
-        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
-        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -94,7 +91,7 @@ class Decaf(object):
                             decorator_name)
 
             # Get the computing nodes
-            self.__process_computing_nodes__(decorator_name)
+            process_computing_nodes(decorator_name, self.kwargs)
 
     def __call__(self, user_function):
         # type: (typing.Any) -> typing.Any
@@ -169,9 +166,9 @@ class Decaf(object):
             df_lib = "[unassigned]"  # Empty or "[unassigned]"
 
         # Resolve the working directory
-        self.__resolve_working_dir__()
+        resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
-        self.__resolve_fail_by_exit_value__()
+        resolve_fail_by_exit_value(self.kwargs)
 
         impl_type = "DECAF"
         impl_signature = ".".join((impl_type, df_script))

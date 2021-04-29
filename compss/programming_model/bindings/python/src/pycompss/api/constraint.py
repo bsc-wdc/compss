@@ -28,7 +28,6 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -57,17 +56,12 @@ class Constraint(object):
         """
         decorator_name = "".join(("@", Constraint.__name__.lower()))
         # super(Constraint, self).__init__(decorator_name, *args, **kwargs)
-        # Instantiate superclass explicitly to support mypy.
-        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
-        self.__resolve_working_dir__ = pd.__resolve_working_dir__
-        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
-        self.__process_computing_nodes__ = pd.__process_computing_nodes__
 
     def __call__(self, user_function):
         # type: (typing.Any) -> typing.Any

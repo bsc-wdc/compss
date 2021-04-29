@@ -75,9 +75,6 @@ class Reduction(object):
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         self.__configure_core_element__ = pd.__configure_core_element__
-        self.__resolve_working_dir__ = pd.__resolve_working_dir__
-        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
-        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,

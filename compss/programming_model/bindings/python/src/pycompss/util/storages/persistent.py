@@ -40,8 +40,38 @@ from pycompss.worker.commons.constants import STOP_STORAGE_EVENT
 # Contain the actual storage api functions set on initialization
 INIT = None            # type: typing.Any
 FINISH = None          # type: typing.Any
-get_by_id_func = None  # type: typing.Any
+GET_BY_ID = None       # type: typing.Any
 TaskContext = None     # type: typing.Any
+DUMMY_STORAGE = False  # type: bool
+
+
+class dummy_task_context(object):
+    """
+    Dummy task context to be used with storage frameworks.
+    """
+
+    def __init__(self, logger, values, config_file_path=None):
+        # type: (typing.Any, typing.Any, str) -> None
+        self.logger = logger
+        err_msg = "Unexpected call to dummy storage task context."
+        self.logger.error(err_msg)
+        self.values = values
+        self.config_file_path = config_file_path
+        raise PyCOMPSsException(err_msg)
+
+    def __enter__(self):
+        # type: () -> None
+        # Ready to start the task
+        err_msg = "Unexpected call to dummy storage task context __enter__"
+        self.logger.error(err_msg)
+        raise PyCOMPSsException(err_msg)
+
+    def __exit__(self, type, value, traceback):
+        # type: (typing.Any, typing.Any, typing.Any) -> None
+        # Task finished
+        err_msg = "Unexpected call to dummy storage task context __exit__"
+        self.logger.error(err_msg)
+        raise PyCOMPSsException(err_msg)
 
 
 def load_storage_library():  # noqa
@@ -52,69 +82,50 @@ def load_storage_library():  # noqa
     """
     global INIT
     global FINISH
-    global get_by_id_func
+    global GET_BY_ID
     global TaskContext
+    global DUMMY_STORAGE
+    error_msg = "UNDEFINED"
+
+    def dummy_init(config_file_path=None):  # noqa
+        # type: (str) -> None
+        raise PyCOMPSsException("Unexpected call to init from storage. Reason: %s" %
+                                error_msg)
+
+    def dummy_finish():
+        # type: () -> None
+        raise PyCOMPSsException("Unexpected call to finish from storage. Reason: %s" %
+                                error_msg)
+
+    def dummy_get_by_id(id):  # noqa
+        # type: (str) -> None
+        raise PyCOMPSsException("Unexpected call to getByID. Reason: %s" % error_msg)
 
     try:
         # Try to import the external storage API module methods
-        from storage.api import init                               # noqa
-        from storage.api import finish                             # noqa
-        from storage.api import getByID as get_by_id_from_storage  # noqa
-        from storage.api import TaskContext as task_context        # noqa
+        from storage.api import init as real_init                 # noqa
+        from storage.api import finish as real_finish             # noqa
+        from storage.api import getByID as real_get_by_id         # noqa
+        from storage.api import TaskContext as real_task_context  # noqa
+        DUMMY_STORAGE = False
         print("INFO: Storage API successfully imported.")
     except ImportError as e:
         # print("INFO: No storage API defined.")
         # Defined methods throwing exceptions.
-        error_msg = e
-
-        def init(config_file_path=None):  # noqa
-            # type: (str) -> None
-            raise PyCOMPSsException("Unexpected call to init from storage. Reason: %s" %
-                                    error_msg)
-
-        def finish():
-            # type: () -> None
-            raise PyCOMPSsException("Unexpected call to finish from storage. Reason: %s" %
-                                    error_msg)
-
-        def get_by_id_from_storage(id):  # noqa
-            # type: (str) -> None
-            raise PyCOMPSsException("Unexpected call to getByID. Reason: %s" % error_msg)
-
-        class task_context(object):  # type: ignore
-            """
-            Dummy task context to be used with storage frameworks.
-            """
-
-            def __init__(self, logger, values, config_file_path=None):
-                # type: (typing.Any, typing.Any, str) -> None
-                self.logger = logger
-                err_msg = "Unexpected call to dummy storage task context. " \
-                          "Reason: %s" % error_msg
-                self.logger.error(err_msg)
-                self.values = values
-                self.config_file_path = config_file_path
-                raise PyCOMPSsException(err_msg)
-
-            def __enter__(self):
-                # type: () -> None
-                # Ready to start the task
-                err_msg = "Unexpected call to dummy storage task context __enter__"
-                self.logger.error(err_msg)
-                raise PyCOMPSsException(err_msg)
-
-            def __exit__(self, type, value, traceback):
-                # type: (typing.Any, typing.Any, typing.Any) -> None
-                # Task finished
-                err_msg = "Unexpected call to dummy storage task context __exit__"
-                self.logger.error(err_msg)
-                raise PyCOMPSsException(err_msg)
+        error_msg = str(e)
+        DUMMY_STORAGE = True
 
     # Prepare the imports
-    INIT = init
-    FINISH = finish
-    get_by_id_func = get_by_id_from_storage
-    TaskContext = task_context  # Renamed for importing it from the worker
+    if DUMMY_STORAGE:
+        INIT = dummy_init
+        FINISH = dummy_finish
+        GET_BY_ID = dummy_get_by_id
+        TaskContext = dummy_task_context
+    else:
+        INIT = real_init
+        FINISH = real_finish
+        GET_BY_ID = real_get_by_id
+        TaskContext = real_task_context
 
 
 def is_psco(obj):

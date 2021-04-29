@@ -50,7 +50,7 @@ DEPRECATED_ARGUMENTS = {"fail_by_exit_value",
                         "binary"}
 
 
-class Container(PyCOMPSsDecorator):
+class Container(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -68,7 +68,19 @@ class Container(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         decorator_name = "@" + Container.__name__.lower()
-        super(Container, self).__init__(decorator_name, *args, **kwargs)
+        # super(Container, self).__init__(decorator_name, *args, **kwargs)
+        # Instantiate superclass explicitly to support mypy.
+        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+        self.__configure_core_element__ = pd.__configure_core_element__
+        self.__resolve_working_dir__ = pd.__resolve_working_dir__
+        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
+        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             if __debug__:
                 logger.debug("Init @container decorator...")

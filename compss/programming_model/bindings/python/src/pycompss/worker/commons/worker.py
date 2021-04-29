@@ -61,7 +61,7 @@ def build_task_parameter(p_type,      # type: int
                          p_prefix,    # type: str
                          p_name,      # type: str
                          p_value,     # type: str
-                         p_c_type,    # type: int
+                         p_c_type,    # type: str
                          args=None,   # type: list
                          pos=0,       # type: int
                          logger=None  # type: typing.Any
@@ -479,9 +479,7 @@ def import_user_module(path, logger):
         if path.startswith(INTERACTIVE_FILE_NAME):
             # Force reload in interactive mode. The user may have
             # overwritten a function or task.
-            if py_version < (3, 0):
-                reload(module)      # type: ignore
-            elif py_version < (3, 4):
+            if py_version < (3, 4):
                 import imp          # noqa
                 imp.reload(module)  # noqa
             else:

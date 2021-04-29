@@ -31,3 +31,6 @@ class MPILayoutKeys(object):
     block_count = 'block_count'
     block_length = 'block_length'
     stride = 'stride'
+
+
+MPI_LAYOUT_KEYS = MPILayoutKeys()

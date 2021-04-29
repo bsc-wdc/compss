@@ -56,6 +56,9 @@ with open(cpp_path, 'w') as f:
 # Python
 with open(python_path, 'w') as f:
     f.write('# %s  # noqa\n\n\n' % notification)
-    f.write('class DataType(object):\n')
+    f.write('class SupportedDataTypes(object):\n')
     for (i, line) in enumerate(datatypes):
         f.write('    %s = %d\n' % (line.replace('_T', ''), i))
+    f.write('\n\n')
+    f.write('DataType = SupportedDataTypes()')
+    f.write('\n')

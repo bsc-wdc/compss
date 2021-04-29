@@ -171,7 +171,7 @@ def gen(obj):
 
 
 class S(object):            # NOSONAR
-    __slots__ = ("p", "q")  # NOSONAR
+    # __slots__ = ("p", "q")  # NOSONAR
 
     def __init__(self):
         self.p = None  # type: typing.Any
@@ -179,7 +179,7 @@ class S(object):            # NOSONAR
 
 
 class T(object):            # NOSONAR
-    __slots__ = ("p", "q")  # NOSONAR
+    # __slots__ = ("p", "q")  # NOSONAR
 
     def __init__(self):
         self.p = None  # type: typing.Any

@@ -202,7 +202,7 @@ MASTER_LOCK = threading.Lock()
 VALUE_OF = "value_of"
 
 
-class TaskMaster(TaskCommons):
+class TaskMaster(object):
     """
     Task code for the Master:
 
@@ -210,17 +210,18 @@ class TaskMaster(TaskCommons):
     runtime.
     """
 
-    __slots__ = ["param_defaults",
-                 "first_arg_name", "computing_nodes", "processes_per_node", "parameters",
-                 "function_name", "module_name", "function_type", "class_name",
-                 "returns", "multi_return",
-                 "core_element", "registered", "signature",
-                 "chunk_size", "is_reduce",
-                 "interactive", "module", "function_arguments", "hints",
-                 "on_failure", "defaults"]
+    # __slots__ = ["param_defaults",
+    #              "first_arg_name", "computing_nodes", "processes_per_node",
+    #              "parameters",
+    #              "function_name", "module_name", "function_type", "class_name",
+    #              "returns", "multi_return",
+    #              "core_element", "registered", "signature",
+    #              "chunk_size", "is_reduce",
+    #              "interactive", "module", "function_arguments", "hints",
+    #              "on_failure", "defaults"]
 
     def __init__(self,
-                 decorator_arguments,  # type: typing.Dict[str, Parameter]
+                 decorator_arguments,  # type: typing.Dict[str, typing.Any]
                  user_function,        # type: typing.Any
                  core_element,         # type: CE
                  registered,           # type: bool
@@ -237,16 +238,30 @@ class TaskMaster(TaskCommons):
                  defaults              # type: dict
                  ):  # type: (...) -> None
         # Initialize TaskCommons
-        super(TaskMaster, self).__init__(decorator_arguments,
-                                         user_function,
-                                         on_failure,
-                                         defaults)
+        # super(TaskMaster, self).__init__(decorator_arguments,
+        #                                  user_function,
+        #                                  on_failure,
+        #                                  defaults)
+        # Instantiate superclass explicitly to support mypy.
+        tc = TaskCommons(decorator_arguments,
+                         user_function,
+                         on_failure,
+                         defaults)
+        self.user_function = user_function
+        self.decorator_arguments = decorator_arguments
+        self.param_args = []  # type: typing.List[typing.Any]
+        self.param_varargs = None  # type: typing.Any
+        self.on_failure = on_failure
+        self.defaults = defaults
+        self.get_varargs_direction = tc.get_varargs_direction
+        self.get_default_direction = tc.get_default_direction
+
         # Add more argument related attributes that will be useful later
-        self.param_defaults = None  # type: typing.Union[None, tuple]
+        self.param_defaults = None       # type: typing.Union[None, tuple]
         # Add function related attributed that will be useful later
-        self.first_arg_name = None
-        self.computing_nodes = None
-        self.processes_per_node = None
+        self.first_arg_name = None       # type: typing.Any
+        self.computing_nodes = None      # type: typing.Any
+        self.processes_per_node = None   # type: typing.Any
         self.parameters = OrderedDict()  # type: OrderedDict
         self.function_name = function_name
         self.module_name = module_name
@@ -261,7 +276,7 @@ class TaskMaster(TaskCommons):
         self.registered = registered
         self.signature = signature
         # Reductions
-        self.chunk_size = None
+        self.chunk_size = None            # type: typing.Any
         self.is_reduce = False
 
         # Parameters that will come from previous tasks
@@ -530,7 +545,7 @@ class TaskMaster(TaskCommons):
 
         :return: If previously created and if created in higher level decorator
         """
-        pre_defined_ce = False
+        pre_defined_core_element = False
         upper_decorator = False
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -538,15 +553,15 @@ class TaskMaster(TaskCommons):
             # Remove the core element from kwargs to avoid issues processing
             # the parameters (process_parameters function).
             kwargs.pop(CORE_ELEMENT_KEY)
-            pre_defined_ce = True
+            pre_defined_core_element = True
             upper_decorator = True
         elif self.core_element:
             # A core element from previous task calls was saved.
-            pre_defined_ce = True
+            pre_defined_core_element = True
         else:
             # No decorators over @task: instantiate an empty core element.
             self.core_element = CE()
-        return pre_defined_ce, upper_decorator
+        return pre_defined_core_element, upper_decorator
 
     def inspect_user_function_arguments(self):
         # type: () -> tuple
@@ -582,7 +597,7 @@ class TaskMaster(TaskCommons):
             full_argspec = inspect.getfullargspec(function)
             as_args = full_argspec.args
             as_varargs = full_argspec.varargs
-            as_keywords = None  # full_argspec.varkw  # not needed
+            as_keywords = None  # type: typing.Any
             as_defaults = full_argspec.defaults
             return as_args, as_varargs, as_keywords, as_defaults
         else:
@@ -913,7 +928,7 @@ class TaskMaster(TaskCommons):
 
     def update_core_element(self, impl_signature, impl_type_args,
                             pre_defined_ce):
-        # type: (str, list, tuple) -> None
+        # type: (str, list, typing.Tuple[bool, bool]) -> None
         """ Adds the @task decorator information to the core element.
 
         CAUTION: Modifies the core_element parameter.
@@ -925,7 +940,8 @@ class TaskMaster(TaskCommons):
                                upper decorators).
         :return: None
         """
-        pre_defined_ce, upper_decorator = pre_defined_ce
+        pre_defined_core_element = pre_defined_ce[0]
+        upper_decorator = pre_defined_ce[1]
 
         # Include the registering info related to @task
         impl_type = "METHOD"
@@ -941,7 +957,7 @@ class TaskMaster(TaskCommons):
         set_impl_constraints = self.core_element.set_impl_constraints
         set_impl_type = self.core_element.set_impl_type
         set_impl_io = self.core_element.set_impl_io
-        if pre_defined_ce:
+        if pre_defined_core_element:
             # Core element has already been created in an upper decorator
             # (e.g. @implements and @compss)
             get_ce_signature = self.core_element.get_ce_signature
@@ -1109,7 +1125,7 @@ class TaskMaster(TaskCommons):
 
         :return: The number of computing nodes.
         """
-        parsed_computing_nodes = None
+        parsed_computing_nodes = None  # type: typing.Any
         if isinstance(self.computing_nodes, int):
             # Nothing to do
             parsed_computing_nodes = self.computing_nodes
@@ -1169,7 +1185,7 @@ class TaskMaster(TaskCommons):
         :return: Is reduction and chunk size.
         """
         # Deal with chunk size
-        parsed_chunk_size = None
+        parsed_chunk_size = None  # type: typing.Any
         if isinstance(self.chunk_size, int):
             # Nothing to do
             parsed_chunk_size = self.chunk_size
@@ -1551,7 +1567,7 @@ class TaskMaster(TaskCommons):
             single_return.content_type = TYPE.FILE
             single_return.extra_content_type = "FILE"
             single_return.prefix = '#'
-            single_return.file_name = ret_filename
+            single_return.file_name = COMPSsFile(ret_filename)
         else:
             # Multireturn
             fo = []
@@ -1585,7 +1601,7 @@ class TaskMaster(TaskCommons):
                 return_k.content_type = TYPE.FILE
                 return_k.extra_content_type = "FILE"
                 return_k.prefix = '#'
-                return_k.file_name = ret_filename
+                return_k.file_name = COMPSsFile(ret_filename)
         return fo
 
     def _serialize_objects(self):
@@ -1687,11 +1703,13 @@ class TaskMaster(TaskCommons):
             slf_name = arg_names.pop(0)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         for name in arg_names:
             val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
                 self.parameters[name],
                 code_strings
             )
+
             if isinstance(val, COMPSsFile):
                 values.append(val.original_path)
             else:
@@ -1729,7 +1747,10 @@ class TaskMaster(TaskCommons):
         # compss_prefixes from function returns
         for r in self.returns.keys():
             p = self.returns[r]
-            values.append(p.file_name)
+            if isinstance(p.file_name, COMPSsFile):
+                values.append(p.file_name.original_path)
+            else:
+                values.append(p.file_name)
             compss_types.append(p.content_type)
             compss_directions.append(p.direction)
             compss_streams.append(p.stream)
@@ -1738,6 +1759,8 @@ class TaskMaster(TaskCommons):
             extra_content_types.append(p.extra_content_type)
             weights.append(p.weight)
             keep_renames.append(p.keep_rename)
+        print(values)
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
         return values, names, compss_types, compss_directions, \
                compss_streams, compss_prefixes, extra_content_types, \
@@ -1763,10 +1786,11 @@ class TaskMaster(TaskCommons):
         """
         is_future = p.is_future
 
+        base_string = None  # type: typing.Any
         if IS_PYTHON3:
             base_string = str
         else:
-            base_string = basestring  # type: ignore
+            base_string = str  # basestring - may not work with python2 if str # type: ignore
 
         num_bytes = 0
         real_value = None  # type: typing.Any

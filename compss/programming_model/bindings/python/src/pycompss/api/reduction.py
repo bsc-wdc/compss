@@ -28,6 +28,7 @@ import os
 import typing
 from functools import wraps
 
+import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
@@ -46,7 +47,7 @@ SUPPORTED_ARGUMENTS = {"chunk_size",
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class Reduction(PyCOMPSsDecorator):
+class Reduction(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on Reduction task creation.
@@ -64,7 +65,19 @@ class Reduction(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         decorator_name = "".join(("@", self.__class__.__name__.lower()))
-        super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        # super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
+        # Instantiate superclass explicitly to support mypy.
+        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+        self.__configure_core_element__ = pd.__configure_core_element__
+        self.__resolve_working_dir__ = pd.__resolve_working_dir__
+        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
+        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,

@@ -223,27 +223,3 @@ def compss_set_wall_clock(wall_clock_limit):  # noqa
     :return: None
     """
     pass
-
-
-class TaskGroup(object):
-    """
-    Dummy TaskGroup context manager.
-    """
-    def __init__(self, group_name, implicit_barrier=True):  # noqa
-        # type: (str, bool) -> None
-        """ Define a new group of tasks.
-
-        :param group_name: Group name.
-        :param implicit_barrier: Perform implicit barrier.
-        """
-        pass
-
-    def __enter__(self):
-        # type: () -> None
-        # Dummy: do nothing
-        pass
-
-    def __exit__(self, type, value, traceback):  # noqa
-        # type: (typing.Any, typing.Any, typing.Any) -> None
-        # Dummy: do nothing
-        pass

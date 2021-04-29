@@ -29,7 +29,7 @@ class COMPSsException(Exception):
     Raised by the user code
     """
 
-    __slots__ = ["message", "target_direction"]
+    # __slots__ = ["message", "target_direction"]
 
     def __init__(self, message, target_direction=-1):
         # type: (str, int) -> None

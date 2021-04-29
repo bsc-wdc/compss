@@ -47,13 +47,13 @@ SUPPORTED_MANAGEMENT = {"IGNORE",
                         "FAIL"}
 
 
-class OnFailure(PyCOMPSsDecorator):
+class OnFailure(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on task on_failure creation.
     """
 
-    __slots__ = ["on_failure_action", "defaults"]
+    # __slots__ = ["on_failure_action", "defaults"]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
@@ -67,8 +67,19 @@ class OnFailure(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments.
         """
         decorator_name = "".join(("@", OnFailure.__name__.lower()))
-        super(OnFailure, self).__init__(decorator_name, *args, **kwargs)
-
+        # super(OnFailure, self).__init__(decorator_name, *args, **kwargs)
+        # Instantiate superclass explicitly to support mypy.
+        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+        self.__configure_core_element__ = pd.__configure_core_element__
+        self.__resolve_working_dir__ = pd.__resolve_working_dir__
+        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
+        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             # Check the arguments
             check_mandatory_arguments(MANDATORY_ARGUMENTS,

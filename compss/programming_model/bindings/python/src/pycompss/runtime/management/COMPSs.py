@@ -184,7 +184,11 @@ def delete_file(app_id, file_name, mode):
     :param mode: Delete mode.
     :return: The deletion result.
     """
-    return _COMPSs.delete_file(app_id, file_name, mode)  # noqa
+    result = _COMPSs.delete_file(app_id, file_name, mode)  # noqa
+    if result is None:
+        return False
+    else:
+        return result
 
 
 def get_file(app_id, file_name):

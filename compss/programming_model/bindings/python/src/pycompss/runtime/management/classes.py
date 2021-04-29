@@ -24,7 +24,7 @@ PyCOMPSs Binding - Management - Classes
 """
 
 
-class FunctionType(object):
+class SupportedFunctionTypes(object):
     """
     Used as enum to identify the function type
     """
@@ -45,3 +45,6 @@ class EmptyReturn(object):
     For functions with empty return
     """
     pass
+
+
+FunctionType = SupportedFunctionTypes()

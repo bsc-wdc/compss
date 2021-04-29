@@ -103,3 +103,7 @@ class ParamDictKeys(object):
     CONTENT_TYPE = "content_type"
     IS_FILE_COLLECTION = "is_file_collection"
     CACHE = "cache"
+
+
+PARAM_ALIAS_KEYS = ParamAliasKeys()
+PARAM_DICT_KEYS = ParamDictKeys()

@@ -47,13 +47,13 @@ SUPPORTED_ARGUMENTS = {"source_class",
 DEPRECATED_ARGUMENTS = {"sourceClass"}
 
 
-class Implement(PyCOMPSsDecorator):
+class Implement(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ["first_register"]
+    # __slots__ = ["first_register"]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
@@ -68,7 +68,19 @@ class Implement(PyCOMPSsDecorator):
         """
         self.first_register = False
         decorator_name = "".join(("@", Implement.__name__.lower()))
-        super(Implement, self).__init__(decorator_name, *args, **kwargs)
+        # super(Implement, self).__init__(decorator_name, *args, **kwargs)
+        # Instantiate superclass explicitly to support mypy.
+        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+        self.__configure_core_element__ = pd.__configure_core_element__
+        self.__resolve_working_dir__ = pd.__resolve_working_dir__
+        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
+        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,

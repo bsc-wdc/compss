@@ -71,26 +71,40 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class TaskWorker(TaskCommons):
+class TaskWorker(object):
     """
     Task code for the Worker:
 
     Process the task decorator and prepare call the user function.
     """
 
-    __slots__ = ["cache_ids", "cache_queue", "cached_references", "cache_profiler"]  # noqa: E501
+    # __slots__ = ["cache_ids", "cache_queue", "cached_references", "cache_profiler"]  # noqa: E501
 
     def __init__(self,
-                 decorator_arguments,  # type: typing.Dict[str, Parameter]
+                 decorator_arguments,  # type: typing.Dict[str, typing.Any]
                  user_function,        # type: typing.Any
                  on_failure,           # type: str
                  defaults              # type: dict
                  ):                    # type: (...) -> None
         # Initialize TaskCommons
-        super(self.__class__, self).__init__(decorator_arguments,
-                                             user_function,
-                                             on_failure,
-                                             defaults)
+        # super(self.__class__, self).__init__(decorator_arguments,
+        #                                      user_function,
+        #                                      on_failure,
+        #                                      defaults)
+        # Instantiate superclass explicitly to support mypy.
+        tc = TaskCommons(decorator_arguments,
+                         user_function,
+                         on_failure,
+                         defaults)
+        self.user_function = user_function
+        self.decorator_arguments = decorator_arguments
+        self.param_args = []  # type: typing.List[typing.Any]
+        self.param_varargs = None  # type: typing.Any
+        self.on_failure = on_failure
+        self.defaults = defaults
+        self.get_varargs_direction = tc.get_varargs_direction
+        self.get_default_direction = tc.get_default_direction
+
         # These variables are initialized on call since they are only for
         # the worker
         self.cache_ids = None        # type: typing.Any
@@ -299,10 +313,10 @@ class TaskWorker(TaskCommons):
                 logger.debug(hpy.heap())
 
     def reveal_objects(self,
-                       args,                     # type: tuple
-                       collections_layouts,      # type: typing.Dict[str, typing.Tuple[int, int, int]]
-                       python_mpi=False,         # type: bool
-                       ):                        # type: (...) -> None
+                       args,                 # type: tuple
+                       collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Tuple[int, int, int]], None]
+                       python_mpi=False,     # type: bool
+                       ):                    # type: (...) -> None
         """ Get the objects from the args message.
 
         This function takes the arguments passed from the persistent worker
@@ -354,7 +368,7 @@ class TaskWorker(TaskCommons):
                          argument,             # type: Parameter
                          name_prefix,          # type: str
                          python_mpi,           # type: bool
-                         collections_layouts,  # type: typing.Dict[str, typing.Tuple[int, int, int]]
+                         collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Tuple[int, int, int]], None]
                          depth=0               # type: int
                          ):                    # type: (...) -> None
         """ Retrieve the content of a particular argument.
@@ -1047,7 +1061,7 @@ class TaskWorker(TaskCommons):
                                                  self.user_function)
 
     def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
-        # type: (int, list, list, bool) -> list
+        # type: (int, typing.Any, list, bool) -> list
         """ Manage task returns.
 
         WARNING: Modifies ret_params, which is included into args.

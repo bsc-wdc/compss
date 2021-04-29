@@ -47,16 +47,16 @@ class PyCOMPSsDecorator(object):
     This class implements all common code of the PyCOMPSs decorators.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs",
-                 "scope", "core_element", "core_element_configured"]
+    # __slots__ = ["decorator_name", "args", "kwargs",
+    #              "scope", "core_element", "core_element_configured"]
 
-    def __init__(self, decorator_name, *args, **kwargs):  # noqa
+    def __init__(self, decorator_name, *args, **kwargs):
         # type: (str, *typing.Any, **typing.Any) -> None
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
-        self.core_element = CE()
+        self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         # This enables the decorator to get info from the caller
         # (e.g. self.source_frame_info.filename or

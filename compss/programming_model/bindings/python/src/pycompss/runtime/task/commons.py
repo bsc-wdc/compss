@@ -34,11 +34,11 @@ class TaskCommons(object):
     Both classes inherit from TaskCommons.
     """
 
-    __slots__ = ["user_function", "decorator_arguments",
-                 "param_args", "param_varargs",
-                 "on_failure", "defaults"]
+    # __slots__ = ["user_function", "decorator_arguments",
+    #              "param_args", "param_varargs",
+    #              "on_failure", "defaults"]
 
-    def __init__(self,
+    def __init__(self,                 # type: typing.Any
                  decorator_arguments,  # type: typing.Dict[str, typing.Any]
                  user_function,        # type: typing.Any
                  on_failure,           # type: str

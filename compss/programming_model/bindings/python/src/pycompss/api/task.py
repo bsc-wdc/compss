@@ -52,7 +52,7 @@ PREPEND_STRINGS = True
 REGISTER_ONLY = False
 
 
-class Task(PyCOMPSsDecorator):
+class Task(object):
     """
     This is the Task decorator implementation.
     It is implemented as a class and consequently this implementation can be
@@ -75,11 +75,11 @@ class Task(PyCOMPSsDecorator):
     TaskWorker.call() and self._sequential_call()
     """
 
-    __slots__ = ["task_type", "decorator_arguments", "user_function",
-                 "registered", "signature",
-                 "interactive", "module", "function_arguments",
-                 "function_name", "module_name", "function_type", "class_name",
-                 "hints", "on_failure", "defaults"]
+    # __slots__ = ["task_type", "decorator_arguments", "user_function",
+    #              "registered", "signature",
+    #              "interactive", "module", "function_arguments",
+    #              "function_name", "module_name", "function_type", "class_name",
+    #              "hints", "on_failure", "defaults"]
 
     @staticmethod
     def _get_default_decorator_values():
@@ -134,7 +134,19 @@ class Task(PyCOMPSsDecorator):
         """
         self.task_type = "METHOD"
         decorator_name = "".join(("@", Task.__name__.lower()))
-        super(Task, self).__init__(decorator_name, *args, **kwargs)
+        # super(Task, self).__init__(decorator_name, *args, **kwargs)
+        # Instantiate superclass explicitly to support mypy.
+        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+        self.__configure_core_element__ = pd.__configure_core_element__
+        self.__resolve_working_dir__ = pd.__resolve_working_dir__
+        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
+        self.__process_computing_nodes__ = pd.__process_computing_nodes__
 
         self.decorator_arguments = kwargs
         # Set missing values to their default ones (step a)
@@ -177,19 +189,19 @@ class Task(PyCOMPSsDecorator):
                     self.decorator_arguments[key] = value
 
         # Function to execute as task
-        self.user_function = None
+        self.user_function = None  # type: typing.Any
         # Global variables common for all tasks of this kind
         self.registered = False
         self.signature = ""
         # Saved from the initial task
         self.interactive = False
-        self.module = None
+        self.module = None  # type: typing.Any
         self.function_arguments = tuple()  # type: tuple
         self.function_name = ""
         self.module_name = ""
         self.function_type = -1
         self.class_name = ""
-        self.hints = None
+        self.hints = None  # type: typing.Any
         self.on_failure = ""
         self.defaults = dict()  # type: dict
 

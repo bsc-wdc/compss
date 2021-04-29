@@ -56,13 +56,13 @@ DEPRECATED_ARGUMENTS = {"computing_nodes",
                         "workingDir"}
 
 
-class MPI(PyCOMPSsDecorator):
+class MPI(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ['task_type', 'decorator_name']
+    # __slots__ = ['task_type', 'decorator_name']
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
@@ -77,7 +77,18 @@ class MPI(PyCOMPSsDecorator):
         """
         self.task_type = "mpi"
         self.decorator_name = "".join(('@', MPI.__name__.lower()))
-        super(MPI, self).__init__(self.decorator_name, *args, **kwargs)
+        # super(MPI, self).__init__(decorator_name, *args, **kwargs)
+        # Instantiate superclass explicitly to support mypy.
+        pd = PyCOMPSsDecorator(self.decorator_name, *args, **kwargs)
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+        self.__configure_core_element__ = pd.__configure_core_element__
+        self.__resolve_working_dir__ = pd.__resolve_working_dir__
+        self.__resolve_fail_by_exit_value__ = pd.__resolve_fail_by_exit_value__
+        self.__process_computing_nodes__ = pd.__process_computing_nodes__
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")

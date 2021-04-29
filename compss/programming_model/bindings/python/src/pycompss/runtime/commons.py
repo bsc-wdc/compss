@@ -25,7 +25,6 @@ PyCOMPSs Binding - Commons
 
 import sys
 import os
-import typing
 from tempfile import mkdtemp
 
 ########################################

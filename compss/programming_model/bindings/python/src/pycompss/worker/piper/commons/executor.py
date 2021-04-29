@@ -97,7 +97,7 @@ class Pipe(object):
     Bi-directional communication channel
     """
 
-    __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
+    # __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
 
     def __init__(self, input_pipe, output_pipe):
         # type: (str, str) -> None
@@ -168,11 +168,11 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    __slots__ = ["debug", "tmp_dir",
-                 "tracing", "storage_conf", "logger", "logger_cfg",
-                 "persistent_storage", "storage_loggers",
-                 "stream_backend", "stream_master_ip", "stream_master_port",
-                 "cache_ids", "cache_queue", "cache_profiler"]
+    # __slots__ = ["debug", "tmp_dir",
+    #              "tracing", "storage_conf", "logger", "logger_cfg",
+    #              "persistent_storage", "storage_loggers",
+    #              "stream_backend", "stream_master_ip", "stream_master_port",
+    #              "cache_ids", "cache_queue", "cache_profiler"]
 
     def __init__(self,
                  debug,                # type: bool
@@ -570,7 +570,7 @@ def process_task(current_line,              # type: list
             binded_cpus = True
             if not affinity_ok:
                 logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
-                               cpus)
+                               str(cpus_aff))
 
         # Setup process environment
         cn = int(current_line[12])
@@ -664,7 +664,7 @@ def process_task(current_line,              # type: list
     # Clean environment variables
     if __debug__:
         logger.debug("Cleaning environment.")
-    clean_environment(cpus, gpus)
+    clean_environment(str(cpus), gpus)
     if binded_cpus:
         emit_manual_event(0, inside=True, cpu_affinity=True)
         emit_manual_event(0, inside=True, cpu_number=True)
@@ -800,7 +800,7 @@ def setup_environment(cn, cn_names, cu):
 
 @emit_event(BUILD_SUCCESSFUL_MESSAGE_EVENT, master=False, inside=True)
 def build_successful_message(new_types, new_values, job_id, exit_value):
-    # type: (list, list, int, int) -> str
+    # type: (list, list, str, int) -> str
     """ Generate a successful message.
 
     :param new_types: New types (can change if INOUT).

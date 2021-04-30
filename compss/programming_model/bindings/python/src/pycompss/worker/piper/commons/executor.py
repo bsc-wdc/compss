@@ -283,7 +283,7 @@ def executor(queue, process_name, pipe, conf):
                 from storage.api import initWorkerPostFork  # noqa
                 with event(INIT_WORKER_POSTFORK_EVENT):
                     initWorkerPostFork()
-            except ImportError:
+            except (ImportError, AttributeError):
                 if __debug__:
                     logger.info(HEADER + "[%s] Could not find initWorkerPostFork storage call. Ignoring it." %  # noqa: E501
                                 str(process_name))
@@ -349,7 +349,7 @@ def executor(queue, process_name, pipe, conf):
                 from storage.api import finishWorkerPostFork  # noqa
                 with event(FINISH_WORKER_POSTFORK_EVENT):
                     finishWorkerPostFork()
-            except ImportError:
+            except (ImportError, AttributeError):
                 if __debug__:
                     logger.info(HEADER +
                                 "[%s] Could not find finishWorkerPostFork storage call. Ignoring it." %  # noqa: E501

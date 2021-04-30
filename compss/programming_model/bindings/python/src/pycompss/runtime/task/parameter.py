@@ -93,7 +93,7 @@ class COMPSsFile(object):
         self.keep_source = False         # type: bool
         self.is_write_final = False      # type: bool
         self.original_path = file_name   # type: str
-        if ":" in file_name:
+        if file_name is not None and isinstance(file_name, str) and ":" in file_name:
             fields = file_name.split(":")
             self.source_path = fields[0]
             self.destination_name = fields[1]

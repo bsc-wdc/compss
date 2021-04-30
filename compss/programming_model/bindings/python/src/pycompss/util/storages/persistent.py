@@ -157,7 +157,7 @@ def has_id(obj):
 
 @EmitEvent(GETID_EVENT, master=False, inside=True)
 def get_id(psco):
-    # type: (typing.Any) -> str
+    # type: (typing.Any) -> typing.Union[str, None]
     """ Retrieve the persistent object identifier.
 
     :param psco: Persistent object.

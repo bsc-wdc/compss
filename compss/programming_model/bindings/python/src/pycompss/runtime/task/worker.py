@@ -122,7 +122,7 @@ class TaskWorker(TaskCommons):
             if "on_failure" in self.decorator_arguments:
                 self.on_failure = self.decorator_arguments["on_failure"]
                 # if task defines on_failure property the decorator is ignored
-                kwargs.pop("on_failure")
+                kwargs.pop("on_failure", None)
             else:
                 self.on_failure = kwargs.pop("on_failure", "RETRY")
             self.defaults = kwargs.pop("defaults", {})

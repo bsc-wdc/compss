@@ -12,9 +12,11 @@ public class HTTPController {
 
     /**
      * Perform HTTP request.
+     * 
      * @param methodType the HTTP method type: "GET", "POST", "PUT", "DELETE", etc.
+     * @param fullUrl the full target URL of the HTTP request
      */
-    public static Response performRequest(String methodType, String fullUrl) throws IOException {
+    public static Response performRequestAndGetResponse(String methodType, String fullUrl) throws IOException {
         URL url = new URL(fullUrl);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();

@@ -53,6 +53,14 @@
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-project-schema</artifactId>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/junit/junit TODO ALDO-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <!-- BUILD -->

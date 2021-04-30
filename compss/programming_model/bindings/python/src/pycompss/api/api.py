@@ -266,7 +266,7 @@ def compss_barrier_group(group_name):
     """
     if context.in_pycompss():
         exception_message = __barrier_group__(group_name)
-        if exception_message is not None:
+        if exception_message != "None":
             raise __COMPSsException__(exception_message)
     else:
         __dummy_compss_barrier_group__(group_name)

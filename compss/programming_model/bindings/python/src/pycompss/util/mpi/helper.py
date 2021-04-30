@@ -32,7 +32,7 @@ rank = comm.rank
 
 
 def rank_distributor(collection_layout):
-    # type: (typing.Tuple[int, int, int]) -> list
+    # type: (typing.Union[tuple, list]) -> list
     """
     Distributes mpi ranks to data given a collection layout
 

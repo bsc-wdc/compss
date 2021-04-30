@@ -149,10 +149,10 @@ def process_computing_nodes(decorator_name, kwargs):
     if "computing_nodes" not in kwargs:
         if "computingNodes" not in kwargs:
             # No annotation present, adding default value
-            kwargs["computing_nodes"] = 1
+            kwargs["computing_nodes"] = str(1)
         else:
             # Legacy annotation present, switching
-            kwargs["computing_nodes"] = kwargs.pop("computingNodes")
+            kwargs["computing_nodes"] = str(kwargs.pop("computingNodes"))
     else:
         # Valid annotation found, nothing to do
         pass

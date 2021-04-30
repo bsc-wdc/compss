@@ -87,7 +87,7 @@ def _synchronize(obj, mode):
     obj_id = ""  # noqa
 
     if is_psco(obj):
-        obj_id = get_id(obj)
+        obj_id = str(get_id(obj))
         if not OT_is_pending_to_synchronize(obj_id):
             return obj
         else:

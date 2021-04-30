@@ -359,7 +359,7 @@ def barrier_group(group_name):
     """
     app_id = 0
     # Call the Runtime group barrier
-    return COMPSs.barrier_group(app_id, group_name)
+    return str(COMPSs.barrier_group(app_id, group_name))
 
 
 @emit_event(OPEN_TASK_GROUP_EVENT, master=True)
@@ -594,7 +594,11 @@ def register_ce(core_element):  # noqa
     impl_signature_base = core_element.get_impl_signature()
     impl_signature = None if impl_signature_base == "" else impl_signature_base
     impl_constraints_base = core_element.get_impl_constraints()
-    impl_constraints = dict() if impl_constraints_base == "" else impl_constraints_base
+    impl_constraints = None  # type: typing.Any
+    if impl_constraints_base == "":
+        impl_constraints = dict()
+    else:
+        impl_constraints = impl_constraints_base
     impl_type_base = core_element.get_impl_type()
     impl_type = None if impl_type_base == "" else str(impl_type_base)
     impl_io = str(core_element.get_impl_io())
@@ -607,9 +611,14 @@ def register_ce(core_element):  # noqa
     # Build constraints string from constraints dictionary
     impl_constraints_lst = []
     for key, value in impl_constraints.items():
-        val = value
-        if isinstance(value, list):
+        if isinstance(value, int):
+            val = str(value)
+        elif isinstance(value, str):
+            val = value
+        elif isinstance(value, list):
             val = str(value).replace('\'', '')
+        else:
+            raise PyCOMPSsException("Implementation constraints items must be str, int or list.")
         kv_constraint = "".join((key, ':', str(val), ';'))
         impl_constraints_lst.append(kv_constraint)
     impl_constraints_str = "".join(impl_constraints_lst)

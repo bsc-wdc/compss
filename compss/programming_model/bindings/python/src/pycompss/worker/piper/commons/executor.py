@@ -821,7 +821,7 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
 
 @emit_event(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_compss_exception_message(except_msg, job_id):
-    # type: (str, int) -> typing.Tuple[str, str]
+    # type: (str, str) -> typing.Tuple[str, str]
     """ Generate a COMPSs exception message.
 
     :param except_msg: Exception stacktrace.

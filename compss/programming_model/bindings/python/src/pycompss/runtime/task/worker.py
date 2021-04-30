@@ -314,7 +314,7 @@ class TaskWorker(object):
 
     def reveal_objects(self,
                        args,                 # type: tuple
-                       collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Tuple[int, int, int]], None]
+                       collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
                        python_mpi=False,     # type: bool
                        ):                    # type: (...) -> None
         """ Get the objects from the args message.
@@ -368,7 +368,7 @@ class TaskWorker(object):
                          argument,             # type: Parameter
                          name_prefix,          # type: str
                          python_mpi,           # type: bool
-                         collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Tuple[int, int, int]], None]
+                         collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
                          depth=0               # type: int
                          ):                    # type: (...) -> None
         """ Retrieve the content of a particular argument.
@@ -1201,7 +1201,7 @@ class TaskWorker(object):
             logger.debug("Building types update")
 
         def build_collection_types_values(_content, _arg, direction):
-            # type: (typing.Any, Parameter, str) -> list
+            # type: (typing.Any, Parameter, int) -> list
             """ Retrieve collection type-value recursively"""
             coll = []  # type: list
             for (_cont, _elem) in zip(_arg.content, _arg.collection_content):

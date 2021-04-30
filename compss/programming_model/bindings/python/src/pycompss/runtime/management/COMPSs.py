@@ -232,7 +232,7 @@ def barrier_group(app_id, group_name):
     :param group_name: Group name.
     :return: Exception message.
     """
-    return _COMPSs.barrier_group(app_id, group_name)  # noqa
+    return str(_COMPSs.barrier_group(app_id, group_name))  # noqa
 
 
 def open_task_group(group_name, implicit_barrier, app_id):

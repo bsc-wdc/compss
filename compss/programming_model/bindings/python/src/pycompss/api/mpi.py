@@ -148,7 +148,7 @@ class MPI(object):
             kwargs['computing_nodes'] = self.kwargs['processes']
         else:
             # If processes not defined, check computing_units or set default
-            self.__process_computing_nodes__(self.decorator_name)
+            process_computing_nodes(self.decorator_name, self.kwargs)
             kwargs['computing_nodes'] = self.kwargs['computing_nodes']
         if "processes_per_node" in self.kwargs:
             kwargs['processes_per_node'] = self.kwargs['processes_per_node']

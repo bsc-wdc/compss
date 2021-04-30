@@ -126,13 +126,12 @@ class Reduction(object):
         if "chunk_size" not in self.kwargs:
             chunk_size = 0
         else:
-            chunk_size = self.kwargs["chunk_size"]
-            if isinstance(chunk_size, int):
-                # Nothing to do, it is already an integer
-                pass
-            elif isinstance(chunk_size, str):
+            chunk_size_kw = self.kwargs["chunk_size"]
+            if isinstance(chunk_size_kw, int):
+                chunk_size = chunk_size_kw
+            elif isinstance(chunk_size_kw, str):
                 # Convert string to int
-                chunk_size = self.__parse_chunk_size__(chunk_size)
+                chunk_size = self.__parse_chunk_size__(chunk_size_kw)
             else:
                 raise PyCOMPSsException(
                     "ERROR: Wrong chunk_size value at @reduction decorator.")

@@ -755,7 +755,7 @@ class TaskMaster(object):
             if isinstance(arg_object, COMPSsFile):
                 param.file_name = arg_object
             else:
-                param.file_name = COMPSsFile(arg_object)
+                param.file_name = COMPSsFile(str(arg_object))
             # todo: beautify this
             param.extra_content_type = "FILE"
         else:
@@ -1269,8 +1269,8 @@ class TaskMaster(object):
 
         return is_replicated, is_distributed, time_out, has_priority, has_target  # noqa: E501
 
-    def add_return_parameters(self, returns=None):
-        # type: (bool) -> int
+    def add_return_parameters(self, returns):
+        # type: (typing.Any) -> int
         """ Modify the return parameters accordingly to the return statement.
 
         :return: Creates and modifies self.returns and returns the number of
@@ -1907,7 +1907,7 @@ def _manage_persistent_object(p):
     :return: None
     """
     p.content_type = TYPE.EXTERNAL_PSCO
-    obj_id = get_id(p.content)
+    obj_id = str(get_id(p.content))
     OT_set_pending_to_synchronize(obj_id)
     p.content = obj_id
     if __debug__:
@@ -1984,7 +1984,7 @@ def _serialize_object_into_file(name, p):
                      content=x,
                      content_type=TYPE.FILE,
                      direction=p.direction,
-                     file_name=x,
+                     file_name=COMPSsFile(x),
                      depth=p.depth - 1
                 )
                 for x in p.content
@@ -2111,13 +2111,23 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         value = param.file_name
         # todo: make sure it works with FO
         con_type = str(Future.__name__) if param.is_future else "FILE"
-        if value:
+        value_str = str(value)
+        if isinstance(value, str):
+            value_str = value
+        if isinstance(value, COMPSsFile):
+            value_str = value.original_path
+        if value_str != "None":
             typ = TYPE.FILE
         else:
             typ = TYPE.NULL
     elif param.content_type == TYPE.DIRECTORY:
         value = param.file_name
-        if value:
+        value_str = str(value)
+        if isinstance(value, str):
+            value_str = value
+        if isinstance(value, COMPSsFile):
+            value_str = value.original_path
+        if value_str != "None":
             typ = TYPE.DIRECTORY
         else:
             typ = TYPE.NULL

@@ -5,10 +5,13 @@ import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -25,10 +28,9 @@ import org.apache.logging.log4j.Logger;
 class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
     private static final String SUBMIT_ERROR = "Error calling HTTP Service";
-
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    public static final String URL_PARAMETER_OPEN_TOKEN = "\\{";
-    public static final String URL_PARAMETER_CLOSE_TOKEN = "\\}";
+    private static final String URL_PARAMETER_OPEN_TOKEN = "\\{";
+    private static final String URL_PARAMETER_CLOSE_TOKEN = "\\}";
 
 
     public HTTPCaller(RequestQueue<HTTPJob> queue) {
@@ -43,20 +45,20 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 break;
             }
             try {
-                Map<String, String> namedParameters = new HashMap<>();
-
                 final TaskDescription taskDescription = job.getTaskParams();
-                processTaskParameters(taskDescription, namedParameters);
+                final Map<String, String> namedParameters = constructMapOfNamedParameters(taskDescription);
 
                 HTTPImplementation httpImplementation = (HTTPImplementation) job.getImplementation();
 
-                LOGGER.debug("Executing HTTP request...");
+                LOGGER.debug("Executing HTTP Request...");
 
                 Response httpResponse = performHttpRequest(namedParameters, httpImplementation);
                 processResponse(job, httpResponse);
 
             } catch (Exception e) {
-                job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
+                final JobListener jobListener = job.getListener();
+                jobListener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
+
                 LOGGER.error(SUBMIT_ERROR, e);
             }
         }
@@ -65,16 +67,19 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
     private void processResponse(HTTPJob job, final Response response) {
         int httpResponseCode = response.getResponseCode();
 
+        final JobListener jobListener = job.getListener();
+
         if (httpResponseCode >= 200 && httpResponseCode < 300) {
             LOGGER.debug("Correct HTTP response with response code " + httpResponseCode);
 
-            job.setReturnValue(response.getResponseBody());
-            job.getListener().jobCompleted(job);
-        } else {
-            LOGGER.debug("Wrong HTTP response with response code " + httpResponseCode);
-            LOGGER.debug("Job failing due to wrong HTTP response");
+            final String responseBody = response.getResponseBody();
+            job.setReturnValue(responseBody);
 
-            job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
+            jobListener.jobCompleted(job);
+        } else {
+            LOGGER.debug("Job failing due to wrong HTTP response with response code " + httpResponseCode);
+
+            jobListener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
         }
     }
 
@@ -90,8 +95,10 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         return HTTPController.performRequestAndGetResponse(methodType, parsedUrl);
     }
 
-    private void processTaskParameters(TaskDescription taskDescription, Map<String, String> namedParameters)
+    private Map<String, String> constructMapOfNamedParameters(TaskDescription taskDescription)
         throws CannotLoadException {
+
+        Map<String, String> namedParameters = new HashMap<>();
 
         for (Parameter par : taskDescription.getParameters()) {
             final Direction parameterDirection = par.getDirection();
@@ -102,7 +109,9 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                     case PSCO_T:
                     case EXTERNAL_PSCO_T:
                         DependencyParameter dependencyParameter = (DependencyParameter) par;
-                        addParameterToMapOfParameters(namedParameters, par, getObjectValue(dependencyParameter));
+                        final Object objectValue = getObjectValue(dependencyParameter);
+
+                        addParameterToMapOfParameters(namedParameters, par, objectValue);
                         break;
 
                     case FILE_T:
@@ -130,18 +139,19 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 LOGGER.debug("Out parameter of HTTPCaller: " + par);
             }
         }
+        return namedParameters;
     }
 
     private void addParameterToMapOfParameters(Map<String, String> namedParameters, Parameter par, Object o) {
-        String paramName = par.getName();
-        if (paramName != null && !paramName.isEmpty()) {
-            final String value = convertToString(o);
-
-            namedParameters.put(paramName, String.valueOf(value));
+        String key = par.getName();
+        if (key != null && !key.isEmpty()) {
+            final String s = convertObjectToString(o);
+            final String value = String.valueOf(s);
+            namedParameters.put(key, value);
         }
     }
 
-    private String convertToString(Object o) {
+    private String convertObjectToString(Object o) {
         if (o instanceof Integer) {
             return Integer.toString((Integer) o);
         }
@@ -152,9 +162,12 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
     }
 
     private Object getObjectValue(DependencyParameter dp) throws CannotLoadException {
-        String renaming = ((RAccessId) dp.getDataAccessId()).getReadDataInstance().getRenaming();
+        final DataAccessId dataAccessId = dp.getDataAccessId();
+        final DataInstanceId dataInstanceId = ((RAccessId) dataAccessId).getReadDataInstance();
+        String renaming = dataInstanceId.getRenaming();
 
         LogicalData logicalData = Comm.getData(renaming);
+
         if (!logicalData.isInMemory()) {
             logicalData.loadFromStorage();
         }

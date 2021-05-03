@@ -100,7 +100,7 @@ class MultiNode(PyCOMPSsDecorator):
                 if context.is_nesting_enabled():
                     if not self.core_element_configured:
                         self.__configure_core_element__(kwargs)
-                set_slurm_environment()
+                old_slurm_env = set_slurm_environment()
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
@@ -111,7 +111,7 @@ class MultiNode(PyCOMPSsDecorator):
                 ret = func(*args, **kwargs)
 
             if context.in_worker():
-                reset_slurm_environment()
+                reset_slurm_environment(old_slurm_env)
 
             return ret
 
@@ -150,69 +150,58 @@ class MultiNode(PyCOMPSsDecorator):
 
 
 def set_slurm_environment():
-    # type: () -> None
+    # type: () -> dict
     """ Set SLURM environment.
 
-    :return: None
+    :return: old Slurm environment
     """
     num_nodes = int(os.environ["COMPSS_NUM_NODES"])
     num_threads = int(os.environ["COMPSS_NUM_THREADS"])
     total_processes = num_nodes * num_threads
     hostnames = os.environ["COMPSS_HOSTNAMES"]
     nodes = set(hostnames.split(","))
-    ntasks = os.getenv("SLURM_NTASKS", None)
-    if ntasks is not None:
-        os.environ["OCS_NTASKS"] = ntasks
-        os.environ["SLURM_NTASKS"] = str(total_processes)
-    nnodes = os.getenv("SLURM_NNODES", None)
-    if nnodes is not None:
-        os.environ["OCS_NNODES"] = nnodes
-        os.environ["SLURM_NNODES"] = str(num_nodes)
-    nodelist = os.getenv("SLURM_NODELIST", None)
-    if nodelist is not None:
-        os.environ["OCS_NODELIST"] = nodelist
-        os.environ["SLURM_NODELIST"] = ','.join(nodes)
-    tasks_per_node = os.getenv("SLURM_TASKS_PER_NODE", None)
-    if tasks_per_node is not None:
-        os.environ["OCS_TASKS_PER_NODE"] = tasks_per_node
-        os.environ["SLURM_TASKS_PER_NODE"] = "".join((str(num_threads),
-                                                      "(x",
-                                                      str(num_nodes),
-                                                      ")"))
-    mem_per_node = os.getenv("SLURM_MEM_PER_NODE", None)
-    if mem_per_node is not None:
-        os.environ["OCS_MEM_PER_NODE"] = mem_per_node
-        os.environ.pop("SLURM_MEM_PER_NODE", None)
-    mem_per_cpu = os.getenv("SLURM_MEM_PER_CPU", None)
-    if mem_per_cpu is not None:
-        os.environ["OCS_MEM_PER_CPU"] = mem_per_cpu
-        os.environ.pop("SLURM_MEM_PER_CPU", None)
+    old_slurm_env = remove_slurm_environment()
+
+    # set slurm environment with COMPSs variables
+    os.environ["SLURM_NTASKS"] = str(total_processes)
+    os.environ["SLURM_NNODES"] = str(num_nodes)
+    os.environ["SLURM_JOB_NUM_NODES"] = str(num_nodes)
+    os.environ["SLURM_NODELIST"] = ','.join(nodes)
+    os.environ["SLURM_JOB_NODELIST"] = ','.join(nodes)
+    os.environ["SLURM_TASKS_PER_NODE"] = "".join((str(num_threads),
+                                                  "(x",
+                                                  str(num_nodes),
+                                                  ")"))
+    os.environ["SLURM_CPUS_PER_NODE"] = "".join((str(num_threads),
+                                                 "(x",
+                                                 str(num_nodes),
+                                                 ")"))
+    return old_slurm_env
 
 
-def reset_slurm_environment():
-    # type: () -> None
+def remove_slurm_environment():
+    # type: () -> dict
+    """ Removes the Slurm vars from environment
+
+    :return: removed Slurm vars
+    """
+    old_slurm_env = dict()
+    for key, value in os.environ.items():
+        if key.startswith("SLURM"):
+            if not (key == "SLURM_JOBID" or key == "SLURM_JOB ID" or key == "SLURM_USER"):
+                old_slurm_env[key] = value
+                os.environ.pop(key)
+
+
+def reset_slurm_environment(old_slurm_env=None):
+    # type: (dict) -> None
     """ Reestablishes SLURM environment.
 
     :return: None
     """
-    ntasks = os.environ.get("OCS_NTASKS", None)
-    if ntasks is not None:
-        os.environ["SLURM_NTASKS"] = ntasks
-    nnodes = os.environ.get("OCS_NNODES", None)
-    if nnodes is not None:
-        os.environ["SLURM_NNODES"] = nnodes
-    nodelist = os.environ.get("OCS_NODELIST", None)
-    if nodelist is not None:
-        os.environ["SLURM_NODELIST"] = nodelist
-    tasks_per_node = os.environ.get("OCS_TASKS_PER_NODE", None)
-    if tasks_per_node is not None:
-        os.environ["SLURM_TASKS_PER_NODE"] = tasks_per_node
-    mem_per_node = os.environ.get("OCS_MEM_PER_NODE", None)
-    if mem_per_node is not None:
-        os.environ["SLURM_MEM_PER_NODE"] = mem_per_node
-    mem_per_cpu = os.environ.get("OCS_MEM_PER_CPU", None)
-    if mem_per_cpu is not None:
-        os.environ["SLURM_MEM_PER_CPU"] = mem_per_cpu
+    if old_slurm_env:
+        for key, value in old_slurm_env:
+            os.environ[key] = value
 
 
 # ########################################################################### #

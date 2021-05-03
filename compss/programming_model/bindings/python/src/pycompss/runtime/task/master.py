@@ -605,11 +605,9 @@ class TaskMaster(TaskCommons):
                              list(reversed(self.param_defaults))))):
                 if arg_name not in self.parameters:
                     real_arg_name = get_kwarg_name(arg_name)
-                    is_defined = arg_name in kwargs
                     self.parameters[real_arg_name] = \
                         self.build_parameter_object(real_arg_name,
-                                                    default_value,
-                                                    is_defined)
+                                                    default_value)
 
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
@@ -633,17 +631,20 @@ class TaskMaster(TaskCommons):
                         list(self.decorator_arguments.keys()),
                         "@task")
 
-    def build_parameter_object(self, arg_name, arg_object, is_defined=False):
-        # type: (str, object, bool) -> Parameter
+    def build_parameter_object(self, arg_name, arg_object):
+        # type: (str, object) -> Parameter
         """ Creates the Parameter object from an argument name and object.
         The is_defined variable indicates that the parameter is defined in
         the kwargs dictionary. Consequently, if creating the variadic parameter
         (default parameter), we know that it will be overridden and avoid
         to set the NULL content_type.
 
+        WARNING: Any modification in the param object will modify the
+                 original Parameter set in the task.py __init__ constructor
+                 for the rest of the task calls.
+
         :param arg_name: Argument name.
         :param arg_object: Argument object.
-        :param is_defined: If the parameter is defined in the kwargs dictionary.
         :return: Parameter object.
         """
         # Is the argument a vararg? or a kwarg? Then check the direction
@@ -676,14 +677,7 @@ class TaskMaster(TaskCommons):
         # If the parameter is a DIRECTORY or FILE update the file_name
         # or content type depending if object. Otherwise update content.
         if param.is_file() or param.is_directory():
-            if arg_object:
-                param.file_name = arg_object
-            elif not is_defined:
-                # is None: Used None for a FILE or DIRECTORY parameter path
-                param.content_type = parameter.TYPE.NULL
-            else:
-                # Keep the same content_type (FILE or DIRECTORY)
-                pass
+            param.file_name = arg_object
         else:
             param.content = arg_object
         return param
@@ -1896,10 +1890,16 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # If the parameter is a file or is future, the content is in a file
         # and we register it as file
         value = param.file_name
-        typ = TYPE.FILE
+        if value:
+            typ = TYPE.FILE
+        else:
+            typ = TYPE.NULL
     elif param.content_type == TYPE.DIRECTORY:
         value = param.file_name
-        typ = TYPE.DIRECTORY
+        if value:
+            typ = TYPE.DIRECTORY
+        else:
+            typ = TYPE.NULL
     elif param.content_type == TYPE.OBJECT:
         # If the parameter is an object, its value is stored in a file and
         # we register it as file

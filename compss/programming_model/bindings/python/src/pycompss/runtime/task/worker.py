@@ -119,7 +119,12 @@ class TaskWorker(TaskCommons):
         with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
 
             # Update the on_failure attribute (could be defined by @on_failure)
-            self.on_failure = kwargs.pop("on_failure", "RETRY")
+            if "on_failure" in self.decorator_arguments:
+                self.on_failure = self.decorator_arguments["on_failure"]
+                # if task defines on_failure property the decorator is ignored
+                kwargs.pop("on_failure", None)
+            else:
+                self.on_failure = kwargs.pop("on_failure", "RETRY")
             self.defaults = kwargs.pop("defaults", {})
 
             # Pop cache if available

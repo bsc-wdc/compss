@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildBarbora
+  # Description: SCRIPT FOR Barbora COMPSs BUILD
+  # Parameters: <Salomon_user> Barbora user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Salomon for deployment
+  #             <FullTargetPath> Base Target Installation folder on Salomon
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildBarbora <Barbora_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  
+  Salomonuser=$1
+  SalomontmpDir=$2
+  SalomontargetDir=$3
+  SalomonloginNode=barbora.it4i.cz
+  SalomonauxScript=${scriptDir}/buildBarbora_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${scriptDir}"/../commons/
+  ./buildSC "${Salomonuser}" "${SalomonloginNode}" "${SalomontmpDir}" "${SalomontargetDir}" "${SalomonauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${scriptDir}"
+
+  # END
+  exit $exitStatus
+

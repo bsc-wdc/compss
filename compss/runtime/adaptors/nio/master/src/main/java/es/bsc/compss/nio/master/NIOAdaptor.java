@@ -421,9 +421,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         worker.submitTask(job, obsoleteRenamings);
     }
 
-    protected static void registerOngoingWorkerPing(NIOWorkerNode workerNode) {
+    protected static boolean registerOngoingWorkerPing(NIOWorkerNode workerNode) {
+        if (ONGOING_WORKER_PINGS.get(workerNode.getName()) != null) {
+            return false;
+        }
         LOGGER.debug("Registering Worker Ping: " + workerNode.getName());
         ONGOING_WORKER_PINGS.put(workerNode.getName(), workerNode);
+        return true;
     }
 
     protected static void cancelTask(NIOJob job) throws UnstartedNodeException {
@@ -1147,8 +1151,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void handleNodeIsDownError(String nodeName) {
         LOGGER.warn("Removing Worker due to lost connection : " + nodeName);
-        NIOWorkerNode node = ONGOING_WORKER_PINGS.remove(nodeName);
+        NIOWorkerNode node = ONGOING_WORKER_PINGS.get(nodeName);
         node.disruptedConnection();
+        ONGOING_WORKER_PINGS.remove(nodeName);
     }
 
     @Override

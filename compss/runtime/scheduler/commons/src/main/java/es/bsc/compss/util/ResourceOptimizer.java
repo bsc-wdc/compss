@@ -248,15 +248,12 @@ public class ResourceOptimizer extends Thread {
     }
 
     private void periodicCheckWorkers() {
-        RUNTIME_LOGGER.info("[Resource Optimizer]__________periodicCheckWorkers:::: .");
         List<Worker<? extends WorkerResourceDescription>> workers = ResourceManager.getAllWorkers();
         for (Worker<? extends WorkerResourceDescription> w : workers) {
-            RUNTIME_LOGGER.info(":::::::::::::::::: verifying :::::::::::::::");
-            if (w.getNode().verifyNodeIsRunning()) {
-                RUNTIME_LOGGER.info("::::::::::: node verified ::::" + w.getNode().getName());
+            if (!w.isLost) {
+                w.getNode().verifyNodeIsRunning();
             } else {
-                // todo: always will return true, handle through cmd error method
-                RUNTIME_LOGGER.info("::::::::::: node verification failed ::::::::" + w.getNode().getName());
+                RUNTIME_LOGGER.debug(" Node is lost, skipping ping: " + w.getName());
             }
         }
     }

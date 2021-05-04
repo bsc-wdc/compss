@@ -700,7 +700,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param b Boolean indicating the removed state.
      */
     public void setRemoved(boolean b) {
-        this.removed = true;
+        this.removed = b;
     }
 
     /**

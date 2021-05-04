@@ -863,17 +863,15 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public boolean verifyNodeIsRunning() {
-        LOGGER.info("____verifyNodeIsRunning___________nio_worker node is still up: '" + this.getName() + "'");
-        LOGGER.info(" node information: '" + this.node.toString() + "'");
-        NIOAdaptor.registerOngoingWorkerPing(this);
-        CommandPingWorker cmd = new CommandPingWorker(DEPLOYMENT_ID, this.getName());
-        // Send command check
-        Connection c = NIOAdaptor.getTransferManager().startConnection(this.node);
-        NIOAgent.registerOngoingCommand(c, cmd);
-        c.sendCommand(cmd);
-        c.receive();
-        c.finishConnection();
-        LOGGER.info("____verifyNodeIsRunning_________great!__________");
+        if (this.started && NIOAdaptor.registerOngoingWorkerPing(this)) {
+            CommandPingWorker cmd = new CommandPingWorker(DEPLOYMENT_ID, this.getName());
+            // Send command check
+            Connection c = NIOAdaptor.getTransferManager().startConnection(this.node);
+            NIOAgent.registerOngoingCommand(c, cmd);
+            c.sendCommand(cmd);
+            c.receive();
+            c.finishConnection();
+        }
         return true;
     }
 

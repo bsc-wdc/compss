@@ -509,7 +509,7 @@ public class ResourceLoader {
         mc.setLimitOfOTHERsTasks(taskCountOther);
 
         // Create the method worker
-        MethodWorker methodWorker = new MethodWorker(name, rd, mc, sharedDisks);
+        MethodWorker methodWorker = new DynamicMethodWorker(name, rd, mc, sharedDisks);
         return methodWorker;
     }
 

@@ -36,6 +36,7 @@ import es.bsc.compss.types.request.td.ShutdownRequest;
 import es.bsc.compss.types.request.td.TDRequest;
 import es.bsc.compss.types.request.td.TaskSummaryRequest;
 import es.bsc.compss.types.request.td.UpdateLocalCEIRequest;
+import es.bsc.compss.types.request.td.WorkerRestartRequest;
 import es.bsc.compss.types.request.td.WorkerUpdateRequest;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -163,6 +164,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
+                LOGGER.error("Error in TaskDispatcher request:" + e.getMessage());
                 ErrorManager.error("Error in TaskDispatcher request " + requestType, e);
                 if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -315,6 +317,12 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    @Override
+    public <T extends WorkerResourceDescription> void restartedResource(Worker<T> r, ResourceUpdate<T> modification) {
+        WorkerRestartRequest<T> request = new WorkerRestartRequest<>(r, modification);
+        addPrioritaryRequest(request);
     }
 
     @Override

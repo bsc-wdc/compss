@@ -773,6 +773,18 @@ public class TaskScheduler {
     }
 
     /**
+     * Restarts the Worker.
+     *
+     * @param <T> WorkerResourceDescription
+     * @param worker Worker to update.
+     * @param ru Resource Update information.
+     */
+    public final <T extends WorkerResourceDescription> void restartWorker(Worker<T> worker, ResourceUpdate<T> ru) {
+        ResourceScheduler<T> rs = this.workers.get(worker);
+        workerStoppedToBeRestarted(worker, rs);
+    }
+
+    /**
      * Registers a new Worker node for the scheduler to use it and creates the corresponding ResourceScheduler.
      *
      * @param worker Worker to incorporate.
@@ -800,6 +812,8 @@ public class TaskScheduler {
             action.tryToLaunch();
         } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
             // Can not be blocked nor unassigned
+            LOGGER.warn(" StartWorkerAction failed: " + e);
+            LOGGER.warn(" Failed ResourceScheduler: " + ui.getName());
         }
     }
 
@@ -827,6 +841,7 @@ public class TaskScheduler {
             action.tryToLaunch();
         } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
             // Can not be blocked nor unassigned
+            LOGGER.error(" Error while reducing the worker..");
         }
     }
 
@@ -840,7 +855,6 @@ public class TaskScheduler {
     @SuppressWarnings("unchecked")
     private <T extends WorkerResourceDescription> void completedResourceUpdate(ResourceScheduler<T> worker,
         ResourceUpdate<T> modification) {
-
         worker.completedModification(modification);
         SchedulingInformation.changesOnWorker((ResourceScheduler<WorkerResourceDescription>) worker);
         switch (modification.getType()) {
@@ -901,7 +915,7 @@ public class TaskScheduler {
             LOGGER.info("Starting stop process for worker " + worker.getName());
             workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
             StopWorkerAction action;
-            action = new StopWorkerAction(generateSchedulingInformation(worker, null, null), worker, 
+            action = new StopWorkerAction(generateSchedulingInformation(worker, null, null), worker,
                      this, modification);
             try {
                 action.schedule((ResourceScheduler<WorkerResourceDescription>) worker, (Score) null);
@@ -994,6 +1008,108 @@ public class TaskScheduler {
 
         this.workerRemoved(resource);
 
+    }
+
+    /**
+     * One worker has been removed from the pool; actions on the node are moved out from it and the Task Scheduler is
+     * notified about it.
+     *
+     * @param <T> WorkerResourceDescription.
+     * @param resource Removed worker.
+     */
+    private <T extends WorkerResourceDescription> void workerStoppedToBeRestarted(
+            Worker<T> worker, ResourceScheduler<T> resource) {
+        @SuppressWarnings("unchecked")
+
+        ResourceScheduler<WorkerResourceDescription> workerRS = (ResourceScheduler<WorkerResourceDescription>) resource;
+        LOGGER.info("_____ workerStoppedToBeRestarted.. workerRS: " + workerRS);
+        Worker<WorkerResourceDescription> workerResource = workerRS.getResource();
+        LOGGER.info("_____ workerStoppedToBeRestarted.. workerResource: " + workerResource);
+        this.workers.remove(workerResource);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            for (Implementation impl : ce.getImplementations()) {
+                int implId = impl.getImplementationId();
+
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
+                    + " before removing:" + offVMsProfiles[coreId][implId]);
+                Profile p = resource.getProfile(coreId, implId);
+                if (p != null) {
+                    LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId
+                        + " in removed workers profile");
+                    offVMsProfiles[coreId][implId].accumulate(p);
+                }
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
+                    + " after removing:" + offVMsProfiles[coreId][implId]);
+            }
+        }
+
+        // nm: we remove before re-scheduling so they don't go to the same
+        // worker before they are re-up
+        resource.setRemoved(true);
+        this.workerRemoved(resource);
+
+        // We convert PriorityQueue -> List to obtain a shallow copy
+        List<AllocatableAction> blockedOnResource = new ArrayList<>(resource.getBlockedActions());
+        AllocatableAction[] runningOnResource = resource.getHostedActions();
+
+        for (AllocatableAction action : blockedOnResource) {
+            action.abortExecution();
+        }
+        for (AllocatableAction action : runningOnResource) {
+            action.abortExecution();
+        }
+
+        resource.setRemoved(false);
+        resource.getResource().isLost = false;
+        startWorker(resource);
+        workerDetected(resource);
+
+        synchronized (this.workers) {
+            this.workers.put(worker, resource);
+        }
+
+        for (AllocatableAction action : blockedOnResource) {
+            try {
+                resource.unscheduleAction(action);
+            } catch (ActionNotFoundException ex) {
+                // Task was already moved from the worker. Do nothing!
+                continue;
+            }
+
+            Score actionScore = generateActionScore(action);
+            try {
+                scheduleAction(action, actionScore);
+                tryToLaunch(action);
+            } catch (BlockedActionException bae) {
+                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
+                    removeFromReady(action);
+                }
+                addToBlocked(action);
+            }
+        }
+
+
+        for (AllocatableAction action : runningOnResource) {
+            try {
+                resource.unscheduleAction(action);
+            } catch (ActionNotFoundException ex) {
+                // Task was already moved from the worker. Do nothing!
+                continue;
+            }
+
+            Score actionScore = generateActionScore(action);
+            try {
+                scheduleAction(action, actionScore);
+                tryToLaunch(action);
+            } catch (BlockedActionException bae) {
+                if (!action.hasDataPredecessors()) {
+                    removeFromReady(action);
+                }
+                addToBlocked(action);
+            }
+        }
+        LOGGER.info(" ________________ check point 2");
     }
 
     /**

@@ -25,4 +25,6 @@ public interface ResourceUser {
 
     public <T extends WorkerResourceDescription> void updatedResource(Worker<T> r, ResourceUpdate<T> modification);
 
+    public <T extends WorkerResourceDescription> void restartedResource(Worker<T> r, ResourceUpdate<T> modification);
+
 }

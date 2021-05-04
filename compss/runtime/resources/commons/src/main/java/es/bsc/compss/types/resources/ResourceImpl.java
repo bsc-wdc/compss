@@ -74,6 +74,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
+    public boolean isLost = false;
 
 
     /**
@@ -334,6 +335,9 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void retrieveUniqueDataValues() {
+        if (this.isLost) {
+            return;
+        }
         COMPSsNode masterNode = Comm.getAppHost().getNode();
         if (this.getNode().compareTo(masterNode) == 0) {
             if (DEBUG) {
@@ -400,6 +404,9 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void retrieveTracingAndDebugData() {
+        if (this.isLost) {
+            return;
+        }
         if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
             if (this.node.generatePackage()) {
                 getTracingPackageToMaster();
@@ -426,6 +433,9 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void disableExecution() {
+        if (this.isLost) {
+            return;
+        }
         if (DEBUG) {
             LOGGER.debug("Shutting down Execution Manager on Resource " + this.getName());
         }
@@ -451,6 +461,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void stop(ShutdownListener sl) {
+        if (this.isLost) {
+            sl.notifyEnd();
+            return;
+        }
         this.deleteIntermediate();
         sl.addOperation();
         this.node.stop(sl);
@@ -692,6 +706,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void lostNode() {
-        ResourceManager.requestWholeWorkerReduction(this.name);
+        this.isLost = true;
+        ResourceManager.notifyRestart(this.name);
     }
 }

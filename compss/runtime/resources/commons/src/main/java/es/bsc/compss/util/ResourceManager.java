@@ -532,6 +532,17 @@ public class ResourceManager {
     }
 
     /**
+     * Notifies the reduction of the whole worker.
+     *
+     * @param name Worker name.
+     */
+    @SuppressWarnings("unchecked")
+    public static void notifyRestart(String name) {
+        DynamicMethodWorker worker = (DynamicMethodWorker) pool.getResource(name);
+        resourceUser.restartedResource(worker, null);
+    }
+
+    /**
      * Decreases the capabilities of a given cloud worker.
      *
      * @param <R> WorkerResourceDescription extension.

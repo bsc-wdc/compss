@@ -112,9 +112,9 @@ def c_extension_link(in_queue, out_queue,
         while alive:
             message = in_queue.get()
             command = message[0]
-            parameters = []
+            parameters = []  # type: list
             if len(message) > 0:
-                parameters = message[1:]
+                parameters = list(message[1:])
             if command == START:
                 compss.start_runtime()
             elif command == SET_DEBUG:
@@ -339,7 +339,10 @@ class COMPSs(object):
         # type: (int, str, bool) -> bool
         IN_QUEUE.put((DELETE_FILE, app_id, file_name, mode))
         result = OUT_QUEUE.get(block=True)
-        return result
+        if result is None:
+            return False
+        else:
+            return result
 
     @staticmethod
     def get_file(app_id, file_name):

@@ -32,7 +32,7 @@ mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/dummy/api.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/implement.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/exceptions.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/multinode.py
-mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/interactive.py
+#mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/interactive.py  # mypy failure with __builtin__
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/runtime/commons.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/runtime/binding.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/runtime/mpi/keys.py
@@ -68,7 +68,7 @@ mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/interactive
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/interactive/utils.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/interactive/flags.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/interactive/graphs.py
-mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/interactive/events.py
+#mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/interactive/events.py  # mypy failure with builtin function __pre_run_cell__
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/environment/configuration.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/mpi/helper.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/util/serialization/serializer.py

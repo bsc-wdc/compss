@@ -883,7 +883,7 @@ class TaskWorker(object):
         return user_returns, compss_exception, default_values
 
     def manage_exception(self):
-        # type: () -> typing.Tuple[typing.Optional[tuple], typing.Optional[dict]]
+        # type: () -> typing.Tuple[typing.Optional[int], typing.Optional[dict]]
         """ Deal with exceptions (on failure action).
 
         :return: The default return and values.

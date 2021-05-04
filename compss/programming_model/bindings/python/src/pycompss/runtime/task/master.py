@@ -869,7 +869,7 @@ class TaskMaster(object):
         :return: None
         """
         default = "METHOD"
-        if ce_type != "":
+        if ce_type is None or (isinstance(ce_type, str) and ce_type == ""):
             ce_type = default
 
         if ce_type == default or \
@@ -1407,7 +1407,10 @@ class TaskMaster(object):
                 # There is a return defined as type-hint
                 ret = type_hints["return"]
                 try:
-                    num_returns = len(ret)
+                    if hasattr(ret, "__len__"):
+                        num_returns = len(ret)
+                    else:
+                        num_returns = 1
                 except TypeError:
                     # Is not iterable, so consider just 1
                     num_returns = 1

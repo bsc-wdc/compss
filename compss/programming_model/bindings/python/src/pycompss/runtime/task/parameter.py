@@ -70,11 +70,6 @@ JAVA_MIN_INT = -2147483648
 JAVA_MAX_LONG = PYTHON_MAX_INT
 JAVA_MIN_LONG = PYTHON_MIN_INT
 
-# Python3 has no ints and longs, only ints that are longs
-PYCOMPSS_LONG = int  # type: typing.Any
-if not IS_PYTHON3:
-    PYCOMPSS_LONG = float  # noqa
-
 # Content type format is <module_path>:<class_name>, separated by colon (":")
 UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
 
@@ -610,7 +605,7 @@ def get_compss_type(value, depth=0):
     if np and isinstance(value, np.generic):
         return TYPE.OBJECT
 
-    if isinstance(value, (bool, str, int, PYCOMPSS_LONG, float)):
+    if isinstance(value, (bool, str, int, float)):
         value_type = type(value)
         if value_type is bool:
             return TYPE.BOOLEAN
@@ -622,14 +617,12 @@ def get_compss_type(value, depth=0):
             return TYPE.STRING
         elif value_type is int:
             if IS_PYTHON3:
-                if value < PYTHON_MAX_INT:  # noqa
+                if int(value) < PYTHON_MAX_INT:  # noqa
                     return TYPE.INT
                 else:
                     return TYPE.LONG
             else:
                 return TYPE.INT
-        elif value_type is PYCOMPSS_LONG:
-            return TYPE.LONG
         elif value_type is float:
             return TYPE.DOUBLE
     elif depth > 0 and is_basic_iterable(value):

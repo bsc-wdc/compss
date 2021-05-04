@@ -73,6 +73,8 @@ def start_cache(logger, cache_config, cache_profiler, log_dir):
     manager = new_manager()
     # Proxy dictionary
     cache_ids = manager.dict()  # type: typing.Any
+    # TODO: UNSUPPORTED WITH MYPY - typeshed issue, maybe for 3.9 -> PEP 591
+    # TypeError: dict object expected; got multiprocessing.managers.DictProxy
     profiler_dict = {}
     profiler_get_struct = [[], [], []]  # Filename, Parameter, Function
     # Start a new process to manage the cache contents.

@@ -343,7 +343,7 @@ def create_init_config_file(compss_home,                    # type: str
                             specific_log_dir,               # type: str
                             graph,                          # type: bool
                             monitor,                        # type: int
-                            trace,                          # type: bool
+                            trace,                          # type: int
                             extrae_cfg,                     # type: str
                             comm,                           # type: str
                             conn,                           # type: str

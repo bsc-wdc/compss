@@ -33,7 +33,6 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.task.parameter import Parameter
-from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import COMPSsFile
@@ -170,7 +169,7 @@ def build_task_parameter(p_type,      # type: int
         if p_type == parameter.TYPE.INT:
             val = int(p_value)  # noqa
         elif p_type == parameter.TYPE.LONG:
-            val = PYCOMPSS_LONG(p_value)
+            val = float(p_value)
             if val > JAVA_MAX_INT or val < JAVA_MIN_INT:
                 # A Python in parameter was converted to a Java long to prevent
                 # overflow. We are sure we will not overflow Python int,

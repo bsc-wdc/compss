@@ -179,7 +179,9 @@
   i=0
   while [ $i -lt ${#pipe_pids[@]} ]; do
      pid=${pipe_pids[$i]}
-     wait $pid || errorStatus=$((errorStatus+1))
+     if [ ${pid} -gt 0 ]; then
+          wait $pid || errorStatus=$((errorStatus+1))
+     fi
      i=$((i+1))
   done
 

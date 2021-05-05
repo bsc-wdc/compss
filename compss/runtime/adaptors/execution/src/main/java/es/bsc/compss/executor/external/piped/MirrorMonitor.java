@@ -159,6 +159,7 @@ public class MirrorMonitor {
                             workerPipe.noLongerExists();
                             workerPipe.delete();
                         }
+                        info.getMirror().workerProcessEnded();
                     }
                 }
 
@@ -236,13 +237,14 @@ public class MirrorMonitor {
     /**
      * Register a worker to the Mirror monitor.
      * 
-     * @param workerName Worker Name
+     * @param worker External Worker
      * @param workerPID Worker Process Identifier
      * @param workerControlPipe Worker control pipe
      */
-    public void registerWorker(String workerName, int workerPID, ControlPipePair workerControlPipe) {
-        PipeWorkerInfo info = new PipeWorkerInfo(workerPID, workerControlPipe);
+    public void registerWorker(PipedMirror worker, int workerPID, ControlPipePair workerControlPipe) {
+        PipeWorkerInfo info = new PipeWorkerInfo(worker, workerPID, workerControlPipe);
         synchronized (this) {
+            String workerName = worker.getMirrorId();
             this.workers.put(workerName, info);
         }
     }
@@ -298,8 +300,8 @@ public class MirrorMonitor {
         private final ControlPipePair pipe;
 
 
-        public PipeWorkerInfo(Integer pid, ControlPipePair pipe) {
-            super(pid);
+        public PipeWorkerInfo(PipedMirror mirror, Integer pid, ControlPipePair pipe) {
+            super(mirror, pid);
             this.pipe = pipe;
         }
 
@@ -311,20 +313,14 @@ public class MirrorMonitor {
 
     private static class PipeExecutorInfo extends PipeElementInfo {
 
-        private final PipedMirror mirror;
         private final String executorId;
         private final PipePair pipe;
 
 
         public PipeExecutorInfo(PipedMirror mirror, String executorId, Integer pid, PipePair pipe) {
-            super(pid);
-            this.mirror = mirror;
+            super(mirror, pid);
             this.executorId = executorId;
             this.pipe = pipe;
-        }
-
-        public PipedMirror getMirror() {
-            return mirror;
         }
 
         public String getExecutorId() {

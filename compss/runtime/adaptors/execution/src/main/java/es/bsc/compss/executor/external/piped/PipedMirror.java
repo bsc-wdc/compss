@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -84,6 +85,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     private ControlPipePair pipeBuilderPipe;
     private ControlPipePair pipeWorkerPipe;
+
+    private final Semaphore workerEndSem = new Semaphore(0);
 
 
     /**
@@ -252,7 +255,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 ErrorManager.fatal(ERROR_W_START);
             }
             int workerPID = startedCMD.getPid();
-            this.monitor.registerWorker(this.mirrorId, workerPID, this.pipeWorkerPipe);
+            this.monitor.registerWorker(this, workerPID, this.pipeWorkerPipe);
         } else {
             ErrorManager.fatal(ERROR_W_START);
         }
@@ -316,10 +319,28 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             Tracer.emitEvent((long) timestamp.getTime(), Tracer.getSyncType());
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
         }
-
+        waitForWorkerEnd();
         // Unregister worker and delete pipe
         this.monitor.unregisterWorker(this.mirrorId);
         this.pipeWorkerPipe.delete();
+    }
+
+    private void waitForWorkerEnd() {
+        LOGGER.info("Waiting for mirror " + this.mirrorId + "'s worker process end");
+        try {
+            workerEndSem.acquire();
+        } catch (InterruptedException ie) {
+            // No need to do anything
+        }
+        LOGGER.info("Mirror " + this.mirrorId + "'s worker process has finished. Continuing mirror shutdown");
+    }
+
+    /**
+     * Notifies the death of the process running the worker of the mirror.
+     */
+    public void workerProcessEnded() {
+        LOGGER.info("Received death notification for mirror " + this.mirrorId + "'s worker process.");
+        workerEndSem.release();
     }
 
     private void stopPiper() {

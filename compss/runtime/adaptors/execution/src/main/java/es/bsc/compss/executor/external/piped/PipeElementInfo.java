@@ -18,11 +18,17 @@ package es.bsc.compss.executor.external.piped;
 
 public class PipeElementInfo {
 
+    private final PipedMirror mirror;
     private final Integer pid;
 
 
-    public PipeElementInfo(Integer pid) {
+    public PipeElementInfo(PipedMirror mirror, Integer pid) {
+        this.mirror = mirror;
         this.pid = pid;
+    }
+
+    public PipedMirror getMirror() {
+        return mirror;
     }
 
     public int getPID() {

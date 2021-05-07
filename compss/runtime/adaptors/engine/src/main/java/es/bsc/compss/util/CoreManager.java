@@ -23,10 +23,9 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.util.ErrorManager;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +49,7 @@ public class CoreManager {
     // List of core elements
     private static final List<CoreElement> CORE_ELEMENTS = new ArrayList<>();
 
-    // Map for signatures to coreElement (several signatures may point to the same coreId since there is versioning)
+    // Map for impSignatures to coreElement (several signatures may point to the same coreId since there is versioning)
     private static final Map<String, CoreElement> SIGNATURE_TO_CORE = new LinkedHashMap<>();
 
     // Structure counters
@@ -213,10 +212,23 @@ public class CoreManager {
      *
      * @return The map of registered signatures and coreIds.
      */
-    public static Map<String, Integer> getSignaturesToCoreIds() {
+    public static Map<String, Integer> getSignaturesToCeAndImpls() {
         HashMap<String, Integer> result = new HashMap<>();
         for (Entry<String, CoreElement> ceEntry : SIGNATURE_TO_CORE.entrySet()) {
             result.put(ceEntry.getKey(), ceEntry.getValue().getCoreId());
+        }
+        return result;
+    }
+
+    /**
+     * Returns a map from the CE signature to the CE id.
+     *
+     * @return The map of registered signatures and coreIds.
+     */
+    public static Map<String, Integer> getSignaturesToCEIds() {
+        HashMap<String, Integer> result = new HashMap<>();
+        for (CoreElement ce : CORE_ELEMENTS) {
+            result.put(ce.getSignature(), ce.getCoreId());
         }
         return result;
     }

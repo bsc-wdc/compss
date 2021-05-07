@@ -50,7 +50,6 @@ import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.ImplementationSignature;
-import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
@@ -505,7 +504,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
 
                 LOGGER.debug("Stopping Comm...");
-                Comm.stop(CoreManager.getSignaturesToCoreIds());
+                Comm.stop(CoreManager.getSignaturesToCEIds());
                 LOGGER.debug("Runtime stopped");
                 stopped = true;
             }

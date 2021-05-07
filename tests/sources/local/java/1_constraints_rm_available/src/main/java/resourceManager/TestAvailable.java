@@ -1,19 +1,20 @@
 
 package resourceManager;
 
-import java.util.LinkedList;
-import java.util.Map.Entry;
-
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
-import commons.Action;
-import es.bsc.compss.types.CoreElement;
-import es.bsc.compss.types.implementations.Implementation;
+
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
+
+import commons.Action;
 
 
 /**
@@ -68,7 +69,7 @@ public class TestAvailable {
         for (int coreId = 0; coreId < coreCount; coreId++) {
             idToSignatures[coreId] = new LinkedList<>();
         }
-        for (Entry<String, Integer> entry : CoreManager.getSignaturesToCoreIds().entrySet()) {
+        for (Entry<String, Integer> entry : CoreManager.getSignaturesToCeAndImpls().entrySet()) {
             String signature = entry.getKey();
             Integer coreId = entry.getValue();
             idToSignatures[coreId].add(signature);

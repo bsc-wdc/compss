@@ -2,11 +2,6 @@
 package constraintManager;
 
 import es.bsc.compss.types.CoreElement;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
-
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.task.Method;
@@ -15,6 +10,12 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 /*
@@ -71,7 +72,7 @@ public class Test {
         }
 
         // Loading data from Cores
-        signatureToId = CoreManager.getSignaturesToCoreIds();
+        signatureToId = CoreManager.getSignaturesToCeAndImpls();
         idToSignatures = new LinkedList[coreCountItf];
         for (int coreId = 0; coreId < coreCountItf; coreId++) {
             idToSignatures[coreId] = new LinkedList<>();

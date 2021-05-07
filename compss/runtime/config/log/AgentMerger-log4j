@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="COMPSsMaster" status="WARN">
+
+  <!-- Logger console and files configuration -->
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="[(%r) %6c{1}]  -  %m%n"/>
+    </Console>
+    <File name="TraceMerge" fileName="${sys:compss.appLogDir}/TraceMerge.log" immediateFlush="true" append="false">
+      <PatternLayout pattern="[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n"/>
+    </File>
+  </Appenders>
+
+  <!-- Configure runtime loggers -->
+  <Loggers>
+    <Root level="debug">
+      <AppenderRef ref="Console"/>
+    </Root>
+
+    <!-- RUNTIME ROOT -->
+    <!-- es.bsc.compss: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- COMMUNICATION -->
+    <!-- es.bsc.compss.Communication: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.comm" additivity="FALSE" level="info">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- DISTRO STREAM LIBRARY -->
+    <!-- es.bsc.distroStreamLib: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.distroStreamLib" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- RUNTIME LOADER -->
+    <!-- es.bsc.compss.Loader: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Loader" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <!-- es.bsc.compss.LoaderUtils: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.LoaderUtils" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- RUNTIME AGENT -->
+    <!-- es.bsc.compss.Agent: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Agent" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    
+    <!-- RUNTIME API -->
+    <!-- es.bsc.compss.API: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.API" additivity="FALSE" level="debug">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- PROJECT AND RESOURCES XML PARSERS -->
+    <!-- es.bsc.compss.Xml: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Xml" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Xml.Resources: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Xml.Resources" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Xml.Project: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Xml.Project" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- RUNTIME RESOURCES -->
+    <!-- es.bsc.compss.Resources: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Resources" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- RUNTIME MAIN SUBCOMPONENTS -->
+    <!-- es.bsc.compss.Components: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.TaskProcessor: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.TaskProcessor" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.TaskDispatcher: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.ResourceManager: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.ResourceManager" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.CloudManager: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.CloudManager" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.ErrorManager: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.ErrorManager" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.Tracing: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.Tracing" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- RUNTIME TASK PROCESSING SUBCOMPONENTS -->
+    <!-- es.bsc.compss.Components.TaskProcessor.TaskAnalyser: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.TaskProcessor.TaskAnalyser" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.TaskProcessor.DataInfoProvider: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.TaskProcessor.DataInfoProvider" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- RUNTIME TASK DISPATCHER SUBCOMPONENTS -->
+    <!-- es.bsc.compss.Components.TaskDispatcher.FileTransferManager: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher.TaskScheduler" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.TaskDispatcher.FileTransferManager: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher.JobManager" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+    <!-- es.bsc.compss.Components.TaskDispatcher.FileTransferManager: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher.FileTransferManager" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- RUNTIME TIMERS -->
+    <!-- es.bsc.compss.Timers: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Timers" additivity="FALSE" level="debug">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- CONNECTORS -->
+    <!-- es.bsc.compss.Connectors: DEFAULT = INFO -->
+    <Logger name="es.bsc.compss.Connectors" additivity="FALSE" level="DEBUG">
+      <AppenderRef ref="TraceMerge"/>                                                                                                                                             
+    </Logger>
+    <!-- es.bsc.compss.ConnectorsUtils: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.ConnectorsUtils" additivity="FALSE" level="DEBUG">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- WORKER -->
+    <!-- es.bsc.compss.Worker: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+    <!-- STORAGE -->
+    <!-- es.bsc.compss.Storage: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Storage" additivity="FALSE" level="debug">
+      <AppenderRef ref="TraceMerge"/>
+    </Logger>
+
+  </Loggers>
+</Configuration>

@@ -23,9 +23,17 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.types.PrvHeader;
+import es.bsc.compss.util.types.PrvLine;
+import es.bsc.compss.util.types.RowFile;
+import es.bsc.compss.util.types.ThreadTranslator;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,6 +67,14 @@ public abstract class Tracer {
         File.separator + RUNTIME + File.separator + "scripts" + File.separator + "system" + TRACE_PATH + "trace.sh";
     protected static final String TRACE_OUT_RELATIVE_PATH = TRACE_PATH + "tracer.out";
     protected static final String TRACE_ERR_RELATIVE_PATH = TRACE_PATH + "tracer.err";
+    public static final String TRACE_SUBDIR = "trace";
+    public static final String TO_MERGE_SUBDIR = "to_merge";
+
+    // Naming
+    public static final String MASTER_TRACE_SUFFIX = "_compss_trace_";
+    public static final String TRACE_ROW_FILE_EXTENTION = ".row";
+    public static final String TRACE_PRV_FILE_EXTENTION = ".prv";
+    public static final String TRACE_PCF_FILE_EXTENTION = ".pcf";
 
     // Extrae loaded properties
     private static final boolean IS_CUSTOM_EXTRAE_FILE =
@@ -83,19 +100,24 @@ public abstract class Tracer {
     private static final String INSIDE_TASK_DESC = "Events inside tasks";
     private static final String INSIDE_TASK_CPU_AFFINITY_DESC = "Tasks CPU affinity";
     private static final String INSIDE_TASK_GPU_AFFINITY_DESC = "Tasks GPU affinity";
+    private static final String AGENT_EVENTS_TYPE_DESC = "Agents events";
     private static final String INSIDE_WORKER_DESC = "Events inside worker";
     private static final String BINDING_MASTER_DESC = "Binding events";
     private static final String TASKTYPE_DESC = "Type of task";
     private static final String READY_COUNT_DESC = "Ready queue count";
     private static final String CPU_COUNT_DESC = "Number of requested CPUs";
     private static final String GPU_COUNT_DESC = "Number of requested GPUs";
-    private static final String MEMORY_DESC = " Requested Memory";
-    private static final String DISK_BW_DESC = " Requested disk bandwidth";
+    private static final String MEMORY_DESC = "Requested Memory";
+    private static final String DISK_BW_DESC = "Requested disk bandwidth";
+    private static final String RUNTIME_THREAD_EVENTS_DESC = "Thread type identifier";
+    private static final String EXECUTOR_COUNTS_DESC = "Executor threads count";
 
     // Event codes
     protected static final int TASKS_FUNC_TYPE = 8_000_000;
     protected static final int API_EVENTS = 8_001_001;
     protected static final int RUNTIME_EVENTS = 8_001_002;
+    protected static final int THREAD_IDENTIFICATION_EVENTS = 8_001_003; // Identifies the thread as AP, TD, executor...
+    protected static final int EXECUTOR_COUNTS = 8_001_004; // Marks the life and end of an executor thread
     protected static final int TASKS_ID_TYPE = 8_000_002;
     protected static final int TASK_TRANSFERS = 8_000_003;
     protected static final int DATA_TRANSFERS = 8_000_004;
@@ -109,6 +131,7 @@ public abstract class Tracer {
     protected static final int SYNC_TYPE = 8_000_666;
     protected static final int TASKS_CPU_AFFINITY_TYPE = 8_000_150; // Java assignment
     protected static final int TASKS_GPU_AFFINITY_TYPE = 8_000_160; // Java assignment
+    protected static final int AGENT_EVENTS_TYPE = 8_006_000;
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
     protected static final int INSIDE_TASKS_CPU_AFFINITY_TYPE = 60_000_150; // Python view
     protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160; // Python view
@@ -126,6 +149,26 @@ public abstract class Tracer {
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
+
+    // Globally defined thread identification numbers with their labels, needed for
+    // Paraver label updating
+    // Pairs where key is the id and value the label
+    public static final int AP_ID = 2;
+    public static final int TD_ID = 3;
+    public static final int FS_ID = 4;
+    public static final int TIMER_ID = 5;
+    public static final int EXECUTOR_ID = 6; // executor must be bigger than any runtime id
+    public static final String appThread = "1:1:1";
+    public static final String APThread = "1:1:2";
+    public static final String TDThread = "1:1:3";
+    public static final String workerMainEnding = "1:1";
+    public static final String LastNumberFSThread = "2";
+    public static final String LastNumberTimerId = "4";
+
+    public static final String RUNTIME_ID = "1";
+    public static final String NON_RUNTIME_ID = "2";
+
+    public static final Pattern INSIDE_PARENTHESIS_PATTERN = Pattern.compile("\\(.+\\)");
 
 
     /**
@@ -489,13 +532,125 @@ public abstract class Tracer {
                 generateMasterPackage("package");
                 transferMasterPackage();
                 generateTrace("gentrace");
+                if (basicModeEnabled()) {
+                    updateThreads();
+                }
                 cleanMasterPackage();
             } else if (scorepEnabled()) {
                 // No master ScoreP trace - only Python Workers
                 generateTrace("gentrace-scorep");
-
             }
         }
+    }
+
+    /**
+     * Updates the threads in .prv and .row classifying them in runtime or non runtime and assigning the corresponding
+     * labels
+     */
+    private static void updateThreads() {
+        String disable = System.getProperty(COMPSsConstants.DISABLE_CUSTOM_THREADS_TRACING);
+        if (disable != null) {
+            LOGGER.debug("Custom thread translation disabled");
+            return;
+        }
+        LOGGER.debug("Tracing: Updating thread labels");
+        File[] rowFileArray;
+        File[] prvFileArray;
+        try {
+            String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
+            File dir = new File(appLogDir + TRACE_SUBDIR);
+            final String traceNamePrefix = Tracer.getTraceNamePrefix();
+            rowFileArray = dir.listFiles(
+                (File d, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_ROW_FILE_EXTENTION));
+            prvFileArray = dir.listFiles(
+                (File d, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_PRV_FILE_EXTENTION));
+        } catch (Exception e) {
+            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
+            return;
+        }
+        try {
+            if (rowFileArray != null && rowFileArray.length > 0) {
+                File rowFile = rowFileArray[0];
+                File prvFile = prvFileArray[0];
+                ThreadTranslator thTranslator = createThreadTranslations(prvFile);
+                writeTranslatedPrvThreads(prvFile, thTranslator);
+                updateRowLabels(rowFile, thTranslator.createLabelTranslationMap());
+            }
+        } catch (Exception e) {
+            LOGGER.debug(e);
+            LOGGER.debug(e.toString());
+            ErrorManager.error("Could not update thread labels " + traceDirPath, e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Reads the .prv and creates a map from the old thread identifier to a new one based on
+     * THREAD_IDENTIFICATION_EVENTS
+     */
+    public static ThreadTranslator createThreadTranslations(File prvFile) throws Exception {
+        final BufferedReader br = new BufferedReader(new FileReader(prvFile));
+        final String threadIdEvent = Integer.toString(THREAD_IDENTIFICATION_EVENTS);
+        final ThreadTranslator thTranslator = new ThreadTranslator();
+        br.readLine(); // we don't need the header right now
+        String line;
+        // the isEmpty check should not be necessary if the .prv files are well constructed
+        while ((line = br.readLine()) != null && !line.isEmpty()) {
+            PrvLine prvLine = new PrvLine(line);
+            String oldThreadId = prvLine.getStateLineThreadIdentifier();
+            Map<String, String> events = prvLine.getEvents();
+            if (events.containsKey(threadIdEvent)) {
+                int identifierEventValue = Integer.parseInt(events.get(threadIdEvent));
+                thTranslator.addThread(oldThreadId, identifierEventValue);
+            }
+        }
+        br.close();
+        return thTranslator;
+    }
+
+    /**
+     * Updates the threads in .prv with the information from translations.
+     * 
+     * @throws Exception Exception reading or parsing the files
+     */
+    public static void writeTranslatedPrvThreads(File prvFile, ThreadTranslator thThranslator) throws Exception {
+        Map<String, String> translations = thThranslator.createThreadTranslationMap();
+        LOGGER.debug("Tracing: Updating thread identifiers in .prv file");
+        final String oldFilePath = prvFile.getAbsolutePath();
+        final String newFilePath = oldFilePath + "_tmp_updatedThreadsId";
+        final File updatedPrvFile = new File(newFilePath);
+        if (!updatedPrvFile.exists()) {
+            updatedPrvFile.createNewFile();
+        }
+        final BufferedReader br = new BufferedReader(new FileReader(prvFile));
+        final PrintWriter prvWriter = new PrintWriter(new FileWriter(updatedPrvFile.getAbsolutePath(), true));
+        PrvHeader header = new PrvHeader(br.readLine());
+        // Needed in the case of the runcompss, won't do anything in agents
+        header.transformNodesToAplications();
+        header.splitRuntimeExecutors(thThranslator.createRuntimeThreadNumberPerApp());
+        prvWriter.println(header.toString());
+        String line;
+        // the isEmpty check should not be necessary if the .prv files are well constructed
+        while ((line = br.readLine()) != null && !line.isEmpty()) {
+            PrvLine prvLine = new PrvLine(line);
+            prvLine.translateLineThreads(translations);
+            prvWriter.println(prvLine.toString());
+        }
+
+        br.close();
+        prvWriter.close();
+        updatedPrvFile.renameTo(new File(oldFilePath));
+    }
+
+    /**
+     * Updates in the .row the threads changed in the .prv and apply the corresponding labels from LABEL_TRANSLATIONS.
+     * 
+     * @throws Exception Exception reading or parsing the files
+     */
+    public static void updateRowLabels(File rf, Map<String, String> translations) throws IOException {
+        RowFile rowFile = new RowFile(rf);
+        rowFile.updateRowLabels(translations);
+        rowFile.printInfo(rf);
     }
 
     /**
@@ -539,10 +694,14 @@ public abstract class Tracer {
         defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
         defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
         defineEventsForType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC);
+        defineEventsForType(AGENT_EVENTS_TYPE, AGENT_EVENTS_TYPE_DESC);
         defineEventsForType(INSIDE_TASKS_CPU_AFFINITY_TYPE, INSIDE_TASK_CPU_AFFINITY_DESC);
         defineEventsForType(INSIDE_TASKS_GPU_AFFINITY_TYPE, INSIDE_TASK_GPU_AFFINITY_DESC);
         defineEventsForType(INSIDE_WORKER_TYPE, INSIDE_WORKER_DESC);
         defineEventsForType(BINDING_MASTER_TYPE, BINDING_MASTER_DESC);
+        defineEventsForType(THREAD_IDENTIFICATION_EVENTS, RUNTIME_THREAD_EVENTS_DESC);
+        defineEventsForType(EXECUTOR_COUNTS, EXECUTOR_COUNTS_DESC);
+
         defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
         // Definition of Scheduling and Transfer time events
         Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, new long[0], new String[0]);
@@ -713,7 +872,6 @@ public abstract class Tracer {
         if (label != null && !label.isEmpty() && !label.equals("None")) {
             traceName = traceName.concat("_" + label);
         }
-
         ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName,
             String.valueOf(hostToSlots.size() + 1));
         Process p;
@@ -745,12 +903,24 @@ public abstract class Tracer {
         if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
                 String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
-                TraceMerger t = new TraceMerger(appLogDir, traceName);
+                PythonTraceMerger t = new PythonTraceMerger(appLogDir);
                 t.merge();
             } catch (Exception e) {
                 ErrorManager.warn("Error while trying to merge files", e);
             }
         }
+    }
+
+    /**
+     * Returns the beginning of the name of the trace files.
+     */
+    public static String getTraceNamePrefix() {
+        String traceName = System.getProperty(COMPSsConstants.APP_NAME);
+        String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
+        if (label != null && !label.isEmpty() && !label.equals("None")) {
+            traceName = traceName.concat("_" + label);
+        }
+        return traceName + Tracer.MASTER_TRACE_SUFFIX;
     }
 
     /**

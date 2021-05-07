@@ -57,8 +57,8 @@ get_invocation_params () {
 
     numSlaves=$4
     # shellcheck disable=SC2206
-    slaves=(${@:5:${numSlaves}})
-    shift $((4 + numSlaves))
+    slaves=(${@:5:${numSlaves}}) #saves parameters from $5 to $5+$numSlaves to slaves
+    shift $((4 + numSlaves)) #removes the slaves and previos parameters from the parameters
 
     cus=$1
     numParams=$2

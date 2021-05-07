@@ -230,7 +230,7 @@
   echo "Agent 4 started" > >(tee -a "${output_log}")
   
   sleep 1
-  
+
   # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ on AGENT 1
   RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
 

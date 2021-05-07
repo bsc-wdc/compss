@@ -81,7 +81,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Timer;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -159,6 +158,10 @@ public class Executor implements Runnable, InvocationRunner {
      */
     @Override
     public void run() {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS.getId(), TraceEvent.EXECUTOR_COUNTS.getType());
+            Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID.getId(), TraceEvent.EXECUTOR_THREAD_ID.getType());
+        }
         start();
 
         // Main loop to process requests
@@ -166,6 +169,11 @@ public class Executor implements Runnable, InvocationRunner {
 
         // Close language specific properties
         finish();
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.EXECUTOR_COUNTS.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.EXECUTOR_THREAD_ID.getType());
+        }
     }
 
     /**

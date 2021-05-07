@@ -36,13 +36,14 @@
         <module>0_graph</module>
         <module>0_monitor</module>
         <module>0_tracing_basic_java</module>
+        <module>0_tracing_thread_clasification</module>
         <!-- 0_tracing_basic_python -->
         <module>1_tracing_advanced_java</module>
+        <module>1_tracing_agents</module>
         <!-- 1_tracing_hook_eval_python -->
         <!-- 1_tracing_userevents_hook_python -->
         <!-- 1_tracing_userevents_nohook_python -->
         <module>2_timers</module>
-
 		<!-- Add new modules below -->
 	</modules>
 </project>

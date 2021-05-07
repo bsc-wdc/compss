@@ -404,6 +404,12 @@ clean_runtime_environment() {
 # MAIN FUNCTION TO START AN APPLICATION
 #----------------------------------------------
 start_compss_agent() {
+
+  # Go to specific_log_dir for extrae's wrapper to generate temporal tracefiles in different directories for each agent (needed for concurrent execution on the same machine)
+  if [ -n ${specific_log_dir} ]; then
+    cd ${specific_log_dir}
+  fi
+
   # Prepare COMPSs Runtime + Bindings environment
   prepare_runtime_environment
 

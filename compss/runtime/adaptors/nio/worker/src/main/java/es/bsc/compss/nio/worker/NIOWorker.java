@@ -94,6 +94,7 @@ import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import storage.StubItf;
 
 
@@ -257,7 +258,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, false, computingUnitsGPU, gpuMap,
             computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
 
-        if (this.tracingLevel == NIOTracer.BASIC_MODE) {
+        if (NIOTracer.basicModeEnabled()) {
             NIOTracer.enablePThreads();
         }
 
@@ -267,7 +268,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
-        if (this.tracingLevel == NIOTracer.BASIC_MODE) {
+        if (NIOTracer.basicModeEnabled()) {
             NIOTracer.disablePThreads();
         }
 

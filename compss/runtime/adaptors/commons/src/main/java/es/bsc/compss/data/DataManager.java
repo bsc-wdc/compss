@@ -36,6 +36,8 @@ public interface DataManager {
 
     /**
      * Stops the DataManager.
+     * 
+     * @throws InterruptedException if the current thread is interrupted whe trying to use a semaphore
      */
     public void stop();
 

@@ -108,6 +108,6 @@
     echo "[ERROR] Number of start and end emits is not equal for 8000003 type of events" | tee -a "${output_file}"
     exit 4
   fi
-  echo "Endding result evaluation"
+  echo "Ending result evaluation"
   # Exit value
   exit 0

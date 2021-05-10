@@ -50,7 +50,6 @@ import types
 import traceback
 import typing
 from io import BytesIO
-from io import StringIO
 
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.exceptions import SerializerException

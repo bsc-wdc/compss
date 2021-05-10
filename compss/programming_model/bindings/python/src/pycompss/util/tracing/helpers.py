@@ -128,7 +128,9 @@ class EmitEvent(object):  # noqa
         self.gpu_affinity = gpu_affinity
 
     def __call__(self, f):
+        # type: (typing.Any) -> typing.Any
         def wrapped_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if TRACING:
                 with event(self.event_id, self.master,
                            self.inside, self.cpu_affinity, self.gpu_affinity):

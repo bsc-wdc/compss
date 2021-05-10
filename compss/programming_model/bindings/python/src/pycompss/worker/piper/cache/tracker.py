@@ -36,7 +36,11 @@ from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
 from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import TASK_EVENTS_SERIALIZE_SIZE_CACHE
 from pycompss.worker.commons.constants import TASK_EVENTS_DESERIALIZE_SIZE_CACHE
+from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
+from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
+from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
+from pycompss.util.tracing.helpers import EmitEvent
 
 from multiprocessing import Queue
 try:

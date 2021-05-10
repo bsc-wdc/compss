@@ -29,12 +29,16 @@ import typing
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import EmitEvent
 from pycompss.worker.commons.constants import GETID_EVENT
+from pycompss.worker.commons.constants import GET_BY_ID_EVENT
+from pycompss.worker.commons.constants import MAKE_PERSISTENT_EVENT
+from pycompss.worker.commons.constants import DELETE_PERSISTENT_EVENT
 from pycompss.runtime.constants import INIT_STORAGE_EVENT \
     as MASTER_INIT_STORAGE_EVENT
 from pycompss.runtime.constants import STOP_STORAGE_EVENT \
     as MASTER_STOP_STORAGE_EVENT
 from pycompss.worker.commons.constants import INIT_STORAGE_EVENT
 from pycompss.worker.commons.constants import STOP_STORAGE_EVENT
+
 
 # Globals
 # Contain the actual storage api functions set on initialization

@@ -35,7 +35,7 @@ from mpi4py import MPI
 import pycompss.util.context as context
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.util.tracing.helpers import emit_event
+from pycompss.util.tracing.helpers import EmitEvent
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
@@ -133,7 +133,7 @@ def executor(process_name, command):
         sys.exit(sig)
 
 
-@emit_event(PROCESS_TASK_EVENT)
+@EmitEvent(PROCESS_TASK_EVENT)
 def process_task(current_line,     # type: str
                  process_name,     # type: str
                  logger,           # type: typing.Any

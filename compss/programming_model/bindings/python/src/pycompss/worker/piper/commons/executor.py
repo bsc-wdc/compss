@@ -62,7 +62,7 @@ from pycompss.worker.commons.constants import CLEAN_ENVIRONMENT_EVENT
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.tracing.helpers import emit_event
+from pycompss.util.tracing.helpers import EmitEvent
 from pycompss.util.tracing.helpers import emit_manual_event
 from pycompss.util.tracing.helpers import event
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
@@ -446,7 +446,7 @@ def process_message(current_line,              # type: str
         raise PyCOMPSsException("Unexpected message: %s" % str(current_line_split))
 
 
-@emit_event(PROCESS_TASK_EVENT)
+@EmitEvent(PROCESS_TASK_EVENT)
 def process_task(current_line,              # type: list
                  process_name,              # type: str
                  pipe,                      # type: Pipe
@@ -700,7 +700,7 @@ def process_task(current_line,              # type: list
     return True
 
 
-@emit_event(PROCESS_PING_EVENT)
+@EmitEvent(PROCESS_PING_EVENT)
 def process_ping(pipe, logger, process_name):  # noqa
     # type: (Pipe, typing.Any, str) -> bool
     """ Process ping message.
@@ -721,7 +721,7 @@ def process_ping(pipe, logger, process_name):  # noqa
     return True
 
 
-@emit_event(PROCESS_QUIT_EVENT)
+@EmitEvent(PROCESS_QUIT_EVENT)
 def process_quit(logger, process_name):  # noqa
     # type: (typing.Any, str) -> bool
     """ Process quit message.
@@ -737,7 +737,7 @@ def process_quit(logger, process_name):  # noqa
     return False
 
 
-@emit_event(BIND_CPUS_EVENT, master=False, inside=True)
+@EmitEvent(BIND_CPUS_EVENT, master=False, inside=True)
 def bind_cpus(cpus, process_name, logger):  # noqa
     # type: (str, str, typing.Any) -> bool
     """ Bind the given CPUs for core affinity to this process.
@@ -764,7 +764,7 @@ def bind_cpus(cpus, process_name, logger):  # noqa
     return True
 
 
-@emit_event(BIND_GPUS_EVENT, master=False, inside=True)
+@EmitEvent(BIND_GPUS_EVENT, master=False, inside=True)
 def bind_gpus(gpus, process_name, logger):  # noqa
     # type: (str, str, typing.Any) -> None
     """ Bind the given GPUs to this process.
@@ -782,7 +782,7 @@ def bind_gpus(gpus, process_name, logger):  # noqa
                      (str(process_name), str(gpus)))
 
 
-@emit_event(SETUP_ENVIRONMENT_EVENT, master=False, inside=True)
+@EmitEvent(SETUP_ENVIRONMENT_EVENT, master=False, inside=True)
 def setup_environment(cn, cn_names, cu):
     # type: (int, str, str) -> None
     """ Sets the environment (mainly environment variables).
@@ -798,7 +798,7 @@ def setup_environment(cn, cn_names, cu):
     os.environ["OMP_NUM_THREADS"] = cu
 
 
-@emit_event(BUILD_SUCCESSFUL_MESSAGE_EVENT, master=False, inside=True)
+@EmitEvent(BUILD_SUCCESSFUL_MESSAGE_EVENT, master=False, inside=True)
 def build_successful_message(new_types, new_values, job_id, exit_value):
     # type: (list, list, str, int) -> str
     """ Generate a successful message.
@@ -819,7 +819,7 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
     return message
 
 
-@emit_event(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
+@EmitEvent(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_compss_exception_message(except_msg, job_id):
     # type: (str, str) -> typing.Tuple[str, str]
     """ Generate a COMPSs exception message.
@@ -835,7 +835,7 @@ def build_compss_exception_message(except_msg, job_id):
     return except_msg, message
 
 
-@emit_event(BUILD_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
+@EmitEvent(BUILD_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_exception_message(job_id, exit_value):
     # type: (str, int) -> str
     """ Generate an exception message.
@@ -850,7 +850,7 @@ def build_exception_message(job_id, exit_value):
     return message
 
 
-@emit_event(CLEAN_ENVIRONMENT_EVENT, master=False, inside=True)
+@EmitEvent(CLEAN_ENVIRONMENT_EVENT, master=False, inside=True)
 def clean_environment(cpus, gpus):
     # type: (str, str) -> None
     """ Clean the environment

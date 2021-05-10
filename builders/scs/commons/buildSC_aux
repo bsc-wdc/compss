@@ -65,7 +65,7 @@
   ####################
 
   # Get parameters
-  if [ $# -ne 14 ]; then
+  if [ $# -ne 15 ]; then
     usage
   fi
 

@@ -147,7 +147,10 @@ public abstract class Tracer {
     protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 60_000_601;
     protected static final int BINDING_SERIALIZATION_OBJECT_NUM_TYPE = 60_000_700;
     protected static final int BINDING_DESERIALIZATION_OBJECT_NUM_TYPE = 60_000_701;
+<<<<<<< HEAD
 
+=======
+>>>>>>> instrumenting serialization object id
     public static final int EVENT_END = 0;
 
     // Tracing modes

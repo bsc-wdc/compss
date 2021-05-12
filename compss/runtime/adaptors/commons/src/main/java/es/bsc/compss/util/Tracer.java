@@ -106,7 +106,9 @@ public abstract class Tracer {
     private static final String INSIDE_WORKER_DESC = "Events inside worker";
     private static final String BINDING_MASTER_DESC = "Binding events";
     private static final String BINDING_SERIALIZATION_SIZE_DESC = "Binding serialization size events";
-    private static final String BINDING_DESERIALIZATION_SIZE_DESC = "Binding deserialization sizie events";
+    private static final String BINDING_DESERIALIZATION_SIZE_DESC = "Binding deserialization size events";
+    private static final String BINDING_SERIALIZATION_OBJECT_NUM = "Binding serialization object number";
+    private static final String BINDING_DESERIALIZATION_OBJECT_NUM = "Binding deserialization object number";
     private static final String TASKTYPE_DESC = "Type of task";
     private static final String READY_COUNT_DESC = "Ready queue count";
     private static final String CPU_COUNT_DESC = "Number of requested CPUs";
@@ -143,7 +145,8 @@ public abstract class Tracer {
     protected static final int BINDING_MASTER_TYPE = 60_000_300;
     protected static final int BINDING_SERIALIZATION_SIZE_TYPE = 60_000_600;
     protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 60_000_601;
-
+    protected static final int BINDING_SERIALIZATION_OBJECT_NUM_TYPE = 60_000_700;
+    protected static final int BINDING_DESERIALIZATION_OBJECT_NUM_TYPE = 60_000_701;
     public static final int EVENT_END = 0;
 
     // Tracing modes
@@ -741,6 +744,8 @@ public abstract class Tracer {
         defineEventsForType(EXECUTOR_COUNTS, EXECUTOR_COUNTS_DESC);
         defineEventsForType(BINDING_SERIALIZATION_SIZE_TYPE, BINDING_SERIALIZATION_SIZE_DESC);
         defineEventsForType(BINDING_DESERIALIZATION_SIZE_TYPE, BINDING_DESERIALIZATION_SIZE_DESC);
+        defineEventsForType(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, BINDING_SERIALIZATION_OBJECT_NUM);
+        defineEventsForType(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE, BINDING_DESERIALIZATION_OBJECT_NUM);
 
         defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
         // Definition of Scheduling and Transfer time events

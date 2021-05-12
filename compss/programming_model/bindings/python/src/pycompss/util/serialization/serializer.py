@@ -266,7 +266,8 @@ def deserialize_from_handler(handler):
     """
     # Retrieve the used library (if possible)
     emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
-    emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, hash(os.path.basename(handler.name))% ((sys.maxsize + 1) * 2))
+    emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, hash(os.path.basename(handler.name))
+                               % ((sys.maxsize + 1) * 2))
     original_position = None
     try:
         original_position = handler.tell()

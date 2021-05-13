@@ -28,6 +28,20 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import DF_SCRIPT
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import RUNNER
+from pycompss.api.commons.constants import DF_EXECUTOR
+from pycompss.api.commons.constants import DF_LIB
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import LEGACY_DF_EXECUTOR
+from pycompss.api.commons.constants import LEGACY_DF_LIB
+from pycompss.api.commons.constants import LEGACY_DF_SCRIPT
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_DECAF
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
@@ -42,19 +56,19 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"df_script"}
-SUPPORTED_ARGUMENTS = {"computing_nodes",
-                       "working_dir",
-                       "runner",
-                       "df_executor",
-                       "df_lib",
-                       "df_script",
-                       "fail_by_exit_value"}
-DEPRECATED_ARGUMENTS = {"computingNodes",
-                        "workingDir",
-                        "dfExecutor",
-                        "dfLib",
-                        "dfScript"}
+MANDATORY_ARGUMENTS = {DF_SCRIPT}
+SUPPORTED_ARGUMENTS = {COMPUTING_NODES,
+                       WORKING_DIR,
+                       RUNNER,
+                       DF_EXECUTOR,
+                       DF_LIB,
+                       DF_SCRIPT,
+                       FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES,
+                        LEGACY_WORKING_DIR,
+                        LEGACY_DF_EXECUTOR,
+                        LEGACY_DF_LIB,
+                        LEGACY_DF_SCRIPT}
 
 
 class Decaf(object):
@@ -116,7 +130,7 @@ class Decaf(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
+            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -141,43 +155,43 @@ class Decaf(object):
             logger.debug("Configuring @decaf core element.")
 
         # Resolve @decaf specific parameters
-        if "runner" in self.kwargs:
-            runner = self.kwargs["runner"]
+        if RUNNER in self.kwargs:
+            runner = self.kwargs[RUNNER]
         else:
             runner = "mpirun"
 
-        if "dfScript" in self.kwargs:
-            df_script = self.kwargs["dfScript"]
+        if LEGACY_DF_SCRIPT in self.kwargs:
+            df_script = self.kwargs[LEGACY_DF_SCRIPT]
         else:
-            df_script = self.kwargs["df_script"]
+            df_script = self.kwargs[DF_SCRIPT]
 
-        if "df_executor" in self.kwargs:
-            df_executor = self.kwargs["df_executor"]
-        elif "dfExecutor" in self.kwargs:
-            df_executor = self.kwargs["dfExecutor"]
+        if DF_EXECUTOR in self.kwargs:
+            df_executor = self.kwargs[DF_EXECUTOR]
+        elif LEGACY_DF_EXECUTOR in self.kwargs:
+            df_executor = self.kwargs[LEGACY_DF_EXECUTOR]
         else:
-            df_executor = "[unassigned]"  # Empty or "[unassigned]"
+            df_executor = UNASSIGNED  # Empty or UNASSIGNED
 
-        if "df_lib" in self.kwargs:
-            df_lib = self.kwargs["df_lib"]
-        elif "dfLib" in self.kwargs:
-            df_lib = self.kwargs["dfLib"]
+        if DF_LIB in self.kwargs:
+            df_lib = self.kwargs[DF_LIB]
+        elif LEGACY_DF_LIB in self.kwargs:
+            df_lib = self.kwargs[LEGACY_DF_LIB]
         else:
-            df_lib = "[unassigned]"  # Empty or "[unassigned]"
+            df_lib = UNASSIGNED  # Empty or UNASSIGNED
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        impl_type = "DECAF"
+        impl_type = IMPL_DECAF
         impl_signature = ".".join((impl_type, df_script))
         impl_args = [df_script,
                      df_executor,
                      df_lib,
-                     self.kwargs["working_dir"],
+                     self.kwargs[WORKING_DIR],
                      runner,
-                     self.kwargs["fail_by_exit_value"]]
+                     self.kwargs[FAIL_BY_EXIT_VALUE]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -204,4 +218,3 @@ class Decaf(object):
 # ########################################################################### #
 
 decaf = Decaf
-DECAF = Decaf

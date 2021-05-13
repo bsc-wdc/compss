@@ -50,19 +50,19 @@ import pycompss.util.context as context
 # Dummy imports
 from pycompss.api.dummy.api import compss_start as __dummy_compss_start__
 from pycompss.api.dummy.api import compss_stop as __dummy_compss_stop__
-from pycompss.api.dummy.api import compss_file_exists as __dummy_compss_file_exists__
+from pycompss.api.dummy.api import compss_file_exists as __dummy_compss_file_exists__                          # noqa: E501
 from pycompss.api.dummy.api import compss_open as __dummy_compss_open__
-from pycompss.api.dummy.api import compss_delete_file as __dummy_compss_delete_file__
-from pycompss.api.dummy.api import compss_wait_on_file as __dummy_compss_wait_on_file__
-from pycompss.api.dummy.api import compss_wait_on_directory as __dummy_compss_wait_on_directory__
-from pycompss.api.dummy.api import compss_delete_object as __dummy_compss_delete_object__
+from pycompss.api.dummy.api import compss_delete_file as __dummy_compss_delete_file__                          # noqa: E501
+from pycompss.api.dummy.api import compss_wait_on_file as __dummy_compss_wait_on_file__                        # noqa: E501
+from pycompss.api.dummy.api import compss_wait_on_directory as __dummy_compss_wait_on_directory__              # noqa: E501
+from pycompss.api.dummy.api import compss_delete_object as __dummy_compss_delete_object__                      # noqa: E501
 from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
-from pycompss.api.dummy.api import compss_barrier_group as __dummy_compss_barrier_group__
+from pycompss.api.dummy.api import compss_barrier_group as __dummy_compss_barrier_group__                      # noqa: E501
 from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
-from pycompss.api.dummy.api import compss_get_number_of_resources as __dummy_compss_get_number_of_resources__
-from pycompss.api.dummy.api import compss_request_resources as __dummy_compss_request_resources__
-from pycompss.api.dummy.api import compss_free_resources as __dummy_compss_free_resources__
-from pycompss.api.dummy.api import compss_set_wall_clock as __dummy_compss_set_wall_clock__
+from pycompss.api.dummy.api import compss_get_number_of_resources as __dummy_compss_get_number_of_resources__  # noqa: E501
+from pycompss.api.dummy.api import compss_request_resources as __dummy_compss_request_resources__              # noqa: E501
+from pycompss.api.dummy.api import compss_free_resources as __dummy_compss_free_resources__                    # noqa: E501
+from pycompss.api.dummy.api import compss_set_wall_clock as __dummy_compss_set_wall_clock__                    # noqa: E501
 
 
 if context.in_pycompss():
@@ -82,9 +82,9 @@ if context.in_pycompss():
     from pycompss.runtime.binding import barrier as __barrier__
     from pycompss.runtime.binding import barrier_group as __barrier_group__
     from pycompss.runtime.binding import open_task_group as __open_task_group__
-    from pycompss.runtime.binding import close_task_group as __close_task_group__
-    from pycompss.runtime.binding import get_number_of_resources as __get_number_of_resources__
-    from pycompss.runtime.binding import request_resources as __request_resources__
+    from pycompss.runtime.binding import close_task_group as __close_task_group__                # noqa: E501
+    from pycompss.runtime.binding import get_number_of_resources as __get_number_of_resources__  # noqa: E501
+    from pycompss.runtime.binding import request_resources as __request_resources__              # noqa: E501
     from pycompss.runtime.binding import free_resources as __free_resources__
     from pycompss.runtime.binding import set_wall_clock as __set_wall_clock__
     from pycompss.runtime.binding import wait_on as __wait_on__
@@ -140,7 +140,7 @@ def compss_file_exists(*file_name):
         return __dummy_compss_file_exists__(*file_name)
 
 
-def compss_open(file_name, mode='r'):
+def compss_open(file_name, mode="r"):
     # type: (str, str) -> typing.Any
     """ Open a remotely produced file.
 
@@ -151,7 +151,7 @@ def compss_open(file_name, mode='r'):
 
     :param file_name: File name.
     :param mode: Open mode. Options = [w, r+ or a , r or empty].
-                 Default = 'r'
+                 Default = "r"
     :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
     """
@@ -221,7 +221,7 @@ def compss_wait_on_directory(*directory_name):
 
 
 def compss_delete_object(*obj):
-    # type: (*...) -> typing.Union[bool, typing.List[bool]]
+    # type: (*typing.Any) -> typing.Union[bool, typing.List[bool]]
     """ Delete object.
 
     Removes a used object from the internal structures and calls the

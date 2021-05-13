@@ -18,32 +18,20 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Dummy API - On Failure
-===============================
-    This file contains the dummy class on failure used as decorator.
+PyCOMPSs API - COMMONS - Implementation types
+=============================================
+    This file contains the implementation types definitions.
 """
 
-import typing
-
-
-class OnFailure(object):
-    """
-    Dummy on failure class (decorator style)
-    """
-
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self, f):
-        # type: (typing.Any) -> typing.Any
-        def wrapped_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
-            return f(*args, **kwargs)
-
-        return wrapped_f
-
-
-on_failure = OnFailure
-onFailure = OnFailure
+# Supported implementation types
+IMPL_BINARY = "BINARY"
+IMPL_CET_BINARY = "CET_BINARY"
+IMPL_COMPSs = "COMPSs"
+IMPL_CONTAINER = "CONTAINER"
+IMPL_DECAF = "DECAF"
+IMPL_METHOD = "METHOD"
+IMPL_MPI = "MPI"
+IMPL_MULTI_NODE = "MULTI_NODE"
+IMPL_OMPSS = "OMPSS"
+IMPL_OPENCL = "OPENCL"
+IMPL_PYTHON_MPI = "PYTHON_MPI"

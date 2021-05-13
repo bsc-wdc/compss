@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs API - Reduction
-==================
+========================
     This file contains the class Reduction, needed for the reduction
     of data elements.
 """
@@ -29,6 +29,8 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import CHUNK_SIZE
+from pycompss.api.commons.constants import IS_REDUCE
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
@@ -42,8 +44,8 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = {"chunk_size",
-                       "is_reduce"}
+SUPPORTED_ARGUMENTS = {CHUNK_SIZE,
+                       IS_REDUCE}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
@@ -104,8 +106,8 @@ class Reduction(object):
 
             # Set the chunk size and is_reduce variables in kwargs for their
             # usage in @task decorator
-            kwargs["chunk_size"] = self.kwargs["chunk_size"]
-            kwargs["is_reduce"] = self.kwargs["is_reduce"]
+            kwargs[CHUNK_SIZE] = self.kwargs[CHUNK_SIZE]
+            kwargs[IS_REDUCE] = self.kwargs[IS_REDUCE]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -123,10 +125,10 @@ class Reduction(object):
         :return: None
         """
         # Resolve @reduce specific parameters
-        if "chunk_size" not in self.kwargs:
+        if CHUNK_SIZE not in self.kwargs:
             chunk_size = 0
         else:
-            chunk_size_kw = self.kwargs["chunk_size"]
+            chunk_size_kw = self.kwargs[CHUNK_SIZE]
             if isinstance(chunk_size_kw, int):
                 chunk_size = chunk_size_kw
             elif isinstance(chunk_size_kw, str):
@@ -136,10 +138,10 @@ class Reduction(object):
                 raise PyCOMPSsException(
                     "ERROR: Wrong chunk_size value at @reduction decorator.")
 
-        if "is_reduce" not in self.kwargs:
+        if IS_REDUCE not in self.kwargs:
             is_reduce = True
         else:
-            is_reduce = self.kwargs["is_reduce"]
+            is_reduce = self.kwargs[IS_REDUCE]
 
         if __debug__:
             logger.debug("The task is_reduce flag is set to: %s" %
@@ -148,8 +150,8 @@ class Reduction(object):
                          str(chunk_size))
 
         # Set the chunk_size variable in kwargs for its usage in @task
-        self.kwargs["chunk_size"] = chunk_size
-        self.kwargs["is_reduce"] = is_reduce
+        self.kwargs[CHUNK_SIZE] = chunk_size
+        self.kwargs[IS_REDUCE] = is_reduce
 
     @staticmethod
     def __parse_chunk_size__(chunk_size):
@@ -169,13 +171,13 @@ class Reduction(object):
             try:
                 parsed_chunk_size = int(os.environ[env_var])
             except ValueError:
-                raise PyCOMPSsException(cast_env_to_int_error("chunk_size"))
+                raise PyCOMPSsException(cast_env_to_int_error(CHUNK_SIZE))
         else:
             # ChunkSize is in string form, cast it
             try:
                 parsed_chunk_size = int(chunk_size)
             except ValueError:
-                raise PyCOMPSsException(cast_string_to_int_error("chunk_size"))
+                raise PyCOMPSsException(cast_string_to_int_error(CHUNK_SIZE))
         return parsed_chunk_size
 
 
@@ -184,4 +186,3 @@ class Reduction(object):
 # ########################################################################### #
 
 reduction = Reduction
-REDUCTION = Reduction

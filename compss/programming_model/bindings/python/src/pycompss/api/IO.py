@@ -39,9 +39,9 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = {""}
-DEPRECATED_ARGUMENTS = {""}
+MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = set()   # type: typing.Set[str]
+DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class IO(object):

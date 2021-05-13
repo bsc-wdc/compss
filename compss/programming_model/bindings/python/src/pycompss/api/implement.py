@@ -28,6 +28,10 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import SOURCE_CLASS
+from pycompss.api.commons.constants import METHOD
+from pycompss.api.commons.constants import LEGACY_SOURCE_CLASS
+from pycompss.api.commons.implementation_types import IMPL_METHOD
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
@@ -39,11 +43,11 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"source_class",
-                       "method"}
-SUPPORTED_ARGUMENTS = {"source_class",
-                       "method"}
-DEPRECATED_ARGUMENTS = {"sourceClass"}
+MANDATORY_ARGUMENTS = {SOURCE_CLASS,
+                       METHOD}
+SUPPORTED_ARGUMENTS = {SOURCE_CLASS,
+                       METHOD}
+DEPRECATED_ARGUMENTS = {LEGACY_SOURCE_CLASS}
 
 
 class Implement(object):
@@ -135,14 +139,14 @@ class Implement(object):
             logger.debug("Configuring @implement core element.")
 
         # Resolve @implement specific parameters
-        if "sourceClass" in self.kwargs:
-            another_class = self.kwargs["sourceClass"]
-            self.kwargs["source_class"] = self.kwargs.pop("sourceClass")
+        if LEGACY_SOURCE_CLASS in self.kwargs:
+            another_class = self.kwargs[LEGACY_SOURCE_CLASS]
+            self.kwargs[SOURCE_CLASS] = self.kwargs.pop(LEGACY_SOURCE_CLASS)
         else:
-            another_class = self.kwargs["source_class"]
-        another_method = self.kwargs["method"]
+            another_class = self.kwargs[SOURCE_CLASS]
+        another_method = self.kwargs[METHOD]
         ce_signature = ".".join((another_class, another_method))
-        impl_type = "METHOD"
+        impl_type = IMPL_METHOD
         # impl_args = [another_class, another_method] - set by @task
 
         if CORE_ELEMENT_KEY in kwargs:
@@ -172,4 +176,3 @@ class Implement(object):
 # ########################################################################### #
 
 implement = Implement
-IMPLEMENT = Implement

@@ -30,7 +30,13 @@ import typing
 from contextlib import contextmanager
 
 import pycompss.util.context as context
-from pycompss.runtime.task.core_element import CE
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.runtime.task.core_element import CE  # noqa - used in typing
 from pycompss.util.exceptions import MissingImplementedException
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -86,7 +92,7 @@ class PyCOMPSsDecorator(object):
 ##############################################
 
 def resolve_working_dir(kwargs):
-    # type: (typing.Any) -> None
+    # type: (dict) -> None
     """
     Resolve the working directory considering deprecated naming.
     Updates kwargs:
@@ -95,17 +101,17 @@ def resolve_working_dir(kwargs):
 
     :return: None
     """
-    if "working_dir" in kwargs:
+    if WORKING_DIR in kwargs:
         # Accepted argument
         pass
-    elif "workingDir" in kwargs:
-        kwargs["working_dir"] = kwargs.pop("workingDir")
+    elif LEGACY_WORKING_DIR in kwargs:
+        kwargs[WORKING_DIR] = kwargs.pop(LEGACY_WORKING_DIR)
     else:
-        kwargs["working_dir"] = "[unassigned]"
+        kwargs[WORKING_DIR] = UNASSIGNED
 
 
 def resolve_fail_by_exit_value(kwargs):
-    # type: (typing.Any) -> None
+    # type: (dict) -> None
     """
     Resolve the fail by exit value.
     Updates kwargs:
@@ -113,24 +119,25 @@ def resolve_fail_by_exit_value(kwargs):
 
     :return: None
     """
-    if "fail_by_exit_value" in kwargs:
-        fail_by_ev = kwargs["fail_by_exit_value"]
+    if FAIL_BY_EXIT_VALUE in kwargs:
+        fail_by_ev = kwargs[FAIL_BY_EXIT_VALUE]
         if isinstance(fail_by_ev, bool):
-            kwargs["fail_by_exit_value"] = str(fail_by_ev)
+            kwargs[FAIL_BY_EXIT_VALUE] = str(fail_by_ev)
         elif isinstance(fail_by_ev, str):
             # Accepted argument
             pass
         elif isinstance(fail_by_ev, int):
-            kwargs["fail_by_exit_value"] = str(fail_by_ev)
+            kwargs[FAIL_BY_EXIT_VALUE] = str(fail_by_ev)
         else:
-            raise PyCOMPSsException("Incorrect format for fail_by_exit_value property. "    # noqa: E501
-                                    "It should be boolean or an environment variable")      # noqa: E501
+            raise PyCOMPSsException(
+                "Incorrect format for fail_by_exit_value property. "
+                "It should be boolean or an environment variable")
     else:
-        kwargs["fail_by_exit_value"] = "false"
+        kwargs[FAIL_BY_EXIT_VALUE] = "false"
 
 
 def process_computing_nodes(decorator_name, kwargs):
-    # type: (str, typing.Any) -> None
+    # type: (str, dict) -> None
     """
     Processes the computing_nodes from the decorator.
     We only ensure that the correct self.kwargs entry exists since its
@@ -146,20 +153,20 @@ def process_computing_nodes(decorator_name, kwargs):
 
     :return: None
     """
-    if "computing_nodes" not in kwargs:
-        if "computingNodes" not in kwargs:
+    if COMPUTING_NODES not in kwargs:
+        if LEGACY_COMPUTING_NODES not in kwargs:
             # No annotation present, adding default value
-            kwargs["computing_nodes"] = str(1)
+            kwargs[COMPUTING_NODES] = str(1)
         else:
             # Legacy annotation present, switching
-            kwargs["computing_nodes"] = str(kwargs.pop("computingNodes"))
+            kwargs[COMPUTING_NODES] = str(kwargs.pop(LEGACY_COMPUTING_NODES))
     else:
         # Valid annotation found, nothing to do
         pass
 
     if __debug__:
         logger.debug("This %s task will have %s computing nodes." %
-                     (decorator_name, str(kwargs["computing_nodes"])))
+                     (decorator_name, str(kwargs[COMPUTING_NODES])))
 
 
 ###################
@@ -179,14 +186,13 @@ def keep_arguments(args, kwargs, prepend_strings=True):
     :return: None
     """
     # Keep function arguments
-    saved = None
+    saved = {}
     slf = None
     if len(args) > 0:
         # The "self" for a method function is passed as args[0]
         slf = args[0]
 
         # Replace and store the attributes
-        saved = {}
         for k, v in kwargs.items():
             if hasattr(slf, k):
                 saved[k] = getattr(slf, k)
@@ -226,10 +232,10 @@ def run_command(cmd, args, kwargs):
         cmd += args_elements
     my_env = os.environ.copy()
     env_path = my_env["PATH"]
-    if "working_dir" in kwargs:
-        my_env["PATH"] = kwargs["working_dir"] + env_path
-    elif "workingDir" in kwargs:
-        my_env["PATH"] = kwargs["workingDir"] + env_path
+    if WORKING_DIR in kwargs:
+        my_env["PATH"] = kwargs[WORKING_DIR] + env_path
+    elif LEGACY_WORKING_DIR in kwargs:
+        my_env["PATH"] = kwargs[LEGACY_WORKING_DIR] + env_path
     proc = subprocess.Popen(cmd,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,

@@ -28,6 +28,10 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import KERNEL
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.implementation_types import IMPL_OPENCL
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.api.commons.decorator import resolve_working_dir
@@ -40,10 +44,10 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"kernel"}
-SUPPORTED_ARGUMENTS = {"kernel",
-                       "working_dir"}
-DEPRECATED_ARGUMENTS = {"workingDir"}
+MANDATORY_ARGUMENTS = {KERNEL}
+SUPPORTED_ARGUMENTS = {KERNEL,
+                       WORKING_DIR}
+DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR}
 
 
 class OpenCL(object):
@@ -123,14 +127,14 @@ class OpenCL(object):
             logger.debug("Configuring @opencl core element.")
 
         # Resolve @opencl specific parameters
-        kernel = self.kwargs["kernel"]
+        kernel = self.kwargs[KERNEL]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
 
-        impl_type = "OPENCL"
+        impl_type = IMPL_OPENCL
         impl_signature = ".".join((impl_type, kernel))
-        impl_args = [kernel, self.kwargs["working_dir"]]
+        impl_args = [kernel, self.kwargs[WORKING_DIR]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -157,4 +161,3 @@ class OpenCL(object):
 # ########################################################################### #
 
 opencl = OpenCL
-OPENCL = OpenCL

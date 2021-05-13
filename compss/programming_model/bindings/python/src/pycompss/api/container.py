@@ -28,6 +28,14 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import ENGINE
+from pycompss.api.commons.constants import IMAGE
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
@@ -39,14 +47,14 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"engine",
-                       "image"}
-SUPPORTED_ARGUMENTS = {"engine",
-                       "image"}
-DEPRECATED_ARGUMENTS = {"fail_by_exit_value",
-                        "workingDir",
-                        "working_dir",
-                        "binary"}
+MANDATORY_ARGUMENTS = {ENGINE,
+                       IMAGE}
+SUPPORTED_ARGUMENTS = {ENGINE,
+                       IMAGE}
+DEPRECATED_ARGUMENTS = {FAIL_BY_EXIT_VALUE,
+                        WORKING_DIR,
+                        LEGACY_WORKING_DIR,
+                        BINARY}
 
 
 class Container(object):
@@ -130,23 +138,22 @@ class Container(object):
             logger.debug("Configuring @container core element.")
 
         # Resolve @container (mandatory) specific parameters
-        _engine = self.kwargs["engine"]
-        _image = self.kwargs["image"]
+        _engine = self.kwargs[ENGINE]
+        _image = self.kwargs[IMAGE]
 
         _func = str(user_function.__name__)
 
         # Type and signature
-        impl_type = "CONTAINER"
+        impl_type = IMPL_CONTAINER
         impl_signature = ".".join([impl_type, _func])
 
-        unassigned = "[unassigned]"
         impl_args = [_engine,     # engine
                      _image,      # image
-                     unassigned,  # internal_type
-                     unassigned,  # internal_binary
-                     unassigned,  # internal_func
-                     unassigned,  # working_dir
-                     unassigned]  # fail_by_ev
+                     UNASSIGNED,  # internal_type
+                     UNASSIGNED,  # internal_binary
+                     UNASSIGNED,  # internal_func
+                     UNASSIGNED,  # working_dir
+                     UNASSIGNED]  # fail_by_ev
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

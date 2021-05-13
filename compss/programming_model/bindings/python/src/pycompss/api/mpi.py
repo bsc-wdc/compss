@@ -28,6 +28,21 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import RUNNER
+from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import PROCESSES
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import PARAMS
+from pycompss.api.commons.constants import FLAGS
+from pycompss.api.commons.constants import PROCESSES_PER_NODE
+from pycompss.api.commons.constants import SCALE_BY_CU
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_MPI
+from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import process_computing_nodes
@@ -43,22 +58,22 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"runner"}
-SUPPORTED_ARGUMENTS = {"binary",
-                       "processes",
-                       "working_dir",
-                       "runner",
-                       "flags",
-                       "processes_per_node",
-                       "scale_by_cu",
-                       "params",
-                       "fail_by_exit_value"}
-DEPRECATED_ARGUMENTS = {"computing_nodes",
-                        "computingNodes",
-                        "workingDir"}
+MANDATORY_ARGUMENTS = {RUNNER}
+SUPPORTED_ARGUMENTS = {BINARY,
+                       PROCESSES,
+                       WORKING_DIR,
+                       RUNNER,
+                       FLAGS,
+                       PROCESSES_PER_NODE
+                       SCALE_BY_CU,
+                       PARAMS,
+                       FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {COMPUTING_NODES,
+                        LEGACY_COMPUTING_NODES,
+                        LEGACY_WORKING_DIR}
 
 
-class MPI(object):
+class Mpi(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -159,7 +174,7 @@ class MPI(object):
                          str(kwargs['computing_nodes']) + " processes and " +
                          str(kwargs['processes_per_node']) + " processes per node.")
 
-        if self.task_type == "PYTHON_MPI":
+        if self.task_type == IMPL_PYTHON_MPI:
             prepend_strings = True
         else:
             prepend_strings = False
@@ -178,17 +193,17 @@ class MPI(object):
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs["runner"]]
-        if "processes" in self.kwargs:
-            cmd += ["-np", self.kwargs["processes"]]
-        elif "computing_nodes" in self.kwargs:
-            cmd += ["-np", self.kwargs["computing_nodes"]]
-        elif "computingNodes" in self.kwargs:
-            cmd += ["-np", self.kwargs["computingNodes"]]
+        cmd = [self.kwargs[RUNNER]]
+        if PROCESSES in self.kwargs:
+            cmd += ["-np", self.kwargs[PROCESSES]]
+        elif COMPUTING_NODES in self.kwargs:
+            cmd += ["-np", self.kwargs[COMPUTING_NODES]]
+        elif LEGACY_COMPUTING_NODES in self.kwargs:
+            cmd += ["-np", self.kwargs[LEGACY_COMPUTING_NODES]]
 
-        if "flags" in self.kwargs:
-            cmd += self.kwargs["flags"].split()
-        cmd += [self.kwargs["binary"]]
+        if FLAGS in self.kwargs:
+            cmd += self.kwargs[FLAGS].split()
+        cmd += [self.kwargs[BINARY]]
 
         return run_command(cmd, args, kwargs)
 
@@ -277,20 +292,20 @@ class MPI(object):
             logger.debug("Configuring @mpi core element.")
 
         # Resolve @mpi specific parameters
-        if "binary" in self.kwargs:
-            binary = self.kwargs["binary"]
-            impl_type = "MPI"
+        if BINARY in self.kwargs:
+            binary = self.kwargs[BINARY]
+            impl_type = IMPL_MPI
         else:
             binary = UNASSIGNED
-            impl_type = "PYTHON_MPI"
+            impl_type = IMPL_PYTHON_MPI
             self.task_type = impl_type
 
-        runner = self.kwargs["runner"]
+        runner = self.kwargs[RUNNER]
 
-        if "flags" in self.kwargs:
-            flags = self.kwargs["flags"]
+        if FLAGS in self.kwargs:
+            flags = self.kwargs[FLAGS]
         else:
-            flags = UNASSIGNED  # Empty or '[unassigned]'
+            flags = UNASSIGNED  # Empty or UNASSIGNED
 
         # Check if scale by cu is defined
         scale_by_cu_str = self.__resolve_scale_by_cu__()
@@ -323,15 +338,15 @@ class MPI(object):
                                        str(proc),
                                        binary))
         impl_args = [binary,
-                     self.kwargs["working_dir"],
+                     self.kwargs[WORKING_DIR],
                      runner,
                      ppn,
                      flags,
                      scale_by_cu_str,
                      self.kwargs.get("params", UNASSIGNED),
-                     self.kwargs["fail_by_exit_value"]]
+                     self.kwargs[FAIL_BY_EXIT_VALUE]]
 
-        if impl_type == "PYTHON_MPI":
+        if impl_type == IMPL_PYTHON_MPI:
             impl_args = impl_args + collection_layout_params
 
         if CORE_ELEMENT_KEY in kwargs:
@@ -360,8 +375,8 @@ class MPI(object):
         :return: Scale by cu value as string.
         :raises PyCOMPSsException: If scale_by_cu is not bool or string.
         """
-        if "scale_by_cu" in self.kwargs:
-            scale_by_cu = self.kwargs["scale_by_cu"]
+        if SCALE_BY_CU in self.kwargs:
+            scale_by_cu = self.kwargs[SCALE_BY_CU]
             if isinstance(scale_by_cu, bool):
                 if scale_by_cu:
                     scale_by_cu_str = "true"
@@ -381,5 +396,4 @@ class MPI(object):
 # ##################### MPI DECORATOR ALTERNATIVE NAME ###################### #
 # ########################################################################### #
 
-mpi = MPI
-Mpi = MPI
+mpi = Mpi

@@ -29,7 +29,17 @@ from functools import wraps
 
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
-from pycompss.util.arguments import UNASSIGNED
+from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import PARAMS
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import ENGINE
+from pycompss.api.commons.constants import IMAGE
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_BINARY
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
+from pycompss.api.commons.implementation_types import IMPL_CET_BINARY
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import keep_arguments
@@ -41,14 +51,14 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"binary"}
-SUPPORTED_ARGUMENTS = {"binary",
-                       "working_dir",
-                       "params",
-                       "fail_by_exit_value"}
-DEPRECATED_ARGUMENTS = {"workingDir",
-                        "engine",
-                        "image"}
+MANDATORY_ARGUMENTS = {BINARY}
+SUPPORTED_ARGUMENTS = {BINARY,
+                       WORKING_DIR,
+                       PARAMS,
+                       FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR,
+                        ENGINE,
+                        IMAGE}
 
 
 class Binary(object):
@@ -98,7 +108,7 @@ class Binary(object):
             if not self.scope:
                 # Execute the binary as with PyCOMPSs so that sequential
                 # execution performs as parallel.
-                # To disable: raise Exception(not_in_pycompss("binary"))
+                # To disable: raise Exception(not_in_pycompss(BINARY))
                 # TODO: Intercept @task parameters to get stream redirection
                 return self.__run_binary__(args, kwargs)
 
@@ -127,7 +137,7 @@ class Binary(object):
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs["binary"]]
+        cmd = [self.kwargs[BINARY]]
         return_code = run_command(cmd, args, kwargs)
         return return_code
 
@@ -146,20 +156,20 @@ class Binary(object):
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
-        _working_dir = self.kwargs["working_dir"]
+        _working_dir = self.kwargs[WORKING_DIR]
 
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
-        _fail_by_ev = self.kwargs["fail_by_exit_value"]
+        _fail_by_ev = self.kwargs[FAIL_BY_EXIT_VALUE]
 
         # Resolve binary
-        _binary = str(self.kwargs["binary"])
+        _binary = str(self.kwargs[BINARY])
 
         if CORE_ELEMENT_KEY in kwargs and \
-                kwargs[CORE_ELEMENT_KEY].get_impl_type() == "CONTAINER":
+                kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER:
             # @container decorator sits on top of @binary decorator
             # Note: impl_type and impl_signature are NOT modified
-            # ("CONTAINER" and "CONTAINER.function_name" respectively)
+            # (IMPL_CONTAINER and "CONTAINER.function_name" respectively)
 
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
 
@@ -168,7 +178,7 @@ class Binary(object):
 
             impl_args = [_engine,  # engine
                          _image,  # image
-                         "CET_BINARY",  # internal_type
+                         IMPL_CET_BINARY,  # internal_type
                          _binary,  # internal_binary
                          UNASSIGNED,  # internal_func
                          _working_dir,  # working_dir
@@ -179,9 +189,9 @@ class Binary(object):
         else:
             # @container decorator does NOT sit on top of @binary decorator
 
-            _binary = str(self.kwargs["binary"])
+            _binary = str(self.kwargs[BINARY])
 
-            impl_type = "BINARY"
+            impl_type = IMPL_BINARY
             impl_signature = ".".join((impl_type, _binary))
 
             impl_args = [_binary,       # internal_binary
@@ -214,4 +224,3 @@ class Binary(object):
 # ########################################################################### #
 
 binary = Binary
-BINARY = Binary

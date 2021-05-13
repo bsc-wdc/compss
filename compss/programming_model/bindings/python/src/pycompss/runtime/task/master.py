@@ -30,6 +30,10 @@ from collections import deque
 
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
+from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.api.commons.implementation_types import IMPL_MPI
+from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
+from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.runtime.binding import wait_on
@@ -268,7 +272,7 @@ class TaskMaster(object):
         self.function_type = function_type
         self.class_name = class_name
         # Add returns related attributes that will be useful later
-        self.returns = OrderedDict()      # type: OrderedDict
+        self.returns = OrderedDict()     # type: OrderedDict
         self.multi_return = False
         # Task won't be registered until called from the master for the first
         # time or have a different signature
@@ -276,7 +280,7 @@ class TaskMaster(object):
         self.registered = registered
         self.signature = signature
         # Reductions
-        self.chunk_size = None            # type: typing.Any
+        self.chunk_size = None           # type: typing.Any
         self.is_reduce = False
 
         # Parameters that will come from previous tasks
@@ -286,8 +290,8 @@ class TaskMaster(object):
         self.function_arguments = function_arguments
         self.hints = hints
 
-    def call(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> tuple
+    def call(self, args, kwargs):
+        # type: (tuple, dict) -> tuple
         """ Main task code at master side.
 
         This part deals with task calls in the master's side
@@ -333,9 +337,9 @@ class TaskMaster(object):
                 self.param_varargs = "varargs_type"
             if self.param_defaults is None:
                 self.param_defaults = ()
-        explicit_num_returns = None
-        if "returns" in kwargs:
-            explicit_num_returns = kwargs.pop("returns")
+
+        # Pop returns from kwargs
+        explicit_num_returns = kwargs.pop("returns", None)
 
         # Process the parameters, give them a proper direction
         with event(PROCESS_PARAMETERS, master=True):
@@ -868,13 +872,13 @@ class TaskMaster(object):
         :param ce_type: Core element implementation type.
         :return: None
         """
-        default = "METHOD"
+        default = IMPL_METHOD
         if ce_type is None or (isinstance(ce_type, str) and ce_type == ""):
             ce_type = default
 
         if ce_type == default or \
-                ce_type == "PYTHON_MPI" or \
-                ce_type == "MULTI_NODE":
+                ce_type == IMPL_PYTHON_MPI or \
+                ce_type == IMPL_MULTI_NODE:
             code_strings = True
         else:
             # MPI, BINARY, CONTAINER
@@ -933,7 +937,7 @@ class TaskMaster(object):
         upper_decorator = pre_defined_ce[1]
 
         # Include the registering info related to @task
-        impl_type = "METHOD"
+        impl_type = IMPL_METHOD
         impl_constraints = dict()  # type: dict
         impl_io = False
 
@@ -976,9 +980,9 @@ class TaskMaster(object):
                 set_impl_type_args(impl_type_args)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
-            if get_impl_type() == "PYTHON_MPI":
+            if get_impl_type() == IMPL_PYTHON_MPI:
                 self.check_layout_params(get_impl_type_args())
-                set_impl_signature(".".join(["MPI", impl_signature]))
+                set_impl_signature(".".join([IMPL_MPI, impl_signature]))
                 impl_type_args_new = get_impl_type_args()
                 if impl_type_args_new:
                     set_impl_type_args(impl_type_args + impl_type_args_new[1:])
@@ -1358,33 +1362,33 @@ class TaskMaster(object):
         else:
             return to_return
 
-    def get_num_returns_from_string(self, _returns):
-        # type: (typing.Any) -> int
+    def get_num_returns_from_string(self, returns):
+        # type: (str) -> int
         """ Converts the returns to integer.
 
-        :param _returns: Returns as string.
+        :param returns: Returns as string.
         :return: Number of returned parameters.
         """
         try:
             # Return is hidden by an int as a string.
             # i.e., returns="var_int"
-            return int(_returns)
+            return int(returns)
         except ValueError:
-            if _returns.startswith(VALUE_OF):
+            if returns.startswith(VALUE_OF):
                 #  from "value_of ( xxx.yyy )" to [xxx, yyy]
-                param_ref = _returns.replace(VALUE_OF, "").replace("(", "").replace(")", "").strip().split(".")  # noqa: E501
+                param_ref = returns.replace(VALUE_OF, "").replace("(", "").replace(")", "").strip().split(".")  # noqa: E501
                 if len(param_ref) > 0:
                     obj = self.parameters[param_ref[0]].content
                     return int(_get_object_property(param_ref, obj))
                 else:
-                    raise PyCOMPSsException("Incorrect value_of format in %s" % _returns)  # noqa: E501
+                    raise PyCOMPSsException("Incorrect value_of format in %s" % returns)  # noqa: E501
             else:
                 # Return is hidden by a global variable. i.e., LT_ARGS
                 try:
-                    num_rets = self.user_function.__globals__.get(_returns)
+                    num_rets = self.user_function.__globals__.get(returns)
                 except AttributeError:
                     # This is a numba jit declared task
-                    num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
+                    num_rets = self.user_function.py_func.__globals__.get(returns)  # noqa: E501
                 return int(num_rets)
 
     def update_return_if_no_returns(self, f):
@@ -2106,7 +2110,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
             "builtins", str(param.content.__class__.__name__))
 
-    typ = None    # type: typing.Any
+    typ = -1      # type: int
     value = None  # type: typing.Any
     if param.content_type == TYPE.FILE or param.is_future:
         # If the parameter is a file or is future, the content is in a file

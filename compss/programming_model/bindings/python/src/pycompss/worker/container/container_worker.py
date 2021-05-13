@@ -111,7 +111,7 @@ def main():
     tracing = False
     log_files = ()
     python_mpi = False
-    collections_layouts = None
+    collections_layouts = None  # type: typing.Optional[dict]
     context.set_pycompss_context(context.WORKER)
     result = execute_task(process_name,
                           storage_conf,

@@ -28,6 +28,13 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.implementation_types import IMPL_OMPSS
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.api.commons.decorator import resolve_working_dir
@@ -42,13 +49,13 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"binary"}
-SUPPORTED_ARGUMENTS = {"computing_nodes",
-                       "working_dir",
-                       "binary",
-                       "fail_by_exit_value"}
-DEPRECATED_ARGUMENTS = {"computingNodes",
-                        "workingDir"}
+MANDATORY_ARGUMENTS = {BINARY}
+SUPPORTED_ARGUMENTS = {COMPUTING_NODES,
+                       WORKING_DIR,
+                       BINARY,
+                       FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES,
+                        LEGACY_WORKING_DIR}
 
 
 class OmpSs(object):
@@ -110,7 +117,7 @@ class OmpSs(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
+            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -135,18 +142,18 @@ class OmpSs(object):
             logger.debug("Configuring @ompss core element.")
 
         # Resolve @ompss specific parameters
-        binary = self.kwargs["binary"]
+        binary = self.kwargs[BINARY]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        impl_type = "OMPSS"
-        impl_signature = "".join(("OMPSS.", binary))
+        impl_type = IMPL_OMPSS
+        impl_signature = "".join((IMPL_OMPSS, ".", binary))
         impl_args = [binary,
-                     self.kwargs["working_dir"],
-                     self.kwargs["fail_by_exit_value"]]
+                     self.kwargs[WORKING_DIR],
+                     self.kwargs[FAIL_BY_EXIT_VALUE]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -173,4 +180,3 @@ class OmpSs(object):
 # ########################################################################### #
 
 ompss = OmpSs
-OMPSS = OmpSs

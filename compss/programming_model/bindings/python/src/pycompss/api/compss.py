@@ -28,6 +28,19 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import APP_NAME
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import RUNCOMPSS
+from pycompss.api.commons.constants import FLAGS
+from pycompss.api.commons.constants import WORKER_IN_MASTER
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKER_IN_MASTER
+from pycompss.api.commons.constants import LEGACY_APP_NAME
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_COMPSs
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -42,18 +55,18 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"app_name"}
-SUPPORTED_ARGUMENTS = {"computing_nodes",
-                       "runcompss",
-                       "flags",
-                       "worker_in_master",
-                       "app_name",
-                       "working_dir",
-                       "fail_by_exit_value"}
-DEPRECATED_ARGUMENTS = {"computingNodes",
-                        "workerInMaster",
-                        "appName",
-                        "workingDir"}
+MANDATORY_ARGUMENTS = {APP_NAME}
+SUPPORTED_ARGUMENTS = {COMPUTING_NODES,
+                       RUNCOMPSS,
+                       FLAGS,
+                       WORKER_IN_MASTER,
+                       APP_NAME,
+                       WORKING_DIR,
+                       FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES,
+                        LEGACY_WORKER_IN_MASTER,
+                        LEGACY_APP_NAME,
+                        LEGACY_WORKING_DIR}
 
 
 class COMPSs(object):
@@ -115,7 +128,7 @@ class COMPSs(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
+            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -140,41 +153,41 @@ class COMPSs(object):
             logger.debug("Configuring @compss core element.")
 
         # Resolve @compss specific parameters
-        if "runcompss" in self.kwargs:
-            runcompss = self.kwargs["runcompss"]
+        if RUNCOMPSS in self.kwargs:
+            runcompss = self.kwargs[RUNCOMPSS]
         else:
-            runcompss = "[unassigned]"  # Empty or "[unassigned]"
+            runcompss = UNASSIGNED  # Empty or UNASSIGNED
 
-        if "flags" in self.kwargs:
-            flags = self.kwargs["flags"]
+        if FLAGS in self.kwargs:
+            flags = self.kwargs[FLAGS]
         else:
-            flags = "[unassigned]"  # Empty or "[unassigned]"
+            flags = UNASSIGNED  # Empty or UNASSIGNED
 
-        if "worker_in_master" in self.kwargs:
-            worker_in_master = self.kwargs["worker_in_master"]
-        elif "workerInMaster" in self.kwargs:
-            worker_in_master = self.kwargs["workerInMaster"]
+        if WORKER_IN_MASTER in self.kwargs:
+            worker_in_master = self.kwargs[WORKER_IN_MASTER]
+        elif LEGACY_WORKER_IN_MASTER in self.kwargs:
+            worker_in_master = self.kwargs[LEGACY_WORKER_IN_MASTER]
         else:
-            worker_in_master = "true"  # Empty or "[unassigned]"
+            worker_in_master = "true"  # Empty or UNASSIGNED
 
-        if "appName" in self.kwargs:
-            app_name = self.kwargs["appName"]
+        if LEGACY_APP_NAME in self.kwargs:
+            app_name = self.kwargs[LEGACY_APP_NAME]
         else:
-            app_name = self.kwargs["app_name"]
+            app_name = self.kwargs[APP_NAME]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        impl_type = "COMPSs"
+        impl_type = IMPL_COMPSs
         impl_signature = ".".join((impl_type, app_name))
         impl_args = [runcompss,
                      flags,
                      app_name,
                      worker_in_master,
-                     self.kwargs["working_dir"],
-                     self.kwargs["fail_by_exit_value"]]
+                     self.kwargs[WORKING_DIR],
+                     self.kwargs[FAIL_BY_EXIT_VALUE]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -201,4 +214,3 @@ class COMPSs(object):
 # ########################################################################### #
 
 compss = COMPSs
-COMPSS = COMPSs

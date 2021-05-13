@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs Dummy API - Reduction
-===============================
+==============================
     This file contains the dummy class reduction used as decorator.
 """
 
@@ -46,4 +46,3 @@ class Reduction(object):
 
 
 reduction = Reduction
-REDUCTION = Reduction

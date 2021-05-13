@@ -30,7 +30,9 @@ from functools import wraps
 
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.runtime.constants import TASK_INSTANTIATION
 from pycompss.worker.commons.constants import WORKER_TASK_INSTANTIATION
 from pycompss.runtime.task.master import TaskMaster
@@ -79,11 +81,11 @@ class Task(object):
     #              "registered", "signature",
     #              "interactive", "module", "function_arguments",
     #              "function_name", "module_name", "function_type", "class_name",
-    #              "hints", "on_failure", "defaults"]
+    #              "hints", "on_failure", "defaults",
 
     @staticmethod
     def _get_default_decorator_values():
-        # type: () -> dict
+        # type: () -> typing.Dict[str, typing.Any]
         """ Default value for decorator arguments.
 
         By default, do not use jit (if true -> use nopython mode,
@@ -132,18 +134,13 @@ class Task(object):
         :param kwargs: Decorator parameters. A task decorator has no positional
                        arguments.
         """
-        self.task_type = "METHOD"
-        decorator_name = "".join(("@", Task.__name__.lower()))
-        # super(Task, self).__init__(decorator_name, *args, **kwargs)
-        # Instantiate superclass explicitly to support mypy.
-        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
-        self.decorator_name = decorator_name
+        self.task_type = IMPL_METHOD
+        self.decorator_name = "".join(("@", Task.__name__.lower()))
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
-        self.__configure_core_element__ = pd.__configure_core_element__
 
         self.decorator_arguments = kwargs
         # Set missing values to their default ones (step a)
@@ -186,21 +183,21 @@ class Task(object):
                     self.decorator_arguments[key] = value
 
         # Function to execute as task
-        self.user_function = None  # type: typing.Any
+        self.user_function = None          # type: typing.Any
         # Global variables common for all tasks of this kind
         self.registered = False
         self.signature = ""
         # Saved from the initial task
         self.interactive = False
-        self.module = None  # type: typing.Any
+        self.module = None                 # type: typing.Any
         self.function_arguments = tuple()  # type: tuple
         self.function_name = ""
         self.module_name = ""
         self.function_type = -1
         self.class_name = ""
-        self.hints = None  # type: typing.Any
+        self.hints = None                  # type: typing.Any
         self.on_failure = ""
-        self.defaults = dict()  # type: dict
+        self.defaults = dict()             # type: dict
 
     def __call__(self, user_function):
         # type: (typing.Any) -> typing.Any
@@ -255,7 +252,7 @@ class Task(object):
                                     self.hints,
                                     self.on_failure,
                                     self.defaults)
-            result = master.call(*args, **kwargs)
+            result = master.call(args, kwargs)
             fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
             del master
             return fo
@@ -354,12 +351,11 @@ class Task(object):
         :return: None (updates the Core Element of the given kwargs)
         """
         if CORE_ELEMENT_KEY in kwargs and \
-                kwargs[CORE_ELEMENT_KEY].get_impl_type() == "CONTAINER":
+                kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER:
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
             _type = impl_args[2]
-            unassigned = "[unassigned]"
-            if _type == unassigned:
+            if _type == UNASSIGNED:
                 # The task is not invoking a binary
                 _engine = impl_args[0]
                 _image = impl_args[1]
@@ -369,13 +365,12 @@ class Task(object):
                 impl_args = [_engine,         # engine
                              _image,          # image
                              _type,           # internal_type
-                             unassigned,      # internal_binary
+                             UNASSIGNED,      # internal_binary
                              _func_complete,  # internal_func
-                             unassigned,      # working_dir
-                             unassigned]      # fail_by_ev
+                             UNASSIGNED,      # working_dir
+                             UNASSIGNED]      # fail_by_ev
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
 
 
 # task can be also typed as Task
 task = Task
-TASK = Task

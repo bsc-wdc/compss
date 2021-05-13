@@ -29,6 +29,9 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
@@ -42,8 +45,8 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = {"computing_nodes"}
-DEPRECATED_ARGUMENTS = {"computingNodes"}
+SUPPORTED_ARGUMENTS = {COMPUTING_NODES}
+DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES}
 SLURM_SKIP_VARS = ["SLURM_JOBID",
                    "SLURM_JOB_ID",
                    "SLURM_USER",
@@ -114,7 +117,7 @@ class MultiNode(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
+            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -142,7 +145,7 @@ class MultiNode(object):
             logger.debug("Configuring @multinode core element.")
 
         # Resolve @multinode specific parameters
-        impl_type = "MULTI_NODE"
+        impl_type = IMPL_MULTI_NODE
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -201,6 +204,7 @@ def remove_slurm_environment():
             if key not in SLURM_SKIP_VARS:
                 old_slurm_env[key] = value
                 os.environ.pop(key)
+    # TODO: ISSUE DECTECTED - WAS NOT RETURNING old_slurm_env: ASK JORGE
     return old_slurm_env
 
 
@@ -220,4 +224,3 @@ def reset_slurm_environment(old_slurm_env=None):
 # ########################################################################### #
 
 multinode = MultiNode
-MULTINODE = MultiNode

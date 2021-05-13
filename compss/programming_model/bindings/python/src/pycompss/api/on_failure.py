@@ -28,6 +28,11 @@ import typing
 from functools import wraps
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import MANAGEMENT
+from pycompss.api.commons.constants import MANAGEMENT_IGNORE
+from pycompss.api.commons.constants import MANAGEMENT_RETRY
+from pycompss.api.commons.constants import MANAGEMENT_CANCEL_SUCCESSOR
+from pycompss.api.commons.constants import MANAGEMENT_FAIL
 from pycompss.util.arguments import check_mandatory_arguments
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -39,11 +44,11 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-MANDATORY_ARGUMENTS = {"management"}
-SUPPORTED_MANAGEMENT = {"IGNORE",
-                        "RETRY",
-                        "CANCEL_SUCCESSORS",
-                        "FAIL"}
+MANDATORY_ARGUMENTS = {MANAGEMENT}
+SUPPORTED_MANAGEMENT = {MANAGEMENT_IGNORE,
+                        MANAGEMENT_RETRY,
+                        MANAGEMENT_CANCEL_SUCCESSOR,
+                        MANAGEMENT_FAIL}
 
 
 class OnFailure(object):
@@ -81,7 +86,7 @@ class OnFailure(object):
 
             # Save the parameters into self so that they can be accessed when
             # the task fails and the action needs to be taken
-            self.on_failure_action = kwargs.pop("management")
+            self.on_failure_action = kwargs.pop(MANAGEMENT)
             # Check supported management values
             if self.on_failure_action not in SUPPORTED_MANAGEMENT:
                 raise PyCOMPSsException(
@@ -156,6 +161,5 @@ class OnFailure(object):
 # ################### ON FAILURE DECORATOR ALTERNATIVE NAME ################# #
 # ########################################################################### #
 
-onFailure = OnFailure
-ONFAILURE = OnFailure
 on_failure = OnFailure
+onFailure = OnFailure

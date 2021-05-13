@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs Dummy API - Container
-===============================
+==============================
     This file contains the dummy class container used as decorator.
 """
 
@@ -46,4 +46,3 @@ class Container(object):
 
 
 container = Container
-CONTAINER = Container

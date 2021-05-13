@@ -13,6 +13,8 @@ mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/ompss.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/container.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/mpi.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/compss.py
+mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/commons/constants.py
+mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/commons/implementation_types.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/commons/data_type.py
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/commons/decorator.py  # superclass that could be removed
 mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/api/commons/information.py

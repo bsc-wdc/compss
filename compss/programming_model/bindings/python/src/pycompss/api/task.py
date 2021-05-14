@@ -83,20 +83,34 @@ class Task(object):
     #              "function_name", "module_name", "function_type", "class_name",
     #              "hints", "on_failure", "defaults",
 
-    @staticmethod
-    def _get_default_decorator_values():
-        # type: () -> typing.Dict[str, typing.Any]
-        """ Default value for decorator arguments.
+    def __init__(self, *args, **kwargs):  # noqa
+        # type: (*typing.Any, **typing.Any) -> None
+        """ Task constructor.
 
-        By default, do not use jit (if true -> use nopython mode,
-        alternatively, the user can define a dictionary with the specific
-        flags - using a dictionary will be considered as the user wants to use
-        compile with jit).
+        This part is called in the decoration process, not as an
+        explicit function call.
 
-        :return: A dictionary with the default values of the non-parameter
-                 decorator fields.
+        We do two things here:
+            a) Assign default values to unspecified fields.
+            b) Transform the parameters from user friendly types
+               (i.e Parameter.IN, etc) to a more convenient internal
+               representation.
+
+        :param args: Decorator positional parameters (ignored).
+        :param kwargs: Decorator parameters. A task decorator has no positional
+                       arguments.
         """
-        return {
+        self.task_type = IMPL_METHOD
+        self.decorator_name = "".join(("@", Task.__name__.lower()))
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+
+        # Set missing values to their default ones (step a)
+        self.decorator_arguments = kwargs
+        default_decorator_values = {
             "target_direction": parameter.INOUT,
             "returns": False,
             "cache_returns": True,
@@ -114,37 +128,8 @@ class Task(object):
             "numba_signature": None,  # vectorize and guvectorize signature
             "numba_declaration": None,  # guvectorize declaration
             "varargs_type": parameter.IN,  # Here for legacy purposes
-        }
-
-    def __init__(self, *args, **kwargs):  # noqa
-        # type: (*typing.Any, **typing.Any) -> None
-        """ Task constructor.
-
-        This part is called in the decoration process, not as an
-        explicit function call.
-
-        We do two things here:
-            a) Assign default values to unspecified fields
-               (see _get_default_decorator_values).
-            b) Transform the parameters from user friendly types
-               (i.e Parameter.IN, etc) to a more convenient internal
-               representation.
-
-        :param args: Decorator positional parameters (ignored).
-        :param kwargs: Decorator parameters. A task decorator has no positional
-                       arguments.
-        """
-        self.task_type = IMPL_METHOD
-        self.decorator_name = "".join(("@", Task.__name__.lower()))
-        self.args = args
-        self.kwargs = kwargs
-        self.scope = context.in_pycompss()
-        self.core_element = None  # type: typing.Any
-        self.core_element_configured = False
-
-        self.decorator_arguments = kwargs
-        # Set missing values to their default ones (step a)
-        for (key, value) in self._get_default_decorator_values().items():
+        }  # type: typing.Dict[str, typing.Any]
+        for (key, value) in default_decorator_values.items():
             if key not in self.decorator_arguments:
                 self.decorator_arguments[key] = value
         # Give all parameters a unique instance for them (step b)
@@ -154,7 +139,7 @@ class Task(object):
         # Giving them a unique instance makes life easier in further steps
         for (key, value) in self.decorator_arguments.items():
             # Not all decorator arguments are necessarily parameters
-            # (see self._get_default_decorator_values)
+            # (see default_decorator_values)
             if is_param(value):
                 self.decorator_arguments[key] = get_new_parameter(value.key)
             # Specific case when value is a dictionary

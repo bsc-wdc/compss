@@ -10,6 +10,7 @@ PyCOMPSs Testbench Tasks
 # Imports
 import unittest
 import os
+import operator
 
 from pycompss.api.task import task
 from pycompss.api.parameter import *
@@ -17,12 +18,41 @@ from pycompss.api.api import compss_barrier, compss_open, compss_wait_on
 from pycompss.api.reduction import reduction
 from pycompss.api.constraint import constraint
 
-NUM_TASKS = 5
-
+NUM_TASKS = 5 
 
 @reduction(chunk_size="2")
 @task(returns=1, col=COLLECTION_IN)
-def myreduction(col):
+def myreduction_1(col):
+    r = 0
+    for i in col:
+        print("[LOG] Adding: " + str(i))
+        r += i
+    print("[LOG] Accum: " + str(r))
+    return r
+
+@reduction(chunk_size="2")
+@task(returns=1, col=COLLECTION_IN)
+def myreduction_2(col, f, s):
+    r = 0
+    for i in col:
+        print("[LOG] Adding: " + str(i))
+        r += i
+    print("[LOG] Accum: " + str(r))
+    return r
+
+@reduction(chunk_size="2")
+@task(returns=1, col=COLLECTION_IN)
+def myreduction_3(f, col, s):
+    r = 0
+    for i in col:
+        print("[LOG] Adding: " + str(i))
+        r += i
+    print("[LOG] Accum: " + str(r))
+    return r
+
+@reduction(chunk_size="2")
+@task(returns=1, col=COLLECTION_IN)
+def myreduction_4(f, s, col):
     r = 0
     for i in col:
         print("[LOG] Adding: " + str(i))
@@ -45,7 +75,7 @@ def dependentParamsReduce():
         result.append(increment(element))
         print("[Result] " + str(result))
     # Reduction task
-    final = myreduction(result)
+    final = myreduction_1(result)
     final = compss_wait_on(final)
     print("[LOG] Result dependent Parms: " + str(final))
     return final
@@ -57,7 +87,7 @@ def nonDependentParamsReduce():
         print("[Element] " + str(element))
         # Creation of collection element
         result.append(element)
-    final = myreduction(result)
+    final = myreduction_2(result, operator.add, "test")
     final = compss_wait_on(final)
     print("[LOG] Result non dependent Params: " + str(final))
     return final 
@@ -72,7 +102,7 @@ def dependentAndFreeParamsReduce():
         result.append(increment(element))
         # Non dependent params
         result.append(element)
-    final = myreduction(result)
+    final = myreduction_3(operator.add, result, "test")
     final = compss_wait_on(final)
     print("[LOG] Result mix of dependent and non dependent Params: " + str(final))
     return final
@@ -84,7 +114,7 @@ def postBarrierReduce():
         print("[Element] " + str(element))
         result.append(increment(element))
     compss_barrier()
-    final = myreduction(result)
+    final = myreduction_4(operator.add, "test", result)
     final = compss_wait_on(final)
     print("[LOG] Result Post-Barrier: " + str(final))
     return final

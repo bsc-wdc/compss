@@ -82,16 +82,16 @@
   fi
   
   # Check if all intermediate reduce actions have been launched
-  output1=$(cat "${runtime_log}" | grep "Adding intermediate reduce task" | wc -l)
+  output1=$(cat "${runtime_log}" | grep "Creating partial reduce task" | wc -l)
   if [ "${output1}" -ne 13 ]; then
-  	echo "ERROR: The number of launched intermediate reduce tasks is not correct." | tee -a "${output_file}"
+	  echo "ERROR: The number of launched intermediate reduce tasks is not correct. (obtained: ${output1} expected: 13)" | tee -a "${output_file}"
   	exit 1
   fi
   
   # Check if all final actions have been launched
-  output1=$(cat "${runtime_log}" | grep "Adding final reduce task" | wc -l)
+  output1=$(cat "${runtime_log}" | grep "Creating final reduce task" | wc -l)
   if [ "${output1}" -ne 4 ]; then
-  	echo "ERROR: The number of launched final reduce tasks is not correct." | tee -a "${output_file}"
+	  echo "ERROR: The number of launched final reduce tasks is not correct. (obtained: ${output1} expected: 4)" | tee -a "${output_file}"
   	exit 1
   fi
   

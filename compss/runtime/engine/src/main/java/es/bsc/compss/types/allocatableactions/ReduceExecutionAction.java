@@ -36,6 +36,7 @@ import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,10 +49,13 @@ import java.util.Set;
 
 public class ReduceExecutionAction extends ExecutionAction {
 
+    private static final String LOG_PREFIX = "[Reduce-Execution-Action] ";
     private TaskScheduler ts;
     private int reduceIndex = 0;
     // Initial collection of parameters to reduce
     private CollectionParameter initialCollection;
+    // Other task parameters which are not part of the collection
+    private Set<Parameter> extraParameters;
     // Map to store to know parameters generated per resource.
     private Map<Resource, List<Parameter>> parametersInResource;
     // List of intermediate reduce actions done.
@@ -68,6 +72,8 @@ public class ReduceExecutionAction extends ExecutionAction {
     private List<Resource> usedResources;
     // Actions running in each resource
     private Map<Resource, List<AllocatableAction>> executingInResource;
+    private int colIndex;
+    private Set<Integer> partialTaskIds;
 
 
     /**
@@ -86,23 +92,33 @@ public class ReduceExecutionAction extends ExecutionAction {
             this.parametersInResource = new HashMap<>();
         }
         this.ts = ts;
+        this.extraParameters = new HashSet<>();
+        this.partialTaskIds = new HashSet<>();
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
-        this.initialCollection = (CollectionParameter) finalParameters.get(0);
+        this.colIndex = task.getReduceCollectionIndex();
+        for (int i = 0; i < finalParameters.size() - 1; i++) {
+            if (i == this.colIndex) {
+                this.initialCollection = (CollectionParameter) finalParameters.get(colIndex);
+            } else {
+                this.extraParameters.add(finalParameters.get(i));
+            }
+        }
         this.partialParameters = new HashMap<>();
         this.finalTaskExecuted = false;
         this.usedResources = new ArrayList<>();
-        LOGGER.debug("Creating new Reduce execution action");
+        LOGGER.debug(LOG_PREFIX + "Creating new Reduce execution action for Task " + this.task.getId());
         this.executingInResource = new HashMap<>();
         this.finalInResource = new ArrayList<>();
 
         if (this.alreadyDoneActions != null) {
             alreadyDonePredecessors();
         }
-
+        // Checking parameters without data dependency (excluding the extra parameters)
         List<Parameter> params = new ArrayList<>();
         for (Parameter p : task.getFreeParams()) {
             if (!(p instanceof CollectionParameter)
-                && !(p instanceof FileParameter && ((FileParameter) p).getOriginalName().startsWith("reduce"))) {
+                && !(p instanceof FileParameter && ((FileParameter) p).getOriginalName().startsWith("reduce"))
+                && !extraParameters.contains(p)) {
                 params.add(p);
             }
         }
@@ -184,7 +200,8 @@ public class ReduceExecutionAction extends ExecutionAction {
 
         }
         if (DEBUG) {
-            LOGGER.debug("Chosen host to run the reduce: " + (maxResource != null ? maxResource.toString() : "null"));
+            LOGGER.debug(LOG_PREFIX + "Chosen host to run the reduce: "
+                + (maxResource != null ? maxResource.toString() : "null"));
         }
 
         return maxResource;
@@ -197,7 +214,8 @@ public class ReduceExecutionAction extends ExecutionAction {
      */
     @Override
     public void addAlreadyDoneAction(AllocatableAction finishedAction) {
-        LOGGER.debug("Registering parameter of an already done action");
+        LOGGER.debug(
+            LOG_PREFIX + "Registering a dependenant action was already done action for Task " + this.getTask().getId());
         if (this.alreadyDoneActions == null) {
             this.alreadyDoneActions = new ArrayList<>();
         }
@@ -205,6 +223,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     }
 
     private void alreadyDonePredecessors() {
+        LOGGER.debug(LOG_PREFIX + "Treating already done action actions for " + this.getTask().getId());
         for (AllocatableAction a : this.alreadyDoneActions) {
             registerPredecessorDone(a);
         }
@@ -229,30 +248,33 @@ public class ReduceExecutionAction extends ExecutionAction {
      * @param finishedAction The action to register.
      */
     public void registerPredecessorDone(AllocatableAction finishedAction) {
+        LOGGER.debug(LOG_PREFIX + "Registering predecessor done for Task " + this.getTask().getId());
         Resource resource = finishedAction.getAssignedResource().getResource();
         checkAndRegisterResource(resource);
         Task finishedTask = ((ExecutionAction) finishedAction).getTask();
+
         Parameter param;
-        boolean partial = false;
-        // Check if para
-        if (!finishedTask.getTaskDescription().getName().equals(this.task.getTaskDescription().getName())) {
+        boolean isReduceParam = false;
+        if (!this.partialTaskIds.contains(finishedTask.getId())) {
+            this.partialTaskIds.remove(finishedTask.getId());
             param = this.getTask().getDependencyParameters(finishedTask);
-            this.receivedOriginalParameters++;
+            if (!this.extraParameters.contains(param)) {
+                isReduceParam = true;
+                this.receivedOriginalParameters++;
+            }
+
         } else {
-            partial = true;
-            param = this.partialParameters.get(finishedAction);
+            isReduceParam = true;
+            param = this.partialParameters.remove(finishedAction);
             List<AllocatableAction> actions = this.executingInResource.get(resource);
             actions.remove(finishedAction);
         }
-
-        this.parametersInResource.get(resource).add(param);
-        if (!(this.usedResources.contains(resource))) {
-            this.usedResources.add(resource);
+        if (isReduceParam) {
+            this.parametersInResource.get(resource).add(param);
+            if (!(this.usedResources.contains(resource))) {
+                this.usedResources.add(resource);
+            }
         }
-        if (partial) {
-            this.partialParameters.remove(finishedAction);
-        }
-
         addReduceTaskParameters(resource);
         ((ExecutionAction) finishedAction).getTask().releaseDataDependents();
     }
@@ -268,39 +290,53 @@ public class ReduceExecutionAction extends ExecutionAction {
 
         List<Parameter> params = this.parametersInResource.get(resource);
         if (!finalTaskExecuted) {
-            if (params.size() >= getChunkSize()) {
+            if (noMoreOriginalReductionParamsPending()) {
+                // Try to send final tasks
+                if (mustLaunchFinalTasks()) {
+                    launchFinalTasks();
+                } else {
+                    List<AllocatableAction> actions = this.executingInResource.get(resource);
+                    if (actions == null || actions.isEmpty()) {
+                        LOGGER.debug(
+                            "No partial reduces running in the resource. Trying to launch a final task in resource "
+                                + resource.getName());
+                        finalTaskInResource(resource);
+                    } else if (params.size() >= getChunkSize()) {
+                        // If running partials but chunk size reached -> Launch reduce action
+                        launchReduceAction(resource, params);
+                        reduceIndex++;
+                        this.parametersInResource.put(resource, new ArrayList<>());
+
+                    }
+                }
+
+            } else if (params.size() >= getChunkSize()) {
                 launchReduceAction(resource, params);
                 reduceIndex++;
                 this.parametersInResource.put(resource, new ArrayList<>());
 
             }
-            if (noMoreOriginalReductionParamsPending()) {
-                // Try to send final tasks
-                List<AllocatableAction> actions = this.executingInResource.get(resource);
-                if (actions == null || actions.isEmpty()) {
-                    // Nothing else running in the resource send a final task in released resource
-                    finalTaskInResource(resource);
-                }
-                if (mustLaunchFinalTasks()) {
-                    launchFinalTasks();
-                }
-            }
+
         }
     }
 
     private void launchFinalTasks() {
+        LOGGER.debug(LOG_PREFIX + "Launching final tasks for Task " + this.getTask().getId());
         ArrayList<Parameter> finalParams = new ArrayList<>();
         this.finalTaskExecuted = true;
-
-        for (Resource r : parametersInResource.keySet()) {
-            if (!this.finalInResource.contains(r)) {
-                finalTaskInResource(r);
+        // If I have more than one node I try to run final tasks.
+        // Otherwise we just prepare the collection with partial results for the original task
+        if (usedResources.size() > 1) {
+            for (Resource r : parametersInResource.keySet()) {
+                if (!this.finalInResource.contains(r)) {
+                    finalTaskInResource(r);
+                }
             }
         }
+        // Adding all the parameters which have not been added to the final tasks
         for (Entry<Resource, List<Parameter>> e : parametersInResource.entrySet()) {
             finalParams.addAll(e.getValue());
         }
-
         setFinalExecutionParameters(finalParams);
         finalTaskExecuted = true;
 
@@ -311,9 +347,11 @@ public class ReduceExecutionAction extends ExecutionAction {
     }
 
     private boolean mustLaunchFinalTasks() {
-        return this.partialParameters.size() == 0 && this.usedResources.size() > 1
+        // No running partials pending and more than one resource used
+        // or single used resource and expected parameters in resource is less than a chunk
+        return (this.partialParameters.size() == 0 && this.usedResources.size() > 1)
             || (this.usedResources.size() == 1 && (this.partialParameters.size()
-                + parametersInResource.get(usedResources.get(0)).size()) == getChunkSize());
+                + parametersInResource.get(usedResources.get(0)).size()) <= getChunkSize());
     }
 
     private boolean noMoreOriginalReductionParamsPending() {
@@ -322,6 +360,8 @@ public class ReduceExecutionAction extends ExecutionAction {
     }
 
     private void finalTaskInResource(Resource resource) {
+        LOGGER.debug(LOG_PREFIX + "Trying to generate final reduce for resource " + resource.getName() + " of Task "
+            + this.task.getId());
         List<Parameter> params = parametersInResource.get(resource);
         if (params.size() > 1) {
             launchReduceAction(resource, params);
@@ -332,7 +372,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     }
 
     private void setFinalExecutionParameters(List<Parameter> params) {
-        LOGGER.debug("Adding final reduce task for task " + this.task.toString());
+        LOGGER.debug(LOG_PREFIX + "Creating final reduce task for Task " + this.task.getId());
 
         ReduceTask t = (ReduceTask) this.task;
         List<Parameter> partialsIn = new ArrayList<>(this.partialParameters.values());
@@ -343,26 +383,43 @@ public class ReduceExecutionAction extends ExecutionAction {
 
         cPartial.setParameters(partialsIn);
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
-        finalParameters.set(0, cPartial);
+        finalParameters.set(this.colIndex, cPartial);
     }
 
     private void launchReduceAction(Resource resource, List<Parameter> params) {
-        LOGGER.debug("Adding intermediate reduce task for task " + this.task.getId());
+        LOGGER.debug(LOG_PREFIX + "Creating partial reduce task for Task " + this.task.getId());
         ReduceTask t = (ReduceTask) this.task;
+
+        // Check if number of reduces
+        if (reduceIndex >= t.getIntermediateCollections().size()) {
+            LOGGER.error("ERROR: Reduce Task " + this.task.getId() + " has exceed the number of partial reduces");
+            ErrorManager.fatal("ERROR: Reduce task " + this.task.getId() + " has exceed the number of partial reduces");
+        }
         CollectionParameter cp = t.getIntermediateCollections().get(reduceIndex);
         cp.setParameters(params);
         List<Parameter> taskP = new ArrayList<>();
-        taskP.add(cp);
+        TaskDescription td = this.task.getTaskDescription();
+        List<Parameter> oldParameters = td.getParameters();
+        for (int i = 0; i < oldParameters.size() - 1; i++) {
+            if (i == this.colIndex) {
+                taskP.add(cp);
+            } else {
+                taskP.add(oldParameters.get(i));
+            }
+        }
+
         Parameter result = t.getIntermediateOutParameters().get(0);
         t.setPartialOutUsed(result);
         Parameter partialIn = t.getIntermediateInParameters().get(0);
         t.setPartialInUsed(partialIn);
         taskP.add(result);
-        TaskDescription td = this.task.getTaskDescription();
+
         Task partialTask = new Task(this.task.getApplication(), td.getLang(), td.getName(), td.hasPriority(),
             td.getNumNodes(), td.isReduction(), td.isReplicated(), td.isDistributed(), td.hasTargetObject(),
             td.getNumReturns(), taskP, this.task.getTaskMonitor(), td.getOnFailure(), td.getTimeOut());
-
+        this.partialTaskIds.add(partialTask.getId());
+        LOGGER.debug(LOG_PREFIX + "Task " + partialTask.getId() + " is a partial reduce task for Task "
+            + this.task.getId() + ". Adding as predecessor");
         ResourceScheduler<? extends WorkerResourceDescription> partialReduceScheduler =
             ts.getWorkers().iterator().next();
         for (ResourceScheduler<? extends WorkerResourceDescription> rs : ts.getWorkers()) {
@@ -371,10 +428,12 @@ public class ReduceExecutionAction extends ExecutionAction {
                 break;
             }
         }
-        ExecutionAction partialReduceAction =
-            new ExecutionAction(ts.generateSchedulingInformation(partialReduceScheduler, td.getParameters(),
-                td.getCoreElement().getCoreId()), this.orchestrator, this.ap, partialTask);
+        ExecutionAction partialReduceAction = new ExecutionAction(
+            ts.generateSchedulingInformation(partialReduceScheduler, taskP, td.getCoreElement().getCoreId()),
+            this.orchestrator, this.ap, partialTask);
+        int previous = getDataPredecessors().size();
         addDataPredecessor(partialReduceAction);
+        LOGGER.debug("Current predec: " + getDataPredecessors().size() + " previous: " + previous);
         partialParameters.put(partialReduceAction, partialIn);
         ts.newAllocatableAction(partialReduceAction);
         addExecutingToResource(partialReduceAction, resource);
@@ -398,7 +457,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     @Override
     protected void doCompleted() {
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
-        finalParameters.set(0, initialCollection);
+        finalParameters.set(this.colIndex, initialCollection);
         ((ReduceTask) this.task).clearPartials();
         super.doCompleted();
     }
@@ -406,7 +465,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     @Override
     protected void doFailed() {
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
-        finalParameters.set(0, initialCollection);
+        finalParameters.set(this.colIndex, initialCollection);
 
         super.doFailed();
     }
@@ -414,7 +473,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     @Override
     protected void doCanceled() {
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
-        finalParameters.set(0, initialCollection);
+        finalParameters.set(this.colIndex, initialCollection);
 
         super.doCanceled();
     }
@@ -422,7 +481,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     @Override
     protected void doFailIgnored() {
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
-        finalParameters.set(0, initialCollection);
+        finalParameters.set(this.colIndex, initialCollection);
 
         super.doFailIgnored();
     }

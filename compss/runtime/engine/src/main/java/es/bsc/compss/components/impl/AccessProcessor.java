@@ -216,8 +216,14 @@ public class AccessProcessor implements Runnable {
         Task currentTask;
 
         if (isReduce) {
-            currentTask = new ReduceTask(app, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
-                isReplicated, isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+            if (reduceChunkSize >= 2) {
+                currentTask = new ReduceTask(app, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
+                    isReplicated, isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+            } else {
+                ErrorManager.warn("Requesting to create task with chunk_size smaller than 2. Executing as simple task");
+                currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReduce, isReplicated,
+                    isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+            }
         } else {
             currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReduce, isReplicated, isDistributed,
                 hasTarget, numReturns, parameters, monitor, onFailure, timeOut);

@@ -31,6 +31,8 @@ import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +61,7 @@ public class ReduceTask extends Task {
     private final List<Parameter> usedPartialsOut;
     // Available Collection parameters for partial task
     private final List<CollectionParameter> intermediateCollections;
+    private int reduceCollectionIndex = -1;
     private CollectionParameter finalCol;
 
     // Component logger
@@ -114,16 +117,20 @@ public class ReduceTask extends Task {
      * @throws IOException Error while creating the data location.
      */
     public void createPartialParameters(List<Parameter> parameters) throws IOException {
-        if (parameters.size() == 2) {
+        if (parameters.size() >= 2) {
             // 0 --> collection || 1 --> result
-            CollectionParameter p = (CollectionParameter) parameters.get(0);
-            Parameter finalParameter = parameters.get(1);
-            if (p.getType() == DataType.COLLECTION_T) {
-                List<Parameter> colList = p.getParameters();
 
+            this.reduceCollectionIndex = searchFirstCollection(parameters);
+            Parameter finalParameter = parameters.get(parameters.size() - 1);
+            if (finalParameter.getDirection() == Direction.OUT && this.reduceCollectionIndex >= 0) {
+                CollectionParameter p = (CollectionParameter) parameters.get(this.reduceCollectionIndex);
+                List<Parameter> colList = p.getParameters();
+                if (colList.size() < 2) {
+                    ErrorManager.warn("Reduce collection of Task " + getId() + " has not two parameters to reduce");
+                }
                 // Calculate maximum number of operations
                 double completeOperations = 0;
-                this.totalOperations = 0;
+                this.totalOperations = ResourceManager.getTotalNumberOfWorkers() + 1;
                 double intermediateResults = 0;
                 double accum = colList.size();
                 while (accum > chunkSize) {
@@ -132,6 +139,8 @@ public class ReduceTask extends Task {
                     accum = completeOperations + intermediateResults;
                     this.totalOperations = this.totalOperations + accum;
                 }
+                LOGGER.debug("[REDUCE-TASK] Creating intermediate data (" + this.totalOperations + ") for reduce Task "
+                    + this.getId());
 
                 for (int i = 0; i < (int) totalOperations; i++) {
                     String partialId = "reduce" + i + "PartialResultTask" + this.getId();
@@ -154,8 +163,27 @@ public class ReduceTask extends Task {
                 String finalId = "finalReduceTask" + this.getId();
                 finalCol = new CollectionParameter(finalId, new ArrayList<>(), Direction.IN, p.getStream(),
                     p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename());
+            } else {
+                ErrorManager
+                    .fatal("First parameter for a reduce task must be a collection and last parameter must be OUT "
+                        + "or must have return");
+            }
+        } else {
+            ErrorManager.fatal("Incorrect number of parameters for a reduce task. It should be higher than 2");
+        }
+    }
+
+    private int searchFirstCollection(List<Parameter> parameters) {
+        for (int i = 0; i < parameters.size() - 1; i++) {
+            if (parameters.get(i).getType() == DataType.COLLECTION_T) {
+                return i;
             }
         }
+        return -1; // Collection Not found
+    }
+
+    public int getReduceCollectionIndex() {
+        return this.reduceCollectionIndex;
     }
 
     /**

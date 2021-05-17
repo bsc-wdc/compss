@@ -71,7 +71,7 @@ public abstract class Tracer {
     public static final String TO_MERGE_SUBDIR = "to_merge";
 
     // Naming
-    public static final String MASTER_TRACE_SUFFIX = "_compss_trace_";
+    public static final String MASTER_TRACE_SUFFIX = "_compss";
     public static final String TRACE_ROW_FILE_EXTENTION = ".row";
     public static final String TRACE_PRV_FILE_EXTENTION = ".prv";
     public static final String TRACE_PCF_FILE_EXTENTION = ".pcf";

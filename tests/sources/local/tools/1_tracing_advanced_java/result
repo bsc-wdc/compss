@@ -49,11 +49,11 @@
   total_executed_tasks=$((executions_per_task * num_different_tasks))
   finish_events=$total_executed_tasks
 
-  events_type1=$(grep -c ":8000000:1" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  events_type2=$(grep -c ":8000000:2" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  events_type3=$(grep -c ":8000000:3" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  events_type4=$(grep -c ":8000000:4" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  events_close=$(grep -c ":8000000:0" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
+  events_type1=$(grep -c ":8000000:1" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  events_type2=$(grep -c ":8000000:2" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  events_type3=$(grep -c ":8000000:3" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  events_type4=$(grep -c ":8000000:4" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  events_close=$(grep -c ":8000000:0" "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
 
   if [ "$events_type1" != "$executions_per_task" ]; then
      echo "[ERROR] Incorrect number of task 1 events. [$events_type1/$executions_per_task]" | tee -a "${output_file}"
@@ -76,16 +76,16 @@
      exit 1
   fi
   
-  start_events_8000000=$(grep -c ':8000000:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  end_events_8000000=$(grep -c ':8000000:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  start_events_8001001=$(grep -c ':8001001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  end_events_8001001=$(grep -c ':8001001:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  start_events_8001002=$(grep -c ':8001002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  end_events_8001002=$(grep -c ':8001002:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  start_events_8000002=$(grep -c ':8000002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  end_events_8000002=$(grep -c ':8000002:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  start_events_8000003=$(grep -c ':8000003:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  end_events_8000003=$(grep -c ':8000003:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
+  start_events_8000000=$(grep -c ':8000000:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  end_events_8000000=$(grep -c ':8000000:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  start_events_8001001=$(grep -c ':8001001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  end_events_8001001=$(grep -c ':8001001:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  start_events_8001002=$(grep -c ':8001002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  end_events_8001002=$(grep -c ':8001002:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  start_events_8000002=$(grep -c ':8000002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  end_events_8000002=$(grep -c ':8000002:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  start_events_8000003=$(grep -c ':8000003:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
+  end_events_8000003=$(grep -c ':8000003:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss*.prv)
 
   if [ "$start_events_8000000" != "$end_events_8000000" ] ; then
     echo "[ERROR] Number of start and end emits is not equal for 8000000 type of events" | tee -a"${output_file}"

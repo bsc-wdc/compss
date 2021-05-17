@@ -69,24 +69,24 @@
 
   # GAT does not support task tracing
   if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
-    evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "evts_tasks: ${evts_tasks}"
-    evts_tasks_end=$(grep -c ":${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    evts_tasks_end=$(grep -c ":${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "evts_tasks_end: ${evts_tasks_end}"
 
-    evts_tasks_running=$(grep -c ":${WORKER_EVENTS}:2" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    evts_tasks_running=$(grep -c ":${WORKER_EVENTS}:2" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "evts_tasks_running: ${evts_tasks_running}"
-    evts_worker_running=$(grep -c ":${WORKER_EVENTS}:1" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    evts_worker_running=$(grep -c ":${WORKER_EVENTS}:1" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "evts_worker_running: ${evts_worker_running}"
 
-    sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "sync_evts_init: ${sync_evts_init}"
-    sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "sync_evts_end: ${sync_evts_end}"
 
-    master_evts_init=$(grep -c ":${MASTER_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    master_evts_init=$(grep -c ":${MASTER_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "master_evts_init: ${master_evts_init}"
-    master_evts_end=$(grep -c ":${MASTER_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+    master_evts_end=$(grep -c ":${MASTER_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "master_evts_end: ${master_evts_end}"
 
     if [ "${evts_tasks_end}" != "${evts_tasks}" ]; then

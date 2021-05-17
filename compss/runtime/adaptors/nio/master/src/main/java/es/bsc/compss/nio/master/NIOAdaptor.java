@@ -632,7 +632,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Update Task information
         dp.setType(newType);
-        dp.setDataTarget(resultUri.toString());
+        String path = resultUri.getPath();
+        LOGGER.debug("Setting data target at update Parameter " + path);
+        dp.setDataTarget(path);
     }
 
     private void registerPersistedParameter(DataType newType, String pscoId, DependencyParameter dp) {

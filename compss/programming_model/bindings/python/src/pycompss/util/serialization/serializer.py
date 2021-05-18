@@ -59,6 +59,7 @@ from pycompss.runtime.constants import DESERIALIZATION_OBJECT_NUM
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from io import BytesIO
 import os
+import struct
 import sys
 
 DISABLE_GC = False
@@ -78,6 +79,7 @@ except ImportError:
 
 try:
     import numpy
+
     NUMPY_AVAILABLE = True
 except ImportError:
     if IS_PYTHON3:
@@ -88,6 +90,7 @@ except ImportError:
 
 try:
     import pyarrow
+
     PYARROW_AVAILABLE = True
 except ImportError:
     pyarrow = None
@@ -102,6 +105,7 @@ LIB2IDX = {
     pyarrow: 3
 }
 IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
+platform_c_maxint = 2 ** (struct.Struct('i').size * 8 - 1) - 4
 
 
 def get_serializer_priority(obj=()):
@@ -141,7 +145,9 @@ def serialize_to_handler(obj, handler):
                                  serialization.
     """
     emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, 0)
-    emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, hash(os.path.basename(handler.name)) % ((sys.maxsize + 1) * 2))
+    if hasattr(handler, 'name'):
+        emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, (abs(hash(os.path.basename(handler.name))) %
+                                                              platform_c_maxint))
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -266,8 +272,9 @@ def deserialize_from_handler(handler):
     """
     # Retrieve the used library (if possible)
     emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
-    emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, hash(os.path.basename(handler.name))
-                               % ((sys.maxsize + 1) * 2))
+    if hasattr(handler, 'name'):
+        emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, (abs(hash(os.path.basename(handler.name))) %
+                                                                platform_c_maxint))
     original_position = None
     try:
         original_position = handler.tell()

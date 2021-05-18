@@ -354,11 +354,8 @@ public abstract class TraceMerger {
             workersCEIndex.add(getCE(workerPcf));
         }
 
-        // Get map CE id -> CE name from the workers
-        Map<String, String> masterReversedCEIndex = getReversedCE(this.masterTracePcfPath);
-
         // Creating global CE index
-        Map<String, String> globalCE = createGlobalCoreElementsIndex(masterReversedCEIndex, workersCEIndex);
+        Map<String, String> globalCE = createGlobalCoreElementsIndex(workersCEIndex);
 
         // Creating global PCF file
         createGlobalPCF(globalCE);
@@ -391,17 +388,13 @@ public abstract class TraceMerger {
     /**
      * Returns a map from the CE names to a number to act as a global CE index for the merged .pfc.
      */
-    protected Map<String, String> createGlobalCoreElementsIndex(Map<String, String> masterReversedCEIndex,
-        List<Map<String, String>> workersCEIndex) throws Exception {
+    protected Map<String, String> createGlobalCoreElementsIndex(List<Map<String, String>> workersCEIndex)
+        throws Exception {
         // get master CE and maximum CE value
         LOGGER.debug("Creating global CE index");
-        Map<String, String> globalCE = masterReversedCEIndex;
-        int maxCEValue = 0;
-        for (Map.Entry<String, String> entry : globalCE.entrySet()) {
-            if (Integer.parseInt(entry.getValue()) > maxCEValue) {
-                maxCEValue = Integer.parseInt(entry.getValue());
-            }
-        }
+        Map<String, String> globalCE = new HashMap<String, String>();
+        globalCE.put("End", "0");
+        int maxCEValue = 1;
 
         // add new CE fond in workers
         for (Map<String, String> workerCE : workersCEIndex) {
@@ -618,6 +611,7 @@ public abstract class TraceMerger {
                     throw new Exception("ERROR: Malformed CE in PFC " + tracePcfPath + "  line " + ceLine);
                 }
                 coreElements.put(values[0], values[1]);
+                LOGGER.debug("______ en worker " + tracePcfPath + ": " + values[1] + " -> " + values[0]);
                 ceLine++;
             }
         }
@@ -639,6 +633,7 @@ public abstract class TraceMerger {
                 if (values.length != 2 || values[1].isEmpty() || !numberPattern.matcher(values[0]).matches()) {
                     throw new Exception("ERROR: Malformed CE in PFC " + tracePcfPath + "  line " + ceLine);
                 }
+                LOGGER.debug("______ en master: " + values[1] + " -> " + values[0]);
                 coreElements.put(values[1], values[0]);
                 ceLine++;
             }

@@ -474,6 +474,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         } else {
             LOGGER.warn("WARN: worker starter for worker " + nodeName + " is null.");
         }
+        ONGOING_WORKER_PINGS.remove(nodeName);
     }
 
     @Override
@@ -1052,10 +1053,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleExecutorShutdownCommandError(Connection c, CommandExecutorShutdown commandExecutorShutdown) {
-        // TODO Handle this error. Currently invoking unhandeled error
-        LOGGER.error("Error sending Executor Shutdown command. Not handeled");
-        unhandeledError(c);
-
+        LOGGER.error("Error sending Executor Shutdown command.");
+        ClosingExecutor closing = STOPPING_EXECUTORS.remove(c);
+        ExecutorShutdownListener listener = closing.listener;
+        listener.notifyFailure(new Exception("Error sending Executor Shutdown command."));
     }
 
     @Override
@@ -1084,10 +1085,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleShutdownCommandError(Connection c, CommandShutdown commandShutdown) {
-        // TODO Handle this error. Currently invoking unhandeled error
-        LOGGER.error("Error sending Executor Shutdown command. Not handeled");
-        unhandeledError(c);
-
+        ClosingWorker closing = STOPPING_NODES.remove(c);
+        NIOWorkerNode worker = closing.worker;
+        removedNode(worker);
+        ShutdownListener listener = closing.listener;
+        listener.notifyFailure(new Exception("Error sending Executor Shutdown command."));
     }
 
     @Override
@@ -1104,18 +1106,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleTracingGenerateCommandError(Connection c, CommandGeneratePackage commandGeneratePackage) {
-        // TODO Handle this error. Currently invoking unhandeled error
-        LOGGER.error("Error sending tracing generate command. Not handeled");
-        unhandeledError(c);
+        LOGGER.error("Error sending tracing generate command.");
+        notifyTracingPackageGeneration();
 
     }
 
     @Override
     public void handleGenerateWorkerDebugCommandError(Connection c,
         CommandGenerateWorkerDebugFiles commandGenerateWorkerDebugFiles) {
-        LOGGER.error("Error sending generate worker debug command. Not handeled");
-        unhandeledError(c);
-
+        LOGGER.error("Error sending generate worker debug command.");
+        notifyWorkersDebugInfoGeneration();
     }
 
     @Override
@@ -1150,10 +1150,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleNodeIsDownError(String nodeName) {
-        LOGGER.warn("Removing Worker due to lost connection : " + nodeName);
+        LOGGER.warn("Handling node is down due to lost connection: " + nodeName);
         NIOWorkerNode node = ONGOING_WORKER_PINGS.get(nodeName);
         node.disruptedConnection();
-        ONGOING_WORKER_PINGS.remove(nodeName);
     }
 
     @Override

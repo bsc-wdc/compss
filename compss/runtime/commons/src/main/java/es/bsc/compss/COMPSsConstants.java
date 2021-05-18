@@ -82,6 +82,7 @@ public class COMPSsConstants {
     public static final String MASTER_NAME = "compss.masterName";
     public static final String MASTER_PORT = "compss.masterPort";
     public static final String DEPLOYMENT_ID = "compss.uuid";
+    public static final String SHUTDOWN_IN_NODE_FAILURE = "compss.shutdown_in_node_failure";
 
     public static final String BASE_LOG_DIR = "compss.baseLogDir";
     public static final String SPECIFIC_LOG_DIR = "compss.specificLogDir";

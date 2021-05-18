@@ -217,6 +217,7 @@ ${jvm_master_opts}
 -Dcompss.to.file=false
 -Dcompss.appName=${appName}
 -Dcompss.uuid=${uuid}
+-Dcompss.shutdown_in_node_failure=${shutdown_in_node_failure}
 EOT
   append_analysis_jvm_options_to_file "${jvm_options_file}"
   append_worker_jvm_options_to_file "${jvm_options_file}"

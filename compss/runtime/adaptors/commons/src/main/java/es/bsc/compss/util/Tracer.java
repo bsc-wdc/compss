@@ -170,6 +170,10 @@ public abstract class Tracer {
 
     public static final Pattern INSIDE_PARENTHESIS_PATTERN = Pattern.compile("\\(.+\\)");
 
+    public static boolean tracerAlreadyLoaded = false;
+
+    private static int numPthreadsEnabled = 0;
+
 
     /**
      * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
@@ -179,6 +183,13 @@ public abstract class Tracer {
      * @param level type of tracing: -3: arm-ddt, -2: arm-map, -1: scorep, 0: off, 1: extrae-basic, 2: extrae-advanced
      */
     public static void init(String logDirPath, int level) {
+        if (tracerAlreadyLoaded) {
+            if (DEBUG) {
+                LOGGER.debug("Tracing already initialized " + level + "no need for a second initialization");
+            }
+            return;
+        }
+        tracerAlreadyLoaded = true;
         if (DEBUG) {
             LOGGER.debug("Initializing tracing with level " + level);
         }
@@ -289,22 +300,29 @@ public abstract class Tracer {
     }
 
     /**
-     * When using extrae's tracing, this call enables the instrumentation of ALL created threads from here onwards. To
-     * deactivate it use disablePThreads().
+     * When using extrae's tracing, this call enables the instrumentation of ALL created threads from here onwards until
+     * the same number (n) of disablePThreads is called.
      */
-    public static void enablePThreads() {
+    public static void enablePThreads(int n) {
         synchronized (Tracer.class) {
-            Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS);
+            numPthreadsEnabled += n;
+            if (numPthreadsEnabled > 0) {
+                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS);
+            }
         }
     }
 
     /**
-     * When using extrae's tracing, this call disables the instrumentation of any created threads from here onwards. To
-     * reactivate it use enablePThreads()
+     * When using extrae's tracing, when n reaches the number of enablePThreads, this call disables the instrumentation
+     * of any created threads from here onwards. To reactivate it use enablePThreads()
      */
-    public static void disablePThreads() {
+    public static void disablePThreads(int n) {
         synchronized (Tracer.class) {
-            Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
+            numPthreadsEnabled -= n;
+            if (numPthreadsEnabled < 1) {
+                numPthreadsEnabled = 0;
+                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
+            }
         }
     }
 
@@ -574,7 +592,7 @@ public abstract class Tracer {
                 File prvFile = prvFileArray[0];
                 ThreadTranslator thTranslator = createThreadTranslations(prvFile);
                 writeTranslatedPrvThreads(prvFile, thTranslator);
-                updateRowLabels(rowFile, thTranslator.createLabelTranslationMap());
+                updateRowLabels(rowFile, thTranslator.getRowLabels());
             }
         } catch (Exception e) {
             LOGGER.debug(e);
@@ -599,10 +617,8 @@ public abstract class Tracer {
             PrvLine prvLine = new PrvLine(line);
             String oldThreadId = prvLine.getStateLineThreadIdentifier();
             Map<String, String> events = prvLine.getEvents();
-            if (events.containsKey(threadIdEvent)) {
-                int identifierEventValue = Integer.parseInt(events.get(threadIdEvent));
-                thTranslator.addThread(oldThreadId, identifierEventValue);
-            }
+            String identifierEventValue = events.get(threadIdEvent);
+            thTranslator.addThread(oldThreadId, identifierEventValue);
         }
         br.close();
         return thTranslator;
@@ -647,9 +663,9 @@ public abstract class Tracer {
      * 
      * @throws Exception Exception reading or parsing the files
      */
-    public static void updateRowLabels(File rf, Map<String, String> translations) throws IOException {
+    public static void updateRowLabels(File rf, List<String> labels) throws IOException {
         RowFile rowFile = new RowFile(rf);
-        rowFile.updateRowLabels(translations);
+        rowFile.updateRowLabels(labels);
         rowFile.printInfo(rf);
     }
 

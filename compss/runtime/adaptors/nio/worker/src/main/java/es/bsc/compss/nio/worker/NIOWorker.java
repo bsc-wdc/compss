@@ -259,17 +259,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
 
         if (NIOTracer.basicModeEnabled()) {
-            NIOTracer.enablePThreads();
+            NIOTracer.enablePThreads(computingUnitsCPU);
         }
 
         try {
             this.executionManager.init();
         } catch (InitializationException ie) {
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
-        }
-
-        if (NIOTracer.basicModeEnabled()) {
-            NIOTracer.disablePThreads();
         }
 
         if (REMOVE_WD) {

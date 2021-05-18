@@ -157,7 +157,7 @@ public class DataManagerImpl implements DataManager {
             }
         }
         if (NIOTracer.basicModeEnabled()) {
-            NIOTracer.enablePThreads();
+            NIOTracer.enablePThreads(1);
         }
         WORKER_LOGGER.debug("Init executor for file ops in thread " + Thread.currentThread().getId() + "( "
             + Thread.currentThread().getName() + " )");
@@ -168,6 +168,9 @@ public class DataManagerImpl implements DataManager {
 
                 public Object call() {
                     if (NIOTracer.extraeEnabled()) {
+                        if (NIOTracer.basicModeEnabled()) {
+                            NIOTracer.disablePThreads(1);
+                        }
                         NIOTracer.emitEvent(TraceEvent.FILE_SYS_THREAD_ID.getId(),
                             TraceEvent.FILE_SYS_THREAD_ID.getType());
                         NIOTracer.emitEvent(TraceEvent.INIT_FS.getId(), TraceEvent.INIT_FS.getType());
@@ -186,9 +189,6 @@ public class DataManagerImpl implements DataManager {
                 f.get();
             } catch (Exception e) {
                 // Nothing to do
-            }
-            if (NIOTracer.basicModeEnabled()) {
-                NIOTracer.disablePThreads();
             }
         }
     }

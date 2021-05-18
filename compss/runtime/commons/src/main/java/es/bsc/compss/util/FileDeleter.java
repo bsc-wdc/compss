@@ -36,7 +36,11 @@ import org.apache.logging.log4j.Logger;
 public class FileDeleter {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final ExecutorService DELETE_SERVICE = Executors.newSingleThreadExecutor();
+    private static final ExecutorService DELETE_SERVICE;
+
+    static {
+        DELETE_SERVICE = Executors.newSingleThreadExecutor();
+    }
 
 
     /**

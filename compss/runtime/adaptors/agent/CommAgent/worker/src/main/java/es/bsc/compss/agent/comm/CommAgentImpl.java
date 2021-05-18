@@ -47,7 +47,7 @@ import org.json.JSONObject;
 public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent {
 
     // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
 
     // Adaptor
     private CommAgentAdaptor adaptor;

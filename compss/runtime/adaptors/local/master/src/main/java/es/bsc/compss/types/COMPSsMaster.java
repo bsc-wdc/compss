@@ -30,6 +30,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
@@ -77,8 +78,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -90,17 +89,11 @@ import storage.StubItf;
  */
 public final class COMPSsMaster extends COMPSsWorker implements InvocationContext {
 
-    private static final String ERROR_COMPSs_LOG_BASE_DIR = "ERROR: Cannot create .COMPSs base log directory";
-    private static final String ERROR_APP_OVERLOAD = "ERROR: Cannot erase overloaded directory";
-    private static final String ERROR_APP_LOG_DIR = "ERROR: Cannot create application log directory";
     private static final String ERROR_TEMP_DIR = "ERROR: Cannot create temp directory";
     private static final String ERROR_JOBS_DIR = "ERROR: Cannot create jobs directory";
     private static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
-    private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this"
-        + " application. To avoid this warning please clean .COMPSs folder";
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
 
-    private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
 
@@ -109,10 +102,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     private final String storageConf;
     private final TaskExecution executionType;
-
-    private final String userExecutionDirPath;
-    private final String compssLogBaseDirPath;
-    private final String appLogDirPath;
 
     private final String installDirPath;
     private final String appDirPath;
@@ -136,161 +125,33 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      */
     public COMPSsMaster(NodeMonitor monitor) {
         super(monitor);
-
-        // Gets user execution directory
-        this.userExecutionDirPath = System.getProperty("user.dir");
-
-        /* Creates base Runtime structure directories ************************** */
-        boolean mustCreateExecutionSandbox = true;
-        // Checks if specific log base dir has been given
-        String specificOpt = System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR);
-        if (specificOpt != null && !specificOpt.isEmpty()) {
-            this.compssLogBaseDirPath =
-                specificOpt.endsWith(File.separator) ? specificOpt : specificOpt + File.separator;
-            mustCreateExecutionSandbox = false; // This is the only case where
-            // the sandbox is provided
-        } else {
-            // Checks if base log dir has been given
-            String baseOpt = System.getProperty(COMPSsConstants.BASE_LOG_DIR);
-            if (baseOpt != null && !baseOpt.isEmpty()) {
-                baseOpt = baseOpt.endsWith(File.separator) ? baseOpt : baseOpt + File.separator;
-                this.compssLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
-            } else {
-                // No option given - load default (user home)
-                this.compssLogBaseDirPath =
-                    System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
-            }
-        }
-
-        if (!new File(this.compssLogBaseDirPath).exists()) {
-            if (!new File(this.compssLogBaseDirPath).mkdir()) {
-                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR + " at " + compssLogBaseDirPath);
-            }
-        }
-
-        // Load working directory. Different for regular applications and
-        // services
-        if (mustCreateExecutionSandbox) {
-            String appName = System.getProperty(COMPSsConstants.APP_NAME);
-            if (System.getProperty(COMPSsConstants.SERVICE_NAME) != null) {
-                /*
-                 * SERVICE - Gets appName - Overloads the service folder for different executions - MAX_OVERLOAD raises
-                 * warning - Changes working directory to serviceName !!!!
-                 */
-                String serviceName = System.getProperty(COMPSsConstants.SERVICE_NAME);
-                int overloadCode = 1;
-                String appLog =
-                    this.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
-                String oldest = appLog;
-                while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
-                    // Check oldest file (for overload if needed)
-                    if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
-                        oldest = appLog;
-                    }
-                    // Next step
-                    overloadCode = overloadCode + 1;
-                    if (overloadCode < 10) {
-                        appLog = this.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
-                            + File.separator;
-                    } else {
-                        appLog = this.compssLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode)
-                            + File.separator;
-                    }
-                }
-                if (overloadCode > MAX_OVERLOAD) {
-                    // Select the last modified folder
-                    appLog = oldest;
-
-                    // Overload
-                    System.err.println(WARN_FOLDER_OVERLOAD);
-                    System.err.println("Overwriting entry: " + appLog);
-
-                    // Clean previous results to avoid collisions
-                    if (!deleteDirectory(new File(appLog))) {
-                        ErrorManager.error(ERROR_APP_OVERLOAD);
-                    }
-                }
-
-                // We have the final appLogDirPath
-                this.appLogDirPath = appLog;
-                if (!new File(this.appLogDirPath).mkdir()) {
-                    ErrorManager.error(ERROR_APP_LOG_DIR);
-                }
-            } else {
-                /*
-                 * REGULAR APPLICATION - Gets appName - Overloads the app folder for different executions - MAX_OVERLOAD
-                 * raises warning - Changes working directory to appName !!!!
-                 */
-                int overloadCode = 1;
-                String appLog =
-                    this.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
-                String oldest = appLog;
-                while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
-                    // Check oldest file (for overload if needed)
-                    if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
-                        oldest = appLog;
-                    }
-                    // Next step
-                    overloadCode = overloadCode + 1;
-                    if (overloadCode < 10) {
-                        appLog =
-                            this.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
-                    } else {
-                        appLog =
-                            this.compssLogBaseDirPath + appName + "_" + String.valueOf(overloadCode) + File.separator;
-                    }
-                }
-                if (overloadCode > MAX_OVERLOAD) {
-                    // Select the last modified folder
-                    appLog = oldest;
-
-                    // Overload
-                    System.err.println(WARN_FOLDER_OVERLOAD);
-                    System.err.println("Overwriting entry: " + appLog);
-
-                    // Clean previous results to avoid collisions
-                    if (!deleteDirectory(new File(appLog))) {
-                        ErrorManager.error(ERROR_APP_OVERLOAD);
-                    }
-                }
-
-                // We have the final appLogDirPath
-                this.appLogDirPath = appLog;
-                if (!new File(this.appLogDirPath).mkdir()) {
-                    ErrorManager.error(ERROR_APP_LOG_DIR);
-                }
-            }
-        } else {
-            // The option specific_log_dir has been given. NO sandbox created
-            this.appLogDirPath = this.compssLogBaseDirPath;
-        }
+        LoggerManager.init();
 
         // Set the environment property (for all cases) and reload logger
         // configuration
-        System.setProperty(COMPSsConstants.APP_LOG_DIR, this.appLogDirPath);
-        ((LoggerContext) LogManager.getContext(false)).reconfigure();
+        String appLogDirPath = LoggerManager.getAppLogDirPath();
 
         /*
          * Create a tmp directory where to store: - Files whose first opened stream is an input one - Object files
          */
-        this.tempDirPath = this.appLogDirPath + "tmpFiles" + File.separator;
-        if (!new File(this.tempDirPath).mkdir()) {
+        this.tempDirPath = appLogDirPath + "tmpFiles" + File.separator;
+        if (!new File(this.tempDirPath).mkdirs()) {
             ErrorManager.error(ERROR_TEMP_DIR);
         }
 
         /*
          * Create a jobs dir where to store: - Jobs output files - Jobs error files
          */
-        this.jobsDirPath = this.appLogDirPath + "jobs" + File.separator;
-        if (!new File(this.jobsDirPath).mkdir()) {
+        this.jobsDirPath = appLogDirPath + "jobs" + File.separator;
+        if (!new File(this.jobsDirPath).mkdirs()) {
             ErrorManager.error(ERROR_JOBS_DIR);
         }
 
         /*
          * Create a workers dir where to store: - Worker out files - Worker error files
          */
-        this.workersDirPath = this.appLogDirPath + "workers" + File.separator;
-        if (!new File(this.workersDirPath).mkdir()) {
+        this.workersDirPath = appLogDirPath + "workers" + File.separator;
+        if (!new File(this.workersDirPath).mkdirs()) {
             System.err.println(ERROR_WORKERS_DIR);
             System.exit(1);
         }
@@ -406,27 +267,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         } catch (InitializationException ie) {
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
-    }
-
-    private boolean deleteDirectory(File directory) {
-        if (!directory.exists()) {
-            return false;
-        }
-
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    deleteDirectory(f);
-                } else {
-                    if (!f.delete()) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return directory.delete();
     }
 
     @Override
@@ -1456,7 +1296,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     public String getCOMPSsLogBaseDirPath() {
-        return this.compssLogBaseDirPath;
+        return LoggerManager.getCompssLogBaseDirPath();
     }
 
     public String getWorkingDirectory() {
@@ -1464,11 +1304,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     public String getUserExecutionDirPath() {
-        return this.userExecutionDirPath;
+        return LoggerManager.getUserExecutionDirPath();
     }
 
     public String getAppLogDirPath() {
-        return this.appLogDirPath;
+        return LoggerManager.getAppLogDirPath();
     }
 
     public String getTempDirPath() {

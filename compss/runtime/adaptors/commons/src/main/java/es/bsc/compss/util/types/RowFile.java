@@ -27,7 +27,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -119,16 +118,13 @@ public class RowFile {
     /**
      * Change de default .row labels for custom ones.
      */
-    public void updateRowLabels(Map<String, String> translations) {
-        List<String> threads = information[RowBlock.THREADS.ordinal()];
-        LOGGER.debug(threads.toString());
-        for (int i = 0; i < threads.size(); i++) {
-            if (translations.containsKey(threads.get(i))) {
-                String newLabel = translations.get(threads.get(i));
-                threads.set(i, newLabel);
-            }
+    public void updateRowLabels(List<String> labelList) {
+        List<String> newThreads = new ArrayList<String>();
+        for (String label : labelList) {
+            newThreads.add(label);
         }
-        threads.sort(new RowThreadIdComparator());
+        newThreads.sort(new RowThreadIdComparator());
+        information[RowBlock.THREADS.ordinal()] = newThreads;
     }
 
     /**

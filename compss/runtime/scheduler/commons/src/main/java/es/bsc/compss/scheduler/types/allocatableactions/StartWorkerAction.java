@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.scheduler.types.allocatableactions;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.exceptions.InitNodeException;
@@ -31,9 +32,11 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
@@ -45,6 +48,9 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     private final ResourceScheduler<T> worker;
     private final Implementation impl;
+    private final TaskScheduler ts;
+    private static final boolean STOP_EXEC_IN_NODE_FAIL =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.SHUTDOWN_IN_NODE_FAILURE));
 
 
     /*
@@ -63,7 +69,10 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
         TaskScheduler ts) {
 
         super(schedulingInformation, ts.getOrchestrator());
+        this.ts = ts;
         this.worker = worker;
+        this.worker.getResource().isLost = false;
+
         switch (worker.getResource().getType()) {
             case WORKER:
             case MASTER:
@@ -139,18 +148,20 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void doFailed() {
-        // Notify worker available
-        LOGGER.info("Worker " + this.worker.getName() + " could not be started.");
-        // Worker<T, I> wNode = this.worker.getResource();
+        LOGGER.error("Worker " + this.worker.getName() + " could not be started.");
+        if (STOP_EXEC_IN_NODE_FAIL) {
+            ErrorManager.fatal(" Execution stopped due to node: " + this.worker.getName() + " failure.");
+        }
 
-        // Remove from the pool
-        // ResourceManager.removeWorker(wNode);
-        // Remove all resources assigned to the node
-        // ResourceDescription rd = wNode.getDescription();
-        // rd.reduce(rd);
-        // Update the CE and Implementations that can run (none)
-        // this.worker.getResource().updatedFeatures();
-        // this.ts.updatedWorker(wNode);
+        this.ts.removeResource(this.worker);
+
+        ResourceDescription rd = this.worker.getResource().getDescription();
+        rd.reduce(rd);
+        SchedulingInformation.changesOnWorker(this.worker);
+        // SchedulingInformation.removeWorker(this.worker);
+
+        Worker wNode = this.worker.getResource();
+        ResourceManager.removeWorker(wNode);
     }
 
     @Override

@@ -410,9 +410,9 @@ def __show_flower__():
     print("*          .-~~-.--.           _____       _______   *")  # NOSONAR # noqa
     print("*         :         )         |____ \     /  ___  \  *")  # NOSONAR # noqa
     print("*   .~ ~ -.\       /.- ~~ .     ___) |    | (___) |  *")  # NOSONAR # noqa
-    print("*   >       `.   .'       <    / ___/      > ___ <   *")  # NOSONAR # noqa
-    print("*  (         .- -.         )  | |___   _  | (___) |  *")  # NOSONAR # noqa
-    print("*   `- -.-~  `- -'  ~-.- -'   |_____| |_| \_______/  *")  # NOSONAR # noqa
+    print("*   >       `.   .'       <    / ___/     \____   /  *")  # NOSONAR # noqa
+    print("*  (         .- -.         )  | |___   _      /  /   *")  # NOSONAR # noqa
+    print("*   `- -.-~  `- -'  ~-.- -'   |_____| |_|    /__/    *")  # NOSONAR # noqa
     print("*     (        :        )           _ _ .-:          *")  # NOSONAR # noqa
     print("*      ~--.    :    .--~        .-~  .-~  }          *")  # NOSONAR # noqa
     print("*          ~-.-^-.-~ \_      .~  .-~   .~            *")  # NOSONAR # noqa

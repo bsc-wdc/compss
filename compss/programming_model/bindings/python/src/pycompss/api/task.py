@@ -40,7 +40,9 @@ from pycompss.runtime.task.worker import TaskWorker
 from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
+from pycompss.runtime.task.core_element import CE
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import F_type
 from pycompss.util.tracing.helpers import event
 from pycompss.util.logger.helpers import update_logger_handlers
 
@@ -81,7 +83,7 @@ class Task(object):
     #              "registered", "signature",
     #              "interactive", "module", "function_arguments",
     #              "function_name", "module_name", "function_type", "class_name",
-    #              "hints", "on_failure", "defaults",
+    #              "hints", "on_failure", "defaults"]
 
     def __init__(self, *args, **kwargs):  # noqa
         # type: (*typing.Any, **typing.Any) -> None
@@ -105,7 +107,7 @@ class Task(object):
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = CE()
         self.core_element_configured = False
 
         # Set missing values to their default ones (step a)
@@ -180,12 +182,12 @@ class Task(object):
         self.module_name = ""
         self.function_type = -1
         self.class_name = ""
-        self.hints = None                  # type: typing.Any
+        self.hints = tuple()               # type: tuple
         self.on_failure = ""
         self.defaults = dict()             # type: dict
 
     def __call__(self, user_function):
-        # type: (typing.Any) -> typing.Any
+        # type: (F_type) -> F_type
         """ This function is called in all explicit function calls.
 
         Note that in PyCOMPSs a single function call will be transformed into
@@ -211,10 +213,10 @@ class Task(object):
             # type: (*typing.Any, **typing.Any) -> typing.Any
             return self.__decorator_body__(user_function, args, kwargs)
 
-        return task_decorator
+        return typing.cast(F_type, task_decorator)
 
     def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Any, tuple, dict) -> typing.Any
+        # type: (F_type, tuple, dict) -> typing.Any
         # Determine the context and decide what to do
         if context.in_master():
             # @task being executed in the master
@@ -328,7 +330,7 @@ class Task(object):
 
     @staticmethod
     def __check_core_element__(kwargs, user_function):
-        # type: (dict, typing.Any) -> None
+        # type: (dict, F_type) -> None
         """ Check Core Element for containers.
 
         :param kwargs: Keyword arguments

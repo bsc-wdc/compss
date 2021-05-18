@@ -28,8 +28,8 @@ import typing
 from pycompss.api.task import task
 
 
-def generator(size, num_frag, seed=None, distribution='random', wait=False):
-    # type: (tuple, int, int, str, bool) -> typing.Any
+def generator(size, num_frag, seed=0, distribution="random", wait=False):
+    # type: (typing.Tuple[int, int], int, int, str, bool) -> typing.Any
     """ Data generator.
 
     Generates a list of fragments.
@@ -43,13 +43,13 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
     """
     data = None
     frag_size = int(size[0] / num_frag)
-    if distribution == 'random':
+    if distribution == "random":
         data = [_gen_random(size[1], frag_size, seed)
                 for _ in range(num_frag)]
-    elif distribution == 'normal':
+    elif distribution == "normal":
         data = [_gen_normal(size[1], frag_size, seed)
                 for _ in range(num_frag)]
-    elif distribution == 'uniform':
+    elif distribution == "uniform":
         data = [_gen_uniform(size[1], frag_size, seed)
                 for _ in range(num_frag)]
     if wait:

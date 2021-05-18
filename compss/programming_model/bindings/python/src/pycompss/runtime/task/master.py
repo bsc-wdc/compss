@@ -28,6 +28,29 @@ import typing
 from collections import OrderedDict
 from collections import deque
 
+from pycompss.api.commons.constants import RETURNS
+from pycompss.api.commons.constants import PRIORITY
+from pycompss.api.commons.constants import ON_FAILURE
+from pycompss.api.commons.constants import DEFAULTS
+from pycompss.api.commons.constants import TIME_OUT
+from pycompss.api.commons.constants import IS_REPLICATED
+from pycompss.api.commons.constants import IS_DISTRIBUTED
+from pycompss.api.commons.constants import VARARGS_TYPE
+from pycompss.api.commons.constants import TARGET_DIRECTION
+from pycompss.api.commons.constants import NUMBA
+from pycompss.api.commons.constants import NUMBA_FLAGS
+from pycompss.api.commons.constants import NUMBA_SIGNATURE
+from pycompss.api.commons.constants import NUMBA_DECLARATION
+from pycompss.api.commons.constants import TRACING_HOOK
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import PROCESSES_PER_NODE
+from pycompss.api.commons.constants import CHUNK_SIZE
+from pycompss.api.commons.constants import IS_REDUCE
+from pycompss.api.commons.constants import LEGACY_IS_REPLICATED
+from pycompss.api.commons.constants import LEGACY_IS_DISTRIBUTED
+from pycompss.api.commons.constants import LEGACY_VARARGS_TYPE
+from pycompss.api.commons.constants import LEGACY_TARGET_DIRECTION
+from pycompss.api.commons.constants import LEGACY_TIME_OUT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.implementation_types import IMPL_METHOD
@@ -166,29 +189,30 @@ MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 # List since the parameter names are included before checking for unexpected
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
-SUPPORTED_ARGUMENTS = {"returns",
+SUPPORTED_ARGUMENTS = {RETURNS,
                        "cache_returns",
-                       "priority",
-                       "on_failure",
-                       "defaults",
-                       "time_out",
-                       "is_replicated",
-                       "is_distributed",
-                       "varargs_type",
-                       "target_direction",
-                       "computing_nodes",
-                       "is_reduce",
-                       "chunk_size",
-                       "numba",
-                       "numba_flags",
-                       "numba_signature",
-                       "numba_declaration",
-                       "tracing_hook"}
+                       PRIORITY,
+                       ON_FAILURE,
+                       DEFAULTS,
+                       TIME_OUT,
+                       IS_REPLICATED,
+                       IS_DISTRIBUTED,
+                       VARARGS_TYPE,
+                       TARGET_DIRECTION,
+                       COMPUTING_NODES,
+                       IS_REDUCE,
+                       CHUNK_SIZE,
+                       NUMBA,
+                       NUMBA_FLAGS,
+                       NUMBA_SIGNATURE,
+                       NUMBA_DECLARATION,
+                       TRACING_HOOK}     # type: typing.Set[str]
 # Deprecated arguments. Still supported but shows a message when used.
-DEPRECATED_ARGUMENTS = {"isReplicated",
-                        "isDistributed",
-                        "varargsType",
-                        "targetDirection"}
+DEPRECATED_ARGUMENTS = {LEGACY_IS_REPLICATED,
+                        LEGACY_IS_DISTRIBUTED,
+                        LEGACY_VARARGS_TYPE,
+                        LEGACY_TARGET_DIRECTION,
+                        LEGACY_TIME_OUT}  # type: typing.Set[str]
 # All supported arguments
 ALL_SUPPORTED_ARGUMENTS = SUPPORTED_ARGUMENTS.union(DEPRECATED_ARGUMENTS)
 # Some attributes cause memory leaks, we must delete them from memory after
@@ -199,7 +223,7 @@ ATTRIBUTES_TO_BE_REMOVED = {"decorator_arguments",
                             "param_defaults",
                             "first_arg_name",
                             "parameters",
-                            "returns",
+                            RETURNS,
                             "multi_return"}
 
 # This lock allows tasks to be launched with the Threading module while
@@ -239,7 +263,7 @@ class TaskMaster(object):
                  module_name,          # type: str
                  function_type,        # type: int
                  class_name,           # type: str
-                 hints,                # type: typing.Any
+                 hints,                # type: tuple
                  on_failure,           # type: str
                  defaults              # type: dict
                  ):  # type: (...) -> None
@@ -263,7 +287,7 @@ class TaskMaster(object):
         # Add more argument related attributes that will be useful later
         self.param_defaults = None       # type: typing.Union[None, tuple]
         # Add function related attributed that will be useful later
-        self.first_arg_name = None       # type: typing.Any
+        self.first_arg_name = ""
         self.computing_nodes = None      # type: typing.Any
         self.processes_per_node = None   # type: typing.Any
         self.parameters = OrderedDict()  # type: OrderedDict
@@ -280,7 +304,7 @@ class TaskMaster(object):
         self.registered = registered
         self.signature = signature
         # Reductions
-        self.chunk_size = None           # type: typing.Any
+        self.chunk_size = -1
         self.is_reduce = False
 
         # Parameters that will come from previous tasks
@@ -334,12 +358,12 @@ class TaskMaster(object):
             # how we should treat user functions, as most wrappers return a
             # function f(*a, **k)
             if self.param_varargs is None:
-                self.param_varargs = "varargs_type"
+                self.param_varargs = VARARGS_TYPE
             if self.param_defaults is None:
                 self.param_defaults = ()
 
         # Pop returns from kwargs
-        explicit_num_returns = kwargs.pop("returns", None)
+        explicit_num_returns = kwargs.pop(RETURNS, None)
 
         # Process the parameters, give them a proper direction
         with event(PROCESS_PARAMETERS, master=True):
@@ -392,14 +416,6 @@ class TaskMaster(object):
                     self.hints)
 
         with event(PROCESS_OTHER_ARGUMENTS, master=True):
-            # Deal with dynamic computing nodes
-            processes_per_node = self.process_processes_per_node()
-            computing_nodes = self.process_computing_nodes()
-            if processes_per_node > 1:
-                self.validate_processes_per_node(computing_nodes, processes_per_node)
-                computing_nodes = int(computing_nodes / processes_per_node)
-            # Deal with reductions
-            is_reduction, chunk_size = self.process_reduction()
             # Get other arguments if exist
             if not self.hints:
                 self.hints = self.check_task_hints()
@@ -456,9 +472,9 @@ class TaskMaster(object):
             weights,
             keep_renames,
             has_priority,
-            computing_nodes,
-            is_reduction,
-            chunk_size,
+            self.computing_nodes,
+            self.is_reduce,
+            self.chunk_size,
             is_replicated,
             is_distributed,
             self.on_failure,
@@ -619,41 +635,42 @@ class TaskMaster(object):
 
         :return: None, it only modifies self.parameters.
         """
+        # Deal with dynamic computing nodes
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
-        self.computing_nodes = kwargs.pop("computing_nodes", 1)
-        self.processes_per_node = kwargs.pop("processes_per_node", 1)
-        if "on_failure" in self.decorator_arguments:
-            self.on_failure = self.decorator_arguments["on_failure"]
+        self.computing_nodes = self.parse_computing_nodes(kwargs.pop(COMPUTING_NODES, 1))  # noqa: E501
+        self.processes_per_node = self.parse_processes_per_node(kwargs.pop(PROCESSES_PER_NODE, 1))  # noqa: E501
+        if self.processes_per_node > 1:
+            self.validate_processes_per_node()
+            self.computing_nodes = int(self.computing_nodes /
+                                       self.processes_per_node)
+        # Deal with on_failure
+        if ON_FAILURE in self.decorator_arguments:
+            self.on_failure = self.decorator_arguments[ON_FAILURE]
             # if task defines on_failure property the decorator is ignored
-            kwargs.pop("on_failure", None)
+            kwargs.pop(ON_FAILURE, None)
         else:
-            self.on_failure = kwargs.pop("on_failure", "RETRY")
-        self.defaults = kwargs.pop("defaults", {})
-        # We take the reduce and chunk size set for the reduce decorator,
-        # otherwise we set them to 0.
-        self.is_reduce = kwargs.pop("is_reduce", False)
-        self.chunk_size = kwargs.pop("chunk_size", 0)
+            self.on_failure = kwargs.pop(ON_FAILURE, "RETRY")
+        self.defaults = kwargs.pop(DEFAULTS, {})
+        # Deal with reductions
+        self.is_reduce = self.parse_is_reduce(kwargs.pop(IS_REDUCE, False))
+        self.chunk_size = self.parse_chunk_size(kwargs.pop(CHUNK_SIZE, 0))
         # It is important to know the name of the first argument to determine
         # if we are dealing with a class or instance method (i.e: first
         # argument is named self)
-        self.first_arg_name = None
-
         # Process the positional arguments and fill self.parameters with
         # their corresponding Parameter object
-
         # Some of these positional arguments may have been not
         # explicitly defined
         num_positionals = min(len(self.param_args), len(args))
         arg_names = self.param_args[:num_positionals]
         arg_objects = args[:num_positionals]
-        if arg_names and self.first_arg_name is None:
+        if arg_names and self.first_arg_name == "":
             self.first_arg_name = arg_names[0]
         for (arg_name, arg_object) in zip(arg_names, arg_objects):
             self.parameters[arg_name] = self.build_parameter_object(arg_name,
                                                                     arg_object)
-
         # Check defaults
         if self.param_defaults:
             num_defaults = len(self.param_defaults)
@@ -1034,44 +1051,42 @@ class TaskMaster(object):
                          (self.function_name, self.module_name))
         binding.register_ce(self.core_element)
 
-    def validate_processes_per_node(self, processes, processes_per_node):
-        # type: (list) -> None
+    def validate_processes_per_node(self):
+        # type: () -> None
         """ Checks the processes per node property.
 
-        :param processes: Total processes of a task.
-        :param processes_per_node: Processes per node.
         :return: None
         """
-        if processes < processes_per_node:
+        if self.processes < self.processes_per_node:
             raise PyCOMPSsException("Processes is smaller than processes_per_node.")
-        if (processes % processes_per_node) > 0:
+        if (self.processes % self.processes_per_node) > 0:
             raise PyCOMPSsException("Processes is not a multiple of processes_per_node.")
 
-    def process_processes_per_node(self):
-        # type: () -> int
-        """ Retrieve the number of computing nodes.
+    def parse_processes_per_node(self, processes_per_node):
+        # type: (typing.Union[int, str]) -> int
+        """ Retrieve the number of processes per node.
 
         This value can be defined by upper decorators and can also be defined
         dynamically defined with a global or environment variable.
 
         :return: The number of computing nodes.
         """
-        parsed_processes_per_node = None
-        if isinstance(self.processes_per_node, int):
+        parsed_processes_per_node = 1
+        if isinstance(processes_per_node, int):
             # Nothing to do
-            parsed_processes_per_node = self.processes_per_node
-        elif isinstance(self.processes_per_node, str):
+            parsed_processes_per_node = processes_per_node
+        elif isinstance(processes_per_node, str):
             # Check if processes_per_node can be casted to string
             # Check if processes_per_node is an environment variable
             # Check if processes_per_node is a dynamic global variable
             try:
                 # Cast string to int
-                parsed_processes_per_node = int(self.processes_per_node)
+                parsed_processes_per_node = int(processes_per_node)
             except ValueError:
                 # Environment variable
-                if self.processes_per_node.strip().startswith('$'):
+                if processes_per_node.strip().startswith('$'):
                     # Computing nodes is an ENV variable, load it
-                    env_var = self.processes_per_node.strip()[1:]  # Remove $
+                    env_var = processes_per_node.strip()[1:]  # Remove $
                     if env_var.startswith('{'):
                         env_var = env_var[1:-1]  # remove brackets
                     try:
@@ -1085,32 +1100,30 @@ class TaskMaster(object):
                     try:
                         # Load from global variables
                         parsed_processes_per_node = \
-                            self.user_function.__globals__.get(
-                                self.processes_per_node
-                            )
+                            self.user_function.__globals__.get(processes_per_node)  # noqa: E501
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
                             parsed_processes_per_node = \
-                                self.user_function.py_func.__globals__.get(
-                                    self.processes_per_node
-                                )
+                                self.user_function.py_func.__globals__.get(processes_per_node)  # noqa: E501
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_processes_per_node will
                             # raise the exception
-                            pass
-        if parsed_processes_per_node is None:
-            raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
+                            raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
+        else:
+            raise PyCOMPSsException("Unexpected processes_per_node value. Must be str or int.")  # noqa: E501
+
         if parsed_processes_per_node <= 0:
-            logger.warning("Registered processes_per_node is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa: E501
-                           str(parsed_processes_per_node))
+            logger.warning(
+                "Registered processes_per_node is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa: E501
+                str(parsed_processes_per_node))
             parsed_processes_per_node = 1
 
         return parsed_processes_per_node
 
-    def process_computing_nodes(self):
-        # type: () -> int
+    def parse_computing_nodes(self, computing_nodes):
+        # type: (typing.Union[int, str]) -> int
         """ Retrieve the number of computing nodes.
 
         This value can be defined by upper decorators and can also be defined
@@ -1118,22 +1131,22 @@ class TaskMaster(object):
 
         :return: The number of computing nodes.
         """
-        parsed_computing_nodes = None  # type: typing.Any
-        if isinstance(self.computing_nodes, int):
+        parsed_computing_nodes = 1
+        if isinstance(computing_nodes, int):
             # Nothing to do
-            parsed_computing_nodes = self.computing_nodes
-        elif isinstance(self.computing_nodes, str):
+            parsed_computing_nodes = computing_nodes
+        elif isinstance(computing_nodes, str):
             # Check if computing_nodes can be casted to string
             # Check if computing_nodes is an environment variable
             # Check if computing_nodes is a dynamic global variable
             try:
                 # Cast string to int
-                parsed_computing_nodes = int(self.computing_nodes)
+                parsed_computing_nodes = int(computing_nodes)
             except ValueError:
                 # Environment variable
-                if self.computing_nodes.strip().startswith('$'):
+                if computing_nodes.strip().startswith('$'):
                     # Computing nodes is an ENV variable, load it
-                    env_var = self.computing_nodes.strip()[1:]  # Remove $
+                    env_var = computing_nodes.strip()[1:]  # Remove $
                     if env_var.startswith('{'):
                         env_var = env_var[1:-1]  # remove brackets
                     try:
@@ -1147,23 +1160,20 @@ class TaskMaster(object):
                     try:
                         # Load from global variables
                         parsed_computing_nodes = \
-                            self.user_function.__globals__.get(
-                                self.computing_nodes
-                            )
+                            self.user_function.__globals__.get(computing_nodes)  # noqa: E501
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
                             parsed_computing_nodes = \
-                                self.user_function.py_func.__globals__.get(
-                                    self.computing_nodes
-                                )
+                                self.user_function.py_func.__globals__.get(computing_nodes)  # noqa: E501
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_computing_nodes will
                             # raise the exception
-                            pass
-        if parsed_computing_nodes is None:
-            raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
+                            raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
+        else:
+            raise PyCOMPSsException("Unexpected computing_nodes value. Must be str or int.")  # noqa: E501
+
         if parsed_computing_nodes <= 0:
             logger.warning("Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa: E501
                            str(parsed_computing_nodes))
@@ -1171,33 +1181,31 @@ class TaskMaster(object):
 
         return parsed_computing_nodes
 
-    def process_reduction(self):
-        # type: () -> typing.Tuple[bool, int]
-        """ Process the reduction parameter.
+    def parse_chunk_size(self, chunk_size):
+        # type: (typing.Union[str, int]) -> int
+        """ Parses the chunk size value.
 
-        :return: Is reduction and chunk size.
+        :param chunk_size: Chunk size defined in the @task decorator
+        :return: Chunk size as integer.
         """
-        # Deal with chunk size
-        parsed_chunk_size = None  # type: typing.Any
-        if isinstance(self.chunk_size, int):
-            # Nothing to do
-            parsed_chunk_size = self.chunk_size
-        elif isinstance(self.chunk_size, str):
+        if isinstance(chunk_size, int):
+            return chunk_size
+        elif isinstance(chunk_size, str):
             # Check if chunk_size can be casted to string
             # Check if chunk_size is an environment variable
             # Check if chunk_size is a dynamic global variable
             try:
                 # Cast string to int
-                parsed_chunk_size = int(self.chunk_size)
+                return int(chunk_size)
             except ValueError:
                 # Environment variable
-                if self.chunk_size.strip().startswith('$'):
+                if chunk_size.strip().startswith('$'):
                     # Chunk size is an ENV variable, load it
-                    env_var = self.chunk_size.strip()[1:]  # Remove $
+                    env_var = chunk_size.strip()[1:]  # Remove $
                     if env_var.startswith('{'):
                         env_var = env_var[1:-1]  # remove brackets
                     try:
-                        parsed_chunk_size = int(os.environ[env_var])
+                        return int(os.environ[env_var])
                     except ValueError:
                         raise PyCOMPSsException(
                             cast_env_to_int_error("ChunkSize")
@@ -1206,41 +1214,40 @@ class TaskMaster(object):
                     # Dynamic global variable
                     try:
                         # Load from global variables
-                        parsed_chunk_size = \
-                            self.user_function.__globals__.get(
-                                self.chunk_size
-                            )
+                        return self.user_function.__globals__.get(chunk_size)
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
-                            parsed_chunk_size = \
-                                self.user_function.py_func.__globals__.get(
-                                    self.chunk_size
-                                )
+                            return self.user_function.py_func.__globals__.get(chunk_size)  # noqa: E501
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_chunk_size will
                             # raise the exception
-                            pass
-        if parsed_chunk_size is None:
-            parsed_chunk_size = 0
+                            raise PyCOMPSsException("ERROR: Wrong chunk_size value.")
+        else:
+            raise PyCOMPSsException("Unexpected chunk_size value. Must be str or int.")  # noqa: E501
+        raise PyCOMPSsException("Unreachable code at parse_chunk_size")
 
-        # Deal with chunk size
-        parsed_is_reduce = False
-        if isinstance(self.is_reduce, bool):
+    @staticmethod
+    def parse_is_reduce(is_reduce):
+        # type: (typing.Union[bool, str]) -> bool
+        """ Parse the is_reduce parameter.
+
+        :return: If it is a reduction or not.
+        """
+        if isinstance(is_reduce, bool):
             # Nothing to do
-            parsed_is_reduce = self.is_reduce
-        elif isinstance(self.is_reduce, str):
+            return is_reduce
+        elif isinstance(is_reduce, str):
             # Check if is_reduce can be casted to string
             try:
                 # Cast string to int
-                parsed_is_reduce = bool(self.is_reduce)
+                return bool(is_reduce)
             except ValueError:
-                pass
-        if parsed_is_reduce is None:
-            parsed_is_reduce = False
-
-        return parsed_is_reduce, parsed_chunk_size
+                return False
+        else:
+            raise PyCOMPSsException("Unexpected is_reduce value. Must be bool or str.")  # noqa: E501
+        raise PyCOMPSsException("Unreachable code at parse_is_reduce")
 
     def check_task_hints(self):
         # type: () -> tuple
@@ -1249,25 +1256,25 @@ class TaskMaster(object):
         :return: The value of all possible hints.
         """
         deco_arg_getter = self.decorator_arguments.get
-        if "isReplicated" in self.decorator_arguments:
-            is_replicated = deco_arg_getter("isReplicated")
+        if LEGACY_IS_REPLICATED in self.decorator_arguments:
+            is_replicated = deco_arg_getter(LEGACY_IS_REPLICATED)
             logger.warning("Detected deprecated isReplicated. Please, change it to is_replicated")  # noqa: E501
         else:
-            is_replicated = deco_arg_getter("is_replicated")
+            is_replicated = deco_arg_getter(IS_REPLICATED)
         # Get is distributed
-        if "isDistributed" in self.decorator_arguments:
-            is_distributed = deco_arg_getter("isDistributed")
+        if LEGACY_IS_DISTRIBUTED in self.decorator_arguments:
+            is_distributed = deco_arg_getter(LEGACY_IS_DISTRIBUTED)
             logger.warning("Detected deprecated isDistributed. Please, change it to is_distributed")  # noqa: E501
         else:
-            is_distributed = deco_arg_getter("is_distributed")
+            is_distributed = deco_arg_getter(IS_DISTRIBUTED)
         # Get time out
-        if "timeOut" in self.decorator_arguments:
-            time_out = deco_arg_getter("timeOut")
+        if LEGACY_TIME_OUT in self.decorator_arguments:
+            time_out = deco_arg_getter(LEGACY_TIME_OUT)
             logger.warning("Detected deprecated timeOut. Please, change it to time_out")  # noqa: E501
         else:
-            time_out = deco_arg_getter("time_out")
+            time_out = deco_arg_getter(TIME_OUT)
         # Get priority
-        has_priority = deco_arg_getter("priority")
+        has_priority = deco_arg_getter(PRIORITY)
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
 
@@ -1283,9 +1290,9 @@ class TaskMaster(object):
         if returns:
             _returns = returns  # type: typing.Any
         else:
-            _returns = self.decorator_arguments["returns"]
+            _returns = self.decorator_arguments[RETURNS]
 
-        # Note that "returns" is by default False
+        # Note that RETURNS is by default False
         if not _returns:
             return 0
 

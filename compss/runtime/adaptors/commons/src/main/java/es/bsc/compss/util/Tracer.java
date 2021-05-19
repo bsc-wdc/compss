@@ -578,10 +578,8 @@ public abstract class Tracer {
             String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
             File dir = new File(appLogDir + TRACE_SUBDIR);
             final String traceNamePrefix = Tracer.getTraceNamePrefix();
-            rowFileArray = dir.listFiles(
-                (File d, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_ROW_FILE_EXTENTION));
-            prvFileArray = dir.listFiles(
-                (File d, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_PRV_FILE_EXTENTION));
+            rowFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_ROW_FILE_EXTENTION));
+            prvFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_PRV_FILE_EXTENTION));
         } catch (Exception e) {
             ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
             return;

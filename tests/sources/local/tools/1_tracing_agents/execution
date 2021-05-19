@@ -284,10 +284,10 @@ echo  "main method properly started" > >(tee -a "${output_log}")
 sleep 2
 
 ${COMPSS_HOME}/Runtime/scripts/system/trace/mergeTraceAgents.sh \
-    "${app_name}" \
-    "${log_dir}/resultatTraceMerge" \
-    "" \
-    "${agent1_log_dir}" "${agent2_log_dir}" "${agent3_log_dir}" "${agent4_log_dir}" 
+    --result_trace_name"${app_name}" \
+    -f \
+    --output_dir="${log_dir}/resultatTraceMerge" \
+    --input_dirs="${agent1_log_dir};${agent2_log_dir};${agent3_log_dir};${agent4_log_dir}" 
 
 # Check timeout
 exit_code=$?
@@ -305,8 +305,7 @@ else
 
 
     # Check result
-    resMergeFiles=(${log_dir}/resultatTraceMerge/*)
-    python "${base_app_dir}"/result.py "${agent1_log_dir}/trace" "${agent2_log_dir}/trace" "${agent3_log_dir}/trace" "${agent4_log_dir}/trace" "${resMergeFiles}"
+    python "${base_app_dir}"/result.py "${agent1_log_dir}/trace" "${agent2_log_dir}/trace" "${agent3_log_dir}/trace" "${agent4_log_dir}/trace" "${log_dir}/resultatTraceMerge"
     exit_value=$?
     echo "Result script finished with value ${exit_value}"
 fi

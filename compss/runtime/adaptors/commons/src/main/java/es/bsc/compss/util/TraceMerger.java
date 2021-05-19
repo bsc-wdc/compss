@@ -458,6 +458,12 @@ public abstract class TraceMerger {
         }
     }
 
+    protected void removeTmpAgentFiles() throws IOException {
+        for (String path : this.workersTracePath) {
+            removeFolder(new File(path).getParent());
+        }
+    }
+
     protected static void removeFolder(String sandBox) throws IOException {
         File wdirFile = new File(sandBox);
         remove(wdirFile);
@@ -611,7 +617,6 @@ public abstract class TraceMerger {
                     throw new Exception("ERROR: Malformed CE in PFC " + tracePcfPath + "  line " + ceLine);
                 }
                 coreElements.put(values[0], values[1]);
-                LOGGER.debug("______ en worker " + tracePcfPath + ": " + values[1] + " -> " + values[0]);
                 ceLine++;
             }
         }
@@ -633,7 +638,6 @@ public abstract class TraceMerger {
                 if (values.length != 2 || values[1].isEmpty() || !numberPattern.matcher(values[0]).matches()) {
                     throw new Exception("ERROR: Malformed CE in PFC " + tracePcfPath + "  line " + ceLine);
                 }
-                LOGGER.debug("______ en master: " + values[1] + " -> " + values[0]);
                 coreElements.put(values[1], values[0]);
                 ceLine++;
             }

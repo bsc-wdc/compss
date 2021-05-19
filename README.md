@@ -178,7 +178,7 @@ sudo -E ./buildlocal [options] ${INSTALL_DIR}
 cd builders/
 
 INSTALL_DIR=$HOME/opt/COMPSs/
-./buildlocal -A -K -T -M [options] ${INSTALL_DIR}
+./buildlocal [options] ${INSTALL_DIR}
 ```
 For OSX:
 ```
@@ -190,7 +190,7 @@ export LIBTOOL=`which glibtool`
 export LIBTOOLIZE=`which glibtoolize`
 
 INSTALL_DIR=$HOME/opt/COMPSs/
-./buildlocal -A -K -T -M [options] ${INSTALL_DIR}
+./buildlocal -A -K -T -M ${INSTALL_DIR}
 ```
 
 

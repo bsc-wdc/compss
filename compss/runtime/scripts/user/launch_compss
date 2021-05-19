@@ -283,7 +283,7 @@ infer_language() {
 ###############################################
 load_tracing_env() {
   local module_tmp
-  module_tmp=$(mktemp -p /tmp)
+  module_tmp=$(mktemp -p /tmp || mktemp -t /tmp)
   module list &> "${module_tmp}"
   if [ -z "${EXTRAE_HOME}" ]; then
      # Look for openmpi / impi / none
@@ -1715,13 +1715,13 @@ set_variables() {
 
   # SharedDisk variables
   if [ "${worker_working_dir}" == "${SHARED_DISK_NAME}" ]; then
-    worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}")
+    worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}" || mktemp -d -t "${SHARED_DISK_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
     worker_working_dir=${LOCAL_DISK_PREFIX}/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"
   else
     # The working dir is a custom absolute path, create tmp
-    worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
+    worker_working_dir=$(mktemp -d -p "${worker_working_dir}" || mktemp -d -t "${worker_working_dir}")
   fi
 
   # Network variables

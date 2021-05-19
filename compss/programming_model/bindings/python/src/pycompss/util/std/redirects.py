@@ -34,8 +34,12 @@ import sys
 from pycompss.runtime.commons import IS_PYTHON3
 
 libc = ctypes.CDLL(None)  # noqa
-c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
-c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
+if sys.platform == 'darwin':
+    c_stdout = ctypes.c_void_p.in_dll(libc, '__stdoutp')
+    c_stderr = ctypes.c_void_p.in_dll(libc, '__stderrp')
+else:
+    c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
+    c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
 
 
 @contextmanager

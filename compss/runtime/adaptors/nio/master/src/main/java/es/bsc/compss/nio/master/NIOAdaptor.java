@@ -60,6 +60,7 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -633,10 +634,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             dp.setDataTarget(resultUri.toString());
         } else {
             // Update Other type Task information
-            dp.setType(newType);
-            String path = resultUri.getPath();
-            LOGGER.debug("Setting data target at update Parameter " + path);
-            dp.setDataTarget(path);
+            if (!dp.getDirection().equals(Direction.CONCURRENT) && !dp.getDirection().equals(Direction.IN)
+                && !dp.getDirection().equals(Direction.IN_DELETE)) {
+                // Only update if data has been modified
+                dp.setType(newType);
+                dp.setDataTarget(resultUri.toString());
+            }
         }
     }
 

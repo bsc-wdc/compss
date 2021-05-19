@@ -60,6 +60,7 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -628,11 +629,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 String pscoId = resultUri.getPath();
                 registerPersistedParameter(newType, pscoId, dp);
             }
+            // Update Task information
+            dp.setType(newType);
+            dp.setDataTarget(resultUri.toString());
+        } else {
+            // Update Other type Task information
+            if (!dp.getDirection().equals(Direction.CONCURRENT) && !dp.getDirection().equals(Direction.IN)
+                && !dp.getDirection().equals(Direction.IN_DELETE)) {
+                // Only update if data has been modified
+                dp.setType(newType);
+                dp.setDataTarget(resultUri.toString());
+            }
         }
-
-        // Update Task information
-        dp.setType(newType);
-        dp.setDataTarget(resultUri.toString());
     }
 
     private void registerPersistedParameter(DataType newType, String pscoId, DependencyParameter dp) {

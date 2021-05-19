@@ -720,6 +720,8 @@ public class ExecutionAction extends AllocatableAction {
             SimpleURI resultURI = new SimpleURI(dataTarget);
             SimpleURI targetURI = new SimpleURI(resultURI.getSchema() + resultURI.getPath());
             outLoc = DataLocation.createLocation(w, targetURI);
+            // Data target has been stored as URI but final target data should be just the path
+            dp.setDataTarget(outLoc.getPath());
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
         }

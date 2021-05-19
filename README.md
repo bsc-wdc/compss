@@ -176,6 +176,13 @@ sudo -E ./buildlocal [options] ${INSTALL_DIR}
 
 ```
 cd builders/
+
+INSTALL_DIR=$HOME/opt/COMPSs/
+./buildlocal -A -K -T -M [options] ${INSTALL_DIR}
+```
+For OSX:
+```
+cd builders/
 alias libtoolize=/usr/local/bin/glibtoolize
 alias readlink=/usr/local/bin/greadlink
 
@@ -185,6 +192,7 @@ export LIBTOOLIZE=`which glibtoolize`
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal -A -K -T -M [options] ${INSTALL_DIR}
 ```
+
 
 Many COMPSs modules can be activated/deactivated during the build using different options in the `buildlocal` command. You may check the available options by running the following command:
 

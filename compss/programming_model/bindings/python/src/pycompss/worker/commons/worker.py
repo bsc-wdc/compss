@@ -37,6 +37,9 @@ from pycompss.runtime.task.parameter import PYCOMPSS_LONG
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import COMPSsFile
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.worker.commons.constants import GET_TASK_PARAMS_EVENT
+from pycompss.worker.commons.constants import IMPORT_USER_MODULE_EVENT
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -48,9 +51,9 @@ from pycompss.util.storages.persistent import load_storage_library
 # First load the storage library
 load_storage_library()
 # Then import the appropriate functions
-from pycompss.util.storages.persistent import storage_task_context  # noqa: E402
-from pycompss.util.storages.persistent import is_psco               # noqa: E402
-from pycompss.util.storages.persistent import get_by_id             # noqa: E402
+from pycompss.util.storages.persistent import TaskContext  # noqa: E402
+from pycompss.util.storages.persistent import is_psco      # noqa: E402
+from pycompss.util.storages.persistent import get_by_id    # noqa: E402
 
 
 def build_task_parameter(p_type,      # type: int
@@ -191,6 +194,7 @@ def build_task_parameter(p_type,      # type: int
         ), 0
 
 
+@emit_event(GET_TASK_PARAMS_EVENT, master=False, inside=True)
 def get_task_params(num_params, logger, args):  # noqa
     # type: (int, ..., list) -> list
     """ Get and prepare the input parameters from string to lists.
@@ -290,8 +294,7 @@ def task_execution(logger,              # type: ...
         signal.signal(signal.SIGUSR2, task_cancel)
         signal.alarm(time_out)
         if persistent_storage:
-            with storage_task_context(logger, values,
-                                      config_file_path=storage_conf):
+            with TaskContext(logger, values, config_file_path=storage_conf):
                 task_output = getattr(module, method_name)(*values,
                                                            compss_types=types,
                                                            logger=logger,
@@ -443,6 +446,7 @@ def task_returns(exit_code,         # type: int
             return_message)
 
 
+@emit_event(IMPORT_USER_MODULE_EVENT, master=False, inside=True)
 def import_user_module(path, logger):
     # type: (str, ...) -> ...
     """ Import the user module.

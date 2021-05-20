@@ -24,8 +24,10 @@ PyCOMPSs Tracing helpers
     tracing events emission.
 """
 import time
-from functools import wraps
+import typing
 from contextlib import contextmanager
+from pycompss.util.context import in_master
+from pycompss.util.context import in_worker
 from pycompss.worker.commons.constants import SYNC_EVENTS
 from pycompss.worker.commons.constants import TASK_EVENTS
 from pycompss.worker.commons.constants import TASK_CPU_AFFINITY_EVENTS
@@ -107,28 +109,34 @@ def trace_mpi_executor():
     yield  # here the mpi executor runs
 
 
-def emit_event(event_id, master=False):
-    """
-    Simple decorator to emit worker events.
+class emit_event(object):  # noqa
 
-    :param event_id: Event identifier to emit.
-    :param master: If the event is emitted as master.
-    :return: Wraps the function with eventandcounter if tracing is active.
-    """
-    event_group = MASTER_EVENTS if master else WORKER_EVENTS
+    def __init__(self,
+                 event_id,            # type: int
+                 master=False,        # type: bool
+                 inside=False,        # type: bool
+                 cpu_affinity=False,  # type: bool
+                 gpu_affinity=False   # type: bool
+                 ):                   # type: (...) -> None
+        self.event_id = event_id
+        self.master = master
+        self.inside = inside
+        self.cpu_affinity = cpu_affinity
+        self.gpu_affinity = gpu_affinity
 
-    def worker_tracing_decorator(function):
-        @wraps(function)
-        def worker_tracing_wrapper(*args, **kwargs):
+    def __call__(self, f):
+        # type: (typing.Any) -> typing.Any
+        def wrapped_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if TRACING:
-                PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
-                result = function(*args, **kwargs)
-                PYEXTRAE.eventandcounters(event_group, 0)         # noqa
+                with event(self.event_id, self.master,
+                           self.inside, self.cpu_affinity, self.gpu_affinity):
+                    result = f(*args, **kwargs)
             else:
-                result = function(*args, **kwargs)
+                result = f(*args, **kwargs)
             return result
-        return worker_tracing_wrapper
-    return worker_tracing_decorator
+
+        return wrapped_f
 
 
 @contextmanager
@@ -148,7 +156,12 @@ def event(event_id, master=False, inside=False,
                          gpu affinity.
     :return: None
     """
-    if TRACING:
+    emit = False
+    if TRACING and in_master() and master:
+        emit = True
+    if TRACING and in_worker() and not master:
+        emit = True
+    if emit:
         event_group, event_id = __get_proper_type_event__(event_id,
                                                           master,
                                                           inside,
@@ -156,7 +169,7 @@ def event(event_id, master=False, inside=False,
                                                           gpu_affinity)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
     yield  # here the code runs
-    if TRACING:
+    if emit:
         PYEXTRAE.eventandcounters(event_group, 0)         # noqa
 
 

@@ -848,6 +848,10 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doAbort() {
+        ResourceScheduler target = this.getAssignedResource();
+        if (target != null) {
+            this.getExecutingResources().remove(target);
+        }
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onAbortedExecution();
     }
@@ -1079,7 +1083,6 @@ public class ExecutionAction extends AllocatableAction {
                 candidates = getCompatibleWorkers();
             }
         }
-
         this.schedule(actionScore, candidates);
 
     }
@@ -1177,6 +1180,9 @@ public class ExecutionAction extends AllocatableAction {
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
         Implementation impl) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
+            this.assignResource(null); // to remove previous allocation when re-scheduling the action
+            LOGGER.debug(" Action doesn't have targetWorker or implementation: "
+                + "Throwing UnassignedActionException. action: " + this);
             throw new UnassignedActionException();
         }
 

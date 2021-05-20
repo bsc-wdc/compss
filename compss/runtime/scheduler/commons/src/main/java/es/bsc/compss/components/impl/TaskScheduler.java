@@ -463,7 +463,7 @@ public class TaskScheduler {
             // Once the action starts running should cannot be moved from the resource
             resourceFree = new LinkedList<>();
         }
-        
+
         action.relaseResourcesAndLaunchBlockedActions();
         
         // We update the worker load
@@ -479,7 +479,7 @@ public class TaskScheduler {
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
         // and those that remain unassigned must be added to the unassigned list
-        
+
         handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
             if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
@@ -1011,43 +1011,17 @@ public class TaskScheduler {
     }
 
     /**
-     * One worker has been removed from the pool; actions on the node are moved out from it and the Task Scheduler is
-     * notified about it.
+     * Stop and Start the Worker.
      *
      * @param <T> WorkerResourceDescription.
      * @param resource Removed worker.
      */
     private <T extends WorkerResourceDescription> void workerStoppedToBeRestarted(
             Worker<T> worker, ResourceScheduler<T> resource) {
-        @SuppressWarnings("unchecked")
 
-        ResourceScheduler<WorkerResourceDescription> workerRS = (ResourceScheduler<WorkerResourceDescription>) resource;
-        LOGGER.info("_____ workerStoppedToBeRestarted.. workerRS: " + workerRS);
-        Worker<WorkerResourceDescription> workerResource = workerRS.getResource();
-        LOGGER.info("_____ workerStoppedToBeRestarted.. workerResource: " + workerResource);
-        this.workers.remove(workerResource);
-        for (CoreElement ce : CoreManager.getAllCores()) {
-            int coreId = ce.getCoreId();
-            for (Implementation impl : ce.getImplementations()) {
-                int implId = impl.getImplementationId();
-
-                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
-                    + " before removing:" + offVMsProfiles[coreId][implId]);
-                Profile p = resource.getProfile(coreId, implId);
-                if (p != null) {
-                    LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId
-                        + " in removed workers profile");
-                    offVMsProfiles[coreId][implId].accumulate(p);
-                }
-                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
-                    + " after removing:" + offVMsProfiles[coreId][implId]);
-            }
-        }
-
-        // nm: we remove before re-scheduling so they don't go to the same
-        // worker before they are re-up
-        resource.setRemoved(true);
-        this.workerRemoved(resource);
+        // remove the worker before re-scheduling its actions so the actions aren't
+        //  assigned to the same worker before the worker is re-initialized
+        removeResource(resource);
 
         // We convert PriorityQueue -> List to obtain a shallow copy
         List<AllocatableAction> blockedOnResource = new ArrayList<>(resource.getBlockedActions());
@@ -1055,10 +1029,20 @@ public class TaskScheduler {
 
         for (AllocatableAction action : blockedOnResource) {
             action.abortExecution();
+            try {
+                resource.unscheduleAction(action);
+            } catch (ActionNotFoundException ex) {
+                // Task was already moved from the worker. Do nothing!
+            }
+
         }
         for (AllocatableAction action : runningOnResource) {
             action.abortExecution();
-        }
+            try {
+                resource.unscheduleAction(action);
+            } catch (ActionNotFoundException ex) {
+                // Task was already moved from the worker. Do nothing!
+            }
 
         resource.setRemoved(false);
         resource.getResource().isLost = false;
@@ -1070,13 +1054,6 @@ public class TaskScheduler {
         }
 
         for (AllocatableAction action : blockedOnResource) {
-            try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
-                // Task was already moved from the worker. Do nothing!
-                continue;
-            }
-
             Score actionScore = generateActionScore(action);
             try {
                 scheduleAction(action, actionScore);
@@ -1089,15 +1066,7 @@ public class TaskScheduler {
             }
         }
 
-
         for (AllocatableAction action : runningOnResource) {
-            try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
-                // Task was already moved from the worker. Do nothing!
-                continue;
-            }
-
             Score actionScore = generateActionScore(action);
             try {
                 scheduleAction(action, actionScore);
@@ -1109,7 +1078,7 @@ public class TaskScheduler {
                 addToBlocked(action);
             }
         }
-        LOGGER.info(" ________________ check point 2");
+
     }
 
     /**
@@ -1268,6 +1237,43 @@ public class TaskScheduler {
     public void upgradeAction(AllocatableAction action) {
         LOGGER.info("No upgrade required by default for " + action);
         // Nothing to do by default
+    }
+
+    /**
+     * Remove a resource when lost.
+     *
+     * @param resource Resource to be removed
+     */
+    public <T extends WorkerResourceDescription> void removeResource(ResourceScheduler<T> resource) {
+
+        @SuppressWarnings("unchecked")
+        ResourceScheduler<WorkerResourceDescription> workerRS =
+                (ResourceScheduler<WorkerResourceDescription>) resource;
+
+        // nm: nullpointerexception here test_12
+        Worker<WorkerResourceDescription> workerResource = workerRS.getResource();
+        this.workers.remove(workerResource);
+
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            for (Implementation impl : ce.getImplementations()) {
+                int implId = impl.getImplementationId();
+
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
+                    + " before removing:" + offVMsProfiles[coreId][implId]);
+                Profile p = resource.getProfile(coreId, implId);
+                if (p != null) {
+                    LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId
+                        + " in removed workers profile");
+                    offVMsProfiles[coreId][implId].accumulate(p);
+                }
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
+                    + " after removing:" + offVMsProfiles[coreId][implId]);
+            }
+        }
+
+        resource.setRemoved(true);
+        this.workerRemoved(resource);
     }
 
     /*

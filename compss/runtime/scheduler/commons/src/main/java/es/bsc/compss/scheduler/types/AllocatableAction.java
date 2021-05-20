@@ -776,6 +776,7 @@ public abstract class AllocatableAction {
                 this.selectedResource.tryToLaunchBlockedActions();
                 this.state = State.RUNNABLE;
                 doAbort();
+                this.selectedResource = null;
                 break;
             case WAITING:
                 this.state = State.RUNNABLE;

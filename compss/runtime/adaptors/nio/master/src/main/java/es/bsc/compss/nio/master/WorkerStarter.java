@@ -239,7 +239,7 @@ public class WorkerStarter {
                 Thread.currentThread().interrupt();
             }
             timer = timer + (4 * WAIT_TIME_UNIT);
-        } while (pid < 0);
+        } while (pid < 0 && !this.toStop);
 
         return pid;
     }

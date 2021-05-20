@@ -405,6 +405,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     @Override
     public void retrieveTracingAndDebugData() {
         if (this.isLost) {
+            LOGGER.debug(" Will not retrieve Tracing and Debug Data because the node: " + this.getName() + " is lost.");
             return;
         }
         if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
@@ -434,6 +435,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     @Override
     public void disableExecution() {
         if (this.isLost) {
+            LOGGER.debug(" Skipping ExecutionManager shutdown because the node: " + this.getName() + " is lost.");
             return;
         }
         if (DEBUG) {
@@ -462,6 +464,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     @Override
     public void stop(ShutdownListener sl) {
         if (this.isLost) {
+            LOGGER.debug(" Skipping StopWorker because the node: " + this.getName() + " is lost.");
+            sl.addOperation();
             sl.notifyEnd();
             return;
         }

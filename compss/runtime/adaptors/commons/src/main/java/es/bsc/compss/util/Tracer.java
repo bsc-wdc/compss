@@ -578,10 +578,8 @@ public abstract class Tracer {
             String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
             File dir = new File(appLogDir + TRACE_SUBDIR);
             final String traceNamePrefix = Tracer.getTraceNamePrefix();
-            rowFileArray = dir.listFiles(
-                (File d, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_ROW_FILE_EXTENTION));
-            prvFileArray = dir.listFiles(
-                (File d, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_PRV_FILE_EXTENTION));
+            rowFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_ROW_FILE_EXTENTION));
+            prvFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_PRV_FILE_EXTENTION));
         } catch (Exception e) {
             ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
             return;
@@ -883,11 +881,22 @@ public abstract class Tracer {
             LOGGER.debug("Tracing: Generating trace with mode " + mode);
         }
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
-        String traceName = System.getProperty(COMPSsConstants.APP_NAME);
+        String traceName = "";
+        String appName = System.getProperty(COMPSsConstants.APP_NAME);
         String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
-        if (label != null && !label.isEmpty() && !label.equals("None")) {
-            traceName = traceName.concat("_" + label);
+
+        if (appName != null && !appName.isEmpty() && !appName.equals("None")) {
+            if (label != null && !label.isEmpty() && !label.equals("None")) {
+                traceName = appName.concat("_" + label);
+            } else {
+                traceName = appName;
+            }
+        } else {
+            if (label != null && !label.isEmpty() && !label.equals("None")) {
+                traceName = label;
+            }
         }
+
         ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName,
             String.valueOf(hostToSlots.size() + 1));
         Process p;

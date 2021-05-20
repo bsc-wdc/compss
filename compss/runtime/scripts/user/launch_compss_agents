@@ -435,6 +435,9 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        trace_label=*)
+          trace_label=${OPTARG//trace_label=/}
+          ;;
         extrae_config_file=*)
           custom_extrae_file=${OPTARG//extrae_config_file=/}
           # Keep it for runcompss (to add them to master)
@@ -654,14 +657,6 @@ check_args() {
     echo "${ERROR_MASTER_NODE}"
   fi
 
-  if [ -z "${worker_nodes}" ] && [ "${DEFAULT_WORKER_IN_MASTER_CPUS}" -eq "0" ]; then
-    if [ -z "${worker_in_master_cpus}" ]; then
-      display_error "${ERROR_WORKER_NODES}"
-    else
-      worker_nodes=""
-    fi
-  fi
-
   if [ -z "${network}" ]; then
     network=${DEFAULT_NETWORK}
   elif [ "${network}" == "default" ]; then
@@ -799,6 +794,22 @@ check_args() {
     display_error "${ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED}"
   fi
 
+  # Check worker nodes and calculate number of workers
+  if [ -z "${worker_nodes}" ]; then
+    if [ "${worker_in_master_cpus}"  -lt "1" ]; then
+      display_error "${ERROR_WORKER_NODES}"
+    else
+      worker_nodes=""
+      total_num_workers=1
+    fi
+  else
+    local words=( ${worker_nodes} )
+    total_num_workers=${#words[@]}
+    if [ "${worker_in_master_cpus}" -gt "0" ]; then
+      total_num_workers=$((total_num_workers+1))
+    fi
+  fi  
+
   if [ -z "${master_port}" ]; then
     rand_num=$RANDOM
     offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
@@ -854,6 +865,10 @@ check_args() {
 
   if [ -z "${tracing}" ]; then
     tracing=${DEFAULT_TRACING}
+  fi
+
+  if [ -z "${trace_label}" ]; then
+    trace_label=${total_num_workers}workers_${cpus_per_node}cpus_${!ENV_VAR_JOB_ID}
   fi
 
   if [ -z "${custom_extrae_file}" ]; then
@@ -1116,6 +1131,7 @@ launch_agent () {
   "--network=${network}" \
   "${agents_hierarchy}" \
   "${specific_log_dir}${node_name}"\
+  "${!ENV_VAR_JOB_ID}_${node_name}" \
   "${worker_in_master_cpus}" \
   "${cpus_per_node}" \
   "${cpu_affinity}" \
@@ -1267,6 +1283,30 @@ wait_for_completion() {
 }
 
 ###############################################
+# Merge traces from all agents
+###############################################
+merge_agents_traces() {
+  
+  trace_dir=${specific_log_dir}trace
+  mkdir -p "${trace_dir}"
+
+  pushd . 1>/dev/null 2>/dev/null
+  cd "${specific_log_dir}"
+  
+  local trace_name=""
+  if [ -n "${appName}" ]; then
+    trace_name="${appName}_"
+  fi
+  trace_name="${trace_name}${trace_label}"
+
+  echo "${COMPSS_HOME}/Runtime/scripts/system/trace/mergeTraceAgents.sh" "-f" "--result_trace_name=${trace_name}" "--output_dir=${trace_dir}" "${master_node}" ${worker_nodes}
+  "${COMPSS_HOME}/Runtime/scripts/system/trace/mergeTraceAgents.sh" "-f" "--result_trace_name=${trace_name}" "--output_dir=${trace_dir}" "${master_node}" ${worker_nodes}
+
+  popd 1>/dev/null 2>/dev/null
+  
+}
+
+###############################################
 # Clean function for trap
 ###############################################
 cleanup() {
@@ -1289,6 +1329,7 @@ cleanup() {
 
   fi
 }
+
 
 
 #---------------------------------------------------------------------------------------
@@ -1334,6 +1375,11 @@ cleanup() {
 
   # Wait
   wait_for_completion
+
+  # Merge agents trace
+  if [ $tracing == "basic" ] || [ $tracing == "true" ] || [ $tracing == "advanced" ]; then
+    merge_agents_traces
+  fi
 
   # Epilog
   epilog

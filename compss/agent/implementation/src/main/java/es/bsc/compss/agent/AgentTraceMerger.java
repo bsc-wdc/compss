@@ -30,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -51,25 +52,16 @@ public class AgentTraceMerger extends TraceMerger {
         LOGGER = LogManager.getLogger(Loggers.COMM);
     }
 
-    private static String getExecutionName(String path, String appName) {
-        File traceDir = new File(path + File.separator + Tracer.TRACE_SUBDIR);
-        String[] prvFiles = traceDir.list((File dir, String name) -> name.contains(Tracer.MASTER_TRACE_SUFFIX)
-            && name.endsWith(Tracer.TRACE_PRV_FILE_EXTENTION));
-        String timeStamp =
-            prvFiles[0].replace(Tracer.MASTER_TRACE_SUFFIX, "").replace(Tracer.TRACE_PRV_FILE_EXTENTION, "");
-        return (appName != null && !appName.isEmpty() ? appName + "_" : "") + timeStamp;
-
-    }
-
     /**
      * Initializes class attributes for agents trace merging .
      *
-     * @param appName Application name
+     * @param traceName Name of the resulting trace
+     * @param outputDir Directory where to store the resulting trace
+     * @param agentsDirs Directories that contain a trace folder to merge
      * @throws IOException Error managing files
      */
-    public AgentTraceMerger(String outputDir, String[] agentsDirs, String appName) throws IOException {
+    public AgentTraceMerger(String outputDir, String[] agentsDirs, String traceName) throws IOException {
         LOGGER.debug("Initializing AgentTraceMerger");
-        final String traceNamePrefix = Tracer.MASTER_TRACE_SUFFIX;
         List<File> workersFiles = new ArrayList<>();
         LOGGER.debug("Searching for trace files");
         for (String oneAgentDir : agentsDirs) {
@@ -77,6 +69,9 @@ public class AgentTraceMerger extends TraceMerger {
             File tracesToMergeDirFile = new File(oneAgentDir + File.separator + Tracer.TO_MERGE_SUBDIR);
             tracesToMergeDirFile.mkdirs();
             File[] allFilesInFolder = traceDirFile.listFiles();
+            if (allFilesInFolder == null) {
+                throw new FileNotFoundException("Folder not found: " + oneAgentDir);
+            }
             for (int i = 0; i < allFilesInFolder.length; i++) {
                 String newFileName =
                     tracesToMergeDirFile.getAbsolutePath() + File.separator + allFilesInFolder[i].getName();
@@ -86,11 +81,10 @@ public class AgentTraceMerger extends TraceMerger {
                 TraceMerger.copyFile(oldFile, newFile);
                 allFilesInFolder[i] = newFile;
             }
-            File[] oneAgentMatchingFiles = tracesToMergeDirFile.listFiles((File dir,
-                String name) -> name.startsWith(traceNamePrefix) && name.endsWith(Tracer.TRACE_PRV_FILE_EXTENTION));
+            File[] oneAgentMatchingFiles = tracesToMergeDirFile
+                .listFiles((File dir, String name) -> name.endsWith(Tracer.TRACE_PRV_FILE_EXTENTION));
             if (oneAgentMatchingFiles == null || oneAgentMatchingFiles.length < 1) {
-                throw new FileNotFoundException("No traces matching " + traceNamePrefix + "*"
-                    + Tracer.TRACE_PRV_FILE_EXTENTION + " were found at directory " + oneAgentDir);
+                throw new FileNotFoundException("No traces matching " + " were found at directory " + oneAgentDir);
             }
             workersFiles.addAll(Arrays.asList(oneAgentMatchingFiles));
         }
@@ -102,8 +96,7 @@ public class AgentTraceMerger extends TraceMerger {
         setUpWorkers(workersTraces);
 
         // Init master trace information
-        final File outputFile =
-            new File(outputDir + File.separator + (appName != null && appName.isEmpty() ? "trace" : appName) + ".prv");
+        final File outputFile = new File(outputDir + File.separator + traceName + ".prv");
         LOGGER.debug("Merge result will be stored at " + outputFile.getAbsolutePath());
         if (!outputFile.exists()) {
             Files.createDirectories(Paths.get(outputDir));
@@ -118,11 +111,14 @@ public class AgentTraceMerger extends TraceMerger {
      * Merges the traces .
      */
     public void merge() throws Exception {
-        LOGGER.debug("Starting merge process");
+        LOGGER.debug("Starting merge process.");
+        System.out.println("Starting merge process.");
         createPRVswithGlobalCE();
         mergePRVsIntoNewFile();
         mergeROWsIntoNewFile();
-        System.out.println("Merging finished.");
+        LOGGER.debug("Merge finished.");
+        System.out.println("Merge finished.");
+        removeTmpAgentFiles();
     }
 
     /**
@@ -133,23 +129,15 @@ public class AgentTraceMerger extends TraceMerger {
      * @throws IOException error managing files
      */
     public static void main(String[] args) throws IOException {
-        final String appName = args[0];
+        final String resTraceName = args[0];
         final String outputDir = args[1];
-        final String jobId = args[2];
-        final String[] traceDirs = Arrays.copyOfRange(args, 3, args.length);
-        final String outputSubDir;
-        if (jobId != null && !jobId.isEmpty()) {
-            outputSubDir =
-                outputDir + File.separator + (appName != null && !appName.isEmpty() ? appName + "_" : "") + jobId;
-        } else {
-            outputSubDir = outputDir + File.separator + getExecutionName(traceDirs[0], appName);
-        }
-        loggerSetUp(outputSubDir);
+        final String[] traceDirs = Arrays.copyOfRange(args, 2, args.length);
+        loggerSetUp(outputDir);
 
         System.out.println("----------------------------------------");
         System.out.println("Initiating agent trace merging");
         System.out.println("----------------------------------------");
-        System.out.println("AppName: " + appName);
+        System.out.println("Result trace name: " + resTraceName);
         System.out.println("OutputDir: " + outputDir);
         System.out.println("Merging traces in the following folders:");
         for (String path : traceDirs) {
@@ -159,15 +147,15 @@ public class AgentTraceMerger extends TraceMerger {
         LOGGER.debug("----------------------------------------");
         LOGGER.debug("Initiating agent trace merging");
         LOGGER.debug("----------------------------------------");
-        LOGGER.debug("AppName: " + appName);
+        LOGGER.debug("Result trace name: " + resTraceName);
         LOGGER.debug("OutputDir: " + outputDir);
-        LOGGER.debug("Merging traces in the following folders: " + args.length);
+        LOGGER.debug("Merging traces in the following folders:");
         for (String path : traceDirs) {
             LOGGER.debug("    " + path);
         }
 
         try {
-            AgentTraceMerger tm = new AgentTraceMerger(outputSubDir, traceDirs, appName);
+            AgentTraceMerger tm = new AgentTraceMerger(outputDir, traceDirs, resTraceName);
             tm.merge();
         } catch (Throwable t) {
             System.err.println("Failed to correctly merge traces: exception risen");

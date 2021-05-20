@@ -79,8 +79,10 @@ public class RowFile {
 
     /**
      * Merges the information in another rowFile with this one.
+     * 
+     * @throws Exception Unknown format
      */
-    public void mergeAgentRow(RowFile fileToMerge, int agentId) {
+    public void mergeAgentRow(RowFile fileToMerge, int agentId) throws Exception {
         final List<String> cpus = this.information[RowBlock.CPUS.ordinal()];
         final List<String> threads = this.information[RowBlock.THREADS.ordinal()];
         final List<String> cpusToMerge = fileToMerge.information[RowBlock.CPUS.ordinal()];
@@ -103,13 +105,16 @@ public class RowFile {
                 String[] oldIdValues = oldThId.split("\\.");
                 // PRV_MACHINE_IDENTIFIER_POSITION-2 because it's not a line, it's only the threadId
                 oldIdValues[PrvLine.STATE_MACHINE_POS - 2] = Integer.toString(agentId);
-                String newThId = String.join(":", oldIdValues);
+                String newThId = String.join(".", oldIdValues);
                 newTh = th.substring(0, prefixIndex) + newThId + th.substring(sufixIndex, th.length());
-            } else {
-                String[] oldIdValues = th.split(":");
+            } else if (th.startsWith("THREAD ")) {
+                String[] oldIdValues = th.split("\\.");
                 // PRV_MACHINE_IDENTIFIER_POSITION-2 because it's not a line, it's only the threadId
-                oldIdValues[PrvLine.STATE_MACHINE_POS - 2] = Integer.toString(agentId);
-                newTh = String.join(":", oldIdValues);
+                oldIdValues[PrvLine.STATE_MACHINE_POS - 2] = "THREAD " + Integer.toString(agentId);
+                newTh = String.join(".", oldIdValues);
+            } else {
+                throw new Exception(
+                    "Thread id in .row file with unknown format, don't know how to merge: " + th.toString());
             }
             threads.add(newTh);
         }

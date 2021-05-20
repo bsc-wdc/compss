@@ -58,15 +58,9 @@ COMPSs options:
 
   -d, --debug                             Enable debug. (Default: disabled)
 
-  --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | scorep | arm-map | arm-ddt | false)
-                                          True and basic levels will produce the same traces.
-                                          When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
-                                          Default: ${DEFAULT_TRACING}
-
-  --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
-                                          Default: None
-
   --hostname                              Name with which itself and other agents will identify the agent.
+
+  --jvm_opts="string"                     Extra options for the COMPSs Runtime JVM. Each option separed by "," and without blank spaces (Notice the quotes)
 
   --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                           Default: Working Directory
@@ -131,8 +125,13 @@ COMPSs options:
   --summary                               Displays a task execution summary at the end of the application execution
                                           Default: ${DEFAULT_SUMMARY}
 
-  --jvm_opts="string"                     Extra options for the COMPSs Runtime JVM. Each option separed by "," and without blank spaces (Notice the quotes)
+  --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | scorep | arm-map | arm-ddt | false)
+                                          True and basic levels will produce the same traces.
+                                          When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
+                                          Default: ${DEFAULT_TRACING}
 
+  --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
+                                          Default: None
 
 Other options:
   --help                                  prints this message
@@ -232,33 +231,13 @@ parse_options() {
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
-          tracing=*)
-            # Tracing system
-            tracing=${OPTARG//tracing=/}
-              # Tracing level
-              if [ "${tracing}" == "false" ]; then
-                tracing=${TRACING_DEACTIVATED}
-              elif [ "${tracing}" == "basic" ] || [ $tracing == "true" ]; then
-                tracing=${TRACING_BASIC}
-              elif [ "${tracing}" == "advanced" ]; then
-                tracing=${TRACING_ADVANCED}
-              elif [ "${tracing}" == "scorep" ]; then
-                tracing=${TRACING_SCOREP}
-              elif [ "${tracing}" == "arm-map" ]; then
-                tracing=${TRACING_ARM-MAP}
-              elif [ "${tracing}" == "arm-ddt" ]; then
-                tracing=${TRACING_ARM-DDT}
-              else
-                arguments_error "${TRACING_ERROR}"
-              fi
-            ;;
-          tracing)
-            # Tracing system
-            tracing=${DEFAULT_TRACING_ARGUMENT}
-            ;;
           input_profile=*)
             # Specify the file where there is stored the tasks profiles
             input_profile=${OPTARG//input_profile=/}
+            ;;
+          jvm_opts=*)
+            # Other java flags
+            jvm_master_opts=${OPTARG//jvm_opts=/}
             ;;
 	        library_path=*)
 	          # Additional library path
@@ -339,12 +318,36 @@ parse_options() {
             # Specify the file where COMPSs will store the tasks profile
             scheduler_config=${OPTARG//scheduler_config_file=/}
             ;;
-          jvm_opts=*)
-            # Other java flags
-            jvm_master_opts=${OPTARG//jvm_opts=/}
-            ;;
           summary)
             summary=true
+            ;;
+          tracing=*)
+            # Tracing system
+            tracing=${OPTARG//tracing=/}
+              # Tracing level
+              if [ "${tracing}" == "false" ]; then
+                tracing=${TRACING_DEACTIVATED}
+              elif [ "${tracing}" == "basic" ] || [ $tracing == "true" ]; then
+                tracing=${TRACING_BASIC}
+              elif [ "${tracing}" == "advanced" ]; then
+                tracing=${TRACING_ADVANCED}
+              elif [ "${tracing}" == "scorep" ]; then
+                tracing=${TRACING_SCOREP}
+              elif [ "${tracing}" == "arm-map" ]; then
+                tracing=${TRACING_ARM-MAP}
+              elif [ "${tracing}" == "arm-ddt" ]; then
+                tracing=${TRACING_ARM-DDT}
+              else
+                arguments_error "${TRACING_ERROR}"
+              fi
+            ;;
+          tracing)
+            # Tracing system
+            tracing=${DEFAULT_TRACING_ARGUMENT}
+            ;;
+          trace_label=*)
+            # Tracing system
+            trace_label=${OPTARG//trace_label=/}
             ;;
           version)
             # Show version

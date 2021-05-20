@@ -1044,6 +1044,7 @@ public class TaskScheduler {
                 // Task was already moved from the worker. Do nothing!
             }
 
+        }
         resource.setRemoved(false);
         resource.getResource().isLost = false;
         startWorker(resource);
@@ -1250,7 +1251,6 @@ public class TaskScheduler {
         ResourceScheduler<WorkerResourceDescription> workerRS =
                 (ResourceScheduler<WorkerResourceDescription>) resource;
 
-        // nm: nullpointerexception here test_12
         Worker<WorkerResourceDescription> workerResource = workerRS.getResource();
         this.workers.remove(workerResource);
 

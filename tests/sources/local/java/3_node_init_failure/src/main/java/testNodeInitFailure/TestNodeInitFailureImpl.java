@@ -16,11 +16,10 @@ public class TestNodeInitFailureImpl {
             fis.close();
 
             int nm = (new Random()).nextInt(7);
-            if (nm < 3) {
-                Thread.sleep(5000);
-                System.out.println(" After thread.sleep, failing..");
+            if (nm < 2) {
                 System.exit(1);
             }
+            Thread.sleep(10000);
             FileOutputStream fos = new FileOutputStream(out);
             fos.write(initial + 1);
             fos.close();

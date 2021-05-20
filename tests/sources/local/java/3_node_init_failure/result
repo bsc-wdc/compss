@@ -50,7 +50,7 @@
   fi
 
   # Possible Node Initialization errors.
-  if ! grep -E "Final counter value is 12" "${output_file_0}"; then
+  if ! grep -E "Final counter value is" "${output_file_0}"; then
     echo "ERROR: No valid final value found." | tee -a "${output_file_0}"
     exit 1
   fi

@@ -35,7 +35,7 @@
   output_log_0="${target_log_folder_0}/node_init_failure.outputlog"
   error_log_0="${target_log_folder_0}/node_init_failure.errorlog"
 
-  expectedTime=200s
+  expectedTime=1000s
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
@@ -72,7 +72,7 @@
   output_log_1="${target_log_folder_1}/node_init_failure.outputlog"
   error_log_1="${target_log_folder_1}/node_init_failure.errorlog"
 
-  expectedTime=500s
+  expectedTime=1000s
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

@@ -58,7 +58,7 @@ get_topology_tree() {
           WORKER_RACK_BLADES=$(echo "${@:2}"| tr " " "\\n" | grep "${rack}")
           WORKER_RACK_REP=$(echo "${WORKER_RACK_BLADES}" | sort | head -n 1)
           WORKER_RACK_COUNT=$(echo "${WORKER_RACK_BLADES}" | wc -l)
-          echo "${WORKER_RACK_REP} $(( WORKER_RACK_COUNT * cpus_per_node )) $(( WORKER_RACK_COUNT * gpus_per_node )) $(( WORKER_RACK_COUNT * fpgas_per_node )) $(( WORKER_RACK_COUNT * memory_per_node )) $(( WORKER_RACK_COUNT * max_tasks_per_node ))"
+          echo "${WORKER_RACK_REP} $(( WORKER_RACK_COUNT * cpus_per_node )) $(( WORKER_RACK_COUNT * gpus_per_node )) $(( WORKER_RACK_COUNT * fpgas_per_node )) $(( WORKER_RACK_COUNT * memory_per_node )) $(( WORKER_RACK_COUNT * storage_bw_per_node )) $(( WORKER_RACK_COUNT * max_tasks_per_node ))"
         done
       )
   else
@@ -294,7 +294,8 @@ fi
 agents_hierarchy="${2}"
 log_dir="${3}"
 mkdir -p "${log_dir}"
-shift 3
+trace_label="${4}"
+shift 4
 
 cpus_in_master=${1}
 cpus_per_node=${2}
@@ -372,6 +373,7 @@ echo "${worker_install_dir}/Runtime/scripts/user/compss_agent_start" \
 "--comm_port=46102" \
 "--project=${PROJECT_FILE}" \
 "--resources=${RESOURCES_FILE}" \
+"--trace_label=${trace_label}" \
 ${@} \
 >> "${OUT_FILE}"
 
@@ -381,9 +383,10 @@ ${@} \
 "--comm_port=46102" \
 "--project=${PROJECT_FILE}" \
 "--resources=${RESOURCES_FILE}" \
+"--trace_label=${trace_label}" \
 ${@} \
 >> "${OUT_FILE}" 2>>"${ERR_FILE}"
 
 
 
-echo "S'ha parat el proces de l'agent ${HOSTNAME}${network}" >> ${OUT_FILE}
+echo "Agent ${HOSTNAME}${network}'s process has died" >> "${OUT_FILE}"

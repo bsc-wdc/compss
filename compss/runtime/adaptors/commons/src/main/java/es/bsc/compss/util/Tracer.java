@@ -881,11 +881,22 @@ public abstract class Tracer {
             LOGGER.debug("Tracing: Generating trace with mode " + mode);
         }
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
-        String traceName = System.getProperty(COMPSsConstants.APP_NAME);
+        String traceName = "";
+        String appName = System.getProperty(COMPSsConstants.APP_NAME);
         String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
-        if (label != null && !label.isEmpty() && !label.equals("None")) {
-            traceName = traceName.concat("_" + label);
+
+        if (appName != null && !appName.isEmpty() && !appName.equals("None")) {
+            if (label != null && !label.isEmpty() && !label.equals("None")) {
+                traceName = appName.concat("_" + label);
+            } else {
+                traceName = appName;
+            }
+        } else {
+            if (label != null && !label.isEmpty() && !label.equals("None")) {
+                traceName = label;
+            }
         }
+
         ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName,
             String.valueOf(hostToSlots.size() + 1));
         Process p;

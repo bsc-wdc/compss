@@ -102,6 +102,9 @@ public enum TraceEvent {
     WORKER_UPDATE_REQUEST(53, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Worker update request"), // Update worker
     CANCEL_TASKS(57, Tracer.RUNTIME_EVENTS, "Task Dispatcher: Cancel tasks"), // Cancel tasks
 
+    // Timer events
+    TASK_TIMEOUT(58, Tracer.RUNTIME_EVENTS, "Timer: Task timed out"), // Task timeout
+
     // Python Events Inside Worker
     WORKER_RUNNING(1, Tracer.INSIDE_WORKER_TYPE, "Worker running"), // Worker running
 

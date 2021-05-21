@@ -57,7 +57,7 @@
   number_of_tasks=32
   number_of_workers=1
   number_of_master_events=523
-  number_of_master_finish_events=523  # The last compss stop does not include 0 since the runtime has been stopped and the trace generated.
+  number_of_master_finish_events=522  # The last compss stop does not include 0 since the runtime has been stopped and the trace generated.
 
   # Should be equal to Tracer.java definitions
   SYNC_EVENTS=8000666

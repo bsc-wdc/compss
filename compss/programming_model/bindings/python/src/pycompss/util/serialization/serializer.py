@@ -105,7 +105,7 @@ LIB2IDX = {
     pyarrow: 3
 }
 IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
-platform_c_maxint = 2 ** (struct.Struct('i').size * 8 - 1) - 4
+platform_c_maxint = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)
 
 
 def get_serializer_priority(obj=()):

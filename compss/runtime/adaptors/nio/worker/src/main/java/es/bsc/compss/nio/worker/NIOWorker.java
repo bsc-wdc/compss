@@ -268,18 +268,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
-        if (REMOVE_WD) {
-            // now removed in shutdown
-            /*
-             * Runtime.getRuntime().addShutdownHook(new Thread() {
-             *
-             * @Override public void run() { // Remove workingDir if (WORKER_LOGGER_DEBUG) {
-             * WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + workingDir); } try {
-             * removeWorkingDir(workingDir); } catch (IOException ioe) { WORKER_LOGGER.error("Exception", ioe); } }
-             *
-             * });
-             */
-        }
     }
 
     private void removeWorkingDir(String workingDir) throws IOException {

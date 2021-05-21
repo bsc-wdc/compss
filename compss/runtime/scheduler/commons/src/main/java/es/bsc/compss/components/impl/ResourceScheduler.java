@@ -697,10 +697,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Marks the removed flag in the resource scheduler.
      * 
-     * @param b Boolean indicating the removed state.
+     * @param removed Boolean indicating the removed state.
      */
-    public void setRemoved(boolean b) {
-        this.removed = b;
+    public void setRemoved(boolean removed) {
+        this.removed = removed;
     }
 
     /**

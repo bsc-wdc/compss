@@ -1351,8 +1351,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public boolean verifyNodeIsRunning() {
-        return true;
+    public void verifyNodeIsRunning() {
+        // No need to verify, it's not possible to loose the connection with your own process.
     }
 
     @Override

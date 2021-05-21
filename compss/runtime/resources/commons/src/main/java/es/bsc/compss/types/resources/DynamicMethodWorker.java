@@ -181,7 +181,7 @@ public class DynamicMethodWorker extends MethodWorker {
         final int FPGACount = reduction.getTotalFPGAComputingUnits();
         final int otherCount = reduction.getTotalOTHERComputingUnits();
 
-        if (!this.isLost) {
+        if (!this.isLost()) {
             this.getNode().reduceComputingCapabilities(reduction);
         }
         synchronized (this.description) {

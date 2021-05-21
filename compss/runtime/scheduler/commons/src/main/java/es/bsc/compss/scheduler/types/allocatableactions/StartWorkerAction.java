@@ -71,7 +71,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
         super(schedulingInformation, ts.getOrchestrator());
         this.ts = ts;
         this.worker = worker;
-        this.worker.getResource().isLost = false;
+        this.worker.getResource().startingNode();
 
         switch (worker.getResource().getType()) {
             case WORKER:

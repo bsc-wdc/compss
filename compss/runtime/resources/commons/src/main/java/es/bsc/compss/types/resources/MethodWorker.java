@@ -421,7 +421,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public boolean canRun(Implementation implementation) {
-        if (this.isLost) {
+        if (this.isLost()) {
             return false;
         }
         switch (implementation.getTaskType()) {

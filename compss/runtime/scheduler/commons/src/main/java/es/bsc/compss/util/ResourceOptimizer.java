@@ -250,7 +250,7 @@ public class ResourceOptimizer extends Thread {
     private void periodicCheckWorkers() {
         List<Worker<? extends WorkerResourceDescription>> workers = ResourceManager.getAllWorkers();
         for (Worker<? extends WorkerResourceDescription> w : workers) {
-            if (!w.isLost) {
+            if (!w.isLost()) {
                 w.getNode().verifyNodeIsRunning();
             } else {
                 RUNTIME_LOGGER.debug(" Node is lost, skipping ping: " + w.getName());

@@ -1046,7 +1046,7 @@ public class TaskScheduler {
 
         }
         resource.setRemoved(false);
-        resource.getResource().isLost = false;
+        resource.getResource().startingNode();
         startWorker(resource);
         workerDetected(resource);
 

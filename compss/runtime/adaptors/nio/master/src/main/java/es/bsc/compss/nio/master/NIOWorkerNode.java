@@ -862,7 +862,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public boolean verifyNodeIsRunning() {
+    public void verifyNodeIsRunning() {
         if (this.started && NIOAdaptor.registerOngoingWorkerPing(this)) {
             CommandPingWorker cmd = new CommandPingWorker(DEPLOYMENT_ID, this.getName());
             // Send command check
@@ -872,7 +872,6 @@ public class NIOWorkerNode extends COMPSsWorker {
             c.receive();
             c.finishConnection();
         }
-        return true;
     }
 
 }

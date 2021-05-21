@@ -74,7 +74,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
-    public boolean isLost = false;
+    private boolean isLost = false;
 
 
     /**
@@ -708,9 +708,18 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         // Should notify the resource user that such resources are no longer available
     }
 
+    public boolean isLost() {
+        return isLost;
+    }
+
     @Override
     public void lostNode() {
         this.isLost = true;
         ResourceManager.notifyRestart(this.name);
     }
+
+    public void startingNode() {
+        this.isLost = false;
+    }
+
 }

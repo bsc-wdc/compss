@@ -374,8 +374,7 @@ class TaskMaster(object):
 
         # Prepare the core element registration information
         with event(PREPARE_CORE_ELEMENT, master=True):
-            self.set_code_strings(self.user_function,
-                                  self.core_element.get_impl_type())
+            self.get_code_strings()
 
         with event(GET_FUNCTION_SIGNATURE, master=True):
             impl_signature, impl_type_args = self.get_signature()
@@ -894,20 +893,18 @@ class TaskMaster(object):
                 self.class_name = qualified_name[:-len(name) - 1]
                 # -1 to remove the last point
 
-    def set_code_strings(self, f, ce_type):
-        # type: (typing.Any, typing.Optional[str]) -> None
-        """ This function is used to set if the strings must be coded or not.
+    def get_code_strings(self):
+        # type: () -> None
+        """ This function is used to get if the strings must be coded or not.
 
-        IMPORTANT! modifies f adding __code_strings__ which is used in binding.
+        IMPORTANT! modify f adding __code_strings__ which is used in binding.
 
-        :param f: Function to be registered.
-        :param ce_type: Core element implementation type.
         :return: None
         """
+        ce_type = self.core_element.get_impl_type()
         default = IMPL_METHOD
         if ce_type is None or (isinstance(ce_type, str) and ce_type == ""):
             ce_type = default
-
         if ce_type == default or \
                 ce_type == IMPL_PYTHON_MPI or \
                 ce_type == IMPL_MULTI_NODE:
@@ -916,7 +913,7 @@ class TaskMaster(object):
             # MPI, BINARY, CONTAINER
             code_strings = False
 
-        f.__code_strings__ = code_strings
+        self.user_function.__code_strings__ = code_strings
 
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" %

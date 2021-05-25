@@ -183,6 +183,7 @@ public abstract class Tracer {
     public static boolean tracerAlreadyLoaded = false;
 
     private static int numPthreadsEnabled = 0;
+
     // Hashmap of the predecessors
     private static HashMap<Integer, ArrayList<Integer>> predecessorsMap;
 

@@ -150,9 +150,10 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
      * @param slaveWorkersNodeNames Slave resources for multi-node executions.
      */
     public GATJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener,
-        GATContext context, boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames) {
+        GATContext context, boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames,
+        List<Integer> predecessors, Integer numSuccessors) {
 
-        super(taskId, taskParams, impl, res, listener);
+        super(taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
         this.context = context;
         this.userNeeded = userNeeded;
         this.usingGlobus = usingGlobus;

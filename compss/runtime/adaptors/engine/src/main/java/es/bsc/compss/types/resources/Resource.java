@@ -117,7 +117,7 @@ public interface Resource extends Comparable<Resource> {
      * @return
      */
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
-        List<String> slaveWorkersNodeNames, JobListener listener);
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors);
 
     /**
      * Retrieves a given data.

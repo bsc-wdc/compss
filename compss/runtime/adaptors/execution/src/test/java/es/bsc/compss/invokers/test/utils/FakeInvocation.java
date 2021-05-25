@@ -132,6 +132,16 @@ public class FakeInvocation implements Invocation {
     }
 
     @Override
+    public List<Integer> getPredecessors() {
+        return null;
+    }
+
+    @Override
+    public Integer getNumSuccessors() {
+        return null;
+    }
+
+    @Override
     public String getParallelismSource() {
         return null;
     }

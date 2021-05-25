@@ -26,7 +26,9 @@ import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.Tracer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -131,10 +133,14 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         if (DEBUG) {
             LOGGER.debug(this.toString() + " starts job creation");
         }
+        ArrayList<Integer> predecessors = null;
+        if (Tracer.isActivated()) {
+            predecessors = Tracer.getPredecessors(this.task.getId());
+        }
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
         List<String> slaveNames = this.group.getSlavesNames();
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
-            slaveNames, listener);
+            slaveNames, listener, predecessors, this.task.getSuccessors().size());
         this.currentJob = job;
         job.setTransferGroupId(transferGroupId);
         job.setHistory(JobHistory.NEW);

@@ -136,9 +136,9 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
-        return new RemoteRESTAgentJob(this, taskId, taskParams, impl, res, listener);
+        return new RemoteRESTAgentJob(this, taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
     }
 
     @Override

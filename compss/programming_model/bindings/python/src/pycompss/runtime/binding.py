@@ -673,8 +673,8 @@ def process_task(signature,             # type: str
     :param time_out: Time for a task time out
     :return: The future object related to the task return
     """
-    app_id = 0
 
+    app_id = 0
     if __debug__:
         # Log the task submission values for debugging purposes.
         values_str = ' '.join(str(v) for v in values)

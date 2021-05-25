@@ -98,9 +98,9 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
-        return new WSJob(taskId, taskParams, impl, res, listener);
+        return new WSJob(taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
     }
 
     @Override

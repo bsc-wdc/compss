@@ -73,7 +73,7 @@ public class CommTask extends NIOTask {
         MethodResourceDescription reqs, List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId,
         JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut, CommResource orchestrator) {
         super(lang, workerDebug, impl, parallelismSource, hasTarget, numReturns, params, numParams, reqs,
-            slaveWorkersNodeNames, taskId, taskType, jobId, hist, transferGroupId, onFailure, timeOut);
+            slaveWorkersNodeNames, taskId, taskType, jobId, hist, transferGroupId, onFailure, timeOut, null, null);
 
         this.orchestrator = orchestrator;
         this.ceSignature = ceSignature;

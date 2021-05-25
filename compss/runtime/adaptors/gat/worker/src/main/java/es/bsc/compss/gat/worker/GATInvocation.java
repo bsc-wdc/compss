@@ -245,6 +245,16 @@ public class GATInvocation implements Invocation {
     }
 
     @Override
+    public List<Integer> getPredecessors() {
+        return null;
+    }
+
+    @Override
+    public Integer getNumSuccessors() {
+        return 0;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Parameters  (").append(arguments.size()).append(")\n");

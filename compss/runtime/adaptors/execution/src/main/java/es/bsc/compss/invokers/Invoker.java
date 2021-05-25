@@ -375,7 +375,6 @@ public abstract class Invoker implements ApplicationRunner {
     }
 
     private void emitStartTask() {
-        // TRACING: Emit start task
         if (Tracer.extraeEnabled()) {
             // +1 Because Invocation ID can't be 0 (0 signals end task)
             int coreId = this.invocation.getMethodImplementation().getCoreId() + 1;
@@ -386,7 +385,6 @@ public abstract class Invoker implements ApplicationRunner {
     }
 
     private void emitEndTask() {
-        // TRACING: Emit end task
         if (Tracer.extraeEnabled()) {
             Tracer.emitEventAndCounters(Tracer.EVENT_END, Tracer.getTaskEventsType());
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskSchedulingType());

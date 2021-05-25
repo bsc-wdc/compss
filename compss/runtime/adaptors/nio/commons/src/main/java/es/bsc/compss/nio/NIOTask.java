@@ -23,6 +23,7 @@ import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.util.Tracer;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -57,6 +58,9 @@ public class NIOTask implements Externalizable, Invocation {
     private OnFailure onFailure;
     private long timeOut;
 
+    private List<Integer> predecessors;
+    private Integer numSuccessors;
+
 
     /**
      * New NIO Task.
@@ -88,7 +92,7 @@ public class NIOTask implements Externalizable, Invocation {
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
         boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
         List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
-        int transferGroupId, OnFailure onFailure, long timeOut) {
+        int transferGroupId, OnFailure onFailure, long timeOut, List<Integer> predecessors, Integer numSuccessors) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -98,6 +102,8 @@ public class NIOTask implements Externalizable, Invocation {
         this.results = new LinkedList<>();
         this.onFailure = onFailure;
         this.timeOut = timeOut;
+        this.predecessors = predecessors;
+        this.numSuccessors = numSuccessors;
 
         Iterator<NIOParam> paramItr = params.descendingIterator();
 
@@ -269,6 +275,16 @@ public class NIOTask implements Externalizable, Invocation {
         return this.parallelismSource;
     }
 
+    @Override
+    public List<Integer> getPredecessors() {
+        return this.predecessors;
+    }
+
+    @Override
+    public Integer getNumSuccessors() {
+        return this.numSuccessors;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
@@ -292,6 +308,8 @@ public class NIOTask implements Externalizable, Invocation {
         this.transferGroupId = in.readInt();
         this.onFailure = (OnFailure) in.readObject();
         this.timeOut = in.readLong();
+        this.predecessors = (List<Integer>) in.readObject();
+        this.numSuccessors = (Integer) in.readObject();
     }
 
     @Override
@@ -317,6 +335,8 @@ public class NIOTask implements Externalizable, Invocation {
         out.writeInt(this.transferGroupId);
         out.writeObject(this.onFailure);
         out.writeLong(this.timeOut);
+        out.writeObject(this.predecessors);
+        out.writeObject(this.numSuccessors);
     }
 
     @Override

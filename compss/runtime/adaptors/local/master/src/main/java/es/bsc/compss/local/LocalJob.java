@@ -58,9 +58,9 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
      * @param listener Task listener.
      */
     public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
-        super(taskId, task, impl, res, listener);
+        super(taskId, task, impl, res, listener, predecessors, numSuccessors);
         this.taskType = impl.getTaskType();
         // Construct parameters
         final boolean hasTarget = this.taskParams.hasTargetObject();

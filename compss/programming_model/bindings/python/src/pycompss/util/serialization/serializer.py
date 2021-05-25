@@ -52,8 +52,15 @@ from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.serialization.extended_support import convert_to_generator
 from pycompss.util.serialization.extended_support import GeneratorIndicator
 from pycompss.util.objects.properties import object_belongs_to_module
-
+from pycompss.runtime.constants import SERIALIZATION_SIZE_EVENTS
+from pycompss.runtime.constants import DESERIALIZATION_SIZE_EVENTS
+from pycompss.runtime.constants import SERIALIZATION_OBJECT_NUM
+from pycompss.runtime.constants import DESERIALIZATION_OBJECT_NUM
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from io import BytesIO
+import os
+import struct
+import sys
 
 DISABLE_GC = False
 
@@ -72,6 +79,7 @@ except ImportError:
 
 try:
     import numpy
+
     NUMPY_AVAILABLE = True
 except ImportError:
     if IS_PYTHON3:
@@ -82,6 +90,7 @@ except ImportError:
 
 try:
     import pyarrow
+
     PYARROW_AVAILABLE = True
 except ImportError:
     pyarrow = None
@@ -96,6 +105,7 @@ LIB2IDX = {
     pyarrow: 3
 }
 IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
+platform_c_maxint = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)
 
 
 def get_serializer_priority(obj=()):
@@ -134,6 +144,10 @@ def serialize_to_handler(obj, handler):
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
+    emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, 0)
+    if hasattr(handler, 'name'):
+        emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, (abs(hash(os.path.basename(handler.name))) %
+                                                              platform_c_maxint))
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -148,6 +162,7 @@ def serialize_to_handler(obj, handler):
         handler.seek(original_position)
         serializer = serializer_priority[i]
         handler.write(bytearray('%04d' % LIB2IDX[serializer], 'utf8'))
+
         # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
             try:
@@ -179,7 +194,8 @@ def serialize_to_handler(obj, handler):
             except Exception:  # noqa
                 success = False
         i += 1
-
+    emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, handler.tell())
+    emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, 0)
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()
@@ -255,6 +271,10 @@ def deserialize_from_handler(handler):
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
+    emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
+    if hasattr(handler, 'name'):
+        emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, (abs(hash(os.path.basename(handler.name))) %
+                                                                platform_c_maxint))
     original_position = None
     try:
         original_position = handler.tell()
@@ -287,6 +307,8 @@ def deserialize_from_handler(handler):
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
+        emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, handler.tell())
+        emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, 0)
         return ret, close_handler
     except Exception:
         if DISABLE_GC:

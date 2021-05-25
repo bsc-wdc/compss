@@ -56,8 +56,8 @@ import java.util.List;
 class CommAgentJob extends NIOJob {
 
     public CommAgentJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
-        super(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
+        super(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener, predecessors, numSuccessors);
     }
 
     @Override

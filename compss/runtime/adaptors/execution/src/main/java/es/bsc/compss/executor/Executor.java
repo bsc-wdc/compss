@@ -1145,7 +1145,15 @@ public class Executor implements Runnable, InvocationRunner {
      * ---------------------- TRACE EVENTS MAGEMENT --------------------------------
      */
     private void emitingTaskStartEvents() {
-        // Adding multiply by numNodes for the multinode case.
+        // Emitting RECIEVE communication for task dependency
+        if (Tracer.isActivated()) {
+            if (invocation.getPredecessors() != null) {
+                for (Integer i : invocation.getPredecessors()) {
+                    Tracer.emitCommEvent(false, 123, 1, i, 0);
+                }
+            }
+        }
+
         int numNodes = 1;
         if (invocation.getSlaveNodesNames() != null) {
             numNodes = invocation.getSlaveNodesNames().size() + 1;
@@ -1170,7 +1178,12 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void emitTaskEndEvents() {
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getCPUCountEventsType());
+        // Emitting SEND communication for task dependency
+        if (Tracer.isActivated()) {
+            for (int i = 0; i < this.invocation.getNumSuccessors(); i++) {
+                Tracer.emitCommEvent(true, 123, 1, invocation.getTaskId(), 0);
+            }
+        }
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getGPUCountEventsType());
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getMemoryEventsType());
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getDiskBWEventsType());

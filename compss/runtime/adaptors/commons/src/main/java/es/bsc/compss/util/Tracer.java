@@ -38,6 +38,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -103,6 +105,10 @@ public abstract class Tracer {
     private static final String AGENT_EVENTS_TYPE_DESC = "Agents events";
     private static final String INSIDE_WORKER_DESC = "Events inside worker";
     private static final String BINDING_MASTER_DESC = "Binding events";
+    private static final String BINDING_SERIALIZATION_SIZE_DESC = "Binding serialization size events";
+    private static final String BINDING_DESERIALIZATION_SIZE_DESC = "Binding deserialization size events";
+    private static final String BINDING_SERIALIZATION_OBJECT_NUM = "Binding serialization object number";
+    private static final String BINDING_DESERIALIZATION_OBJECT_NUM = "Binding deserialization object number";
     private static final String TASKTYPE_DESC = "Type of task";
     private static final String READY_COUNT_DESC = "Ready queue count";
     private static final String CPU_COUNT_DESC = "Number of requested CPUs";
@@ -137,6 +143,10 @@ public abstract class Tracer {
     protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160; // Python view
     protected static final int INSIDE_WORKER_TYPE = 60_000_200;
     protected static final int BINDING_MASTER_TYPE = 60_000_300;
+    protected static final int BINDING_SERIALIZATION_SIZE_TYPE = 60_000_600;
+    protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 60_000_601;
+    protected static final int BINDING_SERIALIZATION_OBJECT_NUM_TYPE = 60_000_700;
+    protected static final int BINDING_DESERIALIZATION_OBJECT_NUM_TYPE = 60_000_701;
 
     public static final int EVENT_END = 0;
 
@@ -174,6 +184,9 @@ public abstract class Tracer {
 
     private static int numPthreadsEnabled = 0;
 
+    // Hashmap of the predecessors
+    private static HashMap<Integer, ArrayList<Integer>> predecessorsMap;
+
 
     /**
      * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
@@ -196,6 +209,7 @@ public abstract class Tracer {
 
         hostId = new AtomicInteger(1);
         hostToSlots = new HashMap<>();
+        predecessorsMap = new HashMap<>();
 
         if (!logDirPath.endsWith(File.separator)) {
             logDirPath += logDirPath;
@@ -460,6 +474,22 @@ public abstract class Tracer {
         return TraceEvent.valueOf(eventType);
     }
 
+    public static boolean taskHasPredecessors(Integer taskId) {
+        return predecessorsMap.containsKey(taskId);
+    }
+
+    public static ArrayList<Integer> getPredecessors(int taskId) {
+        return predecessorsMap.get(taskId);
+    }
+
+    public static void removePredecessor(int taskId) {
+        predecessorsMap.remove(taskId);
+    }
+
+    public static void setPredecessors(int taskId, ArrayList<Integer> predecessors) {
+        predecessorsMap.put(taskId, predecessors);
+    }
+
     /**
      * Returns the corresponding event ID for a TD request event type.
      *
@@ -715,6 +745,10 @@ public abstract class Tracer {
         defineEventsForType(BINDING_MASTER_TYPE, BINDING_MASTER_DESC);
         defineEventsForType(THREAD_IDENTIFICATION_EVENTS, RUNTIME_THREAD_EVENTS_DESC);
         defineEventsForType(EXECUTOR_COUNTS, EXECUTOR_COUNTS_DESC);
+        defineEventsForType(BINDING_SERIALIZATION_SIZE_TYPE, BINDING_SERIALIZATION_SIZE_DESC);
+        defineEventsForType(BINDING_DESERIALIZATION_SIZE_TYPE, BINDING_DESERIALIZATION_SIZE_DESC);
+        defineEventsForType(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, BINDING_SERIALIZATION_OBJECT_NUM);
+        defineEventsForType(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE, BINDING_DESERIALIZATION_OBJECT_NUM);
 
         defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
         // Definition of Scheduling and Transfer time events

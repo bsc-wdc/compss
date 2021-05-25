@@ -181,13 +181,12 @@ public enum TraceEvent {
     PYTHON_PREPARE_CORE_ELEMENT(105, Tracer.BINDING_MASTER_TYPE, "Prepare Core Element"), // Prepare Core Element
     PYTHON_GET_FUNCTION_SIGNATURE(106, Tracer.BINDING_MASTER_TYPE, "Check function signature"),
     PYTHON_UPDATE_CORE_ELEMENT(107, Tracer.BINDING_MASTER_TYPE, "Update Core Element"), // Update Core Element
-    PYTHON_GET_COMPUTING_NODES(108, Tracer.BINDING_MASTER_TYPE, "Get computing nodes"), // Get computing nodes
+    PYTHON_PROCESS_OTHER_ARGUMENTS(108, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
     PYTHON_PROCESS_RETURN(109, Tracer.BINDING_MASTER_TYPE, "Process return"), // Process return
-    PYTHON_PROCESS_OTHER_ARGUMENTS(110, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
-    PYTHON_BUILD_RETURN_OBJECTS(111, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
-    PYTHON_SERIALIZE_OBJECTS(112, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
-    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(113, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
-    PYTHON_ATTRIBUTES_CLEANUP(114, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
+    PYTHON_BUILD_RETURN_OBJECTS(110, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
+    PYTHON_SERIALIZE_OBJECTS(111, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
+    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(112, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
+    PYTHON_ATTRIBUTES_CLEANUP(113, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
 
     // Agent events
     AGENT_ADD_RESOURCE(6002, Tracer.AGENT_EVENTS_TYPE, "Add resources agent"), // Add resources

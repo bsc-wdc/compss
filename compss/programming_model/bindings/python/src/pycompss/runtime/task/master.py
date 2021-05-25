@@ -337,7 +337,8 @@ class TaskMaster(object):
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
         with event(EXTRACT_CORE_ELEMENT, master=True):
-            pre_defined_ce = self.extract_core_element(kwargs)
+            cek = kwargs.pop(CORE_ELEMENT_KEY, None)
+            pre_defined_ce = self.extract_core_element(cek)
 
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
@@ -553,8 +554,8 @@ class TaskMaster(object):
             update_tasks_code_file(self.user_function, path)
             print("Found task: " + str(self.user_function.__name__))
 
-    def extract_core_element(self, kwargs):
-        # type: (dict) -> typing.Tuple[bool, bool]
+    def extract_core_element(self, cek):
+        # type: (typing.Optional[CE]) -> typing.Tuple[bool, bool]
         """ Get or instantiate the Task's core element.
 
         Extract the core element if created in a higher level decorator,
@@ -567,12 +568,9 @@ class TaskMaster(object):
         """
         pre_defined_core_element = False
         upper_decorator = False
-        if CORE_ELEMENT_KEY in kwargs:
+        if cek:
             # Core element has already been created in a higher level decorator
-            self.core_element = kwargs[CORE_ELEMENT_KEY]
-            # Remove the core element from kwargs to avoid issues processing
-            # the parameters (process_parameters function).
-            kwargs.pop(CORE_ELEMENT_KEY)
+            self.core_element = cek
             pre_defined_core_element = True
             upper_decorator = True
         elif self.core_element:

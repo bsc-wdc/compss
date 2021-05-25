@@ -930,22 +930,25 @@ class TaskMaster(object):
 
         :return: Implementation signature and implementation type arguments.
         """
+        module_name = str(self.module_name)
+        class_name = str(self.class_name)
+        function_name = str(self.function_name)
         if self.class_name != "":
             # Within class or subclass
-            impl_signature = ".".join([str(self.module_name),
-                                       str(self.class_name),
-                                       str(self.function_name)])
-            impl_type_args = [".".join([str(self.module_name),
-                                        str(self.class_name)]),
-                              self.function_name]
+            impl_signature = ".".join([module_name,
+                                       class_name,
+                                       function_name])
+            impl_type_args = [".".join([module_name,
+                                        class_name]),
+                              function_name]
         else:
             # The task is defined within the main app file.
             # Not in a class or subclass
             # This case can be reached in Python 3, where particular
             # frames are included, but not class names found.
-            impl_signature = ".".join([str(self.module_name),
-                                       str(self.function_name)])
-            impl_type_args = [str(self.module_name), str(self.function_name)]
+            impl_signature = ".".join([module_name,
+                                       function_name])
+            impl_type_args = [module_name, function_name]
         return impl_signature, impl_type_args
 
     def update_core_element(self, impl_signature, impl_type_args,

@@ -279,18 +279,6 @@ class TaskMaster(TaskCommons):
         # calling the same task concurrently
         MASTER_LOCK.acquire()
 
-        # Compute the function path, class (if any), and name
-        with event(GET_FUNCTION_INFORMATION, master=True):
-            self.compute_user_function_information()
-
-        with event(GET_FUNCTION_SIGNATURE, master=True):
-            impl_signature, impl_type_args = self.get_signature()
-
-        if impl_signature not in TRACING_TASK_NAME_TO_ID:
-            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID)+1
-
-        emit_manual_event_explicit(TASK_FUNC_TYPE, TRACING_TASK_NAME_TO_ID[impl_signature])
-
         # Check if we are in interactive mode and update if needed
         if not self.interactive:
             self.interactive, self.module = self.check_if_interactive()
@@ -332,10 +320,22 @@ class TaskMaster(TaskCommons):
         with event(PROCESS_PARAMETERS, master=True):
             self.process_parameters(*args, **kwargs)
 
+        # Compute the function path, class (if any), and name
+        with event(GET_FUNCTION_INFORMATION, master=True):
+            self.compute_user_function_information()
+
         # Prepare the core element registration information
         with event(PREPARE_CORE_ELEMENT, master=True):
             self.set_code_strings(self.user_function,
                                   self.core_element.get_impl_type())
+
+        with event(GET_FUNCTION_SIGNATURE, master=True):
+            impl_signature, impl_type_args = self.get_signature()
+
+        if impl_signature not in TRACING_TASK_NAME_TO_ID:
+            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID)+1
+
+        emit_manual_event_explicit(TASK_FUNC_TYPE, TRACING_TASK_NAME_TO_ID[impl_signature])
 
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with

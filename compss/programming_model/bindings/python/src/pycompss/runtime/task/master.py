@@ -346,9 +346,7 @@ class TaskMaster(object):
         # values to them if necessary
         with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
             if not self.function_arguments:
-                self.function_arguments = self.inspect_user_function_arguments()                   # noqa: E501
-            self.param_args, self.param_varargs, _, self.param_defaults = self.function_arguments  # noqa: E501
-            # TODO: Why this fails with first python test?
+                self.inspect_user_function_arguments()
             # It will be easier to deal with functions if we pretend that all
             # have the signature f(positionals, *variadic, **named). This is
             # why we are substituting Nones with default stuff.
@@ -582,7 +580,7 @@ class TaskMaster(object):
         return pre_defined_core_element, upper_decorator
 
     def inspect_user_function_arguments(self):
-        # type: () -> tuple
+        # type: () -> None
         """ Get user function arguments.
 
         Inspect the arguments of the user function and store them.
@@ -601,7 +599,7 @@ class TaskMaster(object):
         except TypeError:
             # This is a numba jit declared task
             arguments = self._getargspec(self.user_function.py_func)
-        return arguments
+        self.param_args, self.param_varargs, _, self.param_defaults = arguments
 
     @staticmethod
     def _getargspec(function):

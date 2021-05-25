@@ -182,7 +182,9 @@ public class ExecutionPlatform implements ExecutorContext {
                     if (Tracer.basicModeEnabled()) {
                         Tracer.disablePThreads(1);
                     }
-                    Tracer.emitEvent(TraceEvent.TIMER_THREAD_ID.getId(), TraceEvent.TIMER_THREAD_ID.getType());
+                    if (Tracer.extraeEnabled()) {
+                        Tracer.emitEvent(TraceEvent.TIMER_THREAD_ID.getId(), TraceEvent.TIMER_THREAD_ID.getType());
+                    }
                 }
             }, 0);
         }
@@ -195,7 +197,9 @@ public class ExecutionPlatform implements ExecutorContext {
 
                 @Override
                 public void run() {
-                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TIMER_THREAD_ID.getType());
+                    if (Tracer.extraeEnabled()) {
+                        Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TIMER_THREAD_ID.getType());
+                    }
                     sem.release();
                 }
             }, 0);

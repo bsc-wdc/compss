@@ -17,10 +17,11 @@
 package es.bsc.compss.worker;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.util.Tracer;
+
 import es.bsc.compss.worker.COMPSsWorker;
-
 import java.util.TimerTask;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,7 +40,12 @@ public class TimeOutTask extends TimerTask {
     @Override
     public void run() {
         LOGGER.info("Task " + this.taskId + " timed out");
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.TASK_TIMEOUT.getId(), TraceEvent.TASK_TIMEOUT.getType());
+        }
         COMPSsWorker.setCancelled(this.taskId, CancelReason.TIMEOUT);
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_TIMEOUT.getType());
+        }
     }
-
 }

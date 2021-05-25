@@ -635,8 +635,19 @@ class TaskMaster(object):
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
-        self.computing_nodes = self.parse_computing_nodes(kwargs.pop(COMPUTING_NODES, 1))  # noqa: E501
-        self.processes_per_node = self.parse_processes_per_node(kwargs.pop(PROCESSES_PER_NODE, 1))  # noqa: E501
+        cns = kwargs.pop(COMPUTING_NODES, 1)
+        if cns != 1:
+            # Non default => parse
+            self.computing_nodes = self.parse_computing_nodes(cns)
+        else:
+            self.computing_nodes = 1
+        processes_per_node = kwargs.pop(PROCESSES_PER_NODE, 1)
+        if processes_per_node != 1:
+            # Non default => parse
+            self.processes_per_node = self.parse_processes_per_node(processes_per_node)
+        else:
+            self.processes_per_node = 1
+        # Check processes per node
         if self.processes_per_node > 1:
             self.validate_processes_per_node()
             self.computing_nodes = int(self.computing_nodes /
@@ -650,8 +661,16 @@ class TaskMaster(object):
             self.on_failure = kwargs.pop(ON_FAILURE, "RETRY")
         self.defaults = kwargs.pop(DEFAULTS, {})
         # Deal with reductions
-        self.is_reduce = self.parse_is_reduce(kwargs.pop(IS_REDUCE, False))
-        self.chunk_size = self.parse_chunk_size(kwargs.pop(CHUNK_SIZE, 0))
+        is_reduce = kwargs.pop(IS_REDUCE, False)
+        if is_reduce is not False:
+            self.is_reduce = self.parse_is_reduce(is_reduce)
+        else:
+            self.is_reduce = False
+        chunk_size = kwargs.pop(CHUNK_SIZE, 0)
+        if chunk_size != 0:
+            self.chunk_size = self.parse_chunk_size(chunk_size)
+        else:
+            self.chunk_size = 0
         # It is important to know the name of the first argument to determine
         # if we are dealing with a class or instance method (i.e: first
         # argument is named self)
@@ -737,11 +756,11 @@ class TaskMaster(object):
             param = get_parameter_copy(varargs_direction)
         elif is_kwarg(arg_name):
             real_name = get_name_from_kwarg(arg_name)
-            default_direction = get_default_direction(real_name,
+            default_parameter = get_default_direction(real_name,
                                                       self.decorator_arguments,
                                                       self.param_args)
             param = self.decorator_arguments.get(real_name,
-                                                 default_direction)
+                                                 default_parameter)
         else:
             # The argument is named, check its direction
             # Default value = IN if not class or instance method and
@@ -751,11 +770,11 @@ class TaskMaster(object):
             # will have priority over the default
             # direction resolution, even if this implies a contradiction
             # with the target_direction flag
-            default_direction = get_default_direction(arg_name,
+            default_parameter = get_default_direction(arg_name,
                                                       self.decorator_arguments,
                                                       self.param_args)
             param = self.decorator_arguments.get(arg_name,
-                                                 default_direction)
+                                                 default_parameter)
 
         # If the parameter is a FILE then its type will already be defined,
         # and get_compss_type will misslabel it as a parameter.TYPE.STRING

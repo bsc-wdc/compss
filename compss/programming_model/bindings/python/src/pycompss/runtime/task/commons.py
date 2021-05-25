@@ -73,7 +73,7 @@ def get_varargs_direction(param_varargs, decorator_arguments):
 
 
 def get_default_direction(var_name, decorator_arguments, param_args):
-    # type: (str, typing.Any, typing.List[typing.Any]) -> Parameter
+    # type: (str, typing.Dict[str, typing.Any], typing.List[typing.Any]) -> Parameter
     """ Returns the default direction for a given parameter.
 
     :param var_name: Variable name.

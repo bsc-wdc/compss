@@ -361,8 +361,8 @@ class TaskMaster(object):
             if self.param_defaults is None:
                 self.param_defaults = ()
 
-        # Pop returns from kwargs
-        explicit_num_returns = kwargs.pop(RETURNS, None)
+            # Pop returns from kwargs
+            explicit_num_returns = kwargs.pop(RETURNS, None)
 
         # Process the parameters, give them a proper direction
         with event(PROCESS_PARAMETERS, master=True):

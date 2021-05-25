@@ -186,7 +186,9 @@ public enum TraceEvent {
     PYTHON_BUILD_RETURN_OBJECTS(110, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
     PYTHON_SERIALIZE_OBJECTS(111, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
     PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(112, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
-    PYTHON_ATTRIBUTES_CLEANUP(113, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
+    PYTHON_SET_SIGNATURE(113, Tracer.BINDING_MASTER_TYPE, "Set signature"), // Set signature
+    PYTHON_PROCESS_TASK_BINDING(114, Tracer.BINDING_MASTER_TYPE, "Process task binding"), // Process task
+    PYTHON_ATTRIBUTES_CLEANUP(115, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
 
     // Agent events
     AGENT_ADD_RESOURCE(6002, Tracer.AGENT_EVENTS_TYPE, "Add resources agent"), // Add resources

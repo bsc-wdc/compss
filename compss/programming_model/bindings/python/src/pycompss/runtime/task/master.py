@@ -79,6 +79,8 @@ from pycompss.runtime.constants import PROCESS_OTHER_ARGUMENTS
 from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
 from pycompss.runtime.constants import SERIALIZE_OBJECT
 from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
+from pycompss.runtime.constants import SET_SIGNATURE
+from pycompss.runtime.constants import PROCESS_TASK_BINDING
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.object_tracker import OT_track
@@ -444,42 +446,45 @@ class TaskMaster(object):
             compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
         # Signature and other parameters:
-        # Get path:
-        if self.class_name == "":
-            path = self.module_name
-        else:
-            path = ".".join([str(self.module_name), str(self.class_name)])
-        signature = ".".join([str(path), str(self.function_name)])
+        with event(SET_SIGNATURE, master=True):
+            # Get path:
+            if self.class_name == "":
+                path = self.module_name
+            else:
+                path = ".".join([str(self.module_name), str(self.class_name)])
+            signature = ".".join([str(path), str(self.function_name)])
 
-        if __debug__:
-            logger.debug("TASK: %s of type %s, in module %s, in class %s" %
-                         (self.function_name, self.function_type,
-                          self.module_name, self.class_name))
+            if __debug__:
+                logger.debug("TASK: %s of type %s, in module %s, in class %s" %
+                             (self.function_name, self.function_type,
+                              self.module_name, self.class_name))
 
         is_http = self.core_element.get_impl_type() == "HTTP"
-        binding.process_task(
-            signature,
-            has_target,
-            names,
-            values,
-            num_returns,
-            compss_types,
-            compss_directions,
-            compss_streams,
-            compss_prefixes,
-            content_types,
-            weights,
-            keep_renames,
-            has_priority,
-            self.computing_nodes,
-            self.is_reduce,
-            self.chunk_size,
-            is_replicated,
-            is_distributed,
-            self.on_failure,
-            time_out,
-            is_http
-        )
+        # Process the task
+        with event(PROCESS_TASK_BINDING, master=True):
+            binding.process_task(
+                signature,
+                has_target,
+                names,
+                values,
+                num_returns,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+                has_priority,
+                self.computing_nodes,
+                self.is_reduce,
+                self.chunk_size,
+                is_replicated,
+                is_distributed,
+                self.on_failure,
+                time_out,
+                is_http
+            )
 
         # Remove unused attributes from the memory
         with event(ATTRIBUTES_CLEANUP, master=True):

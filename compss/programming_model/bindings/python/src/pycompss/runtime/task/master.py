@@ -390,7 +390,8 @@ class TaskMaster(object):
         # the new implementation signature).
         if not self.registered or self.signature != impl_signature:
             with event(UPDATE_CORE_ELEMENT, master=True):
-                self.update_core_element(impl_signature, impl_type_args,
+                self.update_core_element(impl_signature,
+                                         impl_type_args,
                                          pre_defined_ce)
             if context.is_loading():
                 # This case will only happen with @implements since it calls
@@ -985,15 +986,15 @@ class TaskMaster(object):
         if pre_defined_core_element:
             # Core element has already been created in an upper decorator
             # (e.g. @implements and @compss)
-            get_ce_signature = self.core_element.get_ce_signature
-            get_impl_constraints = self.core_element.get_impl_constraints
-            get_impl_type = self.core_element.get_impl_type
-            get_impl_type_args = self.core_element.get_impl_type_args
-            get_impl_io = self.core_element.get_impl_io
-            if get_ce_signature() == "":
+            _ce_signature = self.core_element.get_ce_signature()
+            _impl_constraints = self.core_element.get_impl_constraints()
+            _impl_type = self.core_element.get_impl_type()
+            _impl_type_args = self.core_element.get_impl_type_args()
+            _impl_io = self.core_element.get_impl_io()
+            if _ce_signature == "":
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
-            elif get_ce_signature() != impl_signature and not upper_decorator:
+            elif _ce_signature != impl_signature and not upper_decorator:
                 # Specific for inheritance - not for @implements.
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
@@ -1004,33 +1005,32 @@ class TaskMaster(object):
                 # a signature
                 set_impl_signature(impl_signature)
                 set_impl_type_args(impl_type_args)
-            if not get_impl_constraints():
+            if not _impl_constraints:
                 set_impl_constraints(impl_constraints)
-            if not get_impl_type():
+            if not _impl_type:
                 set_impl_type(impl_type)
-            if not get_impl_type_args():
+            if not _impl_type_args:
                 set_impl_type_args(impl_type_args)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
-            if get_impl_type() == IMPL_PYTHON_MPI:
-                self.check_layout_params(get_impl_type_args())
+            if _impl_type == IMPL_PYTHON_MPI:
+                self.check_layout_params(_impl_type_args)
                 set_impl_signature(".".join([IMPL_MPI, impl_signature]))
-                impl_type_args_new = get_impl_type_args()
-                if impl_type_args_new:
-                    set_impl_type_args(impl_type_args + impl_type_args_new[1:])
+                if _impl_type_args:
+                    set_impl_type_args(impl_type_args + _impl_type_args[1:])
                 else:
                     set_impl_type_args(impl_type_args)
-            if not get_impl_io():
+            if not _impl_io:
                 set_impl_io(impl_io)
         else:
             # @task is in the top of the decorators stack.
             # Update the empty core_element
-            set_ce_signature(impl_signature)
-            set_impl_signature(impl_signature)
-            set_impl_constraints(impl_constraints)
-            set_impl_type(impl_type)
-            set_impl_type_args(impl_type_args)
-            set_impl_io(impl_io)
+            self.core_element = CE(impl_signature,
+                                   impl_signature,
+                                   impl_constraints,
+                                   impl_type,
+                                   impl_io,
+                                   impl_type_args)
 
     def check_layout_params(self, impl_type_args):
         # type: (list) -> None

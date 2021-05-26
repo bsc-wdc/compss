@@ -25,6 +25,7 @@ PyCOMPSs Binding - Commons
 
 import sys
 import os
+import typing
 from tempfile import mkdtemp
 
 ########################################
@@ -101,7 +102,7 @@ _TEMP_OBJ_PREFIX = '/compss-serialized-obj_'
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 _OBJECT_CONVERSION = False
-TRACING_TASK_NAME_TO_ID = dict()
+TRACING_TASK_NAME_TO_ID = dict()  # type: typing.Dict[str, int]
 
 ##########################################################
 # GETTERS AND SETTERS (see launch.py and interactive.py) #

@@ -24,7 +24,6 @@ PyCOMPSs Tracing helpers
     tracing events emission.
 """
 import time
-import typing
 from contextlib import contextmanager
 from pycompss.util.context import in_master
 from pycompss.util.context import in_worker
@@ -125,9 +124,7 @@ class emit_event(object):  # noqa
         self.gpu_affinity = gpu_affinity
 
     def __call__(self, f):
-        # type: (typing.Any) -> typing.Any
         def wrapped_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
             if TRACING:
                 with event(self.event_id, self.master,
                            self.inside, self.cpu_affinity, self.gpu_affinity):

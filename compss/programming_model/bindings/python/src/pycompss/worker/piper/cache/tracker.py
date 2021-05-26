@@ -41,6 +41,9 @@ try:
     import numpy as np
 except ImportError:
     np = None
+from pycompss.worker.commons.constants import TASK_EVENTS_SERIALIZE_SIZE_CACHE
+from pycompss.worker.commons.constants import TASK_EVENTS_DESERIALIZE_SIZE_CACHE
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
 
 
 HEADER = "[PYTHON CACHE] "
@@ -241,6 +244,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     :param identifier: Object identifier.
     :return: The object from cache.
     """
+    emit_manual_event_explicit(TASK_EVENTS_DESERIALIZE_SIZE_CACHE, 0)
     identifier = __get_file_name__(identifier)
     if __debug__:
         logger.debug(HEADER + "Retrieving: " + str(identifier))
@@ -262,6 +266,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
         raise PyCOMPSsException("Unknown cacheable type.")
     if __debug__:
         logger.debug(HEADER + "Retrieved: " + str(identifier))
+    emit_manual_event_explicit(TASK_EVENTS_DESERIALIZE_SIZE_CACHE, len(existing_shm.buf))
     cache_ids[identifier][4] = obj_hits + 1
     return output, existing_shm
 
@@ -302,6 +307,7 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     try:
         inserted = True
         if isinstance(obj, np.ndarray):
+            emit_manual_event_explicit(TASK_EVENTS_SERIALIZE_SIZE_CACHE, 0)
             shape = obj.shape
             d_type = obj.dtype
             size = obj.nbytes
@@ -311,11 +317,13 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             new_cache_id = shm.name
             cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa: E501
         elif isinstance(obj, list):
+            emit_manual_event_explicit(TASK_EVENTS_SERIALIZE_SIZE_CACHE, 0)
             sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
             cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa: E501
         elif isinstance(obj, tuple):
+            emit_manual_event_explicit(TASK_EVENTS_SERIALIZE_SIZE_CACHE, 0)
             sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
@@ -332,6 +340,8 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             inserted = False
             if __debug__:
                 logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
+        if inserted:
+            emit_manual_event_explicit(TASK_EVENTS_SERIALIZE_SIZE_CACHE, size)
         if __debug__ and inserted:
             logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
     except KeyError as e:  # noqa

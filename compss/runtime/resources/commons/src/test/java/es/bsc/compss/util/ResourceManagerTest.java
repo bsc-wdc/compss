@@ -61,6 +61,12 @@ public class ResourceManagerTest {
         public <T extends WorkerResourceDescription> void updatedResource(Worker<T> r, ResourceUpdate<T> modification) {
 
         }
+
+        @Override
+        public <T extends WorkerResourceDescription> void restartedResource(Worker<T> r,
+            ResourceUpdate<T> modification) {
+
+        }
     };
 
 

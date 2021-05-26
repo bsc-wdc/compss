@@ -268,24 +268,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
-        if (REMOVE_WD) {
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-
-                @Override
-                public void run() {
-                    // Remove workingDir
-                    if (WORKER_LOGGER_DEBUG) {
-                        WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + workingDir);
-                    }
-                    try {
-                        removeWorkingDir(workingDir);
-                    } catch (IOException ioe) {
-                        WORKER_LOGGER.error("Exception", ioe);
-                    }
-                }
-
-            });
-        }
     }
 
     private void removeWorkingDir(String workingDir) throws IOException {
@@ -748,6 +730,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         TM.shutdown(true, closingConnection);
+
+        try {
+            removeWorkingDir(workingDir);
+            WORKER_LOGGER.debug(" Working Dir removed:" + workingDir);
+        } catch (IOException e) {
+            WORKER_LOGGER.error("Removing Worker Dir failed:" + workingDir);
+        }
 
         WORKER_LOGGER.debug("Finish shutdown method on worker");
     }
@@ -1313,6 +1302,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error receiving remove obsoletes command. Not handeled");
 
+    }
+
+    @Override
+    public void workerPongReceived(String nodeName) {
+        // not necessary, handled only on the master
+    }
+
+    @Override
+    public void handleNodeIsDownError(String nodeName) {
+        // not necessary, handled only on the master
     }
 
     @Override

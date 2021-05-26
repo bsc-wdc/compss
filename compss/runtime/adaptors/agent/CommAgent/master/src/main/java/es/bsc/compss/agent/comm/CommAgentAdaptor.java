@@ -144,6 +144,12 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
         this.ownAgent.lostNode(node);
     }
 
+    @Override
+    public boolean isMyUuid(String uuid, String nodeName) {
+        // This is used on NIOWorker to check sent UUID against worker UUID
+        return true;
+    }
+
     protected void retrieveAdditionalJobFiles(Connection connection, boolean success, int jobId, int taskId,
         JobHistory history) {
         // Agents do not retrieve information of how the job finished.

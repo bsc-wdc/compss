@@ -237,4 +237,9 @@ public class ServiceInstance extends COMPSsWorker {
     public void removeObsoletes(List<MultiURI> obsoletes) {
         // No need to do anything
     }
+
+    @Override
+    public void verifyNodeIsRunning() {
+        // TODO should be verified that the worker is up.
+    }
 }

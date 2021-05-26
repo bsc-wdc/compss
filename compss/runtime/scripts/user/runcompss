@@ -34,6 +34,7 @@ DEFAULT_GRAPH_ARGUMENT=true
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_TRACING_ARGUMENT=${TRACING_BASIC}
 DEFAULT_DEBUGGER_ARGUMENT=true
+DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
 
 APPLICATION_ERROR="ERROR: Application name not provided"
 LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c or python"
@@ -175,9 +176,9 @@ show_opts() {
                                             Default: false
     --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
                                             Default: ${DEFAULT_PYTHON_INTERPRETER} Version: ${DEFAULT_PYTHON_VERSION}
-    --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
+    --python_propagate_virtual_environment=<bool>  Propagate the master virtual environment to the workers (true/false).
                                                    Default: ${DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT}
-    --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
+    --python_mpi_worker=<bool>              Use MPI to run the python worker instead of multiprocessing. (true/false).
                                             Default: ${DEFAULT_PYTHON_MPI_WORKER}
     --python_memory_profile                 Generate a memory profile of the master.
                                             Default: ${DEFAULT_PYTHON_MEMORY_PROFILE}
@@ -186,6 +187,8 @@ show_opts() {
                                             Default: ${DEFAULT_PYTHON_WORKER_CACHE}
     --wall_clock_limit=<int>		    Maximum duration of the application (in seconds).
     					    Default: ${DEFAULT_WALL_CLOCK_LIMIT}
+    --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
+                                            Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -382,6 +385,10 @@ get_args() {
           monitoring)
             # Value between monitor steps (ms)
             monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+            ;;
+          shutdown_in_node_failure=*)
+            # Value between monitor steps (ms)
+            shutdown_in_node_failure=${OPTARG//shutdown_in_node_failure=/}
             ;;
           comm=*)
             # Communication adaptor main class
@@ -587,6 +594,10 @@ check_args() {
     lang=python
   else
     arguments_error "${LANGUAGE_ERROR}"
+  fi
+
+  if [ -z "$shutdown_in_node_failure" ]; then
+    shutdown_in_node_failure=${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
   fi
 
   check_compss_setup

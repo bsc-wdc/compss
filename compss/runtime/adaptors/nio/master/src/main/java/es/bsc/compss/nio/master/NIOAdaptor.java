@@ -138,6 +138,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final ConcurrentMap<Integer, NIOJob> RUNNING_JOBS = new ConcurrentHashMap<>();
 
+    private static final ConcurrentMap<String, NIOWorkerNode> ONGOING_WORKER_PINGS = new ConcurrentHashMap<>();
+
     private static final Map<Integer, TransferGroup> PENDING_TRANSFER_GROUPS = new HashMap<>();
 
     private static final Map<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
@@ -419,6 +421,15 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         worker.submitTask(job, obsoleteRenamings);
     }
 
+    protected static boolean registerOngoingWorkerPing(NIOWorkerNode workerNode) {
+        if (ONGOING_WORKER_PINGS.get(workerNode.getName()) != null) {
+            return false;
+        }
+        LOGGER.debug("Registering Worker Ping: " + workerNode.getName());
+        ONGOING_WORKER_PINGS.put(workerNode.getName(), workerNode);
+        return true;
+    }
+
     protected static void cancelTask(NIOJob job) throws UnstartedNodeException {
         LOGGER.debug("NIO cancelling running job " + job.getJobId());
         Resource res = job.getResource();
@@ -463,6 +474,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         } else {
             LOGGER.warn("WARN: worker starter for worker " + nodeName + " is null.");
         }
+        ONGOING_WORKER_PINGS.remove(nodeName);
     }
 
     @Override
@@ -1041,10 +1053,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleExecutorShutdownCommandError(Connection c, CommandExecutorShutdown commandExecutorShutdown) {
-        // TODO Handle this error. Currently invoking unhandeled error
-        LOGGER.error("Error sending Executor Shutdown command. Not handeled");
-        unhandeledError(c);
-
+        LOGGER.error("Error sending Executor Shutdown command.");
+        ClosingExecutor closing = STOPPING_EXECUTORS.remove(c);
+        ExecutorShutdownListener listener = closing.listener;
+        listener.notifyFailure(new Exception("Error sending Executor Shutdown command."));
     }
 
     @Override
@@ -1073,10 +1085,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleShutdownCommandError(Connection c, CommandShutdown commandShutdown) {
-        // TODO Handle this error. Currently invoking unhandeled error
-        LOGGER.error("Error sending Executor Shutdown command. Not handeled");
-        unhandeledError(c);
-
+        ClosingWorker closing = STOPPING_NODES.remove(c);
+        NIOWorkerNode worker = closing.worker;
+        removedNode(worker);
+        ShutdownListener listener = closing.listener;
+        listener.notifyFailure(new Exception("Error sending Executor Shutdown command."));
     }
 
     @Override
@@ -1093,18 +1106,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleTracingGenerateCommandError(Connection c, CommandGeneratePackage commandGeneratePackage) {
-        // TODO Handle this error. Currently invoking unhandeled error
-        LOGGER.error("Error sending tracing generate command. Not handeled");
-        unhandeledError(c);
+        LOGGER.error("Error sending tracing generate command.");
+        notifyTracingPackageGeneration();
 
     }
 
     @Override
     public void handleGenerateWorkerDebugCommandError(Connection c,
         CommandGenerateWorkerDebugFiles commandGenerateWorkerDebugFiles) {
-        LOGGER.error("Error sending generate worker debug command. Not handeled");
-        unhandeledError(c);
-
+        LOGGER.error("Error sending generate worker debug command.");
+        notifyWorkersDebugInfoGeneration();
     }
 
     @Override
@@ -1129,6 +1140,19 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             LOGGER.warn("Error sending command remove obsoletes after retries. Nothing else to do.");
         }
 
+    }
+
+    @Override
+    public void workerPongReceived(String nodeName) {
+        LOGGER.debug("Worker Pong received: " + nodeName);
+        ONGOING_WORKER_PINGS.remove(nodeName);
+    }
+
+    @Override
+    public void handleNodeIsDownError(String nodeName) {
+        LOGGER.warn("Handling node is down due to lost connection: " + nodeName);
+        NIOWorkerNode node = ONGOING_WORKER_PINGS.get(nodeName);
+        node.disruptedConnection();
     }
 
     @Override

@@ -1,0 +1,110 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+  
+  # Global variables
+  exit_value=0
+  jar_name="3_node_init_failure.jar"
+  app_name="testNodeInitFailure.TestNodeInitFailure"
+
+#----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/COMPSsWorker02/
+
+
+  #----------------------------------------------------------------------------------
+  echo
+  echo "*** RUNNING JAVA APPLICATION TEST NODE INIT FAILURE"
+
+  # Run application with "shutdown_in_node_failure=false"
+  target_log_folder_0="${target_log_folder}_flag_false"
+  mkdir -p "${target_log_folder}_flag_false"
+  output_log_0="${target_log_folder_0}/node_init_failure.outputlog"
+  error_log_0="${target_log_folder_0}/node_init_failure.errorlog"
+
+  expectedTime=1000s
+
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     --shutdown_in_node_failure=false \
+     --comm="$comm" \
+     --debug \
+     ${runcompss_opts} \
+     -g \
+     --classpath="${base_app_dir}/${jar_name}" \
+     \
+     "${app_name}" > >(tee "${output_log_0}") 2> >(tee "${error_log_0}" >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_0}"
+     
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log_0}"
+     exit_value=124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_0}"
+
+  fi
+
+  sleep 10s
+
+  # Run application with "shutdown_in_node_failure=true"
+  target_log_folder_1="${target_log_folder}_flag_true"
+  mkdir -p "${target_log_folder}_flag_true"
+  output_log_1="${target_log_folder_1}/node_init_failure.outputlog"
+  error_log_1="${target_log_folder_1}/node_init_failure.errorlog"
+
+  expectedTime=1000s
+
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     --shutdown_in_node_failure=true \
+     --comm="$comm" \
+     --debug \
+     ${runcompss_opts} \
+     -g \
+     --classpath="${base_app_dir}/${jar_name}" \
+     \
+     "${app_name}" > >(tee "${output_log_1}") 2> >(tee "${error_log_1}" >&2)
+
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_1}"
+
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log_1}"
+     exit_value=124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_1}"
+
+     # Check result
+     "${base_app_dir}"/result "${target_log_folder_0}" "${output_log_0}" "${error_log_0}" \
+                              "${target_log_folder_1}" "${output_log_1}" "${error_log_1}"
+     exit_value=$?
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}

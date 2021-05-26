@@ -270,7 +270,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     public abstract void removeObsoletes(List<MultiURI> obsoletes);
 
     /**
-     * Sets an element that will monitor the chages on the node.
+     * Sets an element that will monitor the changes on the node.
      * 
      * @param monitor element monitoring the changes on the node
      */
@@ -291,9 +291,15 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * Notifies the detection of activity on resources assigned to an already-running task previously notified to be
      * idle.
      * 
-     * @param resources reactivated resouces
+     * @param resources reactivated resources
      */
     public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
         this.monitor.reactivatedReservedResourcesDetected(resources);
+    }
+
+    public abstract void verifyNodeIsRunning();
+
+    public final void disruptedConnection() {
+        this.monitor.lostNode();
     }
 }

@@ -33,5 +33,6 @@ public enum TDRequestType {
     MONITORING_DATA, // print data for monitoring
     TD_SHUTDOWN, // shutdown
     UPDATE_CEI_LOCAL, // Updates CEI locally
-    WORKER_UPDATE_REQUEST // Updates a worker definition
+    WORKER_UPDATE_REQUEST, // Updates a worker definition
+    WORKER_RESTART_REQUEST // Restart the worker
 }

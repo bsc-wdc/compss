@@ -45,6 +45,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.Tracer;
 
@@ -73,6 +74,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
+    private boolean isLost = false;
 
 
     /**
@@ -333,6 +335,9 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void retrieveUniqueDataValues() {
+        if (this.isLost) {
+            return;
+        }
         COMPSsNode masterNode = Comm.getAppHost().getNode();
         if (this.getNode().compareTo(masterNode) == 0) {
             if (DEBUG) {
@@ -399,6 +404,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void retrieveTracingAndDebugData() {
+        if (this.isLost) {
+            LOGGER.debug(" Will not retrieve Tracing and Debug Data because the node: " + this.getName() + " is lost.");
+            return;
+        }
         if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
             if (this.node.generatePackage()) {
                 getTracingPackageToMaster();
@@ -425,6 +434,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void disableExecution() {
+        if (this.isLost) {
+            LOGGER.debug(" Skipping ExecutionManager shutdown because the node: " + this.getName() + " is lost.");
+            return;
+        }
         if (DEBUG) {
             LOGGER.debug("Shutting down Execution Manager on Resource " + this.getName());
         }
@@ -450,6 +463,12 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
     @Override
     public void stop(ShutdownListener sl) {
+        if (this.isLost) {
+            LOGGER.debug(" Skipping StopWorker because the node: " + this.getName() + " is lost.");
+            sl.addOperation();
+            sl.notifyEnd();
+            return;
+        }
         this.deleteIntermediate();
         sl.addOperation();
         this.node.stop(sl);
@@ -688,4 +707,19 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
         // Should notify the resource user that such resources are no longer available
     }
+
+    public boolean isLost() {
+        return isLost;
+    }
+
+    @Override
+    public void lostNode() {
+        this.isLost = true;
+        ResourceManager.notifyRestart(this.name);
+    }
+
+    public void startingNode() {
+        this.isLost = false;
+    }
+
 }

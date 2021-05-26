@@ -1167,4 +1167,12 @@ public abstract class NIOAgent {
 
     public abstract void handleRemoveObsoletesCommandError(Connection c, CommandRemoveObsoletes commandRemoveObsoletes);
 
+    public abstract void workerPongReceived(String nodeName);
+
+    /**
+     * Node is down, do something..
+     *
+     * @param nodeName String
+     */
+    public abstract void handleNodeIsDownError(String nodeName);
 }

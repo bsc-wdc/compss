@@ -175,7 +175,7 @@ public class ResourceOptimizer extends Thread {
 
                 // Remove obsoletes
                 periodicRemoveObsoletes();
-
+                periodicCheckWorkers();
                 // Wait until applying next optimization
                 try {
                     synchronized (this) {
@@ -245,6 +245,17 @@ public class ResourceOptimizer extends Thread {
             }
         }
 
+    }
+
+    private void periodicCheckWorkers() {
+        List<Worker<? extends WorkerResourceDescription>> workers = ResourceManager.getAllWorkers();
+        for (Worker<? extends WorkerResourceDescription> w : workers) {
+            if (!w.isLost()) {
+                w.getNode().verifyNodeIsRunning();
+            } else {
+                RUNTIME_LOGGER.debug(" Node is lost, skipping ping: " + w.getName());
+            }
+        }
     }
 
     /**

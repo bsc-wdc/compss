@@ -36,4 +36,6 @@ public interface NodeMonitor {
      */
     public void reactivatedReservedResourcesDetected(ResourceDescription resources);
 
+    public void lostNode();
+
 }

@@ -1,0 +1,73 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  target_log_folder_0=$1
+  output_file_0=$2
+  error_file_0=$3
+  target_log_folder_1=$4
+  output_file_1=$5
+  error_file_1=$6
+
+  # Log files
+  runtime_log_0="${target_log_folder_0}/runtime.log"
+  resources_log_0="${target_log_folder_0}/resources.log"
+  runtime_log_1="${target_log_folder_1}/runtime.log"
+  resources_log_1="${target_log_folder_1}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file_0}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file_0}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_0}"
+        exit 1 
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file_0}"
+     exit 1 
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file_0}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file_0}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file_0}"
+      exit 1 
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    : 
+  fi
+
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log_0}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log_0}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file_0}"
+      exit 1 
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file_0}"
+    exit 1 
+  fi
+
+  # Possible Node Initialization errors.
+  if ! grep -E "Final counter value is" "${output_file_0}"; then
+    echo "ERROR: No valid final value found." | tee -a "${output_file_0}"
+    exit 1
+  fi
+
+  if ! grep "There was an exception when initiating worker*" "${error_file_0}"; then
+    echo "ERROR: Worker initialization failure not caught." | tee -a "${output_file_0}"
+    exit 1
+  fi
+
+  # Make sure execution stopped because of node initialization failure.
+  if [ -f "${error_file_1}" ]; then
+    if ! grep "Execution stopped due to node" "${error_file_1}"; then
+      echo "ERROR: Worker initialization failure didn't stop the runtime. Check: " | tee -a "${output_file_1}"
+      exit 1
+    fi
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # ALL OK. Report result status
+  exit 0

@@ -72,8 +72,10 @@
 		<module>2_shared_disks</module>
 		<module>2_time_out</module>
 		<module>2_wall_clock_limit</module>
+		<module>3_node_init_failure</module>
 		<module>3_object_deregister</module>
 		<module>3_remote_file</module>
+		<module>3_restart_failed_node</module>
 		<module>3_worker_environment</module>
 		<module>4_data_locality_basic</module>
 		<module>4_data_locality_complex</module>

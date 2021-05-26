@@ -1351,6 +1351,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
+    public void verifyNodeIsRunning() {
+        // No need to verify, it's not possible to loose the connection with your own process.
+    }
+
+    @Override
     public COMPSsRuntime getRuntimeAPI() {
         return this.runtimeApi;
     }

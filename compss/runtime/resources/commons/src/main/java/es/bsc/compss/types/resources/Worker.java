@@ -410,6 +410,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * @return {@literal true} if the current worker can run something, {@literal false} otherwise.
      */
     public final boolean canRunSomething() {
+        if (this.isLost()) {
+            return false;
+        }
         int coreCount = CoreManager.getCoreCount();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             if (!getRunnableImplementations(coreId).isEmpty()) {
@@ -426,6 +429,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * @return {@literal true} if the current worker can run the given core element, {@literal false} otherwise.
      */
     public boolean canRun(int coreId) {
+        if (this.isLost()) {
+            return false;
+        }
         return this.idealSimultaneousTasks[coreId] > 0;
     }
 
@@ -461,6 +467,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * @return {@literal true} if the consumption can run now, {@literal false} otherwise.
      */
     public boolean canRunNow(T consumption) {
+        if (this.isLost()) {
+            return false;
+        }
         // Available slots
         return this.hasAvailable(consumption);
     }

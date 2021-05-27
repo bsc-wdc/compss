@@ -59,6 +59,13 @@ public class HTTPAdaptor implements CommAdaptor {
     }
 
     @Override
+    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        String envScriptFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        return null;
+    }
+
+    @Override
     public COMPSsWorker initWorker(Configuration config, NodeMonitor monitor) {
         HTTPConfiguration httpConfiguration = (HTTPConfiguration) config;
 
@@ -86,13 +93,6 @@ public class HTTPAdaptor implements CommAdaptor {
     @Override
     public void completeMasterURI(MultiURI u) {
         // No need to do nothing
-    }
-
-    @Override
-    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
-        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
-        return null;
     }
 
 }

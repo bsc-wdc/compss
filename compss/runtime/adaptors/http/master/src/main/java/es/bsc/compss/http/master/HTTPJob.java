@@ -26,6 +26,7 @@ import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -81,8 +82,9 @@ public class HTTPJob extends Job<HTTPInstance> {
      * @param res Resource.
      * @param listener Task listener.
      */
-    public HTTPJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener) {
-        super(taskId, taskParams, impl, res, listener);
+    public HTTPJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener,
+        List<Integer> predecessors, Integer numSuccessors) {
+        super(taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
 
         this.returnValue = null;
     }

@@ -78,9 +78,9 @@ public class HTTPInstance extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
-        return new HTTPJob(taskId, taskParams, impl, res, listener);
+        return new HTTPJob(taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
     }
 
     @Override
@@ -216,5 +216,10 @@ public class HTTPInstance extends COMPSsWorker {
     @Override
     public void removeObsoletes(List<MultiURI> obsoletes) {
         // No need to do anything
+    }
+
+    @Override
+    public void verifyNodeIsRunning() {
+        // todo: make sure nothing to do
     }
 }

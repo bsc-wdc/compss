@@ -42,6 +42,8 @@ from pycompss.util.serialization.serializer import serialize_to_file_mpienv
 from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.util.objects.util import group_iterable
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.worker.commons.constants import EXECUTE_USER_CODE_EVENT
 from pycompss.worker.commons.worker import build_task_parameter
 # The cache is only available currently for piper_worker.py and python >= 3.8
 # If supported in the future by another worker, add a common interface
@@ -687,6 +689,7 @@ class TaskWorker(TaskCommons):
 
         return user_args, user_kwargs, ret_params
 
+    @emit_event(EXECUTE_USER_CODE_EVENT, master=False, inside=True)
     def execute_user_code(self, user_args, user_kwargs, tracing):
         # type: (list, dict, bool) -> (object, COMPSsException)
         """ Executes the user code.

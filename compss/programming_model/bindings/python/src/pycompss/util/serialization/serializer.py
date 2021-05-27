@@ -42,9 +42,12 @@ PyCOMPSs Util - Data serializer/deserializer
                                            end of the serialized object
 """
 
+import os
+import struct
 import gc
 import types
 import traceback
+from io import BytesIO
 
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.exceptions import SerializerException
@@ -57,10 +60,12 @@ from pycompss.runtime.constants import DESERIALIZATION_SIZE_EVENTS
 from pycompss.runtime.constants import SERIALIZATION_OBJECT_NUM
 from pycompss.runtime.constants import DESERIALIZATION_OBJECT_NUM
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from io import BytesIO
-import os
-import struct
-import sys
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.worker.commons.constants import DESERIALIZE_FROM_BYTES_EVENT
+from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
+from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
+from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_MPIENV_EVENT
+
 
 DISABLE_GC = False
 
@@ -211,6 +216,7 @@ def serialize_to_handler(obj, handler):
         raise SerializerException('Cannot serialize object %s' % obj)
 
 
+@emit_event(SERIALIZE_TO_FILE_EVENT, master=False, inside=True)
 def serialize_to_file(obj, file_name):
     # type: (object, str) -> None
     """ Serialize an object to a file.
@@ -224,6 +230,7 @@ def serialize_to_file(obj, file_name):
     handler.close()
 
 
+@emit_event(SERIALIZE_TO_FILE_MPIENV_EVENT, master=False, inside=True)
 def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
     # type: (object, str, bool) -> None
     """ Serialize an object to a file for Python MPI Tasks.
@@ -323,6 +330,7 @@ def deserialize_from_handler(handler):
         raise SerializerException('Cannot deserialize object')
 
 
+@emit_event(DESERIALIZE_FROM_FILE_EVENT, master=False, inside=True)
 def deserialize_from_file(file_name):
     # type: (str) -> object
     """ Deserialize the contents in a given file.
@@ -337,6 +345,7 @@ def deserialize_from_file(file_name):
     return ret
 
 
+@emit_event(DESERIALIZE_FROM_BYTES_EVENT, master=False, inside=True)
 def deserialize_from_string(serialized_content):
     # type: (str) -> object
     """ Deserialize the contents in a given string.

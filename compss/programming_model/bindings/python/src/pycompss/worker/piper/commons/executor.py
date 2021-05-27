@@ -47,6 +47,13 @@ from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
+from pycompss.worker.commons.constants import BIND_CPUS_EVENT
+from pycompss.worker.commons.constants import BIND_GPUS_EVENT
+from pycompss.worker.commons.constants import SETUP_ENVIRONMENT_EVENT
+from pycompss.worker.commons.constants import BUILD_SUCCESSFUL_MESSAGE_EVENT
+from pycompss.worker.commons.constants import BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT
+from pycompss.worker.commons.constants import BUILD_EXCEPTION_MESSAGE_EVENT
+from pycompss.worker.commons.constants import CLEAN_ENVIRONMENT_EVENT
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.exceptions import PyCOMPSsException
@@ -655,6 +662,7 @@ def process_quit(logger, process_name):  # noqa
     return False
 
 
+@emit_event(BIND_CPUS_EVENT, master=False, inside=True)
 def bind_cpus(cpus, process_name, logger):  # noqa
     # type: (str, str, ...) -> bool
     """ Bind the given CPUs for core affinity to this process.
@@ -680,6 +688,7 @@ def bind_cpus(cpus, process_name, logger):  # noqa
     return True
 
 
+@emit_event(BIND_GPUS_EVENT, master=False, inside=True)
 def bind_gpus(gpus, process_name, logger):  # noqa
     # type: (str, str, ...) -> None
     """ Bind the given GPUs to this process.
@@ -697,6 +706,7 @@ def bind_gpus(gpus, process_name, logger):  # noqa
                      (str(process_name), str(gpus)))
 
 
+@emit_event(SETUP_ENVIRONMENT_EVENT, master=False, inside=True)
 def setup_environment(cn, cn_names, cu):
     # type: (int, str, str) -> None
     """ Sets the environment (mainly environment variables).
@@ -712,6 +722,7 @@ def setup_environment(cn, cn_names, cu):
     os.environ["OMP_NUM_THREADS"] = cu
 
 
+@emit_event(BUILD_SUCCESSFUL_MESSAGE_EVENT, master=False, inside=True)
 def build_successful_message(new_types, new_values, job_id, exit_value):
     # type: (list, list, int, int) -> str
     """ Generate a successful message.
@@ -732,6 +743,7 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
     return message
 
 
+@emit_event(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_compss_exception_message(except_msg, job_id):
     # type: (str, int) -> (str, str)
     """ Generate a COMPSs exception message.
@@ -747,6 +759,7 @@ def build_compss_exception_message(except_msg, job_id):
     return except_msg, message
 
 
+@emit_event(BUILD_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_exception_message(job_id, exit_value):
     # type: (str, int) -> str
     """ Generate an exception message.
@@ -761,6 +774,7 @@ def build_exception_message(job_id, exit_value):
     return message
 
 
+@emit_event(CLEAN_ENVIRONMENT_EVENT, master=False, inside=True)
 def clean_environment(cpus, gpus):
     # type: (str, str) -> None
     """ Clean the environment

@@ -28,6 +28,10 @@ import os
 from collections import OrderedDict
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
+from pycompss.util.tracing.helpers import emit_event
+from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
+from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
+from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
 try:
     from multiprocessing.shared_memory import SharedMemory    # noqa
     from multiprocessing.shared_memory import ShareableList   # noqa
@@ -235,6 +239,7 @@ def stop_shared_memory_manager(smm):
     smm.shutdown()
 
 
+@emit_event(RETRIEVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
 def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     # type: (..., ..., str) -> ...
     """ Retrieve an object from the given cache proxy dict.
@@ -290,6 +295,7 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
         insert_object_into_cache(logger, cache_queue, obj, f_name)
 
 
+@emit_event(INSERT_OBJECT_INTO_CACHE_EVENT, master=False, inside=True)
 def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     # type: (..., ..., ..., ...) -> None
     """ Put an object into cache.
@@ -350,6 +356,7 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             logger.debug(str(e))
 
 
+@emit_event(REMOVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
 def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
     # type: (..., ..., ...) -> None
     """ Removes an object from cache.

@@ -67,6 +67,7 @@ from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.commons import TRACING_TASK_NAME_TO_ID
+from pycompss.runtime.constants import CHECK_INTERACTIVE
 from pycompss.runtime.constants import EXTRACT_CORE_ELEMENT
 from pycompss.runtime.constants import INSPECT_FUNCTION_ARGUMENTS
 from pycompss.runtime.constants import PROCESS_PARAMETERS
@@ -331,10 +332,11 @@ class TaskMaster(object):
         MASTER_LOCK.acquire()
 
         # Check if we are in interactive mode and update if needed
-        if not self.interactive:
-            self.interactive, self.module = self.check_if_interactive()
-        if self.interactive:
-            self.update_if_interactive(self.module)
+        with event(CHECK_INTERACTIVE, master=True):
+            if not self.interactive:
+                self.interactive, self.module = self.check_if_interactive()
+            if self.interactive:
+                self.update_if_interactive(self.module)
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)

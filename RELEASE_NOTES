@@ -6,41 +6,32 @@ COMP Superscalar (COMPSs) is a programming model that aims to ease the developme
 such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number: 2.8 (Iris) 
-Release date: November-2020
+Release number: 2.9 (Jasmine) 
+Release date: June-2021
 -------------------------------
-New features:
+New features
          * Runtime:
-		- New @Container task annotation to allow the execution of a task inside a container.
-		- New IN_DELETE parameter direction type for one-use parameters. It deletes de element after task execution
-		- Support to Reductions 
-		- Data layout for collections in MPI tasks. Allow to group elements of a collection to MPI processes.
-		- New cpu affinity and runtime events for a better performance analysis.
-
-	 * Java:
-		- CPU Affinity in Java tasks.
+		- Support for nested tasks in agents deployment 
+		- New application time out functionality to enable a controlled finalization of applications before the wall_clock_limit 
+		- New flags to simplify application debugging (--keep_workingdir, --gen_coredump)
+		- Support for loading the application environment from scripts
+		- Support for tracing in agents environment.
 
          * Python:
-		- Support for python dictionaries as collection parameters.
-		- Dummy implementations for the @binary and @mpi tasks to allow testing in sequential implementations.
-		- Allow tracing events at master user code.
-		- New python binding tracing events.
-
-	* C++:
-		- CPU Affinity in tasks executed with persistent executors.
+		- Support for Optional parameters and default values
+		- Enable monitoring task status from Jupyter notebooks.
+		- Enabling python memoty profile
+		- Python workers cache.
+		- Support for returns value override at task invocation
 
 	* DDS:
 		 - New methods and optimizations in DDS class.
 Improvements:
-	- Change locality calculation from scheduling to location update.
-	- Some runtime file system operations removed from task execution critical path.
-	- Improvements in CPU-Task Executor affinity. Try executor tries to reuse its previous affinity.
-        - Support for Collection INOUT/OUT in Persistent storage executions.
-	- Improvements in tracing cfgs. 
-	- Improvements of storage events in traces.
-	- Improvements in enqueue_compss and supercomputers cfg files semantics for shared and local disks.
-	- Adding NVRAM mode flag in enqueue_compss to allow initialization of nodes with specific NVRAM mode. Requires support for the cluster's resource manager. 
-	- Configuration files for Irene and A64FX-based systems.
+        - Enabling passing extra queue system flags from enqueue_compss.
+        - Supporting multiple data layout in mpi tasks
+	- Improvements in tracing system. 
+	- Enabling a flag to change extrae configuration file for python processes.
+	- Configuration files for Barbora system.
 	- Several Bug fixes.
 
 Known Limitations:

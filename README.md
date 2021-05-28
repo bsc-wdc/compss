@@ -99,6 +99,9 @@ Install the listed dependencies for each component you wish to install. For a co
   * maven
   * curl
   * jq
+  * OSX dependencies
+    * glibtoolize (use Brew to install it)
+    * greadlink (use Brew to install it)
 * Bindings-common dependencies
   * build-essential
   * autoconf
@@ -161,7 +164,7 @@ Before installing COMPSs you need to download the git submodules that contain it
 
 **Note**: Remember to install the COMPSs dependencies and to get the GIT submodules before trying to build COMPSs from sources.
 
-* Building COMPSs for all users
+* Building COMPSs for all users (not supported in OSX)
 
 ```
 cd builders/
@@ -173,9 +176,23 @@ sudo -E ./buildlocal [options] ${INSTALL_DIR}
 
 ```
 cd builders/
+
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal [options] ${INSTALL_DIR}
 ```
+For OSX:
+```
+cd builders/
+alias libtoolize=/usr/local/bin/glibtoolize
+alias readlink=/usr/local/bin/greadlink
+
+export LIBTOOL=`which glibtool`
+export LIBTOOLIZE=`which glibtoolize`
+
+INSTALL_DIR=$HOME/opt/COMPSs/
+./buildlocal -A -K -T -M ${INSTALL_DIR}
+```
+
 
 Many COMPSs modules can be activated/deactivated during the build using different options in the `buildlocal` command. You may check the available options by running the following command:
 

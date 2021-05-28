@@ -99,9 +99,11 @@ Install the listed dependencies for each component you wish to install. For a co
   * maven
   * curl
   * jq
-  * OSX dependencies
-    * glibtoolize (use Brew to install it)
-    * greadlink (use Brew to install it)
+  * OSX dependencies(use Brew to install it)
+    * libtool 
+    * coreutils
+    * boost
+    * util-linux
 * Bindings-common dependencies
   * build-essential
   * autoconf

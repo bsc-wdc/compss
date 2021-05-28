@@ -1064,9 +1064,9 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-	    env_script=*)
-	      env_script=${OPTARG//env_script=/}
-	      # Keep it for runcompss (to add them to master)
+	env_script=*)
+	  env_script=${OPTARG//env_script=/}
+	  # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         log_level=*)
@@ -1594,7 +1594,7 @@ check_args() {
     display_error "${ERROR_LANGUAGE}"
   fi
 
-  if [ -z "${env_script}"]; then
+  if [ -z "${env_script}" ]; then
     env_script="null"
   fi
 
@@ -1824,6 +1824,7 @@ log_variables() {
   echo "Classpath:                 ${cp}"
   echo "Pythonpath:                ${pythonpath}"
   echo "Appdir:                    ${appdir}"
+  echo "Env. Script:               ${env_script}"
   echo "Lang:                      ${lang}"
   echo "Python Interpreter:        ${python_interpreter}"
   echo "Python version:            ${python_version}"

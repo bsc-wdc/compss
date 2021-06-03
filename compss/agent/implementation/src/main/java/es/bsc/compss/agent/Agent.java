@@ -58,6 +58,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -70,7 +71,7 @@ import storage.StorageItf;
 
 public class Agent {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
     private static final String AGENT_NAME;
 
@@ -389,16 +390,16 @@ public class Agent {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.AGENT_RUN_TASK.getId(), TraceEvent.AGENT_RUN_TASK.getType());
         }
+        Long appId = RUNTIME.registerApplication(ceiClass, null);
+        monitor.setAppId(appId);
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
-        LOGGER.debug("Ced.tostring " + ced.toString());
+        LOGGER.debug("appId: " + appId);
+        LOGGER.debug("Ced.tostring: " + ced.toString());
         LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {
             LOGGER.debug("\t* " + param);
         }
-
-        Long appId = RUNTIME.registerApplication(ceiClass, null);
-        monitor.setAppId(appId);
 
         try {
             // PREPARING PARAMETERS
@@ -434,7 +435,11 @@ public class Agent {
             }
 
             for (ApplicationParameter param : results) {
-                params[position] = new Object();
+                if (DataType.FILE_T.equals(param.getType())) {
+                    params[position] = UUID.randomUUID().toString();
+                } else {
+                    params[position] = new Object();
+                }
                 params[position + 1] = param.getType();
                 params[position + 2] = param.getDirection();
                 params[position + 3] = param.getStdIOStream();

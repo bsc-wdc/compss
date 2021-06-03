@@ -1641,7 +1641,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         switch (type) {
             case DIRECTORY_T:
                 try {
-                    String dirName = (String) content;
+                    String dirName = content.toString();
                     File dirFile = new File(dirName);
                     String originalName = dirFile.getName();
                     String canonicalPath = dirFile.getCanonicalPath();
@@ -1656,9 +1656,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 break;
             case FILE_T:
                 try {
-                    String fileName = (String) content;
+                    String fileName = content.toString();
                     String originalName = new File(fileName).getName();
-                    DataLocation location = createLocation((String) content);
+                    DataLocation location = createLocation(content.toString());
                     pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
                         originalName));
                 } catch (Exception e) {
@@ -1677,7 +1677,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 break;
             case EXTERNAL_STREAM_T:
                 try {
-                    String fileName = (String) content;
+                    String fileName = content.toString();
                     String canonicalPath = new File(fileName).getCanonicalPath();
                     String locationPath = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + canonicalPath;
                     DataLocation location = createLocation(locationPath);
@@ -1689,12 +1689,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 break;
             case EXTERNAL_PSCO_T:
-                String id = (String) content;
+                String id = content.toString();
                 pars.add(
                     new ExternalPSCOParameter(direction, stream, prefix, name, weight, id, externalObjectHashcode(id)));
                 break;
             case BINDING_OBJECT_T:
-                String value = (String) content;
+                String value = content.toString();
                 if (value.contains(":")) {
                     String[] fields = value.split(":");
                     if (fields.length == 3) {
@@ -1716,7 +1716,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case COLLECTION_T:
                 // A collection value contains the file of the collection object and the collection
                 // elements, separated by spaces
-                String[] values = vals == null ? ((String) content).split(" ") : vals;
+                String[] values = vals == null ? (content.toString()).split(" ") : vals;
                 String collectionId = values[offset];
                 int numOfElements = Integer.parseInt(values[offset + 1]);
                 String colPyType = values[offset + 2];
@@ -1770,7 +1770,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 // TODO: Simplify this case.
                 // A dictionary collection value contains the file of the dictionary collection object
                 // and the dictionary collection elements, separated by spaces
-                String[] values1 = vals == null ? ((String) content).split(" ") : vals;
+                String[] values1 = vals == null ? (content.toString()).split(" ") : vals;
                 String dictCollectionId = values1[offset];
                 int numOfEntries = Integer.parseInt(values1[offset + 1]);
                 String dictColPyType = values1[offset + 2];

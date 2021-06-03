@@ -238,6 +238,8 @@ public class DataManagerImpl implements DataManager {
                 WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
             }
         }
+        // this code is comented because the extrae tracer is already off when we reach this point
+        // if (Tracer.extraeEnabled()) {
         // Semaphore sem = new Semaphore(0);
         // this.fileOpsExecutor.submit(new Callable<Object>() {
 
@@ -253,9 +255,9 @@ public class DataManagerImpl implements DataManager {
         // WORKER_LOGGER
         // .warn("Tracer could not register end of event " + TraceEvent.FILE_SYS_THREAD_ID.getSignature());
         // }
+        // }
         fileOpsExecutor.shutdown();
         FileDeleter.shutdown();
-
     }
 
     @Override

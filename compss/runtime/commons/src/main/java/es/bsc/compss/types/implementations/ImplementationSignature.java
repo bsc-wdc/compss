@@ -139,6 +139,12 @@ public abstract class ImplementationSignature {
     public static String getHTTPSignature(String declareMethodFullyQualifiedName, boolean hasTarget, int numReturns,
         List<Parameter> parameters) {
 
+        String langStr = System.getProperty(COMPSsConstants.LANG);
+        Lang lang = ((langStr == null) ? Lang.JAVA : Lang.valueOf(langStr.toUpperCase()));
+        if (lang == Lang.PYTHON) {
+            return declareMethodFullyQualifiedName;
+        }
+
         StringBuilder buffer = new StringBuilder();
 
         buffer.append(declareMethodFullyQualifiedName).append("(");

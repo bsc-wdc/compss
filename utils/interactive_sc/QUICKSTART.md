@@ -44,6 +44,25 @@ The specific arguments of each option can be displayed by executing:
 interactive_sc <option> -h
 ```
 
+#### Sample usage
+
+The follwing commands serve as example for the usual usage:
+
+```
+# Launch the modelfactors job:
+pycompss_isc submit --project=templates/modelfactors.proj --credential=templates/credential.example -u bsc19XXX -dcc -v
+# Check the job id
+pycompss_isc list --credential=templates/credential.example -u bsc19XXX -dcc
+# Check its status
+pycompss_isc status --credential=templates/credential.example -u bsc19XXX -dcc <JOBID>
+# Once running, we can connect to it
+pycompss_isc connect --credential=templates/credential.example -u bsc19XXX -dcc <JOBID>
+# Now you can open the web browser and go to localhost:8888 and run the notebook
+# Finally, stop the job when you have finished with the notebook
+pycompss_isc cancel --credential=templates/credential.example -u bsc19XXX -dcc <JOBID>
+```
+
+
 #### Differences between running in Linux and Windows
 
 Although this package is supported in Linux and Windows, there are differences

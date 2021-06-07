@@ -70,6 +70,23 @@ extern "C" void GS_ExecuteTaskNew(long appId,
                                   int numParams,
                                   void** params
                                  );
+extern "C" void GS_ExecuteHttpTask(long appId,
+                                  char* methodType,
+                                  char* baseUrl,
+                                  char* signature,
+                                  char* onFailure,
+                                  int timeout,
+                                  int priority,
+                                  int numNodes,
+                                  int reduce,
+                                  int reduceChunkSize,
+                                  int replicated,
+                                  int distributed,
+                                  int hasTarget,
+                                  int numReturns,
+                                  int numParams,
+                                  void** params
+                                 );
 
 // File methods
 extern "C" int GS_Accessed_File(long appId, char* fileName);

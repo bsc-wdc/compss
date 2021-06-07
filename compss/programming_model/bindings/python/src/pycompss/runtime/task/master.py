@@ -410,29 +410,60 @@ class TaskMaster(TaskCommons):
                          (self.function_name, self.function_type,
                           self.module_name, self.class_name))
 
-        # Process the task
-        binding.process_task(
-            signature,
-            has_target,
-            names,
-            values,
-            num_returns,
-            compss_types,
-            compss_directions,
-            compss_streams,
-            compss_prefixes,
-            content_types,
-            weights,
-            keep_renames,
-            has_priority,
-            computing_nodes,
-            is_reduction,
-            chunk_size,
-            is_replicated,
-            is_distributed,
-            self.on_failure,
-            time_out
-        )
+        # import pdb; pdb.set_trace()
+
+        if self.core_element.get_impl_type() == "HTTP":
+            # todo: nm: beautify this..
+            base_url = self.core_element.get_impl_type_args()[0]
+            method_type = self.core_element.get_impl_type_args()[1]
+            binding.process_http_task(
+                signature,
+                base_url,
+                method_type,
+                has_target,
+                names,
+                values,
+                num_returns,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+                has_priority,
+                computing_nodes,
+                is_reduction,
+                chunk_size,
+                is_replicated,
+                is_distributed,
+                self.on_failure,
+                time_out
+            )
+        else:
+            # Process the task
+            binding.process_task(
+                signature,
+                has_target,
+                names,
+                values,
+                num_returns,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+                has_priority,
+                computing_nodes,
+                is_reduction,
+                chunk_size,
+                is_replicated,
+                is_distributed,
+                self.on_failure,
+                time_out
+            )
 
         # Remove unused attributes from the memory
         with event(ATTRIBUTES_CLEANUP, master=True):

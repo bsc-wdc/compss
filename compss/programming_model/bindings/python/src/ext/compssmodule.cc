@@ -449,6 +449,165 @@ static PyObject* process_task(PyObject* self, PyObject* args) {
 }
 
 /*
+  process http task
+*/
+static PyObject* process_http_task(PyObject* self, PyObject* args) {
+    /*
+      Parse python object arguments and get pointers to them.
+      lsiiiiiiiOOOOOO must be read as
+      "long, string, integer, integer, integer, integer, integer, integer,
+       Object, Object, Object, Object, Object, Object"
+    */
+    debug("Process http task:\n");
+    long app_id;
+    char* method_type;
+    char* base_url;
+    char* signature;
+    char* on_failure;
+    int priority, num_nodes, reduce, chunk_size, replicated, distributed, has_target, num_returns, time_out;
+    PyObject *values;
+    PyObject *names;
+    PyObject *compss_types;
+    PyObject *compss_directions;
+    PyObject *compss_streams;
+    PyObject *compss_prefixes;
+    PyObject *content_types;
+    PyObject *weights;
+    PyObject *keep_renames;
+    //             See comment from above for the meaning of this "magic" string
+    if(!PyArg_ParseTuple(args, "lssssiiiiiiiiiOOOOOOOOO", &app_id, &method_type, &base_url, &signature, &on_failure, &time_out, &priority,
+                         &num_nodes, &reduce, &chunk_size, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
+                         &compss_directions, &compss_streams, &compss_prefixes, &content_types, &weights, &keep_renames)) {
+        // Return NULL after ParseTuple automatically translates to "wrong
+        // arguments were passed, we expected an integer instead"-like errors
+        return NULL;
+    }
+    debug("- App id: %ld\n", app_id);
+    debug("- Method type: %s\n", method_type);
+    debug("- Base url: %s\n", base_url);
+    debug("- Signature: %s\n", signature);
+    debug("- On Failure: %s\n", on_failure);
+    debug("- Time Out: %d\n", time_out);
+    debug("- Priority: %d\n", priority);
+    debug("- Reduce: %d\n", reduce);
+    debug("- Chunk size: %d\n", chunk_size);
+    debug("- MPI Num nodes: %d\n", num_nodes);
+    debug("- Replicated: %d\n", replicated);
+    debug("- Distributed: %d\n", distributed);
+    debug("- Has target: %d\n", has_target);
+    /*
+      Obtain and set all parameter data, and pack it in a struct vector.
+
+      See parameter and its field at the top of this source code file
+    */
+    Py_ssize_t num_pars = PyList_Size(values);
+    debug("Num pars: %d\n", int(num_pars));
+    std::vector< parameter > params(num_pars);
+    std::vector< char* > prefix_charp(num_pars);
+    std::vector< char* > name_charp(num_pars);
+    std::vector< char* > c_type_charp(num_pars);
+    std::vector< char* > weight_charp(num_pars);
+    int num_fields = 9;
+    std::vector< void* > unrolled_parameters(num_fields * num_pars, NULL);
+
+    for(int i = 0; i < num_pars; ++i) {
+        debug("Processing parameter %d ...\n", i);
+        PyObject *value      = PyList_GetItem(values, i);
+        PyObject *type       = PyList_GetItem(compss_types, i);
+        PyObject *direction  = PyList_GetItem(compss_directions, i);
+        PyObject *stream     = PyList_GetItem(compss_streams, i);
+        PyObject *prefix     = PyList_GetItem(compss_prefixes, i);
+        PyObject *name       = PyList_GetItem(names, i);
+        PyObject *c_type     = PyList_GetItem(content_types, i);
+        PyObject *weight	 = PyList_GetItem(weights, i);
+        PyObject *k_rename   = PyList_GetItem(keep_renames, i);
+        std::string received_prefix = _pystring_to_string(prefix);
+        std::string received_name = _pystring_to_string(name);
+        std::string received_c_type = _pystring_to_string(c_type);
+        std::string received_weight = _pystring_to_string(weight);
+
+        params[i] = parameter(
+            value,
+            int(PyInt_AsLong(type)),
+            int(PyInt_AsLong(direction)),
+            int(PyInt_AsLong(stream)),
+            received_prefix,
+            _get_type_size(int(PyInt_AsLong(type))),
+            received_name,
+            received_c_type,
+			received_weight,
+			int(PyInt_AsLong(k_rename))
+        );
+
+        debug("Adapting C++ data to BC-JNI format...\n");
+        /*
+          Adapt the parsed data to a bindings-common friendly format.
+          These pointers do NOT need to be freed, as the pointed contents
+          are out of our control (will be scope-cleaned, or point to PyObject
+          contents)
+        */
+		prefix_charp[i] = (char*) params[i].prefix.c_str();
+		name_charp[i] = (char*) params[i].name.c_str();
+		c_type_charp[i] = (char*) params[i].c_type.c_str();
+		weight_charp[i] = (char*) params[i].weight.c_str();
+
+		debug("Processing parameter %d\n", i);
+	    /*
+	      Adapt the parsed data to a bindings-common friendly format.
+	      These pointers do NOT need to be freed, as the pointed contents
+	      are out of our control (will be scope-cleaned, or point to PyObject
+	      contents)
+	    */
+		unrolled_parameters[num_fields * i + 0] = _get_void_pointer_to_content(params[i].value, params[i].type, params[i].size);
+		unrolled_parameters[num_fields * i + 1] = (void*) &params[i].type;
+		unrolled_parameters[num_fields * i + 2] = (void*) &params[i].direction;
+		unrolled_parameters[num_fields * i + 3] = (void*) &params[i].stream;
+		unrolled_parameters[num_fields * i + 4] = (void*) &prefix_charp[i];
+		unrolled_parameters[num_fields * i + 5] = (void*) &name_charp[i];
+		unrolled_parameters[num_fields * i + 6] = (void*) &c_type_charp[i];
+		unrolled_parameters[num_fields * i + 7] = (void*) &weight_charp[i];
+		unrolled_parameters[num_fields * i + 8] = (void*) &params[i].keep_rename;
+
+        debug("----> Value is at %p\n", &params[i].value);
+        debug("----> Type: %d\n", params[i].type);
+        debug("----> Direction: %d\n", params[i].direction);
+        debug("----> Stream: %d\n", params[i].stream);
+        debug("----> Prefix: %s\n", prefix_charp[i]);
+        debug("----> Size: %d\n", params[i].size);
+        debug("----> Name: %s\n", name_charp[i]);
+        debug("----> Content: %s\n", c_type_charp[i]);
+        debug("----> Weight: %s\n", weight_charp[i]);
+        debug("----> Keep rename: %d\n", params[i].keep_rename);
+
+    }
+
+    debug("Calling GS_ExecuteHttpTask...\n");
+    /*
+      Finally, call bindings common with all the computed parameters
+    */
+    GS_ExecuteHttpTask(
+        app_id,
+        method_type,
+        base_url,
+        signature,
+        on_failure,
+        time_out,
+        priority,
+        num_nodes,
+        reduce,
+        chunk_size,
+        replicated,
+        distributed,
+        has_target,
+        num_returns,
+        num_pars,
+        &unrolled_parameters[0] // hide the fact that params is a std::vector
+    );
+    debug("Returning from process_http_task...\n");
+    Py_RETURN_NONE;
+}
+
+/*
   Given a PyCOMPSs-id file, check if it has been accessed before
 */
 static PyObject* accessed_file(PyObject* self, PyObject* args) {
@@ -763,6 +922,7 @@ static PyMethodDef CompssMethods[] = {
     { "stop_runtime", stop_runtime, METH_VARARGS, "Stop the COMPSs runtime." },
     { "cancel_application_tasks", cancel_application_tasks, METH_VARARGS, "Cancel all tasks of an application." },
     { "process_task", process_task, METH_VARARGS, "Process a task call from the application." },
+    { "process_http_task", process_http_task, METH_VARARGS, "Process an http task call from the application." },
 	{ "accessed_file", accessed_file, METH_VARARGS, "Check if a file has been already accessed. The file can contain an object." },
     { "open_file", open_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },

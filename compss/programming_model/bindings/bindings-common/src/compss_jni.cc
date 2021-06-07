@@ -43,6 +43,7 @@ jobject globalRuntime;
 jmethodID midAppDir;                    /* ID of the getApplicationDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecute;                   /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecuteNew;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midExecuteHttp;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCancelApplicationTasks;    /* ID of the CancelApplicationTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -72,6 +73,14 @@ jmethodID midNoMoreTasksIT;             /* ID of the noMoreTasks method in the e
 jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
+
+jclass clsTaskMonitor;
+jmethodID midTaskMonitorCon;
+jobject donothingobj;
+
+jclass clsOnFailure;
+jmethodID midOnFailureCon;
 
 jobject jobjParDirIN; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirIN_DELETE;        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
@@ -327,6 +336,10 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     midExecuteNew = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;IZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     check_exception(status, "Cannot find executeTask Python");
 
+    // executeTask method - Http tasks
+    midExecuteHttp = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Les/bsc/compss/api/TaskMonitor;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZIZIZZZILes/bsc/compss/types/annotations/parameter/OnFailure;I[Ljava/lang/Object;)I");
+    check_exception(status, "Cannot find executeTask HTTP");
+
     // barrier method
     midBarrier = status->localJniEnv->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;)V");
     check_exception(status, "Cannot find barrier");
@@ -418,6 +431,13 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
 
     debug_printf ("[BINDING-COMMONS] - @Init JNI Methods DONE\n");
 
+    // Task OnFailure behaviour
+    debug_printf ("[BINDING-COMMONS] - @Init JNI OnFailure Types\n");
+
+    clsOnFailure = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/OnFailure");
+    check_exception(status, "Cannot find OnFailure Class");
+    midOnFailureCon = status->localJniEnv->GetStaticMethodID(clsOnFailure, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/OnFailure;");
+    check_exception(status, "Cannot find OnFailure constructor");
 
     // Parameter directions
     debug_printf ("[BINDING-COMMONS] - @Init JNI Direction Types\n");
@@ -1107,6 +1127,88 @@ void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeou
 
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Task processed.\n");
 }
+
+
+void JNI_ExecuteHttpTask(long appId, char* methodType, char* baseUrl, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+                        int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
+
+    // Values to be passed to the JVM
+    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
+
+    bool _priority = false;
+    if (priority != 0) _priority = true;
+
+    bool _replicated = false;
+    if (replicated != 0) _replicated = true;
+
+    bool _reduce = false;
+    if (reduce != 0) _reduce = true;
+
+    bool _distributed = false;
+    if (distributed != 0) _distributed = true;
+
+    bool _hasTarget = false;
+    if (hasTarget != 0) _hasTarget = true;
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    jobject jobjOnFailure = NULL;
+    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 1. \n");
+    if(onFailure == NULL){
+        debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common on failure is null. \n");
+        jobjOnFailure = jobjOnFailureRETRY;
+    }
+    else{
+         jobjOnFailure = status->localJniEnv->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, status->localJniEnv->NewStringUTF(onFailure));
+         check_exception(status, "Exception Creating OnFailure object..");
+    }
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 2. \n");
+
+    // Convert numReturns from int to integer
+    jobject numReturnsInteger = status->localJniEnv->NewObject(clsInteger, midIntCon, numReturns);
+    check_exception(status, "Exception converting numReturns to integer");
+    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 3. \n");
+
+    // Create array of parameters
+    jobjOBJArr = (jobjectArray)status->localJniEnv->NewObjectArray(numParams * NUM_FIELDS, clsObject, status->localJniEnv->NewObject(clsObject, midObjCon));
+    for (int i = 0; i < numParams; i++) {
+        debug_printf("[BINDING-COMMONS] - @JNI_ExecuteHttpTask- Processing parameter %d\n", i);
+        process_param(status, params, i, jobjOBJArr);
+    }
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 4. \n");
+
+    // Call to JNI execute task method
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midExecuteHttp,
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              NULL, // monitor
+                              status->localJniEnv->NewStringUTF(methodType),
+                              status->localJniEnv->NewStringUTF(baseUrl),
+                              status->localJniEnv->NewStringUTF(signature), // declaring method
+                              _priority,
+                              numNodes,
+                              _reduce,
+                              reduceChunkSize,
+                              _replicated,
+                              _distributed,
+                              _hasTarget,
+                              numParams,
+                              jobjOnFailure,
+                              timeout,
+                              jobjOBJArr);
+
+    check_exception(status, "Exception received when calling executeHttpTask");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP Task processed.\n");
+}
+
 
 void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, int numParams, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - ceSignature:     %s\n", ceSignature);

@@ -2,7 +2,7 @@
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 2.8 Iris"
+  echo "COMPSs version 2.9 Jasmine"
   echo " "
 }
 
@@ -13,11 +13,11 @@ show_full_version() {
   cat << EOF
                              
         .-~~-.--.             _____      _______
-       :         )           |____ \\    /  ____  \\
- .~ ~ -.\\       /.- ~~ .      ___) |    | (____) |
- >       \`.   .'       <     / ___/      > ____ < 
-(         .- -.         )   | |____   _ | (____) | 
- \`- -.-~  \`- -'  ~-.- -'    |______| |_|\\________/
+       :         )           |____ \\    /  ___  \\
+ .~ ~ -.\\       /.- ~~ .      ___) |    | (___) |
+ >       \`.   .'       <     / ___/      \\____  | 
+(         .- -.         )   | |____   _   ____) | 
+ \`- -.-~  \`- -'  ~-.- -'    |______| |_| |______/
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
         ~-.-^-.-~ \\       .~  .-~   .~
@@ -37,10 +37,9 @@ EOF
 ###############################################
 show_flower() {
   cat << EOF
-Iris is a perennial plant, growing from creeping rhizomes (rhizomatous irises) or, in drier climates, from bulbs (bulbous irises). It  has long, erect flowering stems which may be simple or branched, solid or hollow, and flattened or has a circular cross-section. The rhizomatous species usually have 3–10 basal sword-shaped leaves growing in dense clumps. The bulbous species have cylindrical, basal leaves. 
-
+Jasmine is a genus of shrubs and vines in the olive family (Oleaceae). The flowers are typically around 2.5 cm (0.98 in) in diameter. They are white or yellow in color, although in rare instances they can be slightly reddish. The flowers are borne in cymose clusters with a minimum of three flowers, though they can also be solitary on the ends of branchlets. Each flower has about four to nine petals, two locules, and one to four ovules. They have two stamens with very short filaments. The bracts are linear or ovated. 
 Check more information:
-   https://en.wikipedia.org/wiki/Iris_(plant)
+   https://en.wikipedia.org/wiki/Jasmine
 
 EOF
 }
@@ -51,19 +50,20 @@ EOF
 show_recipe() {
   cat << EOF
 
-Iris - Cocktail
+Jasmine - Cocktail 
 
-From: https://www.mixology.recipes/cocktails/iris-cocktail
+From: https://www.liquor.com/recipes/jasmine/
 
-Ingredients
+Ingredients:
 
-   1½ oz brandy (4.5 cl)
-   ½ oz sweet vermouth (1.5 cl)
-   ½ oz fresh lemon juice (1.5 cl)
+    1 1/2 oz Gin
+    1/4 oz Campari
+    1/4 oz Orange liqueur
+    3/4 oz Fresh lemon juice
+    Garnish: Lemon twist
 
-Instructions
-
-    Place all ingredients in iced cocktail shaker strain. Shake and add sugar to taste. Serve in a cocktail glass (4.5 oz) 
+Instructions:
+    Place all ingredients in iced cocktail shaker strain. Shake and add sugar to taste. Strain into a chilled cocktail glass. Garnish with a lemon twist
 
 EOF
 }

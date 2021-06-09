@@ -34,7 +34,7 @@ JOB_NAME_KEYWORD = '-PyCOMPSsInteractive'
 
 def command_runner(cmd, exception=True, cwd=None):
     """
-    Run the command defined in the cmd list.
+    Run the command defined in the cmd list (for single commands).
     Decodes the stdout and stderr following the DECODING_FORMAT.
     :param cmd: Command to execute as list.
     :param exception: Throw exception if failed. Otherwise, the caller will handle the error.
@@ -53,6 +53,33 @@ def command_runner(cmd, exception=True, cwd=None):
     return return_code, stdout, stderr
 
 
+def command_runner_shell(cmd, exception=True, cwd=None):
+    """
+    Run the command defined in the cmd string.
+    Enables to run multiple commands at once (e.g. using &&).
+    Decodes the stdout and stderr following the DECODING_FORMAT.
+    :param cmd: Command to execute as string.
+    :param exception: Throw exception if failed. Otherwise, the caller will handle the error.
+    :param cwd: Directory where to execute the command
+    :return: return code, stdout, stderr
+    """
+    if VERBOSE:
+        print("Executing command: " + ' '.join(cmd))
+    current_env = os.environ.copy()
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         cwd=cwd,
+                         env=current_env,
+                         shell=True)
+    stdout, stderr = p.communicate()   # blocks until cmd is done
+    return_code = p.returncode
+    stdout = stdout.decode(DECODING_FORMAT)
+    stderr = stderr.decode(DECODING_FORMAT)
+    if exception and return_code != 0:
+        _raise_command_exception(cmd, return_code, stdout, stderr)
+    return return_code, stdout, stderr
+
 def get_installation_path():
     """
     Retrieve the COMPSs installation root folder
@@ -62,8 +89,25 @@ def get_installation_path():
     root_path = os.path.sep + os.path.join(*(script_path.split(os.path.sep)[:-4]))
     return root_path
 
+def get_jupyter_environment_variables():
+    """
+    Get the jupyter environment variables as dictionary.
+    # export JUPYTER_RUNTIME_DIR=$HOME/jupyter-runtime
+    :return: Dictionary with the required environment variables.
+    """
+    return {"JUPYTER_RUNTIME_DIR": os.environ["HOME"] + "/jupyter-runtime"}
 
-def setup_supercomputer_configuration(include=None):
+def setup_jupyter_environment_only():
+    """
+    Setup the jupyter environment variables.
+    :return: None
+    """
+    if VERBOSE:
+        print("Setting up the jupyter environment...")
+    include = get_jupyter_environment_variables()
+    _export_environment_variables(None, include)
+
+def setup_supercomputer_configuration():
     """
     Setup the supercomputer configuration.
     Reads the supercomputer cfg and queuing system cfg and exports
@@ -74,12 +118,12 @@ def setup_supercomputer_configuration(include=None):
     Alternatively, it is possible to include a keyword in the command for
     the later substitution from the python code before using it (e.g.
     QUEUE_JOB_NAME_CMD - which is used multiple times).
-    :param include: Dictionary with environment variables to consider in the
-                    environment so that the cfgs can complete their contents
     :return: None
     """
     if VERBOSE:
         print("Setting up the supercomputer configuration...")
+    # Include the jupyter environment variables
+    include = get_jupyter_environment_variables()
     # Get the scripts directory
     sc_cfg_name = 'default.cfg'
     sc_cfg = os.path.join(get_installation_path(),
@@ -184,7 +228,7 @@ def not_a_notebook(job_id):
     exit(1)
 
 
-def _export_environment_variables(env_file, include=None):
+def _export_environment_variables(env_file=None, include=None):
     """
     Export the environment variables defined in "file".
     Uses bash to parse the file and gets the variables from a clean environment
@@ -201,11 +245,20 @@ def _export_environment_variables(env_file, include=None):
         for k, v in include.items():
             exports.append('export ' + k.strip() + '=' + v.strip())
         exports = ' && '.join(exports)
-        command = shlex.split("env -i bash -c 'set -a && " + exports + " && source " + str(env_file) + " && env'")
+        if env_file:
+            command = shlex.split("env -i bash -c 'set -a && " + exports + " && source " + str(env_file) + " && env'")
+        else:
+            command = shlex.split("env -i bash -c 'set -a && " + exports + " && env'")
     else:
-        command = shlex.split("env -i bash -c 'set -a && source " + str(env_file) + " && env'")
+        if env_file:
+            command = shlex.split("env -i bash -c 'set -a && source " + str(env_file) + " && env'")
+        else:
+            raise Exception("Missing at least one parameter: env_file or include")
     if VERBOSE:
-        print("Exporting environment variables from: " + env_file)
+        if env_file:
+            print("Exporting environment variables from: " + env_file)
+        if include:
+            print("Exporting environment variables: " + include)
     return_code, stdout, stderr = command_runner(command)
     for line in stdout.splitlines():
         (key, _, value) = line.partition("=")

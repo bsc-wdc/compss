@@ -28,6 +28,7 @@ from commons import JOB_NAME_KEYWORD
 from commons import DISABLED_VALUE
 from commons import command_runner
 from commons import get_installation_path
+from commons import setup_jupyter_environment_only
 
 
 def submit():
@@ -111,6 +112,9 @@ def submit():
 
     # Append keyword to the job name
     job_name = job_name + JOB_NAME_KEYWORD
+
+    # Setup jupyter environment
+    setup_jupyter_environment_only()
 
     # Submit the PyCOMPSs job with the notebook enabled
     if VERBOSE:

@@ -730,14 +730,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         TM.shutdown(true, closingConnection);
-
-        try {
-            removeWorkingDir(workingDir);
-            WORKER_LOGGER.debug(" Working Dir removed:" + workingDir);
-        } catch (IOException e) {
-            WORKER_LOGGER.error("Removing Worker Dir failed:" + workingDir);
+        if (REMOVE_WD) {
+            try {
+                removeWorkingDir(workingDir);
+                WORKER_LOGGER.debug(" Working Dir removed:" + workingDir);
+            } catch (IOException e) {
+                WORKER_LOGGER.error("Removing Worker Dir failed:" + workingDir);
+            }
         }
-
         WORKER_LOGGER.debug("Finish shutdown method on worker");
     }
 

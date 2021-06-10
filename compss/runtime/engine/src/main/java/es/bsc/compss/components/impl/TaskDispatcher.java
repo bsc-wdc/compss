@@ -21,6 +21,7 @@ import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.request.exceptions.ShutdownException;

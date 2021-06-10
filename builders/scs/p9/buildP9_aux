@@ -48,16 +48,16 @@
   unload_before_python="ignore"
   py2_modules="python/2.7.14"
   py3_modules="python/3.6.5"
-  #py3_other_modules="ignore"
-  py3_other_modules="Python/3.7.0-foss-2018b"
+  py3_other_modules="ignore"
+  #py3_other_modules="Python/3.7.0-foss-2018b"
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
   # additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
   # additionalExports="export PATH=$PATH:/apps/JDK/SRC/jdk1.9.0_131 JAVA_HOME=/apps/JDK/SRC/jdk1.9.0_131"
   additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.66.0/include"
-  #additional_module_use_folder="ignore"
-  additional_module_use_folder="/gpfs/projects/bsc32/software/rhel/7.4/ppc64le/POWER9/modules/all/"
+  additional_module_use_folder="ignore"
+  #additional_module_use_folder="/gpfs/projects/bsc32/software/rhel/7.4/ppc64le/POWER9/modules/all/"
   queues_cfg="p9.cfg"
   extrae_with_openmpi="true"
   openmpi_version=""

@@ -65,6 +65,17 @@ def supports_dynamic_state():
     return widgets is not None
 
 
+def check_monitoring_file(log_path):
+    # type: (str) -> bool
+    """ Check if there monitoring file exists or not.
+
+    :param log_path: Absolute path of the log folder.
+    :return: True if the compss monitoring file exists. False otherwise.
+    """
+    compss_state_xml = get_compss_state_xml(log_path)
+    return os.path.exists(compss_state_xml)
+
+
 def get_compss_state_xml(log_path):
     # type: (str) -> str
     """ Check if there is any missing package and return the status xml

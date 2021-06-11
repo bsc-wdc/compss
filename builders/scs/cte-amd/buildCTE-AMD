@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildCTE_AMD
+  # Description: SCRIPT FOR CTE-AMD COMPSs BUILD
+  # Parameters: <CTE-AMD_user> CTE-AMD user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on CTE-AMD for deployment
+  #             <FullTargetPath> Base Target Installation folder on CTE-AMD
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildCTE-AMD <CTE-AMD_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  CTE_AMDuser=$1
+  CTE_AMDtmpDir=$2
+  CTE_AMDtargetDir=$3
+  CTE_AMDloginNode=amdlogin1.bsc.es
+  CTE_AMDauxScript=${SCRIPT_DIR}/buildCTE-AMD_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${CTE_AMDuser}" "${CTE_AMDloginNode}" "${CTE_AMDtmpDir}" "${CTE_AMDtargetDir}" "${CTE_AMDauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

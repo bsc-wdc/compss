@@ -1522,7 +1522,7 @@ check_args() {
     if [ "${worker_working_dir}" != "$LOCAL_DISK_NAME" ]; then
         scheduler=${DEFAULT_SHARED_DISK_SCHEDULER}
     else
-	scheduler=${DEFAULT_LOCAL_SCHEDULER}
+	scheduler=${DEFAULT_LOCAL_DISK_SCHEDULER}
     fi
     args_pass="--scheduler=${scheduler} ${args_pass}"
   fi

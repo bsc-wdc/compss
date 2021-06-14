@@ -170,6 +170,17 @@ def get_id(psco):
     return psco.getID()
 
 
+@EmitEvent(GET_BY_ID_EVENT, master=False, inside=True)
+def get_by_id(id):
+    # type: (str) -> typing.Any
+    """ Retrieve the object from the given identifier.
+
+    :param id: Persistent object identifier.
+    :return: object associated to the persistent object identifier.
+    """
+    return GET_BY_ID(id)
+
+
 @EmitEvent(MASTER_INIT_STORAGE_EVENT, master=True)
 def master_init_storage(storage_conf, logger):  # noqa
     # type: (str, typing.Any) -> bool

@@ -1864,13 +1864,13 @@ class TaskMaster(object):
                         # if max_obj_arg_size > 320000:
                         #     max_obj_arg_size = 320000
         elif policy == "serializedSize":
-            PicklingError = None  # type: typing.Any
+            pickling_error = None  # type: typing.Any
             if IS_PYTHON3:
-                from pickle import PicklingError as p_e_3
-                PicklingError = p_e_3
+                from pickle import PicklingError as p_e_3   # noqa
+                pickling_error = p_e_3
             else:
                 from cPickle import PicklingError as p_e_2  # noqa
-                PicklingError = p_e_2
+                pickling_error = p_e_2
             # Check if the object is small in order to serialize it.
             # This alternative evaluates the size after serializing the
             # parameter
@@ -1910,7 +1910,7 @@ class TaskMaster(object):
                             # max_obj_arg_size += _bytes
                             # if max_obj_arg_size > 320000:
                             #     max_obj_arg_size = 320000
-                except PicklingError:
+                except pickling_error:
                     p.content = real_value
                     p.content_type = TYPE.OBJECT
                     if __debug__:

@@ -36,11 +36,7 @@ from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
 from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import TASK_EVENTS_SERIALIZE_SIZE_CACHE
 from pycompss.worker.commons.constants import TASK_EVENTS_DESERIALIZE_SIZE_CACHE
-from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
-from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
-from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from pycompss.util.tracing.helpers import EmitEvent
 
 from multiprocessing import Queue
 try:
@@ -53,10 +49,14 @@ except ImportError:
     SharedMemory = None         # type: ignore
     ShareableList = None        # type: ignore
     SharedMemoryManager = None  # type: ignore
+
+# Try to import numpy
+np = None  # type: typing.Any
 try:
-    import numpy as np
+    import numpy  # noqa
+    np = numpy
 except ImportError:
-    np = None
+    pass
 
 from pycompss.worker.commons.constants import BINDING_SERIALIZATION_CACHE_SIZE_TYPE    # noqa: E501
 from pycompss.worker.commons.constants import BINDING_DESERIALIZATION_CACHE_SIZE_TYPE  # noqa: E501

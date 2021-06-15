@@ -30,7 +30,7 @@ from collections import OrderedDict
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
-from pycompss.util.tracing.helpers import EmitEvent
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
 from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
@@ -282,7 +282,6 @@ def stop_shared_memory_manager(smm):
     smm.shutdown()
 
 
-@EmitEvent(RETRIEVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
 def retrieve_object_from_cache(logger, cache_ids, identifier, parameter_name, user_function, cache_profiler):  # noqa
     # type: (typing.Any, typing.Any, str, str, typing.Any, bool) -> typing.Any
     """ Retrieve an object from the given cache proxy dict.
@@ -295,43 +294,42 @@ def retrieve_object_from_cache(logger, cache_ids, identifier, parameter_name, us
     :param cache_profiler: If cache profiling is enabled.
     :return: The object from cache.
     """
-    emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, 0)
-    identifier = __get_file_name__(identifier)
-    if __debug__:
-        logger.debug(HEADER + "Retrieving: " + str(identifier))
-    obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
-    size = 0
-    output = None        # type: typing.Any
-    existing_shm = None  # type: typing.Any
-    if shared_type == SHARED_MEMORY_TAG:
-        existing_shm = SharedMemory(name=obj_id)
-        size = len(existing_shm.buf)
-        output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)  # noqa: E501
-    elif shared_type == SHAREABLE_LIST_TAG:
-        existing_shm = ShareableList(name=obj_id)
-        size = len(existing_shm.shm.buf)
-        output = list(existing_shm)
-    elif shared_type == SHAREABLE_TUPLE_TAG:
-        existing_shm = ShareableList(name=obj_id)
-        size = len(existing_shm.shm.buf)
-        output = tuple(existing_shm)
-    # Currently unsupported since conversion requires lists of lists.
-    # elif shared_type == SHAREABLE_DICT_TAG:
-    #     existing_shm = ShareableList(name=obj_id)
-    #     output = dict(existing_shm)
-    else:
-        raise PyCOMPSsException("Unknown cacheable type.")
-    if __debug__:
-        logger.debug(HEADER + "Retrieved: " + str(identifier))
-    emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, size)
+    with event_inside_worker(RETRIEVE_OBJECT_FROM_CACHE_EVENT):
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, 0)
+        identifier = __get_file_name__(identifier)
+        if __debug__:
+            logger.debug(HEADER + "Retrieving: " + str(identifier))
+        obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
+        output = None        # type: typing.Any
+        existing_shm = None  # type: typing.Any
+        if shared_type == SHARED_MEMORY_TAG:
+            existing_shm = SharedMemory(name=obj_id)
+            output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)    # noqa: E501
+        elif shared_type == SHAREABLE_LIST_TAG:
+            existing_shm = ShareableList(name=obj_id)
+            output = list(existing_shm)
+        elif shared_type == SHAREABLE_TUPLE_TAG:
+            existing_shm = ShareableList(name=obj_id)
+            output = tuple(existing_shm)
+        # Currently unsupported since conversion requires lists of lists.
+        # elif shared_type == SHAREABLE_DICT_TAG:
+        #     existing_shm = ShareableList(name=obj_id)
+        #     output = dict(existing_shm)
+        else:
+            raise PyCOMPSsException("Unknown cacheable type.")
+        if __debug__:
+            logger.debug(HEADER + "Retrieved: " + str(identifier))
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, len(existing_shm.buf))
 
-    filename = filename_cleaned(identifier)
-    function_name = function_cleaned(user_function)
-    if cache_profiler:
-        cache_queue.put(("GET", (filename, parameter_name, function_name)))
+        # Profiling
+        filename = filename_cleaned(identifier)
+        function_name = function_cleaned(user_function)
+        if cache_profiler:
+            cache_queue.put(("GET", (filename, parameter_name, function_name)))
 
-    cache_ids[identifier][4] = obj_hits + 1
-    return output, existing_shm
+        # Add hit
+        cache_ids[identifier][4] = obj_hits + 1
+        return output, existing_shm
 
 
 def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
@@ -368,62 +366,58 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_f
     :param user_function: Function.
     :return: None
     """
-    function = function_cleaned(user_function)
-    f_name = __get_file_name__(f_name)
-    if __debug__:
-        logger.debug(HEADER + "Inserting into cache (%s): %s" %
-                     (str(type(obj)), str(f_name)))
-    try:
-        inserted = True
-        if isinstance(obj, np.ndarray):
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
-            shape = obj.shape
-            d_type = obj.dtype
-            size = obj.nbytes
-            shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
-            within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
-            within_cache[:] = obj[:]  # Copy contents
-            new_cache_id = shm.name
-            cache_queue.put(("PUT", (
-                f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG, parameter, function)))  # noqa: E501
-        elif isinstance(obj, list):
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
-            sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-            new_cache_id = sl.shm.name
-            size = total_sizeof(obj)
-            cache_queue.put(
-                ("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG, parameter, function)))  # noqa: E501
-        elif isinstance(obj, tuple):
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
-            sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-            new_cache_id = sl.shm.name
-            size = total_sizeof(obj)
-            cache_queue.put(
-                ("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG, parameter, function)))  # noqa: E501
-        # Unsupported dicts since they are lists of lists when converted.
-        # elif isinstance(obj, dict):
-        #     # Convert dict to list of tuples
-        #     list_tuples = list(zip(obj.keys(), obj.values()))
-        #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
-        #     new_cache_id = sl.shm.name
-        #     size = total_sizeof(obj)
-        #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG, parameter, function)))  # noqa: E501
-        else:
-            inserted = False
-            if __debug__:
-                logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
-        if inserted:
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, size)
-        if __debug__ and inserted:
-            logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
-    except KeyError as e:  # noqa
+    with event_inside_worker(INSERT_OBJECT_INTO_CACHE_EVENT):
+        function = function_cleaned(user_function)
+        f_name = __get_file_name__(f_name)
         if __debug__:
-            logger.debug(
-                HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
-            logger.debug(str(e))
+            logger.debug(HEADER + "Inserting into cache (%s): %s" %
+                         (str(type(obj)), str(f_name)))
+        try:
+            inserted = True
+            if isinstance(obj, np.ndarray):
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                shape = obj.shape
+                d_type = obj.dtype
+                size = obj.nbytes
+                shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
+                within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
+                within_cache[:] = obj[:]  # Copy contents
+                new_cache_id = shm.name
+                cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG, parameter, function)))  # noqa: E501
+            elif isinstance(obj, list):
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+                new_cache_id = sl.shm.name
+                size = total_sizeof(obj)
+                cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG, parameter, function)))  # noqa: E501
+            elif isinstance(obj, tuple):
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+                new_cache_id = sl.shm.name
+                size = total_sizeof(obj)
+                cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG, parameter, function)))  # noqa: E501
+            # Unsupported dicts since they are lists of lists when converted.
+            # elif isinstance(obj, dict):
+            #     # Convert dict to list of tuples
+            #     list_tuples = list(zip(obj.keys(), obj.values()))
+            #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
+            #     new_cache_id = sl.shm.name
+            #     size = total_sizeof(obj)
+            #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG, parameter, function)))  # noqa: E501
+            else:
+                inserted = False
+                if __debug__:
+                    logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
+            if inserted:
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, size)
+            if __debug__ and inserted:
+                logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
+        except KeyError as e:  # noqa
+            if __debug__:
+                logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
+                logger.debug(str(e))
 
 
-@EmitEvent(REMOVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
 def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
     # type: (typing.Any, Queue, str) -> None
     """ Removes an object from cache.
@@ -433,12 +427,13 @@ def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
-    f_name = __get_file_name__(f_name)
-    if __debug__:
-        logger.debug(HEADER + "Removing from cache: " + str(f_name))
-    cache_queue.put(("REMOVE", f_name))
-    if __debug__:
-        logger.debug(HEADER + "Removed from cache: " + str(f_name))
+    with event_inside_worker(REMOVE_OBJECT_FROM_CACHE_EVENT):
+        f_name = __get_file_name__(f_name)
+        if __debug__:
+            logger.debug(HEADER + "Removing from cache: " + str(f_name))
+        cache_queue.put(("REMOVE", f_name))
+        if __debug__:
+            logger.debug(HEADER + "Removed from cache: " + str(f_name))
 
 
 def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa

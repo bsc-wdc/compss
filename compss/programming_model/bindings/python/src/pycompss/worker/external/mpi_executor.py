@@ -35,7 +35,7 @@ from mpi4py import MPI
 import pycompss.util.context as context
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.util.tracing.helpers import EmitEvent
+from pycompss.util.tracing.helpers import event_worker
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
@@ -133,7 +133,6 @@ def executor(process_name, command):
         sys.exit(sig)
 
 
-@EmitEvent(PROCESS_TASK_EVENT)
 def process_task(current_line,     # type: str
                  process_name,     # type: str
                  logger,           # type: typing.Any
@@ -153,220 +152,221 @@ def process_task(current_line,     # type: str
     :param logger_formatter: Logger formatter.
     :return: exit_value and message.
     """
-    # Process properties
-    stdout = sys.stdout
-    stderr = sys.stderr
-    job_id = None
-
-    if __debug__:
-        logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
-                     % (str(process_name), str(current_line)))
-
-    splitted_current_line = current_line.split()
-    if splitted_current_line[0] == EXECUTE_TASK_TAG:
-        num_collection_params = int(splitted_current_line[-1])
-        collections_layouts = dict()
-        if num_collection_params > 0:
-            raw_layouts = splitted_current_line[((num_collection_params * -4) - 1):-1]
-            for i in range(num_collection_params):
-                param = raw_layouts[i * 4]
-                layout = [int(raw_layouts[(i * 4) + 1]),
-                          int(raw_layouts[(i * 4) + 2]),
-                          int(raw_layouts[(i * 4) + 3])]
-                collections_layouts[param] = layout
-
-        # Remove the last elements: cpu and gpu bindings and collection params
-        current_line_filtered = splitted_current_line[0:-3]
-
-        # task jobId command
-        job_id = current_line_filtered[1]
-        job_out = current_line_filtered[2]
-        job_err = current_line_filtered[3]
-        # current_line_filtered[4] = <boolean> = tracing
-        # current_line_filtered[5] = <integer> = task id
-        # current_line_filtered[6] = <boolean> = debug
-        # current_line_filtered[7] = <string>  = storage conf.
-        # current_line_filtered[8] = <string>  = operation type (e.g. METHOD)
-        # current_line_filtered[9] = <string>  = module
-        # current_line_filtered[10]= <string>  = method
-        # current_line_filtered[11]= <string>  = time out
-        # current_line_filtered[12]= <integer> = Number of slaves (worker nodes)==#nodes
-        # <<list of slave nodes>>
-        # current_line_filtered[12 + #nodes] = <integer> = computing units
-        # current_line_filtered[13 + #nodes] = <boolean> = has target
-        # current_line_filtered[14 + #nodes] = <string>  = has return (always "null")
-        # current_line_filtered[15 + #nodes] = <integer> = Number of parameters
-        # <<list of parameters>>
-        #       !---> type, stream, prefix , value
+    with event_worker(PROCESS_TASK_EVENT):
+        # Process properties
+        stdout = sys.stdout
+        stderr = sys.stderr
+        job_id = None
 
         if __debug__:
-            logger.debug("[PYTHON EXECUTOR] [%s] Received task with id: %s" %
-                         (str(process_name), str(job_id)))
-            logger.debug("[PYTHON EXECUTOR] [%s] - TASK CMD: %s" %
-                         (str(process_name), str(current_line_filtered)))
+            logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
+                         % (str(process_name), str(current_line)))
 
-        # Swap logger from stream handler to file handler
-        # All task output will be redirected to job.out/err
-        for log_handler in logger_handlers:
-            logger.removeHandler(log_handler)
+        splitted_current_line = current_line.split()
+        if splitted_current_line[0] == EXECUTE_TASK_TAG:
+            num_collection_params = int(splitted_current_line[-1])
+            collections_layouts = dict()
+            if num_collection_params > 0:
+                raw_layouts = splitted_current_line[((num_collection_params * -4) - 1):-1]
+                for i in range(num_collection_params):
+                    param = raw_layouts[i * 4]
+                    layout = [int(raw_layouts[(i * 4) + 1]),
+                              int(raw_layouts[(i * 4) + 2]),
+                              int(raw_layouts[(i * 4) + 3])]
+                    collections_layouts[param] = layout
 
-        out_file_handler = logging.FileHandler(job_out)
-        out_file_handler.setLevel(logger_level)
-        out_file_handler.setFormatter(logger_formatter)
-        err_file_handler = logging.FileHandler(job_err)
-        err_file_handler.setLevel("ERROR")
-        err_file_handler.setFormatter(logger_formatter)
-        logger.addHandler(out_file_handler)
-        logger.addHandler(err_file_handler)
+            # Remove the last elements: cpu and gpu bindings and collection params
+            current_line_filtered = splitted_current_line[0:-3]
 
-        if __debug__:
-            logger.debug("Received task in process: %s" %
-                         str(process_name))
-            logger.debug(" - TASK CMD: %s" %
-                         str(current_line_filtered))
+            # task jobId command
+            job_id = current_line_filtered[1]
+            job_out = current_line_filtered[2]
+            job_err = current_line_filtered[3]
+            # current_line_filtered[4] = <boolean> = tracing
+            # current_line_filtered[5] = <integer> = task id
+            # current_line_filtered[6] = <boolean> = debug
+            # current_line_filtered[7] = <string>  = storage conf.
+            # current_line_filtered[8] = <string>  = operation type (e.g. METHOD)
+            # current_line_filtered[9] = <string>  = module
+            # current_line_filtered[10]= <string>  = method
+            # current_line_filtered[11]= <string>  = time out
+            # current_line_filtered[12]= <integer> = Number of slaves (worker nodes)==#nodes
+            # <<list of slave nodes>>
+            # current_line_filtered[12 + #nodes] = <integer> = computing units
+            # current_line_filtered[13 + #nodes] = <boolean> = has target
+            # current_line_filtered[14 + #nodes] = <string>  = has return (always "null")
+            # current_line_filtered[15 + #nodes] = <integer> = Number of parameters
+            # <<list of parameters>>
+            #       !---> type, stream, prefix , value
 
-        try:
-            # Setup out/err wrappers
-            out = open(job_out, "a")
-            err = open(job_err, "a")
-            sys.stdout = out
-            sys.stderr = err
-
-            # Setup process environment
-            cn = int(current_line_filtered[11])
-            cn_names = ",".join(current_line_filtered[12:12 + cn])
-            cu = int(current_line_filtered[13 + cn])
-            os.environ["COMPSS_NUM_NODES"] = str(cn)
-            os.environ["COMPSS_HOSTNAMES"] = cn_names
-            os.environ["COMPSS_NUM_THREADS"] = str(cu)
-            os.environ["OMP_NUM_THREADS"] = str(cu)
             if __debug__:
-                logger.debug("Process environment:")
-                logger.debug("\t - Number of nodes: %s" % (str(cn)))
-                logger.debug("\t - Hostnames: %s" % str(cn_names))
-                logger.debug("\t - Number of threads: %s" % (str(cu)))
+                logger.debug("[PYTHON EXECUTOR] [%s] Received task with id: %s" %
+                             (str(process_name), str(job_id)))
+                logger.debug("[PYTHON EXECUTOR] [%s] - TASK CMD: %s" %
+                             (str(process_name), str(current_line_filtered)))
 
-            # Execute task
-            storage_conf = "null"
-            tracing = False
-            python_mpi = True
-            result = execute_task(process_name,
-                                  storage_conf,
-                                  current_line_filtered[9:],
-                                  tracing,
-                                  logger,
-                                  log_json,
-                                  (job_out, job_err),
-                                  python_mpi,
-                                  collections_layouts,
-                                  None,
-                                  None)
-            exit_value, new_types, new_values, time_out, except_msg = result
+            # Swap logger from stream handler to file handler
+            # All task output will be redirected to job.out/err
+            for log_handler in logger_handlers:
+                logger.removeHandler(log_handler)
 
-            # Restore out/err wrappers
-            sys.stdout = stdout
-            sys.stderr = stderr
-            sys.stdout.flush()
-            sys.stderr.flush()
-            out.close()
-            err.close()
+            out_file_handler = logging.FileHandler(job_out)
+            out_file_handler.setLevel(logger_level)
+            out_file_handler.setFormatter(logger_formatter)
+            err_file_handler = logging.FileHandler(job_err)
+            err_file_handler.setLevel("ERROR")
+            err_file_handler.setFormatter(logger_formatter)
+            logger.addHandler(out_file_handler)
+            logger.addHandler(err_file_handler)
 
-            # To reduce if necessary:
-            # global_exit_value = MPI.COMM_WORLD.reduce(exit_value,
-            #                                           op=MPI.SUM,
-            #                                           root=0)
-            # message = ""
+            if __debug__:
+                logger.debug("Received task in process: %s" %
+                             str(process_name))
+                logger.debug(" - TASK CMD: %s" %
+                             str(current_line_filtered))
 
-            # if MPI.COMM_WORLD.rank == 0 and global_exit_value == 0:
-            if exit_value == 0:
-                # Task has finished without exceptions
-                # endTask jobId exitValue message
-                params = build_return_params_message(new_types, new_values)
-                message = " ".join((END_TASK_TAG,
-                                    str(job_id),
-                                    str(exit_value),
-                                    str(params) + "\n"))
-            elif exit_value == 2:
-                # Task has finished with a COMPSs Exception
-                # compssExceptionTask jobId exitValue message
-                except_msg = except_msg.replace(" ", "_")
-                message = " ".join((COMPSS_EXCEPTION_TAG,
-                                    str(job_id),
-                                    str(except_msg) + "\n"))
+            try:
+                # Setup out/err wrappers
+                out = open(job_out, "a")
+                err = open(job_err, "a")
+                sys.stdout = out
+                sys.stderr = err
+
+                # Setup process environment
+                cn = int(current_line_filtered[11])
+                cn_names = ",".join(current_line_filtered[12:12 + cn])
+                cu = int(current_line_filtered[13 + cn])
+                os.environ["COMPSS_NUM_NODES"] = str(cn)
+                os.environ["COMPSS_HOSTNAMES"] = cn_names
+                os.environ["COMPSS_NUM_THREADS"] = str(cu)
+                os.environ["OMP_NUM_THREADS"] = str(cu)
                 if __debug__:
-                    logger.debug("%s - COMPSS EXCEPTION TASK MESSAGE: %s" %
-                                 (str(process_name), str(except_msg)))
-            else:
-                # elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
-                # An exception has been raised in task
+                    logger.debug("Process environment:")
+                    logger.debug("\t - Number of nodes: %s" % (str(cn)))
+                    logger.debug("\t - Hostnames: %s" % str(cn_names))
+                    logger.debug("\t - Number of threads: %s" % (str(cu)))
+
+                # Execute task
+                storage_conf = "null"
+                tracing = False
+                python_mpi = True
+                result = execute_task(process_name,
+                                      storage_conf,
+                                      current_line_filtered[9:],
+                                      tracing,
+                                      logger,
+                                      log_json,
+                                      (job_out, job_err),
+                                      python_mpi,
+                                      collections_layouts,
+                                      None,
+                                      None)
+                exit_value, new_types, new_values, time_out, except_msg = result
+
+                # Restore out/err wrappers
+                sys.stdout = stdout
+                sys.stderr = stderr
+                sys.stdout.flush()
+                sys.stderr.flush()
+                out.close()
+                err.close()
+
+                # To reduce if necessary:
+                # global_exit_value = MPI.COMM_WORLD.reduce(exit_value,
+                #                                           op=MPI.SUM,
+                #                                           root=0)
+                # message = ""
+
+                # if MPI.COMM_WORLD.rank == 0 and global_exit_value == 0:
+                if exit_value == 0:
+                    # Task has finished without exceptions
+                    # endTask jobId exitValue message
+                    params = build_return_params_message(new_types, new_values)
+                    message = " ".join((END_TASK_TAG,
+                                        str(job_id),
+                                        str(exit_value),
+                                        str(params) + "\n"))
+                elif exit_value == 2:
+                    # Task has finished with a COMPSs Exception
+                    # compssExceptionTask jobId exitValue message
+                    except_msg = except_msg.replace(" ", "_")
+                    message = " ".join((COMPSS_EXCEPTION_TAG,
+                                        str(job_id),
+                                        str(except_msg) + "\n"))
+                    if __debug__:
+                        logger.debug("%s - COMPSS EXCEPTION TASK MESSAGE: %s" %
+                                     (str(process_name), str(except_msg)))
+                else:
+                    # elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
+                    # An exception has been raised in task
+                    message = " ".join((END_TASK_TAG,
+                                        str(job_id),
+                                        str(exit_value) + "\n"))
+
+                if __debug__:
+                    logger.debug("%s - END TASK MESSAGE: %s" % (str(process_name),
+                                                                str(message)))
+                # The return message is:
+                #
+                # TaskResult ==> jobId exitValue D List<Object>
+                #
+                # Where List<Object> has D * 2 length:
+                # D = #parameters == #task_parameters +
+                #                    (has_target ? 1 : 0) +
+                #                    #returns
+                # And contains a pair of elements per parameter:
+                #     - Parameter new type.
+                #     - Parameter new value:
+                #         - "null" if it is NOT a PSCO
+                #         - PSCOId (String) if is a PSCO
+                # Example:
+                #     4 null 9 null 12 <pscoid>
+                #
+                # The order of the elements is: parameters + self + returns
+                #
+                # This is sent through the pipe with the END_TASK message.
+                # If the task had an object or file as parameter and the worker
+                # returns the id, the runtime can change the type (and locations)
+                # to a EXTERNAL_OBJ_T.
+
+            except Exception as e:
+                logger.exception("%s - Exception %s" % (str(process_name),
+                                                        str(e)))
+                exit_value = 7
                 message = " ".join((END_TASK_TAG,
                                     str(job_id),
                                     str(exit_value) + "\n"))
 
+            # Clean environment variables
             if __debug__:
-                logger.debug("%s - END TASK MESSAGE: %s" % (str(process_name),
-                                                            str(message)))
-            # The return message is:
-            #
-            # TaskResult ==> jobId exitValue D List<Object>
-            #
-            # Where List<Object> has D * 2 length:
-            # D = #parameters == #task_parameters +
-            #                    (has_target ? 1 : 0) +
-            #                    #returns
-            # And contains a pair of elements per parameter:
-            #     - Parameter new type.
-            #     - Parameter new value:
-            #         - "null" if it is NOT a PSCO
-            #         - PSCOId (String) if is a PSCO
-            # Example:
-            #     4 null 9 null 12 <pscoid>
-            #
-            # The order of the elements is: parameters + self + returns
-            #
-            # This is sent through the pipe with the END_TASK message.
-            # If the task had an object or file as parameter and the worker
-            # returns the id, the runtime can change the type (and locations)
-            # to a EXTERNAL_OBJ_T.
+                logger.debug("Cleaning environment.")
 
-        except Exception as e:
-            logger.exception("%s - Exception %s" % (str(process_name),
-                                                    str(e)))
+            del os.environ["COMPSS_HOSTNAMES"]
+
+            # Restore loggers
+            if __debug__:
+                logger.debug("Restoring loggers.")
+            logger.removeHandler(out_file_handler)
+            logger.removeHandler(err_file_handler)
+            for handler in logger_handlers:
+                logger.addHandler(handler)
+
+            if __debug__:
+                logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s" %
+                             (str(process_name), str(job_id)))
+            # return SUCCESS_SIG,
+            #        "{0} -- Task Ended Successfully!".format(str(process_name))
+
+        else:
+            if __debug__:
+                logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" %
+                             (str(process_name), str(current_line_filtered)))
             exit_value = 7
             message = " ".join((END_TASK_TAG,
                                 str(job_id),
                                 str(exit_value) + "\n"))
 
-        # Clean environment variables
-        if __debug__:
-            logger.debug("Cleaning environment.")
-
-        del os.environ["COMPSS_HOSTNAMES"]
-
-        # Restore loggers
-        if __debug__:
-            logger.debug("Restoring loggers.")
-        logger.removeHandler(out_file_handler)
-        logger.removeHandler(err_file_handler)
-        for handler in logger_handlers:
-            logger.addHandler(handler)
-
-        if __debug__:
-            logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s" %
-                         (str(process_name), str(job_id)))
-        # return SUCCESS_SIG,
-        #        "{0} -- Task Ended Successfully!".format(str(process_name))
-
-    else:
-        if __debug__:
-            logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" %
-                         (str(process_name), str(current_line_filtered)))
-        exit_value = 7
-        message = " ".join((END_TASK_TAG,
-                            str(job_id),
-                            str(exit_value) + "\n"))
-
-    return exit_value, message
+        return exit_value, message
 
 
 def main():

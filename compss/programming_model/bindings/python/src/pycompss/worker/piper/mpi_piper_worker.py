@@ -32,7 +32,7 @@ import typing
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
-from pycompss.util.tracing.helpers import event
+from pycompss.util.tracing.helpers import event_worker
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.piper.commons.executor import ExecutorConf
@@ -254,7 +254,7 @@ def compss_persistent_executor(config):
 
     if persistent_storage:
         # Initialize storage
-        with event(INIT_STORAGE_AT_WORKER_EVENT):
+        with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
             from storage.api import initWorker as initStorageAtWorker  # noqa
             initStorageAtWorker(config_file_path=config.storage_conf)
 
@@ -279,7 +279,7 @@ def compss_persistent_executor(config):
         # Finish storage
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
-        with event(FINISH_STORAGE_AT_WORKER_EVENT):
+        with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
             from storage.api import finishWorker as finishStorageAtWorker  # noqa
             finishStorageAtWorker()
 

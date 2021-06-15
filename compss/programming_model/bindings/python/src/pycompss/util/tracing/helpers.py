@@ -112,75 +112,138 @@ def trace_mpi_executor():
     yield  # here the mpi executor runs
 
 
-class EmitEvent(object):  # noqa
+# class EmitEvent(object):  # noqa
+#
+#     def __init__(self,
+#                  event_id,            # type: int
+#                  master=False,        # type: bool
+#                  inside=False,        # type: bool
+#                  cpu_affinity=False,  # type: bool
+#                  gpu_affinity=False   # type: bool
+#                  ):                   # type: (...) -> None
+#         self.event_id = event_id
+#         self.master = master
+#         self.inside = inside
+#         self.cpu_affinity = cpu_affinity
+#         self.gpu_affinity = gpu_affinity
+#
+#     def __call__(self, f):
+#         # type: (typing.Any) -> typing.Any
+#         def wrapped_f(*args, **kwargs):
+#             # type: (*typing.Any, **typing.Any) -> typing.Any
+#             if TRACING:
+#                 with event(self.event_id, self.master,
+#                            self.inside, self.cpu_affinity, self.gpu_affinity):
+#                     result = f(*args, **kwargs)
+#             else:
+#                 result = f(*args, **kwargs)
+#             return result
+#
+#         return wrapped_f
 
-    def __init__(self,
-                 event_id,            # type: int
-                 master=False,        # type: bool
-                 inside=False,        # type: bool
-                 cpu_affinity=False,  # type: bool
-                 gpu_affinity=False   # type: bool
-                 ):                   # type: (...) -> None
-        self.event_id = event_id
-        self.master = master
-        self.inside = inside
-        self.cpu_affinity = cpu_affinity
-        self.gpu_affinity = gpu_affinity
 
-    def __call__(self, f):
-        # type: (typing.Any) -> typing.Any
-        def wrapped_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
-            if TRACING:
-                with event(self.event_id, self.master,
-                           self.inside, self.cpu_affinity, self.gpu_affinity):
-                    result = f(*args, **kwargs)
-            else:
-                result = f(*args, **kwargs)
-            return result
+# @contextmanager
+# def event(event_id,            # type: int
+#           master=False,        # type: bool
+#           inside=False,        # type: bool
+#           cpu_affinity=False,  # type: bool
+#           gpu_affinity=False   # type: bool
+#           ):                   # type: (...) -> typing.Iterator[None]
+#     """ Emits an event wrapping the desired code.
+#
+#     Does nothing if tracing is disabled.
+#
+#     :param event_id: Event identifier to emit.
+#     :param master: If the event is emitted as master.
+#     :param inside: If the event is produced inside the worker.
+#     :param cpu_affinity: If the event is produced inside the worker for
+#                          cpu affinity.
+#     :param gpu_affinity: If the event is produced inside the worker for
+#                          gpu affinity.
+#     :return: None
+#     """
+#     emit = False
+#     if TRACING and in_master() and master:
+#         emit = True
+#     if TRACING and in_worker() and not master:
+#         emit = True
+#     if emit:
+#         event_group, event_id = __get_proper_type_event__(event_id,
+#                                                           master,
+#                                                           inside,
+#                                                           cpu_affinity,
+#                                                           gpu_affinity)
+#         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
+#     yield  # here the code runs
+#     if emit:
+#         PYEXTRAE.eventandcounters(event_group, 0)         # noqa
 
-        return wrapped_f
-
-
-@contextmanager
-def event(event_id,            # type: int
-          master=False,        # type: bool
-          inside=False,        # type: bool
-          cpu_affinity=False,  # type: bool
-          gpu_affinity=False,  # type: bool
-          cpu_number=False     # type: bool
-          ):                   # type: (...) -> typing.Iterator[None]
-    """ Emits an event wrapping the desired code.
+class event_master(object):
+    """ Emits an event at master wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
-    :param master: If the event is emitted as master.
-    :param inside: If the event is produced inside the worker.
-    :param cpu_affinity: If the event is produced inside the worker for
-                         cpu affinity.
-    :param gpu_affinity: If the event is produced inside the worker for
-                         gpu affinity.
-    :param cpu_number: If the event is produced inside the worker for
-                       cpu number.
     :return: None
     """
-    emit = False
-    if TRACING and in_master() and master:
-        emit = True
-    if TRACING and in_worker() and not master:
-        emit = True
-    if emit:
-        event_group, event_id = __get_proper_type_event__(event_id,
-                                                          master,
-                                                          inside,
-                                                          cpu_affinity,
-                                                          gpu_affinity,
-                                                          cpu_number)
-        PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
-    yield  # here the code runs
-    if emit:
-        PYEXTRAE.eventandcounters(event_group, 0)         # noqa
+    __slots__ = ["emit", "event_group"]
+
+    def __init__(self, event_id):
+        # type: (int) -> None
+        if TRACING:
+            PYEXTRAE.eventandcounters(MASTER_EVENTS, event_id)
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        if TRACING:
+            PYEXTRAE.eventandcounters(MASTER_EVENTS, 0)
+
+
+class event_worker(object):
+    """ Emits an event at worker wrapping the desired code.
+
+    Does nothing if tracing is disabled.
+
+    :param event_id: Event identifier to emit.
+    :return: None
+    """
+
+    def __init__(self, event_id):
+        # type: (int) -> None
+        if TRACING:
+            PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)  # noqa
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        if TRACING:
+            PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)         # noqa
+
+
+class event_inside_worker(object):
+    """ Emits an event at worker (inside task) wrapping the desired code.
+
+    Does nothing if tracing is disabled.
+
+    :param event_id: Event identifier to emit.
+    :return: None
+    """
+    __slots__ = ["emit", "event_group"]
+
+    def __init__(self, event_id):
+        # type: (int) -> None
+        if TRACING:
+            PYEXTRAE.eventandcounters(TASK_EVENTS, event_id)  # noqa
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        if TRACING:
+            PYEXTRAE.eventandcounters(TASK_EVENTS, 0)         # noqa
 
 
 def emit_manual_event(event_id,            # type: int

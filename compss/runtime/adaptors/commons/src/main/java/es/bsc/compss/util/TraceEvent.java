@@ -172,6 +172,7 @@ public enum TraceEvent {
     PYTHON_REGISTER_CORE_ELEMENT(21, Tracer.BINDING_MASTER_TYPE, "Register Core Element"), // Register core element
     PYTHON_WAIT_ON(22, Tracer.BINDING_MASTER_TYPE, "Wait on"), // Wait on
     PYTHON_PROCESS_TASK(23, Tracer.BINDING_MASTER_TYPE, "Call to process task"), // Process task
+    PYTHON_WALL_CLOCK_LIMIT(24, Tracer.BINDING_MASTER_TYPE, "Wall clock limit"), // Wall clock limit
     // Internal call events
     PYTHON_TASK_INSTANTIATION(100, Tracer.BINDING_MASTER_TYPE, "Task instantiation"), // Task instantiation
     PYTHON_CHECK_INTERACTIVE(101, Tracer.BINDING_MASTER_TYPE, "Check interactive"), // Check if interactive

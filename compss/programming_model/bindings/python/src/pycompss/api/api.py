@@ -196,7 +196,8 @@ def compss_wait_on_file(*file_name):
         if len(file_name) == 1:
             __get_file__(file_name[0])
         else:
-            [__get_file__(f_name) for f_name in file_name]
+            for f_name in file_name:
+                __get_file__(f_name)
     else:
         __dummy_compss_wait_on_file__(*file_name)
 
@@ -215,7 +216,8 @@ def compss_wait_on_directory(*directory_name):
         if len(directory_name) == 1:
             __get_directory__(directory_name[0])
         else:
-            [__get_directory__(d_name) for d_name in directory_name]
+            for d_name in directory_name:
+                __get_directory__(d_name)
     else:
         __dummy_compss_wait_on_directory__(*directory_name)
 

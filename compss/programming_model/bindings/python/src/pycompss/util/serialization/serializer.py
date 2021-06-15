@@ -62,7 +62,7 @@ from pycompss.runtime.constants import BINDING_DESERIALIZATION_SIZE_TYPE
 from pycompss.runtime.constants import BINDING_SERIALIZATION_OBJECT_NUM_TYPE
 from pycompss.runtime.constants import BINDING_DESERIALIZATION_OBJECT_NUM_TYPE
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from pycompss.util.tracing.helpers import EmitEvent
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.worker.commons.constants import DESERIALIZE_FROM_BYTES_EVENT
 from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
@@ -227,7 +227,6 @@ def serialize_to_handler(obj, handler):
         raise SerializerException('Cannot serialize object %s' % obj)
 
 
-@EmitEvent(SERIALIZE_TO_FILE_EVENT, master=False, inside=True)
 def serialize_to_file(obj, file_name):
     # type: (typing.Any, str) -> None
     """ Serialize an object to a file.
@@ -236,13 +235,13 @@ def serialize_to_file(obj, file_name):
     :param file_name: File name where the object is going to be serialized.
     :return: Nothing, it just serializes the object.
     """
-    # todo: can we make the binary mode optional?
-    handler = open(file_name, 'wb')
-    serialize_to_handler(obj, handler)
-    handler.close()
+    with event_inside_worker(SERIALIZE_TO_FILE_EVENT):
+        # todo: can we make the binary mode optional?
+        handler = open(file_name, 'wb')
+        serialize_to_handler(obj, handler)
+        handler.close()
 
 
-@EmitEvent(SERIALIZE_TO_FILE_MPIENV_EVENT, master=False, inside=True)
 def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
     # type: (typing.Any, str, bool) -> None
     """ Serialize an object to a file for Python MPI Tasks.
@@ -254,16 +253,17 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
                              False for INOUT objects and True otherwise.
     :return: Nothing, it just serializes the object.
     """
-    from mpi4py import MPI
+    with event_inside_worker(SERIALIZE_TO_FILE_MPIENV_EVENT):
+        from mpi4py import MPI
 
-    if rank_zero_reduce:
-        nprocs = MPI.COMM_WORLD.Get_size()
-        if nprocs > 1:
-            obj = MPI.COMM_WORLD.reduce([obj], root=0)
-        if MPI.COMM_WORLD.rank == 0:
+        if rank_zero_reduce:
+            nprocs = MPI.COMM_WORLD.Get_size()
+            if nprocs > 1:
+                obj = MPI.COMM_WORLD.reduce([obj], root=0)
+            if MPI.COMM_WORLD.rank == 0:
+                serialize_to_file(obj, file_name)
+        else:
             serialize_to_file(obj, file_name)
-    else:
-        serialize_to_file(obj, file_name)
 
 
 def serialize_to_bytes(obj):
@@ -349,7 +349,6 @@ def deserialize_from_handler(handler):
         raise SerializerException('Cannot deserialize object')
 
 
-@EmitEvent(DESERIALIZE_FROM_FILE_EVENT, master=False, inside=True)
 def deserialize_from_file(file_name):
     # type: (str) -> typing.Any
     """ Deserialize the contents in a given file.
@@ -357,14 +356,14 @@ def deserialize_from_file(file_name):
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
-    handler = open(file_name, 'rb')
-    ret, close_handler = deserialize_from_handler(handler)
-    if close_handler:
-        handler.close()
-    return ret
+    with event_inside_worker(DESERIALIZE_FROM_FILE_EVENT):
+        handler = open(file_name, 'rb')
+        ret, close_handler = deserialize_from_handler(handler)
+        if close_handler:
+            handler.close()
+        return ret
 
 
-@EmitEvent(DESERIALIZE_FROM_BYTES_EVENT, master=False, inside=True)
 def deserialize_from_bytes(serialized_content_bytes):
     # type: (bytes) -> typing.Any
     """ Deserialize the contents in a given byte array.
@@ -372,11 +371,12 @@ def deserialize_from_bytes(serialized_content_bytes):
     :param serialized_content_bytes: A byte array with serialized contents
     :return: A deserialized object
     """
-    handler = BytesIO(serialized_content_bytes)
-    ret, close_handler = deserialize_from_handler(handler)
-    if close_handler:
-        handler.close()
-    return ret
+    with event_inside_worker(DESERIALIZE_FROM_BYTES_EVENT):
+        handler = BytesIO(serialized_content_bytes)
+        ret, close_handler = deserialize_from_handler(handler)
+        if close_handler:
+            handler.close()
+        return ret
 
 
 def serialize_objects(to_serialize):

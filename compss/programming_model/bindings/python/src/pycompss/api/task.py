@@ -43,8 +43,9 @@ from pycompss.runtime.task.parameter import get_parameter_from_dictionary
 from pycompss.runtime.task.core_element import CE
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import F_type
-from pycompss.util.tracing.helpers import event
 from pycompss.util.logger.helpers import update_logger_handlers
+from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import event_inside_worker
 
 if __debug__:
     import logging
@@ -79,11 +80,13 @@ class Task(object):
     TaskWorker.call() and self._sequential_call()
     """
 
-    # __slots__ = ["task_type", "decorator_arguments", "user_function",
-    #              "registered", "signature",
-    #              "interactive", "module", "function_arguments",
-    #              "function_name", "module_name", "function_type", "class_name",
-    #              "hints", "on_failure", "defaults"]
+    __slots__ = ["task_type", "decorator_arguments", "user_function",
+                 "registered", "signature",
+                 "interactive", "module", "function_arguments",
+                 "function_name", "module_name", "function_type", "class_name",
+                 "hints", "on_failure", "defaults",
+                 "decorator_name", "args", "kwargs",
+                 "scope", "core_element", "core_element_configured"]
 
     def __init__(self, *args, **kwargs):  # noqa
         # type: (*typing.Any, **typing.Any) -> None
@@ -223,7 +226,7 @@ class Task(object):
             # Each task will have a TaskMaster, so its content will
             # not be shared.
             self.__check_core_element__(kwargs, user_function)
-            with event(TASK_INSTANTIATION, master=True):
+            with event_master(TASK_INSTANTIATION):
                 master = TaskMaster(self.decorator_arguments,
                                     self.user_function,
                                     self.core_element,
@@ -251,8 +254,7 @@ class Task(object):
                                            kwargs["compss_log_files"][0],
                                            kwargs["compss_log_files"][1])
                 # @task being executed in the worker
-                with event(WORKER_TASK_INSTANTIATION,
-                           master=False, inside=True):
+                with event_inside_worker(WORKER_TASK_INSTANTIATION):
                     worker = TaskWorker(self.decorator_arguments,
                                         self.user_function,
                                         self.on_failure,
@@ -274,7 +276,7 @@ class Task(object):
                 if context.is_nesting_enabled():
                     # Each task will have a TaskMaster, so its content will
                     # not be shared.
-                    with event(TASK_INSTANTIATION, master=True):
+                    with event_master(TASK_INSTANTIATION):
                         master = TaskMaster(self.decorator_arguments,
                                             self.user_function,
                                             self.core_element,

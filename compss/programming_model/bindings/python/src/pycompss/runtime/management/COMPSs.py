@@ -430,7 +430,7 @@ def process_http_task(app_id,             # type: int
                       keep_renames        # type: list
                       ):  # NOSONAR
     # type: (...) -> None
-    """ Call to process_task.
+    """ Call to process_http_task.
 
     :param app_id: Application identifier
     :param signature: Task signature

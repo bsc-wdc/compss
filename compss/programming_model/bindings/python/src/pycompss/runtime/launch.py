@@ -32,6 +32,7 @@ import logging
 import traceback
 import argparse
 import typing
+import gc
 
 # Project imports
 import pycompss.util.context as context
@@ -64,7 +65,7 @@ from pycompss.util.interactive.utils import parameters_to_dict
 from pycompss.api.exceptions import COMPSsException
 
 # Tracing imports
-from pycompss.util.tracing.helpers import event
+from pycompss.util.tracing.helpers import event_master
 from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
 
 # Storage imports
@@ -89,6 +90,8 @@ if IS_PYTHON3:
 else:
     _PYTHON_VERSION = 2
 
+# Spend less time in gc; do this before significant computation
+gc.set_threshold(150000)
 # Initialize multiprocessing
 initialize_multiprocessing()
 
@@ -295,7 +298,7 @@ def compss_main():
             show_optional_module_warnings()
 
         # MAIN EXECUTION
-        with event(APPLICATION_RUNNING_EVENT, master=True):
+        with event_master(APPLICATION_RUNNING_EVENT):
             # MAIN EXECUTION
             if IS_PYTHON3:
                 with open(APP_PATH) as f:
@@ -609,7 +612,7 @@ def launch_pycompss_application(app,
     saved_argv = sys.argv
     sys.argv = list(args)
     # Execution:
-    with event(APPLICATION_RUNNING_EVENT, master=True):
+    with event_master(APPLICATION_RUNNING_EVENT):
         if func is None or func == "__main__":
             if IS_PYTHON3:
                 exec(open(app).read())

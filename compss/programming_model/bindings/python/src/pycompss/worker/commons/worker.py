@@ -36,7 +36,7 @@ from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import COMPSsFile
-from pycompss.util.tracing.helpers import EmitEvent
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.worker.commons.constants import GET_TASK_PARAMS_EVENT
 from pycompss.worker.commons.constants import IMPORT_USER_MODULE_EVENT
 from pycompss.util.serialization.serializer import deserialize_from_bytes
@@ -192,7 +192,6 @@ def build_task_parameter(p_type,      # type: int
         ), 0
 
 
-@EmitEvent(GET_TASK_PARAMS_EVENT, master=False, inside=True)
 def get_task_params(num_params, logger, args):  # noqa
     # type: (int, typing.Any, list) -> list
     """ Get and prepare the input parameters from string to lists.
@@ -203,44 +202,42 @@ def get_task_params(num_params, logger, args):  # noqa
                             prefix and value)
     :return: A list of TaskParameter objects
     """
-    pos = 0
-    ret = []
-    for i in range(0, num_params):  # noqa
-        p_type = int(args[pos])
-        p_stream = int(args[pos + 1])
-        p_prefix = args[pos + 2]
-        p_name = args[pos + 3]
-        p_c_type = args[pos + 4]
-        p_value = args[pos + 5]
+    with event_inside_worker(GET_TASK_PARAMS_EVENT):
+        pos = 0
+        ret = []
+        for i in range(0, num_params):  # noqa
+            p_type = int(args[pos])
+            p_stream = int(args[pos + 1])
+            p_prefix = args[pos + 2]
+            p_name = args[pos + 3]
+            p_c_type = args[pos + 4]
+            p_value = args[pos + 5]
 
-        if __debug__:
-            logger.debug("Parameter : %s" % str(i))
-            logger.debug("\t * Type : %s" % str(p_type))
-            logger.debug("\t * Std IO Stream : %s" % str(p_stream))
-            logger.debug("\t * Prefix : %s" % str(p_prefix))
-            logger.debug("\t * Name : %s" % str(p_name))
-            logger.debug("\t * Content Type: %r" % p_c_type)
-            if p_type == parameter.TYPE.STRING:
-                logger.debug("\t * Number of substrings: %r" % p_value)
-            else:
+            if __debug__:
+                logger.debug("Parameter : %s" % str(i))
+                logger.debug("\t * Type : %s" % str(p_type))
+                logger.debug("\t * Std IO Stream : %s" % str(p_stream))
+                logger.debug("\t * Prefix : %s" % str(p_prefix))
+                logger.debug("\t * Name : %s" % str(p_name))
+                logger.debug("\t * Content Type: %r" % p_c_type)
                 logger.debug("\t * Value: %r" % p_value)
 
-        task_param, offset = build_task_parameter(p_type,
-                                                  p_stream,
-                                                  p_prefix,
-                                                  p_name,
-                                                  p_value,
-                                                  p_c_type,
-                                                  args,
-                                                  pos, logger)
+            task_param, offset = build_task_parameter(p_type,
+                                                      p_stream,
+                                                      p_prefix,
+                                                      p_name,
+                                                      p_value,
+                                                      p_c_type,
+                                                      args,
+                                                      pos, logger)
 
-        if __debug__:
-            logger.debug("\t * Updated type : %s" % str(task_param.content_type))
+            if __debug__:
+                logger.debug("\t * Type : %s" % str(task_param.content_type))
 
-        ret.append(task_param)
-        pos += offset + 6
+            ret.append(task_param)
+            pos += offset + 6
 
-    return ret
+        return ret
 
 
 def task_execution(logger,              # type: typing.Any
@@ -462,7 +459,6 @@ def task_returns(exit_code,         # type: int
             return_message)
 
 
-@EmitEvent(IMPORT_USER_MODULE_EVENT, master=False, inside=True)
 def import_user_module(path, logger):
     # type: (str, typing.Any) -> typing.Any
     """ Import the user module.
@@ -471,27 +467,28 @@ def import_user_module(path, logger):
     :param logger: Logger.
     :return: The loaded module.
     """
-    py_version = sys.version_info
-    if py_version >= (2, 7):
-        import importlib
-        module = importlib.import_module(path)  # Python 2.7
-        if path.startswith(INTERACTIVE_FILE_NAME):
-            # Force reload in interactive mode. The user may have
-            # overwritten a function or task.
-            if py_version < (3, 4):
-                import imp          # noqa
-                imp.reload(module)  # noqa
-            else:
-                importlib.reload(module)
-        if __debug__:
-            msg = "Module successfully loaded (Python version >= 2.7)"
-            logger.debug(msg)
-    else:
-        module = __import__(path, globals(), locals(), [path], -1)
-        if __debug__:
-            msg = "Module successfully loaded (Python version < 2.7"
-            logger.debug(msg)
-    return module
+    with event_inside_worker(IMPORT_USER_MODULE_EVENT):
+        py_version = sys.version_info
+        if py_version >= (2, 7):
+            import importlib
+            module = importlib.import_module(path)  # Python 2.7
+            if path.startswith(INTERACTIVE_FILE_NAME):
+                # Force reload in interactive mode. The user may have
+                # overwritten a function or task.
+                if py_version < (3, 4):
+                    import imp          # noqa
+                    imp.reload(module)  # noqa
+                else:
+                    importlib.reload(module)
+            if __debug__:
+                msg = "Module successfully loaded (Python version >= 2.7)"
+                logger.debug(msg)
+        else:
+            module = __import__(path, globals(), locals(), [path], -1)
+            if __debug__:
+                msg = "Module successfully loaded (Python version < 2.7"
+                logger.debug(msg)
+        return module
 
 
 def execute_task(process_name,              # type: str

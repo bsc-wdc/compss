@@ -27,11 +27,13 @@ PyCOMPSs Utils - External Storage
 import typing
 
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.tracing.helpers import EmitEvent
+from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.worker.commons.constants import GETID_EVENT
 from pycompss.worker.commons.constants import GET_BY_ID_EVENT
-from pycompss.worker.commons.constants import MAKE_PERSISTENT_EVENT
-from pycompss.worker.commons.constants import DELETE_PERSISTENT_EVENT
+# from pycompss.worker.commons.constants import MAKE_PERSISTENT_EVENT
+# from pycompss.worker.commons.constants import DELETE_PERSISTENT_EVENT
 from pycompss.runtime.constants import INIT_STORAGE_EVENT \
     as MASTER_INIT_STORAGE_EVENT
 from pycompss.runtime.constants import STOP_STORAGE_EVENT \
@@ -159,7 +161,6 @@ def has_id(obj):
         return False
 
 
-@EmitEvent(GETID_EVENT, master=False, inside=True)
 def get_id(psco):
     # type: (typing.Any) -> typing.Union[str, None]
     """ Retrieve the persistent object identifier.
@@ -167,10 +168,10 @@ def get_id(psco):
     :param psco: Persistent object.
     :return: Persistent object identifier.
     """
-    return psco.getID()
+    with event_inside_worker(GETID_EVENT):
+        return psco.getID()
 
 
-@EmitEvent(GET_BY_ID_EVENT, master=False, inside=True)
 def get_by_id(id):
     # type: (str) -> typing.Any
     """ Retrieve the object from the given identifier.
@@ -178,10 +179,10 @@ def get_by_id(id):
     :param id: Persistent object identifier.
     :return: object associated to the persistent object identifier.
     """
-    return GET_BY_ID(id)
+    with event_inside_worker(GET_BY_ID_EVENT):
+        return GET_BY_ID(id)
 
 
-@EmitEvent(MASTER_INIT_STORAGE_EVENT, master=True)
 def master_init_storage(storage_conf, logger):  # noqa
     # type: (str, typing.Any) -> bool
     """ Call to init storage from the master.
@@ -192,7 +193,8 @@ def master_init_storage(storage_conf, logger):  # noqa
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    return __init_storage__(storage_conf, logger)
+    with event_master(MASTER_INIT_STORAGE_EVENT):
+        return __init_storage__(storage_conf, logger)
 
 
 def use_storage(storage_conf):
@@ -205,7 +207,6 @@ def use_storage(storage_conf):
     return storage_conf != "" and not storage_conf == "null"
 
 
-@EmitEvent(INIT_STORAGE_EVENT)
 def init_storage(storage_conf, logger):  # noqa
     # type: (str, typing.Any) -> bool
     """ Call to init storage.
@@ -216,7 +217,8 @@ def init_storage(storage_conf, logger):  # noqa
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    return __init_storage__(storage_conf, logger)
+    with event_worker(INIT_STORAGE_EVENT):
+        return __init_storage__(storage_conf, logger)
 
 
 def __init_storage__(storage_conf, logger):  # noqa
@@ -242,7 +244,6 @@ def __init_storage__(storage_conf, logger):  # noqa
         return False
 
 
-@EmitEvent(MASTER_STOP_STORAGE_EVENT, master=True)
 def master_stop_storage(logger):
     # type: (typing.Any) -> None
     """ Stops the persistent storage.
@@ -252,10 +253,10 @@ def master_stop_storage(logger):
     :param logger: Logger where to log the messages.
     :return: None
     """
-    __stop_storage__(logger)
+    with event_master(MASTER_STOP_STORAGE_EVENT):
+        __stop_storage__(logger)
 
 
-@EmitEvent(STOP_STORAGE_EVENT)
 def stop_storage(logger):
     # type: (typing.Any) -> None
     """ Stops the persistent storage.
@@ -265,7 +266,8 @@ def stop_storage(logger):
     :param logger: Logger where to log the messages.
     :return: None
     """
-    __stop_storage__(logger)
+    with event_worker(STOP_STORAGE_EVENT):
+        __stop_storage__(logger)
 
 
 def __stop_storage__(logger):  # noqa

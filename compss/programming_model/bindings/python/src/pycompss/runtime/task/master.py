@@ -130,7 +130,7 @@ from pycompss.util.objects.properties import get_wrapped_source
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
-from pycompss.util.tracing.helpers import event
+from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.worker.commons.constants import BINDING_TASKS_FUNC_TYPE
 
@@ -209,7 +209,7 @@ SUPPORTED_ARGUMENTS = {RETURNS,
                        NUMBA_FLAGS,
                        NUMBA_SIGNATURE,
                        NUMBA_DECLARATION,
-                       TRACING_HOOK}     # type: typing.Set[str]
+                       TRACING_HOOK}      # type: typing.Set[str]
 # Deprecated arguments. Still supported but shows a message when used.
 DEPRECATED_ARGUMENTS = {LEGACY_IS_REPLICATED,
                         LEGACY_IS_DISTRIBUTED,
@@ -243,15 +243,17 @@ class TaskMaster(object):
     runtime.
     """
 
-    # __slots__ = ["param_defaults",
-    #              "first_arg_name", "computing_nodes", "processes_per_node",
-    #              "parameters",
-    #              "function_name", "module_name", "function_type", "class_name",
-    #              "returns", "multi_return",
-    #              "core_element", "registered", "signature",
-    #              "chunk_size", "is_reduce",
-    #              "interactive", "module", "function_arguments", "hints",
-    #              "on_failure", "defaults"]
+    __slots__ = ["param_defaults",
+                 "first_arg_name", "computing_nodes", "processes_per_node",
+                 "parameters",
+                 "function_name", "module_name", "function_type", "class_name",
+                 "returns", "multi_return",
+                 "core_element", "registered", "signature",
+                 "chunk_size", "is_reduce",
+                 "interactive", "module", "function_arguments", "hints",
+                 "on_failure", "defaults",
+                 "param_args", "param_varargs",
+                 "user_function", "decorator_arguments"]
 
     def __init__(self,
                  decorator_arguments,  # type: typing.Dict[str, typing.Any]
@@ -270,20 +272,29 @@ class TaskMaster(object):
                  on_failure,           # type: str
                  defaults              # type: dict
                  ):  # type: (...) -> None
+        """ Task at master constructor.
+
+        :param decorator_arguments: Decorator arguments
+        :param user_function: User function
+        :param core_element: Core Element
+        :param registered: If it is already registered
+        :param signature: Function signature
+        :param interactive: If interactive mode
+        :param module: Module where the function belongs to
+        :param function_arguments: Function arguments
+        :param function_name: Function name
+        :param module_name: Module name
+        :param function_type: Function type
+        :param class_name: Class name
+        :param hints: Task hints
+        :param on_failure: On failure management
+        :param defaults: Default values
+        """
         # Initialize TaskCommons
-        # super(TaskMaster, self).__init__(decorator_arguments,
-        #                                  user_function,
-        #                                  on_failure,
-        #                                  defaults)
-        # Instantiate superclass explicitly to support mypy.
-        tc = TaskCommons(decorator_arguments,
-                         user_function,
-                         on_failure,
-                         defaults)
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
-        self.param_args = []  # type: typing.List[typing.Any]
-        self.param_varargs = None  # type: typing.Any
+        self.param_args = []            # type: typing.List[typing.Any]
+        self.param_varargs = None       # type: typing.Any
         self.on_failure = on_failure
         self.defaults = defaults
 
@@ -332,7 +343,7 @@ class TaskMaster(object):
         MASTER_LOCK.acquire()
 
         # Check if we are in interactive mode and update if needed
-        with event(CHECK_INTERACTIVE, master=True):
+        with event_master(CHECK_INTERACTIVE):
             if not self.interactive:
                 self.interactive, self.module = self.check_if_interactive()
             if self.interactive:
@@ -340,7 +351,7 @@ class TaskMaster(object):
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
-        with event(EXTRACT_CORE_ELEMENT, master=True):
+        with event_master(EXTRACT_CORE_ELEMENT):
             cek = kwargs.pop(CORE_ELEMENT_KEY, None)
             pre_defined_ce = self.extract_core_element(cek)
 
@@ -348,7 +359,7 @@ class TaskMaster(object):
         # their names. This defines self.param_args, self.param_varargs,
         # and self.param_defaults. And gives non-None default
         # values to them if necessary
-        with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
+        with event_master(INSPECT_FUNCTION_ARGUMENTS):
             if not self.function_arguments:
                 self.inspect_user_function_arguments()
             # It will be easier to deal with functions if we pretend that all
@@ -369,18 +380,18 @@ class TaskMaster(object):
             explicit_num_returns = kwargs.pop(RETURNS, None)
 
         # Process the parameters, give them a proper direction
-        with event(PROCESS_PARAMETERS, master=True):
+        with event_master(PROCESS_PARAMETERS):
             self.process_parameters(args, kwargs)
 
         # Compute the function path, class (if any), and name
-        with event(GET_FUNCTION_INFORMATION, master=True):
+        with event_master(GET_FUNCTION_INFORMATION):
             self.compute_user_function_information()
 
         # Prepare the core element registration information
-        with event(PREPARE_CORE_ELEMENT, master=True):
+        with event_master(PREPARE_CORE_ELEMENT):
             self.get_code_strings()
 
-        with event(GET_FUNCTION_SIGNATURE, master=True):
+        with event_master(GET_FUNCTION_SIGNATURE):
             impl_signature, impl_type_args = self.get_signature()
 
         if impl_signature not in TRACING_TASK_NAME_TO_ID:
@@ -393,7 +404,7 @@ class TaskMaster(object):
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
         if not self.registered or self.signature != impl_signature:
-            with event(UPDATE_CORE_ELEMENT, master=True):
+            with event_master(UPDATE_CORE_ELEMENT):
                 self.update_core_element(impl_signature,
                                          impl_type_args,
                                          pre_defined_ce)
@@ -418,20 +429,20 @@ class TaskMaster(object):
                     self.module_name, self.function_type, self.class_name,
                     self.hints)
 
-        with event(PROCESS_OTHER_ARGUMENTS, master=True):
+        with event_master(PROCESS_OTHER_ARGUMENTS):
             # Get other arguments if exist
             if not self.hints:
                 self.hints = self.check_task_hints()
             is_replicated, is_distributed, time_out, has_priority, has_target = self.hints  # noqa: E501
 
         # Deal with the return part.
-        with event(PROCESS_RETURN, master=True):
+        with event_master(PROCESS_RETURN):
             num_returns = self.add_return_parameters(explicit_num_returns)
             if not self.returns:
                 num_returns = self.update_return_if_no_returns(self.user_function)  # noqa: E501
 
         # Build return objects
-        with event(BUILD_RETURN_OBJECTS, master=True):
+        with event_master(BUILD_RETURN_OBJECTS):
             fo = None
             if self.returns:
                 fo = self._build_return_objects(num_returns)
@@ -442,13 +453,13 @@ class TaskMaster(object):
         serializer.FORCED_SERIALIZER = -1   # reset the forced serializer
 
         # Build values and COMPSs types and directions
-        with event(BUILD_COMPSS_TYPES_DIRECTIONS, master=True):
+        with event_master(BUILD_COMPSS_TYPES_DIRECTIONS):
             vtdsc = self._build_values_types_directions()
             values, names, compss_types, compss_directions, compss_streams, \
             compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
         # Signature and other parameters:
-        with event(SET_SIGNATURE, master=True):
+        with event_master(SET_SIGNATURE):
             # Get path:
             if self.class_name == "":
                 path = self.module_name
@@ -463,7 +474,7 @@ class TaskMaster(object):
 
         is_http = self.core_element.get_impl_type() == "HTTP"
         # Process the task
-        with event(PROCESS_TASK_BINDING, master=True):
+        with event(PROCESS_TASK_BINDING):
             binding.process_task(
                 signature,
                 has_target,
@@ -489,7 +500,7 @@ class TaskMaster(object):
             )
 
         # Remove unused attributes from the memory
-        with event(ATTRIBUTES_CLEANUP, master=True):
+        with event_master(ATTRIBUTES_CLEANUP):
             for at in ATTRIBUTES_TO_BE_REMOVED:
                 if hasattr(self, at):
                     delattr(self, at)
@@ -1672,7 +1683,7 @@ class TaskMaster(object):
         :return: None
         """
         max_obj_arg_size = 320000
-        with event(SERIALIZE_OBJECT, master=True):
+        with event_master(SERIALIZE_OBJECT):
             # Check user annotations concerning this argument
             p = self.parameters[k]
             # Convert small objects to string if OBJECT_CONVERSION enabled

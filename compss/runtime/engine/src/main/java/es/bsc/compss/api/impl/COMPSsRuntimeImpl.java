@@ -612,6 +612,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void registerData(Long appId, DataType type, Object stub, String data) {
+
         Application app = Application.registerApplication(appId);
         switch (type) {
             case DIRECTORY_T:
@@ -656,15 +657,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 String value = (String) stub;
                 if (value.contains(":")) {
                     String[] fields = value.split(":");
-                    if (fields.length == 3) {
-                        String extObjectId = fields[0];
-                        int extObjectType = Integer.parseInt(fields[1]);
-                        int extObjectElements = Integer.parseInt(fields[2]);
-                        // BindingObject bo = new BindingObject(extObjectId, extObjectType, extObjectElements);
-                        new BindingObject(extObjectId, extObjectType, extObjectElements);
-                        // int externalCode = externalObjectHashcode(extObjectId);
-                        externalObjectHashcode(extObjectId);
-                    } else {
+                    // if (fields.length == 3) {
+                    // String extObjectId = fields[0];
+                    // int extObjectType = Integer.parseInt(fields[1]);
+                    // int extObjectElements = Integer.parseInt(fields[2]);
+                    // BindingObject bo = new BindingObject(extObjectId, extObjectType, extObjectElements);
+                    // new BindingObject(extObjectId, extObjectType, extObjectElements);
+                    // int externalCode = externalObjectHashcode(extObjectId);
+                    // externalObjectHashcode(extObjectId);
+                    // }
+
+                    if (fields.length != 3) {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                         ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                     }
@@ -674,7 +677,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 break;
             case COLLECTION_T:
-                throw new UnsupportedOperationException("Not implemented yet.");
+                ap.registerRemoteCollection(app, (String) stub, data);
+                break;
             case DICT_COLLECTION_T:
                 throw new UnsupportedOperationException("Not implemented yet.");
             default:
@@ -795,7 +799,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String methodName, String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes,
         boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
         Integer numReturns, int parameterCount, Object... parameters) {
-
         // Tracing flag for task creation
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.TASK.getId(), TraceEvent.TASK.getType());
@@ -1719,8 +1722,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case COLLECTION_T:
                 // A collection value contains the file of the collection object and the collection
                 // elements, separated by spaces
-                String[] values = vals == null ? (content.toString()).split(" ") : vals;
-                String collectionId = values[offset];
+                String[] values = vals == null ? ((String) content).split(" ") : vals;
+                final String collectionId = values[offset];
                 int numOfElements = Integer.parseInt(values[offset + 1]);
                 String colPyType = values[offset + 2];
                 // The elements of the collection are all the elements of the list except for the first one
@@ -1734,19 +1737,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 for (int j = 0; j < numOfElements; ++j) {
                     // First element is the type, translate it to the corresponding DataType field by direct indexing
                     int idx = Integer.parseInt(values[offset + ret]);
-                    DataType dataType = DataType.values()[idx];
+                    final DataType dataType = DataType.values()[idx];
                     contentTypes.add(dataType);
                     // Second element is the content
                     contentIds.add(values[offset + ret + 1]);
-                    DataType elemType = contentTypes.get(j);
-                    Direction elemDir = direction;
+                    final DataType elemType = contentTypes.get(j);
+                    final Direction elemDir = direction;
                     // Third element is the Python type of the object
-                    String elemPyType = values[offset + ret + 2];
+                    final String elemPyType = values[offset + ret + 2];
                     // Prepare stuff for recursive call
-                    Object elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
+                    final Object elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
                     // N/A to non-direct parameters
-                    StdIOStream elemStream = StdIOStream.UNSPECIFIED;
-                    String elemPrefix = Constants.PREFIX_EMPTY;
+                    final StdIOStream elemStream = StdIOStream.UNSPECIFIED;
+                    final String elemPrefix = Constants.PREFIX_EMPTY;
                     String elemName = name + "." + j;
                     // Add @ only for the first time
                     // This names elements as @collection.0, @collection.1, etc
@@ -1762,11 +1765,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
                     prefix, name, colPyType, weight, keepRename);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER
-                        .debug("Add Collection " + cp.getName() + " with " + cp.getParameters().size() + " parameters");
-                    LOGGER.debug(cp.toString());
-                }
                 pars.add(cp);
                 return ret;
             case DICT_COLLECTION_T:
@@ -1867,7 +1865,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null"));
+                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, pyType));
                 break;
         }
         return 1;
@@ -1891,7 +1889,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
             String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
             String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
-            // String pyContent = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
+            String pyContent = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
             double weight = Double
                 .parseDouble(EnvironmentLoader.loadFromEnvironment((String) parameters[NUM_FIELDS_PER_PARAM * i + 7]));
             boolean keepRename = (Boolean) parameters[NUM_FIELDS_PER_PARAM * i + 8];
@@ -1901,7 +1899,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(" Parameter " + i + " has type " + type.name());
             }
-            addParameter(app, content, type, direction, stream, prefix, name, null, weight, keepRename, pars, 0, null);
+            addParameter(app, content, type, direction, stream, prefix, name, pyContent, weight, keepRename, pars, 0,
+                null);
         }
 
         // Return parameters

@@ -16,10 +16,13 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
-
-
 public interface TaskMonitor {
+
+    public static final int TYPE_POS = 0;
+    public static final int LOCATION_POS = 1;
+    public static final int DATA_ID_POS = 2;
+    public static final int SUBPARAM_POS = 3;
+
 
     /**
      * Actions to be performed by monitor on task creation.
@@ -52,12 +55,9 @@ public interface TaskMonitor {
      * with name {@code paramName}.
      *
      * @param paramId Parameter id.
-     * @param paramName Name of the parameter.
-     * @param paramType Parameter type.
-     * @param dataId Data Management Id.
-     * @param dataLocation Value location.
+     * @param param parameter
      */
-    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation);
+    public void valueGenerated(int paramId, Object[] param);
 
     /**
      * Actions to be performed by monitor on task execution abortion.

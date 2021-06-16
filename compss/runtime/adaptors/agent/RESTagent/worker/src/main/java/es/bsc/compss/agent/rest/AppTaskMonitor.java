@@ -24,7 +24,6 @@ import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.util.ErrorManager;
 
@@ -107,8 +106,8 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
-        super.valueGenerated(paramId, paramName, paramType, dataId, dataLocation);
+    public void valueGenerated(int paramId, Object[] param) {
+        super.valueGenerated(paramId, param);
         /*
          * this.paramTypes[paramId] = paramType; if (paramType == DataType.OBJECT_T) { LogicalData ld =
          * Comm.getData(dataId); StubItf psco = (StubItf) ld.getValue(); psco.makePersistent(ld.getName());

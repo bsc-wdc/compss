@@ -185,6 +185,40 @@ public class DataInfoProvider {
     }
 
     /**
+     * Registers the remote object resources.
+     *
+     * @param app Application accessing the value
+     * @param collection Collection parameter.
+     * @param data Existing LogicalData to bind the value access.
+     */
+    public void registerRemoteCollectionSources(Application app, String collection, String data) {
+        DataInfo oInfo;
+        Integer aoId = this.collectionToId.get(collection);
+
+        if (aoId == null) {
+            if (DEBUG) {
+                LOGGER.debug("Registering on DIP Remote collection: " + collection.toString());
+            }
+            // Update mappings
+            oInfo = new CollectionInfo(app, collection);
+            app.addData(oInfo);
+            aoId = oInfo.getDataId();
+            this.idToData.put(aoId, oInfo);
+        } else {
+            oInfo = idToData.get(aoId);
+        }
+        if (data != null) {
+            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
+            try {
+                Comm.linkData(data, existingRename);
+            } catch (CommException ce) {
+                ErrorManager.error(
+                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
+            }
+        }
+    }
+
+    /**
      * DataAccess interface: registers a new data access.
      *
      * @param access Access Parameters.

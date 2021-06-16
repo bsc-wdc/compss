@@ -27,7 +27,6 @@ import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
-import es.bsc.compss.types.annotations.parameter.DataType;
 
 
 /**
@@ -75,8 +74,8 @@ class TaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
-        super.valueGenerated(paramId, paramName, paramType, dataId, dataLocation);
+    public void valueGenerated(int paramId, Object[] param) {
+        super.valueGenerated(paramId, param);
     }
 
     @Override
@@ -105,7 +104,7 @@ class TaskMonitor extends AppMonitor {
         NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
 
         int jobId = task.getJobId();
-        NIOTaskResult tr = new NIOTaskResult(jobId, super.getParamTypes(), super.getParamLocations());
+        NIOTaskResult tr = new NIOTaskResult(jobId, super.getParams());
         Connection c = TM.startConnection(n);
         CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), null);
         c.sendCommand(cmd);

@@ -70,7 +70,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -655,9 +654,31 @@ public class ExecutionAction extends AllocatableAction {
             if (dataName != null) {
                 DependencyParameter dp = (DependencyParameter) p;
                 storeOutputParameter(job, w, dataName, dp);
-                monitor.valueGenerated(i, p.getName(), p.getType(), dataName, dp.getDataTarget());
+                Object[] mp = buildMonitorParameter(p, dataName);
+                monitor.valueGenerated(i, mp);
             }
         }
+    }
+
+    Object[] buildMonitorParameter(Parameter p, String dataName) {
+        final int fieldsPerParameter = 3;
+        Object[] result;
+        if (p.getType() == DataType.COLLECTION_T) {
+            result = new Object[fieldsPerParameter + 1];
+            List<Parameter> subParams = ((CollectionParameter) p).getParameters();
+            Object[][] subResults = new Object[subParams.size()][];
+            for (int i = 0; i < subParams.size(); i++) {
+                subResults[i] = buildMonitorParameter(subParams.get(i), getOuputRename(subParams.get(i)));
+            }
+            result[TaskMonitor.SUBPARAM_POS] = subResults;
+        } else {
+            result = new Object[fieldsPerParameter];
+        }
+        result[TaskMonitor.TYPE_POS] = p.getType();
+        result[TaskMonitor.LOCATION_POS] = ((DependencyParameter) p).getDataTarget();
+        result[TaskMonitor.DATA_ID_POS] = dataName;
+
+        return result;
     }
 
     private String getOuputRename(Parameter p) {
@@ -776,9 +797,10 @@ public class ExecutionAction extends AllocatableAction {
                 // Monitor one of its locations
                 Set<DataLocation> locations = ld.getLocations();
                 if (!locations.isEmpty()) {
+                    Object[] mp = buildMonitorParameter(p, getOuputRename(p));
                     for (DataLocation loc : ld.getLocations()) {
                         if (loc != null) {
-                            monitor.valueGenerated(i, p.getName(), p.getType(), name, loc);
+                            monitor.valueGenerated(i, mp);
                         }
                     }
                 }

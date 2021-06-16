@@ -61,6 +61,7 @@ import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
+import es.bsc.compss.types.request.ap.RegisterRemoteCollectionDataRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteFileDataRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteObjectDataRequest;
 import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
@@ -100,7 +101,7 @@ public class AccessProcessor implements Runnable {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private static final String ERROR_OBJECT_LOAD_FROM_STORAGE =
-        "ERROR: Cannot load object" + " from storage (file or PSCO)";
+        "ERROR: Cannot load object from storage (file or PSCO)";
     private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
 
     // Other super-components
@@ -1029,6 +1030,20 @@ public class AccessProcessor implements Runnable {
      */
     public void registerRemoteFile(Application app, DataLocation loc, String dataId) {
         RegisterRemoteFileDataRequest request = new RegisterRemoteFileDataRequest(app, loc, dataId);
+        if (!this.requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
+        }
+    }
+
+    /**
+     * Registers a collection data as available on remote locations.
+     *
+     * @param app application accessing the file.
+     * @param collection colllection identifier
+     * @param dataId name of the data associated to the file
+     */
+    public void registerRemoteCollection(Application app, String collection, String dataId) {
+        RegisterRemoteCollectionDataRequest request = new RegisterRemoteCollectionDataRequest(app, collection, dataId);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
         }

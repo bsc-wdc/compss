@@ -114,89 +114,91 @@ void process_param(void** params, int i, stringstream& ss) {
     char *parWeight	    = *(char**) params[pw];
     int parKeepRename   = *(int*)   params[pkr];
 
+    debug_printf ("[BINDING-COMMONS] - @process_param - NAME: %s\n", parName);
+
     // Add parameter value
     switch ( (enum datatype) parType) {
         case char_dt:
         case wchar_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Char: %c\n", *(char*)parVal);
-            ss << *(char*)parVal << " ";
+            ss << " {  { \"Value\" : \"" << *(char*)parVal << "\", ";
             break;
         case boolean_dt:
         	{
 				int _bool = *(int*) parVal;
 				if (_bool != 0) {
 					debug_printf("[BINDING-COMMONS] - @process_param - Bool: true\n");
-					ss << "true ";
+                    ss << " { \"Value\" : \"true\", ";
 				} else {
 					debug_printf("[BINDING-COMMONS] - @process_param - Bool: false\n");
-					ss << "false ";
+                    ss << " { \"Value\" : \"false\", ";
 				}
         	}
             break;
         case short_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Short: %hu\n", *(short*)parVal);
-            ss << *(short*)parVal << " ";
+            ss << " { \"Value\" : \"" << *(short*)parVal << "\", ";
             break;
         case int_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Int: %d\n", *(int*)parVal);
-            ss << *(int*)parVal << " ";
+            ss << " { \"Value\" : \"" << *(int*)parVal << "\", ";
             break;
         case long_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Long: %ld\n", *(long*)parVal);
-            ss << *(long*)parVal << " ";
+            ss << " { \"Value\" : \"" << *(long*)parVal << "\", ";
             break;
         case longlong_dt:
         case float_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Float: %f\n", *(float*)parVal);
-            ss << std::setprecision(std::numeric_limits<float>::digits10 + 1) << *(float*)parVal << " ";
+            ss << " { \"Value\" : \"" << std::setprecision(std::numeric_limits<float>::digits10 + 1) << *(float*)parVal << "\", ";
             break;
         case double_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Double: %f\n", *(double*)parVal);
-            ss << std::setprecision(std::numeric_limits<long double>::digits10 + 1) << *(double*)parVal << " ";
+            ss << " { \"Value\" : \"" << std::setprecision(std::numeric_limits<long double>::digits10 + 1) << *(double*)parVal << "\", ";
             break;
         case file_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - File: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case directory_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Directory: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case external_stream_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - External Stream: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case external_psco_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Persistent: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case string_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case binding_object_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Binding Object: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case collection_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Collection: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
 				case dict_collection_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Dict Collection: %s\n", *(char **)parVal);
-            ss << *(char**)parVal << " ";
+            ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case null_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - Null: NULL\n");
-            ss << "NULL ";
+            ss << " { \"Value\" : " << "NULL " << ", ";
             break;
         case void_dt:
         	debug_printf ("[BINDING-COMMONS] - @process_param - void: VOID\n");
-        	ss << "VOID ";
+        	ss << " { \"Value\" : " << "VOID " << ", ";
         	break;
         case any_dt:
         	debug_printf ("[BINDING-COMMONS] - @process_param - void: ANY\n");
-        	ss << "ANY ";
+        	ss << " { \"Value\" : " << "ANY " << ", ";
         	break;
         default:
             debug_printf ("[BINDING-COMMONS] - @process_param - The type of the parameter %s is not registered\n", *(char **)parName);
@@ -206,39 +208,38 @@ void process_param(void** params, int i, stringstream& ss) {
 
     // Add parameter type
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DATA_TYPE: %d\n", (enum datatype) parType);
-    ss << parType << " ";
-
+    ss << "\"DataType\" : " << parType << ", ";
     // Add param direction
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DIRECTION: %d\n", (enum direction) parDirect);
-    ss << parDirect << " ";
+    ss << "\"Direction\" : " << parDirect << ", ";
 
 
     // Add param stream
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM STD IO STREAM: %d\n", (enum io_stream) parIOStream);
-    ss << parIOStream << " ";
+    ss << "\"IOStream\" : " << parIOStream << ", ";
 
 
     // Add param prefix
     debug_printf ("[BINDING-COMMONS] - @process_param - PREFIX: %s\n", parPrefix);
-    ss << parPrefix << " ";
+    ss << "\"Prefix\" : \"" << parPrefix << "\", ";
 
     debug_printf ("[BINDING-COMMONS] - @process_param - NAME: %s\n", parName);
-    ss << parName << " ";
+    ss << "\"Name\" : \"" << parName << "\", ";
 
     debug_printf ("[BINDING-COMMONS] - @process_param - CONTENT TYPE: %s\n", parConType);
-    ss << parConType << " ";
+    ss << "\"ContType\" : \"" << parConType << "\", ";
 
     debug_printf ("[BINDING-COMMONS] - @process_param - WEIGHT : %s\n", parWeight);
-    ss << parWeight << " ";
+    ss << "\"Weight\" : \"" << parWeight << "\", ";
+
 
     if (parKeepRename != 0) {
     	debug_printf ("[BINDING-COMMONS] - @process_param - KEEP RENAME : true\n");
-    	ss << "true";
+    	ss << "\"KeepRename\" : true }";
     } else {
     	debug_printf ("[BINDING-COMMONS] - @process_param - KEEP RENAME : false\n");
-    	ss << "false";
+    	ss << "\"KeepRename\" : false }";
     }
-
 }
 
 
@@ -351,16 +352,19 @@ void PIPE_ExecuteTask(long appId, char* className, char* onFailure, int timeout,
 
     ss << numReturns << " ";
 
-    ss << numParams ;
+	ss << numParams << " [ ";
 
     // Create array of parameters
-    for (int i = 0; i < numParams; i++) {
-    	ss << " ";
+    if(numParams > 0){ //we take out the first iteration in order to put the ',' char between parameters
+        debug_printf("[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing parameter %d\n", 0);
+        process_param(params, 0, ss);
+    }
+    for (int i = 1; i < numParams; i++) {
+    	ss << ", ";
         debug_printf("[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing parameter %d\n", i);
         process_param(params, i, ss);
     }
-    ss << endl;
-
+	ss << " ] " << endl;
     // Write execute task method
     write_command_in_pipe(ss);
 
@@ -418,18 +422,19 @@ void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeo
 
 	ss << numReturns << " ";
 
-	ss << numParams;
+	ss << numParams << " [ ";
 
-	// Create array of parameters
-	for (int i = 0; i < numParams; i++) {
-		ss << " ";
-		debug_printf(
-				"[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing parameter %d\n",
-				i);
-		process_param(params, i, ss);
-	}
-	ss << endl;
-
+    // Create array of parameters
+    if(numParams > 0){ //we take out the first iteration in order to put the ',' char between parameters
+        debug_printf("[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing parameter %d\n", 0);
+        process_param(params, 0, ss);
+    }
+    for (int i = 1; i < numParams; i++) {
+    	ss << ", ";
+        debug_printf("[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing parameter %d\n", i);
+        process_param(params, i, ss);
+    }
+	ss << " ] " << endl;
 	// Write execute task method
 	write_command_in_pipe(ss);
 

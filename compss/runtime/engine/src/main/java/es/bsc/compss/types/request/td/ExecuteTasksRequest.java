@@ -156,7 +156,7 @@ public class ExecuteTasksRequest extends TDRequest {
         ResourceScheduler<T> specificResource) {
 
         if (this.task.isReduction()) {
-            LOGGER.debug("Scheduling request for reduce task " + this.task.getId() + " treated " + "as singleTask");
+            LOGGER.debug("Scheduling request for reduce task " + this.task.getId() + " treated as singleTask");
             // No need for a specific scheduling information
             ReduceExecutionAction action = new ReduceExecutionAction(new SchedulingInformation(), ts.getOrchestrator(),
                 this.ap, (ReduceTask) this.task, ts);

@@ -194,7 +194,11 @@ public abstract class ExternalInvoker extends Invoker {
         } else {
             paramArgs.add(name);
         }
-        paramArgs.add(np.getContentType());
+        if (name == null || name.isEmpty()) {
+            paramArgs.add("null");
+        } else {
+            paramArgs.add(np.getContentType());
+        }
         switch (type) {
             case FILE_T:
                 // Passing originalName link instead of renamed file

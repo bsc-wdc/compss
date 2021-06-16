@@ -16,11 +16,14 @@
  */
 package es.bsc.compss.nio;
 
+import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -41,6 +44,22 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
     public NIOResultCollection() {
         // Only executed by externalizable
         super();
+    }
+
+    /**
+     * Create a new NIOResultCollection instance from a object array following TaskMonitor indexes.
+     */
+    public NIOResultCollection(Object... param) {
+        super((DataType) param[TaskMonitor.TYPE_POS], param[TaskMonitor.LOCATION_POS].toString());
+        this.elements = new ArrayList<NIOResult>();
+        for (Object[] subParam : (Object[][]) param[TaskMonitor.SUBPARAM_POS]) {
+            if ((DataType) subParam[TaskMonitor.TYPE_POS] == DataType.COLLECTION_T) {
+                this.elements.add(new NIOResultCollection(subParam));
+            } else {
+                this.elements.add(new NIOResult((DataType) subParam[TaskMonitor.TYPE_POS],
+                    subParam[TaskMonitor.LOCATION_POS].toString()));
+            }
+        }
     }
 
     public NIOResultCollection(DataType type, String location, List<NIOResult> elements) {

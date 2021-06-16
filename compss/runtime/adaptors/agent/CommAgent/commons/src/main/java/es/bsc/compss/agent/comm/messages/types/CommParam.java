@@ -22,6 +22,7 @@ import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -61,6 +62,17 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
         super(dataMgmtId, type, stream, prefix, name, contentType, weight, keepRename, false, false, null, null,
             originalName);
         this.direction = direction;
+    }
+
+    /**
+     * Creates a new CommParam instance copying the given CommParam internal fields.
+     *
+     * @param p CommParam to copy.
+     */
+    public CommParam(CommParam p) {
+        super(p);
+        this.direction = p.direction;
+        this.remoteData = p.remoteData;
     }
 
     public void setDirection(Direction direction) {

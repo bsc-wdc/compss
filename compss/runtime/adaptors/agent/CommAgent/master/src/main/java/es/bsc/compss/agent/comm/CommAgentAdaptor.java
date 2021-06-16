@@ -34,6 +34,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
+
 import java.util.List;
 import java.util.Map;
 

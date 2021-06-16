@@ -25,6 +25,7 @@ import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.AgentInterface;
 import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.comm.messages.types.CommParam;
+import es.bsc.compss.agent.comm.messages.types.CommParamCollection;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
@@ -33,6 +34,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
@@ -170,7 +172,11 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         ApplicationParameter[] arguments = new ApplicationParameter[argsCount];
         int paramId = 0;
         for (NIOParam np : request.getParams()) {
-            arguments[paramId] = (CommParam) np;
+            if (np.getType() == DataType.COLLECTION_T) {
+                arguments[paramId] = (CommParamCollection) np;
+            } else {
+                arguments[paramId] = (CommParam) np;
+            }
             paramId++;
         }
 

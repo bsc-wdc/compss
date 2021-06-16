@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+# Obtain parameter
+source_base_dir=$1
+target_base_dir=$2
+
+# Copy files
+cp -r "${source_base_dir}"/src "${target_base_dir}"/src
+
+
+cp "${source_base_dir}"/projectAgent2.xml "${target_base_dir}"/projectAgent2.xml
+cp "${source_base_dir}"/projectAgent3.xml "${target_base_dir}"/projectAgent3.xml
+cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+cp "${source_base_dir}"/execution "${target_base_dir}"/execution

@@ -27,17 +27,17 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
     /**
      * Execute task command constructor.
      */
-    public ExecuteNestedTaskPipeCommand(String[] command) {
+    public ExecuteNestedTaskPipeCommand(String cmd, String[] command) {
         super();
 
         this.entryPoint = EntryPoint.valueOf(command[1]);
 
         switch (this.entryPoint) {
             case SIGNATURE:
-                loadWithSignature(command);
+                loadWithSignature(cmd, command);
                 break;
             case CLASS_METHOD:
-                loadWithClassAndMethod(command);
+                loadWithClassAndMethod(cmd, command);
                 break;
             default:
                 // Nothing to do
@@ -45,7 +45,7 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
         }
     }
 
-    private void loadWithClassAndMethod(String[] command) {
+    private void loadWithClassAndMethod(String cmd, String[] command) {
         // EXECUTE_NESTED_TASK "CLASS_METHOD" METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME
         // IS_PRIORITARY NUM_NODES IS_REDUCE REDUCE_CHUNK IS_REPLICATED IS_DISTRIBUTED
         // HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
@@ -62,15 +62,16 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
         this.hasTarget = Boolean.parseBoolean(command[12]);
         this.numReturns = Integer.parseInt(command[13]);
         this.parameterCount = Integer.parseInt(command[14]);
-        String[] params = new String[command.length - 15];
-        if (command.length > 15) {
-            System.arraycopy(command, 15, params, 0, params.length);
+        int taskCharNum = 0;
+        for (int i = 0; i < 15; i++) {
+            taskCharNum += command[i].length();
         }
+        String params = cmd.substring(taskCharNum + 14); // 14 cause of the spaces
         this.parameters = processParameters(params);
 
     }
 
-    private void loadWithSignature(String[] command) {
+    private void loadWithSignature(String cmd, String[] command) {
         // EXECUTE_NESTED_TASK "SIGNATURE" SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES
         // IS_REDUCE REDUCE_CHUNK IS_REPLICATED IS_DISTRIBUTED HAS_TARGET NUM_RETURNS
         // PARAMETER_COUNT PARAMENTERS
@@ -86,10 +87,11 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
         this.hasTarget = Boolean.parseBoolean(command[11]);
         this.numReturns = Integer.parseInt(command[12]);
         this.parameterCount = Integer.parseInt(command[13]);
-        String[] params = new String[command.length - 14];
-        if (command.length > 14) {
-            System.arraycopy(command, 14, params, 0, params.length);
+        int taskCharNum = 0;
+        for (int i = 0; i < 14; i++) {
+            taskCharNum += command[i].length();
         }
+        String params = cmd.substring(taskCharNum + 14); // 14 cause of the spaces
         this.parameters = processParameters(params);
 
     }

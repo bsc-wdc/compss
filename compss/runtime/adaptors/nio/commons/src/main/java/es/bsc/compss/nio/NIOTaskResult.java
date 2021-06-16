@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.nio;
 
+import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 import java.io.Externalizable;
@@ -25,8 +27,13 @@ import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class NIOTaskResult implements Externalizable {
+
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
 
     private int jobId;
 
@@ -44,13 +51,19 @@ public class NIOTaskResult implements Externalizable {
      * New task result with the given information.
      * 
      * @param jobId Job Id.
-     * @param paramTypes Job parameters' final types
-     * @param paramLocations Job parameters' values locations
+     * @param params Job parameters' final types
      */
-    public NIOTaskResult(int jobId, DataType[] paramTypes, String[] paramLocations) {
+    public NIOTaskResult(int jobId, Object[][] params) {
         this.jobId = jobId;
-        for (int i = 0; i < paramTypes.length; i++) {
-            this.results.add(new NIOResult(paramTypes[i], paramLocations[i]));
+        for (int i = 0; i < params.length; i++) {
+            if (params[i] == null) {
+                this.results.add(new NIOResult(null, null));
+            } else if (params[i][TaskMonitor.TYPE_POS] == DataType.COLLECTION_T) {
+                this.results.add(new NIOResultCollection(params[i]));
+            } else {
+                this.results.add(new NIOResult((DataType) params[i][TaskMonitor.TYPE_POS],
+                    params[i][TaskMonitor.LOCATION_POS].toString()));
+            }
         }
     }
 

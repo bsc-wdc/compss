@@ -33,8 +33,7 @@ import typing
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize        # noqa: E501
-from pycompss.runtime.management.object_tracker import OT_clean_object_tracker
+from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.commons import DEFAULT_SCHED
 from pycompss.runtime.commons import DEFAULT_CONN
@@ -546,7 +545,7 @@ def stop(sync=False, _hard_stop=False):
                         ipython.__dict__['user_ns'][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
-                        if OT_is_pending_to_synchronize(obj_k):
+                        if OT.is_pending_to_synchronize(obj_k):
                             print("Found an object to synchronize: %s" % str(k))       # noqa: E501
                             logger.debug("Found an object to synchronize: %s" % (k,))  # noqa: E501
                             ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)     # noqa: E501
@@ -618,7 +617,7 @@ def __hard_stop__(debug, sync, logger, ipython):
         master_stop_storage(logger)
 
     # Clean any left object in the object tracker
-    OT_clean_object_tracker()
+    OT.clean_object_tracker()
 
     # Cleanup events and files
     release_event_manager(ipython)

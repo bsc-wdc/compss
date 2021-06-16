@@ -84,16 +84,7 @@ from pycompss.runtime.constants import SET_SIGNATURE
 from pycompss.runtime.constants import PROCESS_TASK_BINDING
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
 from pycompss.runtime.management.direction import get_compss_direction
-from pycompss.runtime.management.object_tracker import OT_track
-from pycompss.runtime.management.object_tracker import \
-    OT_set_pending_to_synchronize
-from pycompss.runtime.management.object_tracker import OT_is_tracked
-from pycompss.runtime.management.object_tracker import OT_get_file_name
-from pycompss.runtime.management.object_tracker import OT_has_been_written
-from pycompss.runtime.management.object_tracker import OT_pop_written_obj
-from pycompss.runtime.management.object_tracker import OT_stop_tracking
-from pycompss.runtime.management.object_tracker import OT_not_track
-from pycompss.runtime.task.commons import TaskCommons
+from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.task.core_element import CE
@@ -1598,7 +1589,7 @@ class TaskMaster(object):
             else:
                 fo = Future()  # modules, functions, methods
                 eco = str(type(fo))
-            _, ret_filename = OT_track(fo)
+            _, ret_filename = OT.track(fo)
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
             single_return.extra_content_type = "FILE"
@@ -1629,7 +1620,7 @@ class TaskMaster(object):
                     foe = Future()  # modules, functions, methods
                     eco = str(type(foe))
                 fo.append(foe)
-                _, ret_filename = OT_track(foe)
+                _, ret_filename = OT.track(foe)
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return
                 # object
@@ -1955,7 +1946,7 @@ def _manage_persistent_object(p):
     """
     p.content_type = TYPE.EXTERNAL_PSCO
     obj_id = str(get_id(p.content))
-    OT_set_pending_to_synchronize(obj_id)
+    OT.set_pending_to_synchronize(obj_id)
     p.content = obj_id
     if __debug__:
         logger.debug("Managed persistent object: %s" % obj_id)
@@ -2053,7 +2044,7 @@ def _serialize_object_into_file(name, p):
         p.content = new_object_col
         # Give this object an identifier inside the binding
         if p.direction != DIRECTION.IN_DELETE:
-            _, _ = OT_track(p.content, collection=True)
+            _, _ = OT.track(p.content, collection=True)
     elif p.content_type == TYPE.DICT_COLLECTION:
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
@@ -2084,7 +2075,7 @@ def _serialize_object_into_file(name, p):
         p.content = new_object_dict
         # Give this object an identifier inside the binding
         if p.direction != DIRECTION.IN_DELETE:
-            _, _ = OT_track(p.content, collection=True)
+            _, _ = OT.track(p.content, collection=True)
     return p
 
 
@@ -2101,23 +2092,23 @@ def _turn_into_file(p, skip_creation=False):
     :param skip_creation: Skips the serialization to file.
     :return: None
     """
-    obj_id = OT_is_tracked(p.content)
+    obj_id = OT.is_tracked(p.content)
     if obj_id == "":
         # This is the first time a task accesses this object
         if p.direction == DIRECTION.IN_DELETE:
-            obj_id, file_name = OT_not_track()
+            obj_id, file_name = OT.not_track()
         else:
-            obj_id, file_name = OT_track(p.content)
+            obj_id, file_name = OT.track(p.content)
         if not skip_creation:
             serialize_to_file(p.content, file_name)
     else:
-        file_name = OT_get_file_name(obj_id)
-        if OT_has_been_written(obj_id):
+        file_name = OT.get_file_name(obj_id)
+        if OT.has_been_written(obj_id):
             if p.direction == DIRECTION.INOUT or \
                     p.direction == DIRECTION.COMMUTATIVE:
-                OT_set_pending_to_synchronize(obj_id)
+                OT.set_pending_to_synchronize(obj_id)
             # Main program generated the last version
-            compss_file = OT_pop_written_obj(obj_id)
+            compss_file = OT.pop_written_obj(obj_id)
             if __debug__:
                 logger.debug("Serializing object %s to file %s" % (obj_id,
                                                                    compss_file))  # noqa: E501
@@ -2212,9 +2203,9 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN IdN pyTypeN
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format("collection", _class_name)
-        value = "{} {} {}".format(OT_is_tracked(param.content),
+        value = "{} {} {}".format(OT.is_tracked(param.content),
                                   len(param.content), con_type)
-        OT_stop_tracking(param.content, collection=True)
+        OT.stop_tracking(param.content, collection=True)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.content):
             x_value, x_type, _, _, _, x_con_type, _, _ = _extract_parameter(
@@ -2245,9 +2236,9 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN(value) IdN(value) pyTypeN(value)
         _class_name = str(param.content.__class__.__name__)
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format("dict_collection", _class_name)
-        value = "{} {} {}".format(OT_is_tracked(param.content),
+        value = "{} {} {}".format(OT.is_tracked(param.content),
                                   len(param.content), con_type)
-        OT_stop_tracking(param.content, collection=True)
+        OT.stop_tracking(param.content, collection=True)
         typ = TYPE.DICT_COLLECTION
         for k, v in param.content.items():  # noqa
             k_value, k_type, _, _, _, k_con_type, _, _ = _extract_parameter(

@@ -31,8 +31,7 @@ import typing
 
 from pycompss.api.api import compss_wait_on
 from pycompss.util.objects.replace import replace
-from pycompss.runtime.management.object_tracker import \
-    OT_is_obj_pending_to_synchronize
+from pycompss.runtime.management.object_tracker import OT
 import pycompss.util.context as context
 
 
@@ -56,7 +55,7 @@ def local(input_function):
 
         def sync_if_needed(obj):
             # type: (typing.Any) -> None
-            if OT_is_obj_pending_to_synchronize(obj):
+            if OT.is_obj_pending_to_synchronize(obj):
                 new_val = compss_wait_on(obj)
                 replace(obj, new_val)
 

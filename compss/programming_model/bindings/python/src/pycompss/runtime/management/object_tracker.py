@@ -537,23 +537,3 @@ class ObjectTracker(object):
 # Instantiation of the Object tracker class to be shared among
 # management modules
 OT = ObjectTracker()
-
-# Alias for the object tracker functions to avoid resolving the dot on each
-# OT call.
-OT_track = OT.track
-OT_stop_tracking = OT.stop_tracking
-OT_is_tracked = OT.is_tracked
-OT_is_pending_to_synchronize = OT.is_pending_to_synchronize
-OT_is_obj_pending_to_synchronize = OT.is_obj_pending_to_synchronize
-OT_set_pending_to_synchronize = OT.set_pending_to_synchronize
-OT_get_file_name = OT.get_file_name
-OT_get_all_file_names = OT.get_all_file_names
-OT_has_been_written = OT.has_been_written
-OT_pop_written_obj = OT.pop_written_obj
-OT_update_mapping = OT.update_mapping
-OT_clean_object_tracker = OT.clean_object_tracker
-OT_enable_report = OT.enable_report
-OT_is_report_enabled = OT.is_report_enabled
-OT_generate_report = OT.generate_report
-OT_not_track = OT.not_track
-OT_clean_report = OT.clean_report

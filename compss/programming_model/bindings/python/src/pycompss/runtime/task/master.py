@@ -70,6 +70,7 @@ from pycompss.runtime.commons import TRACING_TASK_NAME_TO_ID
 from pycompss.runtime.constants import CHECK_INTERACTIVE
 from pycompss.runtime.constants import EXTRACT_CORE_ELEMENT
 from pycompss.runtime.constants import INSPECT_FUNCTION_ARGUMENTS
+from pycompss.runtime.constants import POP_TASK_PARAMETERS
 from pycompss.runtime.constants import PROCESS_PARAMETERS
 from pycompss.runtime.constants import GET_FUNCTION_INFORMATION
 from pycompss.runtime.constants import PREPARE_CORE_ELEMENT
@@ -244,7 +245,8 @@ class TaskMaster(object):
                  "interactive", "module", "function_arguments", "hints",
                  "on_failure", "defaults",
                  "param_args", "param_varargs",
-                 "user_function", "decorator_arguments"]
+                 "user_function", "decorator_arguments",
+                 "explicit_num_returns"]
 
     def __init__(self,
                  decorator_arguments,  # type: typing.Dict[str, typing.Any]
@@ -301,7 +303,8 @@ class TaskMaster(object):
         self.function_type = function_type
         self.class_name = class_name
         # Add returns related attributes that will be useful later
-        self.returns = OrderedDict()     # type: OrderedDict
+        self.returns = OrderedDict()      # type: OrderedDict
+        self.explicit_num_returns = None  # type: typing.Any
         self.multi_return = False
         # Task won't be registered until called from the master for the first
         # time or have a different signature
@@ -367,8 +370,9 @@ class TaskMaster(object):
             if self.param_defaults is None:
                 self.param_defaults = ()
 
-            # Pop returns from kwargs
-            explicit_num_returns = kwargs.pop(RETURNS, None)
+        # Extract task related parameters (e.g. returns, computing_nodes, etc.)
+        with event_master(POP_TASK_PARAMETERS):
+            self.pop_task_parameters(kwargs)
 
         # Process the parameters, give them a proper direction
         with event_master(PROCESS_PARAMETERS):
@@ -386,7 +390,7 @@ class TaskMaster(object):
             impl_signature, impl_type_args = self.get_signature()
 
         if impl_signature not in TRACING_TASK_NAME_TO_ID:
-            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID)+1
+            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID) + 1
 
         emit_manual_event_explicit(BINDING_TASKS_FUNC_TYPE,
                                    TRACING_TASK_NAME_TO_ID[impl_signature])
@@ -428,7 +432,7 @@ class TaskMaster(object):
 
         # Deal with the return part.
         with event_master(PROCESS_RETURN):
-            num_returns = self.add_return_parameters(explicit_num_returns)
+            num_returns = self.add_return_parameters(self.explicit_num_returns)
             if not self.returns:
                 num_returns = self.update_return_if_no_returns(self.user_function)  # noqa: E501
 
@@ -630,16 +634,23 @@ class TaskMaster(object):
             # of getfullargspec).
             return inspect.getargspec(function)  # noqa
 
-    def process_parameters(self, args, kwargs):
-        # type: (tuple, dict) -> None
-        """ Process all the input parameters.
+    def pop_task_parameters(self, kwargs):
+        # type: (dict) -> None
+        """ Extracts all @task related parameters.
+        Updates:
+            - self.explicit_num_returns
+            - self.cns
+            - self.on_failure
+            - self.defaults
+            - self.is_reduce
+            - self.chunk_size
 
-        Basically, processing means "build a dictionary of <name, parameter>,
-        where each parameter has an associated Parameter object".
-        This function also assigns default directions to parameters.
-
-        :return: None, it only modifies self.parameters.
+        :param kwargs: Keyword arguments.
+        :return: None
         """
+        # Pop returns from kwargs
+        self.explicit_num_returns = kwargs.pop(RETURNS, None)
+
         # Deal with dynamic computing nodes
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
@@ -680,6 +691,19 @@ class TaskMaster(object):
             self.chunk_size = self.parse_chunk_size(chunk_size)
         else:
             self.chunk_size = 0
+
+    def process_parameters(self, args, kwargs):
+        # type: (tuple, dict) -> None
+        """ Process all the input parameters.
+
+        Basically, processing means "build a dictionary of <name, parameter>,
+        where each parameter has an associated Parameter object".
+        This function also assigns default directions to parameters.
+
+        :param args: Arguments.
+        :param kwargs: Keyword arguments.
+        :return: None, it only modifies self.parameters.
+        """
         # It is important to know the name of the first argument to determine
         # if we are dealing with a class or instance method (i.e: first
         # argument is named self)

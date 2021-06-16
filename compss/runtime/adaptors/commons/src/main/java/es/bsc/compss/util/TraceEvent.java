@@ -173,25 +173,24 @@ public enum TraceEvent {
     PYTHON_WAIT_ON(22, Tracer.BINDING_MASTER_TYPE, "Wait on"), // Wait on
     PYTHON_PROCESS_TASK(23, Tracer.BINDING_MASTER_TYPE, "Call to process task"), // Process task
     PYTHON_WALL_CLOCK_LIMIT(24, Tracer.BINDING_MASTER_TYPE, "Wall clock limit"), // Wall clock limit
-    // Internal call events
+    // Internal events
     PYTHON_TASK_INSTANTIATION(100, Tracer.BINDING_MASTER_TYPE, "Task instantiation"), // Task instantiation
-    PYTHON_CHECK_INTERACTIVE(101, Tracer.BINDING_MASTER_TYPE, "Check interactive"), // Check if interactive
-    PYTHON_EXTRACT_CORE_ELEMENT(102, Tracer.BINDING_MASTER_TYPE, "Extract core element"), // Extract core element
-    PYTHON_POP_TASK_PARAMETERS(103, Tracer.BINDING_MASTER_TYPE, "Pop task parameters"), // Inspect
-    PYTHON_INSPECT_FUNCTION_ARGUMENTS(104, Tracer.BINDING_MASTER_TYPE, "Inspect function arguments"), // Inspect
-    PYTHON_PROCESS_PARAMETERS(105, Tracer.BINDING_MASTER_TYPE, "Process function parameters"), // Process params
-    PYTHON_GET_FUNCTION_INFORMATION(106, Tracer.BINDING_MASTER_TYPE, "Get function information"), // Get info
-    PYTHON_PREPARE_CORE_ELEMENT(107, Tracer.BINDING_MASTER_TYPE, "Prepare Core Element"), // Prepare Core Element
-    PYTHON_GET_FUNCTION_SIGNATURE(108, Tracer.BINDING_MASTER_TYPE, "Check function signature"),
-    PYTHON_UPDATE_CORE_ELEMENT(109, Tracer.BINDING_MASTER_TYPE, "Update Core Element"), // Update Core Element
-    PYTHON_PROCESS_OTHER_ARGUMENTS(110, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
+    PYTHON_INSPECT_FUNCTION_ARGUMENTS(101, Tracer.BINDING_MASTER_TYPE, "Inspect function arguments"), // Inspect
+    PYTHON_GET_FUNCTION_INFORMATION(102, Tracer.BINDING_MASTER_TYPE, "Get function information"), // Get info
+    PYTHON_GET_FUNCTION_SIGNATURE(103, Tracer.BINDING_MASTER_TYPE, "Check function signature"),
+    PYTHON_CHECK_INTERACTIVE(104, Tracer.BINDING_MASTER_TYPE, "Check interactive"), // Check if interactive
+    PYTHON_EXTRACT_CORE_ELEMENT(105, Tracer.BINDING_MASTER_TYPE, "Extract core element"), // Extract core element
+    PYTHON_PREPARE_CORE_ELEMENT(106, Tracer.BINDING_MASTER_TYPE, "Prepare Core Element"), // Prepare Core Element
+    PYTHON_UPDATE_CORE_ELEMENT(107, Tracer.BINDING_MASTER_TYPE, "Update Core Element"), // Update Core Element
+    PYTHON_POP_TASK_PARAMETERS(108, Tracer.BINDING_MASTER_TYPE, "Pop task parameters"), // Inspect
+    PYTHON_PROCESS_OTHER_ARGUMENTS(109, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
+    PYTHON_PROCESS_PARAMETERS(110, Tracer.BINDING_MASTER_TYPE, "Process function parameters"), // Process params
     PYTHON_PROCESS_RETURN(111, Tracer.BINDING_MASTER_TYPE, "Process return"), // Process return
     PYTHON_BUILD_RETURN_OBJECTS(112, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
     PYTHON_SERIALIZE_OBJECTS(113, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
     PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(114, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
-    PYTHON_SET_SIGNATURE(115, Tracer.BINDING_MASTER_TYPE, "Set signature"), // Set signature
-    PYTHON_PROCESS_TASK_BINDING(116, Tracer.BINDING_MASTER_TYPE, "Process task binding"), // Process task
-    PYTHON_ATTRIBUTES_CLEANUP(117, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
+    PYTHON_PROCESS_TASK_BINDING(115, Tracer.BINDING_MASTER_TYPE, "Process task binding"), // Process task
+    PYTHON_ATTRIBUTES_CLEANUP(116, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
 
     // Agent events
     AGENT_ADD_RESOURCE(6002, Tracer.AGENT_EVENTS_TYPE, "Add resources agent"), // Add resources

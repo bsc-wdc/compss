@@ -67,21 +67,20 @@ from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import get_object_conversion
 from pycompss.runtime.commons import TRACING_TASK_NAME_TO_ID
+from pycompss.runtime.constants import INSPECT_FUNCTION_ARGUMENTS
+from pycompss.runtime.constants import GET_FUNCTION_INFORMATION
+from pycompss.runtime.constants import GET_FUNCTION_SIGNATURE
 from pycompss.runtime.constants import CHECK_INTERACTIVE
 from pycompss.runtime.constants import EXTRACT_CORE_ELEMENT
-from pycompss.runtime.constants import INSPECT_FUNCTION_ARGUMENTS
-from pycompss.runtime.constants import POP_TASK_PARAMETERS
-from pycompss.runtime.constants import PROCESS_PARAMETERS
-from pycompss.runtime.constants import GET_FUNCTION_INFORMATION
 from pycompss.runtime.constants import PREPARE_CORE_ELEMENT
-from pycompss.runtime.constants import GET_FUNCTION_SIGNATURE
 from pycompss.runtime.constants import UPDATE_CORE_ELEMENT
-from pycompss.runtime.constants import PROCESS_RETURN
+from pycompss.runtime.constants import POP_TASK_PARAMETERS
 from pycompss.runtime.constants import PROCESS_OTHER_ARGUMENTS
+from pycompss.runtime.constants import PROCESS_PARAMETERS
+from pycompss.runtime.constants import PROCESS_RETURN
 from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
 from pycompss.runtime.constants import SERIALIZE_OBJECT
 from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
-from pycompss.runtime.constants import SET_SIGNATURE
 from pycompss.runtime.constants import PROCESS_TASK_BINDING
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
 from pycompss.runtime.management.direction import get_compss_direction
@@ -336,19 +335,6 @@ class TaskMaster(object):
         # calling the same task concurrently
         MASTER_LOCK.acquire()
 
-        # Check if we are in interactive mode and update if needed
-        with event_master(CHECK_INTERACTIVE):
-            if not self.interactive:
-                self.interactive, self.module = self.check_if_interactive()
-            if self.interactive:
-                self.update_if_interactive(self.module)
-
-        # Extract the core element (has to be extracted before processing
-        # the kwargs to avoid issues processing the parameters)
-        with event_master(EXTRACT_CORE_ELEMENT):
-            cek = kwargs.pop(CORE_ELEMENT_KEY, None)
-            pre_defined_ce = self.extract_core_element(cek)
-
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
         # and self.param_defaults. And gives non-None default
@@ -370,30 +356,40 @@ class TaskMaster(object):
             if self.param_defaults is None:
                 self.param_defaults = ()
 
-        # Extract task related parameters (e.g. returns, computing_nodes, etc.)
-        with event_master(POP_TASK_PARAMETERS):
-            self.pop_task_parameters(kwargs)
-
-        # Process the parameters, give them a proper direction
-        with event_master(PROCESS_PARAMETERS):
-            self.process_parameters(args, kwargs)
-
         # Compute the function path, class (if any), and name
         with event_master(GET_FUNCTION_INFORMATION):
-            self.compute_user_function_information()
+            self.compute_user_function_information(args)
+
+        with event_master(GET_FUNCTION_SIGNATURE):
+            impl_signature, impl_type_args = self.get_signature()
+            if __debug__:
+                logger.debug("TASK: %s of type %s, in module %s, in class %s" %
+                             (self.function_name, self.function_type,
+                              self.module_name, self.class_name))
+
+        if impl_signature not in TRACING_TASK_NAME_TO_ID:
+            TRACING_TASK_NAME_TO_ID[impl_signature] = \
+                len(TRACING_TASK_NAME_TO_ID) + 1
+
+        emit_manual_event_explicit(BINDING_TASKS_FUNC_TYPE,
+                                   TRACING_TASK_NAME_TO_ID[impl_signature])
+
+        # Check if we are in interactive mode and update if needed
+        with event_master(CHECK_INTERACTIVE):
+            if self.interactive:
+                self.update_if_interactive(self.module)
+            else:
+                self.interactive, self.module = self.check_if_interactive()
+
+        # Extract the core element (has to be extracted before processing
+        # the kwargs to avoid issues processing the parameters)
+        with event_master(EXTRACT_CORE_ELEMENT):
+            cek = kwargs.pop(CORE_ELEMENT_KEY, None)
+            pre_defined_ce = self.extract_core_element(cek)
 
         # Prepare the core element registration information
         with event_master(PREPARE_CORE_ELEMENT):
             self.get_code_strings()
-
-        with event_master(GET_FUNCTION_SIGNATURE):
-            impl_signature, impl_type_args = self.get_signature()
-
-        if impl_signature not in TRACING_TASK_NAME_TO_ID:
-            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID) + 1
-
-        emit_manual_event_explicit(BINDING_TASKS_FUNC_TYPE,
-                                   TRACING_TASK_NAME_TO_ID[impl_signature])
 
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
@@ -424,11 +420,19 @@ class TaskMaster(object):
                     self.module_name, self.function_type, self.class_name,
                     self.hints)
 
+        # Extract task related parameters (e.g. returns, computing_nodes, etc.)
+        with event_master(POP_TASK_PARAMETERS):
+            self.pop_task_parameters(kwargs)
+
         with event_master(PROCESS_OTHER_ARGUMENTS):
             # Get other arguments if exist
             if not self.hints:
                 self.hints = self.check_task_hints()
             is_replicated, is_distributed, time_out, has_priority, has_target = self.hints  # noqa: E501
+
+        # Process the parameters, give them a proper direction
+        with event_master(PROCESS_PARAMETERS):
+            self.process_parameters(args, kwargs)
 
         # Deal with the return part.
         with event_master(PROCESS_RETURN):
@@ -469,9 +473,9 @@ class TaskMaster(object):
 
         is_http = self.core_element.get_impl_type() == "HTTP"
         # Process the task
-        with event(PROCESS_TASK_BINDING):
+        with event_master(PROCESS_TASK_BINDING):
             binding.process_task(
-                signature,
+                impl_signature,
                 has_target,
                 names,
                 values,
@@ -714,8 +718,6 @@ class TaskMaster(object):
         num_positionals = min(len(self.param_args), len(args))
         arg_names = self.param_args[:num_positionals]
         arg_objects = args[:num_positionals]
-        if arg_names and self.first_arg_name == "":
-            self.first_arg_name = arg_names[0]
         for (arg_name, arg_object) in zip(arg_names, arg_objects):
             self.parameters[arg_name] = self.build_parameter_object(arg_name,
                                                                     arg_object)
@@ -832,8 +834,8 @@ class TaskMaster(object):
             param.content = arg_object
         return param
 
-    def compute_user_function_information(self):
-        # type: () -> None
+    def compute_user_function_information(self, args):
+        # type: (tuple) -> None
         """ Get the user function path and name.
 
         Compute the function path p and the name n such that
@@ -843,14 +845,21 @@ class TaskMaster(object):
                  self.user_function_name.
         """
         self.function_name = self.user_function.__name__
+        # Detect if self is present
+        num_positionals = min(len(self.param_args), len(args))
+        arg_names = self.param_args[:num_positionals]
+        first_object = None
+        if arg_names and self.first_arg_name == "":
+            self.first_arg_name = arg_names[0]
+            first_object = args[0]
         # Get the module name (the x part "from x import y"), except for the
         # class name
-        self.compute_module_name()
+        self.compute_module_name(first_object)
         # Get the function type (function, instance method, class method)
-        self.compute_function_type()
+        self.compute_function_type(first_object)
 
-    def compute_module_name(self):
-        # type: () -> None
+    def compute_module_name(self, first_object):
+        # type: (typing.Any) -> None
         """ Compute the user's function module name.
 
         There are various cases:
@@ -869,10 +878,10 @@ class TaskMaster(object):
         # defined.
         # This avoids conflicts with task inheritance.
         if self.first_arg_name == "self":
-            mod = inspect.getmodule(type(self.parameters["self"].content))
+            mod = inspect.getmodule(type(first_object))
             self.module_name = mod.__name__
         elif self.first_arg_name == "cls":
-            self.module_name = self.parameters["cls"].content.__module__
+            self.module_name = first_object.__module__
         if self.module_name == "__main__" or \
                 self.module_name == "pycompss.runtime.launch":
             # The module where the function is defined was run as __main__,
@@ -887,8 +896,8 @@ class TaskMaster(object):
             # Get the module
             self.module_name = get_module_name(path, file_name)
 
-    def compute_function_type(self):
-        # type: () -> None
+    def compute_function_type(self, first_object):
+        # type: (typing.Any) -> None
         """ Compute user function type.
 
         Compute some properties of the user function, as its name,
@@ -906,10 +915,10 @@ class TaskMaster(object):
         self.class_name = ""
         if self.first_arg_name == "self":
             self.function_type = FunctionType.INSTANCE_METHOD
-            self.class_name = type(self.parameters["self"].content).__name__
+            self.class_name = type(first_object).__name__
         elif self.first_arg_name == "cls":
             self.function_type = FunctionType.CLASS_METHOD
-            self.class_name = self.parameters["cls"].content.__name__
+            self.class_name = first_object.__name__
         # Finally, check if the function type is really a module function or
         # a static method.
         # Static methods are ONLY supported with Python 3 due to __qualname__

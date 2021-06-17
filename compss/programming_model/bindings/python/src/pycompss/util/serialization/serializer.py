@@ -45,6 +45,7 @@ PyCOMPSs Util - Data serializer/deserializer
 import os
 import struct
 import gc
+import json
 import types
 import traceback
 from io import BytesIO
@@ -107,7 +108,8 @@ LIB2IDX = {
     pickle: 0,
     numpy: 1,
     dill: 2,
-    pyarrow: 3
+    pyarrow: 3,
+    json: 4
 }
 IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
 platform_c_maxint = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)

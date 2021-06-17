@@ -1158,7 +1158,7 @@ void JNI_ExecuteHttpTask(long appId, char* methodType, char* baseUrl, char* sign
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 1. \n");
     if(onFailure == NULL){
         debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common on failure is null. \n");
-        jobjOnFailure = jobjOnFailureRETRY;
+        jobjOnFailure = status->localJniEnv->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, status->localJniEnv->NewStringUTF("RETRY"));
     }
     else{
          jobjOnFailure = status->localJniEnv->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, status->localJniEnv->NewStringUTF(onFailure));

@@ -26,9 +26,10 @@ public class URLReplacer {
         for (final Map.Entry<String, String> entry : replaceElements.entrySet()) {
             final String wordToBeReplaced = entry.getKey().trim();
             final String fullStringToBeReplaced = openToken + wordToBeReplaced + closeToken;
-
-            final String replacement = entry.getValue();
-
+            String replacement = entry.getValue();
+            // todo: should we also replace other special characters?
+            replacement = replacement.replaceAll("#", "");
+            replacement = replacement.replaceAll(" ", "");
             result = result.replaceAll(fullStringToBeReplaced, replacement);
         }
         return result;

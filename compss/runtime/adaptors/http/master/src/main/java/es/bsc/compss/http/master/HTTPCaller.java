@@ -108,17 +108,13 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                     case OBJECT_T:
                     case PSCO_T:
                     case EXTERNAL_PSCO_T:
+                    case FILE_T:
+                        // todo: is it the case only for pycompss?
                         DependencyParameter dependencyParameter = (DependencyParameter) par;
                         final Object objectValue = getObjectValue(dependencyParameter);
 
                         addParameterToMapOfParameters(namedParameters, par, objectValue);
                         break;
-
-                    case FILE_T:
-                        LOGGER.error("Error: HTTP CAN'T USE BINDING FILES AS PARAMETERS!");
-                        // Skip
-                        break;
-
                     case STREAM_T:
                     case EXTERNAL_STREAM_T:
                         LOGGER.error("Error: HTTP CAN'T USE STREAMS AS PARAMETERS!");

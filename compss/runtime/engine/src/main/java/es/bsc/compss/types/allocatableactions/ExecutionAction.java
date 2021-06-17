@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
+import com.google.gson.Gson;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
@@ -63,6 +64,8 @@ import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -643,6 +646,8 @@ public class ExecutionAction extends AllocatableAction {
                 doMethodOutputTransfers(job);
                 break;
             case HTTP:
+                doHttpOutputTransfers(job);
+                break;
             case SERVICE:
                 doServiceOutputTransfers(job);
                 break;
@@ -806,6 +811,74 @@ public class ExecutionAction extends AllocatableAction {
                     for (DataLocation loc : ld.getLocations()) {
                         if (loc != null) {
                             monitor.valueGenerated(i, mp);
+                        }
+                    }
+                }
+
+                // If we reach this point the return value has been registered, we can end
+                return;
+            }
+        }
+    }
+
+    private final void doHttpOutputTransfers(Job<?> job) {
+        TaskMonitor monitor = this.task.getTaskMonitor();
+
+        // Search for the return object
+        List<Parameter> params = job.getTaskParams().getParameters();
+        for (int i = params.size() - 1; i >= 0; --i) {
+            Parameter p = params.get(i);
+            if (p instanceof DependencyParameter) {
+                // Check parameter direction
+                DataInstanceId dId = null;
+                DependencyParameter dp = (DependencyParameter) p;
+                switch (p.getDirection()) {
+                    case IN:
+                    case IN_DELETE:
+                    case CONCURRENT:
+                    case COMMUTATIVE:
+                    case INOUT:
+                        // Return value is OUT, skip the current parameter
+                        continue;
+                    case OUT:
+                        dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                        break;
+                }
+
+                // nm: here
+                // mark that is json
+                // write to the file if type is FILE_T
+                if (dp.getType().equals(DataType.FILE_T)) {
+                    // JSONObject json = new JSONObject(job.getReturnValue());
+                    Gson gson = new Gson();
+                    String json = gson.toJson(job.getReturnValue());
+                    FileWriter file = null;
+                    LOGGER.info(" _____ job return value" + job.getReturnValue());
+                    LOGGER.info(" _____ job return value after json" + json);
+                    try {
+                        file = new FileWriter(dp.getDataTarget());
+                        file.write("0004");
+                        file.write(json);
+                        file.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
+                String dataName = getOuputRename(p);
+                storeOutputParameter(job, w, dataName, dp);
+
+                // Parameter found, store it
+                String name = dId.getRenaming();
+                Object value = job.getReturnValue();
+                LogicalData ld = Comm.registerValue(name, value);
+
+                // Monitor one of its locations
+                Set<DataLocation> locations = ld.getLocations();
+                if (!locations.isEmpty()) {
+                    for (DataLocation loc : ld.getLocations()) {
+                        if (loc != null) {
+                            monitor.valueGenerated(i, p.getName(), p.getType(), name, loc);
                         }
                     }
                 }

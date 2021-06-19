@@ -433,6 +433,46 @@ Known Limitations:
         - Delete file calls for files used as input can produce a significant synchronization of the main code.
         - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
+Release number: 2.9 (Jasmine) 
+Release date: June-2021
+-------------------------------
+New features
+         * Runtime:
+                - Support for nested tasks in agents deployment
+                - New application time out functionality to enable a controlled finalization of applications before the wall_clock_limit
+                - New flags to simplify application debugging (--keep_workingdir, --gen_coredump)
+                - Support for loading the application environment from scripts
+                - Support for tracing in agents environment.
+                - Partial support for OSX systems.
+
+         * Python:
+                - Support for Optional parameters and default values
+                - Enable monitoring task status from Jupyter notebooks.
+                - Enabling memory profile
+                - Python workers cache.
+                - Support for dynamic number of returns override at task invocation.
+
+        * DDS:
+                - New methods and optimizations in DDS class.
+Improvements:
+        - Enabling passing extra flags for the queue system flags from enqueue_compss.
+        - Supporting multiple data layout in MPI tasks
+        - Improvements in tracing system. More events and cfg
+        - Enabling a flag to change extrae configuration file for python processes.
+        - Configuration files for Barbora system.
+        - Several Bug fixes.
+
+Known Limitations:
+        - OSX support is limited to Java and Python2 without CPU affinity (require to execute with --cpu_affinity=disable)
+        - Reduce operations can consume more disk space than the manually programmed n-ary reduction
+        - Objects used as task parameters must be serializable.
+        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP.
+        - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+        - Master as worker feature is not working for executions with persistent worker in C++.
+        - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+        - Delete file calls for files used as input can produce a significant synchronization of the main code.
+        - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
+
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 
 Please find more details about the COMP Superscalar framework at: 

@@ -967,7 +967,7 @@ set_variables() {
 
   # SharedDisk variables
   if [ "${worker_working_dir}" == "${SHARED_DISK_NAME}" ]; then
-    worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}" || (mktemp -d -t "${SHARED_DISK_PREFIX}${HOME}")
+    worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}" || mktemp -d -t "${SHARED_DISK_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
     worker_working_dir=${LOCAL_DISK_PREFIX}/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"

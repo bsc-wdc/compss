@@ -19,17 +19,17 @@ New features
 		- Partial support for OSX systems. 
 
          * Python:
-		- Support for Optional parameters and default values
-		- Enable monitoring task status from Jupyter notebooks.
-		- Enabling memory profile
-		- Python workers cache.
+		- Support for Optional parameters and default values.
+		- Support for monitoring task status from Jupyter notebooks.
+		- Memory profile enabled
+		- Support for Python workers cache.
 		- Support for dynamic number of returns override at task invocation.
 
 	* DDS:
 		- New methods and optimizations in DDS class.
 Improvements:
-        - Enabling passing extra flags for the queue system flags from enqueue_compss.
-        - Supporting multiple data layout in MPI tasks
+        - Enabling the pass of extra flags for the queue system flags from enqueue_compss.
+        - Support for multiple data layout in MPI tasks
 	- Improvements in tracing system. More events and cfg
 	- Enabling a flag to change extrae configuration file for python processes.
 	- Configuration files for Barbora system.

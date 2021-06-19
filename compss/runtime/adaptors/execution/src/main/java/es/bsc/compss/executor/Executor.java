@@ -502,7 +502,7 @@ public class Executor implements Runnable, InvocationRunner {
                 LOGGER.error(errMsg.toString());
                 // Print also in job file
                 PrintStream err = this.context.getThreadErrStream();
-                err.println(errMsg.toString()); 
+                err.println(errMsg.toString());
                 return false;
             }
             if (Tracer.extraeEnabled()) {
@@ -516,7 +516,7 @@ public class Executor implements Runnable, InvocationRunner {
     private void createEmptyFile() {
         PrintStream out = context.getThreadOutStream();
         PrintStream err = context.getThreadOutStream();
-        if(LOGGER.isDebugEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             out.println("[EXECUTOR] executeTask - Checking if a blank file needs to be created");
         }
         for (InvocationParam param : invocation.getParams()) {
@@ -525,7 +525,7 @@ public class Executor implements Runnable, InvocationRunner {
                 File f = new File(filepath);
                 // If using C binding we ignore potential errors
                 if (!f.exists()) {
-                    if(LOGGER.isDebugEnabled()) {
+                    if (LOGGER.isDebugEnabled()) {
                         out.println("[EXECUTOR] executeTask - Creating a new blank file");
                     }
                     try {

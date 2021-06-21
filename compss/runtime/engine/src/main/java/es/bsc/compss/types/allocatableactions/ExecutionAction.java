@@ -94,6 +94,7 @@ public class ExecutionAction extends AllocatableAction {
     protected int executionErrors = 0;
     protected Job<?> currentJob;
     boolean cancelledBeforeSubmit = false;
+    boolean extraResubmit = false;
 
 
     /**
@@ -1106,6 +1107,7 @@ public class ExecutionAction extends AllocatableAction {
                 } else {
                     LOGGER.debug("No more candidate resources for task " + this.task.getId() + ". Trying to use worker "
                         + worker.getName() + " again ... ");
+                    extraResubmit = true;
                 }
             }
 
@@ -1191,11 +1193,16 @@ public class ExecutionAction extends AllocatableAction {
                 + " with implementation " + (impl == null ? "null" : impl.getImplementationId()));
         }
 
-        if (!targetWorker.getResource().canRun(impl) // Resource is not compatible with the implementation
-            || this.getExecutingResources().contains(targetWorker)// already ran on the resource
-        ) {
-            LOGGER.debug("Worker " + targetWorker.getName() + " has not available resources to run " + this);
+        if (!targetWorker.getResource().canRun(impl)) { // Resource is not compatible with the implementation
+            LOGGER.warn("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();
+        }
+        if (this.getExecutingResources().contains(targetWorker) && !extraResubmit) {
+            LOGGER.warn("Task " + this.getTask().getId() + " has been scheduled to a host already used before."
+                + targetWorker.getName());
+            throw new UnassignedActionException();
+        } else {
+            extraResubmit = false;
         }
 
         LOGGER.info("Assigning action " + this + " to worker " + targetWorker.getName() + " with implementation "

@@ -292,7 +292,7 @@ class MPI(PyCOMPSsDecorator):
             impl_signature = impl_type + '.'
         else:
             impl_signature = '.'.join((impl_type,
-                                       proc,
+                                       str(proc),
                                        binary))
         impl_args = [binary,
                      self.kwargs['working_dir'],

@@ -59,7 +59,7 @@ class MPI(PyCOMPSsDecorator):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ['task_type']
+    __slots__ = ['task_type', 'decorator_name']
 
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.
@@ -72,8 +72,8 @@ class MPI(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         self.task_type = "mpi"
-        decorator_name = "".join(('@', MPI.__name__.lower()))
-        super(MPI, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = "".join(('@', MPI.__name__.lower()))
+        super(MPI, self).__init__(self.decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
@@ -89,22 +89,7 @@ class MPI(PyCOMPSsDecorator):
                             DEPRECATED_ARGUMENTS,
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
-                            decorator_name)
-
-            # Get the computing nodes
-            self.__process_computing_nodes__(decorator_name)
-
-            # Set default value if it has not been defined
-            if 'processes' not in self.kwargs:
-                self.kwargs['processes'] = 1
-
-            # The processes parameter will have to go down until the execution
-            # is invoked.
-            # WARNING: processes can be an int, a env string, a str with
-            #          dynamic variable name.
-            if __debug__:
-                logger.debug("This MPI task will have " +
-                             str(self.kwargs['processes']) + " processes.")
+                            self.decorator_name)
 
     def __call__(self, user_function):
         """ Parse and set the mpi parameters within the task core element.
@@ -140,9 +125,20 @@ class MPI(PyCOMPSsDecorator):
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs, user_function)
 
-        # Set the computing_nodes variable in kwargs for its usage
-        # in @task decorator
-        kwargs['computing_nodes'] = self.kwargs['processes']
+        # The processes parameter will have to go down until the execution
+        # is invoked. To this end, set the computing_nodes variable in kwargs
+        # for its usage in @task decorator
+        # WARNING: processes can be an int, a env string, a str with
+        #          dynamic variable name.
+        if "processes" in self.kwargs:
+            kwargs['computing_nodes'] = self.kwargs['processes']
+        else:
+            # If processes not defined, check computing_units or set default
+            self.__process_computing_nodes__(self.decorator_name)
+            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+        if __debug__:
+            logger.debug("This MPI task will have " +
+                         str(kwargs['computing_nodes']) + " processes.")
 
         if self.task_type == "PYTHON_MPI":
             prepend_strings = True
@@ -283,11 +279,20 @@ class MPI(PyCOMPSsDecorator):
         # Resolve parameter collection layout
         collection_layout_params = self.__resolve_collection_layout_params__()
 
+        if "processes" in self.kwargs:
+            proc = self.kwargs["processes"]
+        elif "computing_nodes" in self.kwargs:
+            proc = self.kwargs["computing_nodes"]
+        elif "computingNodes" in self.kwargs:
+            proc = self.kwargs["computingNodes"]
+        else:
+            proc = "1"
+
         if binary == "[unassigned]":
             impl_signature = impl_type + '.'
         else:
             impl_signature = '.'.join((impl_type,
-                                       str(self.kwargs['processes']),
+                                       str(proc),
                                        binary))
         impl_args = [binary,
                      self.kwargs['working_dir'],

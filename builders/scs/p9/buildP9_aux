@@ -28,6 +28,21 @@
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+  #######
+  # The earth department has its own python version and modules. Consequently,
+  # it is necessary to include in your .bashrc:
+  #    alias ocean='cd /gpfs/projects/bsc32/cs_collaboration/numba_ohc/parallel'
+  #    module use /gpfs/projects/bsc32/software/rhel/7.4/ppc64le/POWER9/modules/all/
+  #    module load iris
+  #    module load numba
+  #    export COMPSS_PYTHON_VERSION=none  # use your version
+  # Don't forget to include the module load just installed COMPSs.
+  # And also changhe de following variables in this script, that are currently "ignore":
+  #    - py_other_modules
+  #    - additional_module_use_folder
+  # Then you will be able to go to "ocean" alias where the collaboration code is.
+  #######
+
   # DEFINE MODULES
   modules="gcc openmpi boost java atlas/3.10.3 python/2.7.14"
   unload_before_python="ignore"

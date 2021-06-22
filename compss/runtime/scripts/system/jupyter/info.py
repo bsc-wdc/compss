@@ -26,8 +26,10 @@ from commons import SUCCESS_KEYWORD
 from commons import ERROR_KEYWORD
 from commons import NOT_RUNNING_KEYWORD
 from commons import setup_supercomputer_configuration
+from commons import get_jupyter_environment_variables
 from commons import update_command
 from commons import command_runner
+from commons import command_runner_shell
 from commons import is_notebook_job
 from commons import not_a_notebook
 
@@ -76,8 +78,13 @@ def info():
             print(" - Found master: " + str(master))
 
         # Get the command to contact with the node where the job is running
-        server_list = os.environ['CONTACT_CMD'] + ' ' + master + " jupyter-notebook list"
-        return_code, jupyter_server_list, _ = command_runner(server_list.split())
+        jupyter_variables = get_jupyter_environment_variables()
+        to_export = "export"
+        for k, v in jupyter_variables.items():
+            to_export += " " + k + "=" + v
+        server_list = os.environ['CONTACT_CMD'] + ' ' + master + \
+                     ' \"' + to_export + ' && jupyter-notebook list\"'
+        return_code, jupyter_server_list, _ = command_runner_shell(server_list)
 
         if VERBOSE:
             print("Finished checking the information.")
@@ -98,5 +105,3 @@ def info():
 
 if __name__ == '__main__':
     info()
-
-

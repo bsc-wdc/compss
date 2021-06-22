@@ -473,6 +473,7 @@ get_args() {
 	    ;;
 	  env_script=*)
 	    env_script=${OPTARG//env_script=/}
+	    args_pass="$args_pass --$OPTARG"
 	    ;;
 	  extra_submit_flag=*)
             extra_submit_flag=(${extra_submit_flag[@]} ${OPTARG//extra_submit_flag=/})
@@ -935,10 +936,19 @@ add_packjob_separator(){
 EOT
 }
 
+add_cd_master_wd(){
+  #Add change to master working dir if not working dir option in job definition
+  if [ -z "${QARG_WD}" ]; then
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+  cd ${master_working_dir}
+EOT
+  fi
+}
+
 add_master_and_worker_nodes(){
+  add_cd_master_wd
   # Host list parsing
   cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
     source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
   else
@@ -951,6 +961,7 @@ EOT
 }
 
 add_only_master_node(){
+  add_cd_master_wd
   # Host list parsing
   cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 

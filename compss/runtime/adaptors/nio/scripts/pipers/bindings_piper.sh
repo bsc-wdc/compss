@@ -256,7 +256,11 @@ process_pipe_commands() {
                 if [ "${line}" != "GET_ALIVE" ]; then
                     pids="${line}"
                     # shellcheck disable=SC2086
-                    alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}')
+		    if [ $(uname) == "Darwin" ]; then
+                      alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}'| sed 1d)
+                    else
+                      alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}')
+                    fi
                     for alive_process in ${alive_processes}; do
                         reply="${reply} ${alive_process}"
                     done

@@ -19,6 +19,7 @@ package es.bsc.compss.types;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.util.Tracer;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -102,6 +103,11 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
         producer.successors.add(this);
         this.predecessors.add(producer);
         this.dependentTasks.put(producer, dp);
+
+        // Adding predecessors for task dependency tracing
+        if (Tracer.isActivated()) {
+            Tracer.addPredecessors(this.taskId, producer.taskId);
+        }
     }
 
     /**

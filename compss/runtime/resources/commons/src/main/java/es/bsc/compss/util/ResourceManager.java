@@ -185,13 +185,14 @@ public class ResourceManager {
             for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
                 r.stop(sl);
             }
-
+            RUNTIME_LOGGER.debug("Waiting for workers to shutdown...");
             RESOURCES_LOGGER.debug("DEBUG_MSG = [Waiting for workers to shutdown...]");
             sl.enable();
 
             try {
                 sem.acquire();
             } catch (Exception e) {
+                RUNTIME_LOGGER.error("ERROR: Exception raised on worker shutdown", e);
                 RESOURCES_LOGGER.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
             }
             RESOURCES_LOGGER.info("INFO_MSG = [Workers stopped]");
@@ -206,10 +207,11 @@ public class ResourceManager {
         RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
         Comm.getAppHost().stop(sl);
         sl.enable();
-
+        RUNTIME_LOGGER.debug("Waiting for local worker to shutdown...");
         try {
             sem.acquire();
         } catch (Exception e) {
+            RUNTIME_LOGGER.info("ERROR: Exception raised on worker shutdown", e);
             RESOURCES_LOGGER.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
         }
         RESOURCES_LOGGER.info("INFO_MSG = [Worker in master stopped]");

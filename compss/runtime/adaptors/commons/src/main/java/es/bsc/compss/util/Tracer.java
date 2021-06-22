@@ -478,10 +478,6 @@ public abstract class Tracer {
         return TraceEvent.valueOf(eventType);
     }
 
-    public static boolean taskHasPredecessors(Integer taskId) {
-        return predecessorsMap.containsKey(taskId);
-    }
-
     public static ArrayList<Integer> getPredecessors(int taskId) {
         return predecessorsMap.get(taskId);
     }
@@ -490,7 +486,18 @@ public abstract class Tracer {
         predecessorsMap.remove(taskId);
     }
 
-    public static void setPredecessors(int taskId, ArrayList<Integer> predecessors) {
+    /**
+     * Adds id predecessors to list of predecessors.
+     *
+     * @param taskId Id of task
+     * @param predecessorTaskId Id of predecessor task
+     */
+    public static void addPredecessors(int taskId, int predecessorTaskId) {
+        ArrayList<Integer> predecessors = predecessorsMap.get(taskId);
+        if (predecessors == null) {
+            predecessors = new ArrayList<>();
+        }
+        predecessors.add(predecessorTaskId);
         predecessorsMap.put(taskId, predecessors);
     }
 

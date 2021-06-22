@@ -37,7 +37,7 @@
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
-  additionalExports="export CPPFLAGS=-I\${BOOST_INC} LDFLAGS=-L\${BOOST_LIB} BOOST_CPPFLAGS=-I\${BOOST_INC} BOOST_HOME=\${BOOST_DIR} JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-0.el7_5.x86_64/ MPICC=/home/software/openmpi/1.10.7-GNU/bin/mpicc I_MPI_ROOT="
+  additionalExports="export CPPFLAGS=-I\${BOOST_INC} LDFLAGS=-L\${BOOST_LIB} BOOST_CPPFLAGS=-I\${BOOST_INC} BOOST_HOME=\${BOOST_DIR} JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.262.b10-0.el7_8.x86_64/ MPICC=/home/software/openmpi/1.10.7-GNU/bin/mpicc I_MPI_ROOT="
   # intel module sets I_MPI_ROOT which causes troubles with extrae-openmpi installation - reason why it is unsetted
   additional_module_use_folder="ignore"
   queues_cfg="nextgenio.cfg"

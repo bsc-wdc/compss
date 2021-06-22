@@ -1,5 +1,9 @@
 #!/bin/bash
 
   # shellcheck disable=SC2009
-  ps -elfa | grep -E "COMPSsWorker|pipers|worker.py|nio_worker_c|worker_c|runcompss|pycompss/runtime/launch.py" | grep -v "grep" | awk '{ print $4 }' | xargs -r kill -9
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    ps -efa | grep -E "COMPSsWorker|piper|worker.py|nio_worker_c|worker_c|runcompss|pycompss/runtime/launch.py" | grep -v "grep" | awk '{ print $2 }' | xargs -r kill -9
+  else
+    ps -elfa | grep -E "COMPSsWorker|pipers|worker.py|nio_worker_c|worker_c|runcompss|pycompss/runtime/launch.py" | grep -v "grep" | awk '{ print $4 }' | xargs -r kill -9
+  fi
 

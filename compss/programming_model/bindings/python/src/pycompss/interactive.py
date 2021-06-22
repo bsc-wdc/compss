@@ -61,6 +61,7 @@ from pycompss.util.interactive.state import show_tasks_info
 from pycompss.util.interactive.state import show_tasks_status
 from pycompss.util.interactive.state import show_statistics
 from pycompss.util.interactive.state import show_resources_status
+from pycompss.util.interactive.state import check_monitoring_file
 
 # Tracing imports
 from pycompss.util.tracing.helpers import emit_manual_event
@@ -645,7 +646,13 @@ def tasks_info():
 
     :return: None
     """
-    show_tasks_info(LOG_PATH)
+    if check_monitoring_file(LOG_PATH):
+        show_tasks_info(LOG_PATH)
+    else:
+        print("Oops! Monitoring is not enabled in this execution.")
+        print("      Please, enable it by setting the monitor flag when" +
+              " starting PyCOMPSs.")
+        return None
 
 
 def tasks_status():
@@ -654,7 +661,13 @@ def tasks_status():
 
     :return: None
     """
-    show_tasks_status(LOG_PATH)
+    if check_monitoring_file(LOG_PATH):
+        show_tasks_status(LOG_PATH)
+    else:
+        print("Oops! Monitoring is not enabled in this execution.")
+        print("      Please, enable it by setting the monitor flag when" +
+              " starting PyCOMPSs.")
+        return None
 
 
 def statistics():
@@ -663,7 +676,13 @@ def statistics():
 
     :return: None
     """
-    show_statistics(LOG_PATH)
+    if check_monitoring_file(LOG_PATH):
+        show_statistics(LOG_PATH)
+    else:
+        print("Oops! Monitoring is not enabled in this execution.")
+        print("      Please, enable it by setting the monitor flag when" +
+              " starting PyCOMPSs.")
+        return None
 
 
 def resources_status():
@@ -672,7 +691,13 @@ def resources_status():
 
     :return: None
     """
-    show_resources_status(LOG_PATH)
+    if check_monitoring_file(LOG_PATH):
+        show_resources_status(LOG_PATH)
+    else:
+        print("Oops! Monitoring is not enabled in this execution.")
+        print("      Please, enable it by setting the monitor flag when" +
+              " starting PyCOMPSs.")
+        return None
 
 
 # ########################################################################### #

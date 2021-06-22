@@ -297,19 +297,6 @@ public class TaskAnalyser implements GraphHandler {
      */
     public void endTask(AbstractTask aTask) {
         int taskId = aTask.getId();
-
-        // Adding predecessors for task dependency tracing
-        if (Tracer.isActivated()) {
-            for (AbstractTask at : aTask.getSuccessors()) {
-                ArrayList<Integer> predecessors = new ArrayList<>();
-                if (Tracer.taskHasPredecessors(at.getId())) {
-                    predecessors = Tracer.getPredecessors(at.getId());
-                }
-                predecessors.add(taskId);
-                Tracer.setPredecessors(at.getId(), predecessors);
-            }
-        }
-
         long start = System.currentTimeMillis();
         if (aTask instanceof Task) {
             Task task = (Task) aTask;

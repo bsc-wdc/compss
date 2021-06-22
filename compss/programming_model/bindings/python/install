@@ -78,7 +78,7 @@
         echo ${BINDING_PY}
         BINDING_LIB="$( dirname "${BINDING_PY}")"
         echo ${BINDING_LIB}
-        install_name_tool -change ${BINDING_DIR}/bindings-common/lib/libbindings_common.0.dylib ${BINDING_PY}/bindings-common/lib/libbindings_common.dylib ${targetDir}/${python_version}/compss.*.so
+        install_name_tool -change ${BINDING_DIR}/bindings-common/lib/libbindings_common.0.dylib ${BINDING_PY}/bindings-common/lib/libbindings_common.dylib ${targetDir}/${python_version}/compss*.so
       fi
 
       # Clean unnecessary files

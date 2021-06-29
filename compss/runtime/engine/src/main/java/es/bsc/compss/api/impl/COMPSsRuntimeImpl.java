@@ -91,6 +91,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -141,7 +142,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private static RuntimeMonitor runtimeMonitor;
 
     // Application Timer
-    private static Timer timer;
+    private static Timer timer = null;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
@@ -432,8 +433,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor,
                         Long.parseLong(System.getProperty(COMPSsConstants.MONITOR)));
                 }
-                timer = new Timer("Application wall clock limit timer");
-
                 // Log initialization
                 initialized = true;
                 LOGGER.debug("Ready to process tasks");
@@ -2027,6 +2026,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void setWallClockLimit(Long appId, long wcl, boolean stopRT) {
         if (wcl > 0) {
+
+            if (timer == null) {
+                timer = new Timer("Application wall clock limit timer");
+                timer.schedule(new TimerTask() {
+
+                    @Override
+                    public void run() {
+                        if (Tracer.extraeEnabled()) {
+                            Tracer.emitEvent(TraceEvent.WALLCLOCK_THREAD_ID.getId(),
+                                TraceEvent.WALLCLOCK_THREAD_ID.getType());
+                        }
+                    }
+                }, 0);
+            }
+
             LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + "seconds.");
             Application app = Application.registerApplication(appId);
             WallClockTimerTask wcTask = new WallClockTimerTask(app, ap, (stopRT ? this : null));

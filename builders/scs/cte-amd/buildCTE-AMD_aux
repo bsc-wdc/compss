@@ -1,0 +1,62 @@
+#!/bin/bash
+
+  #############################################################
+  # Name: buildCTE-AMD_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in CTE-AMD
+  # Parameters: <targetDir>           Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildCTE-AMD script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildCTE-AMD_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  # DEFINE MODULES
+  modules="bsc/current java/8u291 papi/6.0.0.1 gcc/10.2.0 impi/2018.4 mkl/2018.4 python/3.9.1 boost/1.76.0"
+  unload_before_python="impi/2018.4 boost/1.76.0"
+  # Plain python modules:
+  py2_modules=""
+  py3_modules="python/3.9.1"
+  # Python modules with jupyter:
+  py3_other_modules="python/3.7.4"
+
+  # DEFINE CONFIGURATION PARAMETERS
+  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/BSCTOOLS/deps/libxml/2.9.10/bin/:$PATH"
+
+  additional_module_use_folder="ignore"
+  queues_cfg="cte-amd.cfg"
+  extrae_with_openmpi="true"  # takes impi since openmpi module does not update MPI_ROOT
+  openmpi_version="/4.0.5"
+  extrae_with_impi="false"  # fails with error
+  impi_version="/2018.4"
+  autoparallel="false"  # missing gmp to compile autoparallel
+  c_binding="true"
+
+  # CALL buildSC_aux
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  ev=$?
+
+  # End
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception in auxiliar script"
+    exit $ev
+  fi
+  exit 0

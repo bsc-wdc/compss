@@ -71,10 +71,7 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
         if (httpResponseCode >= 200 && httpResponseCode < 300) {
             LOGGER.debug("Correct HTTP response with response code " + httpResponseCode);
-
-            final String responseBody = response.getResponseBody();
-            job.setReturnValue(responseBody);
-
+            job.setReturnValue(response.getResponseBody());
             jobListener.jobCompleted(job);
         } else {
             LOGGER.debug("Job failing due to wrong HTTP response with response code " + httpResponseCode);

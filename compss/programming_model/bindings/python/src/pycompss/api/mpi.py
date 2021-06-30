@@ -93,7 +93,7 @@ class Mpi(object):
         :param kwargs: Keyword arguments
         """
         self.task_type = "mpi"
-        self.decorator_name = "".join(('@', MPI.__name__.lower()))
+        self.decorator_name = "".join(('@', Mpi.__name__.lower()))
         # super(MPI, self).__init__(decorator_name, *args, **kwargs)
         self.args = args
         self.kwargs = kwargs

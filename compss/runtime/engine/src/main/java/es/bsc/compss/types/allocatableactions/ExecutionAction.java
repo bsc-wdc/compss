@@ -821,7 +821,7 @@ public class ExecutionAction extends AllocatableAction {
         }
     }
 
-    private final void doHttpOutputTransfers(Job<?> job) {
+    private void doHttpOutputTransfers(Job<?> job) {
         TaskMonitor monitor = this.task.getTaskMonitor();
 
         // Search for the return object
@@ -845,23 +845,37 @@ public class ExecutionAction extends AllocatableAction {
                         break;
                 }
 
-                // nm: here
-                // mark that is json
-                // write to the file if type is FILE_T
+                Object value = null;
                 if (dp.getType().equals(DataType.FILE_T)) {
-                    // JSONObject json = new JSONObject(job.getReturnValue());
-                    Gson gson = new Gson();
-                    String json = gson.toJson(job.getReturnValue());
-                    FileWriter file = null;
-                    LOGGER.info(" _____ job return value" + job.getReturnValue());
-                    LOGGER.info(" _____ job return value after json" + json);
                     try {
-                        file = new FileWriter(dp.getDataTarget());
+                        FileWriter file = new FileWriter(dp.getDataTarget());
                         file.write("0004");
-                        file.write(json);
+                        file.write(job.getReturnValue().toString());
                         file.close();
                     } catch (IOException e) {
                         e.printStackTrace();
+                    }
+                } else {
+                    Gson gson = new Gson();
+                    switch (dp.getType()) {
+                        case INT_T:
+                            value = gson.fromJson(job.getReturnValue().toString(), int.class);
+                            break;
+                        case LONG_T:
+                            value = gson.fromJson(job.getReturnValue().toString(), long.class);
+                            break;
+                        case OBJECT_T:
+                            if (dp.getContentType().equals("int")) {
+                                value = gson.fromJson(job.getReturnValue().toString(), int.class);
+                            } else if (dp.getContentType().equals("long")) {
+                                value = gson.fromJson(job.getReturnValue().toString(), long.class);
+                            } else {
+                                value = null;
+                            }
+                            break;
+                        default:
+                            value = null;
+                            break;
                     }
                 }
                 Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
@@ -870,7 +884,9 @@ public class ExecutionAction extends AllocatableAction {
 
                 // Parameter found, store it
                 String name = dId.getRenaming();
-                Object value = job.getReturnValue();
+                if (value == null) {
+                    value = job.getReturnValue();
+                }
                 LogicalData ld = Comm.registerValue(name, value);
 
                 // Monitor one of its locations

@@ -1938,7 +1938,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
             String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
             String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
-            String pyContent = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
+            String contentType = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
             double weight = Double
                 .parseDouble(EnvironmentLoader.loadFromEnvironment((String) parameters[NUM_FIELDS_PER_PARAM * i + 7]));
             boolean keepRename = (Boolean) parameters[NUM_FIELDS_PER_PARAM * i + 8];
@@ -1948,7 +1948,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(" Parameter " + i + " has type " + type.name());
             }
-            addParameter(app, content, type, direction, stream, prefix, name, pyContent, weight, keepRename, pars, 0,
+            addParameter(app, content, type, direction, stream, prefix, name, contentType, weight, keepRename, pars, 0,
                 null);
         }
 

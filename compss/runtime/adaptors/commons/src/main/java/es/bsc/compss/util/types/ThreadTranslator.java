@@ -132,6 +132,9 @@ public class ThreadTranslator {
             case Tracer.TIMER_ID:
                 label = "RUNTIME TIMER";
                 break;
+            case Tracer.WALLCLOCK_ID:
+                label = "RUNTIME WALLCLOCK";
+                break;
             case Tracer.EXECUTOR_ID:
                 label = "EXECUTOR";
                 break;

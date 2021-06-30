@@ -258,10 +258,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, false, computingUnitsGPU, gpuMap,
             computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
 
-        if (NIOTracer.basicModeEnabled()) {
-            NIOTracer.enablePThreads(computingUnitsCPU);
-        }
-
         try {
             this.executionManager.init();
         } catch (InitializationException ie) {

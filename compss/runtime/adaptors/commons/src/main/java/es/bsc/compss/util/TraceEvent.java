@@ -204,6 +204,8 @@ public enum TraceEvent {
     FILE_SYS_THREAD_ID(Tracer.FS_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "File system thread"),
     // Identifies the thread as the Timer
     TIMER_THREAD_ID(Tracer.TIMER_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Timer thread"),
+    // Identifies the thread as the Timer
+    WALLCLOCK_THREAD_ID(Tracer.WALLCLOCK_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "WallClock thread"),
 
     // Thread identifier events
     EXECUTOR_COUNTS(1, Tracer.EXECUTOR_COUNTS, "Executor counts"), // Executor start

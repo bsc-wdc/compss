@@ -38,7 +38,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -171,7 +170,8 @@ public abstract class Tracer {
     public static final int TD_ID = 3;
     public static final int FS_ID = 4;
     public static final int TIMER_ID = 5;
-    public static final int EXECUTOR_ID = 6; // executor must be bigger than any runtime id
+    public static final int WALLCLOCK_ID = 6;
+    public static final int EXECUTOR_ID = 7; // executor must be bigger than any runtime id
     public static final String appThread = "1:1:1";
     public static final String APThread = "1:1:2";
     public static final String TDThread = "1:1:3";

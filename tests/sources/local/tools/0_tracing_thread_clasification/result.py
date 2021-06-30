@@ -148,6 +148,8 @@ def checkThreadTranslations(threads, thIdentifiers, rowFile):
                 if identifierEvent == "5":
                     expectedTag = "RUNTIME TIMER"
                 if identifierEvent == "6":
+                    expectedTag = "RUNTIME WALLCLOCK"
+                if identifierEvent == "7":
                     expectedTag = "EXECUTOR"
             if expectedTag == "":
                 raise Exception("Unknown thread in .row file")

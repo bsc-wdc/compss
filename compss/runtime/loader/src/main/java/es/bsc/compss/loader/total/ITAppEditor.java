@@ -758,7 +758,9 @@ public class ITAppEditor extends ExprEditor {
                     .append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",").append("\"")
                     .append("\"");
                 // Add empty parameter content
-                infoToAppend.append(',').append("\"").append("\"");
+                // infoToAppend.append(',').append("\"").append("\"");
+                infoToAppend.append(',').append("\"").append(retType.toString()).append("\"");
+
                 // Add default parameter weight
                 infoToAppend.append(',').append("\"").append("1.0").append("\"");
                 // Add default parameter keep rename

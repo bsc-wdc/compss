@@ -67,17 +67,10 @@ def start_cache(logger, cache_config, cache_profiler, log_dir):
              cache ids dictionary
     """
     cache_size = __get_cache_size__(cache_config)
-    # Cache can be used
-    # Create a proxy dictionary to share the information across workers
-    # within the same node
-    manager = new_manager()
-    # Proxy dictionary
-    cache_ids = manager.dict()  # type: typing.Any
-    # TODO: UNSUPPORTED WITH MYPY - typeshed issue, maybe for 3.9 -> PEP 591
-    # TypeError: dict object expected; got multiprocessing.managers.DictProxy
+    # Cache can be used - Create proxy dict
+    cache_ids = __create_proxy_dict__()  # type: typing.Any
     profiler_dict = {}
     profiler_get_struct = [[], [], []]  # Filename, Parameter, Function
-    # Start a new process to manage the cache contents.
     smm = __start_smm__()
     conf = CacheTrackerConf(logger, cache_size, "default", cache_ids,
                             profiler_dict, profiler_get_struct, log_dir,
@@ -158,3 +151,21 @@ def __destroy_cache_tracker_process__(cache_process, cache_queue):
     cache_process.join()       # noqa
     cache_queue.close()        # noqa
     cache_queue.join_thread()  # noqa
+
+
+def __create_proxy_dict__():
+    # type: () -> typing.Any
+    """ Create a proxy dictionary to share the information across workers
+    within the same node.
+
+    WARNING: This code is in a separate function without typing
+             to avoid mypy issue with the DictProxy (typeshed issue) in
+             execution time:
+             TypeError: dict object expected; got multiprocessing.managers.DictProxy
+
+    :return: Proxy dictionary
+    """
+    manager = new_manager()
+    cache_ids = manager.dict()  # type: typing.Any
+    return cache_ids
+

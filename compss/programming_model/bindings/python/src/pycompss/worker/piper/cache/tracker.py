@@ -302,15 +302,19 @@ def retrieve_object_from_cache(logger, cache_ids, identifier, parameter_name, us
         obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
         output = None        # type: typing.Any
         existing_shm = None  # type: typing.Any
+        object_size = 0
         if shared_type == SHARED_MEMORY_TAG:
             existing_shm = SharedMemory(name=obj_id)
             output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)    # noqa: E501
+            object_size = len(existing_shm.buf)
         elif shared_type == SHAREABLE_LIST_TAG:
             existing_shm = ShareableList(name=obj_id)
             output = list(existing_shm)
+            object_size = len(existing_shm.shm.buf)
         elif shared_type == SHAREABLE_TUPLE_TAG:
             existing_shm = ShareableList(name=obj_id)
             output = tuple(existing_shm)
+            object_size = len(existing_shm.shm.buf)
         # Currently unsupported since conversion requires lists of lists.
         # elif shared_type == SHAREABLE_DICT_TAG:
         #     existing_shm = ShareableList(name=obj_id)
@@ -319,7 +323,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier, parameter_name, us
             raise PyCOMPSsException("Unknown cacheable type.")
         if __debug__:
             logger.debug(HEADER + "Retrieved: " + str(identifier))
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, len(existing_shm.buf))
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, object_size)
 
         # Profiling
         filename = filename_cleaned(identifier)
@@ -458,7 +462,7 @@ def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_
 
 
 def in_cache(f_name, cache):
-    # type: (str, dict) -> bool
+    # type: (str, typing.Any) -> bool
     """ Checks if the given file name is in the cache
 
     :param f_name: Absolute file name.

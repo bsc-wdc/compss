@@ -186,7 +186,7 @@ class ExecutorConf(object):
                  stream_backend,       # type: str
                  stream_master_ip,     # type: str
                  stream_master_port,   # type: str
-                 cache_ids=None,       # type: dict
+                 cache_ids=None,       # type: typing.Any
                  cache_queue=None,     # type: Queue
                  cache_profiler=False  # type: bool
                  ):  # type: (...) -> None

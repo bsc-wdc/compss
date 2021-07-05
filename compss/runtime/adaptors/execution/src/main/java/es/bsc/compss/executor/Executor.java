@@ -1157,9 +1157,11 @@ public class Executor implements Runnable, InvocationRunner {
      */
     private void emitingTaskStartEvents() {
         // Emitting RECIEVE communication for task dependency
+        //LOGGER.info("Executor thread id start " + context.getHostName());
         if (Tracer.isActivated()) {
             if (invocation.getPredecessors() != null) {
                 for (Integer i : invocation.getPredecessors()) {
+                    //LOGGER.info("ID start " + i);
                     Tracer.emitCommEvent(false, 123, 1, i, 0);
                 }
             }
@@ -1190,8 +1192,10 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void emitTaskEndEvents() {
         // Emitting SEND communication for task dependency
+        //LOGGER.info("Executor thread id end " + context.getHostName());
         if (Tracer.isActivated()) {
             for (int i = 0; i < this.invocation.getNumSuccessors(); i++) {
+                //LOGGER.info("ID end " + invocation.getTaskId());
                 Tracer.emitCommEvent(true, 123, 1, invocation.getTaskId(), 0);
             }
         }

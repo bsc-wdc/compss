@@ -51,7 +51,7 @@ public class BindToMap implements ThreadBinder {
      * "1-3,6,7,8/1,3,4,5"
      *
      * @param numThreads number of threads to be managed by the Binders
-     * @param socketString Description of the avialablesocket
+     * @param socketString Description of the available socket
      */
     public BindToMap(int numThreads, String socketString) {
         ArrayList<ArrayList<Integer>> computingUnitsIds = new ArrayList<>();
@@ -251,6 +251,7 @@ public class BindToMap implements ThreadBinder {
             if (preferredAllocation != null && preferredAllocation.length == numCUs) {
                 if (isAllocationAvailable(preferredAllocation)) {
                     assignAllocation(preferredAllocation, jobId);
+                    updateSocketPriority();
                     return preferredAllocation;
                 }
             }

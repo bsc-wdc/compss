@@ -260,8 +260,8 @@ class Task(PyCOMPSsDecorator):
                 result = worker.call(*args, **kwargs)
                 del worker
                 if context.is_nesting_enabled():
-                    from pycompss.runtime.binding import barrier
-                    barrier(no_more_tasks=True)
+                    from pycompss.runtime.binding import nested_barrier
+                    nested_barrier()
                 return result
             else:
                 if context.is_nesting_enabled():

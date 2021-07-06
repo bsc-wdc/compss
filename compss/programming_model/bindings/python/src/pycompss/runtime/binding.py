@@ -318,6 +318,33 @@ def barrier(no_more_tasks=False):
     COMPSs.barrier(app_id, no_more_tasks)
 
 
+@emit_event(BARRIER_EVENT, master=True)
+def nested_barrier():
+    # type: () -> None
+    """ Wait for all submitted tasks within nested task.
+
+    Calls the external python library (that calls the bindings-common)
+    in order to request a barrier.
+
+    CAUTION:
+    When using agents (nesting), we can not remove all object tracker objects
+    as with normal barrier (and no_more_tasks==True), nor leave all objects
+    with (no_more_tasks==False). In this case, it is necessary to perform a
+    smart object tracker cleanup (remove in, but not inout nor out).
+
+    :return: None
+    """
+    if __debug__:
+        logger.debug("Nested Barrier.")
+    _clean_objects()
+
+    # Call the Runtime barrier (appId 0 -- not needed for the signature, and
+    # no_more_tasks == True)
+    # COMPSs.barrier(0, True)  # TODO: MAKES THE RUNTIME BLOCK FOR UNEXPECTED REASON
+    import time
+    time.sleep(4)
+
+
 @emit_event(BARRIER_GROUP_EVENT, master=True)
 def barrier_group(group_name):
     # type: (str) -> str

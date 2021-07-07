@@ -491,8 +491,9 @@ def process_task(current_line,              # type: list
         storage_logger.addHandler(err_file_handler)
 
     if __debug__:
+        logger.debug("-" * 100)
         logger.debug("Received task in process: %s" % str(process_name))
-        logger.debug(" - TASK CMD: %s" % str(current_line))
+        logger.debug("TASK CMD: %s" % str(current_line))
 
     try:
         # Check thread affinity
@@ -601,6 +602,7 @@ def process_task(current_line,              # type: list
     # Restore loggers
     if __debug__:
         logger.debug("Restoring loggers.")
+        logger.debug("-" * 100)
     logger.removeHandler(out_file_handler)
     logger.removeHandler(err_file_handler)
     for handler in logger_handlers:

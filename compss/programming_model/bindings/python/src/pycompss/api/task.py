@@ -42,7 +42,6 @@ from pycompss.util.tracing.helpers import event
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
 # Determine if strings should have a sharp symbol prepended or not
@@ -213,10 +212,16 @@ class Task(PyCOMPSsDecorator):
         :param user_function: Function to decorate.
         :return: The function to be executed.
         """
+        global logger
         self.user_function = user_function
 
         @wraps(user_function)
         def task_decorator(*args, **kwargs):
+            # global logger
+            # if "compss_logger" in kwargs.keys():
+            #     # if invoked from a worker, then take the provided
+            #     # Otherwise, continue with default logger
+            #     logger = kwargs["compss_logger"]
             return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator

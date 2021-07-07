@@ -283,8 +283,7 @@ def task_execution(logger,              # type: ...
         # WARNING: the following call will not work if a user decorator
         # overrides the return of the task decorator.
         # new_types, new_values = getattr(module, method_name)
-        #                        (*values, compss_types=types,
-        #                         logger=logger, **compss_kwargs)
+        #                        (*values, compss_types=types, **compss_kwargs)
         # If the @task is decorated with a user decorator, may include more
         # return values, and consequently, the new_types and new_values will
         # be within a tuple at position 0.
@@ -508,7 +507,7 @@ def execute_task(process_name,              # type: str
     :return: exit_code, new_types, new_values, timed_out and except_msg
     """
     if __debug__:
-        logger.debug("Begin task execution in %s" % process_name)
+        logger.debug("BEGIN TASK execution in %s" % process_name)
 
     persistent_storage = False
     if storage_conf != 'null':
@@ -552,22 +551,26 @@ def execute_task(process_name,              # type: str
     }
 
     if __debug__:
-        logger.debug("Storage conf: %s" % str(storage_conf))
+        logger.debug("COMPSs parameters:")
+        logger.debug("\t- Storage conf: %s" % str(storage_conf))
         if log_files:
-            logger.debug("Log out file: %s" % str(log_files[0]))
-            logger.debug("Log err file: %s" % str(log_files[1]))
+            logger.debug("\t- Log out file: %s" % str(log_files[0]))
+            logger.debug("\t- Log err file: %s" % str(log_files[1]))
         else:
-            logger.debug("Log out and err not redirected")
-        logger.debug("Params: %s" % str(params))
-        logger.debug("Path: %s" % str(path))
-        logger.debug("Method name: %s" % str(method_name))
-        logger.debug("Num slaves: %s" % str(num_slaves))
-        logger.debug("Slaves: %s" % str(slaves))
-        logger.debug("Cus: %s" % str(cus))
-        logger.debug("Has target: %s" % str(has_target))
-        logger.debug("Num Params: %s" % str(num_params))
-        logger.debug("Return Length: %s" % str(return_length))
-        logger.debug("Args: %r" % args)
+            logger.debug("\t- Log out and err not redirected")
+        logger.debug("\t- Params: %s" % str(params))
+        logger.debug("\t- Path: %s" % str(path))
+        logger.debug("\t- Method name: %s" % str(method_name))
+        logger.debug("\t- Num slaves: %s" % str(num_slaves))
+        logger.debug("\t- Slaves: %s" % str(slaves))
+        logger.debug("\t- Cus: %s" % str(cus))
+        logger.debug("\t- Has target: %s" % str(has_target))
+        logger.debug("\t- Num Params: %s" % str(num_params))
+        logger.debug("\t- Return Length: %s" % str(return_length))
+        logger.debug("\t- Args: %r" % args)
+        logger.debug("\t- COMPSs kwargs:")
+        for k, v in compss_kwargs.items():
+            logger.debug("\t\t- %s: %s" % (str(k), str(v)))
 
     # Get all parameter values
     if __debug__:
@@ -591,17 +594,21 @@ def execute_task(process_name,              # type: str
         #     logger.debug("\t\t %s" % str(t))
 
     import_error = False
+    if __debug__:
+        logger.debug("LOAD TASK:")
     try:
         # Try to import the module (for functions)
         if __debug__:
-            logger.debug("Trying to import the user module: %s" % path)
+            logger.debug("\t- Trying to import the user module: %s" % path)
         module = import_user_module(path, logger)
     except ImportError:
         if __debug__:
-            msg = "Could not import the module. Reason: Method in class."
+            msg = "\t- Could not import the module. Reason: Method in class."
             logger.debug(msg)
         import_error = True
 
+    if __debug__:
+        logger.debug("EXECUTE TASK:")
     if not import_error:
         # Module method declared as task
         result = task_execution(logger,
@@ -622,6 +629,8 @@ def execute_task(process_name,              # type: str
         except_msg = result[5]
 
         if exit_code != 0:
+            if __debug__:
+                logger.debug("EXECUTE TASK FAILED: Exit code: %s" % str(exit_code))
             return exit_code, new_types, new_values, timed_out, except_msg
     else:
         # Method declared as task in class
@@ -670,7 +679,7 @@ def execute_task(process_name,              # type: str
                 if self_elem.content is None:
                     file_name = self_elem.file_name.original_path
                     if __debug__:
-                        logger.debug("Deserialize self from file.")
+                        logger.debug("\t- Deserialize self from file.")
                     try:
                         obj = deserialize_from_file(file_name)
                     except Exception:  # noqa
@@ -682,7 +691,7 @@ def execute_task(process_name,              # type: str
                         logger.exception(''.join(line for line in lines))
                         return 1, [], [], False, None
                     if __debug__:
-                        logger.debug('Deserialized self object is: %s' %
+                        logger.debug("Deserialized self object is: %s" %
                                      self_elem.content)
                         logger.debug("Processing callee, a hidden object of %s in file %s" %  # noqa: E501
                                      (file_name, type(self_elem.content)))
@@ -772,6 +781,6 @@ def execute_task(process_name,              # type: str
 
     # EVERYTHING OK
     if __debug__:
-        logger.debug("End task execution. Status: Ok")
+        logger.debug("END TASK execution. Status: Ok")
 
     return exit_code, new_types, new_values, timed_out, except_msg

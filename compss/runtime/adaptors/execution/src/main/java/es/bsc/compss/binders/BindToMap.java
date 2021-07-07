@@ -251,7 +251,7 @@ public class BindToMap implements ThreadBinder {
             if (previousAllocation != null && previousAllocation.length == numCUs) {
                 if (isAllocationAvailable(previousAllocation)) {
                     assignAllocation(previousAllocation, jobId);
-		    updateSocketPriority();
+                    updateSocketPriority();
                     return previousAllocation;
                 }
             }

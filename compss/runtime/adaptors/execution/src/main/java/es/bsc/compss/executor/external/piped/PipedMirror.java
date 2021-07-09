@@ -202,6 +202,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         this.pipeBuilderPipe = new ControlPipePair(basePipePath, "control", this);
         cmd.append(this.pipeBuilderPipe.getOutboundPipe()).append(TOKEN_SEP);
         cmd.append(this.pipeBuilderPipe.getInboundPipe()).append(TOKEN_SEP);
+        cmd.append(context.getLogDir()).append(TOKEN_SEP);
 
         // Executor Pipes
         StringBuilder writePipes = new StringBuilder();
@@ -246,7 +247,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         this.pipeWorkerPipe = new ControlPipePair(this.basePipePath, "control_worker", this);
 
         String cmd = getLaunchWorkerCommand(context, this.pipeWorkerPipe);
-        StartWorkerPipeCommand swpc = new StartWorkerPipeCommand(cmd, this.pipeWorkerPipe);
+        StartWorkerPipeCommand swpc = new StartWorkerPipeCommand(cmd, this.pipeWorkerPipe, context.getLogDir());
         if (this.pipeBuilderPipe.sendCommand(swpc)) {
             WorkerStartedPipeCommand startedCMD = new WorkerStartedPipeCommand();
             try {

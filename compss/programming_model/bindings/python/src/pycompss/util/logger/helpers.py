@@ -117,6 +117,36 @@ def init_logging_worker(log_config_file, tracing):
         logging.basicConfig(level=logging.INFO)  # NOSONAR
 
 
+def init_logging_worker_piper(log_config_file, log_dir):
+    # type: (str, str) -> None
+    """ Worker logging initialization.
+
+    :param log_config_file: Log file name.
+    :param log_dir: Log directory.
+    :return: None
+    """
+    if os.path.exists(log_config_file):
+        f = open(log_config_file, 'rt')
+        conf = json.loads(f.read())
+        f.close()
+        handler = "error_worker_file_handler"
+        if handler in conf["handlers"]:
+            errors_file = conf["handlers"][handler].get("filename")
+            conf["handlers"][handler]["filename"] = os.path.join(log_dir, errors_file)
+        handler = "info_worker_file_handler"
+        if handler in conf["handlers"]:
+            info_file = conf["handlers"][handler].get("filename")
+            conf["handlers"][handler]["filename"] = os.path.join(log_dir, info_file)
+        handler = "debug_worker_file_handler"
+        if handler in conf["handlers"]:
+            debug_file = conf["handlers"][handler].get("filename")
+            conf["handlers"][handler]["filename"] = os.path.join(log_dir, debug_file)
+
+        CONFIG_FUNC(conf)
+    else:
+        logging.basicConfig(level=logging.INFO)  # NOSONAR
+
+
 @contextmanager
 def swap_logger_name(logger, new_name):
     # type: (typing.Any, str) -> Typing.Any

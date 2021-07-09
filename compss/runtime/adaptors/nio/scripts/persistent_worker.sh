@@ -57,8 +57,8 @@
 
   # Prepare binding log files
   # TODO: avoid to create always these log files. Create and transfer only when needed.
-  touch "$workingDir"/log/binding_worker.out
-  touch "$workingDir"/log/binding_worker.err
+  touch "$workingDir"/binding_worker.out
+  touch "$workingDir"/binding_worker.err
 
   # shellcheck disable=SC2086
   export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}

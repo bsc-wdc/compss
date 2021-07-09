@@ -320,6 +320,11 @@ public class GATWorker implements InvocationContext {
     }
 
     @Override
+    public String getLogDir() {
+        return this.workingDir;
+    }
+
+    @Override
     public PrintStream getThreadOutStream() {
         return System.out;
     }

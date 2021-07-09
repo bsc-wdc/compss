@@ -123,28 +123,25 @@ class Parameter(object):
     def __repr__(self):
         # type: () -> str
         return 'Parameter(name=%s\n' \
-               '          content=%s\n' \
                '          type=%s, direction=%s, stream=%s, prefix=%s\n' \
+               '          extra_content_type=%s\n' \
                '          file_name=%s\n' \
                '          is_future=%s\n' \
                '          is_file_collection=%s, depth=%s\n' \
-               '          extra_content_type=%s\n' \
                '          weight=%s\n' \
                '          keep_rename=%s\n' \
-               '          cache=%s)' % (str(self.name),
-                                        str(self.content),
-                                        str(self.content_type),
-                                        str(self.direction),
-                                        str(self.stream),
-                                        str(self.prefix),
-                                        str(self.file_name),
-                                        str(self.is_future),
-                                        str(self.is_file_collection),
-                                        str(self.depth),
-                                        str(self.extra_content_type),
-                                        str(self.weight),
-                                        str(self.keep_rename),
-                                        str(self.cache))
+               '          cache=%s\n' \
+               '          content=%s)' % \
+               (str(self.name),
+                str(self.content_type), str(self.direction), str(self.stream), str(self.prefix),  # noqa: E501
+                str(self.extra_content_type),
+                str(self.file_name),
+                str(self.is_future),
+                str(self.is_file_collection), str(self.depth),
+                str(self.weight),
+                str(self.keep_rename),
+                str(self.cache),
+                str(self.content))
 
     def is_object(self):
         # type: () -> bool
@@ -193,6 +190,17 @@ class COMPSsFile(object):
             self.keep_source = None
             self.is_write_final = None
             self.original_path = file_name
+
+    def __repr__(self):
+        # type: () -> str
+        return "Source: %s, Destination: %s, " \
+               "Keep source: %s, Is write final: %s, " \
+               "Original path: %s" % \
+               (self.source_path,
+                self.destination_name,
+                self.keep_source,
+                self.is_write_final,
+                self.original_path)
 
 
 # Parameter conversion dictionary.

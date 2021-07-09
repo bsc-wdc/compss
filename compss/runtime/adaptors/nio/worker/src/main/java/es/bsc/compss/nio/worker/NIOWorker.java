@@ -873,6 +873,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
+    public String getLogDir() {
+        return this.workingDir;
+    }
+
+    @Override
     public boolean isPersistentCEnabled() {
         return this.persistentC;
     }

@@ -60,6 +60,13 @@ public interface InvocationContext {
     public String getWorkingDir();
 
     /**
+     * Returns the log directory in the current node.
+     * 
+     * @return The log directory in the current node.
+     */
+    public String getLogDir();
+
+    /**
      * Returns the application directory.
      * 
      * @return The application directory.

@@ -261,8 +261,8 @@ def evaluate_worker(worker, name, pipes, files, current_path,
         if os.path.isfile(pipe):
             os.remove(pipe)
     # Check logs
-    out_log = "log/binding_worker.out"
-    err_log = "log/binding_worker.err"
+    out_log = "binding_worker.out"
+    err_log = "binding_worker.err"
     if os.path.exists(err_log):
         raise PyCOMPSsException(ERROR_MESSAGE + err_log)
     with open(out_log, "r") as f:

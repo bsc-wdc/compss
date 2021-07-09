@@ -131,8 +131,7 @@ def compss_persistent_worker(config):
     persistent_storage = (config.storage_conf != 'null')
 
     logger, _ = load_loggers(config.debug,
-                             persistent_storage,
-                             config.tracing)
+                             persistent_storage)
 
     if __debug__:
         logger.debug(HEADER + "mpi_piper_worker.py rank: " + str(RANK) +
@@ -243,8 +242,7 @@ def compss_persistent_executor(config):
     persistent_storage = (config.storage_conf != 'null')
 
     logger, storage_loggers = load_loggers(config.debug,
-                                           persistent_storage,
-                                           config.tracing)
+                                           persistent_storage)
 
     if persistent_storage:
         # Initialize storage

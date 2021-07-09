@@ -40,6 +40,7 @@ public class FakeInvocationContext implements InvocationContext {
     private final String appDir;
     private final String installDir;
     private final String workingDir;
+    private final String logDir;
     private final PrintStream out;
     private final PrintStream err;
     private final InvocationContextListener listener;
@@ -50,18 +51,20 @@ public class FakeInvocationContext implements InvocationContext {
         appDir = "";
         installDir = "";
         workingDir = "";
+        logDir = "";
         out = System.out;
         err = System.err;
         listener = null;
     }
 
-    private FakeInvocationContext(String hostName, String appDir, String installDir, String wDir, PrintStream out,
-        PrintStream err, InvocationContextListener listener) {
+    private FakeInvocationContext(String hostName, String appDir, String installDir, String wDir, String lDir,
+        PrintStream out, PrintStream err, InvocationContextListener listener) {
 
         this.hostName = hostName;
         this.appDir = appDir;
         this.installDir = installDir;
         this.workingDir = wDir;
+        this.logDir = lDir;
         this.out = out;
         this.err = err;
         this.listener = listener;
@@ -85,6 +88,11 @@ public class FakeInvocationContext implements InvocationContext {
     @Override
     public String getWorkingDir() {
         return this.workingDir;
+    }
+
+    @Override
+    public String getLogDir() {
+        return this.logDir;
     }
 
     @Override
@@ -279,7 +287,7 @@ public class FakeInvocationContext implements InvocationContext {
 
         public Builder setListener(InvocationContextListener listener) {
             return new Builder(new FakeInvocationContext(context.hostName, context.appDir, context.installDir,
-                context.workingDir, context.out, context.err, listener));
+                context.workingDir, context.logDir, context.out, context.err, listener));
         }
 
         public FakeInvocationContext build() {

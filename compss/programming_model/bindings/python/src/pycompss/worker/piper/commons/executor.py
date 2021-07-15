@@ -156,11 +156,13 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    __slots__ = ['tracing', 'storage_conf', 'logger', 'storage_loggers',
+    __slots__ = ['tracing', 'storage_conf', 'logger', 'logger_cfg',
+                 'storage_loggers',
                  'stream_backend', 'stream_master_ip', 'stream_master_port',
                  'cache_ids', 'cache_queue']
 
-    def __init__(self, tracing, storage_conf, logger, storage_loggers,
+    def __init__(self, tracing, storage_conf, logger, logger_cfg,
+                 storage_loggers,
                  stream_backend, stream_master_ip, stream_master_port,
                  cache_ids=None, cache_queue=None):
         """
@@ -169,6 +171,7 @@ class ExecutorConf(object):
         :param tracing: Enable tracing for the executor.
         :param storage_conf: Storage configuration file.
         :param logger: Main logger.
+        :param logger_cfg: Logger configuration file.
         :param storage_loggers: List of supported storage loggers
                                 (empty if running w/o storage).
         :param stream_backend: Streaming backend type.
@@ -181,6 +184,7 @@ class ExecutorConf(object):
         self.tracing = tracing
         self.storage_conf = storage_conf
         self.logger = logger
+        self.logger_cfg = logger_cfg
         self.storage_loggers = storage_loggers
         self.stream_backend = stream_backend
         self.stream_master_ip = stream_master_ip
@@ -285,6 +289,7 @@ def executor(queue, process_name, pipe, conf):
                                         queue,
                                         tracing,
                                         logger,
+                                        conf.logger_cfg,
                                         logger_handlers,
                                         logger_level,
                                         logger_formatter,
@@ -329,6 +334,7 @@ def process_message(current_line,              # type: str
                     queue,                     # type: ...
                     tracing,                   # type: bool
                     logger,                    # type: ...
+                    logger_cfg,                # type: str
                     logger_handlers,           # type: list
                     logger_level,              # type: int
                     logger_formatter,          # type: ...
@@ -347,6 +353,7 @@ def process_message(current_line,              # type: str
     :param queue: Queue where to drop the process exceptions
     :param tracing: Tracing
     :param logger: Logger
+    :param logger_cfg: Logger configuration file
     :param logger_handlers: Logger handlers
     :param logger_level: Logger level
     :param logger_formatter: Logger formatter
@@ -370,6 +377,7 @@ def process_message(current_line,              # type: str
                             queue,
                             tracing,
                             logger,
+                            logger_cfg,
                             logger_handlers,
                             logger_level,
                             logger_formatter,
@@ -398,6 +406,7 @@ def process_task(current_line,              # type: list
                  queue,                     # type: ...
                  tracing,                   # type: bool
                  logger,                    # type: ...
+                 logger_cfg,                # type: str
                  logger_handlers,           # type: list
                  logger_level,              # type: int
                  logger_formatter,          # type: ...
@@ -416,6 +425,7 @@ def process_task(current_line,              # type: list
     :param queue: Queue where to drop the process exceptions.
     :param tracing: Tracing.
     :param logger: Logger.
+    :param logger_cfg: Logger configuration file
     :param logger_handlers: Logger handlers.
     :param logger_level: Logger level.
     :param logger_formatter: Logger formatter.
@@ -525,6 +535,7 @@ def process_task(current_line,              # type: list
                               current_line[9:],
                               tracing,
                               logger,
+                              logger_cfg,
                               (job_out, job_err),
                               False,
                               None,

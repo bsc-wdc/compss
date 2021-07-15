@@ -104,7 +104,7 @@ class TaskWorker(TaskCommons):
         global logger
         # Grab logger from kwargs (shadows outer logger since it is set by
         # the worker).
-        logger = kwargs['logger']  # noqa
+        logger = kwargs['compss_logger']  # noqa
         with swap_logger_name(logger, __name__):
             if __debug__:
                 logger.debug("Starting @task decorator worker call")

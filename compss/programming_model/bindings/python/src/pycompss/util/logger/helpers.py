@@ -26,12 +26,16 @@ PyCOMPSs Util - logs
 import os
 import logging
 import json
+import typing
 from contextlib import contextmanager
 from logging import config
 from pycompss.util.exceptions import PyCOMPSsException
 
 
 CONFIG_FUNC = config.dictConfig
+# Placeholder for the logger of a task executed as worker, but eventually
+# saved for the nested tasks invoked:
+SAVED_LOGGER = None
 
 
 def get_logging_cfg_file(log_level):
@@ -141,7 +145,33 @@ def init_logging_worker_piper(log_config_file, log_dir):
         if handler in conf["handlers"]:
             debug_file = conf["handlers"][handler].get("filename")
             conf["handlers"][handler]["filename"] = os.path.join(log_dir, debug_file)
+        CONFIG_FUNC(conf)
+    else:
+        logging.basicConfig(level=logging.INFO)  # NOSONAR
 
+
+def update_logger_handlers(log_config_file, job_out, job_err):
+    # type: (str, str, str) -> None
+    """ Worker logging update.
+
+    :param log_config_file: Log file name.
+    :param job_out: out file path.
+    :param job_err: err file path.
+    :return: None
+    """
+    if os.path.exists(log_config_file):
+        f = open(log_config_file, 'rt')
+        conf = json.loads(f.read())
+        f.close()
+        handler = "error_worker_file_handler"
+        if handler in conf["handlers"]:
+            conf["handlers"][handler]["filename"] = job_err
+        handler = "info_worker_file_handler"
+        if handler in conf["handlers"]:
+            conf["handlers"][handler]["filename"] = job_out
+        handler = "debug_worker_file_handler"
+        if handler in conf["handlers"]:
+            conf["handlers"][handler]["filename"] = job_out
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR
@@ -149,7 +179,7 @@ def init_logging_worker_piper(log_config_file, log_dir):
 
 @contextmanager
 def swap_logger_name(logger, new_name):
-    # type: (typing.Any, str) -> Typing.Any
+    # type: (typing.Any, str) -> None
     """ Swaps the current logger with the new one
 
     :param logger: Logger facility.
@@ -160,3 +190,50 @@ def swap_logger_name(logger, new_name):
     logger.name = new_name
     yield  # here the code runs
     logger.name = previous_name
+
+
+@contextmanager
+def keep_logger():
+    # type: () -> None
+    """ Do nothing with the logger.
+    It is used when the swap_logger_name does not need to be applied.
+
+    :return: None
+    """
+    yield  # here the code runs
+
+
+def save_logger(logger):
+    # type: (typing.Any) -> None
+    """ Save the given logger in a global variable.
+    It is used to save the logger from a worker task in a global state, so that
+    the nested tasks can take it and use to log the master messages in the
+    job out and err files.
+
+    :param logger: Logger to save in a global variable.
+    :return: None
+    """
+    global SAVED_LOGGER
+    SAVED_LOGGER = logger
+
+
+def clean_saved_logger():
+    # type: () -> None
+    """ Removes any existing saved logger.
+
+    :return: None
+    """
+    global SAVED_LOGGER
+    SAVED_LOGGER = None
+
+
+def get_saved_logger():
+    # type: () -> typing.Any
+    """ Saved logger getter
+
+    :return: The previously saved logger.
+    """
+    if SAVED_LOGGER:
+        return SAVED_LOGGER
+    else:
+        raise PyCOMPSsException("Trying to get a NON existing saved logger.")

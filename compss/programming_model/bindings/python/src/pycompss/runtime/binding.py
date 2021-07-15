@@ -45,6 +45,8 @@ from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.commons import LIST_TYPE
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.logger.helpers import keep_logger
+from pycompss.util.logger.helpers import swap_logger_name
 import pycompss.util.context as context
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
@@ -501,8 +503,8 @@ def set_wall_clock(wall_clock_limit):
 
 
 @emit_event(REGISTER_CORE_ELEMENT_EVENT, master=True)
-def register_ce(core_element):
-    # type: (CE) -> None
+def register_ce(logger, core_element):  # noqa
+    # type: (typing.Any, CE) -> None
     """ Register a core element.
 
     Calls the external python library (that calls the bindings-common)
@@ -585,48 +587,50 @@ def register_ce(core_element):
     impl_io: <String> IO Implementation
     impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa: E501
 
+    :param logger: Logging facility to use.
     :param core_element: <CE> Core Element to register.
     :return: None
     """
-    # Retrieve Core element fields
-    ce_signature = core_element.get_ce_signature()
-    impl_signature = core_element.get_impl_signature()
-    impl_constraints = core_element.get_impl_constraints()
-    impl_type = core_element.get_impl_type()
-    impl_io = str(core_element.get_impl_io())
-    impl_type_args = core_element.get_impl_type_args()
+    with swap_logger_name(logger, __name__):
+        # Retrieve Core element fields
+        ce_signature = core_element.get_ce_signature()
+        impl_signature = core_element.get_impl_signature()
+        impl_constraints = core_element.get_impl_constraints()
+        impl_type = core_element.get_impl_type()
+        impl_io = str(core_element.get_impl_io())
+        impl_type_args = core_element.get_impl_type_args()
 
-    if __debug__:
-        logger.debug("Registering CE with signature: %s" % ce_signature)
-        logger.debug("\t - Implementation signature: %s" % impl_signature)
+        if __debug__:
+            logger.debug("Registering CE with signature: %s" % ce_signature)
+            logger.debug("\t - Implementation signature: %s" % impl_signature)
 
-    # Build constraints string from constraints dictionary
-    impl_constraints_lst = []
-    for key, value in impl_constraints.items():
-        val = value
-        if isinstance(value, list):
-            val = str(value).replace('\'', '')
-        kv_constraint = "".join((key, ':', str(val), ';'))
-        impl_constraints_lst.append(kv_constraint)
-    impl_constraints_str = "".join(impl_constraints_lst)
+        # Build constraints string from constraints dictionary
+        impl_constraints_lst = []
+        for key, value in impl_constraints.items():
+            val = value
+            if isinstance(value, list):
+                val = str(value).replace('\'', '')
+            kv_constraint = "".join((key, ':', str(val), ';'))
+            impl_constraints_lst.append(kv_constraint)
+        impl_constraints_str = "".join(impl_constraints_lst)
 
-    if __debug__:
-        logger.debug("\t - Implementation constraints: %s" %
-                     impl_constraints_str)
-        logger.debug("\t - Implementation type: %s" %
-                     impl_type)
-        logger.debug("\t - Implementation type arguments: %s" %
-                     ' '.join(impl_type_args))
+        if __debug__:
+            logger.debug("\t - Implementation constraints: %s" %
+                         impl_constraints_str)
+            logger.debug("\t - Implementation type: %s" %
+                         impl_type)
+            logger.debug("\t - Implementation type arguments: %s" %
+                         ' '.join(impl_type_args))
 
-    # Call runtime with the appropriate parameters
-    COMPSs.register_core_element(ce_signature,
-                                 impl_signature,
-                                 impl_constraints_str,
-                                 impl_type,
-                                 impl_io,
-                                 impl_type_args)
-    if __debug__:
-        logger.debug("CE with signature %s registered." % ce_signature)
+        # Call runtime with the appropriate parameters
+        COMPSs.register_core_element(ce_signature,
+                                     impl_signature,
+                                     impl_constraints_str,
+                                     impl_type,
+                                     impl_io,
+                                     impl_type_args)
+        if __debug__:
+            logger.debug("CE with signature %s registered." % ce_signature)
 
 
 @emit_event(WAIT_ON_EVENT, master=True)
@@ -700,99 +704,99 @@ def process_task(signature,             # type: str
     :param time_out: Time for a task time out
     :return: The future object related to the task return
     """
+    with swap_logger_name(logger, __name__) if context.is_nesting_enabled() else keep_logger():  # noqa: E501
+        app_id = 0
+        if __debug__:
+            # Log the task submission values for debugging purposes.
+            values_str = ' '.join(str(v) for v in values)
+            types_str = ' '.join(str(t) for t in compss_types)
+            direct_str = ' '.join(str(d) for d in compss_directions)
+            streams_str = ' '.join(str(s) for s in compss_streams)
+            prefixes_str = ' '.join(str(p) for p in compss_prefixes)
+            names_str = ' '.join(x for x in names)
+            ct_str = ' '.join(str(x) for x in content_types)
+            weights_str = ' '.join(str(x) for x in weights)
+            keep_renames_str = ' '.join(str(x) for x in keep_renames)
+            logger.debug("Processing task:")
+            logger.debug("\t- App id: " + str(app_id))
+            logger.debug("\t- Signature: " + signature)
+            logger.debug("\t- Has target: " + str(has_target))
+            logger.debug("\t- Names: " + names_str)
+            logger.debug("\t- Values: " + values_str)
+            logger.debug("\t- COMPSs types: " + types_str)
+            logger.debug("\t- COMPSs directions: " + direct_str)
+            logger.debug("\t- COMPSs streams: " + streams_str)
+            logger.debug("\t- COMPSs prefixes: " + prefixes_str)
+            logger.debug("\t- Content Types: " + ct_str)
+            logger.debug("\t- Weights: " + weights_str)
+            logger.debug("\t- Keep_renames: " + keep_renames_str)
+            logger.debug("\t- Priority: " + str(has_priority))
+            logger.debug("\t- Num nodes: " + str(num_nodes))
+            logger.debug("\t- Reduce: " + str(reduction))
+            logger.debug("\t- Chunk Size: " + str(chunk_size))
+            logger.debug("\t- Replicated: " + str(replicated))
+            logger.debug("\t- Distributed: " + str(distributed))
+            logger.debug("\t- On failure behavior: " + on_failure)
+            logger.debug("\t- Task time out: " + str(time_out))
 
-    app_id = 0
-    if __debug__:
-        # Log the task submission values for debugging purposes.
-        values_str = ' '.join(str(v) for v in values)
-        types_str = ' '.join(str(t) for t in compss_types)
-        direct_str = ' '.join(str(d) for d in compss_directions)
-        streams_str = ' '.join(str(s) for s in compss_streams)
-        prefixes_str = ' '.join(str(p) for p in compss_prefixes)
-        names_str = ' '.join(x for x in names)
-        ct_str = ' '.join(str(x) for x in content_types)
-        weights_str = ' '.join(str(x) for x in weights)
-        keep_renames_str = ' '.join(str(x) for x in keep_renames)
-        logger.debug("Processing task:")
-        logger.debug("\t- App id: " + str(app_id))
-        logger.debug("\t- Signature: " + signature)
-        logger.debug("\t- Has target: " + str(has_target))
-        logger.debug("\t- Names: " + names_str)
-        logger.debug("\t- Values: " + values_str)
-        logger.debug("\t- COMPSs types: " + types_str)
-        logger.debug("\t- COMPSs directions: " + direct_str)
-        logger.debug("\t- COMPSs streams: " + streams_str)
-        logger.debug("\t- COMPSs prefixes: " + prefixes_str)
-        logger.debug("\t- Content Types: " + ct_str)
-        logger.debug("\t- Weights: " + weights_str)
-        logger.debug("\t- Keep_renames: " + keep_renames_str)
-        logger.debug("\t- Priority: " + str(has_priority))
-        logger.debug("\t- Num nodes: " + str(num_nodes))
-        logger.debug("\t- Reduce: " + str(reduction))
-        logger.debug("\t- Chunk Size: " + str(chunk_size))
-        logger.debug("\t- Replicated: " + str(replicated))
-        logger.debug("\t- Distributed: " + str(distributed))
-        logger.debug("\t- On failure behavior: " + on_failure)
-        logger.debug("\t- Task time out: " + str(time_out))
+        # Check that there is the same amount of values as their types, as well
+        # as their directions, streams and prefixes.
+        assert (len(values) == len(compss_types) == len(compss_directions) ==
+                len(compss_streams) == len(compss_prefixes) ==
+                len(content_types) == len(weights) == len(keep_renames))
 
-    # Check that there is the same amount of values as their types, as well
-    # as their directions, streams and prefixes.
-    assert (len(values) == len(compss_types) == len(compss_directions) ==
-            len(compss_streams) == len(compss_prefixes) ==
-            len(content_types) == len(weights) == len(keep_renames))
+        # Submit task to the runtime (call to the C extension):
+        # Parameters:
+        #     0 - <Integer>   - application id (by default always 0 due to it is
+        #                       not currently needed for the signature)
+        #     1 - <String>    - path of the module where the task is
+        #
+        #     2 - <String>    - behavior if the task fails
+        #
+        #     3 - <String>    - function name of the task (to be called from the
+        #                       worker)
+        #     4 - <String>    - priority flag (true|false)
+        #
+        #     5 - <String>    - has target (true|false). If the task is within an
+        #                       object or not.
+        #     6 - [<String>]  - task parameters (basic types or file paths for
+        #                       objects)
+        #     7 - [<Integer>] - parameters types (number corresponding to the type
+        #                       of each parameter)
+        #     8 - [<Integer>] - parameters directions (number corresponding to the
+        #                       direction of each parameter)
+        #     9 - [<Integer>] - parameters streams (number corresponding to the
+        #                       stream of each parameter)
+        #     10 - [<String>] - parameters prefixes (string corresponding to the
+        #                       prefix of each parameter)
+        #     11 - [<String>] - parameters extra type (string corresponding to the
+        #                       extra type of each parameter)
+        #     12 - [<String>] - parameters weights (string corresponding to the
+        #                       weight of each parameter
+        #     13 - <String>   - Keep renames flag (true|false)
+        #
 
-    # Submit task to the runtime (call to the C extension):
-    # Parameters:
-    #     0 - <Integer>   - application id (by default always 0 due to it is
-    #                       not currently needed for the signature)
-    #     1 - <String>    - path of the module where the task is
-    #
-    #     2 - <String>    - behavior if the task fails
-    #
-    #     3 - <String>    - function name of the task (to be called from the
-    #                       worker)
-    #     4 - <String>    - priority flag (true|false)
-    #
-    #     5 - <String>    - has target (true|false). If the task is within an
-    #                       object or not.
-    #     6 - [<String>]  - task parameters (basic types or file paths for
-    #                       objects)
-    #     7 - [<Integer>] - parameters types (number corresponding to the type
-    #                       of each parameter)
-    #     8 - [<Integer>] - parameters directions (number corresponding to the
-    #                       direction of each parameter)
-    #     9 - [<Integer>] - parameters streams (number corresponding to the
-    #                       stream of each parameter)
-    #     10 - [<String>] - parameters prefixes (string corresponding to the
-    #                       prefix of each parameter)
-    #     11 - [<String>] - parameters extra type (string corresponding to the
-    #                       extra type of each parameter)
-    #     12 - [<String>] - parameters weights (string corresponding to the
-    #                       weight of each parameter
-    #     13 - <String>   - Keep renames flag (true|false)
-    #
-
-    COMPSs.process_task(app_id,
-                        signature,
-                        on_failure,
-                        time_out,
-                        has_priority,
-                        num_nodes,
-                        reduction,
-                        chunk_size,
-                        replicated,
-                        distributed,
-                        has_target,
-                        num_returns,
-                        values,
-                        names,
-                        compss_types,
-                        compss_directions,
-                        compss_streams,
-                        compss_prefixes,
-                        content_types,
-                        weights,
-                        keep_renames)
+        COMPSs.process_task(app_id,
+                            signature,
+                            on_failure,
+                            time_out,
+                            has_priority,
+                            num_nodes,
+                            reduction,
+                            chunk_size,
+                            replicated,
+                            distributed,
+                            has_target,
+                            num_returns,
+                            values,
+                            names,
+                            compss_types,
+                            compss_directions,
+                            compss_streams,
+                            compss_prefixes,
+                            content_types,
+                            weights,
+                            keep_renames)
 
 
 # ########################################################################### #

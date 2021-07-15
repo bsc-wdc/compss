@@ -112,13 +112,13 @@ class PiperWorkerConfiguration(object):
 
 
 def load_loggers(debug, persistent_storage):
-    # type: (bool, str) -> (..., ...)
+    # type: (bool, str) -> (..., str, ...)
     """ Load all loggers.
 
     :param debug: is Debug enabled.
     :param persistent_storage: is persistent storage enabled.
-    :return: main logger of the application and a list of loggers for the
-             persistent data framework.
+    :return: main logger of the application, the log config file (json) and
+             a list of loggers for the persistent data framework.
     """
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
@@ -153,4 +153,4 @@ def load_loggers(debug, persistent_storage):
         storage_loggers.append(logging.getLogger('hecuba'))
         storage_loggers.append(logging.getLogger('redis'))
         storage_loggers.append(logging.getLogger('storage'))
-    return logger, storage_loggers
+    return logger, log_json, storage_loggers

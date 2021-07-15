@@ -85,6 +85,8 @@ from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.interactive.helpers import update_tasks_code_file
+from pycompss.util.logger.helpers import keep_logger
+from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.objects.properties import get_module_name
@@ -275,171 +277,183 @@ class TaskMaster(TaskCommons):
 
         :return: A function that does "nothing" and returns futures if needed.
         """
+        global logger
+
         # This lock makes this decorator able to handle various threads
         # calling the same task concurrently
         MASTER_LOCK.acquire()
 
-        # Check if we are in interactive mode and update if needed
-        if not self.interactive:
-            self.interactive, self.module = self.check_if_interactive()
-        if self.interactive:
-            self.update_if_interactive(self.module)
-
-        # Extract the core element (has to be extracted before processing
-        # the kwargs to avoid issues processing the parameters)
-        with event(EXTRACT_CORE_ELEMENT, master=True):
-            pre_defined_ce = self.extract_core_element(kwargs)
-
-        # Inspect the user function, get information about the arguments and
-        # their names. This defines self.param_args, self.param_varargs,
-        # and self.param_defaults. And gives non-None default
-        # values to them if necessary
-        with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
-            if not self.function_arguments:
-                self.function_arguments = self.inspect_user_function_arguments()                   # noqa: E501
-            self.param_args, self.param_varargs, _, self.param_defaults = self.function_arguments  # noqa: E501
-            # TODO: Why this fails with first python test?
-            # It will be easier to deal with functions if we pretend that all
-            # have the signature f(positionals, *variadic, **named). This is
-            # why we are substituting Nones with default stuff.
-            # As long as we remember what was the users original intention with
-            # the parameters we can internally mess with his signature as much
-            # as we want. There is no need to add self-imposed constraints
-            # here. Also, the very nature of decorators are a huge hint about
-            # how we should treat user functions, as most wrappers return a
-            # function f(*a, **k)
-            if self.param_varargs is None:
-                self.param_varargs = "varargs_type"
-            if self.param_defaults is None:
-                self.param_defaults = ()
-        explicit_num_returns = None
-        if 'returns' in kwargs:
-            explicit_num_returns = kwargs.pop('returns')
-
-        # Process the parameters, give them a proper direction
-        with event(PROCESS_PARAMETERS, master=True):
-            self.process_parameters(*args, **kwargs)
-
-        # Compute the function path, class (if any), and name
-        with event(GET_FUNCTION_INFORMATION, master=True):
-            self.compute_user_function_information()
-
-        # Prepare the core element registration information
-        with event(PREPARE_CORE_ELEMENT, master=True):
-            self.set_code_strings(self.user_function,
-                                  self.core_element.get_impl_type())
-
-        with event(GET_FUNCTION_SIGNATURE, master=True):
-            impl_signature, impl_type_args = self.get_signature()
-
-        if impl_signature not in TRACING_TASK_NAME_TO_ID:
-            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID)+1
-
-        emit_manual_event_explicit(TASK_FUNC_TYPE, TRACING_TASK_NAME_TO_ID[impl_signature])
-
-        # It is necessary to decide whether to register or not (the task may
-        # be inherited, and in this case it has to be registered again with
-        # the new implementation signature).
-        if not self.registered or self.signature != impl_signature:
-            with event(UPDATE_CORE_ELEMENT, master=True):
-                self.update_core_element(impl_signature, impl_type_args,
-                                         pre_defined_ce)
-            if context.is_loading():
-                # This case will only happen with @implements since it calls
-                # explicitly to this call from his call.
-                context.add_to_register_later((self, impl_signature))
-            else:
-                self.register_task()
-                self.registered = True
-                self.signature = impl_signature
-
-        # Did we call this function to only register the associated core
-        # element? (This can happen with @implements)
-        # Do not move this import:
-        from pycompss.api.task import REGISTER_ONLY
-        if REGISTER_ONLY:
-            MASTER_LOCK.release()
-            return (None, self.core_element, self.registered, self.signature,
-                    self.interactive, self.module,
-                    self.function_arguments, self.function_name,
-                    self.module_name, self.function_type, self.class_name,
-                    self.hints)
-
-        with event(PROCESS_OTHER_ARGUMENTS, master=True):
-            # Deal with dynamic computing nodes
-            computing_nodes = self.process_computing_nodes()
-            # Deal with reductions
-            is_reduction, chunk_size = self.process_reduction()
-            # Get other arguments if exist
-            if not self.hints:
-                self.hints = self.check_task_hints()
-            is_replicated, is_distributed, time_out, has_priority, has_target = self.hints  # noqa: E501
-
-        # Deal with the return part.
-        with event(PROCESS_RETURN, master=True):
-            num_returns = self.add_return_parameters(explicit_num_returns)
-            if not self.returns:
-                num_returns = self.update_return_if_no_returns(self.user_function)  # noqa: E501
-
-        # Build return objects
-        with event(BUILD_RETURN_OBJECTS, master=True):
-            fo = None
-            if self.returns:
-                fo = self._build_return_objects(num_returns)
-
-        # Infer COMPSs types from real types, except for files
-        self._serialize_objects()
-
-        # Build values and COMPSs types and directions
-        with event(BUILD_COMPSS_TYPES_DIRECTIONS, master=True):
-            vtdsc = self._build_values_types_directions()
-            values, names, compss_types, compss_directions, compss_streams, \
-            compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
-
-        # Signature and other parameters:
-        # Get path:
-        if self.class_name == "":
-            path = self.module_name
+        if 'compss_logger' in kwargs:
+            # Nested call to master
+            # Grab logger from kwargs (shadows outer logger since it is set by
+            # the worker in a global variable)
+            logger = kwargs.pop('compss_logger')  # noqa
+            nested_task = True
         else:
-            path = ".".join((self.module_name, self.class_name))
-        signature = ".".join((path, self.function_name))
+            nested_task = False
 
-        if __debug__:
-            logger.debug("TASK: %s of type %s, in module %s, in class %s" %
-                         (self.function_name, self.function_type,
-                          self.module_name, self.class_name))
+        with swap_logger_name(logger, __name__) if nested_task else keep_logger():
+            # Check if we are in interactive mode and update if needed
+            if not self.interactive:
+                self.interactive, self.module = self.check_if_interactive()
+            if self.interactive:
+                self.update_if_interactive(self.module)
 
-        # Process the task
-        binding.process_task(
-            signature,
-            has_target,
-            names,
-            values,
-            num_returns,
-            compss_types,
-            compss_directions,
-            compss_streams,
-            compss_prefixes,
-            content_types,
-            weights,
-            keep_renames,
-            has_priority,
-            computing_nodes,
-            is_reduction,
-            chunk_size,
-            is_replicated,
-            is_distributed,
-            self.on_failure,
-            time_out
-        )
+            # Extract the core element (has to be extracted before processing
+            # the kwargs to avoid issues processing the parameters)
+            with event(EXTRACT_CORE_ELEMENT, master=True):
+                pre_defined_ce = self.extract_core_element(kwargs)
 
-        # Remove unused attributes from the memory
-        with event(ATTRIBUTES_CLEANUP, master=True):
-            for at in ATTRIBUTES_TO_BE_REMOVED:
-                if hasattr(self, at):
-                    delattr(self, at)
+            # Inspect the user function, get information about the arguments and
+            # their names. This defines self.param_args, self.param_varargs,
+            # and self.param_defaults. And gives non-None default
+            # values to them if necessary
+            with event(INSPECT_FUNCTION_ARGUMENTS, master=True):
+                if not self.function_arguments:
+                    self.function_arguments = self.inspect_user_function_arguments()                   # noqa: E501
+                self.param_args, self.param_varargs, _, self.param_defaults = self.function_arguments  # noqa: E501
+                # TODO: Why this fails with first python test?
+                # It will be easier to deal with functions if we pretend that all
+                # have the signature f(positionals, *variadic, **named). This is
+                # why we are substituting Nones with default stuff.
+                # As long as we remember what was the users original intention with
+                # the parameters we can internally mess with his signature as much
+                # as we want. There is no need to add self-imposed constraints
+                # here. Also, the very nature of decorators are a huge hint about
+                # how we should treat user functions, as most wrappers return a
+                # function f(*a, **k)
+                if self.param_varargs is None:
+                    self.param_varargs = "varargs_type"
+                if self.param_defaults is None:
+                    self.param_defaults = ()
+            explicit_num_returns = None
+            if 'returns' in kwargs:
+                explicit_num_returns = kwargs.pop('returns')
 
-        emit_manual_event_explicit(TASK_FUNC_TYPE, 0)
+            # Process the parameters, give them a proper direction
+            with event(PROCESS_PARAMETERS, master=True):
+                self.process_parameters(*args, **kwargs)
+
+            # Compute the function path, class (if any), and name
+            with event(GET_FUNCTION_INFORMATION, master=True):
+                self.compute_user_function_information()
+
+            # Prepare the core element registration information
+            with event(PREPARE_CORE_ELEMENT, master=True):
+                self.set_code_strings(self.user_function,
+                                      self.core_element.get_impl_type())
+
+            with event(GET_FUNCTION_SIGNATURE, master=True):
+                impl_signature, impl_type_args = self.get_signature()
+
+            if impl_signature not in TRACING_TASK_NAME_TO_ID:
+                TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID)+1
+
+            emit_manual_event_explicit(TASK_FUNC_TYPE, TRACING_TASK_NAME_TO_ID[impl_signature])
+
+            # It is necessary to decide whether to register or not (the task may
+            # be inherited, and in this case it has to be registered again with
+            # the new implementation signature).
+            if not self.registered or self.signature != impl_signature:
+                with event(UPDATE_CORE_ELEMENT, master=True):
+                    self.update_core_element(impl_signature, impl_type_args,
+                                             pre_defined_ce)
+                if context.is_loading():
+                    # This case will only happen with @implements since it calls
+                    # explicitly to this call from his call.
+                    context.add_to_register_later((self, impl_signature))
+                else:
+                    self.register_task()
+                    self.registered = True
+                    self.signature = impl_signature
+
+            # Did we call this function to only register the associated core
+            # element? (This can happen with @implements)
+            # Do not move this import:
+            from pycompss.api.task import REGISTER_ONLY
+            if REGISTER_ONLY:
+                MASTER_LOCK.release()
+                return (None, self.core_element, self.registered, self.signature,
+                        self.interactive, self.module,
+                        self.function_arguments, self.function_name,
+                        self.module_name, self.function_type, self.class_name,
+                        self.hints)
+
+            with event(PROCESS_OTHER_ARGUMENTS, master=True):
+                # Deal with dynamic computing nodes
+                computing_nodes = self.process_computing_nodes()
+                # Deal with reductions
+                is_reduction, chunk_size = self.process_reduction()
+                # Get other arguments if exist
+                if not self.hints:
+                    self.hints = self.check_task_hints()
+                is_replicated, is_distributed, time_out, has_priority, has_target = self.hints  # noqa: E501
+
+            # Deal with the return part.
+            with event(PROCESS_RETURN, master=True):
+                num_returns = self.add_return_parameters(explicit_num_returns)
+                if not self.returns:
+                    num_returns = self.update_return_if_no_returns(self.user_function)  # noqa: E501
+
+            # Build return objects
+            with event(BUILD_RETURN_OBJECTS, master=True):
+                fo = None
+                if self.returns:
+                    fo = self._build_return_objects(num_returns)
+
+            # Infer COMPSs types from real types, except for files
+            self._serialize_objects()
+
+            # Build values and COMPSs types and directions
+            with event(BUILD_COMPSS_TYPES_DIRECTIONS, master=True):
+                vtdsc = self._build_values_types_directions()
+                values, names, compss_types, compss_directions, compss_streams, \
+                compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
+
+            # Signature and other parameters:
+            # Get path:
+            if self.class_name == "":
+                path = self.module_name
+            else:
+                path = ".".join((self.module_name, self.class_name))
+            signature = ".".join((path, self.function_name))
+
+            if __debug__:
+                logger.debug("TASK: %s of type %s, in module %s, in class %s" %
+                             (self.function_name, self.function_type,
+                              self.module_name, self.class_name))
+
+            # Process the task
+            binding.process_task(
+                signature,
+                has_target,
+                names,
+                values,
+                num_returns,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+                has_priority,
+                computing_nodes,
+                is_reduction,
+                chunk_size,
+                is_replicated,
+                is_distributed,
+                self.on_failure,
+                time_out
+            )
+
+            # Remove unused attributes from the memory
+            with event(ATTRIBUTES_CLEANUP, master=True):
+                for at in ATTRIBUTES_TO_BE_REMOVED:
+                    if hasattr(self, at):
+                        delattr(self, at)
+
+            emit_manual_event_explicit(TASK_FUNC_TYPE, 0)
 
         # Release the lock
         MASTER_LOCK.release()
@@ -985,7 +999,7 @@ class TaskMaster(TaskCommons):
         if __debug__:
             logger.debug("[@TASK] Registering the function %s in module %s" %
                          (self.function_name, self.module_name))
-        binding.register_ce(self.core_element)
+        binding.register_ce(logger, self.core_element)
 
     def process_computing_nodes(self):
         # type: () -> int

@@ -39,6 +39,7 @@ from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.util.tracing.helpers import event
+from pycompss.util.logger.helpers import update_logger_handlers
 
 if __debug__:
     import logging
@@ -212,16 +213,10 @@ class Task(PyCOMPSsDecorator):
         :param user_function: Function to decorate.
         :return: The function to be executed.
         """
-        global logger
         self.user_function = user_function
 
         @wraps(user_function)
         def task_decorator(*args, **kwargs):
-            # global logger
-            # if "compss_logger" in kwargs.keys():
-            #     # if invoked from a worker, then take the provided
-            #     # Otherwise, continue with default logger
-            #     logger = kwargs["compss_logger"]
             return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator
@@ -255,6 +250,11 @@ class Task(PyCOMPSsDecorator):
             return fo
         elif context.in_worker():
             if "compss_key" in kwargs.keys():
+                if context.is_nesting_enabled():
+                    # Update the whole logger since it will be in job out/err
+                    update_logger_handlers(kwargs["compss_log_cfg"],
+                                           kwargs["compss_log_files"][0],
+                                           kwargs["compss_log_files"][1])
                 # @task being executed in the worker
                 with event(WORKER_TASK_INSTANTIATION,
                            master=False, inside=True):
@@ -265,12 +265,12 @@ class Task(PyCOMPSsDecorator):
                 result = worker.call(*args, **kwargs)
                 del worker
                 if context.is_nesting_enabled():
+                    # Wait for all nested tasks to finish
                     from pycompss.runtime.binding import nested_barrier
                     nested_barrier()
                 return result
             else:
                 if context.is_nesting_enabled():
-                    # nested @task executed in the worker
                     # Each task will have a TaskMaster, so its content will
                     # not be shared.
                     with event(TASK_INSTANTIATION, master=True):
@@ -289,8 +289,8 @@ class Task(PyCOMPSsDecorator):
                                             self.hints,
                                             self.on_failure,
                                             self.defaults)
-                        result = master.call(*args, **kwargs)
-                        fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
+                    result = master.call(*args, **kwargs)
+                    fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
                     del master
                     return fo
                 else:

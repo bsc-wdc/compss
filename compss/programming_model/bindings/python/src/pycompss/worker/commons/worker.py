@@ -484,6 +484,7 @@ def execute_task(process_name,              # type: str
                  params,                    # type: list
                  tracing,                   # type: bool
                  logger,                    # type: ...
+                 logger_cfg,                # type: str
                  log_files,                 # type: tuple
                  python_mpi=False,          # type: bool
                  collections_layouts=None,  # type: list
@@ -498,6 +499,7 @@ def execute_task(process_name,              # type: str
     :param params: List of parameters.
     :param tracing: Tracing flag.
     :param logger: Logger to use.
+    :param logger_cfg: Logger configuration file
     :param log_files: Tuple with (out filename, err filename).
                       None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
@@ -539,10 +541,12 @@ def execute_task(process_name,              # type: str
     # user code (reason: ignore @task decorator if called from another task).
     compss_kwargs = {
         'compss_key': True,
+        'compss_logger': logger,
         'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,
+        'compss_log_cfg': logger_cfg,
         'compss_log_files': log_files,
         'compss_python_MPI': python_mpi,
         'compss_collections_layouts': collections_layouts,

@@ -201,39 +201,3 @@ def keep_logger():
     :return: None
     """
     yield  # here the code runs
-
-
-def save_logger(logger):
-    # type: (typing.Any) -> None
-    """ Save the given logger in a global variable.
-    It is used to save the logger from a worker task in a global state, so that
-    the nested tasks can take it and use to log the master messages in the
-    job out and err files.
-
-    :param logger: Logger to save in a global variable.
-    :return: None
-    """
-    global SAVED_LOGGER
-    SAVED_LOGGER = logger
-
-
-def clean_saved_logger():
-    # type: () -> None
-    """ Removes any existing saved logger.
-
-    :return: None
-    """
-    global SAVED_LOGGER
-    SAVED_LOGGER = None
-
-
-def get_saved_logger():
-    # type: () -> typing.Any
-    """ Saved logger getter
-
-    :return: The previously saved logger.
-    """
-    if SAVED_LOGGER:
-        return SAVED_LOGGER
-    else:
-        raise PyCOMPSsException("Trying to get a NON existing saved logger.")

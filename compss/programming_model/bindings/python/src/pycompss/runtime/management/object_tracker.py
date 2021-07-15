@@ -28,14 +28,12 @@ import time
 import uuid
 
 import pycompss.util.context as context
-from pycompss.util.logger.helpers import keep_logger
-from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_temporary_directory
 
 if __debug__:
     import logging
-    LOGGER = logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
 
 class ObjectTracker(object):
@@ -90,19 +88,6 @@ class ObjectTracker(object):
         # Store the initial time as reference for the reporting.
         self.initial_time = 0
 
-    @staticmethod
-    def logger(message):
-        # type: (str) -> None
-        """ Centralized logger facility for the object tracker.
-        Created to redirect the logging to job files when using nesting.
-
-        :param message: Message to log.
-        :return: None
-        """
-        if __debug__:
-            with swap_logger_name(LOGGER, __name__) if context.is_nesting_enabled() else keep_logger():  # noqa: E501
-                LOGGER.debug(message)
-
     def track(self, obj, collection=False):
         # type: (object, bool) -> (str, str)
         """ Start tracking an object.
@@ -119,15 +104,15 @@ class ObjectTracker(object):
             obj_id = self._register_object(obj, True)
             file_name = None
             if __debug__:
-                self.logger("Tracking collection %s" % obj_id)
+                logger.debug("Tracking collection %s" % obj_id)
         else:
             obj_id = self._register_object(obj, True)
             file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
             self._set_file_name(obj_id, file_name)
             self.set_pending_to_synchronize(obj_id)
             if __debug__:
-                self.logger("Tracking object %s to file %s" % (obj_id,
-                                                               file_name))
+                logger.debug("Tracking object %s to file %s" % (obj_id,
+                                                                file_name))
         address = self._get_object_address(obj)
         self.address_to_obj_id[address] = obj_id
         if self.reporting:
@@ -155,11 +140,11 @@ class ObjectTracker(object):
         if obj_id is not None:
             if collection:
                 if __debug__:
-                    self.logger("Stop tracking collection %s" % obj_id)
+                    logger.debug("Stop tracking collection %s" % obj_id)
                 self._pop_object_id(obj_id)
             else:
                 if __debug__:
-                    self.logger("Stop tracking object %s" % obj_id)
+                    logger.debug("Stop tracking object %s" % obj_id)
                 self._delete_file_name(obj_id)
                 self._remove_from_pending_to_synchronize(obj_id)
                 self._pop_object_id(obj_id)
@@ -479,7 +464,7 @@ class ObjectTracker(object):
 
         :return: None
         """
-        self.logger("Object tracker status: " +
+        logger.debug("Object tracker status: " +
                     " File_names=" + str(len(self.file_names)) +
                     " Pending_to_synchronize=" + str(len(self.pending_to_synchronize)) +  # noqa: E501
                     " Written_objs=" + str(len(self.written_objects)) +
@@ -523,7 +508,7 @@ class ObjectTracker(object):
             print("REASON : matplotlib not available.")
             return None
         if __debug__:
-            self.logger("Generating object tracker report...")
+            logger.debug("Generating object tracker report...")
         x = [status[0] for status in self.reporting_info]
         y = [status[1] for status in self.reporting_info]
         plt.xlabel("Time (seconds)")
@@ -540,7 +525,7 @@ class ObjectTracker(object):
         target = os.path.join(target_path, "object_tracker.png")
         plt.savefig(target)
         if __debug__:
-            self.logger("Object tracker report stored in " + target)
+            logger.debug("Object tracker report stored in " + target)
 
 
 # Instantiation of the Object tracker class to be shared among

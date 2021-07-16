@@ -538,10 +538,10 @@ def execute_task(process_name,              # type: str
     # COMPSs keywords for tasks (ie: tracing, process name...)
     # compss_key is included to be checked in the @task decorator, so that
     # the task knows if it has been called from the worker or from the
-    # user code (reason: ignore @task decorator if called from another task).
+    # user code (reason: ignore @task decorator if called from another task
+    # or decide if submit to runtime if nesting is enabled).
     compss_kwargs = {
         'compss_key': True,
-        'compss_logger': logger,
         'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,

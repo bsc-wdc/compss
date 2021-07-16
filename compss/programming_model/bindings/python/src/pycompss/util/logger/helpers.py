@@ -26,8 +26,6 @@ PyCOMPSs Util - logs
 import os
 import logging
 import json
-import typing
-from contextlib import contextmanager
 from logging import config
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -36,6 +34,8 @@ CONFIG_FUNC = config.dictConfig
 # Placeholder for the logger of a task executed as worker, but eventually
 # saved for the nested tasks invoked:
 SAVED_LOGGER = None
+# Keep configs to avoid read the cfg many times
+CONFIGS = dict()
 
 
 def get_logging_cfg_file(log_level):
@@ -60,6 +60,23 @@ def get_logging_cfg_file(log_level):
         raise PyCOMPSsException("Unsupported logging level.")
 
 
+def __read_log_config_file__(log_config_file):
+    # type: (str) -> dict
+    """ Reads the given config file.
+    If already read, retrieves from global dictionary.
+
+    :param log_config_file: Configuration file to read.
+    :return: Configuration file content.
+    """
+    if log_config_file in CONFIGS:
+        conf = CONFIGS[log_config_file]
+    else:
+        with open(log_config_file, 'rt') as lcf_fd:
+            conf = json.loads(lcf_fd.read())
+        CONFIGS[log_config_file] = conf
+    return conf
+
+
 def init_logging(log_config_file, log_path):
     # type: (str, str) -> None
     """ Master logging initialization.
@@ -69,9 +86,7 @@ def init_logging(log_config_file, log_path):
     :return: None
     """
     if os.path.exists(log_config_file):
-        f = open(log_config_file, 'rt')
-        conf = json.loads(f.read())
-        f.close()
+        conf = __read_log_config_file__(log_config_file)
         handler = "error_file_handler"
         if handler in conf["handlers"]:
             errors_file = conf["handlers"][handler].get("filename")
@@ -98,9 +113,7 @@ def init_logging_worker(log_config_file, tracing):
     :return: None
     """
     if os.path.exists(log_config_file):
-        f = open(log_config_file, 'rt')
-        conf = json.loads(f.read())
-        f.close()
+        conf = __read_log_config_file__(log_config_file)
         if tracing:
             # The workspace is within the folder 'workspace/python'
             # Remove the last folder
@@ -130,9 +143,7 @@ def init_logging_worker_piper(log_config_file, log_dir):
     :return: None
     """
     if os.path.exists(log_config_file):
-        f = open(log_config_file, 'rt')
-        conf = json.loads(f.read())
-        f.close()
+        conf = __read_log_config_file__(log_config_file)
         handler = "error_worker_file_handler"
         if handler in conf["handlers"]:
             errors_file = conf["handlers"][handler].get("filename")
@@ -160,9 +171,7 @@ def update_logger_handlers(log_config_file, job_out, job_err):
     :return: None
     """
     if os.path.exists(log_config_file):
-        f = open(log_config_file, 'rt')
-        conf = json.loads(f.read())
-        f.close()
+        conf = __read_log_config_file__(log_config_file)
         handler = "error_worker_file_handler"
         if handler in conf["handlers"]:
             conf["handlers"][handler]["filename"] = job_err
@@ -175,29 +184,3 @@ def update_logger_handlers(log_config_file, job_out, job_err):
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR
-
-
-@contextmanager
-def swap_logger_name(logger, new_name):
-    # type: (typing.Any, str) -> None
-    """ Swaps the current logger with the new one
-
-    :param logger: Logger facility.
-    :param new_name: Logger name.
-    :return: None
-    """
-    previous_name = logger.name
-    logger.name = new_name
-    yield  # here the code runs
-    logger.name = previous_name
-
-
-@contextmanager
-def keep_logger():
-    # type: () -> None
-    """ Do nothing with the logger.
-    It is used when the swap_logger_name does not need to be applied.
-
-    :return: None
-    """
-    yield  # here the code runs

@@ -546,6 +546,7 @@ def execute_task(process_name,              # type: str
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length,
+        'compss_logger': logger,
         'compss_log_cfg': logger_cfg,
         'compss_log_files': log_files,
         'compss_python_MPI': python_mpi,

@@ -26,6 +26,8 @@ PyCOMPSs Util - logs
 import os
 import logging
 import json
+import typing
+from contextlib import contextmanager
 from logging import config
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -184,3 +186,29 @@ def update_logger_handlers(log_config_file, job_out, job_err):
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR
+
+
+@contextmanager
+def swap_logger_name(logger, new_name):
+    # type: (typing.Any, str) -> None
+    """ Swaps the current logger with the new one
+
+    :param logger: Logger facility.
+    :param new_name: Logger name.
+    :return: None
+    """
+    previous_name = logger.name
+    logger.name = new_name
+    yield  # here the code runs
+    logger.name = previous_name
+
+
+@contextmanager
+def keep_logger():
+    # type: () -> None
+    """ Do nothing with the logger.
+    It is used when the swap_logger_name does not need to be applied.
+
+    :return: None
+    """
+    yield  # here the code runs

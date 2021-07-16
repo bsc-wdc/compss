@@ -35,6 +35,7 @@ from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.properties import create_object_by_con_type
+from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -100,147 +101,152 @@ class TaskWorker(TaskCommons):
                  parameters and does the proper serializations and updates
                  the affected objects.
         """
-        if __debug__:
-            logger.debug("Starting @task decorator worker call")
+        global logger
+        # Grab logger from kwargs (shadows outer logger since it is set by
+        # the worker).
+        logger = kwargs['compss_logger']  # noqa
+        with swap_logger_name(logger, __name__):
+            if __debug__:
+                logger.debug("Starting @task decorator worker call")
 
-        # Redirect stdout/stderr if necessary to show the prints/exceptions
-        # in the job out/err files
-        redirect_std = True
-        if kwargs['compss_log_files']:
-            # Redirect all stdout and stderr during the user code execution
-            # to job out and err files.
-            job_out, job_err = kwargs['compss_log_files']
-        else:
-            job_out, job_err = None, None
-            redirect_std = False
-        if __debug__:
-            logger.debug("Redirecting stdout to: " + str(job_out))
-            logger.debug("Redirecting stderr to: " + str(job_err))
-        with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
-
-            # Update the on_failure attribute (could be defined by @on_failure)
-            if "on_failure" in self.decorator_arguments:
-                self.on_failure = self.decorator_arguments["on_failure"]
-                # if task defines on_failure property the decorator is ignored
-                kwargs.pop("on_failure", None)
+            # Redirect stdout/stderr if necessary to show the prints/exceptions
+            # in the job out/err files
+            redirect_std = True
+            if kwargs['compss_log_files']:
+                # Redirect all stdout and stderr during the user code execution
+                # to job out and err files.
+                job_out, job_err = kwargs['compss_log_files']
             else:
-                self.on_failure = kwargs.pop("on_failure", "RETRY")
-            self.defaults = kwargs.pop("defaults", {})
-
-            # Pop cache if available
-            self.cache_ids = kwargs.pop("cache_ids", None)
-            self.cache_queue = kwargs.pop("cache_queue", None)
-
+                job_out, job_err = None, None
+                redirect_std = False
             if __debug__:
-                logger.debug("Revealing objects")
-            # All parameters are in the same args list. At the moment we only know
-            # the type, the name and the "value" of the parameter. This value may
-            # be treated to get the actual object (e.g: deserialize it, query the
-            # database in case of persistent objects, etc.)
-            self.reveal_objects(args,
-                                kwargs["compss_python_MPI"],
-                                kwargs["compss_collections_layouts"])
-            if __debug__:
-                logger.debug("Finished revealing objects")
-                logger.debug("Building task parameters structures")
+                logger.debug("Redirecting stdout to: " + str(job_out))
+                logger.debug("Redirecting stderr to: " + str(job_err))
+            with std_redirector(job_out, job_err) if redirect_std else not_std_redirector():  # noqa: E501
 
-            # After this line all the objects in arg have a "content" field, now
-            # we will segregate them in User positional and variadic args
-            user_args, user_kwargs, ret_params = self.segregate_objects(args)
-            num_returns = len(ret_params)
-
-            if __debug__:
-                logger.debug("Finished building parameters structures.")
-
-            # Self definition (only used when defined in the task)
-            # Save the self object type and value before executing the task
-            # (it could be persisted inside if its a persistent object)
-            self_type = None
-            self_value = None
-            has_self = False
-            if args and not isinstance(args[0], Parameter):
-                if __debug__:
-                    logger.debug("Detected self parameter")
-                # Then the first arg is self
-                has_self = True
-                self_type = get_compss_type(args[0])
-                if self_type == parameter.TYPE.EXTERNAL_PSCO:
-                    if __debug__:
-                        logger.debug("\t - Self is a PSCO")
-                    self_value = args[0].getID()
+                # Update the on_failure attribute (could be defined by @on_failure)
+                if "on_failure" in self.decorator_arguments:
+                    self.on_failure = self.decorator_arguments["on_failure"]
+                    # if task defines on_failure property the decorator is ignored
+                    kwargs.pop("on_failure", None)
                 else:
-                    # Since we are checking the type of the deserialized self
-                    # parameter, get_compss_type will return that its type is
-                    # parameter.TYPE.OBJECT, which although it is an object, self
-                    # is always a file for the runtime. So we must force its type
-                    # to avoid that the return message notifies that it has a new
-                    # type "object" which is not supported for python objects in
-                    # the runtime.
-                    self_type = parameter.TYPE.FILE
-                    self_value = 'null'
+                    self.on_failure = kwargs.pop("on_failure", "RETRY")
+                self.defaults = kwargs.pop("defaults", {})
 
-            # Call the user function with all the reconstructed parameters and
-            # get the return values.
-            if __debug__:
-                logger.debug("Invoking user code")
-            # Now execute the user code
-            result = self.execute_user_code(user_args,
-                                            user_kwargs,
-                                            kwargs['compss_tracing'])
-            user_returns, compss_exception, default_values = result
-            if __debug__:
-                logger.debug("Finished user code")
+                # Pop cache if available
+                self.cache_ids = kwargs.pop("cache_ids", None)
+                self.cache_queue = kwargs.pop("cache_queue", None)
 
-            python_mpi = False
-            if kwargs["compss_python_MPI"]:
-                python_mpi = True
-
-            # Deal with defaults if any
-            if default_values:
-                self.manage_defaults(args, default_values)
-
-            # Deal with INOUTs and COL_OUTs
-            self.manage_inouts(args, python_mpi)
-
-            # Deal with COMPSsExceptions
-            if compss_exception is not None:
                 if __debug__:
-                    logger.warning("Detected COMPSs Exception. Raising.")
-                raise compss_exception
+                    logger.debug("Revealing objects")
+                # All parameters are in the same args list. At the moment we only know
+                # the type, the name and the "value" of the parameter. This value may
+                # be treated to get the actual object (e.g: deserialize it, query the
+                # database in case of persistent objects, etc.)
+                self.reveal_objects(args,
+                                    kwargs["compss_python_MPI"],
+                                    kwargs["compss_collections_layouts"])
+                if __debug__:
+                    logger.debug("Finished revealing objects")
+                    logger.debug("Building task parameters structures")
 
-            # Deal with returns (if any)
-            user_returns = self.manage_returns(num_returns, user_returns,
-                                               ret_params, python_mpi)
+                # After this line all the objects in arg have a "content" field, now
+                # we will segregate them in User positional and variadic args
+                user_args, user_kwargs, ret_params = self.segregate_objects(args)
+                num_returns = len(ret_params)
 
-            # Check old targetDirection
-            if 'targetDirection' in self.decorator_arguments:
-                target_label = 'targetDirection'
-                logger.info("Detected deprecated targetDirection. Please, change it to target_direction")  # noqa: E501
-            else:
-                target_label = 'target_direction'
+                if __debug__:
+                    logger.debug("Finished building parameters structures.")
 
-            # We must notify COMPSs when types are updated
-            new_types, new_values = self.manage_new_types_values(num_returns,
-                                                                 user_returns,
-                                                                 args,
-                                                                 has_self,
-                                                                 target_label,
-                                                                 self_type,
-                                                                 self_value)
+                # Self definition (only used when defined in the task)
+                # Save the self object type and value before executing the task
+                # (it could be persisted inside if its a persistent object)
+                self_type = None
+                self_value = None
+                has_self = False
+                if args and not isinstance(args[0], Parameter):
+                    if __debug__:
+                        logger.debug("Detected self parameter")
+                    # Then the first arg is self
+                    has_self = True
+                    self_type = get_compss_type(args[0])
+                    if self_type == parameter.TYPE.EXTERNAL_PSCO:
+                        if __debug__:
+                            logger.debug("\t - Self is a PSCO")
+                        self_value = args[0].getID()
+                    else:
+                        # Since we are checking the type of the deserialized self
+                        # parameter, get_compss_type will return that its type is
+                        # parameter.TYPE.OBJECT, which although it is an object, self
+                        # is always a file for the runtime. So we must force its type
+                        # to avoid that the return message notifies that it has a new
+                        # type "object" which is not supported for python objects in
+                        # the runtime.
+                        self_type = parameter.TYPE.FILE
+                        self_value = 'null'
 
-            # Clean cached references
-            if self.cached_references:
-                # Let the garbage collector act
-                self.cached_references = None
+                # Call the user function with all the reconstructed parameters and
+                # get the return values.
+                if __debug__:
+                    logger.debug("Invoking user code")
+                # Now execute the user code
+                result = self.execute_user_code(user_args,
+                                                user_kwargs,
+                                                kwargs['compss_tracing'])
+                user_returns, compss_exception, default_values = result
+                if __debug__:
+                    logger.debug("Finished user code")
 
-            # Release memory after task execution
-            self.__release_memory__()
+                python_mpi = False
+                if kwargs["compss_python_MPI"]:
+                    python_mpi = True
 
-            if __debug__ and "COMPSS_WORKER_PROFILE_PATH" in os.environ:
-                self.__report_heap__()
+                # Deal with defaults if any
+                if default_values:
+                    self.manage_defaults(args, default_values)
 
-        if __debug__:
-            logger.debug("Finished @task decorator")
+                # Deal with INOUTs and COL_OUTs
+                self.manage_inouts(args, python_mpi)
+
+                # Deal with COMPSsExceptions
+                if compss_exception is not None:
+                    if __debug__:
+                        logger.warning("Detected COMPSs Exception. Raising.")
+                    raise compss_exception
+
+                # Deal with returns (if any)
+                user_returns = self.manage_returns(num_returns, user_returns,
+                                                   ret_params, python_mpi)
+
+                # Check old targetDirection
+                if 'targetDirection' in self.decorator_arguments:
+                    target_label = 'targetDirection'
+                    logger.info("Detected deprecated targetDirection. Please, change it to target_direction")  # noqa: E501
+                else:
+                    target_label = 'target_direction'
+
+                # We must notify COMPSs when types are updated
+                new_types, new_values = self.manage_new_types_values(num_returns,
+                                                                     user_returns,
+                                                                     args,
+                                                                     has_self,
+                                                                     target_label,
+                                                                     self_type,
+                                                                     self_value)
+
+                # Clean cached references
+                if self.cached_references:
+                    # Let the garbage collector act
+                    self.cached_references = None
+
+                # Release memory after task execution
+                self.__release_memory__()
+
+                if __debug__ and "COMPSS_WORKER_PROFILE_PATH" in os.environ:
+                    self.__report_heap__()
+
+            if __debug__:
+                logger.debug("Finished @task decorator")
 
         return new_types, new_values, self.decorator_arguments[target_label]
 

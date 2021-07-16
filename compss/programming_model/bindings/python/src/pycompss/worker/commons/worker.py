@@ -279,6 +279,16 @@ def task_execution(logger,              # type: ...
         logger.debug("P. storage : %s " % str(persistent_storage))
         logger.debug("Storage cfg: %s " % str(storage_conf))
 
+    if persistent_storage:
+        # TODO: Fix the values information.
+        # The values may not have the complete information here, since the
+        # runtime has not provided for example the direction.
+        # Alternatively, the after the execution we have the information
+        # since the @task decorator has been able to extract it.
+        # Then it is updated into the TaskContext.values before __exit__.
+        task_context = TaskContext(logger, values,
+                                   config_file_path=storage_conf)
+
     try:
         # WARNING: the following call will not work if a user decorator
         # overrides the return of the task decorator.
@@ -293,16 +303,13 @@ def task_execution(logger,              # type: ...
         signal.signal(signal.SIGUSR2, task_cancel)
         signal.alarm(time_out)
         if persistent_storage:
-            with TaskContext(logger, values, config_file_path=storage_conf):
-                task_output = getattr(module, method_name)(*values,
-                                                           compss_types=types,
-                                                           logger=logger,
-                                                           **compss_kwargs)
-        else:
-            task_output = getattr(module, method_name)(*values,
-                                                       compss_types=types,
-                                                       logger=logger,
-                                                       **compss_kwargs)
+            task_context.__enter__()  # noqa
+
+        # REAL CALL TO FUNCTION
+        task_output = getattr(module, method_name)(*values,
+                                                   compss_types=types,
+                                                   logger=logger,
+                                                   **compss_kwargs)
     except TimeOutError:
         logger.exception("TIMEOUT ERROR IN %s - Time Out Exception" %
                          process_name)
@@ -375,12 +382,19 @@ def task_execution(logger,              # type: ...
         new_types = task_output[0][0]
         new_values = task_output[0][1]
         target_direction = task_output[0][2]
+        updated_args = task_output[0][3]
     else:
         # The task_output is composed by the new_types and new_values returned
         # by the task decorator.
         new_types = task_output[0]
         new_values = task_output[1]
         target_direction = task_output[2]
+        updated_args = task_output[3]
+
+    if persistent_storage:
+        task_context.values = updated_args
+        task_context.__exit__()  # noqa
+        del task_context
 
     return task_returns(0, new_types, new_values, target_direction,
                         False, "", logger)
@@ -424,14 +438,14 @@ def task_returns(exit_code,         # type: int
     :param timed_out: If the task has reached time out.
     :param return_message: Return exception message.
     :param logger: Logger where to place the messages.
-    :return: exit code, new types, new values, target direction, time out
+    :return: exit code, new types, new values, target direction, time out,
              and return message.
     """
     if __debug__:
         # The types may change
         # (e.g. if the user does a makePersistent within the task)
-        logger.debug("Exit code : %s " % str(exit_code))
-        logger.debug("Return Types : %s " % str(new_types))
+        logger.debug("Exit code: %s " % str(exit_code))
+        logger.debug("Return Types: %s " % str(new_types))
         logger.debug("Return Values: %s " % str(new_values))
         logger.debug("Return target_direction: %s " % str(target_direction))
         logger.debug("Return timed_out: %s " % str(timed_out))
@@ -506,7 +520,8 @@ def execute_task(process_name,              # type: str
     :param collections_layouts: collections layouts for python MPI tasks
     :param cache_queue: Cache tracker communication queue
     :param cache_ids: Cache proxy dictionary (read-only)
-    :return: exit_code, new_types, new_values, timed_out and except_msg
+    :return: updated_args, exit_code, new_types, new_values, timed_out
+             and except_msg
     """
     if __debug__:
         logger.debug("BEGIN TASK execution in %s" % process_name)
@@ -632,11 +647,6 @@ def execute_task(process_name,              # type: str
         # Next result: target_direction = result[3]
         timed_out = result[4]
         except_msg = result[5]
-
-        if exit_code != 0:
-            if __debug__:
-                logger.debug("EXECUTE TASK FAILED: Exit code: %s" % str(exit_code))
-            return exit_code, new_types, new_values, timed_out, except_msg
     else:
         # Method declared as task in class
         # Not the path of a module, it ends with a class name
@@ -656,7 +666,7 @@ def execute_task(process_name,              # type: str
                                                exc_traceback)
             logger.exception("EXCEPTION IMPORTING MODULE IN %s" % process_name)
             logger.exception(''.join(line for line in lines))
-            return 1, [], [], False, None
+            return 1, [], [], False, None, []
 
         if __debug__:
             logger.debug("Method in class %s of module %s" % (class_name,
@@ -694,7 +704,7 @@ def execute_task(process_name,              # type: str
                                                            exc_traceback)
                         logger.exception("EXCEPTION DESERIALIZING SELF IN %s" % process_name)  # noqa: E501
                         logger.exception(''.join(line for line in lines))
-                        return 1, [], [], False, None
+                        return 1, [], [], False, None, []
                     if __debug__:
                         logger.debug("Deserialized self object is: %s" %
                                      self_elem.content)
@@ -754,12 +764,9 @@ def execute_task(process_name,              # type: str
                                                            exc_traceback)
                         logger.exception("EXCEPTION SERIALIZING SELF IN %s" % process_name)  # noqa: E501
                         logger.exception(''.join(line for line in lines))
-                        return 1, new_types, new_values, timed_out, except_msg
+                        exit_code = 1
                     if __debug__:
                         logger.debug("Obj: %r" % obj)
-
-            if exit_code != 0:
-                return exit_code, new_types, new_values, timed_out, except_msg
         else:
             # Class method - class is not included in values (e.g. values=[7])
             types.append(None)  # class must be first type
@@ -781,11 +788,10 @@ def execute_task(process_name,              # type: str
             timed_out = result[4]
             except_msg = result[5]
 
-            if exit_code != 0:
-                return exit_code, new_types, new_values, timed_out, except_msg
-
-    # EVERYTHING OK
     if __debug__:
-        logger.debug("END TASK execution. Status: Ok")
+        if exit_code != 0:
+            logger.debug("EXECUTE TASK FAILED: Exit code: %s" % str(exit_code))
+        else:
+            logger.debug("END TASK execution. Status: Ok")
 
     return exit_code, new_types, new_values, timed_out, except_msg

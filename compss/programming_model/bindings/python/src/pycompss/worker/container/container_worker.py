@@ -99,6 +99,7 @@ def main():
                           execute_task_params,
                           tracing,
                           LOGGER,
+                          None,
                           log_files,           # noqa
                           python_mpi,
                           collections_layouts  # noqa

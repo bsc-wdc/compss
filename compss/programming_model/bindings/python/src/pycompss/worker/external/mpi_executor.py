@@ -111,6 +111,7 @@ def executor(process_name, command):
     sig, msg = process_task(command,
                             process_name,
                             logger,
+                            log_json,
                             logger_handlers,
                             logger_level,
                             logger_formatter)
@@ -133,6 +134,7 @@ def executor(process_name, command):
 def process_task(current_line,     # type: str
                  process_name,     # type: str
                  logger,           # type: ...
+                 log_json,         # type: str
                  logger_handlers,  # type: ...
                  logger_level,     # type: int
                  logger_formatter  # type: ...
@@ -143,6 +145,7 @@ def process_task(current_line,     # type: str
     :param current_line: Current command (line) to process.
     :param process_name: Process name for logger messages.
     :param logger: Logger.
+    :param log_json: Logger configuration file.
     :param logger_handlers: Logger handlers.
     :param logger_level: Logger level.
     :param logger_formatter: Logger formatter.
@@ -248,6 +251,7 @@ def process_task(current_line,     # type: str
                                   current_line[9:],
                                   tracing,
                                   logger,
+                                  log_json,
                                   (job_out, job_err),
                                   python_mpi,
                                   collections_layouts)

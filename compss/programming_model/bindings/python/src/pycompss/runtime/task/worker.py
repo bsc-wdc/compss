@@ -90,7 +90,7 @@ class TaskWorker(TaskCommons):
         # placeholder to keep the object references and avoid garbage collector
 
     def call(self, *args, **kwargs):
-        # type: (tuple, dict) -> (list, list, list)
+        # type: (tuple, dict) -> (list, list, list, list)
         """ Main task code at worker side.
 
         This function deals with task calls in the worker's side
@@ -248,7 +248,7 @@ class TaskWorker(TaskCommons):
             if __debug__:
                 logger.debug("Finished @task decorator")
 
-        return new_types, new_values, self.decorator_arguments[target_label]
+        return new_types, new_values, self.decorator_arguments[target_label], args  # noqa: E501
 
     @staticmethod
     def __release_memory__():  # noqa
@@ -877,6 +877,12 @@ class TaskWorker(TaskCommons):
                     not self.is_parameter_an_object(arg.name):
                 continue
 
+            original_name = get_name_from_kwarg(arg.name)
+            real_direction = self.get_default_direction(original_name)
+            param = self.decorator_arguments.get(original_name, real_direction)
+            # Update args
+            arg.direction = param.direction
+
             # File collections are objects, but must be skipped as well
             if self.is_parameter_file_collection(arg.name):
                 continue
@@ -888,10 +894,6 @@ class TaskWorker(TaskCommons):
                              is_psco(arg.content))
             if _is_psco_true:
                 continue
-
-            original_name = get_name_from_kwarg(arg.name)
-            param = self.decorator_arguments.get(
-                original_name, self.get_default_direction(original_name))
 
             # skip non-inouts or non-col_outs
             _is_col_out = (arg.content_type == parameter.TYPE.COLLECTION and

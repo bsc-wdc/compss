@@ -163,7 +163,7 @@ def init_logging_worker_piper(log_config_file, log_dir):
         logging.basicConfig(level=logging.INFO)  # NOSONAR
 
 
-def update_logger_handlers(log_config_file, job_out, job_err):
+def update_logger_handlers(log_config_file, job_out=None, job_err=None):
     # type: (str, str, str) -> None
     """ Worker logging update.
 
@@ -174,15 +174,17 @@ def update_logger_handlers(log_config_file, job_out, job_err):
     """
     if os.path.exists(log_config_file):
         conf = __read_log_config_file__(log_config_file)
-        handler = "error_worker_file_handler"
-        if handler in conf["handlers"]:
-            conf["handlers"][handler]["filename"] = job_err
-        handler = "info_worker_file_handler"
-        if handler in conf["handlers"]:
-            conf["handlers"][handler]["filename"] = job_out
-        handler = "debug_worker_file_handler"
-        if handler in conf["handlers"]:
-            conf["handlers"][handler]["filename"] = job_out
+        if job_err:
+            handler = "error_worker_file_handler"
+            if handler in conf["handlers"]:
+                conf["handlers"][handler]["filename"] = job_err
+        if job_out:
+            handler = "info_worker_file_handler"
+            if handler in conf["handlers"]:
+                conf["handlers"][handler]["filename"] = job_out
+            handler = "debug_worker_file_handler"
+            if handler in conf["handlers"]:
+                conf["handlers"][handler]["filename"] = job_out
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR

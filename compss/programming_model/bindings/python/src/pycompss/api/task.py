@@ -263,11 +263,17 @@ class Task(PyCOMPSsDecorator):
                                         self.on_failure,
                                         self.defaults)
                 result = worker.call(*args, **kwargs)
+                # Force flush stdout and stderr
+                sys.stdout.flush()
+                sys.stderr.flush()
+                # Remove worker
                 del worker
                 if context.is_nesting_enabled():
                     # Wait for all nested tasks to finish
                     from pycompss.runtime.binding import nested_barrier
                     nested_barrier()
+                    # Reestablish logger handlers
+                    update_logger_handlers(kwargs["compss_log_cfg"])
                 return result
             else:
                 if context.is_nesting_enabled():

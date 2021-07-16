@@ -281,7 +281,9 @@ def executor(queue, process_name, pipe, conf):
             command = pipe.read_command(retry_period=0.5)
             if command != "":
                 if __debug__:
-                    logger.debug(HEADER + "Received %s" % command)
+                    logger.debug(HEADER + "[%s] Received command %s" % (
+                        str(process_name),
+                        str(command)))
                 # Process the command
                 alive = process_message(command,
                                         process_name,
@@ -365,7 +367,7 @@ def process_message(current_line,              # type: str
     :return: <Boolean> True if processed successfully, False otherwise.
     """
     if __debug__:
-        logger.debug(HEADER + "[%s] Received message: %s" %
+        logger.debug(HEADER + "[%s] Processing message: %s" %
                      (str(process_name), str(current_line)))
 
     current_line = current_line.split()
@@ -476,6 +478,7 @@ def process_task(current_line,              # type: list
     #       !---> type, stream, prefix , value
 
     if __debug__:
+        # Worker log
         logger.debug(HEADER + "[%s] Received task with id: %s" %
                      (str(process_name), str(job_id)))
         logger.debug(HEADER + "[%s] - TASK CMD: %s" %
@@ -501,6 +504,7 @@ def process_task(current_line,              # type: list
         storage_logger.addHandler(err_file_handler)
 
     if __debug__:
+        # From now onwards the log is in the job out and err files
         logger.debug("-" * 100)
         logger.debug("Received task in process: %s" % str(process_name))
         logger.debug("TASK CMD: %s" % str(current_line))
@@ -614,14 +618,18 @@ def process_task(current_line,              # type: list
     if __debug__:
         logger.debug("Restoring loggers.")
         logger.debug("-" * 100)
+        # No more logs in job out and err files
+    # Restore worker log
     logger.removeHandler(out_file_handler)
     logger.removeHandler(err_file_handler)
+    logger.handlers = []
     for handler in logger_handlers:
         logger.addHandler(handler)
     i = 0
     for storage_logger in storage_loggers:
         storage_logger.removeHandler(out_file_handler)
         storage_logger.removeHandler(err_file_handler)
+        storage_logger.handlers = []
         for handler in storage_loggers_handlers[i]:
             storage_logger.addHandler(handler)
         i += 1
@@ -668,7 +676,7 @@ def process_quit(logger, process_name):  # noqa
     :return: Always false.
     """
     if __debug__:
-        logger.debug(HEADER + "[%s] Received quit." % str(process_name))
+        logger.debug(HEADER + "[%s] Quitting." % str(process_name))
     # Close last cpu and gpu affinity events
     emit_manual_event(0, inside=True, cpu_affinity=True)
     emit_manual_event(0, inside=True, gpu_affinity=True)

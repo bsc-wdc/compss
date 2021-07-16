@@ -340,9 +340,7 @@ def nested_barrier():
 
     # Call the Runtime barrier (appId 0 -- not needed for the signature, and
     # no_more_tasks == True)
-    # COMPSs.barrier(0, True)  # TODO: MAKES THE RUNTIME BLOCK FOR UNEXPECTED REASON
-    import time
-    time.sleep(4)
+    COMPSs.barrier(0, True)
 
 
 @emit_event(BARRIER_GROUP_EVENT, master=True)

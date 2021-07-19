@@ -541,7 +541,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(),
-                    calleeMethodSignature.toString(), null, httpAnnotation.methodType(), httpAnnotation.baseUrl());
+                    calleeMethodSignature.toString(), null, httpAnnotation.methodType(), httpAnnotation.baseUrl(),
+                    httpAnnotation.jsonPayload(), httpAnnotation.reproduces());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

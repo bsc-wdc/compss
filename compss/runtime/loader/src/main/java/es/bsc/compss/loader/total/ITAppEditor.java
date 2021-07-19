@@ -495,6 +495,8 @@ public class ITAppEditor extends ExprEditor {
 
             executeTask.append("\"").append(httpAnnotation.methodType()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.baseUrl()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.jsonPayload()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.reproduces()).append("\"").append(',');
 
             String declareMethodFullyQualifiedName = httpAnnotation.declaringClass() + "." + declaredMethod.getName();
 
@@ -570,7 +572,11 @@ public class ITAppEditor extends ExprEditor {
             // toAppend.append("\"\"" + ","); // Parameter Name
 
             toAppend.append(infoParam.getName() + ","); // Parameter Name TODO Aldo: fix error
-            toAppend.append("\"\"" + ","); // Parameter Content Type
+            if (infoParam.getType().equals(DATA_TYPES + ".FILE_T")) {
+                toAppend.append("\"FILE\"" + ","); // Parameter Content Type
+            } else {
+                toAppend.append("\"\"" + ","); // Parameter Content Type
+            }
             toAppend.append(infoParam.getWeight() + ",");
             toAppend.append("new Boolean(" + infoParam.getKeepRename() + ")");
             if (i < paramAnnot.length - 1) {

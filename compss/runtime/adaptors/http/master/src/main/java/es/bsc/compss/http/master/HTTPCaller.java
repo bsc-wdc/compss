@@ -1,9 +1,14 @@
 package es.bsc.compss.http.master;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -17,6 +22,10 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.RequestDispatcher;
 import es.bsc.compss.util.RequestQueue;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +38,8 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
     private static final String SUBMIT_ERROR = "Error calling HTTP Service";
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final String URL_PARAMETER_OPEN_TOKEN = "\\{";
-    private static final String URL_PARAMETER_CLOSE_TOKEN = "\\}";
+    private static final String URL_PARAMETER_OPEN_TOKEN = "\\{\\{";
+    private static final String URL_PARAMETER_CLOSE_TOKEN = "\\}\\}";
 
 
     public HTTPCaller(RequestQueue<HTTPJob> queue) {
@@ -89,7 +98,14 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         final String parsedUrl = URLReplacer.replaceUrlParameters(baseUrl, namedParameters, URL_PARAMETER_OPEN_TOKEN,
             URL_PARAMETER_CLOSE_TOKEN);
 
-        return HTTPController.performRequestAndGetResponse(methodType, parsedUrl);
+        // nm:
+        // todo: (do not) read file content
+        String jsonPayload = httpImplementation.getJsonPayload();
+
+        jsonPayload = URLReplacer.formatJsonPayload(jsonPayload, namedParameters, URL_PARAMETER_OPEN_TOKEN,
+            URL_PARAMETER_CLOSE_TOKEN);
+
+        return HTTPController.performRequestAndGetResponse(methodType, parsedUrl, jsonPayload);
     }
 
     private Map<String, String> constructMapOfNamedParameters(TaskDescription taskDescription)
@@ -102,14 +118,24 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
             if (parameterDirection == Direction.IN || parameterDirection == Direction.IN_DELETE) {
                 switch (par.getType()) {
+                    case FILE_T:
+                        if (par.getContentType() != null && par.getContentType().toUpperCase().equals("FILE")) {
+                            DependencyParameter fileParam = (DependencyParameter) par;
+                            String content = readFile(fileParam.getDataTarget());
+                            namedParameters.put(par.getName(), content);
+                        } else {
+                            DependencyParameter dependencyParameter = (DependencyParameter) par;
+                            final Object objectValue = getObjectValue(dependencyParameter);
+                            addParameterToMapOfParameters(namedParameters, par, objectValue);
+                        }
+                        break;
                     case OBJECT_T:
                     case PSCO_T:
                     case EXTERNAL_PSCO_T:
-                    case FILE_T:
                         // todo: is it the case only for pycompss?
+                        // nm: check content type to know if it's a python object
                         DependencyParameter dependencyParameter = (DependencyParameter) par;
                         final Object objectValue = getObjectValue(dependencyParameter);
-
                         addParameterToMapOfParameters(namedParameters, par, objectValue);
                         break;
                     case STREAM_T:
@@ -165,5 +191,29 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
             logicalData.loadFromStorage();
         }
         return logicalData.getValue();
+    }
+
+    // todo: move it somewhere else
+    private static String readFile(String fileName) {
+        File f = new File(fileName);
+        BufferedReader br = null;
+        String contents = "";
+        try {
+            br = new BufferedReader(new FileReader(f));
+            String line;
+            while ((line = br.readLine()) != null) {
+                contents = contents + line;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return contents;
     }
 }

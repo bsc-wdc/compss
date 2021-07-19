@@ -413,13 +413,17 @@ class TaskMaster(TaskCommons):
         # import pdb; pdb.set_trace()
 
         if self.core_element.get_impl_type() == "HTTP":
-            # todo: nm: beautify this..
+            # todo: nm: beautify this (indexes are set in http.py)..
             base_url = self.core_element.get_impl_type_args()[0]
             method_type = self.core_element.get_impl_type_args()[1]
+            json_payload = self.core_element.get_impl_type_args()[2]
+            json_file = self.core_element.get_impl_type_args()[3]
             binding.process_http_task(
                 signature,
                 base_url,
                 method_type,
+                json_payload,
+                json_file,
                 has_target,
                 names,
                 values,
@@ -748,6 +752,8 @@ class TaskMaster(TaskCommons):
         # or content type depending if object. Otherwise update content.
         if param.is_file() or param.is_directory():
             param.file_name = arg_object
+            # todo: beautify this
+            param.extra_content_type = "FILE"
         else:
             param.content = arg_object
         return param
@@ -2010,6 +2016,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # If the parameter is a file or is future, the content is in a file
         # and we register it as file
         value = param.file_name
+        # todo: make sure it works with FO
+        con_type = "FILE"
         if value:
             typ = TYPE.FILE
         else:

@@ -40,7 +40,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'method_type', 'base_url'}
-SUPPORTED_ARGUMENTS = {'test'}
+SUPPORTED_ARGUMENTS = {'json_payload', 'json_file'}
 DEPRECATED_ARGUMENTS = set()
 
 
@@ -135,7 +135,9 @@ class HTTP(PyCOMPSsDecorator):
             logger.debug("Configuring @http core element.")
         impl_type = "HTTP"
         # todo: nm: beautify this..
-        impl_args = [self.kwargs['method_type'], self.kwargs['base_url']]
+        impl_args = [self.kwargs['method_type'], self.kwargs['base_url'],
+                     self.kwargs.get('json_payload', "#"),
+                     self.kwargs.get('json_file', "#")]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

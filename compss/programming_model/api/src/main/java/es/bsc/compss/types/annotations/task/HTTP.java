@@ -32,12 +32,27 @@ import java.lang.annotation.Target;
  */
 public @interface HTTP {
 
+    // nm: new string payload
     /**
      * Returns the method type of the Request.
      * 
      * @return the method type of the Request.
      */
     String methodType();
+
+    /**
+     * Returns the method type of the Request.
+     *
+     * @return the method type of the Request.
+     */
+    String jsonPayload() default Constants.UNASSIGNED;
+
+    /**
+     * Returns the method type of the Request.
+     *
+     * @return the method type of the Request.
+     */
+    String reproduces() default Constants.UNASSIGNED;
 
     /**
      * Returns the base URL.

@@ -19,7 +19,7 @@ public class HTTPImplementation extends Implementation {
      */
     public static HTTPImplementation generateDummy() {
         return new HTTPImplementation(null, null,
-            new ImplementationDescription<>(new HTTPDefinition("", ""), "", new HTTPResourceDescription(0)));
+            new ImplementationDescription<>(new HTTPDefinition("", "", "", ""), "", new HTTPResourceDescription(0)));
     }
 
     public HTTPImplementation() {
@@ -49,6 +49,14 @@ public class HTTPImplementation extends Implementation {
 
     public String getBaseUrl() {
         return getDescription().getDefinition().getBaseUrl();
+    }
+
+    public String getJsonPayload() {
+        return getDescription().getDefinition().getJsonPayload();
+    }
+
+    public String getProduces() {
+        return getDescription().getDefinition().getProduces();
     }
 
     @Override

@@ -795,7 +795,9 @@ def process_task(signature,             # type: str
 @emit_event(PROCESS_TASK_EVENT, master=True)
 def process_http_task(signature,             # type: str
                       method_type,           # type: str
-                      base_url,            # type: str
+                      base_url,              # type: str
+                      json_payload,          # type: str
+                      json_file,             # type: str
                       has_target,            # type: bool
                       names,                 # type: list
                       values,                # type: list
@@ -832,6 +834,8 @@ def process_http_task(signature,             # type: str
     COMPSs.process_http_task(app_id,
                              method_type,
                              base_url,
+                             json_payload,
+                             json_file,
                              signature,
                              on_failure,
                              time_out,

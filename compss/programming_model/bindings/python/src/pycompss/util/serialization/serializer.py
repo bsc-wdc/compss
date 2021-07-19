@@ -306,6 +306,10 @@ def deserialize_from_handler(handler, show_exception=True):
             ret = pyarrow.ipc.open_file(handler)
             if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
                 close_handler = False
+        elif serializer is json and IS_PYTHON3:
+            handler = open(handler.name, "r")
+            handler.seek(4)
+            ret = serializer.load(handler)
         else:
             ret = serializer.load(handler)
         # Special case: deserialized obj wraps a generator
@@ -341,6 +345,7 @@ def deserialize_from_file(file_name):
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
+    import pdb; pdb.set_trace()
     handler = open(file_name, 'rb')
     ret, close_handler = deserialize_from_handler(handler)
     if close_handler:

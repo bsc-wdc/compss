@@ -270,8 +270,8 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, String methodType, String baseurl,
-        String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
+    public int executeTask(Long appId, TaskMonitor monitor, String methodType, String baseurl, String jsonPayload,
+        String jsonFile, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
         OnFailure onFailure, int timeOut, Object... parameters);
 

@@ -401,8 +401,10 @@ def process_task(app_id,             # type: int
 
 
 def process_http_task(app_id,             # type: int
-                      method_type,          # type: str
-                      base_url,          # type: str
+                      method_type,        # type: str
+                      base_url,           # type: str
+                      json_payload,       # type: str
+                      json_file,          # type: str
                       signature,          # type: str
                       on_failure,         # type: str
                       time_out,           # type: int
@@ -455,6 +457,8 @@ def process_http_task(app_id,             # type: int
     _COMPSs.process_http_task(app_id,    # noqa
                          method_type,
                          base_url,
+                         json_payload,
+                         json_file,
                          signature,
                          on_failure,
                          time_out,

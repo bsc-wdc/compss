@@ -846,11 +846,12 @@ public class ExecutionAction extends AllocatableAction {
                 }
 
                 Object value = null;
+                String retValue = job.getReturnValue().toString();
                 if (dp.getType().equals(DataType.FILE_T)) {
                     try {
                         FileWriter file = new FileWriter(dp.getDataTarget());
                         file.write("0004");
-                        file.write(job.getReturnValue().toString());
+                        file.write(retValue);
                         file.close();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -859,16 +860,16 @@ public class ExecutionAction extends AllocatableAction {
                     Gson gson = new Gson();
                     switch (dp.getType()) {
                         case INT_T:
-                            value = gson.fromJson(job.getReturnValue().toString(), int.class);
+                            value = gson.fromJson(retValue, int.class);
                             break;
                         case LONG_T:
-                            value = gson.fromJson(job.getReturnValue().toString(), long.class);
+                            value = gson.fromJson(retValue, long.class);
                             break;
                         case OBJECT_T:
                             if (dp.getContentType().equals("int")) {
-                                value = gson.fromJson(job.getReturnValue().toString(), int.class);
+                                value = gson.fromJson(retValue, int.class);
                             } else if (dp.getContentType().equals("long")) {
-                                value = gson.fromJson(job.getReturnValue().toString(), long.class);
+                                value = gson.fromJson(retValue, long.class);
                             } else {
                                 value = null;
                             }

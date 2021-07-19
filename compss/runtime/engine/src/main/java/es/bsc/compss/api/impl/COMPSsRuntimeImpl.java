@@ -769,11 +769,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return task;
     }
 
-    // HTTP client
+    // HTTP client add payload here
     // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
     @Override
-    public int executeTask(Long appId, TaskMonitor monitor, String methodType, String baseurl,
-        String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
+    public int executeTask(Long appId, TaskMonitor monitor, String methodType, String baseurl, String jsonPayload,
+        String jsonFile, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
         OnFailure onFailure, int timeOut, Object... parameters) {
 
@@ -804,8 +804,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Register the task
-        int task = ap.newTask(app, monitor, methodType, baseurl, declareMethodFullyQualifiedName, isPrioritary,
-            isReduce, reduceChunkSize, hasTarget, numReturns, pars, onFailure, timeOut);
+        int task = ap.newTask(app, monitor, methodType, baseurl, jsonPayload, jsonFile, declareMethodFullyQualifiedName,
+            isPrioritary, isReduce, reduceChunkSize, hasTarget, numReturns, pars, onFailure, timeOut);
 
         for (Parameter p : pars) {
             if (p.getDirection().equals(Direction.IN_DELETE)) {

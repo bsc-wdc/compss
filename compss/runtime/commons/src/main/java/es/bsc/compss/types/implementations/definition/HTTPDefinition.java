@@ -15,10 +15,12 @@ public class HTTPDefinition implements ImplementationDefinition {
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 2;
+    public static final int NUM_PARAMS = 4;
 
     private String methodType;
     private String baseUrl;
+    private String jsonPayload;
+    private String produces;
 
 
     public HTTPDefinition() {
@@ -31,9 +33,11 @@ public class HTTPDefinition implements ImplementationDefinition {
      * @param methodType HTTP method type.
      * @param baseUrl HTTP bae URL .
      */
-    public HTTPDefinition(String methodType, String baseUrl) {
+    public HTTPDefinition(String methodType, String baseUrl, String jsonPayload, String produces) {
         this.methodType = methodType;
         this.baseUrl = baseUrl;
+        this.jsonPayload = jsonPayload;
+        this.produces = produces;
     }
 
     /**
@@ -45,6 +49,8 @@ public class HTTPDefinition implements ImplementationDefinition {
     public HTTPDefinition(String[] implTypeArgs, int offset) {
         this.methodType = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.baseUrl = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.jsonPayload = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.produces = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
     }
 
     public String getMethodType() {
@@ -53,6 +59,14 @@ public class HTTPDefinition implements ImplementationDefinition {
 
     public String getBaseUrl() {
         return baseUrl;
+    }
+
+    public String getJsonPayload() {
+        return jsonPayload;
+    }
+
+    public String getProduces() {
+        return produces;
     }
 
     @Override

@@ -143,9 +143,9 @@ public class Task extends AbstractTask {
      * @param onFailure OnFailure mechanisms.
      * @param timeOut Time for a task timeOut.
      */
-    public Task(Application app, String methodType, String baseUrl, String declareMethodFullyQualifiedName,
-        boolean isPrioritary, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
-        OnFailure onFailure, long timeOut) {
+    public Task(Application app, String methodType, String baseUrl, String jsonPayload, String produces,
+        String declareMethodFullyQualifiedName, boolean isPrioritary, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
         super(app);
 

@@ -294,12 +294,13 @@ public class AccessProcessor implements Runnable {
      * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
-    public int newTask(Application app, TaskMonitor monitor, String methodType, String baseUrl,
-        String declareMethodFullyQualifiedName, boolean priority, boolean isReduce, int reduceChunkSize,
-        boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure, long timeOut) {
+    public int newTask(Application app, TaskMonitor monitor, String methodType, String baseUrl, String jsonPayload,
+        String produces, String declareMethodFullyQualifiedName, boolean priority, boolean isReduce,
+        int reduceChunkSize, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
+        long timeOut) {
 
-        Task currentTask = new Task(app, methodType, baseUrl, declareMethodFullyQualifiedName, priority, hasTarget,
-            numReturns, parameters, monitor, onFailure, timeOut);
+        Task currentTask = new Task(app, methodType, baseUrl, jsonPayload, produces, declareMethodFullyQualifiedName,
+            priority, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
 
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();

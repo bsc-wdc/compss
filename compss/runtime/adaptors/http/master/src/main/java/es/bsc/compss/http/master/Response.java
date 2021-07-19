@@ -3,7 +3,7 @@ package es.bsc.compss.http.master;
 public class Response {
 
     private final int responseCode;
-    private final String responseBody;
+    private String responseBody;
 
 
     public Response(int responseCode, String responseBody) {
@@ -17,5 +17,9 @@ public class Response {
 
     public String getResponseBody() {
         return responseBody;
+    }
+
+    public void setResponseBody(String responseBody) {
+        this.responseBody = responseBody;
     }
 }

@@ -337,7 +337,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find executeTask Python");
 
     // executeTask method - Http tasks
-    midExecuteHttp = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Les/bsc/compss/api/TaskMonitor;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZIZIZZZILes/bsc/compss/types/annotations/parameter/OnFailure;I[Ljava/lang/Object;)I");
+    midExecuteHttp = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Les/bsc/compss/api/TaskMonitor;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZIZIZZZILes/bsc/compss/types/annotations/parameter/OnFailure;I[Ljava/lang/Object;)I");
     check_exception(status, "Cannot find executeTask HTTP");
 
     // barrier method
@@ -1129,7 +1129,7 @@ void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeou
 }
 
 
-void JNI_ExecuteHttpTask(long appId, char* methodType, char* baseUrl, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+void JNI_ExecuteHttpTask(long appId, char* methodType, char* baseUrl, char* jsonPayload, char* jsonFile, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
@@ -1188,6 +1188,8 @@ void JNI_ExecuteHttpTask(long appId, char* methodType, char* baseUrl, char* sign
                               NULL, // monitor
                               status->localJniEnv->NewStringUTF(methodType),
                               status->localJniEnv->NewStringUTF(baseUrl),
+                              status->localJniEnv->NewStringUTF(jsonPayload),
+                              status->localJniEnv->NewStringUTF(jsonFile),
                               status->localJniEnv->NewStringUTF(signature), // declaring method
                               _priority,
                               numNodes,

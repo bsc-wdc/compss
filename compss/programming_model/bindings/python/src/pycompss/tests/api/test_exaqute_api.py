@@ -25,49 +25,40 @@ from pycompss.util.exceptions import PyCOMPSsException
 ERROR_AMOUNTS = "ERROR: wrong number of amount_executions"
 
 
-def test_exaqute_example():
-    from exaqute.ExaquteExamples import main
-    main()
-
-
-def test_exaqute_constraints():
-    from exaqute.ExaquteExecutionConstraints import ExaquteExecutionConstraints
-    constraint = ExaquteExecutionConstraints()
-    assert constraint.nodes == 1, "ERROR: wrong number of default nodes"
-    assert constraint.cpus_per_task == 1, "ERROR: wrong number of default cpus_per_task"  # noqa: E501
-    assert constraint.amount_executions == 1, ERROR_AMOUNTS  # noqa: E501
-
-
 def test_exaqute_parameter():
-    from exaqute.ExaquteParameter import IN     # noqa
-    from exaqute.ExaquteParameter import INOUT  # noqa
+    from exaqute.local.consts import IN  # noqa
+    from exaqute.local.consts import INOUT  # noqa
+    from exaqute.local.consts import FILE_IN  # noqa
+    from exaqute.local.consts import FILE_OUT  # noqa
+    from exaqute.local.consts import FILE_INOUT  # noqa
+    from exaqute.local.consts import COLLECTION_IN  # noqa
+    from exaqute.local.consts import COLLECTION_INOUT  # noqa
+    from exaqute.local.consts import COLLECTION_OUT  # noqa
+    from exaqute.local.consts import Type  # noqa
+    from exaqute.local.consts import Depth  # noqa
+    from exaqute.local.consts import block_count  # noqa
+    from exaqute.local.consts import block_length  # noqa
+    from exaqute.local.consts import stride  # noqa
 
-    from exaqute.ExaquteParameter import FILE_IN     # noqa
-    from exaqute.ExaquteParameter import FILE_OUT    # noqa
-    from exaqute.ExaquteParameter import FILE_INOUT  # noqa
-
-    from exaqute.ExaquteParameter import COLLECTION_IN     # noqa
-    from exaqute.ExaquteParameter import COLLECTION_INOUT  # noqa
-    from exaqute.ExaquteParameter import COLLECTION_OUT    # noqa
-
-    from exaqute.ExaquteParameter import Type         # noqa
-    from exaqute.ExaquteParameter import Direction    # noqa
-    from exaqute.ExaquteParameter import StdIOStream  # noqa
-    from exaqute.ExaquteParameter import Prefix       # noqa
-    from exaqute.ExaquteParameter import Depth        # noqa
+    from exaqute.common.consts import INOUT  # noqa
+    from exaqute.common.consts import FILE_IN     # noqa
+    from exaqute.common.consts import FILE_OUT    # noqa
+    from exaqute.common.consts import FILE_INOUT  # noqa
+    from exaqute.common.consts import COLLECTION_IN     # noqa
+    from exaqute.common.consts import COLLECTION_INOUT  # noqa
+    from exaqute.common.consts import COLLECTION_OUT    # noqa
+    from exaqute.common.consts import Type         # noqa
+    from exaqute.common.consts import Depth        # noqa
+    from exaqute.common.consts import block_count  # noqa
+    from exaqute.common.consts import block_length  # noqa
+    from exaqute.common.consts import stride  # noqa
 
 
 def test_exaqute_task():
-    from exaqute.ExaquteTask import ExaquteTask
-    result = False
-    try:
-        _ = ExaquteTask()
-    except Exception:  # NOSONAR
-        # This is OK
-        result = True
-    assert result, "ERROR: Expected not implemented exception."
+    from exaqute.pycompss.decorators import Task as ExaquteTask
+    _ = ExaquteTask()
 
-    from exaqute.ExaquteTask import get_value_from_remote
+    from exaqute.local.functions import get_value_from_remote
     result = False
     try:
         get_value_from_remote(None)
@@ -76,7 +67,7 @@ def test_exaqute_task():
         result = True
     assert result, "ERROR: Expected get value not implemented exception."
 
-    from exaqute.ExaquteTask import barrier
+    from exaqute.local.functions import barrier
     result = False
     try:
         barrier()
@@ -85,7 +76,7 @@ def test_exaqute_task():
         result = True
     assert result, "ERROR: Expected barrier not implemented exception."
 
-    from exaqute.ExaquteTask import delete_object
+    from exaqute.local.functions import delete_object
     result = False
     try:
         delete_object(None)
@@ -94,78 +85,27 @@ def test_exaqute_task():
         result = True
     assert result, "ERROR: Expected delete object not implemented exception."
 
-    from exaqute.ExaquteTask import compute
-    result = False
-    try:
-        compute(None)
-    except Exception:  # NOSONAR
-        # This is OK
-        result = True
-    assert result, "ERROR: Expected compute not implemented exception."
-
 
 def test_exaqute_task_local():
-    from exaqute.ExaquteTaskLocal import ExaquteTask
+    from exaqute.local.functions import init
+    init()
+
+    from exaqute.local.decorators import Task as ExaquteTask
 
     @ExaquteTask()
     def increment(a):
         return a + 1
     result = increment(2)
-    print(result)
-    assert result == 3, "ERROR: The local decorator is not transparent."
+    print(result.value)
+    assert result.value == 3, "ERROR: The local decorator is not transparent."
 
-    from exaqute.ExaquteTaskLocal import get_value_from_remote
+    from exaqute.local.functions import get_value_from_remote
     obj = [1, 2, 3]
     result = get_value_from_remote(obj)
     assert obj == result, "ERROR: get_value_from_remote does not retrieve the same object."  # noqa: E501
 
-    from exaqute.ExaquteTaskLocal import barrier
+    from exaqute.local.functions import barrier
     barrier()
 
-    from exaqute.ExaquteTaskLocal import delete_object
+    from exaqute.local.functions import delete_object
     delete_object(obj)
-
-    from exaqute.ExaquteTaskLocal import delete_file
-    temp_file = tempfile.NamedTemporaryFile(delete=False).name
-    delete_file(temp_file)
-    assert os.path.exists(temp_file) is False, "ERROR: delete_file did not remove the file."
-
-    from exaqute.ExaquteTaskLocal import compute
-    obj = [1, 2, 3]
-    result = compute(obj)
-    assert obj == result, "ERROR: compute does not retrieve the same object."
-
-    from exaqute.ExaquteTaskLocal import Implement
-
-    @Implement()
-    def sub(v):
-        return v - 1
-    result = sub(2)
-    assert result == 1, "ERROR: The implement decorator is not transparent."
-
-    from exaqute.ExaquteTaskLocal import Constraint
-
-    @Constraint()
-    def pow(v):
-        return v * v
-
-    result = pow(2)
-    assert result == 4, "ERROR: The constraint decorator is not transparent."
-
-
-def test_exaqute_execution_characteristics():
-    from exaqute.ExecutionCharacteristics import ExecutionCharacteristics
-    ec = ExecutionCharacteristics(1, 2, 3, 4, 5)
-    assert ec.generation_nodes == 1, "ERROR: wrong number of generation_nodes"
-    assert ec.generation_cpus_per_node == 2, "ERROR: wrong number of generation_cpus_per_node"
-    assert ec.run_nodes == 3, "ERROR: wrong number of run_nodes"
-    assert ec.run_cpus_per_node == 4, "ERROR: wrong number of run_cpus_per_node"
-    assert ec.amount_executions == 5, ERROR_AMOUNTS
-
-
-def test_exaqute_execution_constraints():
-    from exaqute.ExecutionConstraints import ExecutionConstraints
-    constraint = ExecutionConstraints()
-    assert constraint.nodes == 1, "ERROR: wrong number of default nodes"
-    assert constraint.cpus_per_task == 1, "ERROR: wrong number of default cpus_per_task"  # noqa: E501
-    assert constraint.amount_executions == 1, ERROR_AMOUNTS  # noqa: E501

@@ -254,14 +254,18 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     if __debug__:
         logger.debug(HEADER + "Retrieving: " + str(identifier))
     obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
+    size = 0
     if shared_type == SHARED_MEMORY_TAG:
         existing_shm = SharedMemory(name=obj_id)
+        size = len(existing_shm.buf)
         output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)    # noqa: E501
     elif shared_type == SHAREABLE_LIST_TAG:
         existing_shm = ShareableList(name=obj_id)
+        size = len(existing_shm.shm.buf)
         output = list(existing_shm)
     elif shared_type == SHAREABLE_TUPLE_TAG:
         existing_shm = ShareableList(name=obj_id)
+        size = len(existing_shm.shm.buf)
         output = tuple(existing_shm)
     # Currently unsupported since conversion requires lists of lists.
     # elif shared_type == SHAREABLE_DICT_TAG:
@@ -271,7 +275,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
         raise PyCOMPSsException("Unknown cacheable type.")
     if __debug__:
         logger.debug(HEADER + "Retrieved: " + str(identifier))
-    emit_manual_event_explicit(TASK_EVENTS_DESERIALIZE_SIZE_CACHE, len(existing_shm.buf))
+    emit_manual_event_explicit(TASK_EVENTS_DESERIALIZE_SIZE_CACHE, size)
     cache_ids[identifier][4] = obj_hits + 1
     return output, existing_shm
 

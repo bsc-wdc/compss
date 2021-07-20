@@ -160,6 +160,7 @@ def evaluate_worker(worker, name, pipes, files, current_path,
     temp_folder, executor_outbound, executor_inbound, control_worker_outbound, control_worker_inbound = files  # noqa: E501
     print("Starting " + name + " worker")
     worker.start()
+    print("Temp folder: " + temp_folder)
     # Wait 2 seconds to start the worker.
     print("Waiting 2 seconds to send a task request")
     time.sleep(2)
@@ -261,8 +262,8 @@ def evaluate_worker(worker, name, pipes, files, current_path,
         if os.path.isfile(pipe):
             os.remove(pipe)
     # Check logs
-    out_log = "binding_worker.out"
-    err_log = "binding_worker.err"
+    out_log = os.path.join(temp_folder, "binding_worker.out")
+    err_log = os.path.join(temp_folder, "binding_worker.err")
     if os.path.exists(err_log):
         raise PyCOMPSsException(ERROR_MESSAGE + err_log)
     with open(out_log, "r") as f:
@@ -322,7 +323,7 @@ def check_task(job_out, job_err):
             raise PyCOMPSsException(
                 "An exception happened in the task. Please check " + job_out
             )  # noqa
-        if "End task execution. Status: Ok" not in content:
+        if "END TASK execution. Status: Ok" not in content:
             raise PyCOMPSsException(
                 "The task was supposed to be OK. Please check " + job_out
             )  # noqa

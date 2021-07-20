@@ -157,7 +157,7 @@ def check_task(job_out, job_err):
             raise PyCOMPSsException(
                 "An exception happened in the task. Please check " + job_out
             )
-        if "End task execution. Status: Ok" not in content:
+        if "END TASK execution. Status: Ok" not in content:
             raise PyCOMPSsException(
                 "The task was supposed to be OK. Please check " + job_out
             )

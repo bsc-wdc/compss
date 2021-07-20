@@ -32,9 +32,6 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 
 CONFIG_FUNC = config.dictConfig
-# Placeholder for the logger of a task executed as worker, but eventually
-# saved for the nested tasks invoked:
-SAVED_LOGGER = None
 # Keep configs to avoid read the cfg many times
 CONFIGS = dict()
 
@@ -59,6 +56,15 @@ def get_logging_cfg_file(log_level):
         return logging_cfg_file
     else:
         raise PyCOMPSsException("Unsupported logging level.")
+
+
+def clean_log_configs():
+    # type: () -> None
+    """ Removes all stored log configurations.
+
+    :return: None
+    """
+    CONFIGS.clear()
 
 
 def __read_log_config_file__(log_config_file):

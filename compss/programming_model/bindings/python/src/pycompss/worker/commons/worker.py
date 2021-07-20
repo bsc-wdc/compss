@@ -393,7 +393,7 @@ def task_execution(logger,              # type: ...
 
     if persistent_storage:
         task_context.values = updated_args
-        task_context.__exit__()  # noqa
+        task_context.__exit__(*sys.exc_info())  # noqa
         del task_context
 
     return task_returns(0, new_types, new_values, target_direction,

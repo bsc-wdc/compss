@@ -53,6 +53,7 @@ from pycompss.util.environment.configuration import check_infrastructure_variabl
 from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
+from pycompss.util.logger.helpers import clean_log_configs
 from pycompss.util.warnings.modules import show_optional_module_warnings
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
@@ -323,6 +324,7 @@ def compss_main():
     finally:
         # Stop runtime
         stop_all(exit_code)
+        clean_log_configs()
     # --- Execution finished ---
 
 
@@ -547,8 +549,11 @@ def launch_pycompss_application(app,
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
 
-    logger.debug("Starting storage")
-    persistent_storage = master_init_storage(all_vars["storage_conf"], logger)
+    if storage_impl and storage_conf:
+        logger.debug("Starting storage")
+        persistent_storage = master_init_storage(all_vars["storage_conf"], logger)
+    else:
+        persistent_storage = False
 
     logger.debug("Starting streaming")
     streaming = init_streaming(all_vars["streaming_backend"],
@@ -596,6 +601,7 @@ def launch_pycompss_application(app,
 
     # Stop runtime
     compss_stop()
+    clean_log_configs()
 
     return result
 

@@ -116,10 +116,10 @@ registry, and it may take a while.
     pycompss init -w /home/user/replace/path/
 
     # Or the COMPSs docker image to use
-    pycompss init -i compss/compss-tutorial:2.8
+    pycompss init -i compss/compss:2.9
 
     # Or both
-    pycompss init -w /home/user/replace/path/ -i compss/compss-tutorial:2.8
+    pycompss init -w /home/user/replace/path/ -i compss/compss:2.9
 
 Running applications
 ^^^^^^^^^^^^^^^^^^^^

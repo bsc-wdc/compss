@@ -283,7 +283,7 @@ fi
 echo  "main method properly started" > >(tee -a "${output_log}")
 sleep 2
 
-${COMPSS_HOME}/Runtime/scripts/system/trace/mergeTraceAgents.sh \
+compss_agent_merge_traces \
     --result_trace_name="${app_name}" \
     -f \
     --output_dir="${log_dir}/resultatTraceMerge" \

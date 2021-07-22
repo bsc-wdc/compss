@@ -17,7 +17,7 @@ if [ "${cmd}" == "init" ]; then
 
 elif [ "${cmd}" == "update" ]; then
     echo "Updating docker image"
-    docker_image="compss/compss:2.8"
+    docker_image="compss/compss:latest"
     if [ -n "${COMPSS_DOCKER_IMAGE}" ]; then
         echo "Found COMPSS_DOCKER_IMAGE environment variable: '$COMPSS_DOCKER_IMAGE'. Updating.";
         docker_image=$COMPSS_DOCKER_IMAGE

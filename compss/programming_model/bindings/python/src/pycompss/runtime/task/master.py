@@ -699,6 +699,10 @@ class TaskMaster(TaskCommons):
         if param.is_object():
             param.content_type = get_compss_type(arg_object)
 
+        # Set if the object is really a future.
+        if isinstance(arg_object, Future):
+            param.is_future = True
+
         # If the parameter is a DIRECTORY or FILE update the file_name
         # or content type depending if object. Otherwise update content.
         if param.is_file() or param.is_directory():
@@ -1450,7 +1454,7 @@ class TaskMaster(TaskCommons):
                         foe = v.content()
                     except TypeError:
                         logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
-                            str(v["Value"]))
+                                       str(v["Value"]))
                         foe = Future()
                 else:
                     foe = Future()  # modules, functions, methods

@@ -24,11 +24,20 @@ public class StartWorkerPipeCommand extends StartWorkerExternalCommand implement
 
     private final ControlPipePair pipe;
     private final String launchWorkerCommand;
+    private final String logDir;
 
 
-    public StartWorkerPipeCommand(String launchWorkerCommand, ControlPipePair pipe) {
+    /**
+     * Creates a new StartWorkerPipeCommand instance.
+     * 
+     * @param launchWorkerCommand Command to launch the worker.
+     * @param pipe Pair of pipes (control and result).
+     * @param logDir Path where the logs are stored.
+     */
+    public StartWorkerPipeCommand(String launchWorkerCommand, ControlPipePair pipe, String logDir) {
         this.pipe = pipe;
         this.launchWorkerCommand = launchWorkerCommand;
+        this.logDir = logDir;
     }
 
     @Override
@@ -37,6 +46,7 @@ public class StartWorkerPipeCommand extends StartWorkerExternalCommand implement
         sb.append(TOKEN_SEP);
         sb.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
         sb.append(pipe.getInboundPipe()).append(TOKEN_SEP);
+        sb.append(this.logDir).append(TOKEN_SEP);
         sb.append(launchWorkerCommand);
         return sb.toString();
     }

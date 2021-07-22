@@ -8,12 +8,18 @@ import shutil
 import docker
 from uuid import uuid4
 from docker.types import Mount
+from docker.errors import DockerException
 
 # ################ #
 # GLOBAL VARIABLES #
 # ################ #
 
-client = docker.from_env()
+try:
+    client = docker.from_env()
+except DockerException:
+    print("ERROR: Docker service is not running", file=sys.stderr)
+    print("       Please, start docker service and try again", file=sys.stderr)
+    exit(1)
 api_client = docker.APIClient(base_url='unix://var/run/docker.sock')
 master_name = 'pycompss-master'
 worker_name = 'pycompss-worker'
@@ -43,7 +49,7 @@ elif len(client.containers.list(filters={'name': master_name})) > 0:
     image_name = master.image.attrs['RepoTags'][0]
 else:
     # Otherwise, fallback to default COMPSs image
-    image_name = 'compss/compss:2.8'  # Update when releasing new version
+    image_name = 'compss/compss:2.9'  # Update when releasing new version
 
 
 # ############# #

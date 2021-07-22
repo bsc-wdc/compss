@@ -104,9 +104,8 @@ def compss_persistent_worker(config):
 
     persistent_storage = (config.storage_conf != 'null')
 
-    logger, storage_loggers = load_loggers(config.debug,
-                                           persistent_storage,
-                                           config.tracing)
+    logger, logger_cfg, storage_loggers = load_loggers(config.debug,
+                                                       persistent_storage)
 
     if __debug__:
         logger.debug(HEADER + "piper_worker.py wake up")
@@ -137,6 +136,7 @@ def compss_persistent_worker(config):
     conf = ExecutorConf(TRACING,
                         config.storage_conf,
                         logger,
+                        logger_cfg,
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,

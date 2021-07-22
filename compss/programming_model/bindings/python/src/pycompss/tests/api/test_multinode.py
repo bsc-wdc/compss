@@ -93,8 +93,6 @@ def test_multinode_call_worker_with_slurm():
     os.environ["SLURM_NNODES"] = "2"
     os.environ["SLURM_NODELIST"] = "hostname1,hostname2"
     os.environ["SLURM_TASKS_PER_NODE"] = "2"
-    os.environ["SLURM_MEM_PER_NODE"] = "2"
-    os.environ["SLURM_MEM_PER_CPU"] = "2"
     # call
     my_multinode = MultiNode()
     f = my_multinode(dummy_function)
@@ -107,8 +105,6 @@ def test_multinode_call_worker_with_slurm():
     del os.environ["SLURM_NNODES"]
     del os.environ["SLURM_NODELIST"]
     del os.environ["SLURM_TASKS_PER_NODE"]
-    del os.environ["SLURM_MEM_PER_NODE"]
-    del os.environ["SLURM_MEM_PER_CPU"]
     # Check result
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert result == 1, ERROR_EXPECTED_1

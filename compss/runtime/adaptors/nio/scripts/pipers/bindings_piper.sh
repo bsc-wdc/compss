@@ -15,7 +15,8 @@ get_args() {
     # Get Control pipes
     controlCMDpipe=$1
     controlRESULTpipe=$2
-    shift 2
+    controlLogPath=$3
+    shift 3
 
     # Get CMD pipes
     CMDpipes=()
@@ -166,7 +167,7 @@ process_pipe_commands() {
                 touch "${worker_log_dir}/binding_worker.err"
 
                 # Build workerCMD
-                workerCMD=$(echo "${line}" | cut -d' ' -f3-)
+                workerCMD=$(echo "${line}" | cut -d' ' -f4-)
 
                 if [ "$binding" == "PYTHON" ] && [ "$mpiWorker" == "true" ]; then
                     # delimiter example: "python -u"
@@ -239,7 +240,7 @@ process_pipe_commands() {
                 # INVOKE WORKER
                 echo "[BINDINGS PIPER] Executing command: ${workerCMD}"
                 # shellcheck disable=SC2086
-                eval ${workerCMD} </dev/null 3>/dev/null &
+                eval ${workerCMD} </dev/null 4>/dev/null &
                 bindingPID=$!
 
                 # Disable EXTRAE automatic library initialisation (just in case)
@@ -299,8 +300,7 @@ main() {
     create_pipe "$controlRESULTpipe"
 
     # Take control pipe path for creating the binding log path
-    tmpFiles_dir=$(dirname "${controlCMDpipe}")
-    worker_log_dir="${tmpFiles_dir}/log"
+    worker_log_dir="${controlLogPath}"
 
     # Clean and Create CMD Pipes
     for i in "${CMDpipes[@]}"; do

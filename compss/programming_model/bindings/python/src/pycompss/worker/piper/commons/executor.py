@@ -156,11 +156,13 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    __slots__ = ['tracing', 'storage_conf', 'logger', 'storage_loggers',
+    __slots__ = ['tracing', 'storage_conf', 'logger', 'logger_cfg',
+                 'storage_loggers',
                  'stream_backend', 'stream_master_ip', 'stream_master_port',
                  'cache_ids', 'cache_queue']
 
-    def __init__(self, tracing, storage_conf, logger, storage_loggers,
+    def __init__(self, tracing, storage_conf, logger, logger_cfg,
+                 storage_loggers,
                  stream_backend, stream_master_ip, stream_master_port,
                  cache_ids=None, cache_queue=None):
         """
@@ -169,6 +171,7 @@ class ExecutorConf(object):
         :param tracing: Enable tracing for the executor.
         :param storage_conf: Storage configuration file.
         :param logger: Main logger.
+        :param logger_cfg: Logger configuration file.
         :param storage_loggers: List of supported storage loggers
                                 (empty if running w/o storage).
         :param stream_backend: Streaming backend type.
@@ -181,6 +184,7 @@ class ExecutorConf(object):
         self.tracing = tracing
         self.storage_conf = storage_conf
         self.logger = logger
+        self.logger_cfg = logger_cfg
         self.storage_loggers = storage_loggers
         self.stream_backend = stream_backend
         self.stream_master_ip = stream_master_ip
@@ -277,7 +281,9 @@ def executor(queue, process_name, pipe, conf):
             command = pipe.read_command(retry_period=0.5)
             if command != "":
                 if __debug__:
-                    logger.debug(HEADER + "Received %s" % command)
+                    logger.debug(HEADER + "[%s] Received command %s" % (
+                        str(process_name),
+                        str(command)))
                 # Process the command
                 alive = process_message(command,
                                         process_name,
@@ -285,6 +291,7 @@ def executor(queue, process_name, pipe, conf):
                                         queue,
                                         tracing,
                                         logger,
+                                        conf.logger_cfg,
                                         logger_handlers,
                                         logger_level,
                                         logger_formatter,
@@ -329,6 +336,7 @@ def process_message(current_line,              # type: str
                     queue,                     # type: ...
                     tracing,                   # type: bool
                     logger,                    # type: ...
+                    logger_cfg,                # type: str
                     logger_handlers,           # type: list
                     logger_level,              # type: int
                     logger_formatter,          # type: ...
@@ -347,6 +355,7 @@ def process_message(current_line,              # type: str
     :param queue: Queue where to drop the process exceptions
     :param tracing: Tracing
     :param logger: Logger
+    :param logger_cfg: Logger configuration file
     :param logger_handlers: Logger handlers
     :param logger_level: Logger level
     :param logger_formatter: Logger formatter
@@ -358,7 +367,7 @@ def process_message(current_line,              # type: str
     :return: <Boolean> True if processed successfully, False otherwise.
     """
     if __debug__:
-        logger.debug(HEADER + "[%s] Received message: %s" %
+        logger.debug(HEADER + "[%s] Processing message: %s" %
                      (str(process_name), str(current_line)))
 
     current_line = current_line.split()
@@ -370,6 +379,7 @@ def process_message(current_line,              # type: str
                             queue,
                             tracing,
                             logger,
+                            logger_cfg,
                             logger_handlers,
                             logger_level,
                             logger_formatter,
@@ -398,6 +408,7 @@ def process_task(current_line,              # type: list
                  queue,                     # type: ...
                  tracing,                   # type: bool
                  logger,                    # type: ...
+                 logger_cfg,                # type: str
                  logger_handlers,           # type: list
                  logger_level,              # type: int
                  logger_formatter,          # type: ...
@@ -416,6 +427,7 @@ def process_task(current_line,              # type: list
     :param queue: Queue where to drop the process exceptions.
     :param tracing: Tracing.
     :param logger: Logger.
+    :param logger_cfg: Logger configuration file
     :param logger_handlers: Logger handlers.
     :param logger_level: Logger level.
     :param logger_formatter: Logger formatter.
@@ -466,6 +478,7 @@ def process_task(current_line,              # type: list
     #       !---> type, stream, prefix , value
 
     if __debug__:
+        # Worker log
         logger.debug(HEADER + "[%s] Received task with id: %s" %
                      (str(process_name), str(job_id)))
         logger.debug(HEADER + "[%s] - TASK CMD: %s" %
@@ -491,8 +504,10 @@ def process_task(current_line,              # type: list
         storage_logger.addHandler(err_file_handler)
 
     if __debug__:
+        # From now onwards the log is in the job out and err files
+        logger.debug("-" * 100)
         logger.debug("Received task in process: %s" % str(process_name))
-        logger.debug(" - TASK CMD: %s" % str(current_line))
+        logger.debug("TASK CMD: %s" % str(current_line))
 
     try:
         # Check thread affinity
@@ -524,6 +539,7 @@ def process_task(current_line,              # type: list
                               current_line[9:],
                               tracing,
                               logger,
+                              logger_cfg,
                               (job_out, job_err),
                               False,
                               None,
@@ -601,14 +617,19 @@ def process_task(current_line,              # type: list
     # Restore loggers
     if __debug__:
         logger.debug("Restoring loggers.")
+        logger.debug("-" * 100)
+        # No more logs in job out and err files
+    # Restore worker log
     logger.removeHandler(out_file_handler)
     logger.removeHandler(err_file_handler)
+    logger.handlers = []
     for handler in logger_handlers:
         logger.addHandler(handler)
     i = 0
     for storage_logger in storage_loggers:
         storage_logger.removeHandler(out_file_handler)
         storage_logger.removeHandler(err_file_handler)
+        storage_logger.handlers = []
         for handler in storage_loggers_handlers[i]:
             storage_logger.addHandler(handler)
         i += 1
@@ -655,7 +676,7 @@ def process_quit(logger, process_name):  # noqa
     :return: Always false.
     """
     if __debug__:
-        logger.debug(HEADER + "[%s] Received quit." % str(process_name))
+        logger.debug(HEADER + "[%s] Quitting." % str(process_name))
     # Close last cpu and gpu affinity events
     emit_manual_event(0, inside=True, cpu_affinity=True)
     emit_manual_event(0, inside=True, gpu_affinity=True)

@@ -1168,6 +1168,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
+    public String getLogDir() {
+        return LoggerManager.getAppLogDirPath();
+    }
+
+    @Override
     public COMPSsConstants.TaskExecution getExecutionType() {
         return this.executionType;
     }

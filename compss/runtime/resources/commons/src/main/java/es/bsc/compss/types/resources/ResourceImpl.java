@@ -632,8 +632,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         wdil.addOperation();
         String outFileNameOriginal = "binding_worker.out";
         String outFileName = "binding_worker_" + getName() + ".out";
-        SimpleURI outFileOrigin =
-            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + outFileNameOriginal);
+        SimpleURI outFileOrigin = this.node.getCompletePath(DataType.FILE_T, outFileNameOriginal);
         String outFileTarget =
             ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + outFileName;
 
@@ -662,8 +661,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         wdil.addOperation();
         String errFileNameOriginal = "binding_worker.err";
         String errFileName = "binding_worker_" + getName() + ".err";
-        SimpleURI errFileOrigin =
-            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + errFileNameOriginal);
+        SimpleURI errFileOrigin = this.node.getCompletePath(DataType.FILE_T, errFileNameOriginal);
         String errFileTarget =
             ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + errFileName;
 

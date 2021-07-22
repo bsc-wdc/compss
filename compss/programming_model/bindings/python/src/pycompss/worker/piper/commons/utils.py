@@ -27,7 +27,8 @@ import os
 import logging
 from pycompss.runtime.commons import range
 from pycompss.runtime.commons import set_temporary_directory
-from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.runtime.commons import get_temporary_directory
+from pycompss.util.logger.helpers import init_logging_worker_piper
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
 import pycompss.util.context as context
@@ -110,15 +111,14 @@ class PiperWorkerConfiguration(object):
         logger.debug(HEADER + "-----------------------------")
 
 
-def load_loggers(debug, persistent_storage, tracing):
-    # type: (bool, str, bool) -> (..., ...)
+def load_loggers(debug, persistent_storage):
+    # type: (bool, str) -> (..., str, ...)
     """ Load all loggers.
 
     :param debug: is Debug enabled.
     :param persistent_storage: is persistent storage enabled.
-    :param tracing: if tracing is enabled.
-    :return: main logger of the application and a list of loggers for the
-             persistent data framework.
+    :return: main logger of the application, the log config file (json) and
+             a list of loggers for the persistent data framework.
     """
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
@@ -132,7 +132,18 @@ def load_loggers(debug, persistent_storage, tracing):
     else:
         # Default
         log_json = "/".join((log_cfg_path, 'logging_worker_off.json'))
-    init_logging_worker(log_json, tracing)
+    log_dir = get_temporary_directory()
+    # log_dir is of the form:
+    #    With agents or worker in master: /path/to/working_directory/tmpFiles/pycompssID/
+    #    Normal master-worker execution : /path/to/working_directory/machine_name/pycompssID/
+    # With normal master-worker execution, it transfers the err and out files in the
+    # expected folder to the master.
+    # With agents or worker in master it does not, so keep it in previous two folders:
+    if context.is_nesting_enabled() or "tmpFiles" in log_dir:
+        log_dir = os.path.join(log_dir, "..", "..")
+    else:
+        log_dir = os.path.join(log_dir, "..")
+    init_logging_worker_piper(log_json, log_dir)
 
     # Define logger facilities
     logger = logging.getLogger('pycompss.worker.piper.piper_worker')
@@ -142,4 +153,4 @@ def load_loggers(debug, persistent_storage, tracing):
         storage_loggers.append(logging.getLogger('hecuba'))
         storage_loggers.append(logging.getLogger('redis'))
         storage_loggers.append(logging.getLogger('storage'))
-    return logger, storage_loggers
+    return logger, log_json, storage_loggers

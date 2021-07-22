@@ -56,14 +56,15 @@ else:
 # sys.dont_write_bytecode = True
 
 
-def compss_worker(tracing, task_id, storage_conf, params):
-    # type: (bool, str, str, list) -> str
+def compss_worker(tracing, task_id, storage_conf, params, log_json):
+    # type: (bool, str, str, list, str) -> str
     """ Worker main method (invoked from __main__).
 
     :param tracing: Tracing boolean
     :param task_id: Task identifier
     :param storage_conf: Storage configuration file
     :param params: Parameters following the common order of the workers
+    :param log_json: Logger configuration file.
     :return: Exit code
     """
 
@@ -80,6 +81,7 @@ def compss_worker(tracing, task_id, storage_conf, params):
                           params,
                           tracing,
                           logger,
+                          log_json,
                           (),
                           False)
     # Result contains:
@@ -166,7 +168,11 @@ def main():
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
-        exit_code = compss_worker(tracing, str(task_id), storage_conf, params)
+        exit_code = compss_worker(tracing,
+                                  str(task_id),
+                                  storage_conf,
+                                  params,
+                                  log_json)
 
         if streaming:
             # Finish streaming

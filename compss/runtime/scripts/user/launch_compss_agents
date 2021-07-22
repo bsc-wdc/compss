@@ -1299,8 +1299,8 @@ merge_agents_traces() {
   fi
   trace_name="${trace_name}${trace_label}"
 
-  echo "${COMPSS_HOME}/Runtime/scripts/system/trace/mergeTraceAgents.sh" "-f" "--result_trace_name=${trace_name}" "--output_dir=${trace_dir}" "${master_node}" ${worker_nodes}
-  "${COMPSS_HOME}/Runtime/scripts/system/trace/mergeTraceAgents.sh" "-f" "--result_trace_name=${trace_name}" "--output_dir=${trace_dir}" "${master_node}" ${worker_nodes}
+  echo "compss_agent_merge_traces" "-f" "--result_trace_name=${trace_name}" "--output_dir=${trace_dir}" "${master_node}" ${worker_nodes}
+  "compss_agent_merge_traces" "-f" "--result_trace_name=${trace_name}" "--output_dir=${trace_dir}" "${master_node}" ${worker_nodes}
 
   popd 1>/dev/null 2>/dev/null
   

@@ -168,4 +168,3 @@ def __create_proxy_dict__():
     manager = new_manager()
     cache_ids = manager.dict()  # type: typing.Any
     return cache_ids
-

@@ -28,7 +28,6 @@ import time
 import uuid
 import typing
 
-from pycompss.runtime.commons import range
 from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.exceptions import PyCOMPSsException
 

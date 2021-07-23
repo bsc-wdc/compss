@@ -573,6 +573,7 @@ def execute_task(process_name,              # type: str
     if __debug__:
         logger.debug("COMPSs parameters:")
         logger.debug("\t- Storage conf: %s" % str(storage_conf))
+        logger.debug("\t- Logger cfg: %s" % str(logger_cfg))
         if log_files:
             logger.debug("\t- Log out file: %s" % str(log_files[0]))
             logger.debug("\t- Log err file: %s" % str(log_files[1]))

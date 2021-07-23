@@ -588,6 +588,7 @@ def process_task(current_line,              # type: list
                                   current_line[9:],
                                   tracing,
                                   logger,
+                                  logger_cfg,
                                   (job_out, job_err),
                                   False,
                                   None,

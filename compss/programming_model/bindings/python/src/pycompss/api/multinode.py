@@ -215,7 +215,7 @@ def reset_slurm_environment(old_slurm_env=None):
     :return: None
     """
     if old_slurm_env:
-        for key, value in old_slurm_env:
+        for key, value in old_slurm_env.items():
             os.environ[key] = value
 
 

@@ -21,7 +21,7 @@
 def test_elapsed_time():
     from pycompss.functions.elapsed_time import timeit
 
-    @timeit
+    @timeit()
     def increment(value):
         import time
 

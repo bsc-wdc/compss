@@ -665,9 +665,10 @@ def execute_task(process_name,              # type: str
             lines = traceback.format_exception(exc_type,
                                                exc_value,
                                                exc_traceback)
-            logger.exception("EXCEPTION IMPORTING MODULE IN %s" % process_name)
-            logger.exception(''.join(line for line in lines))
-            return 1, [], [], False, None, []
+            exception_message = "EXCEPTION IMPORTING MODULE IN %s\n" % process_name
+            exception_message += ''.join(line for line in lines)
+            logger.exception(exception_message)
+            return 1, [], [], False, exception_message
 
         if __debug__:
             logger.debug("Method in class %s of module %s" % (class_name,

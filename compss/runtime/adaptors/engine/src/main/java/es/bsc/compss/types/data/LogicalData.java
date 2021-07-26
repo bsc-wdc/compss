@@ -32,7 +32,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileDeleter;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.TraceEvent;
@@ -249,9 +249,9 @@ public class LogicalData {
                     if (uri != null) {
                         File f = new File(uri.getPath());
                         if (asynch) {
-                            FileDeleter.deleteAsync(f);
+                            FileOpsManager.deleteAsync(f);
                         } else {
-                            FileDeleter.deleteSync(f);
+                            FileOpsManager.deleteSync(f);
                         }
                     }
                 }

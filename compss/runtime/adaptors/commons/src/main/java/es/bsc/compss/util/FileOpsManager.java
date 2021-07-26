@@ -33,7 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class FileDeleter {
+public class FileOpsManager {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final ExecutorService DELETE_SERVICE;

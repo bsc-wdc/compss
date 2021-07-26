@@ -36,7 +36,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
-import es.bsc.compss.util.FileDeleter;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -257,7 +257,7 @@ public class DataManagerImpl implements DataManager {
         // }
         // }
         fileOpsExecutor.shutdown();
-        FileDeleter.shutdown();
+        FileOpsManager.shutdown();
     }
 
     @Override
@@ -269,7 +269,7 @@ public class DataManagerImpl implements DataManager {
                 }
                 final File f = new File(name);
                 /*
-                 * if (name.startsWith(File.separator)) { FileDeleter.deleteAsync(f); }
+                 * if (name.startsWith(File.separator)) { FileOpsManager.deleteAsync(f); }
                  */
                 String dataName = f.getName();
                 DataRegister register = null;

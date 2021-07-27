@@ -417,13 +417,13 @@ class TaskMaster(TaskCommons):
             base_url = self.core_element.get_impl_type_args()[0]
             method_type = self.core_element.get_impl_type_args()[1]
             json_payload = self.core_element.get_impl_type_args()[2]
-            json_file = self.core_element.get_impl_type_args()[3]
+            reproduces = self.core_element.get_impl_type_args()[3]
             binding.process_http_task(
                 signature,
                 base_url,
                 method_type,
                 json_payload,
-                json_file,
+                reproduces,
                 has_target,
                 names,
                 values,

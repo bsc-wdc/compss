@@ -17,6 +17,8 @@
 package es.bsc.compss.types.allocatableactions;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
@@ -76,6 +78,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 
 public class ExecutionAction extends AllocatableAction {
@@ -826,7 +829,7 @@ public class ExecutionAction extends AllocatableAction {
 
         // Search for the return object
         List<Parameter> params = job.getTaskParams().getParameters();
-        for (int i = params.size() - 1; i >= 0; --i) {
+        for (int i = 0; i < params.size(); ++i) {
             Parameter p = params.get(i);
             if (p instanceof DependencyParameter) {
                 // Check parameter direction
@@ -844,20 +847,22 @@ public class ExecutionAction extends AllocatableAction {
                         dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                         break;
                 }
-
                 Object value = null;
-                String retValue = job.getReturnValue().toString();
+                JsonObject retValue = (JsonObject) job.getReturnValue();
                 if (dp.getType().equals(DataType.FILE_T)) {
+                    value = retValue.get(p.getName()).toString();
                     try {
                         FileWriter file = new FileWriter(dp.getDataTarget());
                         file.write("0004");
-                        file.write(retValue);
+                        file.write(value.toString());
                         file.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 } else {
+                    // it's a Java HTTP task, can have only single value of a primitive type
                     Gson gson = new Gson();
+                    retValue = retValue.getAsJsonObject("$return_0");
                     switch (dp.getType()) {
                         case INT_T:
                             value = gson.fromJson(retValue, int.class);
@@ -882,8 +887,10 @@ public class ExecutionAction extends AllocatableAction {
                 Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
                 String dataName = getOuputRename(p);
                 storeOutputParameter(job, w, dataName, dp);
+                monitor.valueGenerated(i, p.getName(), p.getType(), dataName, dp.getDataTarget());
 
                 // Parameter found, store it
+                // todo: fix this
                 String name = dId.getRenaming();
                 if (value == null) {
                     value = job.getReturnValue();
@@ -900,8 +907,6 @@ public class ExecutionAction extends AllocatableAction {
                     }
                 }
 
-                // If we reach this point the return value has been registered, we can end
-                return;
             }
         }
     }

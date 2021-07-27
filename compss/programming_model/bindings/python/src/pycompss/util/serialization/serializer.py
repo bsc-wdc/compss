@@ -345,7 +345,6 @@ def deserialize_from_file(file_name):
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
-    import pdb; pdb.set_trace()
     handler = open(file_name, 'rb')
     ret, close_handler = deserialize_from_handler(handler)
     if close_handler:

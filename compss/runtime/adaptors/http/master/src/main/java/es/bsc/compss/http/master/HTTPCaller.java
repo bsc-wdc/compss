@@ -1,9 +1,9 @@
 package es.bsc.compss.http.master;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
@@ -62,6 +62,13 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 LOGGER.debug("Executing HTTP Request...");
 
                 Response httpResponse = performHttpRequest(namedParameters, httpImplementation);
+
+                // todo: beautify this
+                if (httpImplementation.getProduces() != null
+                    && !httpImplementation.getProduces().equals(Constants.UNASSIGNED)
+                    && !httpImplementation.getProduces().equals("#")) {
+                    formatResponse(httpResponse, httpImplementation.getProduces());
+                }
                 processResponse(job, httpResponse);
 
             } catch (Exception e) {
@@ -71,6 +78,62 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 LOGGER.error(SUBMIT_ERROR, e);
             }
         }
+    }
+
+    private void extractPaths(JsonObject jsonObj, Map<Object, String> map, String previousPath) {
+        for (Object key : jsonObj.keySet()) {
+            String keyStr = (String) key;
+            Object keyValue = jsonObj.get(keyStr);
+            String path = "";
+
+            if (keyValue instanceof JsonObject) {
+                path = previousPath + "," + keyStr;
+                extractPaths((JsonObject) keyValue, map, path);
+            } else {
+                map.put(keyValue, previousPath + "," + keyStr);
+            }
+        }
+    }
+
+    private void formatResponse(Response response, String produces) {
+
+        JsonElement element = JsonParser.parseString(produces);
+        JsonObject obj = element.getAsJsonObject();
+        Map<Object, String> paths = new HashMap();
+
+        extractPaths(obj, paths, "");
+
+        JsonElement bodyJsonElement = JsonParser.parseString(response.getResponseBody().toString());
+        JsonObject bodyJsonObject = bodyJsonElement.getAsJsonObject();
+
+        JsonObject newBody = new JsonObject();
+
+        for (Object key : paths.keySet()) {
+            String keyString = paths.get(key).replaceFirst(",", "");
+            newBody.add(((JsonPrimitive) key).getAsString(), extractValueFromJSON(bodyJsonObject, keyString));
+        }
+
+        response.setResponseBody(newBody);
+    }
+
+    private JsonElement extractValueFromJSON(JsonObject json, String keyString) {
+        String[] keys = keyString.split(",");
+        for (int i = 0; i < keys.length - 1; i++) {
+            json = json.getAsJsonObject(keys[0]);
+        }
+        return json.get(keys[keys.length - 1]);
+    }
+
+    private String[] extractKeys(String produces) {
+        // todo: beautify this
+        String[] keys = produces.replaceAll("#", "").split(",");
+        for (int i = 0; i < keys.length; i++) {
+            String tmp = keys[i].trim();
+            tmp = tmp.replaceAll(URL_PARAMETER_OPEN_TOKEN, "");
+            tmp = tmp.replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
+            keys[i] = tmp;
+        }
+        return keys;
     }
 
     private void processResponse(HTTPJob job, final Response response) {

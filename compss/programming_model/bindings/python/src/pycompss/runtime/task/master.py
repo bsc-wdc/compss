@@ -1229,10 +1229,12 @@ class TaskMaster(TaskCommons):
                                   direction=ret_dir)
         else:
             ret_type = TYPE.OBJECT
-            self.returns = {get_return_name(i): Parameter(content=None,
-                                                          content_type=ret_type,  # noqa: E501
-                                                          direction=ret_dir)
-                            for i in range(to_return)}
+            for i in range(to_return):
+                self.returns[get_return_name(i)] = \
+                    Parameter(content=None,
+                              content_type=ret_type,
+                              direction=ret_dir)
+
         # Hopefully, an exception have been thrown if some invalid
         # stuff has been put in the returns field
         if defined_type:

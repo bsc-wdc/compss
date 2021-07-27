@@ -251,7 +251,11 @@ public class LogicalData {
                         if (asynch) {
                             FileOpsManager.deleteAsync(f);
                         } else {
-                            FileOpsManager.deleteSync(f);
+                            try {
+                                FileOpsManager.deleteSync(f);
+                            } catch (IOException ioe) {
+                                // LOG message already printed by FileOpsManager
+                            }
                         }
                     }
                 }

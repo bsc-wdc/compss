@@ -194,17 +194,19 @@ public enum TraceEvent {
     AGENT_RUN_TASK(6006, Tracer.AGENT_EVENTS_TYPE, "Run task agent"), // Stop agent
 
     // Thread identifier events
-    // Identifies the thread as the Task Dispacher thread
+    // Identifies the thread as the Access Processor thread
     AP_THREAD_ID(Tracer.AP_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Access Processor thread"),
     // Identifies the thread as the Task Dispacher thread
     TD_THREAD_ID(Tracer.TD_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Task Dispacher thread"),
-    // Identifies the thread as the Task Dispacher thread
+    // Identifies the thread as an executor thread
     EXECUTOR_THREAD_ID(Tracer.EXECUTOR_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Executor thread"),
-    // Identifies the thread as the Task Dispacher thread
-    FILE_SYS_THREAD_ID(Tracer.FS_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "File system thread"),
+    // Identifies the thread as the low priority file system thread
+    LOW_FILE_SYS_THREAD_ID(Tracer.FS_LOW_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "File system thread"),
+    // Identifies the thread as the high priority file system thread
+    HIGH_FILE_SYS_THREAD_ID(Tracer.FS_HIGH_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "File system thread"),
     // Identifies the thread as the Timer
     TIMER_THREAD_ID(Tracer.TIMER_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Timer thread"),
-    // Identifies the thread as the Timer
+    // Identifies the thread as the Wallclock
     WALLCLOCK_THREAD_ID(Tracer.WALLCLOCK_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "WallClock thread"),
 
     // Thread identifier events

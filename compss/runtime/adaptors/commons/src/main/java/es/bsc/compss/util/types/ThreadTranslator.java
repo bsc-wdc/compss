@@ -126,8 +126,11 @@ public class ThreadTranslator {
             case Tracer.TD_ID:
                 label = "RUNTIME TD";
                 break;
-            case Tracer.FS_ID:
-                label = "RUNTIME FS";
+            case Tracer.FS_LOW_ID:
+                label = "RUNTIME FS L";
+                break;
+            case Tracer.FS_HIGH_ID:
+                label = "RUNTIME FS H";
                 break;
             case Tracer.TIMER_ID:
                 label = "RUNTIME TIMER";

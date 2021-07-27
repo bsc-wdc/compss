@@ -55,10 +55,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -91,8 +87,6 @@ public class DataManagerImpl implements DataManager {
     private final String baseFolder;
     // Data registry
     private final HashMap<String, DataRegister> registry;
-
-    private ExecutorService fileOpsExecutor;
 
     static {
         String streamBackendProperty = System.getProperty(COMPSsConstants.STREAMING_BACKEND);
@@ -156,41 +150,6 @@ public class DataManagerImpl implements DataManager {
                 throw new InitializationException("Error loading storage configuration file: " + STORAGE_CONF, se);
             }
         }
-        if (NIOTracer.basicModeEnabled()) {
-            NIOTracer.enablePThreads(1);
-        }
-        WORKER_LOGGER.debug("Init executor for file ops in thread " + Thread.currentThread().getId() + "( "
-            + Thread.currentThread().getName() + " )");
-        fileOpsExecutor = Executors.newFixedThreadPool(1);
-
-        if (NIOTracer.extraeEnabled()) {
-            Future<Object> f = this.fileOpsExecutor.submit(new Callable<Object>() {
-
-                public Object call() {
-                    if (NIOTracer.extraeEnabled()) {
-                        if (NIOTracer.basicModeEnabled()) {
-                            NIOTracer.disablePThreads(1);
-                        }
-                        NIOTracer.emitEvent(TraceEvent.FILE_SYS_THREAD_ID.getId(),
-                            TraceEvent.FILE_SYS_THREAD_ID.getType());
-                        NIOTracer.emitEvent(TraceEvent.INIT_FS.getId(), TraceEvent.INIT_FS.getType());
-                    }
-                    WORKER_LOGGER.debug("Init executor for file ops in thread " + Thread.currentThread().getId() + "( "
-                        + Thread.currentThread().getName() + " )");
-                    if (NIOTracer.extraeEnabled()) {
-                        NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.INIT_FS.getType());
-                    }
-
-                    return new Object();
-                }
-            });
-
-            try {
-                f.get();
-            } catch (Exception e) {
-                // Nothing to do
-            }
-        }
     }
 
     @Override
@@ -238,25 +197,6 @@ public class DataManagerImpl implements DataManager {
                 WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
             }
         }
-        // this code is comented because the extrae tracer is already off when we reach this point
-        // if (Tracer.extraeEnabled()) {
-        // Semaphore sem = new Semaphore(0);
-        // this.fileOpsExecutor.submit(new Callable<Object>() {
-
-        // public Object call() {
-        // NIOTracer.emitEvent(Tracer.EVENT_END, TraceEvent.FILE_SYS_THREAD_ID.getType());
-        // sem.release();
-        // return null;
-        // }
-        // });
-        // try {
-        // sem.acquire();
-        // } catch (InterruptedException e) {
-        // WORKER_LOGGER
-        // .warn("Tracer could not register end of event " + TraceEvent.FILE_SYS_THREAD_ID.getSignature());
-        // }
-        // }
-        fileOpsExecutor.shutdown();
         FileOpsManager.shutdown();
     }
 
@@ -666,7 +606,7 @@ public class DataManagerImpl implements DataManager {
                 filesArray = files.toArray(new String[files.size()]);
             }
 
-            fileOpsExecutor.execute(new Runnable() {
+            FileOpsManager.composedOperationAsync(new Runnable() {
 
                 @Override
                 public void run() {

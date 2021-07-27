@@ -169,10 +169,11 @@ public abstract class Tracer {
     // Pairs where key is the id and value the label
     public static final int AP_ID = 2;
     public static final int TD_ID = 3;
-    public static final int FS_ID = 4;
-    public static final int TIMER_ID = 5;
-    public static final int WALLCLOCK_ID = 6;
-    public static final int EXECUTOR_ID = 7; // executor must be bigger than any runtime id
+    public static final int FS_LOW_ID = 4;
+    public static final int FS_HIGH_ID = 5;
+    public static final int TIMER_ID = 6;
+    public static final int WALLCLOCK_ID = 7;
+    public static final int EXECUTOR_ID = 8; // executor must be bigger than any runtime id
     public static final String appThread = "1:1:1";
     public static final String APThread = "1:1:2";
     public static final String TDThread = "1:1:3";

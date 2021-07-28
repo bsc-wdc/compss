@@ -159,6 +159,7 @@ public abstract class Tracer {
     public static final int MAP_MODE = -2;
 
     protected static int tracingLevel = 0;
+    private static boolean tracingTaskDependencies;
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
@@ -214,6 +215,8 @@ public abstract class Tracer {
         hostId = new AtomicInteger(1);
         hostToSlots = new HashMap<>();
         predecessorsMap = new HashMap<>();
+
+        tracingTaskDependencies = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
 
         if (!logDirPath.endsWith(File.separator)) {
             logDirPath += logDirPath;
@@ -306,6 +309,15 @@ public abstract class Tracer {
      */
     public static int getLevel() {
         return tracingLevel;
+    }
+
+    /**
+     * Returns true if task dependencies tracing is activated.
+     *
+     * @return true or false
+     */
+    public static boolean isTracingTaskDependencies() {
+        return tracingTaskDependencies;
     }
 
     /**

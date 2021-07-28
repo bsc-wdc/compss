@@ -90,6 +90,8 @@ show_opts() {
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON}
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
                                             Default: None
+    --tracing_task_dependencies             Adds communication lines for the task dependencies ( [ true | false ] )
+                                            Default: false
     --comm=<ClassName>                      Class that implements the adaptor for communications
                                             Supported adaptors:
                                                   ├── ${NIO_ADAPTOR}
@@ -510,6 +512,10 @@ get_args() {
           scheduler_config_file=*)
             # Specify the file where COMPSs will store the tasks profile
             scheduler_config=${OPTARG//scheduler_config_file=/}
+            ;;
+          tracing_task_dependencies=*)
+              # Specify the file where COMPSs will store the tasks profile
+              tracing_task_dependencies=${OPTARG//tracing_task_dependencies=/}
             ;;
           enable_external_adaptation=*)
             # Enable the external adaptation (disables de Resource Optimizer)

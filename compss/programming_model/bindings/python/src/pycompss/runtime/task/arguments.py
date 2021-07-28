@@ -42,7 +42,7 @@ def get_varargs_name(full_name):
     :param full_name: Complete name.
     :return: The vararg name
     """
-    return full_name.split('*')[0]
+    return full_name.split('*')[1]
 
 
 def is_kwarg(param_name):

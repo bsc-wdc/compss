@@ -616,14 +616,27 @@ class TaskWorker(TaskCommons):
         name = argument.name
         original_path = argument.file_name.original_path
 
+        # Check if cache is available
         cache = self.cache_queue is not None
-        # Check if the user has defined that the parameter has or not to be
-        # cache explicitly
-        if name in self.decorator_arguments:
-            use_cache = self.decorator_arguments[name].cache
-        else:
-            # if not explicitly said, the object is candidate to be cached
-            use_cache = True
+        use_cache = False  # default store object in cache
+
+        if cache:
+            # Check if the user has defined that the parameter has or not to be
+            # cache explicitly
+            if name in self.decorator_arguments:
+                use_cache = self.decorator_arguments[name].cache
+            else:
+                if is_vararg(name):
+                    vararg_name = get_varargs_name(name)
+                    use_cache = self.decorator_arguments[vararg_name].cache
+                else:
+                    # if not explicitly said, the object is candidate to be
+                    # cached
+                    use_cache = True
+            argument.cache = use_cache
+            if cache:
+                logger.debug("\t\t - Save in cache: " + str(use_cache))
+
         if np and cache and use_cache:
             # Check if the object is already in cache
             if in_cache(original_path, self.cache_ids):

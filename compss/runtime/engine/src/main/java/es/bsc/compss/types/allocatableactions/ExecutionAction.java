@@ -19,6 +19,7 @@ package es.bsc.compss.types.allocatableactions;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
@@ -862,19 +863,19 @@ public class ExecutionAction extends AllocatableAction {
                 } else {
                     // it's a Java HTTP task, can have only single value of a primitive type
                     Gson gson = new Gson();
-                    retValue = retValue.getAsJsonObject("$return_0");
+                    JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
                     switch (dp.getType()) {
                         case INT_T:
-                            value = gson.fromJson(retValue, int.class);
+                            value = gson.fromJson(primValue, int.class);
                             break;
                         case LONG_T:
-                            value = gson.fromJson(retValue, long.class);
+                            value = gson.fromJson(primValue, long.class);
                             break;
                         case OBJECT_T:
                             if (dp.getContentType().equals("int")) {
-                                value = gson.fromJson(retValue, int.class);
+                                value = gson.fromJson(primValue, int.class);
                             } else if (dp.getContentType().equals("long")) {
-                                value = gson.fromJson(retValue, long.class);
+                                value = gson.fromJson(primValue, long.class);
                             } else {
                                 value = null;
                             }

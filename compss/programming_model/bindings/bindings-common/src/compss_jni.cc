@@ -74,11 +74,6 @@ jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc
 
 jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-
-jclass clsTaskMonitor;
-jmethodID midTaskMonitorCon;
-jobject donothingobj;
-
 jclass clsOnFailure;
 jmethodID midOnFailureCon;
 

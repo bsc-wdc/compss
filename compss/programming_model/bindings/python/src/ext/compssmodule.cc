@@ -463,7 +463,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     char* method_type;
     char* base_url;
     char* json_payload;
-    char* reproduces;
+    char* produces;
     char* signature;
     char* on_failure;
     int priority, num_nodes, reduce, chunk_size, replicated, distributed, has_target, num_returns, time_out;
@@ -477,7 +477,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     PyObject *weights;
     PyObject *keep_renames;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lssssssiiiiiiiiiOOOOOOOOO", &app_id, &method_type, &base_url, &json_payload, &reproduces, &signature, &on_failure, &time_out, &priority,
+    if(!PyArg_ParseTuple(args, "lssssssiiiiiiiiiOOOOOOOOO", &app_id, &method_type, &base_url, &json_payload, &produces, &signature, &on_failure, &time_out, &priority,
                          &num_nodes, &reduce, &chunk_size, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
                          &compss_directions, &compss_streams, &compss_prefixes, &content_types, &weights, &keep_renames)) {
         // Return NULL after ParseTuple automatically translates to "wrong
@@ -488,7 +488,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     debug("- Method type: %s\n", method_type);
     debug("- Base url: %s\n", base_url);
     debug("- Json payload: %s\n", json_payload);
-    debug("- Reproduces: %s\n", reproduces);
+    debug("- Produces: %s\n", produces);
     debug("- Signature: %s\n", signature);
     debug("- On Failure: %s\n", on_failure);
     debug("- Time Out: %d\n", time_out);
@@ -594,7 +594,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
         method_type,
         base_url,
         json_payload,
-        reproduces,
+        produces,
         signature,
         on_failure,
         time_out,

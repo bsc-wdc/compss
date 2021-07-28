@@ -60,6 +60,7 @@ GET_NUMBER_OF_RESOURCES = 'GET_NUMBER_OF_RESOURCES'
 REQUEST_RESOURCES = 'REQUEST_RESOURCES'
 FREE_RESOURCES = 'FREE_RESOURCES'
 REGISTER_CORE_ELEMENT = 'REGISTER_CORE_ELEMENT'
+PROCESS_HTTP_TASK = 'PROCESS_HTTP_TASK'
 PROCESS_TASK = 'PROCESS_TASK'
 SET_PIPES = 'SET_PIPES'
 READ_PIPES = 'READ_PIPES'
@@ -157,6 +158,8 @@ def c_extension_link(in_queue, out_queue,
                 compss.register_core_element(*parameters)
             elif command == PROCESS_TASK:
                 compss.process_task(*parameters)
+            elif command == PROCESS_HTTP_TASK:
+                compss.process_http_task(*parameters)
             elif command == SET_PIPES:
                 compss.set_pipes(*parameters)
             elif command == READ_PIPES:
@@ -434,6 +437,60 @@ class COMPSs(object):
         # type: (...) -> None
         IN_QUEUE.put((PROCESS_TASK,
                       app_id,
+                      signature,
+                      on_failure,
+                      time_out,
+                      has_priority,
+                      num_nodes,
+                      reduction,
+                      chunk_size,
+                      replicated,
+                      distributed,
+                      has_target,
+                      num_returns,
+                      values,
+                      names,
+                      compss_types,
+                      compss_directions,
+                      compss_streams,
+                      compss_prefixes,
+                      content_types,
+                      weights,
+                      keep_renames))
+
+    @staticmethod
+    def process_http_task(signature,            # type: str
+                          method_type,          # type: str
+                          base_url,             # type: str
+                          json_payload,         # type: str
+                          produces,             # type: str
+                          has_target,           # type: bool
+                          names,                # type: list
+                          values,               # type: list
+                          num_returns,          # type: int
+                          compss_types,         # type: list
+                          compss_directions,    # type: list
+                          compss_streams,       # type: list
+                          compss_prefixes,      # type: list
+                          content_types,        # type: list
+                          weights,              # type: list
+                          keep_renames,         # type: list
+                          has_priority,         # type: bool
+                          num_nodes,            # type: int
+                          reduction,            # type: bool
+                          chunk_size,           # type: int
+                          replicated,           # type: bool
+                          distributed,          # type: bool
+                          on_failure,           # type: str
+                          time_out,             # type: int
+                          ):  # NOSONAR
+        # type: (...) -> None
+        IN_QUEUE.put((PROCESS_HTTP_TASK,
+                      app_id,
+                      method_type,
+                      base_url,
+                      json_payload,
+                      produces,
                       signature,
                       on_failure,
                       time_out,

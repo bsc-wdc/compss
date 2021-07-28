@@ -404,7 +404,7 @@ def process_http_task(app_id,             # type: int
                       method_type,        # type: str
                       base_url,           # type: str
                       json_payload,       # type: str
-                      reproduces,         # type: str
+                      produces,           # type: str
                       signature,          # type: str
                       on_failure,         # type: str
                       time_out,           # type: int
@@ -458,7 +458,7 @@ def process_http_task(app_id,             # type: int
                          method_type,
                          base_url,
                          json_payload,
-                         reproduces,
+                         produces,
                          signature,
                          on_failure,
                          time_out,

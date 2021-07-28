@@ -797,7 +797,7 @@ def process_http_task(signature,             # type: str
                       method_type,           # type: str
                       base_url,              # type: str
                       json_payload,          # type: str
-                      reproduces,             # type: str
+                      produces,              # type: str
                       has_target,            # type: bool
                       names,                 # type: list
                       values,                # type: list
@@ -819,8 +819,33 @@ def process_http_task(signature,             # type: str
                       time_out,              # type: int
                       ):  # NOSONAR
     # type: (...) -> None
-    """ Submit a task to the runtime.
-    todo: do not forget inner comment
+    """ Submit an http task to the runtime.
+
+    :param signature: Task signature
+    :param method_type: Request method type. e.g: POST, GET
+    :param base_url: Request destination URL
+    :param json_payload: JSON Payload to be sent in the request body if any.
+    :param produces: JSON response format
+    :param has_target: Boolean if the task has self
+    :param names: Task parameter names
+    :param values: Task parameter values
+    :param num_returns: Number of returns
+    :param compss_types: List of parameter types
+    :param compss_directions: List of parameter directions
+    :param compss_streams: List of parameter streams
+    :param compss_prefixes: List of parameter prefixes
+    :param content_types: Content types
+    :param weights: List of parameter weights
+    :param keep_renames: Boolean keep renaming
+    :param has_priority: Boolean has priority
+    :param num_nodes: Number of nodes that the task must use
+    :param reduction: Boolean indicating if the task is of type reduce
+    :param chunk_size: Size of chunks for executing the reduce operation
+    :param replicated: Boolean indicating if the task must be replicated
+    :param distributed: Boolean indicating if the task must be distributed
+    :param on_failure: Action on failure
+    :param time_out: Time for a task time out
+    :return: The future object related to the task return
 
     """
 
@@ -835,7 +860,7 @@ def process_http_task(signature,             # type: str
                              method_type,
                              base_url,
                              json_payload,
-                             reproduces,
+                             produces,
                              signature,
                              on_failure,
                              time_out,

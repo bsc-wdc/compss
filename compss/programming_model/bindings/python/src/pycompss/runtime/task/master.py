@@ -158,6 +158,7 @@ MANDATORY_ARGUMENTS = {}
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
 SUPPORTED_ARGUMENTS = ["returns",
+                       "cache_returns",
                        "priority",
                        "on_failure",
                        "defaults",

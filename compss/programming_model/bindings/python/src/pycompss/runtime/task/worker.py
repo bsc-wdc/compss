@@ -1044,10 +1044,14 @@ class TaskWorker(TaskCommons):
                     serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
                 else:
                     serialize_to_file(obj, f_name)
-                    insert_object_into_cache_wrapper(logger,
-                                                     self.cache_queue,
-                                                     obj,
-                                                     f_name)
+                    if self.cache_queue is not None and \
+                       self.decorator_arguments["cache_returns"]:
+                        if __debug__:
+                            logger.debug("Storing return in cache")
+                        insert_object_into_cache_wrapper(logger,
+                                                         self.cache_queue,
+                                                         obj,
+                                                         f_name)
         return user_returns
 
     def is_parameter_an_object(self, name):

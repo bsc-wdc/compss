@@ -496,7 +496,7 @@ public class ITAppEditor extends ExprEditor {
             executeTask.append("\"").append(httpAnnotation.methodType()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.baseUrl()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.jsonPayload()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.reproduces()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.produces()).append("\"").append(',');
 
             String declareMethodFullyQualifiedName = httpAnnotation.declaringClass() + "." + declaredMethod.getName();
 

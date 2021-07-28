@@ -271,7 +271,7 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, String methodType, String baseurl, String jsonPayload,
-        String jsonFile, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
+        String produces, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
         OnFailure onFailure, int timeOut, Object... parameters);
 

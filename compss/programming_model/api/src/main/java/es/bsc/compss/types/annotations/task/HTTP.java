@@ -52,7 +52,7 @@ public @interface HTTP {
      *
      * @return the method type of the Request.
      */
-    String reproduces() default Constants.UNASSIGNED;
+    String produces() default Constants.UNASSIGNED;
 
     /**
      * Returns the base URL.

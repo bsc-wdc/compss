@@ -34,15 +34,15 @@ def is_vararg(param_name):
     return param_name.startswith('*')
 
 
-def get_varargs_name(full_name):
+def get_name_from_vararg(full_name):
     # type: (str) -> str
     """ Extract the vararg name from the name given with full_name.
     Part before "*".
 
-    :param full_name: Complete name.
+    :param full_name: Complete vararg name.
     :return: The vararg name
     """
-    return full_name.split('*')[0]
+    return full_name.split('*')[1]
 
 
 def is_kwarg(param_name):

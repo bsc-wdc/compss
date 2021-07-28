@@ -158,6 +158,7 @@ MANDATORY_ARGUMENTS = {}
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
 SUPPORTED_ARGUMENTS = ["returns",
+                       "cache_returns",
                        "priority",
                        "on_failure",
                        "defaults",
@@ -643,17 +644,26 @@ class TaskMaster(TaskCommons):
         # This will allow us to determine the class of each parameter
         # and their order in the case of the variadic ones
         # Process the variadic arguments
+        supported_varargs = []
         for (i, var_arg) in enumerate(args[num_positionals:]):
             arg_name = get_vararg_name(self.param_varargs, i)
             self.parameters[arg_name] = self.build_parameter_object(arg_name,
                                                                     var_arg)
+            if self.param_varargs not in supported_varargs:
+                supported_varargs.append(self.param_varargs)
         # Process keyword arguments
+        supported_kwargs = []
         for (name, value) in kwargs.items():
             arg_name = get_kwarg_name(name)
             self.parameters[arg_name] = self.build_parameter_object(arg_name,
                                                                     value)
+            if name not in supported_kwargs:
+                supported_kwargs.append(name)
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_arguments = (ALL_SUPPORTED_ARGUMENTS + self.param_args)
+        supported_arguments = (ALL_SUPPORTED_ARGUMENTS +
+                               self.param_args +
+                               supported_varargs +
+                               supported_kwargs)
         check_arguments(MANDATORY_ARGUMENTS,
                         DEPRECATED_ARGUMENTS,
                         supported_arguments,

@@ -42,9 +42,9 @@ def is_cache_enabled(cache_config):
     """
     if ":" in cache_config:
         cache, _ = cache_config.split(":")
-        cache = True if cache == "true" else False
+        cache = True if cache.lower() == "true" else False
     else:
-        cache = True if cache_config == "true" else False
+        cache = True if cache_config.lower() == "true" else False
     return cache
 
 

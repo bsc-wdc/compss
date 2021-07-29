@@ -80,28 +80,33 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         }
     }
 
-    private void extractPaths(JsonObject jsonObj, Map<Object, String> map, String previousPath) {
-        for (Object key : jsonObj.keySet()) {
+    private void extractPaths(JsonObject produces, Map<Object, String> map, String previousPath) {
+        for (Object key : produces.keySet()) {
             String keyStr = (String) key;
-            Object keyValue = jsonObj.get(keyStr);
+            Object value = produces.get(keyStr);
             String path = "";
 
-            if (keyValue instanceof JsonObject) {
+            if (value instanceof JsonObject) {
                 path = previousPath + "," + keyStr;
-                extractPaths((JsonObject) keyValue, map, path);
+                extractPaths((JsonObject) value, map, path);
             } else {
-                map.put(keyValue, previousPath + "," + keyStr);
+                String retKey = produces.getAsJsonPrimitive(keyStr).getAsString();
+                map.put(formatKey(retKey), previousPath + "," + keyStr);
             }
         }
+    }
+
+    private String formatKey(String key) {
+        return key.replaceAll(URL_PARAMETER_OPEN_TOKEN, "\\$").replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
     }
 
     private void formatResponse(Response response, String produces) {
 
         JsonElement element = JsonParser.parseString(produces);
-        JsonObject obj = element.getAsJsonObject();
+        JsonObject producesJSONObj = element.getAsJsonObject();
         Map<Object, String> paths = new HashMap();
 
-        extractPaths(obj, paths, "");
+        extractPaths(producesJSONObj, paths, "");
 
         JsonElement bodyJsonElement = JsonParser.parseString(response.getResponseBody().toString());
         JsonObject bodyJsonObject = bodyJsonElement.getAsJsonObject();
@@ -110,7 +115,7 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
         for (Object key : paths.keySet()) {
             String keyString = paths.get(key).replaceFirst(",", "");
-            newBody.add(((JsonPrimitive) key).getAsString(), extractValueFromJSON(bodyJsonObject, keyString));
+            newBody.add((String) key, extractValueFromJSON(bodyJsonObject, keyString));
         }
 
         response.setResponseBody(newBody);

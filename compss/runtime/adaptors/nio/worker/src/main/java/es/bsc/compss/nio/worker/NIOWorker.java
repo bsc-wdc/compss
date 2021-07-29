@@ -1053,19 +1053,20 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String traceFlag = args[24];
         String extraeFile = args[25];
         String traceHost = args[26];
+        String traceTaskDependencies = args[27];
 
-        String storageConf = args[27];
-        TaskExecution executionType = TaskExecution.valueOf(args[28].toUpperCase());
+        String storageConf = args[28];
+        TaskExecution executionType = TaskExecution.valueOf(args[29].toUpperCase());
 
-        boolean persistentC = Boolean.parseBoolean(args[29]);
+        boolean persistentC = Boolean.parseBoolean(args[30]);
 
-        String pythonInterpreter = args[30];
-        String pythonVersion = args[31];
-        String pythonVirtualEnvironment = args[32];
-        String pythonPropagateVirtualEnvironment = args[33];
-        String pythonExtraeFile = args[34];
-        String pythonMpiWorker = args[35];
-        String pythonWorkerCache = args[36];
+        String pythonInterpreter = args[31];
+        String pythonVersion = args[32];
+        String pythonVirtualEnvironment = args[33];
+        String pythonPropagateVirtualEnvironment = args[34];
+        String pythonExtraeFile = args[35];
+        String pythonMpiWorker = args[36];
+        String pythonWorkerCache = args[37];
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
@@ -1101,6 +1102,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("Extrae config File: " + extraeFile);
             WORKER_LOGGER.debug("Python extrae config File: " + pythonExtraeFile);
             WORKER_LOGGER.debug("Host: " + traceHost);
+            WORKER_LOGGER.debug("Tracing Task Dependencies: " + traceTaskDependencies);
 
             WORKER_LOGGER.debug("LibraryPath: " + libPath);
             WORKER_LOGGER.debug("Classpath: " + classpath);
@@ -1127,6 +1129,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Configure tracing
         System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFile);
 
+        // Configure tracing
+        System.setProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES, traceTaskDependencies);
         /*
          * ***********************************************************************************************************
          * LAUNCH THE WORKER

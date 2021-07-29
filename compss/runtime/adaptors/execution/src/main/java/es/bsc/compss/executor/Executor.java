@@ -1156,7 +1156,7 @@ public class Executor implements Runnable, InvocationRunner {
      * ---------------------- TRACE EVENTS MAGEMENT --------------------------------
      */
     private void emitingTaskStartEvents() {
-        if (Tracer.isActivated()) {
+        if (Tracer.isActivated() & Tracer.isTracingTaskDependencies()) {
             if (invocation.getPredecessors() != null) {
                 for (Integer i : invocation.getPredecessors()) {
                     Tracer.emitCommEvent(false, 123, 1, i, 0);
@@ -1188,7 +1188,7 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void emitTaskEndEvents() {
-        if (Tracer.isActivated()) {
+        if (Tracer.isActivated() & Tracer.isTracingTaskDependencies()) {
             for (int i = 0; i < this.invocation.getNumSuccessors(); i++) {
                 Tracer.emitCommEvent(true, 123, 1, invocation.getTaskId(), 0);
             }

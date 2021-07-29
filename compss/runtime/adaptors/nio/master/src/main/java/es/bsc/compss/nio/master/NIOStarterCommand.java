@@ -151,6 +151,7 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = String.valueOf(NIOTracer.getLevel());
         cmd[nextPosition++] = NIOTracer.getExtraeFile();
         cmd[nextPosition++] = this.hostId;
+        cmd[nextPosition++] = String.valueOf(NIOTracer.isTracingTaskDependencies());
 
         // Storage parameters
         cmd[nextPosition++] = this.storageConf;

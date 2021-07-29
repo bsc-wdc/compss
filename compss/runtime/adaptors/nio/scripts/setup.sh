@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  NUM_PARAMS=37
+  NUM_PARAMS=38
 
   ######################
   # INTERNAL FUNCTIONS

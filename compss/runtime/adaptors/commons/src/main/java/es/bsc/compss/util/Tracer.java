@@ -159,7 +159,7 @@ public abstract class Tracer {
     public static final int MAP_MODE = -2;
 
     protected static int tracingLevel = 0;
-    private static boolean tracingTaskDependencies;
+    protected static boolean tracingTaskDependencies;
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;

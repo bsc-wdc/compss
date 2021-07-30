@@ -623,36 +623,14 @@ public class DataManagerImpl implements DataManager {
                                 }
 
                                 if (param.isPreserveSourceData()) {
-
-                                    if (NIOTracer.extraeEnabled()) {
-                                        NIOTracer.emitEvent(TraceEvent.LOCAL_COPY.getId(),
-                                            TraceEvent.LOCAL_COPY.getType());
-                                    }
-
-                                    if (param.getType() == DataType.DIRECTORY_T) {
-                                        FileUtils.copyDirectory(srcPath.toFile(), tgtPath.toFile());
-                                    } else {
-                                        Files.copy(srcPath, tgtPath);
-                                    }
-                                    if (NIOTracer.extraeEnabled()) {
-                                        NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.LOCAL_COPY.getType());
-                                    }
+                                    /*
+                                     * if (param.getType() == DataType.DIRECTORY_T) {
+                                     * FileUtils.copyDirectory(srcPath.toFile(), tgtPath.toFile()); } else {
+                                     * Files.copy(srcPath, tgtPath); }
+                                     */
+                                    FileOpsManager.copySync(new File(path), new File(expectedFileLocation));
                                 } else {
-                                    if (NIOTracer.extraeEnabled()) {
-                                        NIOTracer.emitEvent(TraceEvent.LOCAL_MOVE.getId(),
-                                            TraceEvent.LOCAL_MOVE.getType());
-                                    }
-                                    try {
-                                        // todo: recursive needed for directories?
-                                        Files.move(srcPath, tgtPath, StandardCopyOption.ATOMIC_MOVE);
-                                    } catch (AtomicMoveNotSupportedException amnse) {
-                                        WORKER_LOGGER.warn("WARN: AtomicMoveNotSupportedException."
-                                            + " File cannot be atomically moved. Trying to move without atomic");
-                                        Files.move(srcPath, tgtPath);
-                                    }
-                                    if (NIOTracer.extraeEnabled()) {
-                                        NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.LOCAL_MOVE.getType());
-                                    }
+                                    FileOpsManager.moveSync(new File(path), new File(expectedFileLocation));
                                     originalRegister.removeFileLocation(path);
                                 }
                                 DataRegister dr = new DataRegister();

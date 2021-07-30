@@ -51,6 +51,8 @@ public enum TraceEvent {
     INIT_FS(65, Tracer.RUNTIME_EVENTS, "Init Thread for synch file system operations"), // Init fs
     LOCAL_COPY(66, Tracer.RUNTIME_EVENTS, "Local copy"), // Local copy
     LOCAL_MOVE(67, Tracer.RUNTIME_EVENTS, "Local move"), // Local move
+    LOCAL_DELETE(68, Tracer.RUNTIME_EVENTS, "Local delete"), // Local delete
+    LOCAL_SERIALIZE(69, Tracer.RUNTIME_EVENTS, "Serializing Object"), // Serialization
 
     // Access Processor Events which are not in the API
     DEBUG(17, Tracer.RUNTIME_EVENTS, "Access Processor: Debug"), // Debug

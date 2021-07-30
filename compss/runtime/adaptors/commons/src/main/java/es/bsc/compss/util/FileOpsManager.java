@@ -20,6 +20,7 @@ import es.bsc.compss.log.Loggers;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -349,33 +350,62 @@ public class FileOpsManager {
     }
 
     private static void serialize(final Object o, final String target) throws IOException {
-        Serializer.serialize(o, target);
+        if (DEBUG) {
+            LOGGER.debug("Serializing object to " + target);
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_SERIALIZE.getId(), TraceEvent.LOCAL_SERIALIZE.getType());
+        }
+        try {
+            Serializer.serialize(o, target);
+        } catch (IOException ioe) {
+            throw ioe;
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_SERIALIZE.getType());
+            }
+        }
     }
 
     private static void copyFile(final File source, final File target) throws IOException {
         if (DEBUG) {
             LOGGER.debug("Copying file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_COPY.getId(), TraceEvent.LOCAL_COPY.getType());
+        }
         Path tgtPath = (target).toPath();
         Path sourcePath = (source).toPath();
-        if (tgtPath.compareTo(sourcePath) != 0) {
-            Files.copy(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
-            Files.walk(sourcePath).forEach((Path content) -> {
-                try {
-                    Path fileDest = tgtPath.resolve(sourcePath.relativize(content));
-                    Files.copy(content, fileDest, StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    LOGGER.error("Exception copying file " + content + " to " + tgtPath);
-                }
-            });
+        try {
+            if (tgtPath.compareTo(sourcePath) != 0) {
+                Files.copy(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+                Files.walk(sourcePath).forEach((Path content) -> {
+                    try {
+                        Path fileDest = tgtPath.resolve(sourcePath.relativize(content));
+                        Files.copy(content, fileDest, StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        LOGGER.error("Exception copying file " + content + " to " + tgtPath);
+                    }
+                });
+            }
+        } catch (IOException ioe) {
+            throw ioe;
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_COPY.getType());
+            }
         }
     }
 
     private static void deleteFile(final File f) throws IOException {
+
+        if (DEBUG) {
+            LOGGER.debug("Deleting file " + f.getAbsolutePath());
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_DELETE.getId(), TraceEvent.LOCAL_DELETE.getType());
+        }
         try {
-            if (DEBUG) {
-                LOGGER.debug("Deleting file " + f.getAbsolutePath());
-            }
             if (!Files.deleteIfExists(f.toPath())) {
                 LOGGER.warn("File " + f.getAbsolutePath() + " not deleted.");
             }
@@ -400,10 +430,18 @@ public class FileOpsManager {
             } catch (IOException e) {
                 LOGGER.error("Cannot delete directory " + f.getAbsolutePath(), e);
                 throw e;
+            } finally {
+                if (Tracer.extraeEnabled()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_DELETE.getType());
+                }
             }
         } catch (Exception e) {
             LOGGER.error("Cannot delete file " + f.getAbsolutePath(), e);
             throw e;
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_DELETE.getType());
+            }
         }
     }
 
@@ -411,11 +449,29 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Moving file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_MOVE.getId(), TraceEvent.LOCAL_MOVE.getType());
+        }
         Path tgtPath = target.toPath();
         Path sourcePath = source.toPath();
-        if (tgtPath.compareTo(sourcePath) != 0) {
-            Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        try {
+            if (tgtPath.compareTo(sourcePath) != 0) {
+                try {
+                    // todo: recursive needed for directories?
+                    Files.move(sourcePath, tgtPath, StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+                } catch (AtomicMoveNotSupportedException amnse) {
+                    LOGGER.warn("WARN: AtomicMoveNotSupportedException."
+                        + " File cannot be atomically moved. Trying to move without atomic");
+                    Files.move(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        } catch (IOException ioe) {
+            throw ioe;
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_MOVE.getType());
+            }
         }
     }
 

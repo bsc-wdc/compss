@@ -114,7 +114,7 @@ class TaskWorker(object):
         # placeholder to keep the object references and avoid garbage collector
 
     def call(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> typing.Tuple[list, list, Parameter]
+        # type: (*typing.Any, **typing.Any) -> typing.Tuple[list, list, Parameter, tuple]
         """ Main task code at worker side.
 
         This function deals with task calls in the worker"s side

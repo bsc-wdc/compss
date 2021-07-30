@@ -118,7 +118,7 @@ def main():
                           execute_task_params,
                           tracing,
                           logger,
-                          None,
+                          "None",
                           log_files,           # noqa
                           python_mpi,
                           collections_layouts  # noqa

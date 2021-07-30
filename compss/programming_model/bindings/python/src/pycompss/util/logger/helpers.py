@@ -26,6 +26,7 @@ PyCOMPSs Util - logs
 import os
 import logging
 import json
+import typing
 from contextlib import contextmanager
 from logging import config
 from pycompss.util.exceptions import PyCOMPSsException
@@ -33,7 +34,7 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 CONFIG_FUNC = config.dictConfig
 # Keep configs to avoid read the cfg many times
-CONFIGS = dict()
+CONFIGS = dict()  # type: typing.Dict[str, dict]
 
 
 def get_logging_cfg_file(log_level):
@@ -197,7 +198,7 @@ def update_logger_handlers(log_config_file, job_out=None, job_err=None):
 
 @contextmanager
 def swap_logger_name(logger, new_name):
-    # type: (typing.Any, str) -> None
+    # type: (typing.Any, str) -> typing.Iterator[None]
     """ Swaps the current logger with the new one
 
     :param logger: Logger facility.
@@ -212,7 +213,7 @@ def swap_logger_name(logger, new_name):
 
 @contextmanager
 def keep_logger():
-    # type: () -> None
+    # type: () -> typing.Iterator[None]
     """ Do nothing with the logger.
     It is used when the swap_logger_name does not need to be applied.
 

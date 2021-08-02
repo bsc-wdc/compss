@@ -23,7 +23,7 @@ import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
-import es.bsc.compss.types.HTTPWorker;
+import es.bsc.compss.types.resources.HTTPWorker;
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.project.jaxb.ApplicationType;

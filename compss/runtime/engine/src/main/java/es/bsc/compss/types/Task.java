@@ -312,8 +312,13 @@ public class Task extends AbstractTask {
      */
     public String getLegendDescription() {
 
-        return "<tr>" + "\n" + "<td align=\"right\">" + this.getMethodName() + "</td>" + "\n" + "<td bgcolor=\""
-            + this.getColor() + "\">&nbsp;</td>" + "\n" + "</tr>" + "\n";
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append("[[Task id: ").append(getId()).append("]");
+        buffer.append(", [Status: ").append(getStatus()).append("]");
+        buffer.append(", ").append(getTaskDescription().toString()).append("]");
+
+        return buffer.toString();
     }
 
     /**
@@ -417,9 +422,13 @@ public class Task extends AbstractTask {
 
     @Override
     public String toString() {
+        StringBuilder buffer = new StringBuilder();
 
-        return "[[Task id: " + getId() + "]" + ", [Status: " + getStatus() + "]" + ", "
-            + getTaskDescription().toString() + "]";
+        buffer.append("[[Task id: ").append(getId()).append("]");
+        buffer.append(", [Status: ").append(getStatus()).append("]");
+        buffer.append(", ").append(getTaskDescription().toString()).append("]");
+
+        return buffer.toString();
     }
 
     public List<Parameter> getParameterDataToRemove() {

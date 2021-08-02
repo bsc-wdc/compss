@@ -410,8 +410,6 @@ class TaskMaster(TaskCommons):
                          (self.function_name, self.function_type,
                           self.module_name, self.class_name))
 
-        # import pdb; pdb.set_trace()
-
         if self.core_element.get_impl_type() == "HTTP":
             # todo: nm: beautify this (indexes are set in http.py)..
             base_url = self.core_element.get_impl_type_args()[0]

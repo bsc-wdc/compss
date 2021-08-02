@@ -51,6 +51,7 @@
     "pycompss.api.container":                        { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.decaf":                            { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.exceptions":                       { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.api.http":                             { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.implement":                        { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.IO":                               { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.local":                            { "level": "ERROR", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },

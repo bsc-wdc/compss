@@ -43,6 +43,7 @@
     "pycompss.api.container":                        { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.decaf":                            { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.exceptions":                       { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.api.http":                             { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.implement":                        { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.IO":                               { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.local":                            { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },

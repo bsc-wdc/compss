@@ -1,11 +1,7 @@
-package es.bsc.compss.types;
+package es.bsc.compss.types.resources;
 
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.HTTPResourceDescription;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.ResourceType;
-import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.configuration.HTTPConfiguration;
 
 

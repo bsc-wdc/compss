@@ -28,11 +28,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 // @Repeatable(HTTP.class) //TODO Aldo
 /**
- * Services definition
+ * HTTP Task definition
  */
 public @interface HTTP {
 
-    // nm: new string payload
     /**
      * Returns the method type of the Request.
      * 
@@ -41,14 +40,14 @@ public @interface HTTP {
     String methodType();
 
     /**
-     * Returns the method type of the Request.
+     * Returns JSON Payload string of the Request.
      *
-     * @return the method type of the Request.
+     * @return the JSON Payload string of the Request.
      */
     String jsonPayload() default Constants.UNASSIGNED;
 
     /**
-     * Returns the method type of the Request.
+     * Returns formatted Produces string of the Request.
      *
      * @return the method type of the Request.
      */

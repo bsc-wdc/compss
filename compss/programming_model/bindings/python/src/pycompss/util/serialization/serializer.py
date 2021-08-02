@@ -280,12 +280,13 @@ def serialize_to_bytes(obj):
     return ret
 
 
-def deserialize_from_handler(handler):
-    # type: (typing.Any) -> typing.Any
+def deserialize_from_handler(handler, show_exception=True):
+    # type: (typing.Any, bool) -> typing.Any
     """ Deserialize an object from a file.
 
     :param handler: File name from where the object is going to be
                     deserialized.
+    :param show_exception: Show exception if happen (only with debug).
     :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
@@ -364,16 +365,18 @@ def deserialize_from_file(file_name):
         return ret
 
 
-def deserialize_from_bytes(serialized_content_bytes):
+def deserialize_from_bytes(serialized_content_bytes, show_exception=True):
     # type: (bytes) -> typing.Any
     """ Deserialize the contents in a given byte array.
 
     :param serialized_content_bytes: A byte array with serialized contents
+    :param show_exception: Show exception if happen (only with debug).
     :return: A deserialized object
     """
     with event_inside_worker(DESERIALIZE_FROM_BYTES_EVENT):
         handler = BytesIO(serialized_content_bytes)
-        ret, close_handler = deserialize_from_handler(handler)
+        ret, close_handler = deserialize_from_handler(handler,
+                                                      show_exception=show_exception)  # noqa: E501
         if close_handler:
             handler.close()
         return ret

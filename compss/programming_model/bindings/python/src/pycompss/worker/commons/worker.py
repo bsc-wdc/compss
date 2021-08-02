@@ -140,7 +140,8 @@ def build_task_parameter(p_type,      # type: int
                 # Decode removes double backslash, and encode returns
                 # the result as binary
                 p_bin = new_aux.decode(STR_ESCAPE).encode()
-                deserialized_aux = deserialize_from_bytes(p_bin)  # noqa
+                deserialized_aux = deserialize_from_bytes(p_bin,
+                                                          show_exception=False)  # noqa: E501
             except (SerializerException, ValueError, EOFError):
                 # was not an object
                 deserialized_aux = str(real_value.decode())
@@ -220,7 +221,10 @@ def get_task_params(num_params, logger, args):  # noqa
                 logger.debug("\t * Prefix : %s" % str(p_prefix))
                 logger.debug("\t * Name : %s" % str(p_name))
                 logger.debug("\t * Content Type: %r" % p_c_type)
-                logger.debug("\t * Value: %r" % p_value)
+                if p_type == parameter.TYPE.STRING:
+                    logger.debug("\t * Number of substrings: %r" % p_value)
+                else:
+                    logger.debug("\t * Value: %r" % p_value)
 
             task_param, offset = build_task_parameter(p_type,
                                                       p_stream,
@@ -232,7 +236,7 @@ def get_task_params(num_params, logger, args):  # noqa
                                                       pos, logger)
 
             if __debug__:
-                logger.debug("\t * Type : %s" % str(task_param.content_type))
+                logger.debug("\t * Updated type : %s" % str(task_param.content_type))
 
             ret.append(task_param)
             pos += offset + 6

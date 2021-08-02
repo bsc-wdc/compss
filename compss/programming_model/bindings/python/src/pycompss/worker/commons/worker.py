@@ -144,10 +144,12 @@ def build_task_parameter(p_type,      # type: int
                     # decode removes double backslash, and encode returns
                     # the result as binary
                     p_bin_str = aux.decode(STR_ESCAPE).encode()
-                    aux = deserialize_from_string(p_bin_str)  # noqa
+                    aux = deserialize_from_string(p_bin_str,
+                                                  show_exception=False)
                 else:
                     # decode removes double backslash, and str casts the output
-                    aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
+                    aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)),
+                                                  show_exception=False)
             except (SerializerException, ValueError, EOFError):
                 # was not an object
                 aux = str(real_value.decode())
@@ -155,6 +157,9 @@ def build_task_parameter(p_type,      # type: int
 
         if IS_PYTHON3 and isinstance(aux, bytes):
             aux = aux.decode('utf-8')
+
+        if __debug__:
+            logger.debug("\t * Value: %s" % aux)
 
         return Parameter(
             content_type=p_type,
@@ -222,7 +227,10 @@ def get_task_params(num_params, logger, args):  # noqa
             logger.debug("\t * Prefix : %s" % str(p_prefix))
             logger.debug("\t * Name : %s" % str(p_name))
             logger.debug("\t * Content Type: %r" % p_c_type)
-            logger.debug("\t * Value: %r" % p_value)
+            if p_type == parameter.TYPE.STRING:
+                logger.debug("\t * Number of substrings: %r" % p_value)
+            else:
+                logger.debug("\t * Value: %r" % p_value)
 
         task_param, offset = build_task_parameter(p_type,
                                                   p_stream,
@@ -234,7 +242,7 @@ def get_task_params(num_params, logger, args):  # noqa
                                                   pos, logger)
 
         if __debug__:
-            logger.debug("\t * Type : %s" % str(task_param.content_type))
+            logger.debug("\t * Updated type : %s" % str(task_param.content_type))
 
         ret.append(task_param)
         pos += offset + 6

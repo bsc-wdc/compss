@@ -268,12 +268,13 @@ def serialize_to_string(obj):
     return ret
 
 
-def deserialize_from_handler(handler):
-    # type: (...) -> object
+def deserialize_from_handler(handler, show_exception=True):
+    # type: (..., bool) -> object
     """ Deserialize an object from a file.
 
     :param handler: File name from where the object is going to be
                     deserialized.
+    :param show_exception: Show exception if happen (only with debug).
     :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
@@ -320,7 +321,7 @@ def deserialize_from_handler(handler):
     except Exception:
         if DISABLE_GC:
             gc.enable()
-        if __debug__:
+        if __debug__ and show_exception:
             print('ERROR! Deserialization with %s failed.' % str(serializer))
             try:
                 traceback.print_exc()
@@ -346,15 +347,17 @@ def deserialize_from_file(file_name):
 
 
 @emit_event(DESERIALIZE_FROM_BYTES_EVENT, master=False, inside=True)
-def deserialize_from_string(serialized_content):
-    # type: (str) -> object
+def deserialize_from_string(serialized_content, show_exception=True):
+    # type: (str, bool) -> object
     """ Deserialize the contents in a given string.
 
     :param serialized_content: A string with serialized contents
+    :param show_exception: Show exception if happen (only with debug).
     :return: A deserialized object
     """
     handler = BytesIO(serialized_content)  # noqa
-    ret, close_handler = deserialize_from_handler(handler)
+    ret, close_handler = deserialize_from_handler(handler,
+                                                  show_exception=show_exception)  # noqa: E501
     if close_handler:
         handler.close()
     return ret

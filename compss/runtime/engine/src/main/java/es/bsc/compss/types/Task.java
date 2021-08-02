@@ -311,14 +311,13 @@ public class Task extends AbstractTask {
      * @return A String containing the task legend description.
      */
     public String getLegendDescription() {
+        StringBuilder information = new StringBuilder();
+        information.append("<tr>").append("\n");
+        information.append("<td align=\"right\">").append(this.getMethodName()).append("</td>").append("\n");
+        information.append("<td bgcolor=\"").append(this.getColor()).append("\">&nbsp;</td>").append("\n");
+        information.append("</tr>").append("\n");
 
-        StringBuilder buffer = new StringBuilder();
-
-        buffer.append("[[Task id: ").append(getId()).append("]");
-        buffer.append(", [Status: ").append(getStatus()).append("]");
-        buffer.append(", ").append(getTaskDescription().toString()).append("]");
-
-        return buffer.toString();
+        return information.toString();
     }
 
     /**

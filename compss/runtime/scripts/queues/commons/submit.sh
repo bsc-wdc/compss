@@ -44,11 +44,15 @@ submit() {
   # Get command args (loads args from commons.sh, specially sc_cfg)
   get_args "$@"
 
-  # Load specific queue system variables
-  # shellcheck source=../supercomputers/default.cfg
-  # shellcheck disable=SC1091
-  # shellcheck disable=SC2154
-  source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
+  if [ -f "${sc_cfg}" ]; then
+     source "${sc_cfg}"
+  else
+     # Load specific queue system variables
+     # shellcheck source=../supercomputers/default.cfg
+     # shellcheck disable=SC1091
+     # shellcheck disable=SC2154
+     source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
+  fi
 
   # Check parameters
   check_args

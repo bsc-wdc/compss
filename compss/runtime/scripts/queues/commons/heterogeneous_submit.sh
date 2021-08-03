@@ -127,11 +127,15 @@ submit() {
   
   # Storing original arguments to pass
   original_args_pass="${args_pass}"
-  # Load specific queue system variables
-  # shellcheck source=../cfgs/default.cfg
-  # shellcheck disable=SC1091
-  # shellcheck disable=SC2154
-  source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
+  if [ -f "${sc_cfg}" ]; then
+     source "${sc_cfg}"
+  else
+     # Load specific queue system variables
+     # shellcheck source=../cfgs/default.cfg
+     # shellcheck disable=SC1091
+     # shellcheck disable=SC2154
+     source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
+  fi
 
   # Load specific queue system flags
   # shellcheck source=../slurm/slurm.cfg

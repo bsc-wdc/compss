@@ -11,7 +11,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildBarbora_aux <FullTargetPath>"
+    echo " Usage: buildKarolina_aux <FullTargetPath>"
     echo " "
     exit 1
   }
@@ -29,9 +29,9 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   
   # DEFINE MODULES
-  modules="GCCcore/8.3.0 libxml2/2.9.9 binutils/2.32-GCCcore-8.3.0 bzip2/1.0.6 zlib/1.2.11 OpenMPI/3.1.5-GCCcore-8.3.0 Java/1.8.0_221"
+  modules="GCC/10.2.0 libxml2/2.9.10-GCCcore-10.2.0 binutils/2.35-GCCcore-10.2.0 bzip2/1.0.8-GCCcore-10.2.0 zlib/1.2.11-GCCcore-10.2.0 OpenMPI/4.0.5-GCC-10.2.0 Java/1.8.0_221"
   unload_before_python="ignore"
-  py2_modules="Python/2.7.13"
+  py2_modules="Python/2.7.17-GCC-8.3.0-2.32-base"
   py3_modules="Python/3.8.6-GCCcore-10.2.0"
   py3_other_modules="ignore"
 
@@ -39,7 +39,7 @@
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
   additionalExports=""
   additional_module_use_folder="ignore"
-  queues_cfg="barbora.cfg"
+  queues_cfg="karolina.cfg"
   extrae_with_openmpi="true"
   openmpi_version=""
   extrae_with_impi="false"

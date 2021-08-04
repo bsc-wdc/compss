@@ -24,10 +24,11 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 def test_c_extension_link_wrong_message():
     in_queue = new_queue()
+    out_queue = new_queue()
     in_queue.put("UNSUPPORTED")
     is_ok = False
     try:
-        c_extension_link(in_queue, None, False, None, None)
+        c_extension_link(in_queue, out_queue, False, "None", "None")
     except PyCOMPSsException:
         is_ok = True
     assert (

@@ -43,7 +43,7 @@ def test_gat_worker_simple_task():
     sys.argv = [
         "worker.py",
         "false",
-        1,
+        "1",
         "true",
         "null",
         "NONE",
@@ -75,7 +75,7 @@ def test_gat_worker_increment_task():
     sys.argv = [
         "worker.py",
         "false",
-        1,
+        "1",
         "true",
         "null",
         "NONE",

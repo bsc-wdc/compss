@@ -100,7 +100,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
             temp_folder,
             "false",
             "true",
-            0,
+            "0",
             "null",
             "NONE",
             "localhost",

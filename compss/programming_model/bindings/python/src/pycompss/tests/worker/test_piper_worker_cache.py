@@ -41,11 +41,11 @@ def test_is_cache_enabled():
         case1 = is_cache_enabled("true")
         assert case1, "Unexpected return. Expected: <bool> True"
         case2 = is_cache_enabled("True")
-        assert not case2, "Unexpected return. Expected: <bool> False"
+        assert case2, "Unexpected return. Expected: <bool> True"
         case3 = is_cache_enabled("true:1000")
         assert case3, "Unexpected return. Expected: <bool> True"
         case4 = is_cache_enabled("True:1000")
-        assert not case4, "Unexpected return. Expected: <bool> False"
+        assert case4, "Unexpected return. Expected: <bool> True"
     else:
         print(NOT_PYTHON_3_8)
 

@@ -172,8 +172,10 @@ def compss_wait_on(*args, **kwargs):  # noqa
     :return: The same objects defined as parameter.
     """
     ret = list(map(lambda o: o, args))
-    ret = ret[0] if len(ret) == 1 else ret
-    return ret
+    if len(ret) == 1:
+        return ret[0]
+    else:
+        return ret
 
 
 def compss_get_number_of_resources():

@@ -32,8 +32,8 @@ MASTER = "MASTER"
 WORKER = "WORKER"
 OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
-_WHO = OUT_OF_SCOPE    # type: typing.Any
-_WHERE = OUT_OF_SCOPE  # type: typing.Any
+_WHO = OUT_OF_SCOPE    # type: str
+_WHERE = OUT_OF_SCOPE  # type: str
 
 NESTING = False
 LOADING = False
@@ -86,7 +86,7 @@ def set_pycompss_context(where):
     global _WHO
     caller_stack = inspect.stack()[1]
     caller_module = inspect.getmodule(caller_stack[0])
-    _WHO = caller_module
+    _WHO = str(caller_module)
 
 
 def get_pycompss_context():

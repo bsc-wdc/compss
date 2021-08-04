@@ -26,6 +26,7 @@ import signal
 import traceback
 import base64
 import typing
+import logging
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
@@ -54,6 +55,8 @@ from pycompss.util.storages.persistent import TaskContext  # noqa: E402
 from pycompss.util.storages.persistent import is_psco      # noqa: E402
 from pycompss.util.storages.persistent import get_by_id    # noqa: E402
 
+default_logger = logging.getLogger(__name__)
+
 
 def build_task_parameter(p_type,      # type: int
                          p_stream,    # type: int
@@ -63,7 +66,7 @@ def build_task_parameter(p_type,      # type: int
                          p_c_type,    # type: str
                          args=None,   # type: list
                          pos=0,       # type: int
-                         logger=None  # type: typing.Any
+                         logger=default_logger  # type: logging.Logger
                          ):           # type: (...) -> typing.Tuple[Parameter, int]
     """
     Build task parameter object from the given parameters.

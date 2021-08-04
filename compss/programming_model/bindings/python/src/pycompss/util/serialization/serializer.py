@@ -366,7 +366,7 @@ def deserialize_from_file(file_name):
 
 
 def deserialize_from_bytes(serialized_content_bytes, show_exception=True):
-    # type: (bytes) -> typing.Any
+    # type: (bytes, bool) -> typing.Any
     """ Deserialize the contents in a given byte array.
 
     :param serialized_content_bytes: A byte array with serialized contents

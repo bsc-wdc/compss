@@ -38,6 +38,7 @@ public class HTTPController {
 
         boolean isJson = false;
 
+        // make sure that the response is in JSON format
         Map<String, List<String>> headers = connection.getHeaderFields();
         for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
             if (entry.getKey() != null && entry.getKey().equals("Content-Type") && entry.getValue() != null

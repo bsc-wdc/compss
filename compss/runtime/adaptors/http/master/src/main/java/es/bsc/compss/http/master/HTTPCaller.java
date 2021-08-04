@@ -63,12 +63,9 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
                 Response httpResponse = performHttpRequest(namedParameters, httpImplementation);
 
-                // todo: beautify this
-                if (httpImplementation.getProduces() != null
-                    && !httpImplementation.getProduces().equals(Constants.UNASSIGNED)
-                    && !httpImplementation.getProduces().equals("#")) {
-                    formatResponse(httpResponse, httpImplementation.getProduces());
-                }
+                // todo: beautify this and maybe check the empty string
+                formatResponse(httpResponse, httpImplementation.getProduces());
+
                 processResponse(job, httpResponse);
 
             } catch (Exception e) {
@@ -101,6 +98,15 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
     }
 
     private void formatResponse(Response response, String produces) {
+
+        if (produces == null || produces.equals(Constants.UNASSIGNED) || produces.equals("null")
+            || produces.equals("#")) {
+            JsonElement respBodyElem = JsonParser.parseString(response.getResponseBody().toString());
+            JsonObject newBody = new JsonObject();
+            newBody.add("$return_0", respBodyElem);
+            response.setResponseBody(newBody);
+            return;
+        }
 
         JsonElement element = JsonParser.parseString(produces);
         JsonObject producesJSONObj = element.getAsJsonObject();

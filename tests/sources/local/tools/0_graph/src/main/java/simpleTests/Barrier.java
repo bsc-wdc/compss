@@ -26,6 +26,11 @@ public class Barrier {
         // Final sync
         for (int i = 0; i < N; ++i) {
             System.out.println("Value " + i + " is " + values[i].getValue());
+            try {
+                Thread.sleep(5_000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

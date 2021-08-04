@@ -154,16 +154,23 @@ check_args() {
   if [ -z "${sc_cfg}" ]; then
     sc_cfg=${DEFAULT_SC_CFG}
   fi
-  if [[ ${sc_cfg} != *cfg ]]; then
-    # Add cfg suffix
-    sc_cfg=${sc_cfg}.cfg
-  fi
+  
+  if [ -f "${sc_cfg}" ]; then
+     #sc_cfg is a file
+     local scCfgFullPath=${sc_cfg}  
+  else
+     #if not check if it is one of the already installed
+     if [[ ${sc_cfg} != *cfg ]]; then
+        # Add cfg suffix
+        sc_cfg=${sc_cfg}.cfg
+     fi
 
-  local scCfgFullPath=${SCRIPT_DIR}/../queues/supercomputers/${sc_cfg}
+     local scCfgFullPath=${SCRIPT_DIR}/../queues/supercomputers/${sc_cfg}
 
-  if [ ! -f "${scCfgFullPath}" ]; then
-    # CFG file doesn't exist
-    display_error "${ERROR_CFG_SC}"
+     if [ ! -f "${scCfgFullPath}" ]; then
+        # CFG file doesn't exist
+        display_error "${ERROR_CFG_SC}"
+     fi
   fi
 
   # Source SC CFG env

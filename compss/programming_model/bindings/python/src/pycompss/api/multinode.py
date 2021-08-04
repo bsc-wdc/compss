@@ -42,6 +42,7 @@ if __debug__:
 MANDATORY_ARGUMENTS = {}
 SUPPORTED_ARGUMENTS = {'computing_nodes'}
 DEPRECATED_ARGUMENTS = {'computingNodes'}
+SLURM_SKIP_VARS = ["SLURM_JOBID", "SLURM_JOB_ID", "SLURM_USER", "SLURM_QOS", "SLURM_PARTITION"]
 
 
 class MultiNode(PyCOMPSsDecorator):
@@ -184,7 +185,7 @@ def remove_slurm_environment():
     old_slurm_env = dict()
     for key, value in os.environ.items():
         if key.startswith("SLURM"):
-            if not (key == "SLURM_JOBID" or key == "SLURM_JOB ID" or key == "SLURM_USER"):
+            if key not in SLURM_SKIP_VARS:
                 old_slurm_env[key] = value
                 os.environ.pop(key)
 

@@ -200,7 +200,7 @@ public abstract class Tracer {
      * @param logDirPath Path to the log directory
      * @param level type of tracing: -3: arm-ddt, -2: arm-map, -1: scorep, 0: off, 1: extrae-basic, 2: extrae-advanced
      */
-    public static void init(String logDirPath, int level) {
+    public static void init(String logDirPath, int level, boolean tracingTasks) {
         if (tracerAlreadyLoaded) {
             if (DEBUG) {
                 LOGGER.debug("Tracing already initialized " + level + "no need for a second initialization");
@@ -210,13 +210,13 @@ public abstract class Tracer {
         tracerAlreadyLoaded = true;
         if (DEBUG) {
             LOGGER.debug("Initializing tracing with level " + level);
+            LOGGER.debug("Tracing task dependencies: " + tracingTasks);
         }
 
         hostId = new AtomicInteger(1);
         hostToSlots = new HashMap<>();
         predecessorsMap = new HashMap<>();
-
-        tracingTaskDependencies = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
+        tracingTaskDependencies = tracingTasks;
 
         if (!logDirPath.endsWith(File.separator)) {
             logDirPath += logDirPath;
@@ -317,6 +317,7 @@ public abstract class Tracer {
      * @return true or false
      */
     public static boolean isTracingTaskDependencies() {
+
         return tracingTaskDependencies;
     }
 

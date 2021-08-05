@@ -197,8 +197,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
         int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
         String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
-        String traceHost, String storageConf, TaskExecution executionType, boolean persistentC, String workingDir,
-        String installDir, String appDir, JavaParams javaParams, PythonParams pyParams, CParams cParams) {
+        String traceHost, String tracingTaskDependencies, String storageConf, TaskExecution executionType,
+        boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
+        PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
 
@@ -208,7 +209,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Set tracing attributes and initialize module if needed
         this.tracingLevel = Integer.parseInt(traceFlag);
-        NIOTracer.init(this.tracingLevel);
+        this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
+        NIOTracer.init(this.tracingLevel, this.tracingTaskDependencies);
         if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
         }
@@ -1129,16 +1131,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Configure tracing
         System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFile);
 
-        // Configure tracing
         System.setProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES, traceTaskDependencies);
+
         /*
          * ***********************************************************************************************************
          * LAUNCH THE WORKER
          *************************************************************************************************************/
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
             computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag,
-            traceHost, storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams,
-            cParams);
+            traceHost, traceTaskDependencies, storageConf, executionType, persistentC, workingDir, installDir, appDir,
+            javaParams, pyParams, cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

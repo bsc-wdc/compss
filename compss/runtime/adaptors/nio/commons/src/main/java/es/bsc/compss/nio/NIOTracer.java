@@ -46,10 +46,10 @@ public class NIOTracer extends Tracer {
      *
      * @param level Tracing level.
      */
-    public static void init(int level) {
-        LOGGER.debug("Initializing NIO tracing level [" + level + "]");
+    public static void init(int level, boolean tracingTaskDep) {
+        LOGGER.debug("Initializing NIO tracing level [" + level + "," + tracingTaskDep + "]");
         tracingLevel = level;
-        tracingTaskDependencies = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
+        tracingTaskDependencies = tracingTaskDep;
     }
 
     /**

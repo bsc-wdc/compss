@@ -145,8 +145,10 @@ public class Comm {
         if (System.getProperty(COMPSsConstants.TRACING) != null
             && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
-            LOGGER.debug("Tracing is activated [" + tracingLevel + ']');
-            Tracer.init(Comm.getAppHost().getAppLogDirPath(), tracingLevel);
+            boolean tracingTaskDep =
+                Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
+            LOGGER.debug("Tracing is activated [" + tracingLevel + " " + tracingTaskDep + ']');
+            Tracer.init(Comm.getAppHost().getAppLogDirPath(), tracingLevel, tracingTaskDep);
             if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
             }

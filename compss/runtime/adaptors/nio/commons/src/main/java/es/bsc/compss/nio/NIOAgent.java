@@ -93,7 +93,7 @@ public abstract class NIOAgent {
     protected static final TransferManager TM = new TransferManager();
 
     public static final int NUM_PARAMS_PER_WORKER_SH = 7;
-    public static final int NUM_PARAMS_NIO_WORKER = 37;
+    public static final int NUM_PARAMS_NIO_WORKER = 38;
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
 
@@ -124,6 +124,7 @@ public abstract class NIOAgent {
     // Tracing
     protected boolean tracing;
     protected int tracingLevel;
+    protected boolean tracingTaskDependencies;
     protected int tracingId = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected HashMap<Connection, Integer> connection2partner;
 

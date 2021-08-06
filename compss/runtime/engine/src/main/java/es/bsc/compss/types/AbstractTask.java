@@ -105,7 +105,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
         this.dependentTasks.put(producer, dp);
 
         // Adding predecessors for task dependency tracing
-        if (Tracer.isActivated()) {
+        if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             Tracer.addPredecessors(this.taskId, producer.taskId);
         }
     }

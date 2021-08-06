@@ -95,8 +95,10 @@ public class Agent {
         if (System.getProperty(COMPSsConstants.TRACING) != null
             && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
-            LOGGER.debug("Tracing is activated [" + tracingLevel + ']');
-            Tracer.init(LoggerManager.getAppLogDirPath(), tracingLevel);
+            boolean tracingTaskDep =
+                Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
+            LOGGER.debug("Tracing is activated [" + tracingLevel + " " + tracingTaskDep + ']');
+            Tracer.init(LoggerManager.getAppLogDirPath(), tracingLevel, tracingTaskDep);
             if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
             }
@@ -285,6 +287,10 @@ public class Agent {
                 }
                 if (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) == null) {
                     System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
+                }
+                if (System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES) == null) {
+                    System.setProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES,
+                        String.valueOf(manager.getTracingTaskDep()));
                 }
                 if (System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE) == null) {
                     System.setProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE, manager.getCustomExtraeFilePython());

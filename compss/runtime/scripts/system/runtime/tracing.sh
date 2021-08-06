@@ -24,7 +24,7 @@ DEFAULT_TRACING=${TRACING_DEACTIVATED}
 DEFAULT_TRACE_LABEL="None"
 DEFAULT_EXTRAE_CONFIG_FILE="null"
 DEFAULT_EXTRAE_CONFIG_FILE_PYTHON="null"
-
+DEFAULT_TRACING_TASK_DEPENDENCIES="false"
 #----------------------------------------------
 # ERROR MESSAGES
 #----------------------------------------------
@@ -56,6 +56,10 @@ check_tracing_env() {
 check_tracing_setup () {
   if [ -z "${tracing}" ]; then
     tracing=${DEFAULT_TRACING}
+  fi
+
+  if [ -z "${tracing_task_dependencies}" ]; then
+    tracing_task_dependencies=${DEFAULT_TRACING_TASK_DEPENDENCIES}
   fi
 
   # TRACING file option
@@ -106,6 +110,7 @@ append_tracing_jvm_options_to_file() {
   local jvm_options_file=${1}
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.tracing=${tracing}
+-Dcompss.tracing.task.dependencies=${tracing_task_dependencies}
 -Dcompss.trace.label=${trace_label}
 -Dcompss.extrae.file=${custom_extrae_config_file}
 -Dcompss.extrae.file.python=${custom_extrae_config_file_python}

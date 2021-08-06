@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.util;
 
+import com.jcraft.jsch.Logger;
 import es.bsc.compss.COMPSsConstants;
 
 import java.io.File;
@@ -528,6 +529,10 @@ public class RuntimeConfigManager {
      */
     public void setTracing(int tracing) {
         config.setProperty(COMPSsConstants.TRACING, tracing);
+    }
+
+    public boolean getTracingTaskDep() {
+        return config.getBoolean(COMPSsConstants.TRACING_TASK_DEPENDENCIES, false);
     }
 
     /**

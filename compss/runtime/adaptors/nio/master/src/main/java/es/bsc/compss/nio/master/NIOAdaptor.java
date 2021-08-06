@@ -211,7 +211,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         this.tracing = System.getProperty(COMPSsConstants.TRACING) != null
             && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0;
         this.tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
-
+        this.tracingTaskDependencies =
+            Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
         // Start the server
         LOGGER.debug("  Starting transfer server...");
         try {

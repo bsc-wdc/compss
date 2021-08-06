@@ -495,13 +495,13 @@ public class ExecutionAction extends AllocatableAction {
 
         // Get predecessors for task dependency tracing
         List<Integer> predecessors = null;
-        if (Tracer.isActivated()) {
+        if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             predecessors = Tracer.getPredecessors(this.task.getId());
         }
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, listener, predecessors, this.task.getSuccessors().size());
         // Remove predecessors from map for task dependency tracing
-        if (Tracer.isActivated()) {
+        if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             Tracer.removePredecessor(this.task.getId());
         }
         this.currentJob = job;

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  NUM_PARAMS=37
+  NUM_PARAMS=38
 
   ######################
   # INTERNAL FUNCTIONS
@@ -110,16 +110,17 @@
     tracing=${25}
     extraeFile=${26}
     hostId=${27}
-    storageConf=${28}
-    execType=${29}
-    persistentBinding=${30}
-    pythonInterpreter=${31}
-    pythonVersion=${32}
-    pythonVirtualEnvironment=${33}
-    pythonPropagateVirtualEnvironment=${34}
-    pythonExtraeFile=${35}
-    pythonMpiWorker=${36}
-    pythonWorkerCache=${37}
+    traceTaskDependencies=${28}
+    storageConf=${29}
+    execType=${30}
+    persistentBinding=${31}
+    pythonInterpreter=${32}
+    pythonVersion=${33}
+    pythonVirtualEnvironment=${34}
+    pythonPropagateVirtualEnvironment=${35}
+    pythonExtraeFile=${36}
+    pythonMpiWorker=${37}
+    pythonWorkerCache=${38}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -154,6 +155,7 @@
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"
       echo "- HostId:              ${hostId}"
+      echo "- TracingTaskDep:      ${traceTaskDependencies}"
       echo "- StorageConf:         ${storageConf}"
       echo "- ExecType:            ${execType}"
       echo "- Persistent:          ${persistentBinding}"

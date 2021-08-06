@@ -19,6 +19,7 @@ DEFAULT_DEBUG_ARG=debug
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
+DEFAULT_TRACING_TASK_DEP=false
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
 DEFAULT_CUSTOM_EXTRAE_FILE_PYTHON="null"
 DEFAULT_MASTER_PORT_BASE=43000
@@ -392,6 +393,7 @@ worker_cmd() {
             ${w_tracing} \
             ${custom_extrae_file} \
             ${nodeId} \
+            ${tracing_task_dependencies} \
             ${storage_conf} \
             ${taskExecution} \
             ${persistent_worker_c} \
@@ -1102,6 +1104,12 @@ get_args() {
         trace_label=*)
           trace_label=${OPTARG//trace_label=/}
           ;;
+        tracing_task_dependencies=*)
+            # Activates the communication tracing of task dependencies for the first worker node
+            tracing_task_dependencies=${OPTARG//tracing_task_dependencies=/}
+            # Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+          ;;
         comm=*)
           comm=${OPTARG//comm=/}
           # Keep it for runcompss (to add them to master)
@@ -1564,6 +1572,10 @@ check_args() {
 
   if [ -z "${tracing}" ]; then
     tracing=${DEFAULT_TRACING}
+  fi
+
+  if [ -z "${tracing_task_dependencies}" ]; then
+    tracing_task_dependencies=${DEFAULT_TRACING_TASK_DEP}
   fi
 
   if [ -z "${custom_extrae_file}" ]; then

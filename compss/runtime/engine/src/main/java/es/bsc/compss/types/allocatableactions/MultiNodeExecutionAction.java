@@ -134,13 +134,16 @@ public class MultiNodeExecutionAction extends ExecutionAction {
             LOGGER.debug(this.toString() + " starts job creation");
         }
         ArrayList<Integer> predecessors = null;
-        if (Tracer.isActivated()) {
+        if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             predecessors = Tracer.getPredecessors(this.task.getId());
         }
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
         List<String> slaveNames = this.group.getSlavesNames();
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, listener, predecessors, this.task.getSuccessors().size());
+        if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
+            Tracer.removePredecessor(this.task.getId());
+        }
         this.currentJob = job;
         job.setTransferGroupId(transferGroupId);
         job.setHistory(JobHistory.NEW);

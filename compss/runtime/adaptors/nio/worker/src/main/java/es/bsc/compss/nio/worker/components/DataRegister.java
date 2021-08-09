@@ -19,7 +19,7 @@ package es.bsc.compss.nio.worker.components;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
-import es.bsc.compss.util.FileDeleter;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.TraceEvent;
 
@@ -247,7 +247,7 @@ public class DataRegister {
         this.storageId = null;
         removeValue();
         for (String path : this.files) {
-            FileDeleter.deleteAsync(new File(path));
+            FileOpsManager.deleteAsync(new File(path));
         }
     }
 

@@ -36,7 +36,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileDeleter;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
@@ -352,7 +352,7 @@ public class Comm {
             }
         }
 
-        FileDeleter.shutdown();
+        FileOpsManager.shutdown();
 
         if (Tracer.extraeEnabled()) {
             // Emit last EVENT_END event for STOP

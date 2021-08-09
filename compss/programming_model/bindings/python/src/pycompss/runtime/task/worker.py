@@ -625,13 +625,17 @@ class TaskWorker(TaskCommons):
             # cache explicitly
             if name in self.decorator_arguments:
                 use_cache = self.decorator_arguments[name].cache
+                logger.debug("\t\t - Putting: " + name + " in cache: " + str(use_cache))
             else:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
-                    use_cache = self.decorator_arguments[vararg_name].cache
+                    if vararg_name in self.decorator_arguments:
+                        use_cache = self.decorator_arguments[vararg_name].cache
+                        logger.debug("\t\t - Putting: " + vararg_name + " in cache: " + str(use_cache))
                 else:
                     # if not explicitly said, the object is candidate to be
                     # cached
+                    logger.debug("\t\t - Putting: " + name + " in cache: True")
                     use_cache = True
             argument.cache = use_cache
             if cache:

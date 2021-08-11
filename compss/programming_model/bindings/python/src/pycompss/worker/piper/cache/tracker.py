@@ -122,6 +122,8 @@ def cache_tracker(queue, process_name, conf):
                 if action == "PUT":
                     f_name, cache_id, shape, dtype, obj_size, shared_type = message  # noqa: E501
                     if f_name in cache_ids:
+                        if __debug__:
+                            logger.debug("Putting object in the cache name: " + str(f_name))
                         # Any executor has already put the id
                         if __debug__:
                             logger.debug(HEADER + "[%s] Cache hit" %

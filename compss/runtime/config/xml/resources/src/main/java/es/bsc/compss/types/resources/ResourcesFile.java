@@ -27,6 +27,7 @@ import es.bsc.compss.types.resources.jaxb.CloudProviderType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
 import es.bsc.compss.types.resources.jaxb.DataNodeType;
 import es.bsc.compss.types.resources.jaxb.EndpointType;
+import es.bsc.compss.types.resources.jaxb.HttpType;
 import es.bsc.compss.types.resources.jaxb.ImageType;
 import es.bsc.compss.types.resources.jaxb.ImagesType;
 import es.bsc.compss.types.resources.jaxb.InstanceTypeType;
@@ -638,6 +639,25 @@ public class ResourcesFile {
             for (Object obj : objList) {
                 if (obj instanceof ServiceType) {
                     list.add(((ServiceType) obj).getWsdl());
+                }
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * Returns a List of the WSDLs of the declared Services.
+     *
+     * @return
+     */
+    public List<String> getHttp_urls() {
+        ArrayList<String> list = new ArrayList<>();
+        List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof HttpType) {
+                    list.add(((HttpType) obj).getBaseUrl());
                 }
             }
         }
@@ -1765,6 +1785,28 @@ public class ResourcesFile {
             }
         }
 
+        // Not found
+        return null;
+    }
+
+    /**
+     * Returns the HTTP Service with base_url=@baseUrl. Null if name doesn't exist
+     *
+     * @param baseUrl Http service base url
+     * @return
+     */
+    public HttpType getHttpService(String baseUrl) {
+        List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof HttpType) {
+                    HttpType s = (HttpType) obj;
+                    if (s.getBaseUrl().equals(baseUrl)) {
+                        return s;
+                    }
+                }
+            }
+        }
         // Not found
         return null;
     }

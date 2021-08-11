@@ -31,6 +31,7 @@ import es.bsc.compss.types.project.jaxb.CloudType;
 import es.bsc.compss.types.project.jaxb.ComputeNodeType;
 import es.bsc.compss.types.project.jaxb.DataNodeType;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.HttpType;
 import es.bsc.compss.types.project.jaxb.ImageType;
 import es.bsc.compss.types.project.jaxb.ImagesType;
 import es.bsc.compss.types.project.jaxb.InstanceTypeType;
@@ -104,6 +105,9 @@ public class Validator {
                 } else if (obj instanceof ServiceType) {
                     minimumUsableElementFound = true;
                     validateService(((ServiceType) obj));
+                } else if (obj instanceof HttpType) {
+                    minimumUsableElementFound = true;
+                    validateHttpService(((HttpType) obj));
                 } else if (obj instanceof CloudType) {
                     minimumUsableElementFound = true;
                     validateCloud(((CloudType) obj));
@@ -365,6 +369,22 @@ public class Validator {
         if (s != null) {
             // Check inner elements
             validateLimitOfTasks(s.getLimitOfTasks());
+        } else {
+            // The MasterNode itself is null, raise exception
+            throw new InvalidElementException("Project", "Attribute Service", "is null");
+        }
+    }
+
+    /**
+     * Validates a Service.
+     *
+     * @param h HTTP Service to validate.
+     * @throws InvalidElementException Invalid data.
+     */
+    public void validateHttpService(HttpType h) throws InvalidElementException {
+        if (h != null) {
+            // Check inner elements
+            validateLimitOfTasks(h.getLimitOfTasks());
         } else {
             // The MasterNode itself is null, raise exception
             throw new InvalidElementException("Project", "Attribute Service", "is null");

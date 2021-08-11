@@ -34,6 +34,7 @@ import es.bsc.compss.types.project.jaxb.CloudProviderType;
 import es.bsc.compss.types.project.jaxb.CloudType;
 import es.bsc.compss.types.project.jaxb.ComputeNodeType;
 import es.bsc.compss.types.project.jaxb.DataNodeType;
+import es.bsc.compss.types.project.jaxb.HttpType;
 import es.bsc.compss.types.project.jaxb.ImageType;
 import es.bsc.compss.types.project.jaxb.ImagesType;
 import es.bsc.compss.types.project.jaxb.InstanceTypeType;
@@ -79,7 +80,8 @@ import org.xml.sax.SAXException;
 
 public class ResourceLoader {
 
-    private static final int HTTP_CONNECTIONS = 10;
+    // should it still exist?
+    private static final int HTTP_CONNECTIONS = Integer.MAX_VALUE;
     // Resources XML and XSD
     private static String resources_XML;
     private static String resources_XSD;
@@ -159,6 +161,7 @@ public class ResourceLoader {
          */
         // Booleans to control initializated structures
         boolean computeNodeExist = false;
+        boolean httpResourceExists = false;
         boolean serviceExist = false;
         boolean cloudProviderExist = false;
 
@@ -181,10 +184,13 @@ public class ResourceLoader {
                 }
             }
         }
+        // nm: should we load https like this?
         // Load Services
         List<ServiceType> services = ResourceLoader.project.getServices_list();
         if (services != null) {
             for (ServiceType sProject : services) {
+                // nm: new type for HTTP? why jaxb files are ignored?
+                // nm: why do we have two ServiceType elements?
                 es.bsc.compss.types.resources.jaxb.ServiceType sResources =
                     ResourceLoader.resources.getService(sProject.getWsdl());
                 if (sResources != null) {
@@ -216,7 +222,32 @@ public class ResourceLoader {
             cloudProviderExist = loadCloud(cloud);
         }
 
-        boolean httpResourceExists = loadHTTPResource(HTTP_CONNECTIONS);
+        // boolean httpResourceExists = loadHTTPResource(HTTP_CONNECTIONS);
+
+        // Load HTTP Services
+        List<HttpType> https = ResourceLoader.project.getHttpServices_list();
+        if (https != null) {
+            for (HttpType hProject : https) {
+                // nm: new type for HTTP? why jaxb files are ignored?
+                // nm: why do we have two ServiceType elements?
+                es.bsc.compss.types.resources.jaxb.HttpType hResources =
+                    ResourceLoader.resources.getHttpService(hProject.getBaseUrl());
+                if (hResources != null) {
+                    exist = loadHttpService(hProject, hResources);
+                    httpResourceExists = (httpResourceExists || exist);
+                    LOGGER.info("____ http resource found: " + hProject.getBaseUrl());
+
+                } else {
+                    ErrorManager.warn(
+                        "No HTTP Service with URL '" + hProject.getBaseUrl() + "' is defined in the resources file");
+                }
+            }
+        }
+        if (httpResourceExists) {
+            LOGGER.info("____ some http resource was found");
+        } else {
+            LOGGER.info("____ no http resource was found");
+        }
 
         // Availability checker
         if (!computeNodeExist && !serviceExist && !cloudProviderExist && !httpResourceExists) {
@@ -446,6 +477,42 @@ public class ResourceLoader {
         MethodWorker methodWorker = createMethodWorker(name, mrd, sharedDisks, config);
         ResourceManager.addStaticResource(methodWorker);
         // If we have reached this point the method worker has been correctly created
+        return true;
+    }
+
+    private static boolean loadHttpService(HttpType hProject, es.bsc.compss.types.resources.jaxb.HttpType hResources) {
+
+        Map<String, Object> projectProperties = new HashMap<String, Object>();
+        projectProperties.put("Http", hProject);
+
+        Map<String, Object> resourcesProperties = new HashMap<String, Object>();
+        resourcesProperties.put("Http", hResources);
+        // Get service adaptor name from properties
+        String httpAdaptorName = COMPSsConstants.HTTP_ADAPTOR;
+
+        final HTTPResourceDescription hrd = new HTTPResourceDescription(HTTP_CONNECTIONS);
+
+        HTTPConfiguration config = null;
+        try {
+            config = (HTTPConfiguration) Comm.constructConfiguration(COMPSsConstants.HTTP_ADAPTOR, projectProperties,
+                resourcesProperties);
+        } catch (ConstructConfigurationException cce) {
+            ErrorManager.warn("HTTP configuration constructor failed", cce);
+            return false;
+        }
+
+        int limitOfTasks = hProject.getLimitOfTasks();
+        if (limitOfTasks >= 0) {
+            config.setLimitOfTasks(limitOfTasks);
+        } else {
+            config.setLimitOfTasks(Integer.MAX_VALUE);
+        }
+
+        LOGGER.debug("Adding http worker " + hProject.getBaseUrl());
+
+        HTTPWorker newResource = new HTTPWorker(hProject.getBaseUrl(), hrd, config);
+        ResourceManager.addStaticResource(newResource);
+
         return true;
     }
 

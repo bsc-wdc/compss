@@ -29,6 +29,7 @@ import es.bsc.compss.types.project.jaxb.CloudType;
 import es.bsc.compss.types.project.jaxb.ComputeNodeType;
 import es.bsc.compss.types.project.jaxb.DataNodeType;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.HttpType;
 import es.bsc.compss.types.project.jaxb.ImageType;
 import es.bsc.compss.types.project.jaxb.ImagesType;
 import es.bsc.compss.types.project.jaxb.InstanceTypeType;
@@ -403,6 +404,25 @@ public class ProjectFile {
             for (Object obj : objList) {
                 if (obj instanceof ServiceType) {
                     list.add((ServiceType) obj);
+                }
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * Get a list of declared HTTP Services.
+     *
+     * @return HTTP Service objects list
+     */
+    public List<HttpType> getHttpServices_list() {
+        ArrayList<HttpType> list = new ArrayList<>();
+        List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof HttpType) {
+                    list.add((HttpType) obj);
                 }
             }
         }

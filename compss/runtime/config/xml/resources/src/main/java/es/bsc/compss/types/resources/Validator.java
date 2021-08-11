@@ -27,6 +27,7 @@ import es.bsc.compss.types.resources.jaxb.CloudProviderType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
 import es.bsc.compss.types.resources.jaxb.DataNodeType;
 import es.bsc.compss.types.resources.jaxb.EndpointType;
+import es.bsc.compss.types.resources.jaxb.HttpType;
 import es.bsc.compss.types.resources.jaxb.ImageType;
 import es.bsc.compss.types.resources.jaxb.ImagesType;
 import es.bsc.compss.types.resources.jaxb.InstanceTypeType;
@@ -94,6 +95,8 @@ public class Validator {
                         validateComputeNode(((ComputeNodeType) obj));
                     } else if (obj instanceof ServiceType) {
                         validateService(((ServiceType) obj));
+                    } else if (obj instanceof HttpType) {
+                        validateHttpService(((HttpType) obj));
                     } else if (obj instanceof CloudProviderType) {
                         validateCloudProvider(((CloudProviderType) obj));
                     } else {
@@ -393,6 +396,28 @@ public class Validator {
         if (s.getPrice() != null) {
             validatePrice(s.getPrice());
         }
+    }
+
+    /**
+     * Validates the given HttpType @s with the current ResourcesFileType. The content is correct if no exception is
+     * raised.
+     *
+     * @param h Http description
+     * @throws InvalidElementException Error invalid data
+     */
+    public void validateHttpService(HttpType h) throws InvalidElementException {
+        // Check that name isn't used
+        int num = 0;
+        for (String s2 : rf.getHttp_urls()) {
+            if (s2.equals(h.getBaseUrl())) {
+                num = num + 1;
+            }
+        }
+        if (num > 1) {
+            // Service already exists
+            throw new InvalidElementException("Duplicated HTTP Service URL: '", h.getBaseUrl(), "'.");
+        }
+        // todo: should "service" element be mandatory??
     }
 
     /**

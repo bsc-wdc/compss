@@ -620,24 +620,24 @@ class TaskWorker(TaskCommons):
         cache = self.cache_queue is not None
         use_cache = False  # default store object in cache
 
-        logger.debug("\t\t - Putting: " + name + " in cache: " + cache)
+        logger.debug("\t\t - Getting: " + str(name) + " in cache: " + str(cache))
 
         if cache:
             # Check if the user has defined that the parameter has or not to be
             # cache explicitly
             if name in self.decorator_arguments:
                 use_cache = self.decorator_arguments[name].cache
-                logger.debug("\t\t - Putting 1: " + name + " in cache: " + str(use_cache))
+                logger.debug("\t\t - Getting 1: " + str(name) + " in cache: " + str(use_cache))
             else:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
                     if vararg_name in self.decorator_arguments:
                         use_cache = self.decorator_arguments[vararg_name].cache
-                        logger.debug("\t\t - Putting 2: " + vararg_name + " in cache: " + str(use_cache))
+                        logger.debug("\t\t - Getting 2: " + str(vararg_name) + " in cache: " + str(use_cache))
                 else:
                     # if not explicitly said, the object is candidate to be
                     # cached
-                    logger.debug("\t\t - Putting 3: " + name + " in cache: True")
+                    logger.debug("\t\t - Getting 3: " + str(name) + " in cache: True")
                     use_cache = True
             argument.cache = use_cache
             if cache:

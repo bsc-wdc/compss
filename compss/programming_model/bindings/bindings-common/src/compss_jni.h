@@ -68,24 +68,25 @@ void JNI_ExecuteTaskNew(long appId,
                                  );
 
 void JNI_ExecuteHttpTask(long appId,
-                            char* methodType,
-                            char* baseUrl,
-                            char* jsonPayload,
-                            char* produces,
-                            char* signature,
-                            char* onFailure,
-                            int timeout,
-                            int priority,
-                            int numNodes,
-                            int reduce,
-                            int reduceChunkSize,
-                            int replicated,
-                            int distributed,
-                            int hasTarget,
-                            int numReturns,
-                            int numParams,
-                            void** params
-                          );
+                         char* serviceName,
+                         char* baseUrl,
+                         char* methodType,
+                         char* jsonPayload,
+                         char* produces,
+                         char* signature,
+                         char* onFailure,
+                         int timeout,
+                         int priority,
+                         int numNodes,
+                         int reduce,
+                         int reduceChunkSize,
+                         int replicated,
+                         int distributed,
+                         int hasTarget,
+                         int numReturns,
+                         int numParams,
+                         void** params
+                         );
 
 // File methods
 int JNI_Accessed_File(long appId, char* fileName);

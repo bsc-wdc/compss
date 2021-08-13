@@ -270,10 +270,10 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, String methodType, String baseurl, String jsonPayload,
-        String produces, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
-        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
-        OnFailure onFailure, int timeOut, Object... parameters);
+    public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String baseurl, String methodType,
+        String jsonPayload, String produces, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes,
+        boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+        int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId.

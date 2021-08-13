@@ -412,12 +412,14 @@ class TaskMaster(TaskCommons):
 
         if self.core_element.get_impl_type() == "HTTP":
             # todo: nm: beautify this (indexes are set in http.py)..
-            base_url = self.core_element.get_impl_type_args()[0]
-            method_type = self.core_element.get_impl_type_args()[1]
-            json_payload = self.core_element.get_impl_type_args()[2]
-            produces = self.core_element.get_impl_type_args()[3]
+            service_name = self.core_element.get_impl_type_args()[0]
+            base_url = self.core_element.get_impl_type_args()[1]
+            method_type = self.core_element.get_impl_type_args()[2]
+            json_payload = self.core_element.get_impl_type_args()[3]
+            produces = self.core_element.get_impl_type_args()[4]
             binding.process_http_task(
                 signature,
+                service_name,
                 base_url,
                 method_type,
                 json_payload,

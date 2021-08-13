@@ -526,7 +526,7 @@ public class ITFParser {
         /*
          * HTTP
          */
-        for (HTTP httpAnnotation : m.getAnnotationsByType(HTTP.class)) {
+        for (HTTP httpanno : m.getAnnotationsByType(HTTP.class)) {
             LOGGER.debug("   * Processing @HTTP annotation");
 
             // Warning for ignoring streams
@@ -535,14 +535,14 @@ public class ITFParser {
                     "Java HTTP " + methodName + " does not support stream annotations. SKIPPING stream annotation");
             }
 
-            calleeMethodSignature.insert(0, httpAnnotation.declaringClass() + ".");
+            calleeMethodSignature.insert(0, httpanno.declaringClass() + ".");
 
             // Register HTTP implementation
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(),
-                    calleeMethodSignature.toString(), null, httpAnnotation.methodType(), httpAnnotation.baseUrl(),
-                    httpAnnotation.jsonPayload(), httpAnnotation.produces());
+                    calleeMethodSignature.toString(), null, httpanno.serviceName(), httpanno.baseUrl(),
+                    httpanno.methodType(), httpanno.jsonPayload(), httpanno.produces());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

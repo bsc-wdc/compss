@@ -60,6 +60,13 @@ public @interface HTTP {
      */
     String baseUrl();
 
+    /**
+     * Returns the HTTP service name.
+     *
+     * @return the Http service name.
+     */
+    String serviceName();
+
     /*
      * COMMON PROPERTIES
      *

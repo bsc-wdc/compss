@@ -3,6 +3,8 @@ package es.bsc.compss.types.implementations;
 import es.bsc.compss.types.implementations.definition.HTTPDefinition;
 import es.bsc.compss.types.resources.HTTPResourceDescription;
 
+import java.util.ArrayList;
+
 
 public class HTTPImplementation extends Implementation {
 
@@ -18,8 +20,8 @@ public class HTTPImplementation extends Implementation {
      * @return Dummy HTTP implementation.
      */
     public static HTTPImplementation generateDummy() {
-        return new HTTPImplementation(null, null,
-            new ImplementationDescription<>(new HTTPDefinition("", "", "", ""), "", new HTTPResourceDescription(0)));
+        return new HTTPImplementation(null, null, new ImplementationDescription<>(
+            new HTTPDefinition("", "", "", "", ""), "", new HTTPResourceDescription(new ArrayList<String>(), 0)));
     }
 
     public HTTPImplementation() {

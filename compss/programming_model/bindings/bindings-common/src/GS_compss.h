@@ -71,8 +71,9 @@ extern "C" void GS_ExecuteTaskNew(long appId,
                                   void** params
                                  );
 extern "C" void GS_ExecuteHttpTask(long appId,
-                                  char* methodType,
+                                  char* serviceName,
                                   char* baseUrl,
+                                  char* methodType,
                                   char* jsonPayload,
                                   char* produces,
                                   char* signature,

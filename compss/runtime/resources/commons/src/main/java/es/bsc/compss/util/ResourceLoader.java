@@ -490,17 +490,16 @@ public class ResourceLoader {
         // Get service adaptor name from properties
         String httpAdaptorName = COMPSsConstants.HTTP_ADAPTOR;
 
-        final HTTPResourceDescription hrd = new HTTPResourceDescription(HTTP_CONNECTIONS);
-
         HTTPConfiguration config = null;
         try {
-            config = (HTTPConfiguration) Comm.constructConfiguration(COMPSsConstants.HTTP_ADAPTOR, projectProperties,
+            config = (HTTPConfiguration) Comm.constructConfiguration(httpAdaptorName, projectProperties,
                 resourcesProperties);
         } catch (ConstructConfigurationException cce) {
             ErrorManager.warn("HTTP configuration constructor failed", cce);
             return false;
         }
 
+        // nm: why are we repeating this set limit??
         int limitOfTasks = hProject.getLimitOfTasks();
         if (limitOfTasks >= 0) {
             config.setLimitOfTasks(limitOfTasks);
@@ -510,6 +509,7 @@ public class ResourceLoader {
 
         LOGGER.debug("Adding http worker " + hProject.getBaseUrl());
 
+        final HTTPResourceDescription hrd = new HTTPResourceDescription(hResources.getService(), HTTP_CONNECTIONS);
         HTTPWorker newResource = new HTTPWorker(hProject.getBaseUrl(), hrd, config);
         ResourceManager.addStaticResource(newResource);
 
@@ -566,7 +566,7 @@ public class ResourceLoader {
     }
 
     private static boolean loadHTTPResource(int connections) {
-        final HTTPResourceDescription srd = new HTTPResourceDescription(connections);
+        final HTTPResourceDescription srd = new HTTPResourceDescription(null, connections);
 
         HTTPConfiguration config = null;
         try {

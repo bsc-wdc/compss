@@ -61,7 +61,11 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
                 LOGGER.debug("Executing HTTP Request...");
 
-                Response httpResponse = performHttpRequest(namedParameters, httpImplementation);
+                HTTPInstance httpInstance = job.getResourceNode();
+                LOGGER.info("______ THIS IS A BASE URL FROM XML FILE ____:" + httpInstance.getConfig().getBaseUrl());
+
+                Response httpResponse =
+                    performHttpRequest(httpInstance.getConfig().getBaseUrl(), namedParameters, httpImplementation);
 
                 // todo: beautify this and maybe check the empty string
                 formatResponse(httpResponse, httpImplementation.getProduces());
@@ -163,13 +167,13 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         }
     }
 
-    private Response performHttpRequest(final Map<String, String> namedParameters,
+    private Response performHttpRequest(String baseUrl, final Map<String, String> namedParameters,
         final HTTPImplementation httpImplementation) throws IOException {
 
-        final String baseUrl = httpImplementation.getBaseUrl();
+        final String fullUrl = baseUrl + httpImplementation.getBaseUrl();
 
         final String methodType = httpImplementation.getMethodType();
-        final String parsedUrl = URLReplacer.replaceUrlParameters(baseUrl, namedParameters, URL_PARAMETER_OPEN_TOKEN,
+        final String parsedUrl = URLReplacer.replaceUrlParameters(fullUrl, namedParameters, URL_PARAMETER_OPEN_TOKEN,
             URL_PARAMETER_CLOSE_TOKEN);
 
         // nm:

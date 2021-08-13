@@ -22,7 +22,13 @@ public class HTTPWorker extends Worker<HTTPResourceDescription> {
 
     @Override
     public boolean canRun(Implementation implementation) {
-        return implementation.getTaskType().equals(TaskType.HTTP);
+
+        if (!implementation.getTaskType().equals(TaskType.HTTP)) {
+            return false;
+        }
+
+        HTTPResourceDescription hrd = (HTTPResourceDescription) implementation.getRequirements();
+        return this.description.getServices().contains(hrd.getServices().get(0));
     }
 
     @Override

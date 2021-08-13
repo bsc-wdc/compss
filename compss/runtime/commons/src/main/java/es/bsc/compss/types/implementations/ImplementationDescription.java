@@ -40,6 +40,8 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -92,8 +94,14 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                 implSignature, (T) new ServiceResourceDescription(serviceName, namespace, port, 1));
 
         } else if (implType.toUpperCase().compareTo(TaskType.HTTP.toString()) == 0) {
+            if (implTypeArgs.length != HTTPDefinition.NUM_PARAMS) {
+                throw new IllegalArgumentException("Incorrect parameters for type HTTP on " + implSignature);
+            }
+            String serviceName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+            List<String> servicesList = new ArrayList<String>();
+            servicesList.add(serviceName);
             id = new ImplementationDescription<>((D) new HTTPDefinition(implTypeArgs, 0), implSignature,
-                (T) new HTTPResourceDescription(1));
+                (T) new HTTPResourceDescription(servicesList, 1));
         } else {
             MethodType mt;
             try {

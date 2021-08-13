@@ -6,20 +6,34 @@ import es.bsc.compss.types.implementations.TaskType;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.List;
 
 
 public class HTTPResourceDescription extends WorkerResourceDescription {
 
     private int connections;
+    // nm: list or just a string??
+    private List<String> services;
 
 
-    public HTTPResourceDescription(int connections) {
+    public HTTPResourceDescription(List<String> services, int connections) {
+        this.services = services;
         this.connections = connections;
+    }
+
+    public List<String> getServices() {
+        return this.services;
     }
 
     @Override
     public boolean canHost(Implementation impl) {
-        return impl.getTaskType() == TaskType.HTTP;
+
+        if (!impl.getTaskType().equals(TaskType.HTTP)) {
+            return false;
+        }
+
+        HTTPResourceDescription hrd = (HTTPResourceDescription) impl.getRequirements();
+        return this.services.contains(hrd.getServices().get(0));
     }
 
     @Override
@@ -55,14 +69,14 @@ public class HTTPResourceDescription extends WorkerResourceDescription {
     public ResourceDescription reduceDynamic(ResourceDescription rd) {
         HTTPResourceDescription srd = (HTTPResourceDescription) rd;
         this.connections -= srd.connections;
-        return new HTTPResourceDescription(srd.connections);
+        return new HTTPResourceDescription(srd.services, srd.connections);
     }
 
     @Override
     public ResourceDescription getDynamicCommons(ResourceDescription constraints) {
         HTTPResourceDescription sConstraints = (HTTPResourceDescription) constraints;
         int conCommons = Math.min(sConstraints.connections, this.connections);
-        return new HTTPResourceDescription(conCommons);
+        return new HTTPResourceDescription(sConstraints.services, conCommons);
     }
 
     @Override
@@ -92,7 +106,7 @@ public class HTTPResourceDescription extends WorkerResourceDescription {
 
     @Override
     public HTTPResourceDescription copy() {
-        return new HTTPResourceDescription(connections);
+        return new HTTPResourceDescription(services, connections);
     }
 
     @Override

@@ -36,7 +36,7 @@ public class HTTPJob extends Job<HTTPInstance> {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
-    private static final String SUBMIT_ERROR = "Error calling Web Service";
+    private static final String SUBMIT_ERROR = "Error calling HTP Service";
 
     // Class structures
     private static final int POOL_SIZE = 10;
@@ -52,7 +52,7 @@ public class HTTPJob extends Job<HTTPInstance> {
 
 
     /**
-     * Initializes the WSJob structures.
+     * Initializes the HTTPJob structures.
      */
     public static void init() {
         // Create thread that will handle job submission requests

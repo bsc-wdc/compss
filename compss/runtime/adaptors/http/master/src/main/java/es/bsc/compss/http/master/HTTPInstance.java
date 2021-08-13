@@ -222,4 +222,8 @@ public class HTTPInstance extends COMPSsWorker {
     public void verifyNodeIsRunning() {
         // todo: make sure nothing to do
     }
+
+    public HTTPConfiguration getConfig() {
+        return config;
+    }
 }

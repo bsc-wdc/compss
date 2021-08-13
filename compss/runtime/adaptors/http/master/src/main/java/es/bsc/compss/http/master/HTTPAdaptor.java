@@ -17,6 +17,7 @@
 package es.bsc.compss.http.master;
 
 import es.bsc.compss.comm.CommAdaptor;
+import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
@@ -48,14 +49,32 @@ public class HTTPAdaptor implements CommAdaptor {
 
     @Override
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
-        Map<String, Object> resourcesProperties) {
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
-        // TODO: Set limit of tasks from project
-        /*
-         * if (sProject != null) { config.setLimitOfTasks(sProject.getLimitOfTasks()); }
-         */
+        es.bsc.compss.types.project.jaxb.HttpType hProject =
+            (es.bsc.compss.types.project.jaxb.HttpType) projectProperties.get("Http");
+        es.bsc.compss.types.resources.jaxb.HttpType hResources =
+            (es.bsc.compss.types.resources.jaxb.HttpType) resourcesProperties.get("Http");
 
-        return new HTTPConfiguration(this.getClass().getName());
+        String baseUrl = null;
+        if (hProject != null) {
+            baseUrl = hProject.getBaseUrl();
+        } else if (hResources != null) {
+            baseUrl = hResources.getBaseUrl();
+        } else {
+            // No base url (http service unique key), throw exception
+            throw new ConstructConfigurationException("Cannot configure http service because no URL provided");
+        }
+        HTTPConfiguration config = new HTTPConfiguration(this.getClass().getName(), baseUrl);
+        if (hProject != null) {
+            config.setLimitOfTasks(hProject.getLimitOfTasks());
+        }
+
+        if (hResources != null) {
+            config.setServices(hResources.getService());
+        }
+
+        return config;
     }
 
     @Override

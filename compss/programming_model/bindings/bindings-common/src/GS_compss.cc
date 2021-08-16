@@ -40,6 +40,12 @@ void GS_set_pipes(char* comPipe, char* resPipe){
 	PIPE_set_pipes(comPipe, resPipe);
 }
 
+void GS_read_pipes(char** command){
+	if (PIPES){
+		PIPE_read_command(command);
+	}
+}
+
 void GS_On(AbstractCache* absCache) {
   init_data_manager(absCache);
   GS_On();

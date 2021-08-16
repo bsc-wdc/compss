@@ -28,6 +28,7 @@ void GS_On(AbstractCache* absCache);
 // COMPSs Runtime state
 extern "C" void GS_On(void);
 extern "C" void GS_set_pipes(char* comPipe, char* resPipe);
+extern "C" void GS_read_pipes(char** command);
 extern "C" void GS_Off(int code);
 extern "C" void GS_Cancel_Application_Tasks(long appId);
 

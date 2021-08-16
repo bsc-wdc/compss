@@ -114,6 +114,7 @@ class Pipe(object):
         :return: the first command available on the pipe.
         """
         if self.input_pipe_open is None:
+            print("PYTHON_DEBUG Opening pipe " + self.input_pipe)
             self.input_pipe_open = open(self.input_pipe, 'r')
             # Non blocking open:
             # fd = os.open(self.input_pipe, os.O_RDWR)
@@ -278,7 +279,7 @@ def executor(queue, process_name, pipe, conf):
         # MAIN EXECUTOR LOOP
         while alive:
             # Runtime -> pipe - Read command from pipe
-            command = pipe.read_command(retry_period=0.5)
+            command = COMPSs.read_pipes()
             if command != "":
                 if __debug__:
                     logger.debug(HEADER + "[%s] Received command %s" % (

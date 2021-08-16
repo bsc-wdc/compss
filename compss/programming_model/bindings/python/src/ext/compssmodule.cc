@@ -279,6 +279,18 @@ static PyObject* set_pipes(PyObject* self, PyObject* args){
 }
 
 /*
+  A function that reads a command from the pipe mechanism set with set_pipes 
+  method. No arguments are used in the function. The result is a string containing
+  the command read from the pipe.
+*/
+static PyObject* read_pipes(PyObject* self, PyObject* args){
+    char* command;
+    GS_read_pipes(&command);
+    PyObject *ret = Py_BuildValue("s", command);
+    return ret;
+}
+
+/*
   A function that, given a task with its decorator parameters, translates these
   fields to a C-friendly format and sends them to the bindings_common part,
   which is responsible to send them to the COMPSs runtime via JNI.
@@ -768,6 +780,7 @@ static PyMethodDef CompssMethods[] = {
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
 	{ "emit_event", emit_event, METH_VARARGS, "Emit a event in the API Thread." },
 	{ "set_pipes", set_pipes, METH_VARARGS, "Set compss module to pipe comunication mode." },
+    { "read_pipes", read_pipes, METH_VARARGS, "Reads a command using the pipe comunication mode." },
 	{ "set_wall_clock" , set_wall_clock, METH_VARARGS, "Set the application wall clock limit."},
     { NULL, NULL } /* sentinel */
 };

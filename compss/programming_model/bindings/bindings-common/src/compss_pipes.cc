@@ -15,6 +15,7 @@
  *
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
@@ -32,7 +33,7 @@ using namespace std;
 
 char* command_pipe = NULL;
 char* result_pipe = NULL;
-
+FILE* result_pipe_stream;
 
 void write_command_in_pipe(stringstream& ss){
 	    string myString = ss.str();
@@ -47,24 +48,43 @@ void write_command_in_pipe(stringstream& ss){
 }
 
 string read_result_from_pipe(){
-	if (result_pipe == NULL){
+	if (result_pipe_stream == NULL){
 		printf("\n[BINDING-COMMONS] ERROR: Pipe is not set");
 	    return NULL;
 	}
-    string line="";
-    while (line.length() == 0) {
-        ifstream file(result_pipe);
-        getline(file, line);
-    }
-    return line;
+    
+	char buf[BUFSIZ];
+	std::stringstream oss;
+	while (1) {
+		if( fgets (buf, BUFSIZ, result_pipe_stream) != NULL ) {
+			int buflen = strlen(buf);
+			if (buflen >0){
+				if (buf[buflen-1] == '\n'){
+                        buf[buflen-1] = '\0';
+                        oss << buf;
+				    	return oss.str();
+				} else {
+                    oss << buf;
+                    // line was truncated. Read another block to complete line.
+                }
+			}
+		}
+	}   
 }
 
- void PIPE_set_pipes(char* comPipe, char* resPipe){
-	 init_env_vars();
-	 command_pipe = strdup(comPipe);
-	 result_pipe = strdup(resPipe);
- }
 
+void PIPE_set_pipes(char* comPipe, char* resPipe){
+	init_env_vars();
+	command_pipe = strdup(comPipe);
+	result_pipe = strdup(resPipe);
+    result_pipe_stream = fopen(result_pipe , "r");
+}
+
+void PIPE_read_command(char** command){
+    string buf;
+    buf = read_result_from_pipe();
+    *command = strdup(buf.c_str());
+}
 /**
  * Processes the given parameter information. Writse parameter to the stringstream
  */

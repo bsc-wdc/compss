@@ -62,6 +62,7 @@ FREE_RESOURCES = 'FREE_RESOURCES'
 REGISTER_CORE_ELEMENT = 'REGISTER_CORE_ELEMENT'
 PROCESS_TASK = 'PROCESS_TASK'
 SET_PIPES = 'SET_PIPES'
+READ_PIPES = 'READ_PIPES'
 SET_WALL_CLOCK = 'SET_WALL_CLOCK'
 
 if __debug__:
@@ -158,6 +159,8 @@ def c_extension_link(in_queue, out_queue,
                 compss.process_task(*parameters)
             elif command == SET_PIPES:
                 compss.set_pipes(*parameters)
+            elif command == READ_PIPES:
+                compss.read_pipes(*parameters)
             elif command == SET_WALL_CLOCK:
                 compss.set_wall_clock(*parameters)
             else:
@@ -456,6 +459,13 @@ class COMPSs(object):
     def set_pipes(pipe_in, pipe_out):
         # type: (str, str) -> None
         IN_QUEUE.put((SET_PIPES, pipe_in, pipe_out))
+
+    @staticmethod
+    def read_pipes():
+        # type: () -> str
+        IN_QUEUE.put([READ_PIPES])
+        command = OUT_QUEUE.get(block=True)
+        return command
 
     @staticmethod
     def set_wall_clock(app_id, wcl):

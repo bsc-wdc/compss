@@ -664,6 +664,7 @@ class TaskWorker(TaskCommons):
                 obj = deserialize_from_file(original_path)
                 if argument.file_name.keep_source and \
                         argument.direction != parameter.DIRECTION.IN_DELETE:
+                    logger.debug("Putting: " + str(argument.name) + " in cache")
                     insert_object_into_cache_wrapper(logger,
                                                      self.cache_queue,
                                                      obj,
@@ -994,6 +995,7 @@ class TaskWorker(TaskCommons):
             # if not explicitly said, the object is candidate to be cached
             use_cache = True
         if np and cache and use_cache:
+            logger.debug("Putting: " + str(name) + " in cache")
             if in_cache(original_path, self.cache_ids):
                 replace_object_into_cache(logger,
                                           self.cache_queue,
@@ -1047,7 +1049,8 @@ class TaskWorker(TaskCommons):
                     else:
                         rank_zero_reduce = True
 
-                    serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
+                    serialize_to_file_m
+                    pienv(obj, f_name, rank_zero_reduce)
                 else:
                     serialize_to_file(obj, f_name)
                     if self.cache_queue is not None and \

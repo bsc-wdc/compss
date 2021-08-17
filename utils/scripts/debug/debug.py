@@ -70,10 +70,17 @@ def print_commands(file=None):
           , file=file)
 
 
+def read_cmd_line():
+    if sys.version_info[0] < 3:
+        return raw_input()
+    else:
+        return input()
+
+
 def handle_queries(runtime_log_file):
     end_loop = False
     while not end_loop:
-        input = raw_input()
+        input = read_cmd_line()
         if len(input) == 0:
             print("Please, insert a command.", file=sys.stderr)
             print_commands(file=sys.stderr)

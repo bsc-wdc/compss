@@ -79,6 +79,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
@@ -607,7 +609,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 LOGGER.debug(ld.getName() + " is at " + u.toString() + "(" + hostname + ")");
             }
             if (u.getHost().getNode() == this) {
-                if (targetPath.compareTo(u.getPath()) == 0) {
+                if (targetPath.compareTo(u.getPath()) == 0 && u.getProtocol() != ProtocolType.DIR_URI) {
                     LOGGER.debug(ld.getName() + " is already at " + targetPath);
                     // File already in the Path
                     reason.setDataTarget(targetPath);
@@ -707,16 +709,24 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                                 + targetPath);
                         }
-                        Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
-                            StandardCopyOption.REPLACE_EXISTING);
+                        if (u.getProtocol() == ProtocolType.DIR_URI) {
+                            FileUtils.copyDirectory(new File(u.getPath()), new File(targetPath));
+                        } else {
+                            Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
+                                StandardCopyOption.REPLACE_EXISTING);
+                        }
 
                     } else {
                         if (DEBUG) {
                             LOGGER.debug("Master local move " + ld.getName() + " from " + u.getHost().getName() + " to "
                                 + targetPath);
                         }
-                        Files.move((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
-                            StandardCopyOption.REPLACE_EXISTING);
+                        if (u.getProtocol() == ProtocolType.DIR_URI) {
+                            FileUtils.moveDirectory(new File(u.getPath()), new File(targetPath));
+                        } else {
+                            Files.move((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
+                                StandardCopyOption.REPLACE_EXISTING);
+                        }
                         uris.remove(u);
                     }
 

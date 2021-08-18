@@ -19,19 +19,21 @@ class Loggers:
     class TaskProcessor:
         label = "TaskProcessor"
 
+        class MainAccessProcess:
+            label = "process"
+            AVAILABLE = "available for main access"
+
+        class MainAccessFinished:
+            label = "taskFinished"
+            AVAILABLE = "available for main access"
+            
         class FileAccess:
             label = "ainAccessToFile"
-            WAITING = "is available"
             OBTAINED = "located on"
 
         class ObjectAccess:
             label = "nAccessToObject"
-            WAITING = "Request object transfer"
             OBTAINED = "retrieved"
-
-        class WaitEnds:
-            label = "waitForTask"
-            END = "End of waited task for data"
 
     class TaskDispatcher:
         label = "TaskDispatcher"
@@ -48,11 +50,11 @@ class Loggers:
             NEW_TASK = "New method task"
 
         class InputValue:
-            label = "pendencyForRead"
+            label = "InputDependency"
             DEFINITION = "Checking"
 
         class AddDependency:
-            label = "gularDependency"
+            label = "readDependency"
             REGISTERED = "Adding dependency"
 
         class OutputValue:
@@ -62,6 +64,10 @@ class Loggers:
         class EndTask:
             label = "endTask"
             NOTIFICATION = "Notification received"
+        
+        class MainAccess:
+            label = "ocessMainAccess"
+            REGISTERED="Registered access to data"
 
     class DataInfoProvider:
         label = "DataInfoProvider"
@@ -75,7 +81,7 @@ class Loggers:
 
         class ScheduleAction:
             label = "scheduleAction"
-            SCHEDULE = " Schedule Action"
+            SCHEDULE = " Schedule action"
 
         class CreateAction:
             label = "locatableAction"
@@ -175,19 +181,19 @@ class Parser:
         """
         event = None
         if logger == Loggers.TaskProcessor.label:
+            if method == Loggers.TaskProcessor.MainAccessProcess.label:
+                if Loggers.TaskProcessor.MainAccessProcess.AVAILABLE in message:
+                    event = DataAvailableEvent(timestamp, message)
+            if method == Loggers.TaskProcessor.MainAccessFinished.label:
+                if Loggers.TaskProcessor.MainAccessFinished.AVAILABLE in message:
+                    event = DataAvailableEvent(timestamp, message)
             if method == Loggers.TaskProcessor.FileAccess.label:
-                if Loggers.TaskProcessor.FileAccess.WAITING in message:
-                    event = FileAccessEvent(timestamp, message)
                 if Loggers.TaskProcessor.FileAccess.OBTAINED in message:
                     event = ObtainedFileEvent(timestamp, message)
             if method == Loggers.TaskProcessor.ObjectAccess.label:
-                if Loggers.TaskProcessor.ObjectAccess.WAITING in message:
-                    event = ObjectAccessEvent(timestamp, message)
                 if Loggers.TaskProcessor.ObjectAccess.OBTAINED in message:
                     event = ObtainedObjectEvent(timestamp, message)
-            if method == Loggers.TaskProcessor.WaitEnds.label:
-                if Loggers.TaskProcessor.WaitEnds.END in message:
-                    event = WaitedTaskEndEvent(timestamp, message)
+
 
         if logger == Loggers.TaskAnalyser.label:
             if method == Loggers.TaskAnalyser.ProcessTask.label:
@@ -205,6 +211,9 @@ class Parser:
             if method == Loggers.TaskAnalyser.EndTask.label:
                 if Loggers.TaskAnalyser.EndTask.NOTIFICATION in message:
                     event = EndTaskEvent(timestamp, message)
+            if method == Loggers.TaskAnalyser.MainAccess.label:
+                if Loggers.TaskAnalyser.MainAccess.REGISTERED in message:
+                    event = RegisteredMainAccessEvent(timestamp, message)
 
         if logger == Loggers.DataInfoProvider.label:
             if method == Loggers.DataInfoProvider.RegisteringAccess.label:
@@ -356,7 +365,7 @@ class InputValueEvent(Event):
         access.register_read(data, self.timestamp)
 
     def __str__(self):
-        return self.direction+" parameter ("+self.datum_id+" for task " + self.task_id + " @ "+self.timestamp
+        return "Parameter "+self.datum_id+" for task " + self.task_id + " @ "+self.timestamp
 
 
 class AddDependencyEvent(Event):
@@ -826,24 +835,21 @@ class CompletedJobEvent(Event):
 
 
 # Main accesses data
-class FileAccessEvent(Event):
+class RegisteredMainAccessEvent(Event):
     """
-    Application accesses a file
+    Application accesses a data
     """
 
     def __init__(self, timestamp, message):
         """
-        Constructs a new FileAccessEvent out of the message printed in the log
+        Constructs a new RegisteredMainAccessEvent out of the message printed in the log
 
         :param timestamp:
         :param message: file access description
         """
-        super(FileAccessEvent, self).__init__(timestamp)
+        super(RegisteredMainAccessEvent, self).__init__(timestamp)
         line_array = message.split()
-        self.data_id = None
-        if "File not accessed before" not in message:
-            if "File" in message:
-                self.data_id = line_array[1]
+        self.data_id = line_array[4]
 
     def apply(self, state):
         """
@@ -860,57 +866,21 @@ class FileAccessEvent(Event):
         else:
             return "Main accesses file " + self.data_id + " @ " + self.timestamp
 
-
-# Main accesses data
-class ObjectAccessEvent(Event):
-    """
-    Application accesses an object
-    """
-
-    def __init__(self, timestamp, message):
-        """
-        Constructs a new ObjectAccessEvent out of the message printed in the log
-
-        :param timestamp:
-        :param message: object access description
-        """
-        super(ObjectAccessEvent, self).__init__(timestamp)
-        line_array = message.split()
-        self.data_id = None
-        if "Object not accessed before" not in message:
-            if "Requested" in message:
-                self.data_id = line_array[3]
-
-    def apply(self, state):
-        """
-        Updates the execution state according to the event
-
-        :param state: current execution state
-        """
-        if self.data_id is not None:
-            state.main_accesses_data(self.data_id, self.timestamp)
-
-    def __str__(self):
-        if self.data_id is None:
-            return "Main accesses a data value out of the COMPSs system or is a subsequent access to the value"
-        else:
-            return "Main accesses object " + self.data_id + " @ " + self.timestamp
-
-class WaitedTaskEndEvent(Event):
+class DataAvailableEvent(Event):
     """
     The task that the main code waits for has finished
     """
 
     def __init__(self, timestamp, message):
         """
-        Constructs a new WaitedTaskEndEvent out of the message printed in the log
+        Constructs a new DataAvailableEvent out of the message printed in the log
 
         :param timestamp:
         :param message: producing task completion description
         """
-        super(WaitedTaskEndEvent, self).__init__(timestamp)
+        super(DataAvailableEvent, self).__init__(timestamp)
         line_array = message.split()
-        self.data_id = line_array[6]
+        self.data_id = line_array[1]
 
     def apply(self, state):
         """
@@ -940,6 +910,7 @@ class ObtainedFileEvent(Event):
         super(ObtainedFileEvent, self).__init__(timestamp)
         line_array = message.split()
         self.data_id = line_array[2]
+        print(str(self))
 
     def apply(self, state):
         """

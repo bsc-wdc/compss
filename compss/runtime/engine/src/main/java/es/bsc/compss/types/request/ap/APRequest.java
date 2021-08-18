@@ -34,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 public abstract class APRequest {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
     /**

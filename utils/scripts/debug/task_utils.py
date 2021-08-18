@@ -94,7 +94,10 @@ class Task:
         return param
 
     def get_last_registered_parameter(self):
-        return self.parameters[-1];
+        if len(self.parameters) > 0:
+            return self.parameters[-1]
+        else:
+            return None
 
     def get_history(self):
         history = []

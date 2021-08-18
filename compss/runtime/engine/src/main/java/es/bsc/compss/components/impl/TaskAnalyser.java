@@ -272,6 +272,10 @@ public class TaskAnalyser implements GraphHandler {
     public DataAccessId processMainAccess(RegisterDataAccessRequest rdar) {
         AccessParams access = rdar.getAccessParams();
         DataAccessId daId = dip.registerDataAccess(access);
+        if (DEBUG) {
+            LOGGER.debug("Registered access to data " + daId.getDataId() + " from main code");
+        }
+
         if (access.getMode() != AccessMode.W) {
             int dataId = daId.getDataId();
             // Retrieve writers information

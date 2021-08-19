@@ -33,14 +33,14 @@ import java.lang.annotation.Target;
 public @interface HTTP {
 
     /**
-     * Returns the method type of the Request.
+     * Request type (GET, POST, etc.).
      * 
-     * @return the method type of the Request.
+     * @return the request type of the Request.
      */
-    String methodType();
+    String request() default "GET";
 
     /**
-     * Returns JSON Payload string of the Request.
+     * JSON Payload string of the Request.
      *
      * @return the JSON Payload string of the Request.
      */
@@ -54,16 +54,16 @@ public @interface HTTP {
     String produces() default Constants.UNASSIGNED;
 
     /**
-     * Returns the base URL.
+     * Resource of the service. i.e: /print?{{message}}
      *
-     * @return the base URL.
+     * @return the resource string.
      */
-    String baseUrl();
+    String resource();
 
     /**
-     * Returns the HTTP service name.
+     * HTTP service name defined in the resources file.
      *
-     * @return the Http service name.
+     * @return the Http service name string.
      */
     String serviceName();
 
@@ -80,9 +80,9 @@ public @interface HTTP {
     boolean isIO() default false;
 
     /**
-     * Returns if the method has priority or not.
+     * Returns if the task has priority or not.
      * 
-     * @return if the method has priority or not.
+     * @return if the task has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 

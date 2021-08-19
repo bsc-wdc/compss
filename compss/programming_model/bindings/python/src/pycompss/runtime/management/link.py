@@ -459,10 +459,11 @@ class COMPSs(object):
                       keep_renames))
 
     @staticmethod
-    def process_http_task(signature,            # type: str
+    def process_http_task(app_id,               # type: str
+                          signature,            # type: str
                           service_name,         # type: str
-                          base_url,             # type: str
-                          method_type,          # type: str
+                          resource,             # type: str
+                          request,              # type: str
                           json_payload,         # type: str
                           produces,             # type: str
                           has_target,           # type: bool
@@ -489,8 +490,8 @@ class COMPSs(object):
         IN_QUEUE.put((PROCESS_HTTP_TASK,
                       app_id,
                       service_name,
-                      base_url,
-                      method_type,
+                      resource,
+                      request,
                       json_payload,
                       produces,
                       signature,

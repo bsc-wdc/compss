@@ -772,7 +772,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // HTTP client add payload here
     // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
     @Override
-    public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String baseurl, String methodType,
+    public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
         String jsonPayload, String produces, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes,
         boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
         int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
@@ -785,7 +785,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
         }
 
-        LOGGER.info("Creating HTTP task with service name " + serviceName + " and baseURL " + baseurl
+        LOGGER.info("Creating HTTP task with service name " + serviceName + " and resource " + resource
             + ", for application " + appId + "and declaring class:" + declareMethodFullyQualifiedName);
 
         if (LOGGER.isDebugEnabled()) {
@@ -804,7 +804,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Register the task
-        int task = ap.newTask(app, monitor, serviceName, baseurl, methodType, jsonPayload, produces,
+        int task = ap.newTask(app, monitor, serviceName, resource, request, jsonPayload, produces,
             declareMethodFullyQualifiedName, isPrioritary, isReduce, reduceChunkSize, hasTarget, numReturns, pars,
             onFailure, timeOut);
 

@@ -3,7 +3,6 @@ package es.bsc.compss.http.master;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
@@ -170,9 +169,9 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
     private Response performHttpRequest(String baseUrl, final Map<String, String> namedParameters,
         final HTTPImplementation httpImplementation) throws IOException {
 
-        final String fullUrl = baseUrl + httpImplementation.getBaseUrl();
+        final String fullUrl = baseUrl + httpImplementation.getResource();
 
-        final String methodType = httpImplementation.getMethodType();
+        final String requestType = httpImplementation.getRequest();
         final String parsedUrl = URLReplacer.replaceUrlParameters(fullUrl, namedParameters, URL_PARAMETER_OPEN_TOKEN,
             URL_PARAMETER_CLOSE_TOKEN);
 
@@ -183,7 +182,7 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         jsonPayload = URLReplacer.formatJsonPayload(jsonPayload, namedParameters, URL_PARAMETER_OPEN_TOKEN,
             URL_PARAMETER_CLOSE_TOKEN);
 
-        return HTTPController.performRequestAndGetResponse(methodType, parsedUrl, jsonPayload);
+        return HTTPController.performRequestAndGetResponse(requestType, parsedUrl, jsonPayload);
     }
 
     private Map<String, String> constructMapOfNamedParameters(TaskDescription taskDescription)

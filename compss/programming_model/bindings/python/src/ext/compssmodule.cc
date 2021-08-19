@@ -461,8 +461,8 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     debug("Process http task:\n");
     long app_id;
     char* service_name;
-    char* base_url;
-    char* method_type;
+    char* resource;
+    char* request;
     char* json_payload;
     char* produces;
     char* signature;
@@ -478,7 +478,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     PyObject *weights;
     PyObject *keep_renames;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lsssssssiiiiiiiiiOOOOOOOOO", &app_id, &service_name, &base_url, &method_type, &json_payload, &produces, &signature, &on_failure, &time_out, &priority,
+    if(!PyArg_ParseTuple(args, "lsssssssiiiiiiiiiOOOOOOOOO", &app_id, &service_name, &resource, &request, &json_payload, &produces, &signature, &on_failure, &time_out, &priority,
                          &num_nodes, &reduce, &chunk_size, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
                          &compss_directions, &compss_streams, &compss_prefixes, &content_types, &weights, &keep_renames)) {
         // Return NULL after ParseTuple automatically translates to "wrong
@@ -487,8 +487,8 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     }
     debug("- App id: %ld\n", app_id);
     debug("- Service Name: %s\n", service_name);
-    debug("- Base url: %s\n", base_url);
-    debug("- Method type: %s\n", method_type);
+    debug("- Base url resource: %s\n", resource);
+    debug("- Request Method type: %s\n", request);
     debug("- Json payload: %s\n", json_payload);
     debug("- Produces: %s\n", produces);
     debug("- Signature: %s\n", signature);
@@ -594,8 +594,8 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     GS_ExecuteHttpTask(
         app_id,
         service_name,
-        base_url,
-        method_type,
+        resource,
+        request,
         json_payload,
         produces,
         signature,

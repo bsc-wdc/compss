@@ -1790,7 +1790,7 @@ public class ResourcesFile {
     }
 
     /**
-     * Returns the HTTP Service with base_url=@baseUrl. Null if name doesn't exist
+     * Returns the HTTP Service with BaseUrl=@baseUrl. Null if name doesn't exist
      *
      * @param baseUrl Http service base url
      * @return

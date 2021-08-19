@@ -18,8 +18,8 @@ public class HTTPDefinition implements ImplementationDefinition {
     public static final int NUM_PARAMS = 5;
 
     private String serviceName;
-    private String methodType;
-    private String baseUrl;
+    private String resource;
+    private String request;
     private String jsonPayload;
     private String produces;
 
@@ -31,13 +31,13 @@ public class HTTPDefinition implements ImplementationDefinition {
     /**
      * Creates a new HTTPDefinition to create an HTTP core element implementation.
      *
-     * @param methodType HTTP method type.
-     * @param baseUrl HTTP base URL .
+     * @param request HTTP request type.
+     * @param resource HTTP resource in the URL .
      */
-    public HTTPDefinition(String serviceName, String baseUrl, String methodType, String jsonPayload, String produces) {
+    public HTTPDefinition(String serviceName, String resource, String request, String jsonPayload, String produces) {
         this.serviceName = serviceName;
-        this.baseUrl = baseUrl;
-        this.methodType = methodType;
+        this.resource = resource;
+        this.request = request;
         this.jsonPayload = jsonPayload;
         this.produces = produces;
     }
@@ -50,8 +50,8 @@ public class HTTPDefinition implements ImplementationDefinition {
      */
     public HTTPDefinition(String[] implTypeArgs, int offset) {
         this.serviceName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
-        this.baseUrl = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
-        this.methodType = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.resource = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.request = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
         this.jsonPayload = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
         this.produces = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
     }
@@ -60,12 +60,12 @@ public class HTTPDefinition implements ImplementationDefinition {
         return serviceName;
     }
 
-    public String getMethodType() {
-        return methodType;
+    public String getRequest() {
+        return request;
     }
 
-    public String getBaseUrl() {
-        return baseUrl;
+    public String getResource() {
+        return resource;
     }
 
     public String getJsonPayload() {
@@ -78,7 +78,7 @@ public class HTTPDefinition implements ImplementationDefinition {
 
     @Override
     public String toString() {
-        return "HTTP Definition \n" + "\t ServiceName: " + serviceName + "\n" + "\t HTTP base URL: " + baseUrl + "\n";
+        return "HTTP Definition \n" + "\t ServiceName: " + serviceName + "\n" + "\t HTTP resource: " + resource + "\n";
     }
 
     @Override
@@ -88,18 +88,18 @@ public class HTTPDefinition implements ImplementationDefinition {
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        this.methodType = (String) in.readObject();
-        this.baseUrl = (String) in.readObject();
+        this.request = (String) in.readObject();
+        this.resource = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(this.methodType);
-        out.writeObject(this.baseUrl);
+        out.writeObject(this.request);
+        out.writeObject(this.resource);
     }
 
     @Override
     public String toShortFormat() {
-        return " HTTP method type: " + this.methodType + " with base URL: " + this.baseUrl;
+        return " HTTP method type: " + this.request + " with base URL: " + this.resource;
     }
 }

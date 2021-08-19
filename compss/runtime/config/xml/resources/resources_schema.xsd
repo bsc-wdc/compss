@@ -76,9 +76,9 @@
         <!-- HTTP SERVICE Description -->
         <xsd:complexType name="HttpType">
                 <xsd:sequence>
-                    <xsd:element name="service" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="ServiceName" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
-                <xsd:attribute name="base_url" type="xsd:anyURI" use="required"/>
+                <xsd:attribute name="BaseUrl" type="xsd:anyURI" use="required"/>
         </xsd:complexType>
 
         <!-- CLOUD PROVIDER Description -->

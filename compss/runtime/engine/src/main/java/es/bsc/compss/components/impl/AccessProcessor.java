@@ -285,8 +285,8 @@ public class AccessProcessor implements Runnable {
      * @param app Application.
      * @param monitor Task monitor.
      * @param serviceName Service Name defined in resources file.
-     * @param baseUrl The base URL of the request.
-     * @param methodType The method type (GET, POST, PUT, DELETE ...) of the request.
+     * @param resource The base URL of the request.
+     * @param request The method type (GET, POST, PUT, DELETE ...) of the request.
      * @param priority Whether the task has priority or not.
      * @param hasTarget Whether the task has a target object or not.
      * @param numReturns Number of returns of the task.
@@ -295,12 +295,12 @@ public class AccessProcessor implements Runnable {
      * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
-    public int newTask(Application app, TaskMonitor monitor, String serviceName, String baseUrl, String methodType,
+    public int newTask(Application app, TaskMonitor monitor, String serviceName, String resource, String request,
         String jsonPayload, String produces, String declareMethodFullyQualifiedName, boolean priority, boolean isReduce,
         int reduceChunkSize, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
         long timeOut) {
 
-        Task currentTask = new Task(app, serviceName, baseUrl, methodType, jsonPayload, produces,
+        Task currentTask = new Task(app, serviceName, resource, request, jsonPayload, produces,
             declareMethodFullyQualifiedName, priority, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
 
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();

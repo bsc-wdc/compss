@@ -493,8 +493,8 @@ public class ITAppEditor extends ExprEditor {
             HTTP httpAnnotation = declaredMethod.getAnnotation(HTTP.class);
 
             executeTask.append("\"").append(httpAnnotation.serviceName()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.baseUrl()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.methodType()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.resource()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.request()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.jsonPayload()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.produces()).append("\"").append(',');
 

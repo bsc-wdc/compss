@@ -235,18 +235,12 @@ public class ResourceLoader {
                 if (hResources != null) {
                     exist = loadHttpService(hProject, hResources);
                     httpResourceExists = (httpResourceExists || exist);
-                    LOGGER.info("____ http resource found: " + hProject.getBaseUrl());
 
                 } else {
                     ErrorManager.warn(
                         "No HTTP Service with URL '" + hProject.getBaseUrl() + "' is defined in the resources file");
                 }
             }
-        }
-        if (httpResourceExists) {
-            LOGGER.info("____ some http resource was found");
-        } else {
-            LOGGER.info("____ no http resource was found");
         }
 
         // Availability checker
@@ -509,7 +503,7 @@ public class ResourceLoader {
 
         LOGGER.debug("Adding http worker " + hProject.getBaseUrl());
 
-        final HTTPResourceDescription hrd = new HTTPResourceDescription(hResources.getService(), HTTP_CONNECTIONS);
+        final HTTPResourceDescription hrd = new HTTPResourceDescription(hResources.getServiceName(), HTTP_CONNECTIONS);
         HTTPWorker newResource = new HTTPWorker(hProject.getBaseUrl(), hrd, config);
         ResourceManager.addStaticResource(newResource);
 
@@ -560,36 +554,6 @@ public class ResourceLoader {
         LOGGER.debug("Adding service worker " + wsdl);
 
         ServiceWorker newResource = new ServiceWorker(wsdl, srd, config);
-        ResourceManager.addStaticResource(newResource);
-
-        return true;
-    }
-
-    private static boolean loadHTTPResource(int connections) {
-        final HTTPResourceDescription srd = new HTTPResourceDescription(null, connections);
-
-        HTTPConfiguration config = null;
-        try {
-            config = (HTTPConfiguration) Comm.constructConfiguration(COMPSsConstants.HTTP_ADAPTOR, new HashMap<>(),
-                new HashMap<>());
-        } catch (ConstructConfigurationException cce) {
-            ErrorManager.warn("HTTP configuration constructor failed", cce);
-            return false;
-        }
-
-        // If we have reached this point the mp is SURELY not null
-
-        /* Add properties given by the project file **************************************** */
-        if (connections >= 0) {
-            config.setLimitOfTasks(connections);
-        } else {
-            config.setLimitOfTasks(Integer.MAX_VALUE);
-        }
-
-        /* Pass all the information to the ResourceManager to insert it into the Runtime ** */
-        LOGGER.debug("Adding HTTP worker");
-
-        HTTPWorker newResource = new HTTPWorker("httpWorker", srd, config);
         ResourceManager.addStaticResource(newResource);
 
         return true;

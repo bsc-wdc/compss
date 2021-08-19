@@ -45,12 +45,12 @@ public class HTTPImplementation extends Implementation {
         return this.getDescription().getConstraints();
     }
 
-    public String getMethodType() {
-        return getDescription().getDefinition().getMethodType();
+    public String getRequest() {
+        return getDescription().getDefinition().getRequest();
     }
 
-    public String getBaseUrl() {
-        return getDescription().getDefinition().getBaseUrl();
+    public String getResource() {
+        return getDescription().getDefinition().getResource();
     }
 
     public String getJsonPayload() {

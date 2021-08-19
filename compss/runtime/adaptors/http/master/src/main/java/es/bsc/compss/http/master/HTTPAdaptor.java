@@ -71,7 +71,7 @@ public class HTTPAdaptor implements CommAdaptor {
         }
 
         if (hResources != null) {
-            config.setServices(hResources.getService());
+            config.setServices(hResources.getServiceName());
         }
 
         return config;

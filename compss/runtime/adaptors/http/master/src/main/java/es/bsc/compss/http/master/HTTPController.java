@@ -18,18 +18,18 @@ public class HTTPController {
     /**
      * Perform HTTP request.
      *
-     * @param methodType the HTTP method type: "GET", "POST", "PUT", "DELETE", etc.
+     * @param request the HTTP method type: "GET", "POST", "PUT", "DELETE", etc.
      * @param fullUrl the full target URL the HTTP request
      */
-    public static Response performRequestAndGetResponse(String methodType, String fullUrl, String jsonPayload)
+    public static Response performRequestAndGetResponse(String request, String fullUrl, String jsonPayload)
         throws IOException {
         URL url = new URL(fullUrl);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod(methodType);
+        connection.setRequestMethod(request);
 
         // todo: switch to switch
-        if (methodType.equals("POST")) {
+        if (request.equals("POST")) {
             performPostRequest(connection, jsonPayload);
         }
 

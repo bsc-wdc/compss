@@ -402,8 +402,8 @@ def process_task(app_id,             # type: int
 
 def process_http_task(app_id,             # type: int
                       service_name,       # type: str
-                      base_url,           # type: str
-                      method_type,        # type: str
+                      resource,           # type: str
+                      request,        # type: str
                       json_payload,       # type: str
                       produces,           # type: str
                       signature,          # type: str
@@ -432,8 +432,8 @@ def process_http_task(app_id,             # type: int
 
     :param app_id: Application identifier
     :param service_name: service name defined in resources file
-    :param base_url: url to be called
-    :param method_type: HTTP method type (i.e. GET, POST etc.)
+    :param resource: url resource to be add to the BaseUrl
+    :param request: HTTP method type (i.e. GET, POST etc.)
     :param signature: Task signature
     :param on_failure: On failure action
     :param time_out: Task time out
@@ -458,8 +458,8 @@ def process_http_task(app_id,             # type: int
     """
     _COMPSs.process_http_task(app_id,    # noqa
                               service_name,
-                              base_url,
-                              method_type,
+                              resource,
+                              request,
                               json_payload,
                               produces,
                               signature,

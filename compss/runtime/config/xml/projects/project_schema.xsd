@@ -77,7 +77,7 @@
                         <!-- NOT mandatory -->
 			<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
                 </xsd:all>
-                <xsd:attribute name="base_url" type="xsd:anyURI" use="required"/>
+                <xsd:attribute name="BaseUrl" type="xsd:anyURI" use="required"/>
         </xsd:complexType>
 
         <!-- CLOUD Description -->

@@ -795,8 +795,8 @@ def process_task(signature,             # type: str
 @emit_event(PROCESS_TASK_EVENT, master=True)
 def process_http_task(signature,             # type: str
                       service_name,          # type: str
-                      base_url,              # type: str
-                      method_type,           # type: str
+                      resource,              # type: str
+                      request,               # type: str
                       json_payload,          # type: str
                       produces,              # type: str
                       has_target,            # type: bool
@@ -824,8 +824,8 @@ def process_http_task(signature,             # type: str
 
     :param signature: Task signature
     :param service_name: Service name defined in resources file
-    :param base_url: Request destination URL
-    :param method_type: Request method type. e.g: POST, GET
+    :param resource: Request destination URL resource
+    :param request: Request method type. e.g: POST, GET
     :param json_payload: JSON Payload to be sent in the request body if any.
     :param produces: JSON response format
     :param has_target: Boolean if the task has self
@@ -860,8 +860,8 @@ def process_http_task(signature,             # type: str
 
     COMPSs.process_http_task(app_id,
                              service_name,
-                             base_url,
-                             method_type,
+                             resource,
+                             request,
                              json_payload,
                              produces,
                              signature,

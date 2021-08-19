@@ -39,7 +39,7 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'service_name', 'base_url', 'method_type'}
+MANDATORY_ARGUMENTS = {'service_name', 'resource', 'request'}
 SUPPORTED_ARGUMENTS = {'json_payload', 'produces'}
 DEPRECATED_ARGUMENTS = set()
 
@@ -136,8 +136,8 @@ class HTTP(PyCOMPSsDecorator):
         impl_type = "HTTP"
         # todo: nm: beautify this..
         impl_args = [self.kwargs['service_name'],
-                     self.kwargs['base_url'],
-                     self.kwargs['method_type'],
+                     self.kwargs['resource'],
+                     self.kwargs['request'],
                      self.kwargs.get('json_payload', "#"),
                      self.kwargs.get('produces', "#")]
 

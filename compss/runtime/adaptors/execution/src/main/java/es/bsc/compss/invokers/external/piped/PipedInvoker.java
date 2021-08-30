@@ -145,11 +145,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
                             String file = afpc.getFile();
                             if (this.appId == null) {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                                 this.pipes.sendCommand(new SynchPipeCommand("0"));
                             } else {
                                 boolean accessed = this.context.getRuntimeAPI().isFileAccessed(this.appId, file);
@@ -162,11 +157,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             String file = ofpc.getFile();
                             Direction dir = ofpc.getDirection();
                             if (this.appId == null) {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                                 this.pipes.sendCommand(new SynchPipeCommand(file));
                             } else {
                                 String finalLocation = this.context.getRuntimeAPI().openFile(this.appId, file, dir);
@@ -195,12 +185,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             String file = gfpc.getFile();
                             if (this.appId != null) {
                                 this.context.getRuntimeAPI().getFile(this.appId, file);
-                            } else {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                             }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
@@ -210,12 +194,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             String file = gfpc.getDirectory();
                             if (this.appId != null) {
                                 context.getRuntimeAPI().getDirectory(this.appId, file);
-                            } else {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                             }
                             pipes.sendCommand(new SynchPipeCommand());
                         }
@@ -225,12 +203,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             String id = gfpc.getObjectId();
                             if (this.appId != null) {
                                 this.context.getRuntimeAPI().getBindingObject(this.appId, id);
-                            } else {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                             }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
@@ -245,12 +217,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         case BARRIER: {
                             if (this.appId != null) {
                                 this.context.getRuntimeAPI().barrier(this.appId);
-                            } else {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                             }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
@@ -260,12 +226,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             boolean noMoreTasks = nbpc.isNoMoreTasks();
                             if (this.appId != null) {
                                 this.context.getRuntimeAPI().barrier(this.appId, noMoreTasks);
-                            } else {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                             }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
@@ -275,12 +235,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             String groupName = bgpc.getGroupName();
                             if (this.appId != null) {
                                 this.context.getRuntimeAPI().barrierGroup(appId, groupName);
-                            } else {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                             }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
@@ -307,12 +261,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         case NO_MORE_TASKS: {
                             if (this.appId != null) {
                                 this.context.getRuntimeAPI().noMoreTasks(this.appId);
-                            } else {
-                                try {
-                                    Thread.sleep(20);
-                                } catch (InterruptedException ie) {
-                                    // Do nothing
-                                }
                             }
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }

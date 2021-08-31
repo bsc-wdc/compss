@@ -858,7 +858,9 @@ class RegisteredMainAccessEvent(Event):
         :param state: current execution state
         """
         if self.data_id is not None:
-            state.main_accesses_data(self.data_id, self.timestamp)
+            access = state.data.last_registered_access
+            datum = state.data.get_datum(self.data_id)
+            state.main_accesses.register_access(access, datum, self.timestamp)
 
     def __str__(self):
         if self.data_id is None:
@@ -889,7 +891,7 @@ class DataAvailableEvent(Event):
         :param state: current execution state
         """
         if self.data_id is not None:
-            state.main_access.exists(self.timestamp)
+            state.main_accesses.data_exists(self.data_id, self.timestamp)
 
     def __str__(self):
         return "Task for accessing data " + self.data_id + "has finished"
@@ -909,8 +911,7 @@ class ObtainedFileEvent(Event):
         """
         super(ObtainedFileEvent, self).__init__(timestamp)
         line_array = message.split()
-        self.data_id = line_array[2]
-        print(str(self))
+        self.data_id = line_array[1]
 
     def apply(self, state):
         """
@@ -918,8 +919,8 @@ class ObtainedFileEvent(Event):
 
         :param state: current execution state
         """
-        state.main_access.obtained(self.timestamp)
-        state.main_access = None
+        if self.data_id is not None:
+            state.main_accesses.data_obtained(self.data_id, self.timestamp)
 
     def __str__(self):
         return "Obtained data " + self.data_id + " for the access"
@@ -945,8 +946,8 @@ class ObtainedObjectEvent(Event):
 
         :param state: current execution state
         """
-        state.main_access.obtained(self.timestamp)
-        state.main_access = None
+        if self.data_id is not None:
+            state.main_accesses.data_obtained(self.data_id, self.timestamp)
 
     def __str__(self):
         return "Obtained data for the access"

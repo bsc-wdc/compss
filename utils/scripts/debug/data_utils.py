@@ -329,3 +329,66 @@ class DataRegister:
 
         return string
 
+
+
+class MainDataAccessStatus(Enum):
+    REQUESTED = 0
+    EXISTENCE_AWARE = 1
+    OBTAINED = 2
+
+
+class MainDataAccess:
+    def __init__(self, access, data, timestamp):
+        self.access = access
+        self.access.register_read(data, timestamp)
+        self.state = MainDataAccessStatus.REQUESTED
+        self.access.get_read_version(timestamp).main_access_progress("requested", timestamp)
+
+    def exists(self, timestamp):
+        self.state = MainDataAccessStatus.EXISTENCE_AWARE
+        self.access.get_read_version(timestamp).main_access_progress("is aware of existence", timestamp)
+
+    def obtained(self, timestamp):
+        self.state = MainDataAccessStatus.OBTAINED
+        self.access.get_read_version(timestamp).main_access_progress("has the value on the node", timestamp)
+
+    def __str__(self):
+        return  str(self.access) + " in state " + str(self.state)
+
+
+class MainDataAccessRegister:
+
+    def __init__(self):
+        self.ongoing_accesses = {} # dataID = MainDataAccess
+        self.accesses_count = 0
+        self.completed_accesses_count = 0
+
+    def register_access(self, access, datum, timestamp):
+        main_access_description = MainDataAccess(access, datum, timestamp)
+        self.ongoing_accesses[datum.get_id()] = main_access_description
+        self.accesses_count = self.accesses_count + 1 
+
+    def data_exists(self, data_id, timestamp):
+        current_data_access = self.ongoing_accesses[data_id]
+        if current_data_access is None:
+            print("Available data value for unregistered access for data " + data_id)
+        else:
+            current_data_access.exists(timestamp)
+
+    def data_obtained(self, data_id, timestamp):
+        current_data_access = self.ongoing_accesses[data_id]
+        if current_data_access is None:
+            print("Available data value for unregistered access for data " + data_id)
+        else:
+            current_data_access.obtained(timestamp)
+            del self.ongoing_accesses[data_id]
+            self.completed_accesses_count = self.completed_accesses_count + 1
+
+    def get_all_accesses_count(self):
+        return self.accesses_count;
+
+    def get_completed_accesses_count(self):
+        return self.completed_accesses_count;
+
+    def get_pending_accesses(self):
+        return self.ongoing_accesses.values()

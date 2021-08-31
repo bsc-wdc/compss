@@ -74,4 +74,8 @@ public class ObjectAccessParams extends AccessParams {
         dip.finishObjectAccess(this.mode, this.hashCode);
     }
 
+    @Override
+    public String toString() {
+        return "[" + this.app + ", " + this.mode + " ," + this.hashCode + "]";
+    }
 }

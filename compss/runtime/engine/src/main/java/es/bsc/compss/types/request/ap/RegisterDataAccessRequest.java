@@ -109,7 +109,6 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
         pendingOperation--;
         if (pendingOperation == 0) {
             if (DEBUG) {
-                String rename;
                 int dataId = this.accessId.getDataId();
                 LOGGER.debug("Data " + dataId + " available for main access");
             }

@@ -87,12 +87,14 @@ def handle_queries(runtime_log_file):
         else:
             input_array = input.split()
             if input_array[0] == "c" or input_array[0] == "current":
-                print("Finished " + str(state.tasks.completed_tasks_count) + " out of " +
+                print("Finished " + str(state.tasks.completed_tasks_count) + " tasks out of " +
                       str(state.tasks.registered_tasks_count))
-                if state.main_access is not None:
-
-                    print("Main accessing " + str(state.main_access))
-
+                completed_accesses = state.main_accesses.get_completed_accesses_count()
+                all_accesses = state.main_accesses.get_all_accesses_count()
+                print("Finished " + str(all_accesses) + " accesses out of " +
+                      str(completed_accesses))
+                for a in state.main_accesses.get_pending_accesses():
+                    print("\t"+str(a))
                 for r in state.resources.get_resources():
                     print(str(r))
             elif input_array[0] == "cn" or input_array[0] == "connection":

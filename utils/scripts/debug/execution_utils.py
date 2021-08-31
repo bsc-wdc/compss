@@ -9,6 +9,7 @@ from __future__ import print_function
 from enum import Enum
 
 from data_utils import DataRegister
+from data_utils import MainDataAccessRegister
 from task_utils import TaskRegister
 from action_utils import JobRegister
 from resource_utils import ResourceRegister
@@ -16,32 +17,6 @@ from connection_utils import ConnectionRegister
 from ce_utils import CoreElementRegister
 
 import sys
-
-
-class DataAccessStatus(Enum):
-    REQUESTED = 0
-    EXISTENCE_AWARE = 1
-    OBTAINED = 2
-
-
-class DataAccess:
-    def __init__(self, access, data, timestamp):
-        self.access = access
-        self.access.register_read(data, timestamp)
-        self.state = DataAccessStatus.REQUESTED
-        self.access.get_read_version(timestamp).main_access_progress("requested", timestamp)
-
-    def exists(self, timestamp):
-        self.state = DataAccessStatus.EXISTENCE_AWARE
-        self.access.get_read_version(timestamp).main_access_progress("is aware of existence", timestamp)
-
-    def obtained(self, timestamp):
-        self.state = DataAccessStatus.OBTAINED
-        self.access.get_read_version(timestamp).main_access_progress("has the value on the node", timestamp)
-
-    def __str__(self):
-        return  str(self.access) + " in state " + str(self.state)
-
 
 class ExecutionState:
     """
@@ -54,18 +29,13 @@ class ExecutionState:
         self.jobs = JobRegister()
         self.data = DataRegister()
         self.connections = ConnectionRegister()
-        self.main_access = None
-
-    def main_accesses_data(self, data_id, timestamp):
-        access = self.data.last_registered_access
-        datum = self.data.get_datum(data_id)
-        self.main_access = DataAccess(access, datum, timestamp)
+        self.main_accesses = MainDataAccessRegister()
 
     def clear(self):
         self.tasks = TaskRegister()
         self.resources = ResourceRegister()
         self.jobs = JobRegister()
-        self.main_access = None
+        self.main_accesses = MainDataAccessRegister()
 
     def query_resource(self, query):
         if len(query) > 0:

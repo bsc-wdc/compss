@@ -409,3 +409,13 @@ def set_pipes(pipe_in, pipe_out):
     :return: None
     """
     _COMPSs.set_pipes(pipe_in, pipe_out)  # noqa
+
+
+def read_pipes():
+    # type: () -> str
+    """ Call to read_pipes.
+
+    :return: The command read from the pipe
+    """
+    o = _COMPSs.read_pipes()  # noqa
+    return o

@@ -26,6 +26,7 @@
 // COMPSs Runtime state
 void PIPE_On(void);
 void PIPE_set_pipes(char* inPipe, char* outPipe);
+void PIPE_read_command(char** command);
 void PIPE_Off(int code);
 void PIPE_Cancel_Application_Tasks(long appId);
 

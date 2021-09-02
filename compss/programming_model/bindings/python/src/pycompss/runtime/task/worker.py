@@ -664,7 +664,7 @@ class TaskWorker(TaskCommons):
                 obj = deserialize_from_file(original_path)
                 if argument.file_name.keep_source and \
                         argument.direction != parameter.DIRECTION.IN_DELETE:
-                    logger.debug("Putting: " + str(argument.name) + " in cache")
+                    logger.debug("Putting:  -function: " + str(self.user_function) +  " -param: " +  str(argument.name) + " in cache")
                     insert_object_into_cache_wrapper(logger,
                                                      self.cache_queue,
                                                      obj,

@@ -251,6 +251,11 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     :param identifier: Object identifier.
     :return: The object from cache.
     """
+
+    # f_name = nombre de fichero del objecto (id unico)
+    # nombre funcion
+    # nombre param
+
     emit_manual_event_explicit(TASK_EVENTS_DESERIALIZE_SIZE_CACHE, 0)
     identifier = __get_file_name__(identifier)
     if __debug__:
@@ -293,11 +298,16 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+
+    # f_name = nombre de fichero del objecto (id unico)
+    # nombre funcion
+    # nombre param
+
     if np and cache_queue is not None and ((isinstance(obj, np.ndarray)
                                             and not obj.dtype == object)
                                            or isinstance(obj, list)
-                                           or isinstance(obj, tuple)
-                                           or isinstance(obj, dict)):
+                                           or isinstance(obj, tuple)):
+    #                                       or isinstance(obj, dict)):
         insert_object_into_cache(logger, cache_queue, obj, f_name)
 
 
@@ -312,6 +322,7 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+
     f_name = __get_file_name__(f_name)
     if __debug__:
         logger.debug(HEADER + "Inserting into cache (%s): %s" %

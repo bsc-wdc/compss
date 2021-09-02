@@ -15,12 +15,13 @@ public class HTTPDefinition implements ImplementationDefinition {
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 5;
+    public static final int NUM_PARAMS = 6;
 
     private String serviceName;
     private String resource;
     private String request;
-    private String jsonPayload;
+    private String payload;
+    private String payloadType;
     private String produces;
 
 
@@ -34,11 +35,13 @@ public class HTTPDefinition implements ImplementationDefinition {
      * @param request HTTP request type.
      * @param resource HTTP resource in the URL .
      */
-    public HTTPDefinition(String serviceName, String resource, String request, String jsonPayload, String produces) {
+    public HTTPDefinition(String serviceName, String resource, String request, String payload, String payloadType,
+        String produces) {
         this.serviceName = serviceName;
         this.resource = resource;
         this.request = request;
-        this.jsonPayload = jsonPayload;
+        this.payload = payload;
+        this.payloadType = payloadType;
         this.produces = produces;
     }
 
@@ -52,8 +55,9 @@ public class HTTPDefinition implements ImplementationDefinition {
         this.serviceName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.resource = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.request = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
-        this.jsonPayload = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
-        this.produces = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.payload = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
+        this.payloadType = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.produces = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
     }
 
     public String getServiceName() {
@@ -68,8 +72,12 @@ public class HTTPDefinition implements ImplementationDefinition {
         return resource;
     }
 
-    public String getJsonPayload() {
-        return jsonPayload;
+    public String getPayload() {
+        return payload;
+    }
+
+    public String getPayloadType() {
+        return payloadType;
     }
 
     public String getProduces() {

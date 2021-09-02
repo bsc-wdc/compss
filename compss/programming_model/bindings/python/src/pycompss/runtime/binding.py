@@ -797,7 +797,8 @@ def process_http_task(signature,             # type: str
                       service_name,          # type: str
                       resource,              # type: str
                       request,               # type: str
-                      json_payload,          # type: str
+                      payload,               # type: str
+                      payload_type,          # type: str
                       produces,              # type: str
                       has_target,            # type: bool
                       names,                 # type: list
@@ -826,7 +827,8 @@ def process_http_task(signature,             # type: str
     :param service_name: Service name defined in resources file
     :param resource: Request destination URL resource
     :param request: Request method type. e.g: POST, GET
-    :param json_payload: JSON Payload to be sent in the request body if any.
+    :param payload: Payload to be sent in the request body if any.
+    :param payload_type: Payload type. default "application/json"
     :param produces: JSON response format
     :param has_target: Boolean if the task has self
     :param names: Task parameter names
@@ -862,7 +864,8 @@ def process_http_task(signature,             # type: str
                              service_name,
                              resource,
                              request,
-                             json_payload,
+                             payload,
+                             payload_type,
                              produces,
                              signature,
                              on_failure,

@@ -271,9 +271,10 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
-        String jsonPayload, String produces, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes,
-        boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-        int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
+        String payload, String payloadType, String produces, String declareMethodFullyQualifiedName,
+        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
+        boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
+        Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId.

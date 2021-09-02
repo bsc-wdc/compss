@@ -108,9 +108,9 @@ void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout
 }
 
 
-void GS_ExecuteHttpTask(long appId, char* serviceName, char* resource, char* request, char* jsonPayload,char* produces, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+void GS_ExecuteHttpTask(long appId, char* serviceName, char* resource, char* request, char* payload, char* payloadType, char* produces, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    JNI_ExecuteHttpTask(appId, serviceName, resource, request, jsonPayload, produces, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+    JNI_ExecuteHttpTask(appId, serviceName, resource, request, payload, payloadType, produces, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 }
 
 

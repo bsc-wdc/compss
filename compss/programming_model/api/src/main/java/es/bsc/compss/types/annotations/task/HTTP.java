@@ -40,11 +40,18 @@ public @interface HTTP {
     String request() default "GET";
 
     /**
-     * JSON Payload string of the Request.
+     * Payload string of the Request.
      *
      * @return the JSON Payload string of the Request.
      */
-    String jsonPayload() default Constants.UNASSIGNED;
+    String payload() default Constants.UNASSIGNED;
+
+    /**
+     * Payload string type.
+     *
+     * @return the JSON Payload string of the Request.
+     */
+    String payloadType() default "application/json";
 
     /**
      * Returns formatted Produces string of the Request.

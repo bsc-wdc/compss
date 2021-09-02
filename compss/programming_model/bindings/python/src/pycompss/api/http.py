@@ -40,7 +40,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'service_name', 'resource', 'request'}
-SUPPORTED_ARGUMENTS = {'json_payload', 'produces'}
+SUPPORTED_ARGUMENTS = {'payload', 'payload_type',  'produces'}
 DEPRECATED_ARGUMENTS = set()
 
 
@@ -138,7 +138,8 @@ class HTTP(PyCOMPSsDecorator):
         impl_args = [self.kwargs['service_name'],
                      self.kwargs['resource'],
                      self.kwargs['request'],
-                     self.kwargs.get('json_payload', "#"),
+                     self.kwargs.get('payload', "#"),
+                     self.kwargs.get('payload_type', "application/json"),
                      self.kwargs.get('produces', "#")]
 
         if CORE_ELEMENT_KEY in kwargs:

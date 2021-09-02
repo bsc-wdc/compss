@@ -415,14 +415,16 @@ class TaskMaster(TaskCommons):
             service_name = self.core_element.get_impl_type_args()[0]
             resource = self.core_element.get_impl_type_args()[1]
             request = self.core_element.get_impl_type_args()[2]
-            json_payload = self.core_element.get_impl_type_args()[3]
-            produces = self.core_element.get_impl_type_args()[4]
+            payload = self.core_element.get_impl_type_args()[3]
+            payload_type = self.core_element.get_impl_type_args()[4]
+            produces = self.core_element.get_impl_type_args()[5]
             binding.process_http_task(
                 signature,
                 service_name,
                 resource,
                 request,
-                json_payload,
+                payload,
+                payload_type,
                 produces,
                 has_target,
                 names,

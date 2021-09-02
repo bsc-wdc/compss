@@ -177,12 +177,13 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
         // nm:
         // todo: (do not) read file content
-        String jsonPayload = httpImplementation.getJsonPayload();
+        String payload = httpImplementation.getPayload();
+        String payloadType = httpImplementation.getPayloadType();
 
-        jsonPayload = URLReplacer.formatJsonPayload(jsonPayload, namedParameters, URL_PARAMETER_OPEN_TOKEN,
-            URL_PARAMETER_CLOSE_TOKEN);
+        payload =
+            URLReplacer.formatPayload(payload, namedParameters, URL_PARAMETER_OPEN_TOKEN, URL_PARAMETER_CLOSE_TOKEN);
 
-        return HTTPController.performRequestAndGetResponse(requestType, parsedUrl, jsonPayload);
+        return HTTPController.performRequestAndGetResponse(requestType, parsedUrl, payload, payloadType);
     }
 
     private Map<String, String> constructMapOfNamedParameters(TaskDescription taskDescription)

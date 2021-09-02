@@ -21,7 +21,7 @@ public class HTTPImplementation extends Implementation {
      */
     public static HTTPImplementation generateDummy() {
         return new HTTPImplementation(null, null, new ImplementationDescription<>(
-            new HTTPDefinition("", "", "", "", ""), "", new HTTPResourceDescription(new ArrayList<String>(), 0)));
+            new HTTPDefinition("", "", "", "", "", ""), "", new HTTPResourceDescription(new ArrayList<String>(), 0)));
     }
 
     public HTTPImplementation() {
@@ -53,8 +53,12 @@ public class HTTPImplementation extends Implementation {
         return getDescription().getDefinition().getResource();
     }
 
-    public String getJsonPayload() {
-        return getDescription().getDefinition().getJsonPayload();
+    public String getPayload() {
+        return getDescription().getDefinition().getPayload();
+    }
+
+    public String getPayloadType() {
+        return getDescription().getDefinition().getPayloadType();
     }
 
     public String getProduces() {

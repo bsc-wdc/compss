@@ -44,7 +44,7 @@ public class URLReplacer {
      * @param openToken string representing an open token in the baseUrl
      * @param closeToken string representing a close token in the baseUrl
      */
-    public static String formatJsonPayload(String payload, Map<String, String> replaceElements, String openToken,
+    public static String formatPayload(String payload, Map<String, String> replaceElements, String openToken,
         String closeToken) {
 
         if (replaceElements == null || replaceElements.isEmpty()) {

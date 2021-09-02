@@ -495,7 +495,8 @@ public class ITAppEditor extends ExprEditor {
             executeTask.append("\"").append(httpAnnotation.serviceName()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.resource()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.request()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.jsonPayload()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.payload()).append("\"").append(',');
+            executeTask.append("\"").append(httpAnnotation.payloadType()).append("\"").append(',');
             executeTask.append("\"").append(httpAnnotation.produces()).append("\"").append(',');
 
             String declareMethodFullyQualifiedName = httpAnnotation.declaringClass() + "." + declaredMethod.getName();

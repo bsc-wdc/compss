@@ -403,8 +403,9 @@ def process_task(app_id,             # type: int
 def process_http_task(app_id,             # type: int
                       service_name,       # type: str
                       resource,           # type: str
-                      request,        # type: str
-                      json_payload,       # type: str
+                      request,            # type: str
+                      payload,            # type: str
+                      payload_type,       # type: str
                       produces,           # type: str
                       signature,          # type: str
                       on_failure,         # type: str
@@ -432,8 +433,11 @@ def process_http_task(app_id,             # type: int
 
     :param app_id: Application identifier
     :param service_name: service name defined in resources file
-    :param resource: url resource to be add to the BaseUrl
+    :param resource: URL resource to be add to the BaseUrl
     :param request: HTTP method type (i.e. GET, POST etc.)
+    :param payload: Payload to be sent as a request body
+    :param payload_type: Type of the payload. default "application/json"
+    :param produces: response format in JSON
     :param signature: Task signature
     :param on_failure: On failure action
     :param time_out: Task time out
@@ -460,7 +464,8 @@ def process_http_task(app_id,             # type: int
                               service_name,
                               resource,
                               request,
-                              json_payload,
+                              payload,
+                              payload_type,
                               produces,
                               signature,
                               on_failure,

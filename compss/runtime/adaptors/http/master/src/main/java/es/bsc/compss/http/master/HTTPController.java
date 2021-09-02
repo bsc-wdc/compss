@@ -21,8 +21,8 @@ public class HTTPController {
      * @param request the HTTP method type: "GET", "POST", "PUT", "DELETE", etc.
      * @param fullUrl the full target URL the HTTP request
      */
-    public static Response performRequestAndGetResponse(String request, String fullUrl, String jsonPayload)
-        throws IOException {
+    public static Response performRequestAndGetResponse(String request, String fullUrl, String payload,
+        String payloadType) throws IOException {
         URL url = new URL(fullUrl);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -30,7 +30,7 @@ public class HTTPController {
 
         // todo: switch to switch
         if (request.equals("POST")) {
-            performPostRequest(connection, jsonPayload);
+            performPostRequest(connection, payload, payloadType);
         }
 
         final int responseCode = connection.getResponseCode();
@@ -59,16 +59,18 @@ public class HTTPController {
         return new Response(responseCode, jsonBody);
     }
 
-    private static void performPostRequest(HttpURLConnection connection, String data) throws IOException {
+    private static void performPostRequest(HttpURLConnection connection, String payload, String payloadType)
+        throws IOException {
 
         connection.setDoOutput(true);
+        // todo: accept only json?
         connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Content-Type", payloadType);
 
         connection.setRequestProperty("size", "3");
 
         // todo: is it possible to send json file without reading
-        byte[] out = data.getBytes();
+        byte[] out = payload.getBytes();
 
         OutputStream stream = connection.getOutputStream();
         stream.write(out);

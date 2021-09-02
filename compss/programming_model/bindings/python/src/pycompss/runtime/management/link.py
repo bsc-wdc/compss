@@ -464,7 +464,8 @@ class COMPSs(object):
                           service_name,         # type: str
                           resource,             # type: str
                           request,              # type: str
-                          json_payload,         # type: str
+                          payload,              # type: str
+                          payload_type,         # type: str
                           produces,             # type: str
                           has_target,           # type: bool
                           names,                # type: list
@@ -492,7 +493,8 @@ class COMPSs(object):
                       service_name,
                       resource,
                       request,
-                      json_payload,
+                      payload,
+                      payload_type,
                       produces,
                       signature,
                       on_failure,

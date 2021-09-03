@@ -708,7 +708,11 @@ public class DataManagerImpl implements DataManager {
                                     } catch (AtomicMoveNotSupportedException amnse) {
                                         WORKER_LOGGER.warn("WARN: AtomicMoveNotSupportedException."
                                             + " File cannot be atomically moved. Trying to move without atomic");
-                                        Files.move(srcPath, tgtPath);
+                                        if (param.getType() == DataType.DIRECTORY_T) {
+                                            FileUtils.moveDirectory(srcPath.toFile(), tgtPath.toFile());
+                                        } else {
+                                            Files.move(srcPath, tgtPath);
+                                        }
                                     }
                                     if (NIOTracer.extraeEnabled()) {
                                         NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.LOCAL_MOVE.getType());

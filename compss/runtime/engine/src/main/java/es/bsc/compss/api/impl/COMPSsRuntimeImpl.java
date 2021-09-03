@@ -95,6 +95,8 @@ import java.util.TimerTask;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.io.FileExistsException;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1209,9 +1211,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         Path destinationPath = Paths.get(target);
 
         // todo: recursively?
+        // todo: copy if fails?
         try {
-            Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING);
+            FileUtils.moveDirectory(sourcePath.toFile(), destinationPath.toFile());
+            // WARNING: nio move fails in supercomputers:
+            // Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE,
+            // StandardCopyOption.REPLACE_EXISTING);
         } catch (AtomicMoveNotSupportedException e) {
             try {
                 Files.move(sourcePath, destinationPath);
@@ -1221,6 +1226,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         } catch (FileSystemException fse) {
             // Target Folder already Exists
             deleteDestinationAndMoveFolder(sourcePath, destinationPath);
+        } catch (FileExistsException fse) {
+            // Target Folder already Exists
+            deleteFolder(destinationPath.toFile());
+            try {
+                FileUtils.moveDirectory(sourcePath.toFile(), destinationPath.toFile());
+            } catch (IOException e) {
+                LOGGER.error("Directory move after deletion failed", e);
+            }
         } catch (Exception e) {
             LOGGER.error("Directory move failed", e);
         }

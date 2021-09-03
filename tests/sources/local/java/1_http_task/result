@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  target_log_folder_0=$1
+  output_file_0=$2
+  error_file_0=$3
+  target_log_folder_1=$4
+  output_file_1=$5
+  error_file_1=$6
+
+  # Log files
+  runtime_log_0="${target_log_folder_0}/runtime.log"
+  resources_log_0="${target_log_folder_0}/resources.log"
+  runtime_log_1="${target_log_folder_1}/runtime.log"
+  resources_log_1="${target_log_folder_1}/resources.log"
+
+  #---------------------------------------------------------------------------------- 
+  # ALL OK. Report result status
+  exit 0

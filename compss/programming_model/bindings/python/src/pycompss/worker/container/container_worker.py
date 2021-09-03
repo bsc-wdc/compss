@@ -66,10 +66,6 @@ def main():
     num_params = int(sys.argv[8])
     func_params = sys.argv[9:]
 
-    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-    print("XXXXX: sys.argv: " + sys.argv)
-    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
     # Log initialisation
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))

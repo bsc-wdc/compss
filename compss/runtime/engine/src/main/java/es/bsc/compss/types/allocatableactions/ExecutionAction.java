@@ -871,13 +871,19 @@ public class ExecutionAction extends AllocatableAction {
                         case LONG_T:
                             value = gson.fromJson(primValue, long.class);
                             break;
+                        case STRING_T:
+                            value = gson.fromJson(primValue, String.class);
+                            break;
                         case OBJECT_T:
                             if (dp.getContentType().equals("int")) {
                                 value = gson.fromJson(primValue, int.class);
                             } else if (dp.getContentType().equals("long")) {
                                 value = gson.fromJson(primValue, long.class);
+                            } else if (dp.getContentType().equals("String")) {
+                                value = gson.fromJson(primValue, String.class);
                             } else {
-                                value = null;
+                                // todo: Strings fall here too.. why??
+                                value = gson.fromJson(primValue, Object.class);
                             }
                             break;
                         default:
@@ -894,6 +900,7 @@ public class ExecutionAction extends AllocatableAction {
                 // todo: fix this
                 String name = dId.getRenaming();
                 if (value == null) {
+                    LOGGER.info("___________________________value null");
                     value = job.getReturnValue();
                 }
                 LogicalData ld = Comm.registerValue(name, value);

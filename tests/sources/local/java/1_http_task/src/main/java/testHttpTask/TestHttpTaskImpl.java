@@ -9,4 +9,30 @@ import java.util.Random;
 
 public class TestHttpTaskImpl {
 
+    public void testGet() {
+    }
+
+    public int testGetLength(String message) {
+        return 0;
+    }
+
+    public String testProducesString(String message) {
+        return null;
+    }
+
+    public String testPost() {
+        return null;
+    }
+
+    public String testPayloadWithParam(String message) {
+        return null;
+    }
+
+    public String testNestedProduces(String message) {
+        return null;
+    }
+
+    public int testPayloadWithFileParam(String payload) {
+        return 0;
+    }
 }

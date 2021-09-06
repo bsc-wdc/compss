@@ -14,10 +14,30 @@
   exit_value=0
   jar_name="1_http_task.jar"
   app_name="testHttpTask.TestHttpTask"
+  ws_jar_name="jars/ws.jar"
 
-#----------------------------------------------------------------------------------
+
+  #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+
+
+  #----------------------------------------------------------------------------------
+  echo "*** STARTING THE WEB SERVICE"
+  java -jar ${ws_jar_name} &
+  ws_pid="$!"
+  sleep 2
+
+  check_ws="$(curl -XGET http://localhost:1992/test/dummy 2>/dev/null)"
+
+  if [ "$check_ws" == "it_works" ]; then
+    echo
+    echo "*** WEB SERVICE RUNNING WITH PID: ${ws_pid}"
+  else
+    kill -9 ${ws_pid}
+    echo " Cannot start Web Service"
+    exit 1
+  fi
 
   #----------------------------------------------------------------------------------
   echo
@@ -37,24 +57,29 @@
      ${runcompss_opts} \
      -g \
      --classpath="${base_app_dir}/${jar_name}" \
-     \
      "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-  
+
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}${retry_num}"/* "${target_log_folder}"
-     
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+
      # Report time out
      echo "[WARNING] Java Application timed out" >> "${output_log}"
      exit_value=124
   else
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}${retry_num}"/* "${target_log_folder}"
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
 
+     # Check result
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
+     exit_value=$?
   fi
 
-  sleep 10s
+  #----------------------------------------------------------------------------------
+  echo "*** STOPPING THE WEB SERVICE"
+  kill -9 ${ws_pid}
+  echo "*** WEB SERVICE HAS BEEN STOPPED:"
 
   #----------------------------------------------------------------------------------
   # Return execution status

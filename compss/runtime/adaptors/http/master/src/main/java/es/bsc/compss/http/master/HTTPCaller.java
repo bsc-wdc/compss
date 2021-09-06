@@ -197,7 +197,8 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
             if (parameterDirection == Direction.IN || parameterDirection == Direction.IN_DELETE) {
                 switch (par.getType()) {
                     case FILE_T:
-                        if (par.getContentType() != null && par.getContentType().toUpperCase().equals("FILE")) {
+                        if (par.getContentType() != null && (par.getContentType().toUpperCase().equals("FILE")
+                            || par.getContentType().toUpperCase().equals("FILE_T"))) {
                             DependencyParameter fileParam = (DependencyParameter) par;
                             String content = readFile(fileParam.getDataTarget());
                             namedParameters.put(par.getName(), content);

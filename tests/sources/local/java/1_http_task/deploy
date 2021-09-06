@@ -16,3 +16,7 @@
   cp "${source_base_dir}"/result "${target_base_dir}"/result
 
   mkdir -p "${target_base_dir}"/jars/
+
+  # Web Service jar file
+  cp "${source_base_dir}"/ws.jar "${target_base_dir}"/jars/ws.jar
+  chmod +x "${target_base_dir}"/jars/ws.jar

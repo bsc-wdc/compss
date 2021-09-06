@@ -1,18 +1,23 @@
 #!/bin/bash -e
 
   # Obtain parameters
-  target_log_folder_0=$1
-  output_file_0=$2
-  error_file_0=$3
-  target_log_folder_1=$4
-  output_file_1=$5
-  error_file_1=$6
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
 
   # Log files
-  runtime_log_0="${target_log_folder_0}/runtime.log"
-  resources_log_0="${target_log_folder_0}/resources.log"
-  runtime_log_1="${target_log_folder_1}/runtime.log"
-  resources_log_1="${target_log_folder_1}/resources.log"
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  if grep -E "Error running application" "${output_file}"; then
+    echo "ERROR: TESTS FAILED." | tee -a "${output_file}"
+    exit 1
+  fi
+
+  if grep -E "TEST FAILED" "${output_file}"; then
+    echo "ERROR: TESTS FAILED." | tee -a "${output_file}"
+    exit 1
+  fi
 
   #---------------------------------------------------------------------------------- 
   # ALL OK. Report result status

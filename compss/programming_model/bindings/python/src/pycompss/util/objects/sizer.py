@@ -48,7 +48,7 @@ def _dict_handler(d):
 
 
 def _user_object_handler(d):
-    # type: (dict) -> Iterator
+    # type: (typing.Any) -> Iterator
     """ User object to dictionary handler converter.
 
     :param d: User object.
@@ -58,7 +58,7 @@ def _user_object_handler(d):
 
 
 def total_sizeof(o, handlers=None, verbose=False):
-    # type: (object, Iterator, bool) -> int
+    # type: (typing.Any, Iterator, bool) -> int
     """ Calculate the size of an object.
 
     Returns the approximate memory footprint an object and all of its contents.

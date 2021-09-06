@@ -26,7 +26,10 @@ class MyClass(object):
 
 
 def test_object_replace():
-    from pycompss.util.objects.replace import replace
+    try:
+        from pycompss.util.objects.replace import replace
+    except ImportError:
+        raise Exception("UNSUPPORTED WITH MYPY")
 
     o = MyClass(1, [1, 2, 3, 4], "hello world!")
     p = MyClass(100, [40, 30, 20, 10], "goodbye world!")

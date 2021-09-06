@@ -51,7 +51,7 @@ else:
 
 
 def compss_worker(tracing, task_id, storage_conf, params, log_json):
-    # type: (bool, str, str, list, str) -> str
+    # type: (bool, str, str, list, str) -> int
     """ Worker main method (invoked from __main__).
 
     :param tracing: Tracing boolean

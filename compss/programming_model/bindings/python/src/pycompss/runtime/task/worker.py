@@ -314,8 +314,10 @@ class TaskWorker(object):
 
     def reveal_objects(self,
                        args,                 # type: tuple
-                       collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
-                       python_mpi=False,     # type: bool
+                       collections_layouts,  # type: typing.Any
+                       # typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
+                       python_mpi=False,     # type: typing.Any
+                       # typing.Union[bool, None]
                        ):                    # type: (...) -> None
         """ Get the objects from the args message.
 
@@ -367,8 +369,10 @@ class TaskWorker(object):
     def retrieve_content(self,
                          argument,             # type: Parameter
                          name_prefix,          # type: str
-                         python_mpi,           # type: bool
-                         collections_layouts,  # type: typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
+                         python_mpi,           # type: typing.Any
+                         # Union[bool, None]
+                         collections_layouts,  # type: typing.Any
+                         # typing.Union[typing.Dict[str, typing.Union[tuple, list]], typing.Any]
                          depth=0               # type: int
                          ):                    # type: (...) -> None
         """ Retrieve the content of a particular argument.

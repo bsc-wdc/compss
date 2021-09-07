@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+
+	<Http BaseUrl="http://localhost:1992/test/">
+		<ServiceName>service_1</ServiceName>
+	</Http>
+
+</ResourcesList>

@@ -44,6 +44,7 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.environment.configuration import preload_user_code
 from pycompss.util.environment.configuration import export_current_flags
 from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa
@@ -65,6 +66,7 @@ from pycompss.util.tracing.helpers import event
 from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
 
 # Storage imports
+from pycompss.util.storages.persistent import use_storage
 from pycompss.util.storages.persistent import master_init_storage
 from pycompss.util.storages.persistent import master_stop_storage
 
@@ -78,7 +80,6 @@ APP_PATH = None
 STREAMING = None
 PERSISTENT_STORAGE = None
 LOGGER = None
-ENVIRONMENT_VARIABLE_LOAD = "COMPSS_LOAD_SOURCE"
 
 # Python version: to choose the appropriate log folder
 if IS_PYTHON3:
@@ -218,12 +219,15 @@ def compss_main():
     # Setup tracing
     tracing = int(args.tracing)
 
+    # Get storage configuration at master
+    storage_conf = args.storage_configuration
+
     # Load user imports before starting the runtime (can be avoided if
-    # ENVIRONMENT_VARIABLE_LOAD is set to false).
+    # ENVIRONMENT_VARIABLE_LOAD -- defined in configuration.py --
+    # is set to false).
     # Reason: some cases like autoparallel can require to avoid loading.
-    if ENVIRONMENT_VARIABLE_LOAD not in os.environ \
-            or (ENVIRONMENT_VARIABLE_LOAD in os.environ
-                and os.environ[ENVIRONMENT_VARIABLE_LOAD] != "false"):
+    # It is disabled if using storage (with dataClay this can not be done)
+    if preload_user_code() and not use_storage(storage_conf):
         with context.loading_context():
             __load_user_module__(args.app_path, log_level)
 
@@ -241,9 +245,6 @@ def compss_main():
 
     # Get object_conversion boolean
     set_object_conversion(args.object_conversion == "true")
-
-    # Get storage configuration at master
-    storage_conf = args.storage_configuration
 
     # Get application execution path
     APP_PATH = args.app_path

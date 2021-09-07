@@ -46,6 +46,24 @@ DEFAULT_RESOURCES_PATH = '/Runtime/configuration/xml/resources/'
 DEFAULT_LOG_PATH = '/Runtime/configuration/log/'
 DEFAULT_TRACING_PATH = '/Runtime/configuration/xml/tracing/'
 
+ENVIRONMENT_VARIABLE_LOAD = "COMPSS_LOAD_SOURCE"
+
+
+def preload_user_code():
+    # type: () -> bool
+    """ Checks if the user code has to be preloaded before starting the runtime
+    or has been disabled by the user through environment variable.
+
+    :return: True if preload. False otherwise.
+    """
+    if ENVIRONMENT_VARIABLE_LOAD not in os.environ:
+        return True
+    elif ENVIRONMENT_VARIABLE_LOAD in os.environ \
+            and os.environ[ENVIRONMENT_VARIABLE_LOAD] != "false":
+        return True
+    else:
+        return False
+
 
 def export_current_flags(all_vars):
     # type: (dict) -> None

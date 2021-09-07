@@ -178,6 +178,16 @@ def master_init_storage(storage_conf, logger):  # noqa
     return __init_storage__(storage_conf, logger)
 
 
+def use_storage(storage_conf):
+    """ Evaluates if the storage_conf is defined.
+    The storage will be used if storage_conf is not None nor "null".
+
+    :param storage_conf: Storage configuration file.
+    :return: True if defined. False on the contrary.
+    """
+    return storage_conf != "" and not storage_conf == "null"
+
+
 @emit_event(INIT_STORAGE_EVENT)
 def init_storage(storage_conf, logger):  # noqa
     """ Call to init storage.
@@ -195,14 +205,13 @@ def __init_storage__(storage_conf, logger):  # noqa
     """ Call to init storage.
 
     Initializes the persistent storage with the given storage_conf file.
-    The storage will be initialized if storage_conf is not None nor "null".
 
     :param storage_conf: Storage configuration file.
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
     global INIT
-    if storage_conf != "" and not storage_conf == "null":
+    if use_storage(storage_conf):
         if __debug__:
             logger.debug("Starting storage")
             logger.debug("Storage configuration file: %s" % storage_conf)

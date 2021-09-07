@@ -1150,7 +1150,7 @@ void JNI_ExecuteHttpTask(long appId, char* serviceName, char* resource, char* re
     // Request thread access to JVM
     ThreadStatus* status = access_request();
     jobject jobjOnFailure = NULL;
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 1. \n");
+
     if(onFailure == NULL){
         debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common on failure is null. \n");
         jobjOnFailure = status->localJniEnv->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, status->localJniEnv->NewStringUTF("RETRY"));
@@ -1160,12 +1160,9 @@ void JNI_ExecuteHttpTask(long appId, char* serviceName, char* resource, char* re
          check_exception(status, "Exception Creating OnFailure object..");
     }
 
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 2. \n");
-
     // Convert numReturns from int to integer
     jobject numReturnsInteger = status->localJniEnv->NewObject(clsInteger, midIntCon, numReturns);
     check_exception(status, "Exception converting numReturns to integer");
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 3. \n");
 
     // Create array of parameters
     jobjOBJArr = (jobjectArray)status->localJniEnv->NewObjectArray(numParams * NUM_FIELDS, clsObject, status->localJniEnv->NewObject(clsObject, midObjCon));
@@ -1173,8 +1170,6 @@ void JNI_ExecuteHttpTask(long appId, char* serviceName, char* resource, char* re
         debug_printf("[BINDING-COMMONS] - @JNI_ExecuteHttpTask- Processing parameter %d\n", i);
         process_param(status, params, i, jobjOBJArr);
     }
-
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common step 4. \n");
 
     // Call to JNI execute task method
     status->localJniEnv->CallVoidMethod(globalRuntime,

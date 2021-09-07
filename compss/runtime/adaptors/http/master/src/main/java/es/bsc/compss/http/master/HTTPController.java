@@ -67,8 +67,6 @@ public class HTTPController {
         connection.setRequestProperty("Accept", "application/json");
         connection.setRequestProperty("Content-Type", payloadType);
 
-        connection.setRequestProperty("size", "3");
-
         // todo: is it possible to send json file without reading
         byte[] out = payload.getBytes();
 

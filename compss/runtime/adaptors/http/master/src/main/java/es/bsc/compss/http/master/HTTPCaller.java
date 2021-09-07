@@ -61,7 +61,6 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 LOGGER.debug("Executing HTTP Request...");
 
                 HTTPInstance httpInstance = job.getResourceNode();
-                LOGGER.info("______ THIS IS A BASE URL FROM XML FILE ____:" + httpInstance.getConfig().getBaseUrl());
 
                 Response httpResponse =
                     performHttpRequest(httpInstance.getConfig().getBaseUrl(), namedParameters, httpImplementation);

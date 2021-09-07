@@ -57,6 +57,10 @@ public class URLReplacer {
             final String wordToBeReplaced = entry.getKey().trim();
             final String fullStringToBeReplaced = openToken + wordToBeReplaced + closeToken;
             String replacement = entry.getValue();
+            // remove python string extension #
+            if (replacement.startsWith("#")) {
+                replacement = replacement.replaceFirst("#", "");
+            }
             result = result.replaceAll(fullStringToBeReplaced, replacement);
         }
         return result;

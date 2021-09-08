@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import json
 import os
 import pickle
@@ -9,6 +11,8 @@ import docker
 from uuid import uuid4
 from docker.types import Mount
 from docker.errors import DockerException
+
+from pycompss_player.core.cmd_helpers import command_runner
 
 # ################ #
 # GLOBAL VARIABLES #
@@ -35,10 +39,10 @@ if os.environ.get('DEFAULT_DISLIB_DOCKER_IMAGE') is not None:
     # This environment variable will be defined by the dislib script.
     # It can be overriden by the COMPSS_DOCKER_IMAGE or the -i flag
     # when running init.
-    image_name = os.environ['DEFAULT_DISLIB_DOCKER_IMAGE']
+    IMAGE_NAME = os.environ['DEFAULT_DISLIB_DOCKER_IMAGE']
 elif os.environ.get('COMPSS_DOCKER_IMAGE') is not None:
     # If specified in an environment variable, take it
-    image_name = os.environ['COMPSS_DOCKER_IMAGE']
+    IMAGE_NAME = os.environ['COMPSS_DOCKER_IMAGE']
 elif len(client.containers.list(filters={'name': master_name})) > 0:
     # Condition equivalent to: _is_running(master_name):
     # But since it is undefined yet, we do it explicitly.
@@ -46,7 +50,7 @@ elif len(client.containers.list(filters={'name': master_name})) > 0:
     master = client.containers.list(filters={'name': master_name})[0]
     # Command equivalent to: master = _get_master()
     # But since it is undefined yet, we do it explicitly.
-    image_name = master.image.attrs['RepoTags'][0]
+    IMAGE_NAME = master.image.attrs['RepoTags'][0]
 else:
     # Otherwise, fallback to default COMPSs image
     image_name = 'compss/compss:2.10'  # Update when releasing new version
@@ -56,30 +60,27 @@ else:
 # API FUNCTIONS #
 # ############# #
 
-def start_daemon(params: str = "", restart: bool = True):
-    """
-    Starts the main COMPSs image in Docker.
+def docker_deploy_compss(working_dir: str = "", image: str = "", restart: bool = True):
+    """ Starts the main COMPSs image in Docker.
     It stops any existing one since it can not coexist with itself.
-    :param params: Initialization parameters
+
+    :param working_dir: Given working directory
+    :param image: Given docker image
     :param restart: Force stop the existing and start a new one.
     :returns: None
     """
-    docker_image = image_name
-    working_dir = ''
-    image = ''
-    i_tmp_path = ''
-    # Parse input params
-    if params:
-        working_dir, image = _parse_init_params(params)
-        if image:
-            docker_image = image
+    if image:
+        docker_image = image
+    else:
+        docker_image = IMAGE_NAME
+
     masters = client.containers.list(filters={'name': master_name},
                                      all=True)
 
     assert len(masters) < 2  # never should we run 2 masters
 
     if restart or _exists(master_name):
-        stop_daemon(False)
+        docker_kill_compss(False)
 
     if not _is_running(master_name):
         if not working_dir:
@@ -104,9 +105,26 @@ def start_daemon(params: str = "", restart: bool = True):
         shutil.rmtree(tmp_path)
 
 
-def stop_daemon(clean: bool = True):
+def docker_update_image():
+    """ Updates the default docker image.
+
+    :returns: None
     """
-    Stops all COMPSs images in Docker.
+    print("Updating docker image")
+    docker_image="compss/compss:latest"
+    if "COMPSS_DOCKER_IMAGE" in os.environ:
+        docker_image = os.environ["COMPSS_DOCKER_IMAGE"]
+        print("Found COMPSS_DOCKER_IMAGE environment variable: %s. Updating." %
+              docker_image)
+    else:
+        print("COMPSS_DOCKER_IMAGE is unset or empty. "
+              "Updating default docker image: %s" % docker_image)
+    command_runner(["docker", "pull", docker_image])
+
+
+def docker_kill_compss(clean: bool = True):
+    """ Stops all COMPSs images in Docker.
+
     :param clean: Force clean the generated files.
     :returns: None
     """
@@ -119,7 +137,7 @@ def stop_daemon(clean: bool = True):
     _stop_by_name(worker_name)
 
 
-def exec_in_daemon(cmd: str):
+def docker_exec_in_daemon(cmd: str):
     """
     Execute the given command in the main COMPSs image in Docker.
     :param cmd: Command to execute.
@@ -127,7 +145,7 @@ def exec_in_daemon(cmd: str):
     """
     print("Executing cmd: %s" % cmd)
     if not _is_running(master_name):
-        start_daemon()
+        docker_deploy_compss()
 
     master = _get_master()
     _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
@@ -135,7 +153,7 @@ def exec_in_daemon(cmd: str):
         print(line.strip().decode())
 
 
-def start_monitoring():
+def docker_start_monitoring():
     """
     Starts the COMPSs monitoring within the Docker instance.
     :returns: The monitoring initialization stdout.
@@ -156,7 +174,7 @@ def start_monitoring():
     print("Please, open: http://127.0.0.1:8080/compss-monitor")
 
 
-def stop_monitoring():
+def docker_stop_monitoring():
     """
     Stops the COMPSs monitoring within the Docker instance.
     :returns: The monitoring stop stdout.
@@ -171,7 +189,7 @@ def stop_monitoring():
         print(line.strip().decode())
 
 
-def components(arg: str = 'list'):
+def docker_components(arg: str = 'list'):
     """
     Performs actions over the COMPSS docker instances deployed.
     :param arg: Arguments string
@@ -262,47 +280,6 @@ def _get_worker_ips():
     ips = [c.attrs['NetworkSettings']['Networks']['bridge']['IPAddress']
            for c in client.containers.list(filters={'name': worker_name})]
     return ips
-
-
-def _parse_init_params(params: str):
-    """
-    Parse the initialization parameters.
-    Currently supports 2:
-        -i DOCKER_IMAGE_NAME
-        -w WORK_PATH
-    :returns: The working dir and image name.
-    """
-    supported_msg = "Supported -w for working directory and \
-                     -i for COMPSs docker image."
-    working_dir = ''
-    image = ''
-    fields = params.split()
-    if len(fields) == 2:
-        if fields[0] == '-w':
-            working_dir = fields[1]
-        elif fields[0] == '-i':
-            image = fields[1]
-        else:
-            Exception("Unsupported flag: " + str(fields[0]) +
-                      ". " + supported_msg)
-    elif len(fields) == 4:
-        if fields[0] == '-w':
-            working_dir = fields[1]
-        elif fields[0] == '-i':
-            image = fields[1]
-        else:
-            Exception("Unsupported flag: " + str(fields[0]) +
-                      ". " + supported_msg)
-        if fields[2] == '-w':
-            working_dir = fields[3]
-        elif fields[2] == '-i':
-            image = fields[3]
-        else:
-            Exception("Unsupported flag: " + str(fields[2]) +
-                      ". " + supported_msg)
-    else:
-        raise Exception("Incorrect number of parameters")
-    return working_dir, image
 
 
 def _store_temp_cfg(cfg_content: str):
@@ -516,7 +493,7 @@ def _add_workers(num_workers: int = 1,
     mounts = _get_mounts(user_working_dir=cfg['working_dir'])
     for _ in range(num_workers):
         worker_id = worker_name + '-' + uuid4().hex[:8]
-        client.containers.run(image=image_name, name=worker_id,
+        client.containers.run(image=IMAGE_NAME, name=worker_id,
                               mounts=mounts, detach=True, auto_remove=True)
     ips = _get_worker_ips()
     _update_cfg(master, cfg, ips, cpus)

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
 getpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"

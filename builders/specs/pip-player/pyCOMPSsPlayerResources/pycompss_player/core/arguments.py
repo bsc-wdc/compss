@@ -130,9 +130,9 @@ def parse_sys_argv():
                                                              formatter_class=FORMATTER_CLASS)                                 # noqa: E501
     subparsers_components_add = parser_components_add.add_subparsers(dest="add")
     parser_components_add_worker = subparsers_components_add.add_parser("worker",
-                                                                 aliases=["w"],
-                                                                 help="Add a worker.",             # noqa: E501
-                                                                 formatter_class=FORMATTER_CLASS)  # noqa: E501
+                                                                        aliases=["w"],
+                                                                        help="Add a worker.",             # noqa: E501
+                                                                        formatter_class=FORMATTER_CLASS)  # noqa: E501
     parser_components_add_worker.add_argument("worker",
                                               type=str,
                                               default="1",

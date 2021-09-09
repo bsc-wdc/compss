@@ -29,6 +29,7 @@ def main():
     if DEBUG:
         print(LINE)
         print("Calling pycompss-player for action: " + arguments.action)
+        print("Arguments: " + str(arguments))
 
     if arguments.action == "init":
         init(arguments, DEBUG)

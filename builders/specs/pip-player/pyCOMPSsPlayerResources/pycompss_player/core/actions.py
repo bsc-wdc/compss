@@ -163,4 +163,21 @@ def components(arguments, debug=False):
     :returns: None
     """
     if debug:
-        print("Components...")
+        print("Components: " + arguments.components)
+
+    if arguments.components == "list":
+        if debug:
+            print("Listing components...")
+        docker_components(arguments.components)
+    if arguments.components == "add":
+        if debug:
+            print("Adding components: " + str(arguments.worker))
+        docker_components(arguments.components,
+                          arguments.add,
+                          arguments.worker)
+    if arguments.components == "remove":
+        if debug:
+            print("Removing components:" + str(arguments.worker))
+        docker_components(arguments.components,
+                          arguments.remove,
+                          arguments.worker)

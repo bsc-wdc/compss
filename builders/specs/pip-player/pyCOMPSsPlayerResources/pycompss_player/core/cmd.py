@@ -61,9 +61,9 @@ else:
 # ############# #
 
 def docker_deploy_compss(working_dir: str = "", image: str = "", restart: bool = True):
-    """ Starts the main COMPSs image in Docker.
+    """
+    Starts the main COMPSs image in Docker.
     It stops any existing one since it can not coexist with itself.
-
     :param working_dir: Given working directory
     :param image: Given docker image
     :param restart: Force stop the existing and start a new one.
@@ -106,8 +106,8 @@ def docker_deploy_compss(working_dir: str = "", image: str = "", restart: bool =
 
 
 def docker_update_image():
-    """ Updates the default docker image.
-
+    """
+    Updates the default docker image.
     :returns: None
     """
     print("Updating docker image")
@@ -123,8 +123,8 @@ def docker_update_image():
 
 
 def docker_kill_compss(clean: bool = True):
-    """ Stops all COMPSs images in Docker.
-
+    """
+    Stops all COMPSs images in Docker.
     :param clean: Force clean the generated files.
     :returns: None
     """
@@ -189,45 +189,37 @@ def docker_stop_monitoring():
         print(line.strip().decode())
 
 
-def docker_components(arg: str = 'list'):
+def docker_components(option: str = 'list', resource: str = 'worker', value: str = '1'):
     """
     Performs actions over the COMPSS docker instances deployed.
-    :param arg: Arguments string
-    :returns: Action outuput.
+    :param option: Option to perform (supported: list, add and remove)
+    :param element: Element to add or remove (not needed for list)
+    :param value: Amount of elements to add or remove (not needed for list)
+    :returns: Action output.
     """
-    args = arg.split()
-    if len(args) > 0:
-        subcmd = args[0]
-    if len(args) == 0 or subcmd == 'list':
+    if option == "list":
         masters = client.containers.list(filters={'name': master_name})
         workers = client.containers.list(filters={'name': worker_name})
         for c in masters + workers:
             print(c.name)
-    elif subcmd == 'add':
-        resource = args[1]
+    elif option == "add":
         if resource == 'worker':
-            if args[2].isdigit():
-                number_of_res = int(args[2])
-                _add_workers(number_of_res)
+            if value.isdigit():
+                _add_workers(int(value))
             else:
-                _add_custom_worker(args[2])
+                _add_custom_worker(value)
         else:
-            print("Unsupported resource to be added: " + str(resource))
-            print("Supported resources: worker")
-    elif subcmd == 'remove':
-        resource = args[1]
+            raise Exception("Unsupported resource to be added: " + str(resource))
+    elif option == "remove":
         if resource == 'worker':
-            if args[2].isdigit():
-                number_of_res = int(args[2])
-                _remove_workers(number_of_res)
+            if value.isdigit():
+                _remove_workers(int(value))
             else:
-                _remove_custom_worker(args[2])
+                _remove_custom_worker(value)
         else:
-            print("Unsupported resource to be removed: " + str(resource))
-            print("Supported resources: worker")
+            raise Exception("Unsupported resource to be removed: " + str(resource))
     else:
-        print("Unexpected components command: " + subcmd)
-        print("Supported commponents commands: list, add, remove")
+        raise Exception("Unexpected components option: " + option)
 
 
 # ################# #
@@ -259,7 +251,10 @@ def _get_master():
     Retrieve the COMPSs master container object.
     :returns: Master container object.
     """
-    master = client.containers.list(filters={'name': master_name})[0]
+    try:
+        master = client.containers.list(filters={'name': master_name})[0]
+    except IndexError:
+        raise Exception("Master not running.")
     return master
 
 
@@ -268,7 +263,10 @@ def _get_workers():
     Retrieve the COMPSs worker containers objects.
     :returns: List of the Worker containers objects.
     """
-    workers = client.containers.list(filters={'name': worker_name})
+    try:
+        workers = client.containers.list(filters={'name': worker_name})
+    except IndexError:
+        raise Exception("Master not running.")
     return workers
 
 

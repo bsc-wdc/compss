@@ -155,6 +155,7 @@ def gengraph(arguments, debug=False):
     command = "compss_gengraph " + arguments.dot_file
     docker_exec_in_daemon(command)
 
+
 def components(arguments, debug=False):
     """ Lists/add/remove workers in the COMPSs infrastructure at docker
 

@@ -52,10 +52,9 @@ def main():
     else:
         raise Exception("Not implemented action " + arguments.action)
 
-
     if DEBUG:
         print(LINE)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

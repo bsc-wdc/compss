@@ -9,5 +9,5 @@ def main():
     os.environ['DEFAULT_DISLIB_DOCKER_IMAGE'] = 'bscwdc/dislib:latest'
     pycompss.main()
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

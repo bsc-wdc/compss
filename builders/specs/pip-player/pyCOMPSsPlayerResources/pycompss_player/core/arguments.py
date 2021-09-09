@@ -8,10 +8,7 @@ FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
 def parse_sys_argv():
     """ Parses the sys.argv.
 
-    Args:
-        None
-    Returns:
-        All arguments as namespace.
+    :returns: All arguments as namespace.
     """
     parser = argparse.ArgumentParser(formatter_class=FORMATTER_CLASS)
     parser.add_argument("-d", "--debug",
@@ -50,7 +47,7 @@ def parse_sys_argv():
     # KILL
     parser_kill = subparsers.add_parser("kill",
                                         aliases=["k"],
-                                        help="Kill all COMPSs\' docker instances.",
+                                        help="Kill all COMPSs\' docker instances.",  # noqa: E501
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
     parser_kill.add_argument("-nc", "--no_clean",
@@ -86,7 +83,7 @@ def parse_sys_argv():
     # MONITOR
     parser_monitor = subparsers.add_parser("monitor",
                                            aliases=["m"],
-                                           help="Start the monitor within the COMPSs\' docker instance.",
+                                           help="Start the monitor within the COMPSs\' docker instance.",  # noqa: E501
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
     parser_monitor.add_argument("option",
@@ -97,7 +94,7 @@ def parse_sys_argv():
     # JUPYTER
     parser_jupyter = subparsers.add_parser("jupyter",
                                            aliases=["j"],
-                                           help="Starts Jupyter within the COMPSs\' docker instance.",
+                                           help="Starts Jupyter within the COMPSs\' docker instance.",  # noqa: E501
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
     parser_jupyter.add_argument("argument",
@@ -128,9 +125,9 @@ def parse_sys_argv():
                                                              aliases=["a"],
                                                              help="Adds the RESOURCE to the pool of workers of the COMPSs.",  # noqa: E501
                                                              formatter_class=FORMATTER_CLASS)                                 # noqa: E501
-    subparsers_components_add = parser_components_add.add_subparsers(dest="add")
-    parser_components_add_worker = subparsers_components_add.add_parser("worker",
-                                                                        aliases=["w"],
+    subparsers_components_add = parser_components_add.add_subparsers(dest="add")                          # noqa: E501
+    parser_components_add_worker = subparsers_components_add.add_parser("worker",                         # noqa: E501
+                                                                        aliases=["w"],                    # noqa: E501
                                                                         help="Add a worker.",             # noqa: E501
                                                                         formatter_class=FORMATTER_CLASS)  # noqa: E501
     parser_components_add_worker.add_argument("worker",
@@ -150,7 +147,6 @@ def parse_sys_argv():
                                                  type=str,
                                                  default="1",
                                                  help="Number of workers to remove (can be integer or <IP>:<CORES> to add remote workers).")  # noqa: E501
-
 
     # Check if the user does not include any argument
     if len(sys.argv) < 2:

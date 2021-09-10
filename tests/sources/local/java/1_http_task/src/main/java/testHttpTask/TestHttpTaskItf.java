@@ -28,5 +28,5 @@ public interface TestHttpTaskItf {
     String testPayloadWithParam(@Parameter(name = "message") String message);
 
     @HTTP(serviceName = "service_1", resource = "post_json/", request = "POST", declaringClass = "testHttpTask.TestHttpTaskImpl", payload = "{{payload}}")
-    int testPayloadwithFileParam(@Parameter(type = Type.FILE, direction = Direction.IN) String payload);
+    String testPayloadWithFileParam(@Parameter(name = "payload", type = Type.FILE) String payload);
 }

@@ -32,7 +32,8 @@ public class TestHttpTaskImpl {
         return null;
     }
 
-    public int testPayloadWithFileParam(String payload) {
-        return 0;
+    public String testPayloadWithFileParam(String payload) {
+        return null;
     }
+
 }

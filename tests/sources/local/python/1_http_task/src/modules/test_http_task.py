@@ -36,7 +36,7 @@ class TestHttpTask(unittest.TestCase):
         ret = cwo(post_with_file_param(content))
         self.assertEqual(str(ret), content, "TEST FAILED: POST file as payload")
 
-    def _test_get_methods(self):
+    def test_get_methods(self):
         dummy()
         print("GET: dummy works.")
         message = "holala"

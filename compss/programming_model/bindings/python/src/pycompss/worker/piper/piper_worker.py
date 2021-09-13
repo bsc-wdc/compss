@@ -104,8 +104,7 @@ def compss_persistent_worker(config):
 
     persistent_storage = (config.storage_conf != 'null')
 
-    logger, logger_cfg, storage_loggers = load_loggers(config.debug,
-                                                       persistent_storage)
+    logger, logger_cfg, storage_loggers, log_dir = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
         logger.debug(HEADER + "piper_worker.py wake up")
@@ -125,7 +124,7 @@ def compss_persistent_worker(config):
     if is_cache_enabled(config.cache):
         # Deploy the necessary processes
         CACHE = True
-        cache_params = start_cache(logger, config.cache)
+        cache_params = start_cache(logger, config.cache, log_dir)
     else:
         # No cache
         CACHE = False

@@ -649,7 +649,10 @@ class TaskWorker(TaskCommons):
                 # The object is cached
                 retrieved, existing_shm = retrieve_object_from_cache(logger,
                                                                      self.cache_ids,
-                                                                     original_path)
+                                                                     self.cache_queue,
+                                                                     original_path,
+                                                                     name,
+                                                                     self.user_function)
                 self.cached_references.append(existing_shm)
                 return retrieved
             else:
@@ -664,11 +667,12 @@ class TaskWorker(TaskCommons):
                 obj = deserialize_from_file(original_path)
                 if argument.file_name.keep_source and \
                         argument.direction != parameter.DIRECTION.IN_DELETE:
-                    logger.debug("Putting:  -function: " + str(self.user_function) +  " -param: " +  str(argument.name) + " in cache")
                     insert_object_into_cache_wrapper(logger,
                                                      self.cache_queue,
                                                      obj,
-                                                     original_path)
+                                                     original_path,
+                                                     name,
+                                                     self.user_function)
                 return obj
         else:
             return deserialize_from_file(original_path)
@@ -1005,7 +1009,9 @@ class TaskWorker(TaskCommons):
                 insert_object_into_cache_wrapper(logger,
                                                  self.cache_queue,
                                                  content,
-                                                 original_path)
+                                                 original_path,
+                                                 name,
+                                                 self.user_function)
 
     def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
         # type: (int, list, list, bool) -> list
@@ -1060,7 +1066,9 @@ class TaskWorker(TaskCommons):
                         insert_object_into_cache_wrapper(logger,
                                                          self.cache_queue,
                                                          obj,
-                                                         f_name)
+                                                         f_name,
+                                                         "Return",
+                                                         self.user_function)
         return user_returns
 
     def is_parameter_an_object(self, name):

@@ -133,6 +133,7 @@ def load_loggers(debug, persistent_storage):
         # Default
         log_json = "/".join((log_cfg_path, 'logging_worker_off.json'))
     log_dir = get_temporary_directory()
+    log_dir_temp = log_dir
     # log_dir is of the form:
     #    With agents or worker in master: /path/to/working_directory/tmpFiles/pycompssID/
     #    Normal master-worker execution : /path/to/working_directory/machine_name/pycompssID/
@@ -153,4 +154,4 @@ def load_loggers(debug, persistent_storage):
         storage_loggers.append(logging.getLogger('hecuba'))
         storage_loggers.append(logging.getLogger('redis'))
         storage_loggers.append(logging.getLogger('storage'))
-    return logger, log_json, storage_loggers
+    return logger, log_json, storage_loggers, log_dir_temp

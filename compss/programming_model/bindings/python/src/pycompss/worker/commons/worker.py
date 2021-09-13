@@ -575,7 +575,7 @@ def execute_task(process_name,              # type: str
         'compss_python_MPI': python_mpi,
         'compss_collections_layouts': collections_layouts,
         'cache_queue': cache_queue,
-        'cache_ids': cache_ids
+        'cache_ids': cache_ids,
     }
 
     if __debug__:

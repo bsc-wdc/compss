@@ -300,7 +300,8 @@ def executor(queue, process_name, pipe, conf):
                                         storage_loggers,
                                         storage_loggers_handlers,
                                         conf.cache_queue,
-                                        conf.cache_ids)
+                                        conf.cache_ids,
+                                        )
         # Stop storage
         if storage_conf != 'null':
             try:
@@ -545,7 +546,8 @@ def process_task(current_line,              # type: list
                               False,
                               None,
                               cache_queue,
-                              cache_ids)
+                              cache_ids,
+                              )
         # The ignored variable is timed_out
         exit_value, new_types, new_values, _, except_msg = result
 

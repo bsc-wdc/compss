@@ -32,9 +32,10 @@ from pycompss.util.tracing.helpers import emit_event
 from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
 from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
+
 try:
-    from multiprocessing.shared_memory import SharedMemory    # noqa
-    from multiprocessing.shared_memory import ShareableList   # noqa
+    from multiprocessing.shared_memory import SharedMemory  # noqa
+    from multiprocessing.shared_memory import ShareableList  # noqa
     from multiprocessing.managers import SharedMemoryManager  # noqa
 except ImportError:
     # Unsupported in python < 3.8
@@ -49,7 +50,6 @@ from pycompss.worker.commons.constants import TASK_EVENTS_SERIALIZE_SIZE_CACHE
 from pycompss.worker.commons.constants import TASK_EVENTS_DESERIALIZE_SIZE_CACHE
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 
-
 HEADER = "[PYTHON CACHE] "
 SHARED_MEMORY_MANAGER = None
 
@@ -63,6 +63,7 @@ SHAREABLE_TUPLE_TAG = "ShareableTuple"
 AUTH_KEY = b"compss_cache"
 IP = "127.0.0.1"
 PORT = 50000
+PROFILER_LOG = "profiler.log"
 
 
 class CacheTrackerConf(object):
@@ -70,9 +71,9 @@ class CacheTrackerConf(object):
     Cache tracker configuration
     """
 
-    __slots__ = ['logger', 'size', 'policy', 'cache_ids']
+    __slots__ = ['logger', 'size', 'policy', 'cache_ids', 'profiler_dict', 'profiler_get_struct', 'log_dir']
 
-    def __init__(self, logger, size, policy, cache_ids):
+    def __init__(self, logger, size, policy, cache_ids, profiler_dict, profiler_get_struct, log_dir):
         """
         Constructs a new cache tracker configuration.
 
@@ -84,8 +85,11 @@ class CacheTrackerConf(object):
         """
         self.logger = logger
         self.size = size
-        self.policy = policy        # currently no policies defined.
+        self.policy = policy  # currently no policies defined.
         self.cache_ids = cache_ids  # key - (id, shape, dtype, size, hits, shared_type)
+        self.profiler_dict = profiler_dict
+        self.profiler_get_struct = profiler_get_struct
+        self.log_dir = log_dir
 
 
 def cache_tracker(queue, process_name, conf):
@@ -101,7 +105,10 @@ def cache_tracker(queue, process_name, conf):
     alive = True
     logger = conf.logger
     cache_ids = conf.cache_ids
+    profiler_dict = conf.profiler_dict
+    profiler_get_struct = conf.profiler_get_struct
     max_size = conf.size
+    log_dir = conf.log_dir
 
     if __debug__:
         logger.debug(HEADER + "[%s] Starting Cache Tracker" %
@@ -116,12 +123,25 @@ def cache_tracker(queue, process_name, conf):
                 logger.debug(HEADER + "[%s] Stopping Cache Tracker: %s" %
                              (str(process_name), str(msg)))
             alive = False
+        elif msg == "END PROFILING":
+            profiler_print_message(logger, profiler_dict, profiler_get_struct, log_dir)
         else:
             try:
                 action, message = msg
+                if action == "GET":
+                    filename, parameter, function = message
+                    # PROFILER GET
+                    add_profiler_get_put(profiler_dict, function, parameter, filename, 'GET')
+                    # PROFILER GET STRUCTURE
+                    add_profiler_get_struct(profiler_get_struct, function, parameter, filename)
+
                 if action == "PUT":
-                    f_name, cache_id, shape, dtype, obj_size, shared_type = message  # noqa: E501
+                    f_name, cache_id, shape, dtype, obj_size, shared_type, parameter, function = message  # noqa: E501
                     if f_name in cache_ids:
+
+                        # PROFILER PUT
+                        add_profiler_get_put(profiler_dict, function, parameter, filename_cleaned(f_name), 'PUT')
+
                         if __debug__:
                             logger.debug("Putting object in the cache name: " + str(f_name))
                         # Any executor has already put the id
@@ -135,6 +155,9 @@ def cache_tracker(queue, process_name, conf):
                         if __debug__:
                             logger.debug(HEADER + "[%s] Cache add entry: %s" %
                                          (str(process_name), str(msg)))
+                        # PROFILER PUT
+                        add_profiler_get_put(profiler_dict, function, parameter, filename_cleaned(f_name), 'PUT')
+
                         # Check if it is going to fit and remove if necessary
                         obj_size = int(obj_size)
                         if used_size + obj_size > max_size:
@@ -242,7 +265,7 @@ def stop_shared_memory_manager(smm):
 
 
 @emit_event(RETRIEVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
-def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
+def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, parameter, user_function):  # noqa
     # type: (..., ..., str) -> ...
     """ Retrieve an object from the given cache proxy dict.
 
@@ -251,11 +274,6 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     :param identifier: Object identifier.
     :return: The object from cache.
     """
-
-    # f_name = nombre de fichero del objecto (id unico)
-    # nombre funcion
-    # nombre param
-
     emit_manual_event_explicit(TASK_EVENTS_DESERIALIZE_SIZE_CACHE, 0)
     identifier = __get_file_name__(identifier)
     if __debug__:
@@ -265,7 +283,7 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     if shared_type == SHARED_MEMORY_TAG:
         existing_shm = SharedMemory(name=obj_id)
         size = len(existing_shm.buf)
-        output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)    # noqa: E501
+        output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)  # noqa: E501
     elif shared_type == SHAREABLE_LIST_TAG:
         existing_shm = ShareableList(name=obj_id)
         size = len(existing_shm.shm.buf)
@@ -283,11 +301,17 @@ def retrieve_object_from_cache(logger, cache_ids, identifier):  # noqa
     if __debug__:
         logger.debug(HEADER + "Retrieved: " + str(identifier))
     emit_manual_event_explicit(TASK_EVENTS_DESERIALIZE_SIZE_CACHE, size)
+
+    filename = filename_cleaned(identifier)
+    parameter = parameter
+    function = function_cleaned(user_function)
+    cache_queue.put(("GET", (filename, parameter, function)))
+
     cache_ids[identifier][4] = obj_hits + 1
     return output, existing_shm
 
 
-def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
+def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
     # type: (..., ..., ..., ...) -> None
     """ Put an object into cache filter to avoid event emission when not
     supported.
@@ -299,20 +323,18 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name):  # noqa
     :return: None
     """
 
-    # f_name = nombre de fichero del objecto (id unico)
-    # nombre funcion
-    # nombre param
-
     if np and cache_queue is not None and ((isinstance(obj, np.ndarray)
                                             and not obj.dtype == object)
                                            or isinstance(obj, list)
                                            or isinstance(obj, tuple)):
-    #                                       or isinstance(obj, dict)):
-        insert_object_into_cache(logger, cache_queue, obj, f_name)
+        # or isinstance(obj, dict)):
+        logger.debug("[PUT1] File name: " + str(filename_cleaned(f_name)) + ". Parameter name: " + str(parameter)
+                     + ". Function name: " + str(function_cleaned(user_function)))
+        insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function)
 
 
 @emit_event(INSERT_OBJECT_INTO_CACHE_EVENT, master=False, inside=True)
-def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
+def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
     # type: (..., ..., ..., ...) -> None
     """ Put an object into cache.
 
@@ -322,6 +344,10 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
+    logger.debug("[PUT2] File name: " + str(filename_cleaned(f_name)) + ". Parameter name: " + str(parameter)
+                 + ". Function name: " + str(function_cleaned(user_function)))
+
+    function = function_cleaned(user_function)
 
     f_name = __get_file_name__(f_name)
     if __debug__:
@@ -338,19 +364,22 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
             within_cache[:] = obj[:]  # Copy contents
             new_cache_id = shm.name
-            cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG)))  # noqa: E501
+            cache_queue.put(("PUT", (
+                f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG, parameter, function)))  # noqa: E501
         elif isinstance(obj, list):
             emit_manual_event_explicit(TASK_EVENTS_SERIALIZE_SIZE_CACHE, 0)
             sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
-            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG)))  # noqa: E501
+            cache_queue.put(
+                ("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG, parameter, function)))  # noqa: E501
         elif isinstance(obj, tuple):
             emit_manual_event_explicit(TASK_EVENTS_SERIALIZE_SIZE_CACHE, 0)
             sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
             new_cache_id = sl.shm.name
             size = total_sizeof(obj)
-            cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG)))  # noqa: E501
+            cache_queue.put(
+                ("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG, parameter, function)))  # noqa: E501
         # Unsupported dicts since they are lists of lists when converted.
         # elif isinstance(obj, dict):
         #     # Convert dict to list of tuples
@@ -358,7 +387,7 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
         #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
         #     new_cache_id = sl.shm.name
         #     size = total_sizeof(obj)
-        #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG)))  # noqa: E501
+        #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG, parameter, function)))  # noqa: E501
         else:
             inserted = False
             if __debug__:
@@ -369,7 +398,8 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name):  # noqa
             logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
     except KeyError as e:  # noqa
         if __debug__:
-            logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
+            logger.debug(
+                HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
             logger.debug(str(e))
 
 
@@ -434,3 +464,94 @@ def __get_file_name__(f_name):
     :return: File name
     """
     return os.path.basename(f_name)
+
+
+def filename_cleaned(f_name):
+    return f_name.rsplit('/', 1)[-1]
+
+
+def function_cleaned(function):
+    return str(function)[10:].rsplit(' ', 3)[0]
+
+
+def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
+    if function not in profiler_dict:
+        profiler_dict[function] = {}
+    if parameter not in profiler_dict[function]:
+        profiler_dict[function][parameter] = {}
+    if filename not in profiler_dict[function][parameter]:
+        profiler_dict[function][parameter][filename] = {'PUT': 0, 'GET': 0}
+    profiler_dict[function][parameter][filename][type] += 1
+
+
+def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
+    if function not in profiler_get_struct[2] and parameter not in profiler_get_struct[1]:
+        profiler_get_struct[0].append(filename)
+        profiler_get_struct[1].append(parameter)
+        profiler_get_struct[2].append(function)
+
+
+def profiler_print_message(logger, profiler_dict, profiler_get_struct, log_dir):
+    logger.debug("PROFILER PATH " + log_dir + "  " + PROFILER_LOG)
+    f = open(log_dir + "/" + PROFILER_LOG, "a")
+    for function in profiler_dict:
+        f.write('\t' + "FUNCTION: " + str(function))
+        logger.debug('\t' + "FUNCTION: " + str(function))
+        for parameter in profiler_dict[function]:
+            f.write('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
+            logger.debug('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
+            for filename in profiler_dict[function][parameter]:
+                f.write('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename + '\t' + " PUT " +
+                        str(profiler_dict[function][parameter][filename]['PUT']) +
+                        " GET " + str(profiler_dict[function][parameter][filename]['GET']))
+                logger.debug('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename + '\t' + " PUT " +
+                             str(profiler_dict[function][parameter][filename]['PUT']) +
+                             " GET " + str(profiler_dict[function][parameter][filename]['GET']))
+    f.write("")
+    logger.debug("")
+    '''
+    logger.debug("PROFILER GETS")
+    for i in range(len(profiler_get_struct[0])):
+        logger.debug('\t' + "FILENAME: " + profiler_get_struct[0][i] + ". PARAMETER: " + profiler_get_struct[1][i]
+                     + ". FUNCTION: " + profiler_get_struct[2][i])
+    '''
+    f.write("")
+    logger.debug("")
+    f.write("PROFILER SUMMARY")
+    logger.debug("PROFILER SUMMARY")
+
+    for function in profiler_dict:
+        f.write('\t' + "FUNCTION: " + str(function))
+        logger.debug('\t' + "FUNCTION: " + str(function))
+        for parameter in profiler_dict[function]:
+            f.write('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
+            logger.debug('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
+            total_get = 0
+            total_put = 0
+            is_used = []
+            filenames = profiler_dict[function][parameter]
+            for filename in filenames:
+                puts = filenames[filename]['PUT']
+                if puts > 0:
+                    try:
+                        index = profiler_get_struct[0].index(filename)
+                        is_used.append((profiler_get_struct[2][index], profiler_get_struct[1][index]))
+                    except ValueError:
+                        pass
+                total_put += puts
+                total_get += filenames[filename]['GET']
+            if len(is_used) > 0:
+                f.write('\t' + '\t' + '\t' + '\t' + "PUTS: " + str(total_put) + " GETS: " + str(total_get) +
+                        ". USED IN: " + str(is_used))
+                logger.debug('\t' + '\t' + '\t' + '\t' + "PUTS: " + str(total_put) + " GETS: " + str(total_get) +
+                             ". USED IN: " + str(is_used))
+            elif total_get > 0:
+                f.write('\t' + '\t' + '\t' + '\t' + "PUTS: " + str(total_put) + " GETS: " + str(total_get) +
+                        ". USED IN " + str([(function, parameter)]))
+                logger.debug('\t' + '\t' + '\t' + '\t' + "PUTS: " + str(total_put) + " GETS: " + str(total_get) +
+                             ". USED IN " + str([(function, parameter)]))
+            else:
+                f.write('\t' + '\t' + '\t' + '\t' + "[NOT USED]  PUTS: " + str(total_put) + " GETS: " + str(total_get))
+                logger.debug(
+                    '\t' + '\t' + '\t' + '\t' + "[NOT USED]  PUTS: " + str(total_put) + " GETS: " + str(total_get))
+    f.close()

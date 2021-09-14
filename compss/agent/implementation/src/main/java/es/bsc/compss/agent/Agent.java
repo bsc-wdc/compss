@@ -19,6 +19,7 @@ package es.bsc.compss.agent;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.ApplicationParameterCollection;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
@@ -71,7 +72,7 @@ import storage.StorageItf;
 
 public class Agent {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
 
     private static final String AGENT_NAME;
 
@@ -475,31 +476,82 @@ public class Agent {
         } catch (Exception e) {
             LOGGER.error("Error submitting task", e);
             throw new AgentException(e);
-        }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AGENT_RUN_TASK.getType());
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AGENT_RUN_TASK.getType());
+            }
         }
         return appId;
     }
 
-    private static void addParameterToTaskArguments(Long appId, ApplicationParameter param, int position,
-        Object[] arguments) throws AgentException, Exception {
+    private static String createTaskArgumentValueFromCollection(
+        ApplicationParameterCollection<ApplicationParameter> param, Long appId, int position, String fatherName)
+        throws Exception {
+        StringBuilder sb = new StringBuilder();
+        sb.append((String) fatherName);
+        String collSize = Integer.toString(param.getCollectionParameters().size());
+        sb.append(" " + collSize + " " + param.getContentType() + " ");
+        List<ApplicationParameter> subParams = param.getCollectionParameters();
+        for (int i = 0; i < subParams.size(); i++) {
+            Object stub;
+            ApplicationParameter subParam = subParams.get(i);
+            String paramValue;
+            if (subParam.getType() == DataType.COLLECTION_T) {
+                String subParamName = fatherName + "_" + Integer.toString(i);
+                @SuppressWarnings("unchecked")
+                ApplicationParameterCollection<ApplicationParameter> collSubParam =
+                    (ApplicationParameterCollection<ApplicationParameter>) (subParam);
+                paramValue = Integer.toString(subParam.getType().ordinal()) + " "
+                    + createTaskArgumentValueFromCollection(collSubParam, appId, position, subParamName);
+            } else {
+                paramValue = Integer.toString(subParam.getType().ordinal()) + " "
+                    + subParam.getValueContent().toString() + " " + subParam.getContentType();
 
+            }
+            if (subParam.getType() == DataType.FILE_T) {
+                stub = subParam.getValueContent();
+            } else {
+                stub = paramValue;
+            }
+            RemoteDataInformation remote = subParam.getRemoteData();
+            if (remote != null) {
+                addRemoteData(remote);
+                RUNTIME.registerData(appId, subParam.getType(), stub, remote.getRenaming());
+            }
+            sb.append(paramValue + " ");
+        }
+        return sb.toString();
+    }
+
+    private static Object createTaskArgumentValueFromApplicationParameter(String fatherParamName, Long appId,
+        int position, ApplicationParameter param) throws Exception {
         RemoteDataInformation remote = param.getRemoteData();
-        if (param.getRemoteData() == null) {
+        if (remote == null) {
             LOGGER.debug("\t\tUsing value passed in as parameter");
-            arguments[position] = param.getValueContent();
+            return param.getValueContent();
         } else {
             Object stub;
             if (param.getType() == DataType.FILE_T) {
                 stub = param.getValueContent();
             } else {
                 stub = "app_" + appId + "_param" + position;
+                if (param.getType() == DataType.COLLECTION_T) {
+                    @SuppressWarnings("unchecked")
+                    ApplicationParameterCollection<ApplicationParameter> collSubParam =
+                        (ApplicationParameterCollection<ApplicationParameter>) (param);
+                    stub = createTaskArgumentValueFromCollection(collSubParam, appId, position, (String) stub);
+                }
             }
-            arguments[position] = stub;
             addRemoteData(remote);
             RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
+            return stub;
         }
+    }
+
+    private static void addParameterToTaskArguments(Long appId, ApplicationParameter param, int position,
+        Object[] arguments) throws AgentException, Exception {
+
+        arguments[position] = createTaskArgumentValueFromApplicationParameter("", appId, position, param);
         arguments[position + 1] = param.getType();
         arguments[position + 2] = param.getDirection();
         arguments[position + 3] = param.getStdIOStream();
@@ -508,7 +560,6 @@ public class Agent {
         arguments[position + 6] = param.getContentType();
         arguments[position + 7] = Double.toString(param.getWeight());
         arguments[position + 8] = new Boolean(param.isKeepRename());
-
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {

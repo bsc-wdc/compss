@@ -511,6 +511,7 @@ public class Comm {
      * @throws CommException inconsistent information stored within the LogicalDatas
      */
     public static synchronized LogicalData linkData(String dataId, String dataId2) throws CommException {
+        LOGGER.debug("linking LogicalData: " + dataId + " --> " + dataId2);
         LogicalData ld = DATA.get(dataId);
         LogicalData ld2 = DATA.get(dataId2);
         if (ld != null) {

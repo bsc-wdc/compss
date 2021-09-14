@@ -17,7 +17,6 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.types.annotations.parameter.DataType;
 
 
 public class DoNothingTaskMonitor implements TaskMonitor {
@@ -43,7 +42,7 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
+    public void valueGenerated(int paramId, Object[] param) {
     }
 
     @Override

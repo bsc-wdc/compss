@@ -43,6 +43,12 @@
 			<artifactId>compss-adaptors-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+            <!-- JSON -->
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
         
         <!-- Nested tasks -->
         <!-- Runtime API-->

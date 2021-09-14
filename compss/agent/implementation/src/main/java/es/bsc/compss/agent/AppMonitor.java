@@ -17,33 +17,43 @@
 package es.bsc.compss.agent;
 
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.ApplicationParameterCollection;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public abstract class AppMonitor implements TaskMonitor {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+
     private long appId;
-    private final ApplicationParameter[] params;
+    private final ApplicationParameter[] originalParams;
     private final DataType[] paramTypes;
     private final String[] paramLocations;
+    private Object[][] params;
 
 
     /**
      * Constructs a new Application monitor.
      *
-     * @param params Monitored execution's parameters
+     * @param originalParams Monitored execution's parameters
      */
-    public AppMonitor(ApplicationParameter[] params) {
+    public AppMonitor(ApplicationParameter[] originalParams) {
         int numParams = params.length;
 
-        this.params = params;
+        this.originalParams = originalParams;
         this.paramTypes = new DataType[numParams];
         this.paramLocations = new String[numParams];
     }
@@ -59,16 +69,16 @@ public abstract class AppMonitor implements TaskMonitor {
         int argsCount = args.length;
         int resultsCount = results.length;
         int numParams = argsCount + resultsCount + (target != null ? 1 : 0);
-
-        this.params = new ApplicationParameter[numParams];
+        params = new Object[numParams][];
+        this.originalParams = new ApplicationParameter[numParams];
         int offset = 0;
-        System.arraycopy(args, 0, this.params, 0, argsCount);
+        System.arraycopy(args, 0, this.originalParams, 0, argsCount);
         offset = argsCount;
         if (target != null) {
-            params[argsCount] = target;
+            originalParams[argsCount] = target;
             offset++;
         }
-        System.arraycopy(results, 0, this.params, offset, resultsCount);
+        System.arraycopy(results, 0, this.originalParams, offset, resultsCount);
 
         this.paramTypes = new DataType[numParams];
         this.paramLocations = new String[numParams];
@@ -102,34 +112,50 @@ public abstract class AppMonitor implements TaskMonitor {
     public void onDataReception() {
     }
 
-    @Override
-    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
-        ApplicationParameter originalParam = this.params[paramId];
+    void valueGeneratedElement(Object[] param, ApplicationParameter originalParam) {
+        String dataId = param[DATA_ID_POS].toString();
         String originalDataMgmtId = originalParam.getDataMgmtId();
-
-        this.paramTypes[paramId] = paramType;
-        if (paramType == DataType.OBJECT_T) {
-            LogicalData ld = Comm.getData(dataId);
+        LogicalData ld = Comm.getData(dataId);
+        if (param[TYPE_POS] == DataType.OBJECT_T) {
             if (ld.getPscoId() != null) {
-                this.paramTypes[paramId] = DataType.PSCO_T;
+                param[TaskMonitor.TYPE_POS] = DataType.PSCO_T;
                 SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
-                this.paramLocations[paramId] = targetURI.toString();
+                param[TaskMonitor.LOCATION_POS] = targetURI.toString();
             } else {
-                this.paramTypes[paramId] = paramType;
-                this.paramLocations[paramId] = originalDataMgmtId;
+                param[TaskMonitor.LOCATION_POS] = originalDataMgmtId;
             }
-        } else {
-            this.paramTypes[paramId] = paramType;
-            this.paramLocations[paramId] = dataLocation.toString();
         }
-
         if (dataId.compareTo(originalDataMgmtId) != 0) {
             try {
-                Comm.linkData(originalDataMgmtId, dataId);
+                Comm.linkData(originalDataMgmtId, ld.getName());
             } catch (CommException ce) {
                 ErrorManager.error("Could not link " + originalDataMgmtId + " and " + dataId, ce);
             }
         }
+    }
+
+    void valueGenerated(Object[] param, ApplicationParameter originalParam) {
+        valueGeneratedElement(param, originalParam);
+        if (param[TYPE_POS] == DataType.COLLECTION_T) {
+            Object[][] subParams = (Object[][]) param[3];
+            @SuppressWarnings("unchecked") // Because originalParams correspond to the same parameter of param
+            List<ApplicationParameter> originalSubparams =
+                ((ApplicationParameterCollection<ApplicationParameter>) originalParam).getCollectionParameters();
+            for (int i = 0; i < subParams.length; i++) {
+                valueGenerated(subParams[i], originalSubparams.get(i));
+            }
+        }
+    }
+
+    @Override
+    public void valueGenerated(int paramId, Object[] param) {
+        ApplicationParameter originalParam = this.originalParams[paramId];
+
+        valueGenerated(param, originalParam);
+
+        this.paramTypes[paramId] = (DataType) param[TaskMonitor.TYPE_POS];
+        this.paramLocations[paramId] = param[TaskMonitor.LOCATION_POS].toString();
+        params[paramId] = param;
     }
 
     public String[] getParamLocations() {
@@ -162,6 +188,14 @@ public abstract class AppMonitor implements TaskMonitor {
 
     @Override
     public void onException() {
+    }
+
+    public Object[][] getParams() {
+        return this.params;
+    }
+
+    public void setParams(Object[][] params) {
+        this.params = params;
     }
 
     @Override

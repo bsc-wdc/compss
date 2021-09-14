@@ -18,6 +18,7 @@
 package es.bsc.compss.agent.comm;
 
 import es.bsc.compss.agent.comm.messages.types.CommParam;
+import es.bsc.compss.agent.comm.messages.types.CommParamCollection;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
@@ -42,10 +43,12 @@ import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
+import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.CoreManager;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -103,32 +106,39 @@ class CommAgentJob extends NIOJob {
     private LinkedList<NIOParam> addParams() {
         LinkedList<NIOParam> params = new LinkedList<>();
         for (Parameter param : this.taskParams.getParameters()) {
-
-            CommParam commParam;
-            switch (param.getType()) {
-                case FILE_T:
-                case OBJECT_T:
-                case PSCO_T:
-                case STREAM_T:
-                case EXTERNAL_STREAM_T:
-                case EXTERNAL_PSCO_T:
-                case BINDING_OBJECT_T:
-                    commParam = buildCommParamFromDependencyParameter((DependencyParameter) param);
-                    break;
-                case COLLECTION_T:
-                case DICT_COLLECTION_T:
-                    throw new UnsupportedOperationException();
-                    // break;
-                default:
-                    commParam = buildCommParamFromBasicParameter((BasicTypeParameter) param);
-                    break;
-            }
+            CommParam commParam = createCommParamFromParameter(param);
             params.add(commParam);
         }
         return params;
     }
 
-    private CommParam buildCommParamFromBasicParameter(BasicTypeParameter param) {
+    private static CommParam createCommParamFromParameter(Parameter param) {
+        CommParam commParam;
+        switch (param.getType()) {
+            case FILE_T:
+            case OBJECT_T:
+            case PSCO_T:
+            case STREAM_T:
+            case EXTERNAL_STREAM_T:
+            case EXTERNAL_PSCO_T:
+            case BINDING_OBJECT_T:
+                commParam = buildCommParamFromDependencyParameter((DependencyParameter) param);
+                break;
+            case COLLECTION_T:
+                CommParam tmpCp = buildCommParamFromDependencyParameter((DependencyParameter) param);
+                commParam = buildCommCollectionParamFromCommParam(tmpCp, param);
+                break;
+            case DICT_COLLECTION_T:
+                throw new UnsupportedOperationException();
+                // break;
+            default:
+                commParam = buildCommParamFromBasicParameter((BasicTypeParameter) param);
+                break;
+        }
+        return commParam;
+    }
+
+    private static CommParam buildCommParamFromBasicParameter(BasicTypeParameter param) {
         DataType type = param.getType();
         Direction dir = param.getDirection();
         StdIOStream stdIOStream = param.getStream();
@@ -143,7 +153,7 @@ class CommAgentJob extends NIOJob {
         return commParam;
     }
 
-    private CommParam buildCommParamFromDependencyParameter(DependencyParameter dPar) {
+    private static CommParam buildCommParamFromDependencyParameter(DependencyParameter dPar) {
 
         String renaming = null;
         String dataMgmtId;
@@ -212,5 +222,17 @@ class CommAgentJob extends NIOJob {
         }
 
         return commParam;
+    }
+
+    private static CommParam buildCommCollectionParamFromCommParam(CommParam commPar, Parameter param) {
+
+        CommParamCollection npc = new CommParamCollection(commPar);
+
+        CollectionParameter collParam = (CollectionParameter) param;
+        for (Parameter subParam : collParam.getParameters()) {
+            npc.addParameter(CommAgentJob.createCommParamFromParameter(subParam));
+        }
+
+        return npc;
     }
 }

@@ -1,0 +1,471 @@
+#!/bin/bash
+
+# Obtain parameters
+COMPSs_exec=$1
+comm=$2
+runcompss_opts=$3
+base_app_dir=$4
+COMPSs_log_folder=$5
+target_log_folder=$6
+retry_num=$7
+execution_envs=$8
+
+# Global variables
+AGENT_PIDS=""
+exit_value=0
+NUM_RETRIES="50"
+app_name="5.4_1_collection_passing"
+
+# Traps and Handlers
+function kill_agents() {
+    for pid in ${AGENT_PIDS}; do
+        if kill $pid > /dev/null 2>&1; then
+            echo "[ERROR] Agent failed to stop"
+            exit 1
+        fi
+    done
+}
+trap kill_agents EXIT
+
+#----------------------------------------------------------------------------------
+# Generate projectAgents1cpu.xml according to system
+sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/projectAgent2.xml
+sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/projectAgent3.xml
+
+#----------------------------------------------------------------------------------
+# Create all working dir folders
+mkdir -p /tmp/COMPSsWorker01/
+
+#----------------------------------------------------------------------------------
+# Run application
+echo ""
+echo "*** RUNNING AGENTS TEST: nested compss 1 agent"
+log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
+mkdir -p "${log_dir}"
+output_log="${log_dir}test.outputlog"
+error_log="${log_dir}test.errorlog"
+touch "${output_log}"
+touch "${error_log}"
+
+# Starting agent
+agent1_log_dir="${log_dir}/agent1/"
+mkdir -p "${agent1_log_dir}" 
+agent1_output_log="${log_dir}agent1.outputlog"
+agent1_error_log="${log_dir}agent1.errorlog"
+compss_agent_start \
+    --reuse_resources_on_block="false" \
+    --hostname="COMPSsWorker01" \
+    --pythonpath="${base_app_dir}/src" \
+    --log_dir="${agent1_log_dir}" \
+    --rest_port="46101" \
+    --comm_port="46102" \
+    -d \
+    ${runcompss_opts} \
+    --project="${base_app_dir}/projectAgent2.xml" \
+    --resources="${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+
+agent1_pid="$!"
+AGENT_PIDS="${AGENT_PIDS} ${agent1_pid}"
+
+# Starting agent
+agent2_log_dir="${log_dir}/agent2/"
+mkdir -p "${agent2_log_dir}" 
+agent2_output_log="${log_dir}agent2.outputlog"
+agent2_error_log="${log_dir}agent2.errorlog"
+compss_agent_start \
+    --reuse_resources_on_block="false" \
+    --hostname="COMPSsWorker02" \
+    --pythonpath="${base_app_dir}/src" \
+    --log_dir="${agent2_log_dir}" \
+    --rest_port="46201" \
+    --comm_port="46202" \
+    -d \
+    ${runcompss_opts} \
+    --project="${base_app_dir}/projectAgent2.xml" \
+    --resources="${base_app_dir}/resources.xml" 1>"${agent2_output_log}" 2>"${agent2_error_log}" &
+
+agent2_pid="$!"
+AGENT_PIDS="${AGENT_PIDS} ${agent2_pid}"
+
+# Starting agent
+agent3_log_dir="${log_dir}/agent3/"
+mkdir -p "${agent3_log_dir}" 
+agent3_output_log="${log_dir}agent3.outputlog"
+agent3_error_log="${log_dir}agent3.errorlog"
+compss_agent_start \
+    --reuse_resources_on_block="false" \
+    --hostname="COMPSsWorker03" \
+    --pythonpath="${base_app_dir}/src" \
+    --log_dir="${agent3_log_dir}" \
+    --rest_port="46301" \
+    --comm_port="46302" \
+    -d \
+    ${runcompss_opts} \
+    --project="${base_app_dir}/projectAgent3.xml" \
+    --resources="${base_app_dir}/resources.xml" 1>"${agent3_output_log}" 2>"${agent3_error_log}" &
+
+agent3_pid="$!"
+AGENT_PIDS="${AGENT_PIDS} ${agent3_pid}"
+
+
+retries="${NUM_RETRIES}"
+curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+ev=$?
+while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 2s
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+    ev=$?
+done
+
+
+RESULT=$(grep "test invoked" "${agent1_output_log}")
+if [ -z "${RESULT}" ]; then  
+    echo "[ERROR] Agent 1 failed to start" > >(tee -a "${error_log}")
+    exit 1
+fi
+echo "Agent 1 started" > >(tee -a "${output_log}")
+sleep 2s
+
+retries="${NUM_RETRIES}"
+curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
+ev=$?
+while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 2s
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
+    ev=$?
+done
+
+RESULT=$(grep "test invoked" "${agent2_output_log}")
+if [ -z "${RESULT}" ]; then  
+    echo "[ERROR] Agent 2 failed to start" > >(tee -a "${error_log}")
+    exit 1
+fi
+echo "Agent 2 started" > >(tee -a "${output_log}")
+sleep 2s
+
+retries="${NUM_RETRIES}"
+curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
+ev=$?
+while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 2s
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
+    ev=$?
+done
+
+
+RESULT=$(grep "test invoked" "${agent3_output_log}")
+if [ -z "${RESULT}" ]; then  
+    echo "[ERROR] Agent 3 failed to start" > >(tee -a "${error_log}")
+    exit 1
+fi
+echo "Agent 3 started" > >(tee -a "${output_log}")
+sleep 2s
+
+compss_agent_add_resources \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
+    --cpu=1 \
+    --os_type="agent_2" \
+    "COMPSsWorker02" "Port=46202" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
+
+compss_agent_add_resources \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
+    --cpu=1 \
+    --os_type="agent_3" \
+    "COMPSsWorker03" "Port=46302" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
+
+echo "Calling operation on Agent 1" > >(tee -a "${output_log}")
+
+# Invoking DemoFunction method
+"${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+--lang="PYTHON" \
+--master_node="127.0.0.1" \
+--master_port="46101" \
+--method_name="main" \
+--stop \
+--forward_to="COMPSsWorker02:46201;COMPSsWorker03:46301" \
+"collection_passing" > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+ev=$?
+
+echo "Waiting for Agent 1 to finish" > >(tee -a "${output_log}")
+wait ${agent1_pid}
+
+echo "Call operation ended, agents shut down"
+
+
+if [ "$ev" != "0" ]; then
+    echo "Could not invoke main method." > >(tee -a "${error_log}")
+    exit $ev
+fi
+echo "main function invoked" > >(tee -a "${output_log}")
+
+retries="3"
+while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+    sleep 2s
+    retries=$((retries - 1 ))
+done
+if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
+    echo "Could not invoke main method." > >(tee -a "${error_log}")
+    exit 1
+fi
+
+#NUMBER OF JOBS
+created_jobs_ag_1=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
+if [ ! "${created_jobs_ag_1}" == "1" ]; then
+    echo "[ERROR] agent 1 has generated ${created_jobs_ag_1} tasks but 1 were expected." > >(tee -a "${error_log}")
+    exit 1
+fi 
+created_jobs_ag_2=$(ls "${agent2_log_dir}jobs" | grep -c NEW.out)
+if [ ! "${created_jobs_ag_2}" == "11" ]; then
+    echo "[ERROR] agent 2 has generated ${created_jobs_ag_2} tasks but 11 were expected." > >(tee -a "${error_log}")
+    exit 1
+fi 
+created_jobs_ag_3=$(ls "${agent3_log_dir}jobs" | grep -c NEW.out)
+if [ ! "${created_jobs_ag_3}" == "5" ]; then
+    echo "[ERROR] agent 3 has generated ${created_jobs_ag_3} tasks but 5 were expected." > >(tee -a "${error_log}")
+    exit 1
+fi 
+
+#METHOD NAMES
+job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
+if [ -n "${job1_method}" ]; then
+    job1_method="${job1_method::-1}"
+fi
+if [ ! "${job1_method}" == "main" ]; then
+    echo "Unexpected method (${job1_method}) for job 1." > >(tee -a "${error_log}")
+    exit 1
+fi
+echo  "main method properly started" > >(tee -a "${output_log}")
+
+echo  "getting method names"
+ag2_job1_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job1_method}" ]; then
+    ag2_job1_method="${ag2_job1_method::-1}"
+fi
+ag2_job2_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job2_method}" ]; then
+    ag2_job2_method="${ag2_job2_method::-1}"
+fi
+ag2_job3_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job3_method}" ]; then
+    ag2_job3_method="${ag2_job3_method::-1}"
+fi
+ag2_job4_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job4_method}" ]; then
+    ag2_job4_method="${ag2_job4_method::-1}"
+fi
+ag2_job5_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job5_method}" ]; then
+    ag2_job5_method="${ag2_job5_method::-1}"
+fi
+ag2_job6_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job6_method}" ]; then
+    ag2_job6_method="${ag2_job6_method::-1}"
+fi
+ag2_job7_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job7_method}" ]; then
+    ag2_job7_method="${ag2_job7_method::-1}"
+fi
+ag2_job8_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job8_method}" ]; then
+    ag2_job8_method="${ag2_job8_method::-1}"
+fi
+ag2_job9_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job9_method}" ]; then
+    ag2_job9_method="${ag2_job9_method::-1}"
+fi
+ag2_job10_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job10_method}" ]; then
+    ag2_job10_method="${ag2_job10_method::-1}"
+fi
+
+ag3_job1_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag3_job1_method}" ]; then
+    ag3_job1_method="${ag3_job1_method::-1}"
+fi
+ag3_job2_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag3_job2_method}" ]; then
+    ag3_job2_method="${ag3_job2_method::-1}"
+fi
+ag3_job3_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag3_job3_method}" ]; then
+    ag3_job3_method="${ag3_job3_method::-1}"
+fi
+ag3_job4_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag3_job4_method}" ]; then
+    ag3_job4_method="${ag3_job4_method::-1}"
+fi
+
+
+echo  "checking method names"
+if [ ! "${ag2_job1_method}" == "print_obj_coll" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 1, got ${ag2_job1_method}, expected print_obj_coll"
+    exit 1
+fi
+
+if [ ! "${ag2_job2_method}" == "create_int_collection_worker" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 2, got ${ag2_job2_method}, expected create_int_collection_worker"
+    exit 1
+fi
+
+if [ ! "${ag2_job3_method}" == "print_worker_obj_coll" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 3, got ${ag2_job3_method}, expected print_worker_obj_coll"
+    exit 1
+fi
+
+if [ ! "${ag2_job4_method}" == "create_int_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 4, got ${ag2_job4_method}, expected create_int_collection"
+    exit 1
+fi
+
+if [ ! "${ag2_job5_method}" == "create_int_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 5, got ${ag2_job5_method}, expected create_int_collection"
+    exit 1
+fi
+
+if [ ! "${ag2_job6_method}" == "create_int_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 6, got ${ag2_job6_method}, expected create_int_collection"
+    exit 1
+fi
+
+if [ ! "${ag2_job7_method}" == "create_int_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 7, got ${ag2_job7_method}, expected create_int_collection"
+    exit 1
+fi
+
+if [ ! "${ag2_job8_method}" == "create_int_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 8, got ${ag2_job8_method}, expected create_int_collection"
+    exit 1
+fi
+
+if [ ! "${ag2_job9_method}" == "create_int_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 9, got ${ag2_job9_method}, expected create_int_collection"
+    exit 1
+fi
+
+if [ ! "${ag2_job10_method}" == "create_int_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 10, got ${ag2_job10_method}, expected create_int_collection"
+    exit 1
+fi
+
+
+
+if [ ! "${ag3_job1_method}" == "print_int_coll" ]; then
+    echo "[ERROR] Unexpected method name at agent 3, job 1, got ${ag3_job1_method}, expected print_int_coll"
+    exit 1
+fi
+
+if [ ! "${ag3_job2_method}" == "print_worker_int_coll" ]; then
+    echo "[ERROR] Unexpected method name at agent 3, job 2, got ${ag3_job2_method}, expected print_worker_int_coll"
+    exit 1
+fi
+
+if [ ! "${ag3_job3_method}" == "create_object_collection_worker" ]; then
+    echo "[ERROR] Unexpected method name at agent 3, job 3, got ${ag3_job3_method}, expected create_object_collection_worker"
+    exit 1
+fi
+
+if [ ! "${ag3_job4_method}" == "create_object_collection" ]; then
+    echo "[ERROR] Unexpected method name at agent 3, job 4, got ${ag3_job4_method}, expected create_object_collection"
+    exit 1
+fi
+
+
+echo  "checking method values"
+printIntColl_value=$( grep printIntCollResult: ${agent3_log_dir}/jobs/* | cut -d ":" -f3)
+printObjColl_value=$( grep printObjCollResult: ${agent2_log_dir}/jobs/* | cut -d ":" -f3)
+createIntColl_value=$( grep createIntCollectionResult: ${agent1_log_dir}/jobs/* | cut -d ":" -f3)
+createObjColl_value=$( grep createObjCollectionResult: ${agent1_log_dir}/jobs/* | cut -d ":" -f3)
+printWorkIntColl_value=$( grep printWorkerIntCollResult: ${agent3_log_dir}/jobs/* | cut -d ":" -f3)
+printWorkObjColl_value=$( grep printWorkerObjCollResult: ${agent2_log_dir}/jobs/* | cut -d ":" -f3)
+printModObjColl_value=$( grep printModifiedObjCollResult: ${agent2_log_dir}/jobs/* | cut -d ":" -f3)
+
+printElem1_value=$( grep "printingElem: 1" ${agent2_log_dir}/jobs/job*_NEW.out)
+printElem2_value=$( grep "printingElem: 2" ${agent2_log_dir}/jobs/job*_NEW.out)
+printElem3_value=$( grep "printingElem: 3" ${agent2_log_dir}/jobs/job*_NEW.out)
+printElem4_value=$( grep "printingElem: 4" ${agent2_log_dir}/jobs/job*_NEW.out)
+printElem5_value=$( grep "printingElem: 5" ${agent2_log_dir}/jobs/job*_NEW.out)
+printElem6_value=$( grep "printingElem: 6" ${agent2_log_dir}/jobs/job*_NEW.out)
+
+if [ ! "${printIntColl_value}" == "[1, 2, 3, [41, 42, 43]]" ]; then
+    echo "Unexpected value: ${printIntColl_value} for tag printIntCollResult. Expected [1, 2, 3, [41, 42, 43]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ ! "${printObjColl_value}" == "[D[1], D[2], D[3], [D[41], D[42], D[43]]]" ]; then
+    echo "Unexpected value: ${printObjColl_value} for tag printObjCollResult. Expected [D[1], D[2], D[3], [D[41], D[42], D[43]]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ ! "${createIntColl_value}" == "[1, 2, 3, [41, 42, 43]]" ]; then
+    echo "Unexpected value: ${createIntColl_value} for tag createIntCollectionResult. Expected [1, 2, 3, [41, 42, 43]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ ! "${createObjColl_value}" == "[D[1], D[2], D[3], [D[41], D[42], D[43]]]" ]; then
+    echo "Unexpected value: ${createObjColl_value} for tag createObjCollectionResult. Expected [D[1], D[2], D[3], [D[41], D[42], D[43]]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+if [ ! "${printWorkIntColl_value}" == "[1, 2, 3, [41, 42, 43]]" ]; then
+    echo "Unexpected value: ${printIntColl_value} for tag printWorkerIntCollResult. Expected [1, 2, 3, [41, 42, 43]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ ! "${printWorkObjColl_value}" == "[D[1], D[2], D[3], [D[41], D[42], D[43]]]" ]; then
+    echo "Unexpected value: ${printObjColl_value} for tag printWorkerObjCollResult. Expected [D[1], D[2], D[3], [D[41], D[42], D[43]]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+
+
+if [ ! "${printModObjColl_value}" == "[D[1], D[9], D[3], [D[41], D[42], D[43]]]" ]; then
+    echo "Unexpected value: ${printModObjColl_value} for tag printModifiedObjCollResult. Expectec [D[1], D[9], D[3], [D[41], D[42], D[43]]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ -z "${printElem1_value}" ]; then
+    echo "print_elem with value 1 not found." > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ -z "${printElem2_value}" ]; then
+    echo "print_elem with value 2 not found." > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ -z "${printElem3_value}" ]; then
+    echo "print_elem with value 3 not found." > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ -z "${printElem4_value}" ]; then
+    echo "print_elem with value 4 not found." > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ -z "${printElem5_value}" ]; then
+    echo "print_elem with value 5 not found." > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ -z "${printElem6_value}" ]; then
+    echo "print_elem with value 6 not found." > >(tee -a "${error_log}")
+    exit 1
+fi
+
+echo "All task executed as expected and with the expected values." 
+
+
+# Copy LOG files
+cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+exit_value=0
+
+#----------------------------------------------------------------------------------
+# Return execution status
+exit ${exit_value}
+

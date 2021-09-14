@@ -20,9 +20,12 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import java.util.Arrays;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 
 /**
@@ -140,19 +143,23 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
      * @param commandParams string array with the parameters read from the external command
      * @return Object array to pass in into the executeTask call
      */
-    protected Object[] processParameters(String[] commandParams) {
-        LOGGER.info(Arrays.toString(commandParams));
-        Object[] methodParams = new Object[commandParams.length];
-        for (int offset = 0; offset < commandParams.length;) {
-            methodParams[offset] = commandParams[offset++];
-            methodParams[offset] = DataType.values()[Integer.parseInt(commandParams[offset++])];
-            methodParams[offset] = Direction.values()[Integer.parseInt(commandParams[offset++])];
-            methodParams[offset] = StdIOStream.values()[Integer.parseInt(commandParams[offset++])];
-            methodParams[offset] = commandParams[offset++];
-            methodParams[offset] = commandParams[offset++];
-            methodParams[offset] = commandParams[offset++];
-            methodParams[offset] = commandParams[offset++];
-            methodParams[offset] = Boolean.parseBoolean(commandParams[offset++]);
+    protected Object[] processParameters(String commandParams) {
+        Object[] methodParams = new Object[commandParams.length()];
+        JSONTokener tokener = new JSONTokener(commandParams);
+        JSONArray jsonParams = new JSONArray(tokener);
+        int offset = 0;
+
+        for (int i = 0; i < jsonParams.length(); i++) {
+            JSONObject param = jsonParams.getJSONObject(i);
+            methodParams[offset++] = param.getString("Value");
+            methodParams[offset++] = DataType.values()[param.getInt("DataType")];
+            methodParams[offset++] = Direction.values()[param.getInt("Direction")];
+            methodParams[offset++] = StdIOStream.values()[param.getInt("IOStream")];
+            methodParams[offset++] = param.getString("Prefix");
+            methodParams[offset++] = param.getString("Name");
+            methodParams[offset++] = param.getString("ContType");
+            methodParams[offset++] = param.getString("Weight");
+            methodParams[offset++] = param.getBoolean("KeepRename");
         }
         return methodParams;
     }

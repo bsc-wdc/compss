@@ -48,6 +48,7 @@ import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
 import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,6 +61,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -316,7 +318,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 readCommand = new RegisterCEPipeCommand(command);
                 break;
             case EXECUTE_NESTED_TASK:
-                readCommand = new ExecuteNestedTaskPipeCommand(command);
+                readCommand = new ExecuteNestedTaskPipeCommand(cmd, command);
                 break;
             case OPEN_FILE:
                 readCommand = new OpenFilePipeCommand(command);

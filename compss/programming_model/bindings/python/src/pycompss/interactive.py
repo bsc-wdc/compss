@@ -123,6 +123,15 @@ def start(log_level="off",                     # type: str
           propagate_virtual_environment=True,  # type: bool
           mpi_worker=False,                    # type: bool
           worker_cache=False,                  # type: bool or str
+          shutdown_in_node_failure=False,      # type: bool
+          io_executors=0,                      # type: int
+          env_script="",                       # type: str
+          reuse_on_block=True,                 # type: bool
+          nested_enabled=False,                # type: bool
+          tracing_task_dependencies=False,     # type: bool
+          trace_label=None,                    # type: str
+          extrae_cfg_python=None,              # type: str
+          wcl=0,                               # type: int
           verbose=False                        # type: bool
           ):  # NOSONAR
     # type: (...) -> None
@@ -204,6 +213,21 @@ def start(log_level="off",                     # type: str
                        (default: False)
     :param worker_cache: Use the worker cache [ True | int(size) | False]
                          (default: False)
+    :param shutdown_in_node_failure: Shutdown in node failure [ True | False]
+                                     (default: False)
+    :param io_executors: <Integer> Number of IO executors
+    :param env_script: <String> Environment script to be sourced in workers
+    :param reuse_on_block: Reuse on block [ True | False]
+                           (default: True)
+    :param nested_enabled: Nested enabled [ True | False]
+                           (default: True)
+    :param tracing_task_dependencies: Include task dependencies in trace
+                                      [ True | False] (default: False)
+    :param trace_label: <String> Add trace label
+    :param extrae_cfg_python: <String> Extrae configuration file for the
+                              workers
+    :param wcl: <Integer> Wall clock limit. Stops the runtime if reached.
+                0 means forever.
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
     :return: None
@@ -271,7 +295,16 @@ def start(log_level="off",                     # type: str
                                   external_adaptation,
                                   propagate_virtual_environment,
                                   mpi_worker,
-                                  worker_cache)
+                                  worker_cache,
+                                  shutdown_in_node_failure,
+                                  io_executors,
+                                  env_script,
+                                  reuse_on_block,
+                                  nested_enabled,
+                                  tracing_task_dependencies,
+                                  trace_label,
+                                  extrae_cfg_python,
+                                  wcl)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
     export_current_flags(all_vars)

@@ -62,6 +62,15 @@ def parameters_to_dict(log_level,                      # type: str
                        propagate_virtual_environment,  # type: bool
                        mpi_worker,                     # type: bool
                        worker_cache,                   # type: str
+                       shutdown_in_node_failure,       # type: bool
+                       io_executors,                   # type: int
+                       env_script,                     # type: str
+                       reuse_on_block,                 # type: bool
+                       nested_enabled,                 # type: bool
+                       tracing_task_dependencies,      # type: bool
+                       trace_label,                    # type: str
+                       extrae_cfg_python,              # type: str
+                       wcl,                            # type: int
                        ):  # NOSONAR
     # type: (...) -> dict
     """ Converts the given parameters into a dictionary """
@@ -102,5 +111,14 @@ def parameters_to_dict(log_level,                      # type: str
                 "external_adaptation": external_adaptation,
                 "propagate_virtual_environment": propagate_virtual_environment,
                 "mpi_worker": mpi_worker,
-                "worker_cache": worker_cache}
+                "worker_cache": worker_cache,
+                "shutdown_in_node_failure": shutdown_in_node_failure,
+                "io_executors": io_executors,
+                "env_script": env_script,
+                "reuse_on_block": reuse_on_block,
+                "nested_enabled": nested_enabled,
+                "tracing_task_dependencies": tracing_task_dependencies,
+                "trace_label": trace_label,
+                "extrae_cfg_python": extrae_cfg_python,
+                "wcl": wcl}
     return all_vars

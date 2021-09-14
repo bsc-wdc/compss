@@ -23,10 +23,12 @@ PyCOMPSs Cache setup
     This file contains the cache setup and instantiation.
     IMPORTANT: Only used with python >= 3.8.
 """
-import time
-from multiprocessing import Process
-from multiprocessing import Queue
 
+from pycompss.util.process.manager import Process  # just typing
+from pycompss.util.process.manager import Queue    # just typing
+from pycompss.util.process.manager import new_queue
+from pycompss.util.process.manager import new_manager
+from pycompss.util.process.manager import create_process
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import cache_tracker
 from pycompss.worker.piper.cache.tracker import start_shared_memory_manager as __start_smm__  # noqa: E501
@@ -61,8 +63,7 @@ def start_cache(logger, cache_config, cache_profiler, log_dir):
     # Cache can be used
     # Create a proxy dictionary to share the information across workers
     # within the same node
-    from multiprocessing import Manager
-    manager = Manager()
+    manager = new_manager()
     cache_ids = manager.dict()  # Proxy dictionary
     profiler_dict = {}
     profiler_get_struct = [[], [], []]  # Filename, Parameter, Function
@@ -126,8 +127,9 @@ def __create_cache_tracker_process__(process_name, conf):
     :param conf: cache config.
     :return: None
     """
-    queue = Queue()
-    process = Process(target=cache_tracker, args=(queue, process_name, conf))
+    queue = new_queue()
+    process = create_process(target=cache_tracker,
+                             args=(queue, process_name, conf))
     process.start()
     return process, queue
 

@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-from multiprocessing import Process
+from pycompss.util.process.manager import create_process
 from pycompss.streams.distro_stream import DistroStreamClientHandler
 
 
@@ -36,8 +36,8 @@ def test_client_handler():
         DistroStreamClientHandler.set_stop()
         print("End process")
 
-    p1 = Process(target=runner)
-    p2 = Process(target=runner)
+    p1 = create_process(target=runner)
+    p2 = create_process(target=runner)
 
     p1.start()
     p2.start()

@@ -32,16 +32,10 @@ from pycompss.util.tracing.helpers import emit_event
 from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
 from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
-
-try:
-    from multiprocessing.shared_memory import SharedMemory  # noqa
-    from multiprocessing.shared_memory import ShareableList  # noqa
-    from multiprocessing.managers import SharedMemoryManager  # noqa
-except ImportError:
-    # Unsupported in python < 3.8
-    SharedMemory = None
-    ShareableList = None
-    SharedMemoryManager = None
+from pycompss.util.process.manager import SharedMemory
+from pycompss.util.process.manager import ShareableList
+from pycompss.util.process.manager import SharedMemoryManager  # just typing
+from pycompss.util.process.manager import create_shared_memory_manager
 try:
     import numpy as np
 except ImportError:
@@ -236,8 +230,8 @@ def load_shared_memory_manager():
     :return: None
     """
     global SHARED_MEMORY_MANAGER
-    SHARED_MEMORY_MANAGER = SharedMemoryManager(address=(IP, PORT),
-                                                authkey=AUTH_KEY)
+    SHARED_MEMORY_MANAGER = create_shared_memory_manager(address=(IP, PORT),
+                                                         authkey=AUTH_KEY)
     SHARED_MEMORY_MANAGER.connect()
 
 
@@ -247,7 +241,8 @@ def start_shared_memory_manager():
 
     :return: Shared memory manager instance.
     """
-    smm = SharedMemoryManager(address=('', PORT), authkey=AUTH_KEY)
+    smm = create_shared_memory_manager(address=('', PORT),
+                                       authkey=AUTH_KEY)
     smm.start()
     return smm
 

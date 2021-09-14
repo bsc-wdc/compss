@@ -55,6 +55,7 @@ from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
 from pycompss.util.logger.helpers import clean_log_configs
+from pycompss.util.process.manager import initialize_multiprocessing
 from pycompss.util.warnings.modules import show_optional_module_warnings
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
@@ -86,6 +87,9 @@ if IS_PYTHON3:
     _PYTHON_VERSION = 3
 else:
     _PYTHON_VERSION = 2
+
+# Initialize multiprocessing
+initialize_multiprocessing()
 
 
 def stop_all(exit_code):

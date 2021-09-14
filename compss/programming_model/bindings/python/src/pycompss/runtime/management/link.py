@@ -27,17 +27,19 @@ PyCOMPSs Binding - Link
 """
 
 import os
-import multiprocessing
 
+from pycompss.util.process.manager import new_process
+from pycompss.util.process.manager import new_queue
+from pycompss.util.process.manager import create_process
 from pycompss.util.std.redirects import ipython_std_redirector
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.util.exceptions import PyCOMPSsException
 
 
 # Global variables
-LINK_PROCESS = multiprocessing.Process()
-IN_QUEUE = multiprocessing.Queue()
-OUT_QUEUE = multiprocessing.Queue()
+LINK_PROCESS = new_process()
+IN_QUEUE = new_queue()
+OUT_QUEUE = new_queue()
 RELOAD = False
 
 # Queue messages
@@ -225,8 +227,8 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
         err_file_name = None
 
     if RELOAD:
-        IN_QUEUE = multiprocessing.Queue()
-        OUT_QUEUE = multiprocessing.Queue()
+        IN_QUEUE = new_queue()
+        OUT_QUEUE = new_queue()
         RELOAD = False
 
     if __debug__:
@@ -236,10 +238,10 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
         else:
             link_logger.debug(message)
 
-    LINK_PROCESS = multiprocessing.Process(target=c_extension_link,
-                                           args=(IN_QUEUE, OUT_QUEUE,
-                                                 redirect_std,
-                                                 out_file_name, err_file_name))
+    LINK_PROCESS = create_process(target=c_extension_link,
+                                  args=(IN_QUEUE, OUT_QUEUE,
+                                        redirect_std,
+                                        out_file_name, err_file_name))
     LINK_PROCESS.start()
 
     if __debug__:

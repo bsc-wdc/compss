@@ -26,9 +26,11 @@ PyCOMPSs Persistent Worker
 import os
 import sys
 import signal
-from multiprocessing import Process
-from multiprocessing import Queue
 
+from pycompss.util.process.manager import initialize_multiprocessing
+from pycompss.util.process.manager import Queue  # just typing
+from pycompss.util.process.manager import new_queue
+from pycompss.util.process.manager import create_process
 from pycompss.runtime.commons import range
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
@@ -257,11 +259,12 @@ def create_executor_process(process_name, conf, pipe):
     :param pipe: Communication pipes (in, out).
     :return: Process identifier and queue used by the process
     """
-    queue = Queue()
-    process = Process(target=executor, args=(queue,
-                                             process_name,
-                                             pipe,
-                                             conf))
+    queue = new_queue()
+    process = create_process(target=executor,
+                             args=(queue,
+                                   process_name,
+                                   pipe,
+                                   conf))
     PROCESSES[pipe.input_pipe] = process
     process.start()
     return process.pid, queue
@@ -284,4 +287,7 @@ def main():
 
 
 if __name__ == '__main__':
+    # Initialize multiprocessing
+    initialize_multiprocessing()
+    # Then start the main function
     main()

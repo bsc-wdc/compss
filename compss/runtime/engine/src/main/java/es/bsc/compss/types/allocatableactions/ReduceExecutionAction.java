@@ -276,7 +276,6 @@ public class ReduceExecutionAction extends ExecutionAction {
             }
         }
         addReduceTaskParameters(resource);
-        ((ExecutionAction) finishedAction).getTask().releaseDataDependents();
     }
 
     private void checkAndRegisterResource(Resource resource) {

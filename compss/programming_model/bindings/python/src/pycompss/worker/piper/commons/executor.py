@@ -448,6 +448,7 @@ def process_task(current_line,              # type: list
     :return: True if processed successfully, False otherwise.
     """
     affinity_ok = True
+    num_cpus = 1
 
     # CPU binding
     cpus = current_line[-3]
@@ -455,7 +456,7 @@ def process_task(current_line,              # type: list
         # The cpu affinity event is already emitted in Java.
         # Instead of emitting what we receive, we are emitting what whe check
         # after setting the affinity.
-        affinity_ok = bind_cpus(cpus, process_name, logger)
+        affinity_ok, num_cpus = bind_cpus(cpus, process_name, logger)
 
     # GPU binding
     gpus = current_line[-2]
@@ -527,6 +528,8 @@ def process_task(current_line,              # type: list
             # Close previous emitted event since this is the moment we update
             emit_manual_event(0, inside=True, cpu_affinity=True)
             emit_manual_event(cpus, inside=True, cpu_affinity=True)
+            emit_manual_event(0, inside=True, cpu_number=True)
+            emit_manual_event(num_cpus, inside=True, cpu_number=True)
             if not affinity_ok:
                 logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
                                cpus)
@@ -696,19 +699,21 @@ def process_quit(logger, process_name):  # noqa
 
 @emit_event(BIND_CPUS_EVENT, master=False, inside=True)
 def bind_cpus(cpus, process_name, logger):  # noqa
-    # type: (str, str, ...) -> bool
+    # type: (str, str, ...) -> (bool, int)
     """ Bind the given CPUs for core affinity to this process.
 
     :param cpus: Target CPUs.
     :param process_name: Process name for logger messages.
     :param logger: Logger.
-    :return: True if success, False otherwise.
+    :return: True if success, False otherwise. And the number of binded cpus.
     """
     os.environ['COMPSS_BINDED_CPUS'] = cpus
     if __debug__:
         logger.debug(HEADER + "[%s] Assigning affinity %s" %
                      (str(process_name), str(cpus)))
-    cpus = list(map(int, cpus.split(",")))
+    cpus_list = cpus.split(",")
+    cpus = list(map(int, cpus_list))
+    num_cpus = len(cpus_list)
     try:
         thread_affinity.setaffinity(cpus)
     except Exception:  # noqa
@@ -717,7 +722,7 @@ def bind_cpus(cpus, process_name, logger):  # noqa
                          "[%s] WARNING: could not assign affinity %s" %
                          (str(process_name), str(cpus)))
         return False
-    return True
+    return True, num_cpus
 
 
 @emit_event(BIND_GPUS_EVENT, master=False, inside=True)

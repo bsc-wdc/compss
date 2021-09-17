@@ -35,7 +35,7 @@ from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.commons.utils import load_loggers
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
 from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG

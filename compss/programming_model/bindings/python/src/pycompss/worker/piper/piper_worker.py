@@ -51,7 +51,7 @@ from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.commons.utils import load_loggers
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache

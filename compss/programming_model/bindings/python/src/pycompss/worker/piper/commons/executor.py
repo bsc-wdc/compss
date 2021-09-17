@@ -47,7 +47,7 @@ from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.utils import load_loggers
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 from pycompss.worker.commons.constants import BIND_CPUS_EVENT
 from pycompss.worker.commons.constants import BIND_GPUS_EVENT
 from pycompss.worker.commons.constants import SETUP_ENVIRONMENT_EVENT
@@ -227,7 +227,7 @@ def executor(queue, process_name, pipe, conf):
         if len(conf.logger.handlers) == 0:
             # Logger has not been inherited correctly. Happens in MacOS.
             # Reload logger
-            conf.logger, conf.logger_cfg, conf.storage_loggers = \
+            conf.logger, conf.logger_cfg, conf.storage_loggers, _ = \
                 load_loggers(conf.debug, conf.persistent_storage)
         logger = conf.logger
 

@@ -2041,12 +2041,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (wcl > 0) {
 
             if (timer == null) {
+                if (Tracer.basicModeEnabled()) {
+                    Tracer.enablePThreads(1);
+                }
                 timer = new Timer("Application wall clock limit timer");
                 timer.schedule(new TimerTask() {
 
                     @Override
                     public void run() {
+
                         if (Tracer.extraeEnabled()) {
+                            if (Tracer.basicModeEnabled()) {
+                                Tracer.disablePThreads(1);
+                            }
                             Tracer.emitEvent(TraceEvent.WALLCLOCK_THREAD_ID.getId(),
                                 TraceEvent.WALLCLOCK_THREAD_ID.getType());
                         }

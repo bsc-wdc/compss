@@ -23,7 +23,6 @@ def parsePrvs(runcompssPrv, agentPrv):
     global agentThIdentEvents
     
     reader = open(runcompssPrv, "r")
-    time.sleep(20)
     runcompssHeader = reader.readline().rstrip()
     line = reader.readline().rstrip()
     while(line): 
@@ -32,8 +31,14 @@ def parsePrvs(runcompssPrv, agentPrv):
         threadId = prvLine.getFullThreadId()
         if threadId not in runcompssThreads:
             runcompssThreads[threadId] = None
-        if TH_IDENT_EVENT in events and threadId not in runcompssThIdentEvents:
-            runcompssThIdentEvents[threadId] = events.get(TH_IDENT_EVENT)
+        if TH_IDENT_EVENT in events:
+            identifierEvent = events.get(TH_IDENT_EVENT)
+            if threadId == "1.1.1":
+                raise Exception("Main thread has an identification event, but it shouldn't")
+            if threadId in runcompssThIdentEvents and identifierEvent != "0":
+                raise Exception("Thread " + threadId + " has more than one identification event")
+            if threadId not in runcompssThIdentEvents: 
+                runcompssThIdentEvents[threadId] = identifierEvent
         line = reader.readline().rstrip()  
 
     reader = open(agentPrv, "r")
@@ -154,7 +159,7 @@ def checkThreadTranslations(threads, thIdentifiers, rowFile):
                 if identifierEvent == "8":
                     expectedTag = "EXECUTOR"
             if expectedTag == "":
-                raise Exception("Unknown thread in .row file")
+                raise Exception("Unknown thread in .row file for thread identification event " + identifierEvent)
             if tag != expectedTag:
                 raise Exception("Unexpected tag in .row file. Expected " + expectedTag + " got " + tag)
 

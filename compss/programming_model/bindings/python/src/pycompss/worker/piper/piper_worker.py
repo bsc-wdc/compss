@@ -138,10 +138,12 @@ def compss_persistent_worker(config):
     smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
 
     # Create new executor processes
-    conf = ExecutorConf(TRACING,
+    conf = ExecutorConf(config.debug,
+                        TRACING,
                         config.storage_conf,
                         logger,
                         logger_cfg,
+                        persistent_storage,
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,

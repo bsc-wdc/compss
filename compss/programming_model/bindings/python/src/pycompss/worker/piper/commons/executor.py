@@ -47,6 +47,7 @@ from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
+from pycompss.worker.piper.commons.utils import load_loggers
 from pycompss.worker.commons.constants import BIND_CPUS_EVENT
 from pycompss.worker.commons.constants import BIND_GPUS_EVENT
 from pycompss.worker.commons.constants import SETUP_ENVIRONMENT_EVENT
@@ -157,22 +158,24 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    __slots__ = ['tracing', 'storage_conf', 'logger', 'logger_cfg',
-                 'storage_loggers',
+    __slots__ = ['debug', 'tracing', 'storage_conf', 'logger', 'logger_cfg',
+                 'persistent_storage', 'storage_loggers',
                  'stream_backend', 'stream_master_ip', 'stream_master_port',
                  'cache_ids', 'cache_queue', 'cache_profiler']
 
-    def __init__(self, tracing, storage_conf, logger, logger_cfg,
-                 storage_loggers,
+    def __init__(self, debug, tracing, storage_conf, logger, logger_cfg,
+                 persistent_storage, storage_loggers,
                  stream_backend, stream_master_ip, stream_master_port,
                  cache_ids=None, cache_queue=None, cache_profiler=False):
         """
         Constructs a new executor configuration.
 
+        :param debug: If debug is enabled
         :param tracing: Enable tracing for the executor.
         :param storage_conf: Storage configuration file.
         :param logger: Main logger.
         :param logger_cfg: Logger configuration file.
+        :param persistent_storage: If persistent storage is enabled
         :param storage_loggers: List of supported storage loggers
                                 (empty if running w/o storage).
         :param stream_backend: Streaming backend type.
@@ -182,10 +185,12 @@ class ExecutorConf(object):
         :param cache_queue: Cache queue where to submit to add new entries to
                             cache_ids.
         """
+        self.debug = debug
         self.tracing = tracing
         self.storage_conf = storage_conf
         self.logger = logger
         self.logger_cfg = logger_cfg
+        self.persistent_storage = persistent_storage
         self.storage_loggers = storage_loggers
         self.stream_backend = stream_backend
         self.stream_master_ip = stream_master_ip
@@ -215,10 +220,16 @@ def executor(queue, process_name, pipe, conf):
     :param conf: configuration of the executor.
     :return: None
     """
-    logger = conf.logger
     try:
         # Replace Python Worker's SIGTERM handler.
         signal.signal(signal.SIGTERM, shutdown_handler)
+
+        if len(conf.logger.handlers) == 0:
+            # Logger has not been inherited correctly. Happens in MacOS.
+            # Reload logger
+            conf.logger, conf.logger_cfg, conf.storage_loggers = \
+                load_loggers(conf.debug, conf.persistent_storage)
+        logger = conf.logger
 
         tracing = conf.tracing
         storage_conf = conf.storage_conf

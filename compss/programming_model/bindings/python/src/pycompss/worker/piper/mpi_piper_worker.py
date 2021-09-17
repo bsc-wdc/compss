@@ -255,10 +255,12 @@ def compss_persistent_executor(config):
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     process_name = "".join(("Rank-", str(RANK)))
-    conf = ExecutorConf(TRACING,
+    conf = ExecutorConf(config.debug,
+                        TRACING,
                         config.storage_conf,
                         logger,
                         logger_cfg,
+                        persistent_storage,
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,

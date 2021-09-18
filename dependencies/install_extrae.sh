@@ -69,7 +69,7 @@
           if [ -d "${mpiPath}/include" ]; then
             argMpiHeaders="--with-mpi-headers=${mpiPath}/include"
           else
-            echo "ERROR: Cannot automatically infer MPI include folder"
+		  echo "ERROR: Cannot automatically infer MPI include folder (${mpiPath})"
             exit 1
           fi
         fi

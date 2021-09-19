@@ -97,7 +97,7 @@ public class DefaultNoSSHConnector extends AbstractConnector {
 
             // Load jar to classpath
             LOGGER.debug(" - Loading from : " + jarPath);
-            Classpath.loadPath(jarPath, LOGGER);
+            Classpath.loadJarsInPath(jarPath, LOGGER);
 
             // Invoke connector main class
             LOGGER.debug(" - Using connector " + connectorMainClass);
@@ -105,9 +105,6 @@ public class DefaultNoSSHConnector extends AbstractConnector {
             Constructor<?> constructor = conClass.getDeclaredConstructors()[0];
             conn = (Connector) constructor.newInstance(connectorProperties);
             LOGGER.debug("Ending connector handling");
-        } catch (FileNotFoundException fnfe) {
-            LOGGER.error("Specific connector jar file not found", fnfe);
-            throw new ConnectorException("Specific Connector jar file (" + connectorJarPath + ") not found", fnfe);
         } catch (Exception e) {
             LOGGER.error("Exception creating connector", e);
             throw new ConnectorException(e);

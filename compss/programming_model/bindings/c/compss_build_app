@@ -275,7 +275,6 @@ get_goals() {
 }
 
 check_args() {
-
     local javapath=""
     if [ -z "$java_home" ]; then
         # Setting Java folder
@@ -283,9 +282,15 @@ check_args() {
             display_error "[ ERROR ] Set \$JAVA_HOME or either use the --java_home argument."
         fi
         libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+        if [ -z "${libjava}" ]; then
+            libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
+        fi
         javapath=$JAVA_HOME
     else
         libjava=$(find "${java_home}"/jre/lib/ -name libjvm.so | head -n 1)
+        if [ -z "${libjava}" ]; then
+            libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
+        fi
         javapath=$java_home
     fi
    

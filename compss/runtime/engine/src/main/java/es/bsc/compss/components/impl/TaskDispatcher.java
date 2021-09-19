@@ -411,11 +411,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             return;
         }
 
-        try {
-            Classpath.loadPath(compssHome + SCHEDULERS_REL_PATH, LOGGER);
-        } catch (FileNotFoundException ex) {
-            LOGGER.warn("WARN: Schedulers folder not defined, no schedulers loaded.");
-        }
+        Classpath.loadJarsInPath(compssHome + SCHEDULERS_REL_PATH, LOGGER);
     }
 
     private TaskScheduler constructScheduler() {

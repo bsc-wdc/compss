@@ -750,10 +750,10 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             "-------------------------\n" + "    CHECK SCALABILITY    \n" + "-------------------------\n");
     }
 
-
     /*
      * SUPPORTING PROFILE CLASSES
      */
+
 
     protected class MOCloudTypeProfile extends CloudTypeProfile {
 

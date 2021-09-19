@@ -44,9 +44,9 @@
         <json.version>20180813</json.version>
 
         <!-- Jaxb version -->
-        <jaxb-api.version>2.3.0</jaxb-api.version>
-        <jaxb-xjc.version>2.3.0</jaxb-xjc.version>
-        <cxf.version>3.1.6</cxf.version>
+	<jaxb.version>2.3.3</jaxb.version>
+	<jaxws.version>2.3.3</jaxws.version>
+        <cxf.version>3.4.4</cxf.version>
         <cxf.api.version>2.7.18</cxf.api.version>
 
         <!-- SSH -->
@@ -86,14 +86,22 @@
 
             <!-- JAXB -->
             <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>${jaxb-api.version}</version>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>${jaxb.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-xjc</artifactId>
-                <version>${jaxb-xjc.version}</version>
+                <artifactId>jaxb-impl</artifactId>
+                <version>${jaxb.version}</version>
+                <scope>runtime</scope>
             </dependency>
 
             <!-- CXF -->
@@ -125,6 +133,22 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-api</artifactId>
                 <version>${cxf.api.version}</version>
+	    </dependency>
+            
+	    <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>${jaxws.version}</version>
+	    </dependency>
+            <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>jaxws-rt</artifactId>
+                <version>${jaxws.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>rt</artifactId>
+                <version>${jaxws.version}</version>
             </dependency>
 
             <!-- Java GAT -->

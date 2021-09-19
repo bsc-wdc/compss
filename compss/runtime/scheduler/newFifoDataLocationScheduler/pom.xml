@@ -15,7 +15,9 @@
 
     <!-- PROJECT INFORMATION -->
     <name>COMPSs Scheduler FIFO Data Location</name>
-    <description>COMPSs scheduler that only schedules ready tasks in Location and FIFO mode. Try to scheduler freeded tasks to the father's worker</description>
+    <description>COMPSs scheduler that only schedules ready tasks in Location and FIFO mode. Try to scheduler freeded
+        tasks to the father's worker
+    </description>
     <url>http://www.bsc.es</url>
     <inceptionYear>2015</inceptionYear>
     <licenses>
@@ -36,6 +38,7 @@
             <artifactId>compss-scheduler-ready-new</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- JUnit -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -50,10 +53,6 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
             </plugin>
         </plugins>
     </build>

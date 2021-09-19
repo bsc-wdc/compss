@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
     <artifactId>compss-adaptors-commons</artifactId>
@@ -13,93 +13,91 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <!-- PROJECT INFORMATION -->
-    <name>COMPSs Back-end Commons</name>
-    <description>Common classes shared among the runtime engine and every adaptor implementation to communicate the engine with the workers.</description>
-    <url>http://www.bsc.es</url>
-    <inceptionYear>2015</inceptionYear>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        </license>
-    </licenses>
-    <organization>
-        <name>BSC</name>
-        <url>http://www.bsc.es</url>
-    </organization>
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Back-end Commons</name>
+	<description>Common classes shared among the runtime engine and every adaptor implementation to communicate the
+        engine with the workers.
+    </description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2015</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
 
-    <!-- DEPENDENCIES -->
-    <dependencies>       
-        <!-- COMPSs Dependencies -->
-        <!-- Common Runtime Dependencies -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-commons</artifactId>
-        </dependency>
-        <!-- COMPSs Runtime Interface for Nested invocations -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-api</artifactId>
-        </dependency>
-        <!-- COMPSs Loader Interface for Nested invocations -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-loader</artifactId>
-        </dependency>               
-        <!-- Storage -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-storage</artifactId>
-        </dependency>
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<!-- COMPSs Dependencies -->
+		<!-- Common Runtime Dependencies -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-commons</artifactId>
+		</dependency>
+		<!-- COMPSs Runtime Interface for Nested invocations -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-api</artifactId>
+		</dependency>
+		<!-- COMPSs Loader Interface for Nested invocations -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-loader</artifactId>
+		</dependency>
+		<!-- Storage -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-storage</artifactId>
+		</dependency>
 
-        <!-- Extrae -->
-        <dependency>
-            <groupId>es.bsc.cepbatools</groupId>
-            <artifactId>extrae</artifactId>
-        </dependency>
-        
-        <!-- Streaming -->
-        <dependency>
-            <groupId>es.bsc.distro-stream-lib</groupId>
-            <artifactId>distro-stream</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.distro-stream-lib</groupId>
-            <artifactId>server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.distro-stream-lib</groupId>
-            <artifactId>client</artifactId>
-        </dependency>
+		<!-- Extrae -->
+		<dependency>
+			<groupId>es.bsc.cepbatools</groupId>
+			<artifactId>extrae</artifactId>
+		</dependency>
 
-        <!-- Log4j -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-        </dependency>
+		<!-- Streaming -->
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>distro-stream</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>client</artifactId>
+		</dependency>
 
-        <!-- jUnit -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+		<!-- Log4j -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
 
-    <!-- BUILD -->
-    <build>
-        <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <!-- Compile Java code -->
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<!-- Compile Java code -->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+			</plugin>
+		</plugins>
+	</build>
 </project>

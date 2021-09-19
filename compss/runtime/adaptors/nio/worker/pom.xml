@@ -16,7 +16,8 @@
 
 	<!-- PROJECT INFORMATION -->
 	<name>COMPSs Back-end NIO Worker</name>
-	<description>Worker to run COMPSs tasks submitted via the NIO communication library in remote resources </description>
+	<description>Worker to run COMPSs tasks submitted via the NIO communication library in remote resources
+    </description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
@@ -54,14 +55,13 @@
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-loader</artifactId>
 		</dependency>
-
-		<!-- JUnit dependencies -->
+		<!-- JUnit -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-
+		<!-- Apache commons -->
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -76,10 +76,6 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
-				</configuration>
 			</plugin>
 
 			<!-- Copy dependencies into lib folder -->

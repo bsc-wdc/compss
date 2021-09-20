@@ -46,6 +46,7 @@ DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_PYTHON_MEMORY_PROFILE=false
 DEFAULT_PYTHON_WORKER_CACHE=false
+DEFAULT_PYTHON_CACHE_PROFILER=true
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 
@@ -502,6 +503,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        python_cache_profiler=*)
+          python_cache_profiler=${OPTARG//python_cache_profiler=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         prolog=*)
           action=${OPTARG//prolog=/}
           prologActions[numPrologActions]="$action"
@@ -706,6 +712,11 @@ check_args() {
   if [ -z "${python_worker_cache}" ]; then
     python_worker_cache=${DEFAULT_PYTHON_WORKER_CACHE}
   else
+
+  if [ -z "${python_cache_profiler}" ]; then
+    python_cache_profiler=${DEFAULT_PYTHON_CACHE_PROFILER}
+  else
+
     # Check python version >= 3.8
     cache_supported=$($python_interpreter -c"import sys; print('true' if sys.version_info >= (3, 8) else 'false')")
     if [ "$python_worker_cache" = "false" ]; then
@@ -726,6 +737,19 @@ check_args() {
         python_worker_cache="false"
       fi
     fi
+  fi
+
+    # Check python version >= 3.8
+    cache_supported=$($python_interpreter -c"import sys; print('true' if sys.version_info >= (3, 8) else 'false')")
+    if [ "$python_cache_profiler" = "false" ]; then
+      python_cache_profiler="false"
+    elif [ "$python_cache_profiler" = "true" ]; then
+      if [ "$cache_supported" = "true" ]; then
+        python_cache_profiler="true"
+      else
+        echo "WARNING: Can not enable python worker cache."
+        python_cache_profiler="false"
+      fi
   fi
 
   if [ -z "${scheduler}" ]; then
@@ -1086,6 +1110,7 @@ log_variables() {
   echo "Python use MPI worker      ${python_mpi_worker}"
   echo "Python memory profile      ${python_memory_profile}"
   echo "Python worker cache        ${python_worker_cache}"
+  echo "Python worker cache        ${python_cache_profiler}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"

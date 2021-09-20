@@ -172,9 +172,10 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = this.pythonExtraeFile;
         // Python use MPI worker parameter
         cmd[nextPosition++] = this.pythonMpiWorker;
-        // Python use MPI worker parameter
+        // Python use worker cache
         cmd[nextPosition++] = this.pythonWorkerCache;
-
+        // Python use cache profiler
+        cmd[nextPosition++] = this.pythonCacheProfiler;
         if (cmd.length != nextPosition) {
             throw new Exception(
                 "ERROR: Incorrect number of parameters. Expected: " + cmd.length + ". Got: " + nextPosition);

@@ -48,8 +48,8 @@ def is_cache_enabled(cache_config):
     return cache
 
 
-def start_cache(logger, cache_config, log_dir):
-    # type: (..., str) -> (..., Process, Queue, dict)
+def start_cache(logger, cache_config, cache_profiler, log_dir):
+    # type: (..., str, bool, string) -> (..., Process, Queue, dict)
     """ Setup the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
@@ -68,13 +68,14 @@ def start_cache(logger, cache_config, log_dir):
     profiler_get_struct = [[], [], []]  # Filename, Parameter, Function
     # Start a new process to manage the cache contents.
     smm = __start_smm__()
-    conf = CacheTrackerConf(logger, cache_size, None, cache_ids, profiler_dict, profiler_get_struct, log_dir)
+    conf = CacheTrackerConf(logger, cache_size, None, cache_ids, profiler_dict, profiler_get_struct, log_dir,
+                            cache_profiler)
     cache_process, cache_queue = __create_cache_tracker_process__("cache_tracker", conf)  # noqa: E501
     return smm, cache_process, cache_queue, cache_ids
 
 
-def stop_cache(shared_memory_manager, cache_queue, cache_process):
-    # type: (..., Queue, Process, ...) -> None
+def stop_cache(shared_memory_manager, cache_queue, cache_profiler, cache_process):
+    # type: (..., Queue, bool, Process) -> None
     """ Stops the cache process and performs the necessary cleanup.
 
     :param shared_memory_manager: Shared memory manager.
@@ -83,7 +84,8 @@ def stop_cache(shared_memory_manager, cache_queue, cache_process):
     :param profiler_dict: Cache profiler dictionary
     :return: None
     """
-    cache_queue.put("END PROFILING")
+    if cache_profiler:
+        cache_queue.put("END PROFILING")
     __destroy_cache_tracker_process__(cache_process, cache_queue)
     __stop_smm__(shared_memory_manager)
 

@@ -362,6 +362,7 @@ def create_init_config_file(compss_home,                    # type: str
                             propagate_virtual_environment,  # type: bool
                             mpi_worker,                     # type: bool
                             worker_cache,                   # type: bool or str
+<<<<<<< HEAD
                             shutdown_in_node_failure,       # type: bool
                             io_executors,                   # type: int
                             env_script,                     # type: str
@@ -371,6 +372,9 @@ def create_init_config_file(compss_home,                    # type: str
                             trace_label,                    # type: str
                             extrae_cfg_python,              # type: str
                             wcl,                            # type: int
+=======
+                            cache_profiler,                 # type: bool
+>>>>>>> Cache profiler working. Need to add more information (for exmaple replacement and file eliminations), (total memory (and maybe for each worker) used aswell for example), also can be done some refactoring of the code and some additional visualization could be added
                             **kwargs        # noqa          # type: dict
                             ):  # NOSONAR
     # type: (...) -> None
@@ -437,6 +441,7 @@ def create_init_config_file(compss_home,                    # type: str
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
     :param worker_cache: Use the worker cache [ True | int(size) | False ]
                          (default: False)
+<<<<<<< HEAD
     :param shutdown_in_node_failure: Shutdown in node failure [ True | False]
                                      (default: False)
     :param io_executors: <Integer> Number of IO executors
@@ -450,6 +455,10 @@ def create_init_config_file(compss_home,                    # type: str
                               workers
     :param wcl: <Integer> Wall clock limit. Stops the runtime if reached.
                 0 means forever.
+=======
+    :param cache_profiler: Use the cache profiler [ True | False ]
+                         (default: False)
+>>>>>>> Cache profiler working. Need to add more information (for exmaple replacement and file eliminations), (total memory (and maybe for each worker) used aswell for example), also can be done some refactoring of the code and some additional visualization could be added
     :param kwargs: Any other parameter
     :return: None
     """
@@ -625,6 +634,7 @@ def create_init_config_file(compss_home,                    # type: str
         jvm_options_file.write('-Dcompss.python.worker_cache=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.worker_cache=false\n')
+<<<<<<< HEAD
 
     # SPECIFIC FOR STREAMING
     if streaming_backend is None:
@@ -699,6 +709,13 @@ def create_init_config_file(compss_home,                    # type: str
     # WALLCLOCK LIMIT
     jvm_options_file.write('-Dcompss.wcl=' + str(wcl) + '\n')
 
+=======
+    if cache_profiler:
+        jvm_options_file.write('-Dcompss.python.cache_profiler=' +
+                               str(worker_cache).lower() + '\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.cache_profiler=false\n')
+>>>>>>> Cache profiler working. Need to add more information (for exmaple replacement and file eliminations), (total memory (and maybe for each worker) used aswell for example), also can be done some refactoring of the code and some additional visualization could be added
     # Uncomment for debugging purposes
     # jvm_options_file.write('-Xcheck:jni\n')
     # jvm_options_file.write('-verbose:jni\n')

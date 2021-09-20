@@ -191,8 +191,8 @@ def compss_persistent_worker(config):
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
                 pid = PROCESSES.get(in_pipe)
-                logger.debug(HEADER + "Signaling process with PID " +
-                             pid + " to cancel a task")
+                if __debug__:
+                    logger.debug(HEADER + "Signaling process with PID " + pid + " to cancel a task")
                 os.kill(int(pid), signal.SIGUSR2)  # NOSONAR cancellation produced by COMPSs
 
             elif line[0] == PING_TAG:
@@ -201,13 +201,15 @@ def compss_persistent_worker(config):
             elif line[0] == QUIT_TAG:
                 alive = False
             else:
-                logger.debug(HEADER + "ERROR: UNKNOWN COMMAND: " + command)
+                if __debug__:
+                    logger.debug(HEADER + "ERROR: UNKNOWN COMMAND: " + command)
                 alive = False
 
     # Stop storage
     if persistent_storage:
         # Finish storage
-        logger.debug(HEADER + "Stopping persistent storage")
+        if __debug__:
+            logger.debug(HEADER + "Stopping persistent storage")
         from storage.api import finishWorker as finishStorageAtWorker  # noqa
         finishStorageAtWorker()
 

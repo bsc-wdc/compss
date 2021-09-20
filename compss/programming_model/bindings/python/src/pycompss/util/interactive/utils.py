@@ -62,6 +62,7 @@ def parameters_to_dict(log_level,                      # type: str
                        propagate_virtual_environment,  # type: bool
                        mpi_worker,                     # type: bool
                        worker_cache,                   # type: str
+<<<<<<< HEAD
                        shutdown_in_node_failure,       # type: bool
                        io_executors,                   # type: int
                        env_script,                     # type: str
@@ -71,6 +72,9 @@ def parameters_to_dict(log_level,                      # type: str
                        trace_label,                    # type: str
                        extrae_cfg_python,              # type: str
                        wcl,                            # type: int
+=======
+                       cache_profiler,                 # type: bool
+>>>>>>> Cache profiler working. Need to add more information (for exmaple replacement and file eliminations), (total memory (and maybe for each worker) used aswell for example), also can be done some refactoring of the code and some additional visualization could be added
                        ):  # NOSONAR
     # type: (...) -> dict
     """ Converts the given parameters into a dictionary """
@@ -112,6 +116,7 @@ def parameters_to_dict(log_level,                      # type: str
                 "propagate_virtual_environment": propagate_virtual_environment,
                 "mpi_worker": mpi_worker,
                 "worker_cache": worker_cache,
+<<<<<<< HEAD
                 "shutdown_in_node_failure": shutdown_in_node_failure,
                 "io_executors": io_executors,
                 "env_script": env_script,
@@ -121,4 +126,7 @@ def parameters_to_dict(log_level,                      # type: str
                 "trace_label": trace_label,
                 "extrae_cfg_python": extrae_cfg_python,
                 "wcl": wcl}
+=======
+                "cache_profiler": cache_profiler}
+>>>>>>> Cache profiler working. Need to add more information (for exmaple replacement and file eliminations), (total memory (and maybe for each worker) used aswell for example), also can be done some refactoring of the code and some additional visualization could be added
     return all_vars

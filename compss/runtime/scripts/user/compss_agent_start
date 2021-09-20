@@ -92,6 +92,10 @@ COMPSs options:
                                           Only for NIO without mpi worker and python >= 3.8.
                                           Default: ${DEFAULT_PYTHON_WORKER_CACHE}
 
+  --python_cache_profiler=<bool>                 Python cache profiler (true/false).
+                                          Only for NIO without mpi worker and python >= 3.8.
+                                          Default: ${DEFAULT_PYTHON_CACHE_PROFILER}
+
   --project=<path>                        Path of the project file
                                           (Default: ${DEFAULT_PROJECT})
 
@@ -165,8 +169,8 @@ display_settings () {
         DEBUG: ${log_level}
         PYTHON INTERPRETER: ${python_interpreter}
         MPI PYTHON: ${python_mpi_worker}
-        PYTHON CACHE: ${python_worker_cache}"
-
+        PYTHON CACHE: ${python_worker_cache}
+        PYTHON PROFILER: ${python_cache_profiler}"
 }
 
 ###############################################
@@ -282,6 +286,10 @@ parse_options() {
           python_worker_cache=*)
             # Enable or disable the python worker cache
             python_worker_cache=${OPTARG//python_worker_cache=/}
+            ;;
+          python_cache_profiler=*)
+            # Enable or disable the python worker cache
+            python_cache_profiler=${OPTARG//python_cache_profiler=/}
             ;;
           project=*)
 	          # Custom project file

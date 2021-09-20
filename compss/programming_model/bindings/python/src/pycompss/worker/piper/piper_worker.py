@@ -120,11 +120,15 @@ def compss_persistent_worker(config):
     # Create new processes
     queues = []
 
+    cache_profiler = False
+    if config.cache_profiler.lower() == 'true':
+        cache_profiler = True
+
     # Setup cache
     if is_cache_enabled(config.cache):
         # Deploy the necessary processes
         CACHE = True
-        cache_params = start_cache(logger, config.cache, log_dir)
+        cache_params = start_cache(logger, config.cache, cache_profiler, log_dir)
     else:
         # No cache
         CACHE = False
@@ -141,7 +145,8 @@ def compss_persistent_worker(config):
                         config.stream_master_name,
                         config.stream_master_port,
                         cache_ids,
-                        cache_queue)
+                        cache_queue,
+                        cache_profiler)
 
     for i in range(0, config.tasks_x_node):
         if __debug__:
@@ -226,7 +231,7 @@ def compss_persistent_worker(config):
         queue.join_thread()
 
     if CACHE:
-        stop_cache(smm, cache_queue, CACHE_PROCESS)  # noqa
+        stop_cache(smm, cache_queue, cache_profiler, CACHE_PROCESS)  # noqa
 
     if persistent_storage:
         # Finish storage
@@ -271,12 +276,10 @@ def main():
     global WORKER_CONF
     # Configure the global tracing variable from the argument
     TRACING = (int(sys.argv[4]) > 0)
-
     with trace_multiprocessing_worker() if TRACING else dummy_context():
         # Configure the piper worker with the arguments
         WORKER_CONF = PiperWorkerConfiguration()
         WORKER_CONF.update_params(sys.argv)
-
         compss_persistent_worker(WORKER_CONF)
 
 

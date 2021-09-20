@@ -1060,17 +1060,19 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         boolean persistentC = Boolean.parseBoolean(args[30]);
 
-        String pythonInterpreter = args[31];
-        String pythonVersion = args[32];
-        String pythonVirtualEnvironment = args[33];
-        String pythonPropagateVirtualEnvironment = args[34];
-        String pythonExtraeFile = args[35];
-        String pythonMpiWorker = args[36];
-        String pythonWorkerCache = args[37];
+        String pythonInterpreter = args[30];
+        String pythonVersion = args[31];
+        String pythonVirtualEnvironment = args[32];
+        String pythonPropagateVirtualEnvironment = args[33];
+        String pythonExtraeFile = args[34];
+        String pythonMpiWorker = args[35];
+        String pythonWorkerCache = args[36];
+        String pythonCacheProfiler = args[37];
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
-            pythonPropagateVirtualEnvironment, pythonpath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache);
+            pythonPropagateVirtualEnvironment, pythonpath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache,
+            pythonCacheProfiler);
         final CParams cParams = new CParams(classpath);
 
         // Print arguments
@@ -1119,6 +1121,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("Python propagate virtual environment: " + pythonPropagateVirtualEnvironment);
             WORKER_LOGGER.debug("Python use MPI worker: " + pythonMpiWorker);
             WORKER_LOGGER.debug("Python use worker cache: " + pythonWorkerCache);
+            WORKER_LOGGER.debug("Python use cache profiler: " + pythonCacheProfiler);
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + REMOVE_WD);
         }

@@ -132,6 +132,7 @@ def start(log_level="off",                     # type: str
           trace_label=None,                    # type: str
           extrae_cfg_python=None,              # type: str
           wcl=0,                               # type: int
+          cache_profiler=False,                # type: bool
           verbose=False                        # type: bool
           ):  # NOSONAR
     # type: (...) -> None
@@ -228,6 +229,8 @@ def start(log_level="off",                     # type: str
                               workers
     :param wcl: <Integer> Wall clock limit. Stops the runtime if reached.
                 0 means forever.
+    :param cache_profiler: Use the cache profiler [ True | False]
+                         (default: False)
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
     :return: None
@@ -304,7 +307,8 @@ def start(log_level="off",                     # type: str
                                   tracing_task_dependencies,
                                   trace_label,
                                   extrae_cfg_python,
-                                  wcl)
+                                  wcl,
+                                  cache_profiler)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
     export_current_flags(all_vars)

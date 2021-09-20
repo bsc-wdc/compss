@@ -32,6 +32,7 @@ public class PythonParams implements LanguageParams {
     private String pythonExtraeFile;
     private Boolean pythonMpiWorker;
     private String pythonWorkerCache;
+    private Boolean pythonCacheProfiler;
 
 
     /**
@@ -48,7 +49,7 @@ public class PythonParams implements LanguageParams {
      */
     public PythonParams(String pythonInterpreter, String pythonVersion, String pythonVirtualEnvironment,
         String pythonPropagateVirtualEnvironment, String pythonPath, String pythonExtraeFile, String pythonMpiWorker,
-        String pythonWorkerCache) {
+        String pythonWorkerCache, String pythonCacheProfiler) {
 
         this.pythonInterpreter = pythonInterpreter;
         this.pythonVersion = pythonVersion;
@@ -58,6 +59,7 @@ public class PythonParams implements LanguageParams {
         this.pythonExtraeFile = pythonExtraeFile;
         this.pythonMpiWorker = Boolean.parseBoolean(pythonMpiWorker);
         this.pythonWorkerCache = pythonWorkerCache;
+        this.pythonCacheProfiler = Boolean.parseBoolean(pythonCacheProfiler);
     }
 
     public String getPythonInterpreter() {
@@ -130,4 +132,7 @@ public class PythonParams implements LanguageParams {
         }
     }
 
+    public Boolean getPythonCacheProfiler() {
+        return pythonCacheProfiler;
+    }
 }

@@ -110,6 +110,7 @@
     tracing=${25}
     extraeFile=${26}
     hostId=${27}
+<<<<<<< HEAD
     traceTaskDependencies=${28}
     storageConf=${29}
     execType=${30}
@@ -121,6 +122,19 @@
     pythonExtraeFile=${36}
     pythonMpiWorker=${37}
     pythonWorkerCache=${38}
+=======
+    storageConf=${28}
+    execType=${29}
+    persistentBinding=${30}
+    pythonInterpreter=${31}
+    pythonVersion=${32}
+    pythonVirtualEnvironment=${33}
+    pythonPropagateVirtualEnvironment=${34}
+    pythonExtraeFile=${35}
+    pythonMpiWorker=${36}
+    pythonWorkerCache=${37}
+    pythonCacheProfiler=${38}
+>>>>>>> Cache profiler working. Need to add more information (for exmaple replacement and file eliminations), (total memory (and maybe for each worker) used aswell for example), also can be done some refactoring of the code and some additional visualization could be added
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -150,6 +164,7 @@
       echo "- Python Propagate Virtual Env.  $pythonPropagateVirtualEnvironment"
       echo "- Python MPI Worker.   $pythonMpiWorker"
       echo "- Python Worker Cache. $pythonWorkerCache"
+      echo "- Python Cache Profiler. $pythonCacheProfiler"
       echo "- Python Extrae File   $pythonExtraeFile"
 
       echo "- Tracing:             $tracing"

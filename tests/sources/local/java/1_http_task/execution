@@ -12,9 +12,9 @@
   
   # Global variables
   exit_value=0
-  jar_name="1_http_task.jar"
+  jar_name="httpTest.jar"
   app_name="testHttpTask.TestHttpTask"
-  ws_jar_name="jars/ws.jar"
+  ws_jar_name="ws-jar-with-dependencies.jar"
 
 
   #----------------------------------------------------------------------------------

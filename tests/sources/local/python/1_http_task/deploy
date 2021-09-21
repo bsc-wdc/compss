@@ -13,6 +13,11 @@
   cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
 
-  # Web Service jar file
-  cp "${source_base_dir}"/ws.jar "${target_base_dir}"/ws.jar
+  # Deplot the WS
+
+  mvn -f ${source_base_dir}/../pom.xml clean install
+
+  ws_jar="ws-jar-with-dependencies.jar"
+
+  cp "${source_base_dir}"/ws/target/${ws_jar} "${target_base_dir}"/ws.jar
   chmod +x "${target_base_dir}"/ws.jar

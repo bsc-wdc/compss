@@ -84,5 +84,7 @@
         <!-- 9_jupyter_notebook -->
 
 		<!-- Add new modules below -->
+		<module>1_http_task/ws</module>
+
 	</modules>
 </project>

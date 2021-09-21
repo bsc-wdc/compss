@@ -894,13 +894,12 @@ public class ExecutionAction extends AllocatableAction {
                 Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
                 String dataName = getOuputRename(p);
                 storeOutputParameter(job, w, dataName, dp);
-                monitor.valueGenerated(i, p.getName(), p.getType(), dataName, dp.getDataTarget());
+                // monitor.valueGenerated(i, p.getName(), p.getType(), dataName, dp.getDataTarget());
 
                 // Parameter found, store it
                 // todo: fix this
                 String name = dId.getRenaming();
                 if (value == null) {
-                    LOGGER.info("___________________________value null");
                     value = job.getReturnValue();
                 }
                 LogicalData ld = Comm.registerValue(name, value);
@@ -908,13 +907,13 @@ public class ExecutionAction extends AllocatableAction {
                 // Monitor one of its locations
                 Set<DataLocation> locations = ld.getLocations();
                 if (!locations.isEmpty()) {
+                    Object[] mp = buildMonitorParameter(p, getOuputRename(p));
                     for (DataLocation loc : ld.getLocations()) {
                         if (loc != null) {
-                            monitor.valueGenerated(i, p.getName(), p.getType(), name, loc);
+                            monitor.valueGenerated(i, mp);
                         }
                     }
                 }
-
             }
         }
     }

@@ -105,6 +105,7 @@ public class Constants {
      * Empty prefix for parameters.
      */
     public static final String PREFIX_EMPTY = "null";
+    public static final String NAME_EMPTY = "";
 
     /*
      * Skip prefix for parameters.

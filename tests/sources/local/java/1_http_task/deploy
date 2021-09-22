@@ -1,0 +1,23 @@
+#!/bin/bash -e
+  
+  # Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  # Copy files
+  app_name="httpTest"
+  ws_app_name="webService"
+  ws_jar_name="ws-jar-with-dependencies.jar"
+
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result "${target_base_dir}"/result
+
+  # Deplot the test
+  cp "${source_base_dir}"/${app_name}/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
+
+  # Deploy the Web Service
+  cp "${source_base_dir}"/${ws_app_name}/target/${ws_jar_name} "${target_base_dir}"/${ws_jar_name}
+  chmod +x "${target_base_dir}"/${ws_jar_name}

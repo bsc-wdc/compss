@@ -11,6 +11,7 @@
                         <xsd:element name="ComputeNode" type="ComputeNodeType" minOccurs="0" maxOccurs="unbounded" />
                        	<xsd:element name="DataNode" type="DataNodeType" minOccurs="0" maxOccurs="unbounded" />
                        	<xsd:element name="Service" type="ServiceType" minOccurs="0" maxOccurs="unbounded" />
+                       	<xsd:element name="Http" type="HttpType" minOccurs="0" maxOccurs="unbounded" />
                        	<xsd:element name="Cloud" type="CloudType" minOccurs="0" maxOccurs="1" />
                	</xsd:choice>
     	</xsd:complexType>
@@ -67,6 +68,16 @@
 			<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
                 </xsd:all>
                 <xsd:attribute name="wsdl" type="xsd:anyURI" use="required"/>
+        </xsd:complexType>
+
+        <!-- HTTP SERVICE Description -->
+        <xsd:complexType name="HttpType">
+                <xsd:all>
+                        <!-- Mandatory -->
+                        <!-- NOT mandatory -->
+			<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
+                </xsd:all>
+                <xsd:attribute name="BaseUrl" type="xsd:anyURI" use="required"/>
         </xsd:complexType>
 
         <!-- CLOUD Description -->

@@ -28,6 +28,7 @@ import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
@@ -78,6 +79,9 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             case MASTER:
                 Worker<T> mw = worker.getResource();
                 this.impl = AbstractMethodImplementation.generateDummy((MethodResourceDescription) mw.getDescription());
+                break;
+            case HTTP:
+                this.impl = HTTPImplementation.generateDummy();
                 break;
             default:
                 this.impl = ServiceImplementation.generateDummy();

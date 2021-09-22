@@ -62,6 +62,7 @@
 		<module>1_constraints_multiproc_available</module>
 		<module>1_constraints_rm_available</module>
 		<module>1_constraints_rm_compatible</module>
+		<module>1_http_task</module>
 		<module>2_cache</module>
 		<module>2_cancel_running_tasks</module>
 		<module>2_delete_file</module>

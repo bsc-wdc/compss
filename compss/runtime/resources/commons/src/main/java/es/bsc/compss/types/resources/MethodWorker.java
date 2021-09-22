@@ -391,6 +391,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
             throw new NullPointerException();
         }
         switch (t.getType()) {
+            case HTTP:
             case SERVICE:
                 return 1;
             case WORKER:

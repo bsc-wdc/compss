@@ -792,6 +792,103 @@ def process_task(signature,             # type: str
                         keep_renames)
 
 
+@emit_event(PROCESS_TASK_EVENT, master=True)
+def process_http_task(signature,             # type: str
+                      service_name,          # type: str
+                      resource,              # type: str
+                      request,               # type: str
+                      payload,               # type: str
+                      payload_type,          # type: str
+                      produces,              # type: str
+                      has_target,            # type: bool
+                      names,                 # type: list
+                      values,                # type: list
+                      num_returns,           # type: int
+                      compss_types,          # type: list
+                      compss_directions,     # type: list
+                      compss_streams,        # type: list
+                      compss_prefixes,       # type: list
+                      content_types,         # type: list
+                      weights,               # type: list
+                      keep_renames,          # type: list
+                      has_priority,          # type: bool
+                      num_nodes,             # type: int
+                      reduction,             # type: bool
+                      chunk_size,            # type: int
+                      replicated,            # type: bool
+                      distributed,           # type: bool
+                      on_failure,            # type: str
+                      time_out,              # type: int
+                      ):  # NOSONAR
+    # type: (...) -> None
+    """ Submit an http task to the runtime.
+
+    :param signature: Task signature
+    :param service_name: Service name defined in resources file
+    :param resource: Request destination URL resource
+    :param request: Request method type. e.g: POST, GET
+    :param payload: Payload to be sent in the request body if any.
+    :param payload_type: Payload type. default "application/json"
+    :param produces: JSON response format
+    :param has_target: Boolean if the task has self
+    :param names: Task parameter names
+    :param values: Task parameter values
+    :param num_returns: Number of returns
+    :param compss_types: List of parameter types
+    :param compss_directions: List of parameter directions
+    :param compss_streams: List of parameter streams
+    :param compss_prefixes: List of parameter prefixes
+    :param content_types: Content types
+    :param weights: List of parameter weights
+    :param keep_renames: Boolean keep renaming
+    :param has_priority: Boolean has priority
+    :param num_nodes: Number of nodes that the task must use
+    :param reduction: Boolean indicating if the task is of type reduce
+    :param chunk_size: Size of chunks for executing the reduce operation
+    :param replicated: Boolean indicating if the task must be replicated
+    :param distributed: Boolean indicating if the task must be distributed
+    :param on_failure: Action on failure
+    :param time_out: Time for a task time out
+    :return: The future object related to the task return
+
+    """
+
+    app_id = 0
+    # Check that there is the same amount of values as their types, as well
+    # as their directions, streams and prefixes.
+    assert (len(values) == len(compss_types) == len(compss_directions) ==
+            len(compss_streams) == len(compss_prefixes) ==
+            len(content_types) == len(weights) == len(keep_renames))
+
+    COMPSs.process_http_task(app_id,
+                             service_name,
+                             resource,
+                             request,
+                             payload,
+                             payload_type,
+                             produces,
+                             signature,
+                             on_failure,
+                             time_out,
+                             has_priority,
+                             num_nodes,
+                             reduction,
+                             chunk_size,
+                             replicated,
+                             distributed,
+                             has_target,
+                             num_returns,
+                             values,
+                             names,
+                             compss_types,
+                             compss_directions,
+                             compss_streams,
+                             compss_prefixes,
+                             content_types,
+                             weights,
+                             keep_renames)
+
+
 # ########################################################################### #
 # ####################### AUXILIARY FUNCTIONS ############################### #
 # ########################################################################### #

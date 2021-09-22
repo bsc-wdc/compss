@@ -75,6 +75,7 @@
     <modules>
         <module>commons</module>
         <module>engine</module>
+        <module>http</module>
         <module>gat</module>
         <module>nio</module>
         <module>ws</module>

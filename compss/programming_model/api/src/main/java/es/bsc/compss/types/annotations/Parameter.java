@@ -76,4 +76,10 @@ public @interface Parameter {
      */
     boolean keepRename() default false;
 
+    /**
+     * Returns the name of the parameter.
+     *
+     * @return the name of the parameter.
+     */
+    String name() default Constants.NAME_EMPTY;
 }

@@ -410,29 +410,66 @@ class TaskMaster(TaskCommons):
                          (self.function_name, self.function_type,
                           self.module_name, self.class_name))
 
-        # Process the task
-        binding.process_task(
-            signature,
-            has_target,
-            names,
-            values,
-            num_returns,
-            compss_types,
-            compss_directions,
-            compss_streams,
-            compss_prefixes,
-            content_types,
-            weights,
-            keep_renames,
-            has_priority,
-            computing_nodes,
-            is_reduction,
-            chunk_size,
-            is_replicated,
-            is_distributed,
-            self.on_failure,
-            time_out
-        )
+        if self.core_element.get_impl_type() == "HTTP":
+            # todo: nm: beautify this (indexes are set in http.py)..
+            service_name = self.core_element.get_impl_type_args()[0]
+            resource = self.core_element.get_impl_type_args()[1]
+            request = self.core_element.get_impl_type_args()[2]
+            payload = self.core_element.get_impl_type_args()[3]
+            payload_type = self.core_element.get_impl_type_args()[4]
+            produces = self.core_element.get_impl_type_args()[5]
+            binding.process_http_task(
+                signature,
+                service_name,
+                resource,
+                request,
+                payload,
+                payload_type,
+                produces,
+                has_target,
+                names,
+                values,
+                num_returns,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+                has_priority,
+                computing_nodes,
+                is_reduction,
+                chunk_size,
+                is_replicated,
+                is_distributed,
+                self.on_failure,
+                time_out
+            )
+        else:
+            # Process the task
+            binding.process_task(
+                signature,
+                has_target,
+                names,
+                values,
+                num_returns,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+                has_priority,
+                computing_nodes,
+                is_reduction,
+                chunk_size,
+                is_replicated,
+                is_distributed,
+                self.on_failure,
+                time_out
+            )
 
         # Remove unused attributes from the memory
         with event(ATTRIBUTES_CLEANUP, master=True):
@@ -717,6 +754,8 @@ class TaskMaster(TaskCommons):
         # or content type depending if object. Otherwise update content.
         if param.is_file() or param.is_directory():
             param.file_name = arg_object
+            # todo: beautify this
+            param.extra_content_type = "FILE"
         else:
             param.content = arg_object
         return param
@@ -1447,6 +1486,7 @@ class TaskMaster(TaskCommons):
             _, ret_filename = OT_track(fo)
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
+            single_return.extra_content_type = "FILE"
             single_return.prefix = '#'
             single_return.file_name = ret_filename
         else:
@@ -1477,6 +1517,7 @@ class TaskMaster(TaskCommons):
                 # object
                 return_k = self.returns[k]
                 return_k.content_type = TYPE.FILE
+                return_k.extra_content_type = "FILE"
                 return_k.prefix = '#'
                 return_k.file_name = ret_filename
         return fo
@@ -1979,6 +2020,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # If the parameter is a file or is future, the content is in a file
         # and we register it as file
         value = param.file_name
+        # todo: make sure it works with FO
+        con_type = "FILE"
         if value:
             typ = TYPE.FILE
         else:

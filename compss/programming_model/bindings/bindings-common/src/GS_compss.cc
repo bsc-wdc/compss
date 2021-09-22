@@ -108,6 +108,12 @@ void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout
 }
 
 
+void GS_ExecuteHttpTask(long appId, char* serviceName, char* resource, char* request, char* payload, char* payloadType, char* produces, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+                        int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+    JNI_ExecuteHttpTask(appId, serviceName, resource, request, payload, payloadType, produces, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+}
+
+
 void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, int numArgs, char** implTypeArgs) {
 	if (PIPES) {
 		PIPE_RegisterCE(ceSignature, implSignature, implConstraints, implType, implIO, numArgs, implTypeArgs);

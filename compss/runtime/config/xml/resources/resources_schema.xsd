@@ -12,6 +12,7 @@
                        	<xsd:element name="ComputeNode" type="ComputeNodeType"/>
                        	<xsd:element name="Service" type="ServiceType"/>
                        	<xsd:element name="CloudProvider" type="CloudProviderType"/>
+                       	<xsd:element name="Http" type="HttpType"/>
                	</xsd:choice>
     	</xsd:complexType>
 
@@ -70,6 +71,14 @@
 			<xsd:element name="Price" type="PriceType" minOccurs="0" maxOccurs="1" />
                 </xsd:all>
                 <xsd:attribute name="wsdl" type="xsd:anyURI" use="required"/>
+        </xsd:complexType>
+
+        <!-- HTTP SERVICE Description -->
+        <xsd:complexType name="HttpType">
+                <xsd:sequence>
+                    <xsd:element name="ServiceName" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+                <xsd:attribute name="BaseUrl" type="xsd:anyURI" use="required"/>
         </xsd:complexType>
 
         <!-- CLOUD PROVIDER Description -->

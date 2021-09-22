@@ -76,7 +76,6 @@ import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +93,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -352,6 +350,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * CONSTRUCTOR
      * ************************************************************************************************************
      */
+
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -757,6 +756,58 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Register the task
         int task = ap.newTask(app, monitor, namespace, service, port, operation, isPrioritary, isReduce,
             reduceChunkSize, hasTarget, numReturns, pars, onFailure, timeOut);
+
+        for (Parameter p : pars) {
+            if (p.getDirection().equals(Direction.IN_DELETE)) {
+                processDelete(app, p);
+            }
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK.getType());
+        }
+
+        return task;
+    }
+
+    // HTTP client add payload here
+    // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
+    @Override
+    public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
+        String payload, String payloadType, String produces, String declareMethodFullyQualifiedName,
+        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
+        boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
+        Object... parameters) {
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.TASK.getId(), TraceEvent.TASK.getType());
+        }
+
+        if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
+            ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
+        }
+
+        LOGGER.info("Creating HTTP task with service name " + serviceName + " and resource " + resource
+            + ", for application " + appId + "and declaring class:" + declareMethodFullyQualifiedName);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
+                + (parameterCount > 1 ? "s" : ""));
+        }
+
+        Application app = Application.registerApplication(appId);
+        // Process the parameters
+        List<Parameter> pars = processParameters(app, parameterCount, parameters);
+        boolean hasReturn = hasReturn(pars);
+        int numReturns = hasReturn ? 1 : 0;
+
+        if (monitor == null) {
+            monitor = DO_NOTHING_MONITOR;
+        }
+
+        // Register the task
+        int task = ap.newTask(app, monitor, serviceName, resource, request, payload, payloadType, produces,
+            declareMethodFullyQualifiedName, isPrioritary, isReduce, reduceChunkSize, hasTarget, numReturns, pars,
+            onFailure, timeOut);
 
         for (Parameter p : pars) {
             if (p.getDirection().equals(Direction.IN_DELETE)) {
@@ -1889,7 +1940,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
             String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
             String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
-            String pyContent = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
+            String contentType = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
             double weight = Double
                 .parseDouble(EnvironmentLoader.loadFromEnvironment((String) parameters[NUM_FIELDS_PER_PARAM * i + 7]));
             boolean keepRename = (Boolean) parameters[NUM_FIELDS_PER_PARAM * i + 8];
@@ -1899,7 +1950,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(" Parameter " + i + " has type " + type.name());
             }
-            addParameter(app, content, type, direction, stream, prefix, name, pyContent, weight, keepRename, pars, 0,
+            addParameter(app, content, type, direction, stream, prefix, name, contentType, weight, keepRename, pars, 0,
                 null);
         }
 

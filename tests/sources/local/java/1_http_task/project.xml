@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+	<MasterNode/>
+
+	<Http BaseUrl="http://localhost:1992/test/">
+		<LimitOfTasks>1</LimitOfTasks>
+	</Http>
+	
+</Project>

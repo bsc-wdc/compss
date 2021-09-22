@@ -109,7 +109,7 @@ public abstract class ExternalInvoker extends Invoker {
         lArgs.add(Boolean.toString(invocation.isDebugEnabled()));
         lArgs.add(context.getStorageConf());
 
-        // Add method classname and methodname
+        // Add method classname and methodName
         MethodType methodType = invocation.getMethodImplementation().getMethodType();
         String methodClass;
         String methodName;

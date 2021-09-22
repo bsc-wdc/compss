@@ -202,6 +202,7 @@ public class ServiceInstance extends COMPSsWorker {
     @Override
     public void shutdownExecutionManager(ExecutorShutdownListener sl) {
         // No executor for services
+        // TODO: check that. Maybe "sl.notifyEnd();"
     }
 
     @Override

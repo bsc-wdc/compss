@@ -29,7 +29,6 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.CoreManager;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +124,40 @@ public class Task extends AbstractTask {
         this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core, parallelismSource,
             isPrioritary, numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut,
             parameters);
+        this.taskMonitor = monitor;
+        this.commutativeGroup = new TreeMap<>();
+        this.taskGroups = new LinkedList<>();
+    }
+
+    /**
+     * Creates a new HTTP task with the given parameters.
+     *
+     * @param app Application.
+     * @param monitor Task monitor.
+     * @param serviceName service name defined in the resources file.
+     * @param resource The base URL of the request.
+     * @param request The method type (GET, POST, PUT, DELETE ...) of the request.
+     * @param isPrioritary Whether the task has priority or not.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param numReturns Number of returns of the task.
+     * @param parameters Task parameters.
+     * @param onFailure OnFailure mechanisms.
+     * @param timeOut Time for a task timeOut.
+     */
+    public Task(Application app, String serviceName, String resource, String request, String payload,
+        String payloadType, String produces, String declareMethodFullyQualifiedName, boolean isPrioritary,
+        boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
+        long timeOut) {
+
+        super(app);
+
+        String signature = ImplementationSignature.getHTTPSignature(declareMethodFullyQualifiedName, hasTarget,
+            numReturns, parameters);
+
+        this.taskDescription = new TaskDescription(TaskType.HTTP, Lang.UNKNOWN, signature,
+            CoreManager.getCore(signature), app.getParallelismSource(), isPrioritary, Constants.SINGLE_NODE, false,
+            false, false, hasTarget, numReturns, onFailure, timeOut, parameters);
+
         this.taskMonitor = monitor;
         this.commutativeGroup = new TreeMap<>();
         this.taskGroups = new LinkedList<>();
@@ -227,7 +260,7 @@ public class Task extends AbstractTask {
 
     /**
      * Adds a new TaskGroup to the task.
-     * 
+     *
      * @param taskGroup Group of tasks.
      */
 
@@ -295,8 +328,7 @@ public class Task extends AbstractTask {
      * @return The associated method name.
      */
     public String getMethodName() {
-        String methodName = this.taskDescription.getName();
-        return methodName;
+        return this.taskDescription.getName();
     }
 
     /**
@@ -351,7 +383,7 @@ public class Task extends AbstractTask {
 
     /**
      * Returns if the task is member of any task group.
-     * 
+     *
      * @return A boolean stating if the task is member of any task group.
      */
     public boolean hasTaskGroups() {

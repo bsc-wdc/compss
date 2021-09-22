@@ -23,6 +23,7 @@ import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Container;
 import es.bsc.compss.types.annotations.task.Decaf;
+import es.bsc.compss.types.annotations.task.HTTP;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
 import es.bsc.compss.types.annotations.task.MultiNode;
@@ -126,6 +127,15 @@ public class LoaderUtils {
                     return remoteMethod;
                 }
             }
+
+            if (remoteMethod.isAnnotationPresent(HTTP.class)) {
+                // HTTP
+                HTTP remoteMethodAnnotation = remoteMethod.getAnnotation(HTTP.class);
+                if (isSelectedHTTP(method, remoteMethod, remoteMethodAnnotation)) {
+                    return remoteMethod;
+                }
+            }
+
             if (remoteMethod.isAnnotationPresent(Container.class)) {
                 // BINARY
                 if (isSelectedNonNativeMethod(method, remoteMethod, CONTAINER_SIGNATURE)) {
@@ -328,7 +338,83 @@ public class LoaderUtils {
         return true;
     }
 
+    private static boolean isSelectedHTTP(CtMethod method, java.lang.reflect.Method remote, HTTP httpAnnotation)
+        throws NotFoundException {
+
+        // Check if methods have the same name
+        String nameRemote = remote.getName();
+
+        LOGGER.debug("  - Checking " + method.getName() + " against " + nameRemote);
+
+        if (!nameRemote.equals(method.getName())) {
+            return false;
+        }
+
+        // Check that methods have the same number of parameters
+        CtClass[] paramClassCurrent = method.getParameterTypes();
+        Class<?>[] paramClassRemote = remote.getParameterTypes();
+        if (paramClassCurrent.length != paramClassRemote.length) {
+            return false;
+        }
+
+        // Check that parameter types match
+        for (int i = 0; i < paramClassCurrent.length; i++) {
+            if (!paramClassCurrent[i].getName().equals(paramClassRemote[i].getCanonicalName())) {
+                return false;
+            }
+        }
+
+        String packName = method.getDeclaringClass().getName();
+        String namespace = httpAnnotation.declaringClass();
+
+        return packName.equals(namespace);
+    }
+
     private static boolean isSelectedService(CtMethod method, java.lang.reflect.Method remote, Service serviceAnnot)
+        throws NotFoundException {
+
+        // Check if methods have the same name
+        String nameRemote = serviceAnnot.operation();
+        if (nameRemote.equals(Constants.UNASSIGNED)) {
+            nameRemote = remote.getName();
+        }
+
+        LOGGER.debug("  - Checking " + method.getName() + " against " + nameRemote);
+
+        if (!nameRemote.equals(method.getName())) {
+            return false;
+        }
+
+        // Check that methods have the same number of parameters
+        CtClass[] paramClassCurrent = method.getParameterTypes();
+        Class<?>[] paramClassRemote = remote.getParameterTypes();
+        if (paramClassCurrent.length != paramClassRemote.length) {
+            return false;
+        }
+
+        // Check that parameter types match
+        for (int i = 0; i < paramClassCurrent.length; i++) {
+            if (!paramClassCurrent[i].getName().equals(paramClassRemote[i].getCanonicalName())) {
+                return false;
+            }
+        }
+
+        // Check that return types match
+        // if (!method.getReturnType().getName().equals(remote.getReturnType().getName()))
+        // return false;
+        // Check if the package of the class which implements the called method matches the pattern
+        // namespace.service.port of the interface method
+        String packName = method.getDeclaringClass().getPackageName();
+        String nsp = combineServiceMetadata(serviceAnnot);
+        if (!packName.equals(nsp)) {
+            return false;
+        }
+
+        // Methods match!
+        return true;
+    }
+
+    private static boolean is(CtMethod method, java.lang.reflect.Method remote, Service serviceAnnot)
         throws NotFoundException {
 
         // Check if methods have the same name

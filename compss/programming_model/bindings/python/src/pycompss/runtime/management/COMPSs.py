@@ -400,6 +400,95 @@ def process_task(app_id,             # type: int
                          keep_renames)
 
 
+def process_http_task(app_id,             # type: int
+                      service_name,       # type: str
+                      resource,           # type: str
+                      request,            # type: str
+                      payload,            # type: str
+                      payload_type,       # type: str
+                      produces,           # type: str
+                      signature,          # type: str
+                      on_failure,         # type: str
+                      time_out,           # type: int
+                      has_priority,       # type: bool
+                      num_nodes,          # type: int
+                      reduction,          # type: bool
+                      chunk_size,         # type: int
+                      replicated,         # type: bool
+                      distributed,        # type: bool
+                      has_target,         # type: bool
+                      num_returns,        # type: int
+                      values,             # type: list
+                      names,              # type: list
+                      compss_types,       # type: list
+                      compss_directions,  # type: list
+                      compss_streams,     # type: list
+                      compss_prefixes,    # type: list
+                      content_types,      # type: list
+                      weights,            # type: list
+                      keep_renames        # type: list
+                      ):  # NOSONAR
+    # type: (...) -> None
+    """ Call to process_task.
+
+    :param app_id: Application identifier
+    :param service_name: service name defined in resources file
+    :param resource: URL resource to be add to the BaseUrl
+    :param request: HTTP method type (i.e. GET, POST etc.)
+    :param payload: Payload to be sent as a request body
+    :param payload_type: Type of the payload. default "application/json"
+    :param produces: response format in JSON
+    :param signature: Task signature
+    :param on_failure: On failure action
+    :param time_out: Task time out
+    :param has_priority: Boolean has priority
+    :param num_nodes: Number of nodes
+    :param reduction: Boolean indicating if the task is of type reduce
+    :param chunk_size: Size of chunks for executing the reduce operation
+    :param replicated: Boolean is replicated
+    :param distributed: Boolean is distributed
+    :param has_target: Boolean has target
+    :param num_returns: Number of returns
+    :param values: Values
+    :param names: Names
+    :param compss_types: COMPSs types
+    :param compss_directions: COMPSs directions
+    :param compss_streams: COMPSs streams
+    :param compss_prefixes: COMPSs prefixes
+    :param content_types: COMPSs types
+    :param weights: Parameter weights
+    :param keep_renames: Boolean keep renames
+    :return: None
+    """
+    _COMPSs.process_http_task(app_id,    # noqa
+                              service_name,
+                              resource,
+                              request,
+                              payload,
+                              payload_type,
+                              produces,
+                              signature,
+                              on_failure,
+                              time_out,
+                              has_priority,
+                              num_nodes,
+                              reduction,
+                              chunk_size,
+                              replicated,
+                              distributed,
+                              has_target,
+                              num_returns,
+                              values,
+                              names,
+                              compss_types,
+                              compss_directions,
+                              compss_streams,
+                              compss_prefixes,
+                              content_types,
+                              weights,
+                              keep_renames)
+
+
 def set_pipes(pipe_in, pipe_out):
     # type: (str, str) -> None
     """ Set nesting pipes.

@@ -251,6 +251,32 @@ public interface COMPSsRuntime {
         int timeOut, Object... parameters);
 
     /**
+     * New HTTP task.
+     *
+     * @param appId The application id.
+     * @param monitor The pointer to the TaskMonitor implementation.
+     * @param request The request type of the request (GET, POST, PUT, DELETE...)
+     * @param resource The base URL to fermorm the request to
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
+     * @param parameterCount The number of parameters of the method.
+     * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for a task timeOut.
+     * @param parameters An object array containing the method parameters.
+     * @return
+     */
+    public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
+        String payload, String payloadType, String produces, String declareMethodFullyQualifiedName,
+        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
+        boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
+        Object... parameters);
+
+    /**
      * Notifies the Runtime that there are no more tasks created by the current appId.
      *
      * @param appId The application id.

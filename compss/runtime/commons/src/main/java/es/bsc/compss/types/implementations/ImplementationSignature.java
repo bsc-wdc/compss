@@ -127,4 +127,41 @@ public abstract class ImplementationSignature {
         return buffer.toString();
     }
 
+    /**
+     * Builds a HTTP signature from the given parameters.
+     *
+     * @param declareMethodFullyQualifiedName The declare method fully qualified name.
+     * @param hasTarget Whether the service has a target object or not.
+     * @param numReturns The number of return parameters of the service.
+     * @param parameters The number of parameters of the method.
+     * @return Signature built from the given parameters.
+     */
+    public static String getHTTPSignature(String declareMethodFullyQualifiedName, boolean hasTarget, int numReturns,
+        List<Parameter> parameters) {
+
+        String langStr = System.getProperty(COMPSsConstants.LANG);
+        Lang lang = ((langStr == null) ? Lang.JAVA : Lang.valueOf(langStr.toUpperCase()));
+        if (lang == Lang.PYTHON) {
+            return declareMethodFullyQualifiedName;
+        }
+
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append(declareMethodFullyQualifiedName).append("(");
+        int numPars = parameters.size();
+        if (hasTarget) {
+            numPars--;
+        }
+
+        numPars -= numReturns;
+        if (numPars > 0) {
+            buffer.append(parameters.get(0).getType());
+            for (int i = 1; i < numPars; i++) {
+                buffer.append(",").append(parameters.get(i).getType());
+            }
+        }
+        buffer.append(")");
+
+        return buffer.toString();
+    }
 }

@@ -145,7 +145,6 @@ def cache_tracker(queue, process_name, conf):
                         if cache_profiler:
                             # PROFILER PUT
                             add_profiler_get_put(profiler_dict, function, parameter, filename_cleaned(f_name), 'PUT')
-
                         # Any executor has already put the id
                         if __debug__:
                             logger.debug(HEADER + "[%s] Cache hit" %

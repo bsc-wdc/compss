@@ -41,6 +41,7 @@ except ImportError:
     THREAD_AFFINITY = False
 
 import pycompss.runtime.management.COMPSs as COMPSs
+import pycompss.util.context as context
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
@@ -229,6 +230,8 @@ def executor(queue, process_name, pipe, conf):
             # Reload logger
             conf.logger, conf.logger_cfg, conf.storage_loggers, _ = \
                 load_loggers(conf.debug, conf.persistent_storage)
+            # Set the binding in worker mode too
+            context.set_pycompss_context(context.WORKER)
         logger = conf.logger
 
         tracing = conf.tracing

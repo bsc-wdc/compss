@@ -451,10 +451,8 @@ def launch_pycompss_application(app,
                               workers
     :param wcl: <Integer> Wallclock limit. Stops the runtime if reached.
                 0 means forever.
-=======
     :param cache_profiler: Use the cache profiler [ True | False]
                          (default: False)
->>>>>>> Cache profiler working. Need to add more information (for exmaple replacement and file eliminations), (total memory (and maybe for each worker) used aswell for example), also can be done some refactoring of the code and some additional visualization could be added
     :param args: Positional arguments
     :param kwargs: Named arguments
     :return: Execution result

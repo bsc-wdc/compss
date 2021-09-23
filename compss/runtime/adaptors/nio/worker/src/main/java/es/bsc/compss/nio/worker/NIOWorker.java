@@ -1060,14 +1060,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         boolean persistentC = Boolean.parseBoolean(args[30]);
 
-        String pythonInterpreter = args[30];
-        String pythonVersion = args[31];
-        String pythonVirtualEnvironment = args[32];
-        String pythonPropagateVirtualEnvironment = args[33];
-        String pythonExtraeFile = args[34];
-        String pythonMpiWorker = args[35];
-        String pythonWorkerCache = args[36];
-        String pythonCacheProfiler = args[37];
+        String pythonInterpreter = args[31];
+        String pythonVersion = args[32];
+        String pythonVirtualEnvironment = args[33];
+        String pythonPropagateVirtualEnvironment = args[34];
+        String pythonExtraeFile = args[35];
+        String pythonMpiWorker = args[36];
+        String pythonWorkerCache = args[37];
+        String pythonCacheProfiler = args[38];
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,

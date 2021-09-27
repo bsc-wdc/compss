@@ -636,17 +636,17 @@ def create_init_config_file(compss_home,                    # type: str
         jvm_options_file.write('-Dcompss.python.worker_cache=false\n')
 
     # SPECIFIC FOR STREAMING
-    if streaming_backend is None:
+    if streaming_backend is "":
         jvm_options_file.write('-Dcompss.streaming=NONE\n')
     else:
         jvm_options_file.write('-Dcompss.streaming=' +
                                str(streaming_backend) + '\n')
-    if streaming_master_name is None:
+    if streaming_master_name is "":
         jvm_options_file.write('-Dcompss.streaming.masterName=null\n')
     else:
         jvm_options_file.write('-Dcompss.streaming.masterName=' +
                                str(streaming_master_name) + '\n')
-    if streaming_master_port is None:
+    if streaming_master_port is "":
         jvm_options_file.write('-Dcompss.streaming.masterPort=null\n')
     else:
         jvm_options_file.write('-Dcompss.streaming.masterPort=' +
@@ -654,7 +654,7 @@ def create_init_config_file(compss_home,                    # type: str
 
     # STORAGE SPECIFIC
     jvm_options_file.write('-Dcompss.task.execution=' + task_execution + '\n')
-    if storage_conf is None:
+    if storage_conf is "":
         jvm_options_file.write('-Dcompss.storage.conf=null\n')
     else:
         jvm_options_file.write('-Dcompss.storage.conf=' + storage_conf + '\n')
@@ -689,17 +689,17 @@ def create_init_config_file(compss_home,                    # type: str
         jvm_options_file.write('-Dcompss.tracing.task.dependencies=true\n')
     else:
         jvm_options_file.write('-Dcompss.tracing.task.dependencies=false\n')
-    if trace_label is None:
+    if trace_label is "":
         jvm_options_file.write('-Dcompss.trace.label=None\n')
     else:
         jvm_options_file.write('-Dcompss.trace.label=' +
                                str(trace_label) + '\n')
-    if extrae_cfg is None:
+    if extrae_cfg is "":
         jvm_options_file.write('-Dcompss.extrae.file=null\n')
     else:
         jvm_options_file.write('-Dcompss.extrae.file=' +
                                str(extrae_cfg) + '\n')
-    if extrae_cfg_python is None:
+    if extrae_cfg_python is "":
         jvm_options_file.write('-Dcompss.extrae.file.python=null\n')
     else:
         jvm_options_file.write('-Dcompss.extrae.file.python=' +

@@ -380,8 +380,6 @@ class TaskMaster(object):
                 self.update_if_interactive(self.module)
             else:
                 self.interactive, self.module = self.check_if_interactive()
-                if self.interactive:
-                    self.update_if_interactive(self.module)
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
@@ -459,19 +457,10 @@ class TaskMaster(object):
             values, names, compss_types, compss_directions, compss_streams, \
             compss_prefixes, content_types, weights, keep_renames = vtdsc  # noqa
 
-        # Signature and other parameters:
-        with event_master(SET_SIGNATURE):
-            # Get path:
-            if self.class_name == "":
-                path = self.module_name
-            else:
-                path = ".".join([str(self.module_name), str(self.class_name)])
-            signature = ".".join([str(path), str(self.function_name)])
-
-            if __debug__:
-                logger.debug("TASK: %s of type %s, in module %s, in class %s" %
-                             (self.function_name, self.function_type,
-                              self.module_name, self.class_name))
+        if __debug__:
+            logger.debug("TASK: %s of type %s, in module %s, in class %s" %
+                         (self.function_name, self.function_type,
+                          self.module_name, self.class_name))
 
         is_http = self.core_element.get_impl_type() == "HTTP"
         # Process the task

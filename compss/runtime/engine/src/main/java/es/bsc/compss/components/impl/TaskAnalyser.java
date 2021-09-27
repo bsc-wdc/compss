@@ -408,7 +408,7 @@ public class TaskAnalyser implements GraphHandler {
             addNewBarrier();
 
             // We can draw the graph on a barrier while we wait for tasks
-            this.gm.commitGraph();
+            this.gm.commitGraph(false);
         }
 
         app.reachesBarrier(request);
@@ -423,7 +423,7 @@ public class TaskAnalyser implements GraphHandler {
     public void noMoreTasks(EndOfAppRequest request) {
         if (IS_DRAW_GRAPH) {
             addMissingCommutativeTasksToGraph();
-            this.gm.commitGraph();
+            this.gm.commitGraph(true);
         }
         Application app = request.getApp();
         app.endReached(request);
@@ -548,7 +548,7 @@ public class TaskAnalyser implements GraphHandler {
             addMissingCommutativeTasksToGraph();
             addNewGroupBarrierToGraph(app, groupName);
             // We can draw the graph on a barrier while we wait for tasks
-            this.gm.commitGraph();
+            this.gm.commitGraph(false);
         }
 
         app.reachesGroupBarrier(groupName, request);
@@ -648,17 +648,26 @@ public class TaskAnalyser implements GraphHandler {
                 break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
+                if (IS_DRAW_GRAPH) {
+                    this.gm.startGroupingEdges();
+                }
                 for (Parameter content : cp.getParameters()) {
                     boolean hasCollectionParamEdge =
                         registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
                 daId = dip.registerCollectionAccess(app, am, cp, readerData);
+                if (IS_DRAW_GRAPH) {
+                    this.gm.stopGroupingEdges();
+                }
                 DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
                 deleteData(ci);
                 break;
             case DICT_COLLECTION_T:
                 DictCollectionParameter dcp = (DictCollectionParameter) p;
+                if (IS_DRAW_GRAPH) {
+                    this.gm.startGroupingEdges();
+                }
                 for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
                     boolean hasDictCollectionParamEdgeKey =
                         registerParameterAccessAndAddDependencies(app, currentTask, entry.getKey(), isConstraining);
@@ -667,6 +676,9 @@ public class TaskAnalyser implements GraphHandler {
                     hasParamEdge = hasParamEdge || hasDictCollectionParamEdgeKey || hasDictCollectionParamEdgeValue;
                 }
                 daId = dip.registerDictCollectionAccess(app, am, dcp, readerData);
+                if (IS_DRAW_GRAPH) {
+                    this.gm.stopGroupingEdges();
+                }
                 DataInfo dci = dip.deleteDictCollection(dcp.getDictCollectionId(), true);
                 deleteData(dci);
                 break;
@@ -1310,7 +1322,7 @@ public class TaskAnalyser implements GraphHandler {
      * last synchronization point to barrier. Add edges from group tasks to barrier.
      *
      * @param app Application reaching a barrier.
-     * @param group Name of the group.
+     * @param groupName Name of the group.
      */
     private void addNewGroupBarrierToGraph(Application app, String groupName) {
         // Add barrier node

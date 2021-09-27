@@ -244,6 +244,10 @@ def compss_persistent_executor(config):
 
     logger, logger_cfg, storage_loggers, _ = load_loggers(config.debug, persistent_storage)
 
+    cache_profiler = False
+    if config.cache_profiler.lower() == 'true':
+        cache_profiler = True
+
     if persistent_storage:
         # Initialize storage
         with event(INIT_STORAGE_AT_WORKER_EVENT):
@@ -260,7 +264,8 @@ def compss_persistent_executor(config):
                         config.stream_master_name,
                         config.stream_master_port,
                         CACHE_IDS,
-                        CACHE_QUEUE)
+                        CACHE_QUEUE,
+                        cache_profiler)
     executor(None, process_name, config.pipes[RANK - 1], conf)
 
     if persistent_storage:
@@ -294,12 +299,19 @@ def main():
     WORKER_CONF = PiperWorkerConfiguration()
     WORKER_CONF.update_params(sys.argv)
 
+    persistent_storage = (WORKER_CONF.storage_conf != 'null')
+    _, _, _, log_dir = load_loggers(WORKER_CONF.debug, persistent_storage)
+
+    cache_profiler = False
+    if WORKER_CONF.cache_profiler.lower() == 'true':
+        cache_profiler = True
+
     if is_worker():
         # Setup cache
         if is_cache_enabled(WORKER_CONF.cache):
             # Deploy the necessary processes
             cache = True
-            cache_params = start_cache(None, WORKER_CONF.cache)
+            cache_params = start_cache(None, WORKER_CONF.cache, cache_profiler, log_dir)
         else:
             # No cache
             cache = False
@@ -318,7 +330,7 @@ def main():
             compss_persistent_executor(WORKER_CONF)
 
     if cache and is_worker():
-        stop_cache(smm, CACHE_QUEUE, cache_process)  # noqa
+        stop_cache(smm, CACHE_QUEUE, cache_profiler, cache_process)  # noqa
 
 
 if __name__ == '__main__':

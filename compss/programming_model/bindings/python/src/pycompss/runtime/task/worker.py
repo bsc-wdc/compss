@@ -1054,8 +1054,7 @@ class TaskWorker(TaskCommons):
                     else:
                         rank_zero_reduce = True
 
-                    serialize_to_file_m
-                    pienv(obj, f_name, rank_zero_reduce)
+                    serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
                 else:
                     serialize_to_file(obj, f_name)
                     if self.cache_queue is not None and \

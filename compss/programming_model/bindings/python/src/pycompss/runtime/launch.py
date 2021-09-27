@@ -383,6 +383,7 @@ def launch_pycompss_application(app,
                                 trace_label=None,                 # type: str
                                 extrae_cfg_python=None,           # type: str
                                 wcl=0,                            # type: int
+                                cache_profiler=False,             # type: bool
                                 *args, **kwargs
                                 ):  # NOSONAR
     # type: (...) -> None
@@ -450,6 +451,8 @@ def launch_pycompss_application(app,
                               workers
     :param wcl: <Integer> Wallclock limit. Stops the runtime if reached.
                 0 means forever.
+    :param cache_profiler: Use the cache profiler [ True | False]
+                         (default: False)
     :param args: Positional arguments
     :param kwargs: Named arguments
     :return: Execution result
@@ -518,7 +521,8 @@ def launch_pycompss_application(app,
                                   tracing_task_dependencies,
                                   trace_label,
                                   extrae_cfg_python,
-                                  wcl)
+                                  wcl,
+                                  cache_profiler)
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
     export_current_flags(all_vars)

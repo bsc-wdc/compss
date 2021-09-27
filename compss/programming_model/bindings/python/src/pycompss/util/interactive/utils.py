@@ -71,6 +71,7 @@ def parameters_to_dict(log_level,                      # type: str
                        trace_label,                    # type: str
                        extrae_cfg_python,              # type: str
                        wcl,                            # type: int
+                       cache_profiler,                 # type: bool
                        ):  # NOSONAR
     # type: (...) -> dict
     """ Converts the given parameters into a dictionary """
@@ -120,5 +121,6 @@ def parameters_to_dict(log_level,                      # type: str
                 "tracing_task_dependencies": tracing_task_dependencies,
                 "trace_label": trace_label,
                 "extrae_cfg_python": extrae_cfg_python,
-                "wcl": wcl}
+                "wcl": wcl,
+                "cache_profiler": cache_profiler}
     return all_vars

@@ -108,6 +108,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected String pythonExtraeFile;
     protected String pythonMpiWorker;
     protected String pythonWorkerCache;
+    protected String pythonCacheProfiler;
     protected int totalCPU;
     protected int totalGPU;
     protected int totalFPGA;
@@ -279,6 +280,13 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         if (this.pythonWorkerCache == null || this.pythonWorkerCache.isEmpty()
             || this.pythonWorkerCache.equals("null")) {
             this.pythonWorkerCache = COMPSsConstants.DEFAULT_PYTHON_WORKER_CACHE;
+        }
+
+        // Configure profiler cache
+        this.pythonCacheProfiler = System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER);
+        if (this.pythonCacheProfiler == null || this.pythonCacheProfiler.isEmpty()
+            || this.pythonCacheProfiler.equals("null")) {
+            this.pythonCacheProfiler = COMPSsConstants.DEFAULT_PYTHON_CACHE_PROFILER;
         }
 
         this.lang = System.getProperty(COMPSsConstants.LANG);

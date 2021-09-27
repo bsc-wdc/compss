@@ -70,7 +70,7 @@ class TaskWorker(TaskCommons):
     Process the task decorator and prepare call the user function.
     """
 
-    __slots__ = ['cache_ids', 'cache_queue', 'cached_references']
+    __slots__ = ['cache_ids', 'cache_queue', 'cached_references', 'cache_profiler']
 
     def __init__(self,
                  decorator_arguments,
@@ -87,6 +87,7 @@ class TaskWorker(TaskCommons):
         self.cache_ids = None
         self.cache_queue = None
         self.cached_references = []
+        self.cache_profiler = False
         # placeholder to keep the object references and avoid garbage collector
 
     def call(self, *args, **kwargs):
@@ -136,6 +137,7 @@ class TaskWorker(TaskCommons):
                 # Pop cache if available
                 self.cache_ids = kwargs.pop("cache_ids", None)
                 self.cache_queue = kwargs.pop("cache_queue", None)
+                self.cache_profiler = kwargs.pop("cache_profiler", None)
 
                 if __debug__:
                     logger.debug("Revealing objects")
@@ -623,12 +625,13 @@ class TaskWorker(TaskCommons):
         if cache:
             # Check if the user has defined that the parameter has or not to be
             # cache explicitly
-            if name in self.decorator_arguments:
+            if not self.cache_profiler and name in self.decorator_arguments:
                 use_cache = self.decorator_arguments[name].cache
             else:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
-                    use_cache = self.decorator_arguments[vararg_name].cache
+                    if not self.cache_profiler and vararg_name in self.decorator_arguments:
+                        use_cache = self.decorator_arguments[vararg_name].cache
                 else:
                     # if not explicitly said, the object is candidate to be
                     # cached
@@ -643,7 +646,11 @@ class TaskWorker(TaskCommons):
                 # The object is cached
                 retrieved, existing_shm = retrieve_object_from_cache(logger,
                                                                      self.cache_ids,
-                                                                     original_path)
+                                                                     self.cache_queue,
+                                                                     original_path,
+                                                                     name,
+                                                                     self.user_function,
+                                                                     self.cache_profiler)
                 self.cached_references.append(existing_shm)
                 return retrieved
             else:
@@ -661,7 +668,9 @@ class TaskWorker(TaskCommons):
                     insert_object_into_cache_wrapper(logger,
                                                      self.cache_queue,
                                                      obj,
-                                                     original_path)
+                                                     original_path,
+                                                     name,
+                                                     self.user_function)
                 return obj
         else:
             return deserialize_from_file(original_path)
@@ -982,7 +991,7 @@ class TaskWorker(TaskCommons):
         original_path = argument.file_name.original_path
 
         cache = self.cache_queue is not None
-        if name in self.decorator_arguments:
+        if not self.cache_profiler and name in self.decorator_arguments:
             use_cache = self.decorator_arguments[name].cache
         else:
             # if not explicitly said, the object is candidate to be cached
@@ -992,12 +1001,16 @@ class TaskWorker(TaskCommons):
                 replace_object_into_cache(logger,
                                           self.cache_queue,
                                           content,
-                                          original_path)
+                                          original_path,
+                                          name,
+                                          self.user_function)
             else:
                 insert_object_into_cache_wrapper(logger,
                                                  self.cache_queue,
                                                  content,
-                                                 original_path)
+                                                 original_path,
+                                                 name,
+                                                 self.user_function)
 
     def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
         # type: (int, list, list, bool) -> list
@@ -1045,13 +1058,15 @@ class TaskWorker(TaskCommons):
                 else:
                     serialize_to_file(obj, f_name)
                     if self.cache_queue is not None and \
-                       self.decorator_arguments["cache_returns"]:
+                            (self.cache_profiler or self.decorator_arguments["cache_returns"]):
                         if __debug__:
                             logger.debug("Storing return in cache")
                         insert_object_into_cache_wrapper(logger,
                                                          self.cache_queue,
                                                          obj,
-                                                         f_name)
+                                                         f_name,
+                                                         "Return",
+                                                         self.user_function)
         return user_returns
 
     def is_parameter_an_object(self, name):

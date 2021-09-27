@@ -23,7 +23,7 @@ PyCOMPSs Cache setup
     This file contains the cache setup and instantiation.
     IMPORTANT: Only used with python >= 3.8.
 """
-
+import time
 from multiprocessing import Process
 from multiprocessing import Queue
 
@@ -48,8 +48,8 @@ def is_cache_enabled(cache_config):
     return cache
 
 
-def start_cache(logger, cache_config):
-    # type: (..., str) -> (..., Process, Queue, dict)
+def start_cache(logger, cache_config, cache_profiler, log_dir):
+    # type: (..., str, bool, string) -> (..., Process, Queue, dict)
     """ Setup the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
@@ -64,22 +64,28 @@ def start_cache(logger, cache_config):
     from multiprocessing import Manager
     manager = Manager()
     cache_ids = manager.dict()  # Proxy dictionary
+    profiler_dict = {}
+    profiler_get_struct = [[], [], []]  # Filename, Parameter, Function
     # Start a new process to manage the cache contents.
     smm = __start_smm__()
-    conf = CacheTrackerConf(logger, cache_size, None, cache_ids)
+    conf = CacheTrackerConf(logger, cache_size, None, cache_ids, profiler_dict, profiler_get_struct, log_dir,
+                            cache_profiler)
     cache_process, cache_queue = __create_cache_tracker_process__("cache_tracker", conf)  # noqa: E501
     return smm, cache_process, cache_queue, cache_ids
 
 
-def stop_cache(shared_memory_manager, cache_queue, cache_process):
-    # type: (..., Queue, Process) -> None
+def stop_cache(shared_memory_manager, cache_queue, cache_profiler, cache_process):
+    # type: (..., Queue, bool, Process) -> None
     """ Stops the cache process and performs the necessary cleanup.
 
     :param shared_memory_manager: Shared memory manager.
     :param cache_queue: Cache messaging queue.
     :param cache_process: Cache process
+    :param profiler_dict: Cache profiler dictionary
     :return: None
     """
+    if cache_profiler:
+        cache_queue.put("END PROFILING")
     __destroy_cache_tracker_process__(cache_process, cache_queue)
     __stop_smm__(shared_memory_manager)
 

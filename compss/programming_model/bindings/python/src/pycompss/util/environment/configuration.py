@@ -371,6 +371,7 @@ def create_init_config_file(compss_home,                    # type: str
                             trace_label,                    # type: str
                             extrae_cfg_python,              # type: str
                             wcl,                            # type: int
+                            cache_profiler,                 # type: bool
                             **kwargs        # noqa          # type: dict
                             ):  # NOSONAR
     # type: (...) -> None
@@ -450,6 +451,8 @@ def create_init_config_file(compss_home,                    # type: str
                               workers
     :param wcl: <Integer> Wall clock limit. Stops the runtime if reached.
                 0 means forever.
+    :param cache_profiler: Use the cache profiler [ True | False ]
+                         (default: False)
     :param kwargs: Any other parameter
     :return: None
     """
@@ -625,7 +628,6 @@ def create_init_config_file(compss_home,                    # type: str
         jvm_options_file.write('-Dcompss.python.worker_cache=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.worker_cache=false\n')
-
     # SPECIFIC FOR STREAMING
     if streaming_backend is None:
         jvm_options_file.write('-Dcompss.streaming=NONE\n')
@@ -699,6 +701,11 @@ def create_init_config_file(compss_home,                    # type: str
     # WALLCLOCK LIMIT
     jvm_options_file.write('-Dcompss.wcl=' + str(wcl) + '\n')
 
+    if cache_profiler:
+        jvm_options_file.write('-Dcompss.python.cache_profiler=' +
+                               str(worker_cache).lower() + '\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.cache_profiler=false\n')
     # Uncomment for debugging purposes
     # jvm_options_file.write('-Xcheck:jni\n')
     # jvm_options_file.write('-verbose:jni\n')

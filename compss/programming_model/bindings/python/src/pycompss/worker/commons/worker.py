@@ -512,6 +512,7 @@ def execute_task(process_name,              # type: str
                  collections_layouts=None,  # type: list
                  cache_queue=None,          # type: ...
                  cache_ids=None,            # type: ...
+                 cache_profiler=False,      # type: bool
                  ):
     # type: (...) -> (str, list, list, bool, str)
     """ ExecuteTask main method.
@@ -528,6 +529,7 @@ def execute_task(process_name,              # type: str
     :param collections_layouts: collections layouts for python MPI tasks
     :param cache_queue: Cache tracker communication queue
     :param cache_ids: Cache proxy dictionary (read-only)
+    :param cache_profiler: Cache profiler
     :return: updated_args, exit_code, new_types, new_values, timed_out
              and except_msg
     """
@@ -575,7 +577,8 @@ def execute_task(process_name,              # type: str
         'compss_python_MPI': python_mpi,
         'compss_collections_layouts': collections_layouts,
         'cache_queue': cache_queue,
-        'cache_ids': cache_ids
+        'cache_ids': cache_ids,
+        'cache_profiler': cache_profiler,
     }
 
     if __debug__:

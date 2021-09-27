@@ -145,6 +145,7 @@ public class PythonMirror extends PipedMirror {
         cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);
         cmd.append(context.getStreamingMasterPort()).append(TOKEN_SEP);
         cmd.append(this.pyParams.getPythonWorkerCache()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.getPythonCacheProfiler()).append(TOKEN_SEP);
 
         cmd.append(this.size).append(TOKEN_SEP);
         String executorPipes = this.basePipePath + "executor";

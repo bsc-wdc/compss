@@ -28,6 +28,7 @@ DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_PYTHON_MEMORY_PROFILE=false
 DEFAULT_PYTHON_WORKER_CACHE=false
+DEFAULT_CACHE_PROFILER=false
 
 # C
 DEFAULT_PERSISTENT_WORKER_C=false
@@ -179,6 +180,23 @@ check_bindings_setup () {
       fi
     fi
 
+    if [ -z "$python_cache_profiler" ]; then
+      python_cache_profiler=DEFAULT_PYTHON_CACHE_PROFILER
+    else
+      # Check python version >= 3.8
+      cache_supported=$($python_interpreter -c"import sys; print('true' if sys.version_info >= (3, 8) else 'false')")
+      if [ "$python_cache_profiler" = "false" ]; then
+        python_cache_profiler="false"
+      elif [ "$python_cache_profiler" = "true" ]; then
+        if [ "$cache_supported" = "true" ]; then
+          python_cache_profiler="true"
+        else
+          echo "WARNING: Can not enable python worker cache."
+          python_cache_profiler="false"
+        fi
+      fi
+    fi
+
     # Check if installed
     if [ ! -d "${COMPSS_HOME}/Bindings/python/$python_version" ]; then
       fatal_error "PyCOMPSs for Python $python_version not installed." 1
@@ -256,6 +274,7 @@ add_bindings_jvm_opts_python() {  # PLEASE: Any new parameter added here may be 
 -Dcompss.python.propagate_virtualenvironment=${python_propagate_virtual_environment}
 -Dcompss.python.mpi_worker=${python_mpi_worker}
 -Dcompss.python.worker_cache=${python_worker_cache}
+-Dcompss.python.cache_profiler=${python_cache_profiler}
 EOT
 }
 

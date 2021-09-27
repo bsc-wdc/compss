@@ -187,6 +187,9 @@ show_opts() {
     --python_worker_cache=<string>          Python worker cache (true/size/false).
                                             Only for NIO without mpi worker and python >= 3.8.
                                             Default: ${DEFAULT_PYTHON_WORKER_CACHE}
+    --python_cache_profiler=<bool>          Python cache profiler (true/false).
+                                            Only for NIO without mpi worker and python >= 3.8.
+                                            Default: ${DEFAULT_PYTHON_CACHE_PROFILER}
     --wall_clock_limit=<int>		    Maximum duration of the application (in seconds).
     					    Default: ${DEFAULT_WALL_CLOCK_LIMIT}
     --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
@@ -540,6 +543,10 @@ get_args() {
           python_worker_cache=*)
             # Enable or disable the worker cache
             python_worker_cache=${OPTARG//python_worker_cache=/}
+            ;;
+          python_cache_profiler=*)
+            # Enable or disable the worker cache
+            python_cache_profiler=${OPTARG//python_cache_profiler=/}
             ;;
           gen_coredump)
             # Enable coredump generation

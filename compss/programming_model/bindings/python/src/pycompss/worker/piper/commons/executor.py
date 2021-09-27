@@ -160,12 +160,12 @@ class ExecutorConf(object):
     __slots__ = ['tracing', 'storage_conf', 'logger', 'logger_cfg',
                  'storage_loggers',
                  'stream_backend', 'stream_master_ip', 'stream_master_port',
-                 'cache_ids', 'cache_queue']
+                 'cache_ids', 'cache_queue', 'cache_profiler']
 
     def __init__(self, tracing, storage_conf, logger, logger_cfg,
                  storage_loggers,
                  stream_backend, stream_master_ip, stream_master_port,
-                 cache_ids=None, cache_queue=None):
+                 cache_ids=None, cache_queue=None, cache_profiler=False):
         """
         Constructs a new executor configuration.
 
@@ -192,6 +192,7 @@ class ExecutorConf(object):
         self.stream_master_port = stream_master_port
         self.cache_ids = cache_ids  # Read-only
         self.cache_queue = cache_queue
+        self.cache_profiler = cache_profiler
 
 
 ######################
@@ -300,7 +301,9 @@ def executor(queue, process_name, pipe, conf):
                                         storage_loggers,
                                         storage_loggers_handlers,
                                         conf.cache_queue,
-                                        conf.cache_ids)
+                                        conf.cache_ids,
+                                        conf.cache_profiler
+                                        )
         # Stop storage
         if storage_conf != 'null':
             try:
@@ -346,6 +349,7 @@ def process_message(current_line,              # type: str
                     storage_loggers_handlers,  # type: list
                     cache_queue=None,          # type: queue
                     cache_ids=None,            # type: ...
+                    cache_profiler=False,      # type: bool
                     ):
     # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
@@ -365,6 +369,7 @@ def process_message(current_line,              # type: str
     :param storage_loggers_handlers: Storage loggers handlers
     :param cache_queue: Cache tracker communication queue
     :param cache_ids: Cache proxy dictionary (read-only)
+    :param cache_profiler: Cache profiler
     :return: <Boolean> True if processed successfully, False otherwise.
     """
     if __debug__:
@@ -388,7 +393,8 @@ def process_message(current_line,              # type: str
                             storage_loggers,
                             storage_loggers_handlers,
                             cache_queue,
-                            cache_ids)
+                            cache_ids,
+                            cache_profiler)
     elif current_line[0] == PING_TAG:
         # Response -> Pong
         return process_ping(pipe, logger, process_name)
@@ -418,6 +424,7 @@ def process_task(current_line,              # type: list
                  storage_loggers_handlers,  # type: list
                  cache_queue,               # type: queue
                  cache_ids,                 # type: ...
+                 cache_profiler,            # type: bool
                  ):
     # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
@@ -437,6 +444,7 @@ def process_task(current_line,              # type: list
     :param storage_loggers_handlers: Storage loggers handlers.
     :param cache_queue: Cache tracker communication queue.
     :param cache_ids: Cache proxy dictionary (read-only).
+    :param cache_profiler: Cache profiler
     :return: True if processed successfully, False otherwise.
     """
     affinity_ok = True
@@ -545,7 +553,9 @@ def process_task(current_line,              # type: list
                               False,
                               None,
                               cache_queue,
-                              cache_ids)
+                              cache_ids,
+                              cache_profiler
+                              )
         # The ignored variable is timed_out
         exit_value, new_types, new_values, _, except_msg = result
 

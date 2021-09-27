@@ -423,6 +423,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
                 LOGGER.debug("Workers Debug files obtained for " + this.getName());
                 getBindingWorkersDebugInfo();
                 LOGGER.debug("Binding Workers Debug files obtained for " + this.getName());
+                getCacheProfilerDebugInfo();
+                LOGGER.debug("Cache Profiler Debug files obtained for " + this.getName());
             }
         }
     }
@@ -694,6 +696,59 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         }
 
         LOGGER.debug("Worker files from resource " + getName() + "received");
+    }
+
+    /**
+     * Retrieves cache profiler data.
+     */
+    private void getCacheProfilerDebugInfo() {
+        if (DEBUG) {
+            LOGGER.debug("Copying Cache Profiler Workers Information");
+        }
+
+        Semaphore sem = new Semaphore(0);
+        WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
+
+        // Get Worker output
+        wdil.addOperation();
+
+        String cacheProfiler = "cache_profiler.json";
+        String outCacheProfiler = "cache_profiler_" + getName() + ".json";
+        SimpleURI cacheProfilerOutFileOrigin = this.node.getCompletePath(DataType.FILE_T, cacheProfiler);
+        String cacheProfilerOutFileTarget = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath()
+            + File.separator + outCacheProfiler;
+
+        DataLocation cacheProfilerOutSource = null;
+        try {
+            cacheProfilerOutSource = DataLocation.createLocation(this, cacheProfilerOutFileOrigin);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + cacheProfilerOutFileOrigin.toString(), e);
+        }
+
+        DataLocation cacheProfilerOutTarget = null;
+        try {
+            SimpleURI uriCacheProfiler = new SimpleURI(cacheProfilerOutFileTarget);
+            cacheProfilerOutTarget = DataLocation.createLocation(Comm.getAppHost(), uriCacheProfiler);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + cacheProfilerOutFileTarget);
+        }
+
+        LOGGER.debug("- Cache Source: " + cacheProfilerOutSource);
+        LOGGER.debug("- Cache Target: " + cacheProfilerOutTarget);
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
+        masterNode.obtainData(new LogicalData("cache_profiler.json", null), cacheProfilerOutSource,
+            cacheProfilerOutTarget, new LogicalData("cache_profiler.json", null),
+            new WorkersDebugInfoCopyTransferable(), wdil);
+
+        // Wait transfers
+        wdil.enable();
+        try {
+            sem.acquire();
+        } catch (InterruptedException ex) {
+            LOGGER.error("Error waiting for cache profiler debug files in resource " + getName() + " to get saved");
+        }
+
+        LOGGER.debug("Cache profiler files from resource " + getName() + " received");
     }
 
     @Override

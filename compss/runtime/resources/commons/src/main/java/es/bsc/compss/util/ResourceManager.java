@@ -43,14 +43,24 @@ import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 
 /**
@@ -202,6 +212,8 @@ public class ResourceManager {
         RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
         Comm.getAppHost().disableExecution();
         Comm.getAppHost().retrieveTracingAndDebugData();
+
+        mergeProfilerFiles();
         Semaphore sem = new Semaphore(0);
         ShutdownListener sl = new ShutdownListener(sem);
         RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
@@ -1008,6 +1020,101 @@ public class ResourceManager {
         sb.append(pool.getCurrentState(prefix)).append("\n");
         sb.append(cloudManager.getCurrentState(prefix));
         return sb.toString();
+    }
+
+    private static void mergeProfilerFiles() {
+        String logPath = Comm.getAppHost().getWorkersDirPath();
+        File folder = new File(logPath);
+        String[] paths = folder.list();
+        HashMap<String, HashMap<String, HashMap<String, Object>>> cacheProfiler = new HashMap<>();
+        boolean filesExist = false;
+        for (String f : paths) {
+            if (f.startsWith("cache_profiler")) {
+                filesExist = true;
+                try {
+                    JSONTokener tokener = new JSONTokener(new FileReader(logPath + f));
+                    JSONObject object = new JSONObject(tokener);
+                    for (String function : object.keySet()) {
+                        if (!cacheProfiler.containsKey(function)) {
+                            cacheProfiler.put(function, new HashMap<>());
+                        }
+                        for (String parameter : object.getJSONObject(function).keySet()) {
+                            if (!cacheProfiler.get(function).containsKey(parameter)) {
+                                cacheProfiler.get(function).put(parameter, new HashMap<>());
+                            }
+                            for (String key : object.getJSONObject(function).getJSONObject(parameter).keySet()) {
+                                if (!cacheProfiler.get(function).get(parameter).containsKey(key)) {
+                                    if (key.equals("USED")) {
+                                        cacheProfiler.get(function).get(parameter).put(key, new ArrayList<>());
+                                        for (Object s : (JSONArray) object.getJSONObject(function)
+                                            .getJSONObject(parameter).get(key)) {
+                                            if (!((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
+                                                .contains(s.toString())) {
+                                                ((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
+                                                    .add(s.toString());
+                                            }
+                                        }
+                                    } else {
+                                        cacheProfiler.get(function).get(parameter).put(key, Integer.valueOf(object
+                                            .getJSONObject(function).getJSONObject(parameter).get(key).toString()));
+                                    }
+                                } else {
+                                    if (key.equals("USED")) {
+                                        for (Object s : (JSONArray) object.getJSONObject(function)
+                                            .getJSONObject(parameter).get(key)) {
+                                            if (!((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
+                                                .contains(s.toString())) {
+                                                ((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
+                                                    .add(s.toString());
+                                            }
+                                        }
+                                    } else {
+                                        cacheProfiler.get(function).get(parameter).put(key,
+                                            Integer
+                                                .valueOf(object.getJSONObject(function).getJSONObject(parameter)
+                                                    .get(key).toString())
+                                                + Integer.valueOf(
+                                                    cacheProfiler.get(function).get(parameter).get(key).toString()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                File file = new File(logPath + f);
+                file.delete();
+            }
+
+        }
+        if (filesExist) {
+            try {
+                String filename = "profiler_cache_summary.out";
+                FileWriter writer = new FileWriter(logPath + filename);
+                writer.write("PROFILER SUMMARY" + "\n");
+                for (String function : cacheProfiler.keySet()) {
+                    writer.write('\t' + "FUNCTION: " + function + "\n");
+                    for (String parameter : cacheProfiler.get(function).keySet()) {
+                        writer.write('\t' + " " + '\t' + " " + '\t' + "PARAMETER: " + parameter + "\n");
+                        int puts = (int) cacheProfiler.get(function).get(parameter).get("PUT");
+                        int gets = (int) cacheProfiler.get(function).get(parameter).get("GET");
+                        ArrayList<String> used =
+                            (ArrayList<String>) cacheProfiler.get(function).get(parameter).get("USED");
+                        if (used.size() > 0 || gets > 0) {
+                            writer.write('\t' + " " + '\t' + " " + '\t' + " " + '\t' + "PUTS: " + puts + " GETS: "
+                                + gets + ". USED IN: " + used + "\n");
+                        } else {
+                            writer.write('\t' + " " + '\t' + " " + '\t' + " " + '\t' + "[NOT USED]  PUTS: " + puts
+                                + " GETS: " + gets + "\n");
+                        }
+                    }
+                }
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

@@ -380,6 +380,8 @@ class TaskMaster(object):
                 self.update_if_interactive(self.module)
             else:
                 self.interactive, self.module = self.check_if_interactive()
+                if self.interactive:
+                    self.update_if_interactive(self.module)
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)

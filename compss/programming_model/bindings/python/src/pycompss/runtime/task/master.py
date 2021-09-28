@@ -1069,7 +1069,7 @@ class TaskMaster(object):
 
     def check_layout_params(self, impl_type_args):
         # type: (list) -> None
-        """ Checks the layout format.
+        """ Checks the layout parameter format.
 
         :param impl_type_args: Parameter arguments.
         :return: None

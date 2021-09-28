@@ -404,6 +404,9 @@ def task_execution(logger,              # type: ...
         task_context.__exit__(*sys.exc_info())  # noqa
         del task_context
 
+    # Clean objects
+    del updated_args
+
     return task_returns(0, new_types, new_values, target_direction,
                         False, "", logger)
 

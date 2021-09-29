@@ -80,10 +80,10 @@ class PiperWorkerConfiguration(object):
         self.stream_master_name = argv[7]
         self.stream_master_port = argv[8]
         self.cache = argv[9]
-        # self.cache_profiler = argv[10]
-        self.tasks_x_node = int(argv[10])
-        in_pipes = argv[11:11 + self.tasks_x_node]
-        out_pipes = argv[11 + self.tasks_x_node:-2]
+        self.cache_profiler = argv[10]
+        self.tasks_x_node = int(argv[11])
+        in_pipes = argv[12:12 + self.tasks_x_node]
+        out_pipes = argv[12 + self.tasks_x_node:-2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)

@@ -30,6 +30,7 @@ from pycompss.util.context import in_worker
 from pycompss.worker.commons.constants import SYNC_EVENTS
 from pycompss.worker.commons.constants import TASK_EVENTS
 from pycompss.worker.commons.constants import TASK_CPU_AFFINITY_EVENTS
+from pycompss.worker.commons.constants import TASK_CPU_NUMBER_EVENTS
 from pycompss.worker.commons.constants import TASK_GPU_AFFINITY_EVENTS
 from pycompss.worker.commons.constants import WORKER_EVENTS
 from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
@@ -138,8 +139,8 @@ class emit_event(object):  # noqa
 
 @contextmanager
 def event(event_id, master=False, inside=False,
-          cpu_affinity=False, gpu_affinity=False):
-    # type: (int or str, bool, bool, bool, bool) -> None
+          cpu_affinity=False, gpu_affinity=False, cpu_number=False):
+    # type: (int or str, bool, bool, bool, bool, bool) -> None
     """ Emits an event wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -151,6 +152,8 @@ def event(event_id, master=False, inside=False,
                          cpu affinity.
     :param gpu_affinity: If the event is produced inside the worker for
                          gpu affinity.
+    :param cpu_number: If the event is produced inside the worker for
+                       cpu number.
     :return: None
     """
     emit = False
@@ -163,7 +166,8 @@ def event(event_id, master=False, inside=False,
                                                           master,
                                                           inside,
                                                           cpu_affinity,
-                                                          gpu_affinity)
+                                                          gpu_affinity,
+                                                          cpu_number)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
     yield  # here the code runs
     if emit:
@@ -171,8 +175,9 @@ def event(event_id, master=False, inside=False,
 
 
 def emit_manual_event(event_id, master=False, inside=False,
-                      cpu_affinity=False, gpu_affinity=False):
-    # type: (int or str, bool, bool, bool, bool) -> (int, int)
+                      cpu_affinity=False, gpu_affinity=False,
+                      cpu_number=False):
+    # type: (int or str, bool, bool, bool, bool, bool) -> (int, int)
     """ Emits a single event with the desired code.
 
     Does nothing if tracing is disabled.
@@ -184,6 +189,8 @@ def emit_manual_event(event_id, master=False, inside=False,
                          cpu affinity.
     :param gpu_affinity: If the event is produced inside the worker for
                          gpu affinity.
+    :param cpu_number: If the event is produced inside the worker for
+                       cpu number.
     :return: None
     """
     if TRACING:
@@ -191,7 +198,8 @@ def emit_manual_event(event_id, master=False, inside=False,
                                                           master,
                                                           inside,
                                                           cpu_affinity,
-                                                          gpu_affinity)
+                                                          gpu_affinity,
+                                                          cpu_number)
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
 
 
@@ -215,8 +223,8 @@ def emit_manual_event_explicit(event_group, event_id):
 
 
 def __get_proper_type_event__(event_id, master, inside,
-                              cpu_affinity, gpu_affinity):
-    # type: (int or str, bool, bool, bool, bool) -> (int, int)
+                              cpu_affinity, gpu_affinity, cpu_number):
+    # type: (int or str, bool, bool, bool, bool, bool) -> (int, int)
     """ Parses the flags to retrieve the appropriate event_group.
     It also parses the event_id in case of affinity since it is received
     as string.
@@ -228,6 +236,8 @@ def __get_proper_type_event__(event_id, master, inside,
                          cpu affinity.
     :param gpu_affinity: If the event is produced inside the worker for
                          gpu affinity.
+    :param cpu_number: If the event is produced inside the worker for
+                       cpu number.
     :return: Retrieves the appropriate event_group and event_id
     """
     if master:
@@ -240,6 +250,9 @@ def __get_proper_type_event__(event_id, master, inside,
             elif gpu_affinity:
                 event_group = TASK_GPU_AFFINITY_EVENTS
                 event_id = __parse_affinity_event_id__(event_id)
+            elif cpu_number:
+                event_group = TASK_CPU_NUMBER_EVENTS
+                event_id = int(event_id)
             else:
                 event_group = TASK_EVENTS
         else:

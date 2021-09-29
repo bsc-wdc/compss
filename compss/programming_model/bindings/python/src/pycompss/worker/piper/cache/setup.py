@@ -69,8 +69,9 @@ def start_cache(logger, cache_config, cache_profiler, log_dir):
     cache_size = __get_cache_size__(cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = __create_proxy_dict__()  # type: typing.Any
-    profiler_dict = {}
-    profiler_get_struct = [[], [], []]  # Filename, Parameter, Function
+    profiler_dict = dict()               # type: dict
+    profiler_get_struct = [[], [], []]   # type: typing.List[typing.List[str]]
+    # profiler_get_struct structure: Filename, Parameter, Function
     smm = __start_smm__()
     conf = CacheTrackerConf(logger, cache_size, "default", cache_ids,
                             profiler_dict, profiler_get_struct, log_dir,

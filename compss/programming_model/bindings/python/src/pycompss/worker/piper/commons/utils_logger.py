@@ -31,26 +31,27 @@ import pycompss.util.context as context
 
 
 def load_loggers(debug, persistent_storage):
-    # type: (bool, str) -> (..., str, ...)
+    # type: (bool, bool) -> typing.Tuple[typing.Any, str, typing.Any, str]
     """ Load all loggers.
 
     :param debug: is Debug enabled.
     :param persistent_storage: is persistent storage enabled.
-    :return: main logger of the application, the log config file (json) and
-             a list of loggers for the persistent data framework.
+    :return: main logger of the application, the log config file (json),
+             a list of loggers for the persistent data framework, and
+             the temporary log directory.
     """
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
-    log_cfg_path = "".join((worker_path, '/../../../../log'))
+    log_cfg_path = "".join((worker_path, "/../../../../log"))
     if not os.path.isdir(log_cfg_path):
         # If not exists, then we are using the source for unit testing
-        log_cfg_path = "".join((worker_path, '/../../../../../log'))
+        log_cfg_path = "".join((worker_path, "/../../../../../log"))
     if debug:
         # Debug
-        log_json = "/".join((log_cfg_path, 'logging_worker_debug.json'))
+        log_json = "/".join((log_cfg_path, "logging_worker_debug.json"))
     else:
         # Default
-        log_json = "/".join((log_cfg_path, 'logging_worker_off.json'))
+        log_json = "/".join((log_cfg_path, "logging_worker_off.json"))
     log_dir = get_temporary_directory()
     log_dir_temp = log_dir
     # log_dir is of the form:
@@ -66,7 +67,7 @@ def load_loggers(debug, persistent_storage):
     init_logging_worker_piper(log_json, log_dir)
 
     # Define logger facilities
-    logger = logging.getLogger('pycompss.worker.piper.piper_worker')
+    logger = logging.getLogger("pycompss.worker.piper.piper_worker")
     storage_loggers = []
     if persistent_storage:
         storage_loggers.append(logging.getLogger('dataclay'))

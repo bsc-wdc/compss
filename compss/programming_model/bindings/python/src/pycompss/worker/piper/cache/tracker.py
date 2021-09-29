@@ -282,12 +282,13 @@ def stop_shared_memory_manager(smm):
     smm.shutdown()
 
 
-def retrieve_object_from_cache(logger, cache_ids, identifier, parameter_name, user_function, cache_profiler):  # noqa
-    # type: (typing.Any, typing.Any, str, str, typing.Any, bool) -> typing.Any
+def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, parameter_name, user_function, cache_profiler):  # noqa
+    # type: (typing.Any, typing.Any, Queue, str, str, typing.Any, bool) -> typing.Any
     """ Retrieve an object from the given cache proxy dict.
 
     :param logger: Logger where to push messages.
     :param cache_ids: Cache proxy dictionary.
+    :param cache_queue: Cache notification queue.
     :param identifier: Object identifier.
     :param parameter_name: Parameter name.
     :param user_function: Function name.

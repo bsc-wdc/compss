@@ -176,9 +176,9 @@ class DistroStreamImpl(DistroStream):
             + type: ConsumerMode
     """
 
-    def __init__(self, alias, stream_type,
-                 internal_stream_info, access_mode=AT_MOST_ONCE):
-        # type: (str, str, list, str) -> None
+    def __init__(self, alias=None, stream_type=None,
+                 internal_stream_info=None, access_mode=AT_MOST_ONCE):
+        # type: (typing.Optional[str], typing.Optional[str], typing.Optional[list], str) -> None
         """
         Creates a new DistroStream instance.
 
@@ -289,8 +289,8 @@ class FileDistroStream(DistroStreamImpl):
             + type: string
     """
 
-    def __init__(self, alias, base_dir, access_mode=AT_MOST_ONCE):
-        # type: (str, str, str) -> None
+    def __init__(self, alias=None, base_dir=None, access_mode=AT_MOST_ONCE):
+        # type: (typing.Optional[str], typing.Optional[str], str) -> None
         """
         Creates a new FileDistroStream instance.
 

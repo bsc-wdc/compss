@@ -169,8 +169,8 @@ class TaskWorker(object):
                 # be treated to get the actual object (e.g: deserialize it, query the
                 # database in case of persistent objects, etc.)
                 self.reveal_objects(args,
-                                    kwargs["compss_python_MPI"],
-                                    kwargs["compss_collections_layouts"])
+                                    kwargs["compss_collections_layouts"],
+                                    kwargs["compss_python_MPI"])
                 if __debug__:
                     logger.debug("Finished revealing objects")
                     logger.debug("Building task parameters structures")

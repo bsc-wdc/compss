@@ -635,7 +635,7 @@ class TaskWorker(TaskCommons):
                 else:
                     # if not explicitly said, the object is candidate to be
                     # cached
-                    use_cache = True
+                    use_cache = False
             argument.cache = use_cache
             if cache:
                 logger.debug("\t\t - Save in cache: " + str(use_cache))
@@ -995,7 +995,7 @@ class TaskWorker(TaskCommons):
             use_cache = self.decorator_arguments[name].cache
         else:
             # if not explicitly said, the object is candidate to be cached
-            use_cache = True
+            use_cache = False
         if np and cache and use_cache:
             if in_cache(original_path, self.cache_ids):
                 replace_object_into_cache(logger,

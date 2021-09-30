@@ -25,12 +25,15 @@ else:
     import cPickle
 
 
-@decorator  # MANDATORY TO PRESERVE THE ARGSPEC
-def timeit(func, *a, **k):
-    ts = time.time()
-    result = func(*a, **k)
-    te = time.time()
-    return [result, 'Elapsed time: %2.6f sec' % (te - ts)]
+# UNSUPPORTED WITH MYPY!  - DECORATORS MUST HAVE EXPLICIT SPECIFICATION
+# @decorator  # MANDATORY TO PRESERVE THE ARGSPEC
+# def timeit(func, *a, **k):
+#     ts = time.time()
+#     result = func(*a, **k)
+#     te = time.time()
+#     return [result, 'Elapsed time: %2.6f sec' % (te - ts)]
+
+from pycompss.functions.elapsed_time import timeit
 
 
 # #### FORMULAS #####
@@ -255,7 +258,7 @@ def function_wait_on_string(s):
     return s.upper()
 
 
-@timeit
+@timeit()
 @task(returns=int)
 def function_time_decorated_master(x):
     print("TEST")
@@ -265,7 +268,7 @@ def function_time_decorated_master(x):
 
 
 @task(returns=int)
-@timeit
+@timeit()
 def function_time_decorated_worker(x):
     print("TEST")
     print("- Function worker time (decorated).")

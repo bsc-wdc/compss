@@ -23,9 +23,11 @@ PyCOMPSs Functions: Data generators
     This file defines the common data producing functions.
 """
 
-import random
 import typing
-from pycompss.api.task import task
+
+from pycompss.functions.data_tasks import gen_random as _gen_random
+from pycompss.functions.data_tasks import gen_normal as _gen_normal
+from pycompss.functions.data_tasks import gen_uniform as _gen_uniform
 
 
 def generator(size, num_frag, seed=0, distribution="random", wait=False):
@@ -56,50 +58,6 @@ def generator(size, num_frag, seed=0, distribution="random", wait=False):
         from pycompss.api.api import compss_wait_on
         data = compss_wait_on(data)
     return data
-
-
-@task(returns=list)
-def _gen_random(size, frag_size, seed):
-    # type: (int, int, int) -> list
-    """ Random generator.
-
-    :param size: Size
-    :param frag_size: Fragment size
-    :param seed: Random seed
-    :return: a fragment of elements
-    """
-    random.seed(seed)
-    return [[random.random() for _ in range(size)] for _ in range(frag_size)]  # NOSONAR
-
-
-@task(returns=list)
-def _gen_normal(size, frag_size, seed):
-    # type: (int, int, int) -> list
-    """ Normal generator.
-
-    :param size: Size
-    :param frag_size: Fragment size
-    :param seed: Random seed
-    :return: a fragment of elements
-    """
-    random.seed(seed)
-    return [[random.gauss(mu=0.0, sigma=1.0) for _ in range(size)]
-            for _ in range(frag_size)]
-
-
-@task(returns=list)
-def _gen_uniform(size, frag_size, seed):
-    # type: (int, int, int) -> list
-    """ Uniform generator.
-
-    :param size: Size
-    :param frag_size: Fragment size
-    :param seed: Random seed
-    :return: a fragment of elements
-    """
-    random.seed(seed)
-    return [[random.uniform(-1.0, 1.0) for _ in range(size)]
-            for _ in range(frag_size)]
 
 
 def chunks(lst, n, balanced=False):

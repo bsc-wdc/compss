@@ -25,6 +25,7 @@ PyCOMPSs Functions: Elapsed time decorator
 
 import typing
 import time
+from functools import wraps
 
 
 class TimeIt(object):
@@ -36,6 +37,8 @@ class TimeIt(object):
 
     def __call__(self, f):
         # type: (typing.Any) -> typing.Any
+
+        @wraps(f)
         def wrapped_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
             """ Elapsed time decorator.

@@ -271,7 +271,7 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
-        String payload, String payloadType, String produces, String declareMethodFullyQualifiedName,
+        String payload, String payloadType, String produces, String updates, String declareMethodFullyQualifiedName,
         boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
         boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
         Object... parameters);

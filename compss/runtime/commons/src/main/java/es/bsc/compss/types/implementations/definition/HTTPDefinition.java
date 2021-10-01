@@ -31,7 +31,7 @@ public class HTTPDefinition implements ImplementationDefinition {
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 6;
+    public static final int NUM_PARAMS = 7;
 
     private String serviceName;
     private String resource;
@@ -39,6 +39,7 @@ public class HTTPDefinition implements ImplementationDefinition {
     private String payload;
     private String payloadType;
     private String produces;
+    private String updates;
 
 
     public HTTPDefinition() {
@@ -52,13 +53,14 @@ public class HTTPDefinition implements ImplementationDefinition {
      * @param resource HTTP resource in the URL .
      */
     public HTTPDefinition(String serviceName, String resource, String request, String payload, String payloadType,
-        String produces) {
+        String produces, String updates) {
         this.serviceName = serviceName;
         this.resource = resource;
         this.request = request;
         this.payload = payload;
         this.payloadType = payloadType;
         this.produces = produces;
+        this.updates = updates;
     }
 
     /**
@@ -74,6 +76,7 @@ public class HTTPDefinition implements ImplementationDefinition {
         this.payload = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
         this.payloadType = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
         this.produces = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
+        this.updates = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
     }
 
     public String getServiceName() {
@@ -98,6 +101,10 @@ public class HTTPDefinition implements ImplementationDefinition {
 
     public String getProduces() {
         return produces;
+    }
+
+    public String getUpdates() {
+        return updates;
     }
 
     @Override

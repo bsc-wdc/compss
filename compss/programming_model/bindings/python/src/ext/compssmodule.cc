@@ -466,6 +466,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     char* payload;
     char* payload_type;
     char* produces;
+    char* updates;
     char* signature;
     char* on_failure;
     int priority, num_nodes, reduce, chunk_size, replicated, distributed, has_target, num_returns, time_out;
@@ -479,9 +480,9 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     PyObject *weights;
     PyObject *keep_renames;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lssssssssiiiiiiiiiOOOOOOOOO", &app_id, &service_name, &resource, &request, &payload, &payload_type, &produces, &signature, &on_failure, &time_out, &priority,
-                         &num_nodes, &reduce, &chunk_size, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
-                         &compss_directions, &compss_streams, &compss_prefixes, &content_types, &weights, &keep_renames)) {
+    if(!PyArg_ParseTuple(args, "lsssssssssiiiiiiiiiOOOOOOOOO", &app_id, &service_name, &resource, &request, &payload, &payload_type, &produces, &updates,
+                         &signature, &on_failure, &time_out, &priority, &num_nodes, &reduce, &chunk_size, &replicated, &distributed, &has_target, &num_returns,
+                         &values, &names, &compss_types, &compss_directions, &compss_streams, &compss_prefixes, &content_types, &weights, &keep_renames)) {
         // Return NULL after ParseTuple automatically translates to "wrong
         // arguments were passed, we expected an integer instead"-like errors
         return NULL;
@@ -493,6 +494,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
     debug("- Payload: %s\n", payload);
     debug("- Payload Type: %s\n", payload_type);
     debug("- Produces: %s\n", produces);
+    debug("- Updates: %s\n", updates);
     debug("- Signature: %s\n", signature);
     debug("- On Failure: %s\n", on_failure);
     debug("- Time Out: %d\n", time_out);
@@ -601,6 +603,7 @@ static PyObject* process_http_task(PyObject* self, PyObject* args) {
         payload,
         payload_type,
         produces,
+        updates,
         signature,
         on_failure,
         time_out,

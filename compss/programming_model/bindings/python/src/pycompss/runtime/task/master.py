@@ -418,6 +418,7 @@ class TaskMaster(TaskCommons):
             payload = self.core_element.get_impl_type_args()[3]
             payload_type = self.core_element.get_impl_type_args()[4]
             produces = self.core_element.get_impl_type_args()[5]
+            updates = self.core_element.get_impl_type_args()[6]
             binding.process_http_task(
                 signature,
                 service_name,
@@ -426,6 +427,7 @@ class TaskMaster(TaskCommons):
                 payload,
                 payload_type,
                 produces,
+                updates,
                 has_target,
                 names,
                 values,

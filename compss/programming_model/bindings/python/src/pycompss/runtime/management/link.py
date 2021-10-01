@@ -467,6 +467,7 @@ class COMPSs(object):
                           payload,              # type: str
                           payload_type,         # type: str
                           produces,             # type: str
+                          updates,              # type: str
                           has_target,           # type: bool
                           names,                # type: list
                           values,               # type: list
@@ -496,6 +497,7 @@ class COMPSs(object):
                       payload,
                       payload_type,
                       produces,
+                      updates,
                       signature,
                       on_failure,
                       time_out,

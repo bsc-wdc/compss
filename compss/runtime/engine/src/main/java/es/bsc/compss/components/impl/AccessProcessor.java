@@ -296,11 +296,11 @@ public class AccessProcessor implements Runnable {
      * @return Task Id.
      */
     public int newTask(Application app, TaskMonitor monitor, String serviceName, String resource, String request,
-        String payload, String payloadType, String produces, String declareMethodFullyQualifiedName, boolean priority,
-        boolean isReduce, int reduceChunkSize, boolean hasTarget, int numReturns, List<Parameter> parameters,
-        OnFailure onFailure, long timeOut) {
+        String payload, String payloadType, String produces, String updates, String declareMethodFullyQualifiedName,
+        boolean priority, boolean isReduce, int reduceChunkSize, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, OnFailure onFailure, long timeOut) {
 
-        Task currentTask = new Task(app, serviceName, resource, request, payload, payloadType, produces,
+        Task currentTask = new Task(app, serviceName, resource, request, payload, payloadType, produces, updates,
             declareMethodFullyQualifiedName, priority, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
 
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();

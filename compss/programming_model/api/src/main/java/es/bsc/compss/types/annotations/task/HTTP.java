@@ -74,6 +74,13 @@ public @interface HTTP {
      */
     String serviceName();
 
+    /**
+     * Formatted string to update the defined key of the response JSON .
+     *
+     * @return formatted updates string.
+     */
+    String updates() default Constants.UNASSIGNED;
+
     /*
      * COMMON PROPERTIES
      *

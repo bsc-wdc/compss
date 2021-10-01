@@ -9,7 +9,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-resources</artifactId>
-        <version>2.9.rc2109</version>
+        <version>2.9.rc2110</version>
         <relativePath>..</relativePath>
     </parent>
 

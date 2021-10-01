@@ -33,6 +33,7 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -41,16 +42,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
     private static final int NUM_BASE_PYTHON_MPI_ARGS = 8;
 
-    private final String mpiRunner;
-    private final String mpiFlags;
-    private final String declaringclass;
-    private final String alternativeMethod;
-    private final boolean scaleByCU;
-    private final boolean failByEV;
-
+    private final PythonMPIDefinition mpiDef;
     private BinaryRunner br;
-
-    private CollectionLayout[] cls;
 
 
     /**
@@ -66,25 +59,16 @@ public class PythonMPIInvoker extends ExternalInvoker {
         InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
-        PythonMPIDefinition pythonmpiImpl = null;
         try {
-            pythonmpiImpl = (PythonMPIDefinition) this.invocation.getMethodImplementation().getDefinition();
+            this.mpiDef = (PythonMPIDefinition) this.invocation.getMethodImplementation().getDefinition();
+            this.mpiDef.setRunnerProperties(context.getInstallDir());
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
 
-        // Python MPI flags
-        this.mpiRunner = pythonmpiImpl.getMpiRunner();
-        this.mpiFlags = pythonmpiImpl.getMpiFlags();
-        this.declaringclass = pythonmpiImpl.getDeclaringClass();
-        this.alternativeMethod = pythonmpiImpl.getAlternativeMethodName();
-        this.scaleByCU = pythonmpiImpl.getScaleByCU();
-        this.failByEV = pythonmpiImpl.isFailByEV();
-
         // Internal binary runner
         this.br = null;
-        this.cls = pythonmpiImpl.getCollectionLayouts();
 
     }
 
@@ -97,6 +81,11 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
     @Override
     protected void invokeMethod() throws JobExecutionException {
+        try {
+            mpiDef.checkArguments();
+        } catch (IllegalArgumentException e) {
+            throw new JobExecutionException(e);
+        }
         Object retObj;
         try {
             retObj = runPythonMPIInvocation();
@@ -139,13 +128,6 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Get COMPSS ENV VARS
 
         final String taskCMD = this.command.getAsString();
-        String hostfile = null;
-        if (this.scaleByCU) {
-            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.workers);
-        } else {
-            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.hostnames);
-            // numBasePythonMpiArgs = numBasePythonMpiArgs + 2; // to add the -x OMP_NUM_THREADS
-        }
 
         // Python interpreter for direct access on stream property calls
         String pythonInterpreter = null;
@@ -161,9 +143,10 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // MPI Flags
         int numMPIFlags = 0;
+        String mpiFlags = this.mpiDef.getMpiFlags();
         String[] mpiflagsArray = null;
-        if (this.mpiFlags == null || this.mpiFlags.isEmpty()) {
-            mpiflagsArray = this.mpiFlags.split(" ");
+        if (mpiFlags == null || mpiFlags.isEmpty()) {
+            mpiflagsArray = mpiFlags.split(" ");
             numMPIFlags = mpiflagsArray.length;
         }
 
@@ -184,11 +167,16 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Prepare command
         String[] cmd = new String[numBasePythonMpiArgs + binaryParams.size()];
-        cmd[0] = this.mpiRunner;
-        cmd[1] = "-hostfile";
-        cmd[2] = hostfile;
+        cmd[0] = this.mpiDef.getMpiRunner();
+        cmd[1] = this.mpiDef.getHostsFlag();
+        try {
+            cmd[2] =
+                this.mpiDef.generateHostsDefinition(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
+        } catch (IOException ioe) {
+            throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
+        }
         cmd[3] = "-n";
-        if (this.scaleByCU) {
+        if (mpiDef.getScaleByCU()) {
             cmd[4] = String.valueOf(this.numWorkers * this.computingUnits);
         } else {
             cmd[4] = String.valueOf(this.numWorkers);
@@ -218,7 +206,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
         cmd[numBasePythonMpiArgs - 2] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker"
             + File.separator + "external" + File.separator + "mpi_executor.py";
 
-        int collectionLayoutNum = this.cls == null ? 0 : this.cls.length;
+        CollectionLayout[] cls = mpiDef.getCollectionLayouts();
+        int collectionLayoutNum = cls == null ? 0 : cls.length;
         StringBuilder collectionLayoutParams = new StringBuilder(" ");
 
         for (CollectionLayout cl : cls) {
@@ -243,8 +232,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = this.context.getThreadOutStream();
             outLog.println("");
-            outLog.println(
-                "[Python MPI INVOKER] Begin MPI call to " + this.declaringclass + "." + this.alternativeMethod);
+            outLog.println("[Python MPI INVOKER] Begin MPI call to " + this.mpiDef.getDeclaringClass() + "."
+                + this.mpiDef.getAlternativeMethodName());
             outLog.println("[Python MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[Python MPI INVOKER] MPI CMD: ");
@@ -257,7 +246,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Launch command
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), pythonPath, this.failByEV);
+            this.context.getThreadErrStream(), pythonPath, this.mpiDef.isFailByEV());
     }
 
     @Override

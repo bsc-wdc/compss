@@ -27,6 +27,7 @@ import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -192,6 +193,42 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         } else {
             // The action is assigned as slave, mark task as failed
             this.task.setStatus(TaskState.FAILED);
+            this.task.decreaseExecutionCount();
+        }
+    }
+
+    @Override
+    protected void doCanceled() {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
+            // The action is assigned as master, release all slaves and perform doCompleted as normal task
+            super.doCanceled();
+        } else {
+            // The action is assigned as slave, mark task as failed
+            this.task.setStatus(TaskState.CANCELED);
+            this.task.decreaseExecutionCount();
+        }
+    }
+
+    @Override
+    protected void doException(COMPSsException e) {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
+            // The action is assigned as master, release all slaves and perform doCompleted as normal task
+            super.doException(e);
+        } else {
+            // The action is assigned as slave, mark task as failed
+            this.task.setStatus(TaskState.FINISHED);
+            this.task.decreaseExecutionCount();
+        }
+    }
+
+    @Override
+    protected void doFailIgnored() {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
+            // The action is assigned as master, release all slaves and perform doCompleted as normal task
+            super.doFailIgnored();
+        } else {
+            // The action is assigned as slave, mark task as failed
+            this.task.setStatus(TaskState.FINISHED);
             this.task.decreaseExecutionCount();
         }
     }

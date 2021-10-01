@@ -27,7 +27,7 @@ import java.io.ObjectOutput;
 import java.util.List;
 
 
-public class PythonMPIDefinition implements AbstractMethodImplementationDefinition {
+public class PythonMPIDefinition extends CommonMPIDefinition implements AbstractMethodImplementationDefinition {
 
     /**
      * Runtime Objects have serialization ID 1L.
@@ -35,14 +35,10 @@ public class PythonMPIDefinition implements AbstractMethodImplementationDefiniti
     private static final long serialVersionUID = 1L;
 
     public static final int NUM_PARAMS = 8;
-
+    private static final String ERROR_MPI_DC = "ERROR: Empty declaring class for Python MPI method";
+    private static final String ERROR_MPI_METHOD = "ERROR: Empty method name for Python MPI method";
     private String declaringClass;
     private String methodName;
-    private String mpiRunner;
-    private String workingDir;
-    private String mpiFlags;
-    private boolean scaleByCU;
-    private boolean failByEV;
     private CollectionLayout[] cls;
 
 
@@ -66,13 +62,9 @@ public class PythonMPIDefinition implements AbstractMethodImplementationDefiniti
      */
     public PythonMPIDefinition(String methodClass, String altMethodName, String workingDir, String mpiRunner,
         String mpiFlags, boolean scaleByCU, boolean failByEV, CollectionLayout[] cls) {
+        super(workingDir, mpiRunner, mpiFlags, scaleByCU, failByEV);
         this.declaringClass = methodClass;
         this.methodName = altMethodName;
-        this.mpiRunner = mpiRunner;
-        this.workingDir = workingDir;
-        this.mpiFlags = mpiFlags;
-        this.scaleByCU = scaleByCU;
-        this.failByEV = failByEV;
         this.cls = cls;
     }
 
@@ -156,51 +148,6 @@ public class PythonMPIDefinition implements AbstractMethodImplementationDefiniti
     }
 
     /**
-     * Returns the binary working directory.
-     *
-     * @return The binary working directory.
-     */
-    public String getWorkingDir() {
-        return this.workingDir;
-    }
-
-    /**
-     * Returns the path to the MPI command.
-     *
-     * @return The path to the MPI command.
-     */
-    public String getMpiRunner() {
-        return this.mpiRunner;
-    }
-
-    /**
-     * Returns the flags for the MPI command.
-     *
-     * @return Flags for the MPI command.
-     */
-    public String getMpiFlags() {
-        return this.mpiFlags;
-    }
-
-    /**
-     * Returns the scale by computing units property.
-     *
-     * @return scale by computing units property value.
-     */
-    public boolean getScaleByCU() {
-        return this.scaleByCU;
-    }
-
-    /**
-     * Check if fail by exit value is enabled.
-     *
-     * @return True is fail by exit value is enabled.
-     */
-    public boolean isFailByEV() {
-        return failByEV;
-    }
-
-    /**
      * Returns the collection layout.
      *
      * @return The collection layout.
@@ -279,6 +226,17 @@ public class PythonMPIDefinition implements AbstractMethodImplementationDefiniti
     @Override
     public TaskType getTaskType() {
         return TaskType.METHOD;
+    }
+
+    @Override
+    public void checkArguments() {
+        super.checkArguments();
+        if (this.declaringClass == null || this.declaringClass.isEmpty()) {
+            throw new IllegalArgumentException(ERROR_MPI_DC);
+        }
+        if (this.methodName == null || this.methodName.isEmpty()) {
+            throw new IllegalArgumentException(ERROR_MPI_METHOD);
+        }
     }
 
 }

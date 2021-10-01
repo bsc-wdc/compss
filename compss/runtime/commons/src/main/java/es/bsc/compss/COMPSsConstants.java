@@ -63,6 +63,7 @@ public class COMPSsConstants {
     public static final String COMPSS_WORKING_DIR = "COMPSS_WORKING_DIR";
     public static final String COMPSS_APP_DIR = "COMPSS_APP_DIR";
     public static final String GAT_LOC = "GAT_LOCATION";
+    public static final String COMPSS_MPIRUN_TYPE = "COMPSS_MPIRUN_TYPE";
 
     /*
      * Component names
@@ -200,6 +201,9 @@ public class COMPSsConstants {
 
     public static final String DEFAULT_CONFIG_DIR =
         System.getenv(COMPSS_HOME) + File.separator + "Runtime" + File.separator + "configuration";
+
+    public static final String MPI_CFGS_PATH =
+        File.separator + "Runtime" + File.separator + "configuration" + File.separator + "mpi" + File.separator;
 
     public static final String DEFAULT_RES_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator
         + "resources" + File.separator + "resource_schema.xsd";

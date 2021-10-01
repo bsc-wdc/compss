@@ -33,6 +33,7 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -41,15 +42,9 @@ public class MPIInvoker extends Invoker {
 
     private static final int NUM_BASE_MPI_ARGS = 6;
 
-    private static final String ERROR_MPI_RUNNER = "ERROR: Invalid mpiRunner";
-    private static final String ERROR_MPI_BINARY = "ERROR: Invalid mpiBinary";
     private static final String ERROR_TARGET_PARAM = "ERROR: MPI Execution doesn't support target parameters";
 
-    private final String mpiRunner;
-    private final String mpiFlags;
-    private final String mpiBinary;
-    private final boolean scaleByCU;
-    private final boolean failByEV;
+    MPIDefinition mpiDef;
 
     private BinaryRunner br;
 
@@ -69,31 +64,23 @@ public class MPIInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        MPIDefinition mpiImpl = null;
         try {
-            mpiImpl = (MPIDefinition) this.invocation.getMethodImplementation().getDefinition();
+            this.mpiDef = (MPIDefinition) this.invocation.getMethodImplementation().getDefinition();
+            this.mpiDef.setRunnerProperties(context.getInstallDir());
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
-
-        // MPI flags
-        this.mpiRunner = mpiImpl.getMpiRunner();
-        this.mpiFlags = mpiImpl.getMpiFlags();
-        this.mpiBinary = mpiImpl.getBinary();
-        this.scaleByCU = mpiImpl.getScaleByCU();
-        this.failByEV = mpiImpl.isFailByEV();
 
         // Internal binary runner
         this.br = null;
     }
 
     private void checkArguments() throws JobExecutionException {
-        if (this.mpiRunner == null || this.mpiRunner.isEmpty()) {
-            throw new JobExecutionException(ERROR_MPI_RUNNER);
-        }
-        if (this.mpiBinary == null || this.mpiBinary.isEmpty()) {
-            throw new JobExecutionException(ERROR_MPI_BINARY);
+        try {
+            mpiDef.checkArguments();
+        } catch (IllegalArgumentException e) {
+            throw new JobExecutionException(e);
         }
         if (this.invocation.getTarget() != null && this.invocation.getTarget().getValue() != null) {
             throw new JobExecutionException(ERROR_TARGET_PARAM);
@@ -104,7 +91,7 @@ public class MPIInvoker extends Invoker {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoked " + this.mpiBinary + " in " + this.context.getHostName());
+        LOGGER.info("Invoked MPI " + this.mpiDef.getBinary() + " in " + this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -161,31 +148,31 @@ public class MPIInvoker extends Invoker {
             this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // Create hostfile
-        String hostfile = null;
+
         int numMPIArgs = NUM_BASE_MPI_ARGS;
-        if (this.scaleByCU) {
-            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.workers);
-        } else {
-            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.hostnames);
-            // numMPIArgs = numMPIArgs + 2; // to add the -x OMP_NUM_THREADS
-        }
 
         // MPI Flags
+        String mpiFlags = mpiDef.getMpiFlags();
         int numMPIFlags = 0;
         String[] mpiflagsArray = null;
-        if (this.mpiFlags != null && !this.mpiFlags.isEmpty() && !this.mpiFlags.equals("[unassigned]")) {
-            mpiflagsArray = this.mpiFlags.split(" ");
+        if (mpiFlags != null && !mpiFlags.isEmpty() && !mpiFlags.equals("[unassigned]")) {
+            mpiflagsArray = mpiFlags.split(" ");
             numMPIFlags = mpiflagsArray.length;
         }
 
         // Prepare command
         String[] cmd = new String[numMPIArgs + numMPIFlags + binaryParams.size()];
         int pos = 0;
-        cmd[pos++] = this.mpiRunner;
-        cmd[pos++] = "-hostfile";
-        cmd[pos++] = hostfile;
+        cmd[pos++] = this.mpiDef.getMpiRunner();
+        cmd[pos++] = this.mpiDef.getHostsFlag();
+        try {
+            cmd[pos++] =
+                this.mpiDef.generateHostsDefinition(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
+        } catch (IOException ioe) {
+            throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
+        }
         cmd[pos++] = "-n";
-        if (this.scaleByCU) {
+        if (this.mpiDef.getScaleByCU()) {
             cmd[pos++] = String.valueOf(this.numWorkers * this.computingUnits);
         } else {
             cmd[pos++] = String.valueOf(this.numWorkers);
@@ -195,7 +182,7 @@ public class MPIInvoker extends Invoker {
             cmd[pos++] = mpiflagsArray[i];
         }
 
-        cmd[pos++] = this.mpiBinary;
+        cmd[pos++] = this.mpiDef.getBinary();
 
         for (int i = 0; i < binaryParams.size(); ++i) {
             cmd[pos++] = binaryParams.get(i);
@@ -205,7 +192,7 @@ public class MPIInvoker extends Invoker {
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
-            outLog.println("[MPI INVOKER] Begin MPI call to " + this.mpiBinary);
+            outLog.println("[MPI INVOKER] Begin MPI call to " + this.mpiDef.getBinary());
             outLog.println("[MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[MPI INVOKER] MPI CMD: ");
@@ -221,7 +208,7 @@ public class MPIInvoker extends Invoker {
         // Launch command
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), null, this.failByEV);
+            this.context.getThreadErrStream(), null, this.mpiDef.isFailByEV());
     }
 
     @Override

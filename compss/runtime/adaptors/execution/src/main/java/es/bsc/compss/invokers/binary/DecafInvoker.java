@@ -34,6 +34,7 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -42,15 +43,9 @@ public class DecafInvoker extends Invoker {
 
     private static final int NUM_BASE_DECAF_ARGS = 11;
 
-    private static final String ERROR_DECAF_RUNNER = "ERROR: Invalid mpiRunner";
-    private static final String ERROR_DECAF_BINARY = "ERROR: Invalid wfScript";
     private static final String ERROR_TARGET_PARAM = "ERROR: MPI Execution doesn't support target parameters";
 
-    private final String mpiRunner;
-    private String dfScript;
-    private String dfExecutor;
-    private String dfLib;
-    private final boolean failByEV;
+    DecafDefinition decafDef;
 
     private BinaryRunner br;
 
@@ -70,19 +65,13 @@ public class DecafInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        DecafDefinition decafImpl = null;
         try {
-            decafImpl = (DecafDefinition) invocation.getMethodImplementation().getDefinition();
+            this.decafDef = (DecafDefinition) invocation.getMethodImplementation().getDefinition();
+            this.decafDef.setRunnerProperties(context.getInstallDir());
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
-
-        this.mpiRunner = decafImpl.getMpiRunner();
-        this.dfScript = decafImpl.getDfScript();
-        this.dfExecutor = decafImpl.getDfExecutor();
-        this.dfLib = decafImpl.getDfLib();
-        this.failByEV = decafImpl.isFailByEV();
 
         // Internal binary runner
         this.br = null;
@@ -92,7 +81,7 @@ public class DecafInvoker extends Invoker {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoked " + this.dfScript + " in " + this.context.getHostName());
+        LOGGER.info("Invoked " + this.decafDef.getDfScript() + " in " + this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -131,24 +120,16 @@ public class DecafInvoker extends Invoker {
     }
 
     private void checkArguments() throws JobExecutionException {
-        if (this.mpiRunner == null || this.mpiRunner.isEmpty()) {
-            throw new JobExecutionException(ERROR_DECAF_RUNNER);
+        try {
+            decafDef.checkArguments();
+        } catch (IllegalArgumentException ie) {
+            throw new JobExecutionException(ie);
         }
-        if (this.dfScript == null || this.dfScript.isEmpty()) {
-            throw new JobExecutionException(ERROR_DECAF_BINARY);
+        String dfScript = this.decafDef.getDfScript();
+        if (!dfScript.startsWith(File.separator)) {
+            this.decafDef.setDfScript(context.getAppDir() + File.separator + dfScript);
         }
-        if (!this.dfScript.startsWith(File.separator)) {
-            this.dfScript = context.getAppDir() + File.separator + this.dfScript;
-        }
-        if (this.dfExecutor == null || this.dfExecutor.isEmpty() || this.dfExecutor.equals(Constants.UNASSIGNED)) {
-            this.dfExecutor = "executor.sh";
-        }
-        if (!this.dfExecutor.startsWith(File.separator) && !this.dfExecutor.startsWith("./")) {
-            this.dfExecutor = "./" + this.dfExecutor;
-        }
-        if (this.dfLib == null || this.dfLib.isEmpty()) {
-            this.dfLib = "null";
-        }
+
         if (invocation.getTarget() != null && this.invocation.getTarget().getValue() != null) {
             throw new JobExecutionException(ERROR_TARGET_PARAM);
         }
@@ -189,18 +170,21 @@ public class DecafInvoker extends Invoker {
         }
         final String dfRunner = this.context.getInstallDir() + DecafDefinition.SCRIPT_PATH;
         cmd[0] = dfRunner;
-        cmd[1] = this.dfScript;
-        cmd[2] = this.dfExecutor;
-        cmd[3] = this.dfLib;
-        cmd[4] = this.mpiRunner;
+        cmd[1] = this.decafDef.getDfScript();
+        cmd[2] = this.decafDef.getDfExecutor();
+        cmd[3] = this.decafDef.getDfLib();
+        cmd[4] = this.decafDef.getMpiRunner();
 
         String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
         cmd[5] = "-n";
         cmd[6] = numProcs;
-
-        String hostfile = writeHostfile(this.taskSandboxWorkingDir, this.workers);
-        cmd[7] = "--hostfile";
-        cmd[8] = hostfile;
+        cmd[7] = this.decafDef.getHostsFlag();
+        try {
+            cmd[8] =
+                this.decafDef.generateHostsDefinition(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
+        } catch (IOException ioe) {
+            throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
+        }
         if (!args.isEmpty()) {
             cmd[9] = "--args=\"";
             cmd[10] = args;
@@ -210,7 +194,7 @@ public class DecafInvoker extends Invoker {
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
-            outLog.println("[DECAF INVOKER] Begin DECAF call to " + this.dfScript);
+            outLog.println("[DECAF INVOKER] Begin DECAF call to " + this.decafDef.getDfScript());
             outLog.println("[DECAF INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[DECAF INVOKER] Decaf CMD: ");
@@ -225,7 +209,7 @@ public class DecafInvoker extends Invoker {
         // Launch command
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), null, this.failByEV);
+            this.context.getThreadErrStream(), null, this.decafDef.isFailByEV());
     }
 
     @Override

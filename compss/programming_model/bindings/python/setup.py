@@ -40,15 +40,20 @@ gcc_debug_flags = [
     '-fsanitize=address',
     '-fstack-protector'
 ]
+
 target_os = os.environ['TARGET_OS']
-if target_os == 'Linux' :
+if target_os == 'Linux':
     include_jdk = os.environ['JAVA_HOME'] + '/include/linux/'
-    os_extra_compile_compss = [ '-fPIC', '-std=c++11']
-elif target_os == 'Darwin' :
+    os_extra_compile_compss = ['-fPIC', '-std=c++11']
+elif target_os == 'Darwin':
     include_jdk = os.environ['JAVA_HOME'] + '/include/darwin/'
-    os_extra_compile_compss = [ '-fPIC', '-DGTEST_USE_OWN_TR1_TUPLE=1']
-else :
-    print("Unsupported OS " + target_os + "(Supported Linux/Darwin)") 
+    os_extra_compile_compss = ['-fPIC', '-DGTEST_USE_OWN_TR1_TUPLE=1']
+else:
+    include_jdk = None
+    os_extra_compile_compss = None
+    print("ERROR: Unsupported OS " + target_os + "(Supported Linux/Darwin)")
+    exit(1)
+
 # Bindings common extension
 compssmodule = Extension(
     'compss',
@@ -62,7 +67,7 @@ compssmodule = Extension(
         '../bindings-common/lib'
     ],
     libraries=['bindings_common'],
-    extra_compile_args = os_extra_compile_compss,
+    extra_compile_args=os_extra_compile_compss,
     sources=['src/ext/compssmodule.cc']
 )
 
@@ -91,12 +96,16 @@ def find_packages(path='./src'):
             ret.append(pkg_name)
     return ret
 
-if target_os == 'Linux' :
+
+if target_os == 'Linux':
     os_modules = [compssmodule, thread_affinity]
-elif target_os == 'Darwin' :
+elif target_os == 'Darwin':
     os_modules = [compssmodule]
-else :
-    print("Unsupported OS " + target_os + "(Supported Linux/Darwin)")
+else:
+    # Unreachable code: will exit in previous if statement.
+    os_modules = None
+    print("ERROR: Unsupported OS " + target_os + "(Supported Linux/Darwin)")
+    exit(1)
 
 # Setup
 setup(

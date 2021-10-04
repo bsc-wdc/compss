@@ -1016,6 +1016,8 @@ class TaskWorker(TaskCommons):
         # type: (int, list, list, bool) -> list
         """ Manage task returns.
 
+        WARNING: Modifies ret_params, which is included into args.
+
         :param num_returns: Number of returns.
         :param user_returns: User returns.
         :param ret_params: Return parameters.
@@ -1035,6 +1037,9 @@ class TaskWorker(TaskCommons):
             # Note that we are implicitly assuming that the length of the user
             # returns matches the number of return parameters
             for (obj, param) in zip(user_returns, ret_params):
+                # Store the object int ret_params (included in args)
+                param.content = obj
+                param.direction = parameter.DIRECTION.OUT
                 # If the object is a PSCO, do not serialize to file
                 if param.content_type == parameter.TYPE.EXTERNAL_PSCO \
                         or is_psco(obj):

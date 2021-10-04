@@ -100,8 +100,8 @@ class TaskWorker(object):
                          defaults)
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
-        self.param_args = []  # type: typing.List[typing.Any]
-        self.param_varargs = None  # type: typing.Any
+        self.param_args = []         # type: typing.List[typing.Any]
+        self.param_varargs = None    # type: typing.Any
         self.on_failure = on_failure
         self.defaults = defaults
 
@@ -308,9 +308,9 @@ class TaskWorker(object):
         except ImportError:
             logger.warning("Could NOT import Guppy.")
         else:
-            hpy = guppy.hpy()
             if __debug__:
-                logger.debug(hpy.heap())
+                logger.debug(guppy.hpy().heap())
+            pass
 
     def reveal_objects(self,
                        args,                 # type: tuple

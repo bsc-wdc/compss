@@ -37,6 +37,12 @@ class TimeIt(object):
 
     def __call__(self, f):
         # type: (typing.Any) -> typing.Any
+        """ Elapsed time decorator.
+
+        :param f: Function to be time measured (can be a decorated function,
+                  usually with @task decorator).
+        :return: the decorator wrapper.
+        """
 
         @wraps(f)
         def wrapped_f(*args, **kwargs):

@@ -66,6 +66,14 @@ MANAGEMENT_FAIL = "FAIL"
 KERNEL = "kernel"
 CHUNK_SIZE = "chunk_size"
 IS_REDUCE = "is_reduce"
+# Http tasks
+SERVICE_NAME = "service_name"
+RESOURCE = "resource"
+REQUEST = "request"
+PAYLOAD = "payload"
+PAYLOAD_TYPE = "payload_type"
+PRODUCES = "produces"
+UPDATES = "updates"
 
 # Legacy labels
 LEGACY_IS_REPLICATED = "isReplicated"

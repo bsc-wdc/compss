@@ -302,8 +302,8 @@ class Task(object):
                     message = "".join(("WARNING: Calling task: ",
                                        str(user_function.__name__),
                                        " from this task.\n",
-                                       "         It will be executed sequentially ",  # noqa: E501
-                                       "within the caller task."))
+                                       "         It will be executed ",
+                                       "sequentially within the caller task."))
                     print(message, file=sys.stderr)
                     return self._sequential_call(*args, **kwargs)
         # We are neither in master nor in the worker, or the user has

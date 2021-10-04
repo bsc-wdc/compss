@@ -74,14 +74,14 @@ object_conversion = False
 # ############ FUNCTIONS THAT COMMUNICATE WITH THE RUNTIME ################## #
 # ########################################################################### #
 
-def start_runtime(log_level='off', tracing=0, interactive=False):
+def start_runtime(log_level="off", tracing=0, interactive=False):
     # type: (str, int, bool) -> None
     """ Starts the COMPSs runtime.
 
     Starts the runtime by calling the external python library that calls
     the bindings-common.
 
-    :param log_level: Log level [ 'trace' | 'debug' | 'info' | 'api' | 'off' ].
+    :param log_level: Log level [ "trace" | "debug" | "info" | "api" | "off" ].
     :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
@@ -99,8 +99,8 @@ def start_runtime(log_level='off', tracing=0, interactive=False):
         else:
             COMPSs.load_runtime(external_process=False)
 
-        if log_level == 'trace':
-            # Could also be 'debug' or True, but we only show the C extension
+        if log_level == "trace":
+            # Could also be "debug" or True, but we only show the C extension
             # debug in the maximum tracing level.
             COMPSs.set_debug(True)
             OT.enable_report()
@@ -220,7 +220,7 @@ def delete_file(file_name):
         app_id = 0
         if __debug__:
             logger.debug("Deleting file %s" % file_name)
-        result = COMPSs.delete_file(app_id, file_name, True) == 'true'
+        result = COMPSs.delete_file(app_id, file_name, True) == "true"
         if __debug__:
             if result:
                 logger.debug("File %s successfully deleted." % file_name)
@@ -569,12 +569,12 @@ def register_ce(core_element):  # noqa
 
     Core Element fields:
 
-    ce_signature: <String> Core Element signature  (e.g.- 'methodClass.methodName')  # noqa: E501
-    impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')  # noqa: E501
-    impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')  # noqa: E501
-    impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')  # noqa: E501
+    ce_signature: <String> Core Element signature  (e.g.- "methodClass.methodName")                 # noqa: E501
+    impl_signature: <String> Implementation signature (e.g.- "methodClass.methodName")              # noqa: E501
+    impl_constraints: <Dict> Implementation constraints (e.g.- "{ComputingUnits:2}")                # noqa: E501
+    impl_type: <String> Implementation type ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")      # noqa: E501
     impl_io: <String> IO Implementation
-    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa: E501
+    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ["methodClass", "methodName"])  # noqa: E501
 
     :param core_element: <CE> Core Element to register.
     :return: None
@@ -712,15 +712,15 @@ def process_task(signature,             # type: str
         app_id = 0
         if __debug__:
             # Log the task submission values for debugging purposes.
-            values_str = ' '.join(str(v) for v in values)
-            types_str = ' '.join(str(t) for t in compss_types)
-            direct_str = ' '.join(str(d) for d in compss_directions)
-            streams_str = ' '.join(str(s) for s in compss_streams)
-            prefixes_str = ' '.join(str(p) for p in compss_prefixes)
-            names_str = ' '.join(x for x in names)
-            ct_str = ' '.join(str(x) for x in content_types)
-            weights_str = ' '.join(str(x) for x in weights)
-            keep_renames_str = ' '.join(str(x) for x in keep_renames)
+            values_str = " ".join(str(v) for v in values)
+            types_str = " ".join(str(t) for t in compss_types)
+            direct_str = " ".join(str(d) for d in compss_directions)
+            streams_str = " ".join(str(s) for s in compss_streams)
+            prefixes_str = " ".join(str(p) for p in compss_prefixes)
+            names_str = " ".join(x for x in names)
+            ct_str = " ".join(str(x) for x in content_types)
+            weights_str = " ".join(str(x) for x in weights)
+            keep_renames_str = " ".join(str(x) for x in keep_renames)
             logger.debug("Processing task:")
             logger.debug("\t- App id: " + str(app_id))
             logger.debug("\t- Signature: " + signature)

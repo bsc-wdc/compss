@@ -1707,7 +1707,7 @@ class TaskMaster(object):
             # Check if the object is small in order not to serialize it.
             if get_object_conversion():
                 p, written_bytes = self._convert_parameter_obj_to_string(p,
-                                                                         max_obj_arg_size,  # noqa: E501
+                                                                         max_obj_arg_size,     # noqa: E501
                                                                          policy="objectSize")  # noqa: E501
                 max_obj_arg_size -= written_bytes
             else:

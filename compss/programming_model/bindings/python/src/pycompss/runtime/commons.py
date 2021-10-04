@@ -38,47 +38,47 @@ EMPTY_STRING_KEY = "3mPtY57r1Ng"
 # Coding/decoding escape
 # Global python 3 variable
 if sys.version_info >= (3, 0):
-    STR_ESCAPE = 'unicode_escape'
+    STR_ESCAPE = "unicode_escape"
     IS_PYTHON3 = True
     LIST_TYPE = list
     DICT_TYPE = dict
 else:
     import types
-    STR_ESCAPE = 'string_escape'
+    STR_ESCAPE = "string_escape"
     IS_PYTHON3 = False
     LIST_TYPE = types.ListType  # noqa
     DICT_TYPE = types.DictType  # noqa
 
 # Determine the environment
-ENVIRONMENT = 'terminal'
+ENVIRONMENT = "terminal"
 IS_INTERACTIVE = False
 try:
     from IPython import get_ipython  # noqa
     ipy_str = str(type(get_ipython()))
-    if 'zmqshell' in ipy_str:
-        ENVIRONMENT = 'jupyter'
+    if "zmqshell" in ipy_str:
+        ENVIRONMENT = "jupyter"
         IS_INTERACTIVE = True
-    if 'terminal' in ipy_str:
-        ENVIRONMENT = 'ipython'
+    if "terminal" in ipy_str:
+        ENVIRONMENT = "ipython"
         IS_INTERACTIVE = True
 except ImportError:
-    ENVIRONMENT = 'terminal'
+    ENVIRONMENT = "terminal"
     IS_INTERACTIVE = False
 
 # Determine if running in a supercomputer
 RUNNING_IN_SUPERCOMPUTER = False
-if 'BSC_MACHINE' in os.environ and os.environ['BSC_MACHINE'] == 'mn4':
+if "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4":
     # Only supported in MN4 currently
     RUNNING_IN_SUPERCOMPUTER = True
 
 # Tracing hook environment variable
-TRACING_HOOK_ENV_VAR = 'COMPSS_TRACING_HOOK'
+TRACING_HOOK_ENV_VAR = "COMPSS_TRACING_HOOK"
 
 # Extra content type format
 EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
 
 # Interactive mode file name
-INTERACTIVE_FILE_NAME = 'InteractiveMode'
+INTERACTIVE_FILE_NAME = "InteractiveMode"
 
 # LONG DEFAULTS
 DEFAULT_SCHED = "es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
@@ -94,10 +94,10 @@ DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
 ###############################################
 
 # Set temporary dir
-_TEMP_DIR = ''
-_TEMP_DIR_PREFIX = 'pycompss'
-_TEMP_DIR_FOLDER = 'tmpFiles/'
-_TEMP_OBJ_PREFIX = '/compss-serialized-obj_'
+_TEMP_DIR = ""
+_TEMP_DIR_PREFIX = "pycompss"
+_TEMP_DIR_FOLDER = "tmpFiles/"
+_TEMP_OBJ_PREFIX = "/compss-serialized-obj_"
 
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)

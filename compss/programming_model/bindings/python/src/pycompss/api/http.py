@@ -26,22 +26,31 @@ PyCOMPSs API - HTTP
 import typing
 from functools import wraps
 import pycompss.util.context as context
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.constants import SERVICE_NAME
+from pycompss.api.commons.constants import RESOURCE
+from pycompss.api.commons.constants import REQUEST
+from pycompss.api.commons.constants import PAYLOAD
+from pycompss.api.commons.constants import PAYLOAD_TYPE
+from pycompss.api.commons.constants import PRODUCES
+from pycompss.api.commons.constants import UPDATES
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
-from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.serialization import serializer
 
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'service_name', 'resource', 'request'}
-SUPPORTED_ARGUMENTS = {'payload', 'payload_type',  'produces', 'updates'}
+MANDATORY_ARGUMENTS = {SERVICE_NAME,
+                       RESOURCE,
+                       REQUEST}
+SUPPORTED_ARGUMENTS = {PAYLOAD,
+                       PAYLOAD_TYPE,
+                       PRODUCES,
+                       UPDATES}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
@@ -141,13 +150,13 @@ class HTTP(object):
         if __debug__:
             logger.debug("Configuring @http core element.")
         impl_type = "HTTP"
-        impl_args = [self.kwargs['service_name'],
-                     self.kwargs['resource'],
-                     self.kwargs['request'],
-                     self.kwargs.get('payload', "#"),
-                     self.kwargs.get('payload_type', "application/json"),
-                     self.kwargs.get('produces', "#"),
-                     self.kwargs.get('updates', "#")]
+        impl_args = [self.kwargs["service_name"],
+                     self.kwargs["resource"],
+                     self.kwargs["request"],
+                     self.kwargs.get("payload", '#'),
+                     self.kwargs.get("payload_type", "application/json"),
+                     self.kwargs.get("produces", '#'),
+                     self.kwargs.get("updates", '#')]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -168,7 +177,7 @@ class HTTP(object):
 
 
 # ########################################################################### #
-# ##################### HTTP DECORATOR ALTERNATIVE NAME ###################### #
+# ##################### HTTP DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
 http = HTTP

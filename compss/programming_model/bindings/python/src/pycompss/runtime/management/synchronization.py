@@ -23,7 +23,6 @@ PyCOMPSs Binding - Management - Object Synchronization
     This file contains the object synchronization core methods.
 """
 
-import logging
 import typing
 
 import pycompss.runtime.management.COMPSs as COMPSs
@@ -38,7 +37,9 @@ from pycompss.runtime.commons import LIST_TYPE
 from pycompss.runtime.commons import DICT_TYPE
 
 # Setup logger
-logger = logging.getLogger(__name__)
+if __debug__:
+    import logging
+    logger = logging.getLogger(__name__)
 
 
 def wait_on_object(obj, mode):

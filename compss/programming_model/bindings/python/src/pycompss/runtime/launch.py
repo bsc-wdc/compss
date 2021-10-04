@@ -127,8 +127,8 @@ def parse_arguments():
     """
     parser = argparse.ArgumentParser(
         description="PyCOMPSs application launcher")
-    parser.add_argument('wall_clock',
-                        help='Application Wall Clock limit [wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]')  # noqa: E501
+    parser.add_argument("wall_clock",
+                        help="Application Wall Clock limit [wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]")  # noqa: E501
     parser.add_argument("log_level",
                         help="Logging level [trace|debug|api|info|off]")
     parser.add_argument("tracing",
@@ -171,7 +171,7 @@ def __load_user_module__(app_path, log_level):
         # This exception can be produce for example with applications
         # that have code replacer and have imports to code that does not
         # exist (e.g. using autoparallel)
-        if log_level != 'off':
+        if log_level != "off":
             print("WARNING: Could not load the application (this may be the cause of a running exception.")  # noqa: E501
 
 
@@ -282,8 +282,8 @@ def compss_main():
     exit_code = 0
     try:
         if __debug__:
-            LOGGER.debug('--- START ---')
-            LOGGER.debug('PyCOMPSs Log path: %s' % binding_log_path)
+            LOGGER.debug("--- START ---")
+            LOGGER.debug("PyCOMPSs Log path: %s" % binding_log_path)
 
         # Start persistent storage
         PERSISTENT_STORAGE = master_init_storage(storage_conf, LOGGER)
@@ -308,7 +308,7 @@ def compss_main():
 
         # End
         if __debug__:
-            LOGGER.debug('--- END ---')
+            LOGGER.debug("--- END ---")
     except SystemExit as e:  # NOSONAR - reraising would not allow to stop the runtime gracefully.
         if e.code != 0:
             print("[ ERROR ]: User program ended with exitcode %s." % e.code)

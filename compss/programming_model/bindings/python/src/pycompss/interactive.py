@@ -385,7 +385,7 @@ def start(log_level="off",                     # type: str
     create_init_config_file(**all_vars)
 
     # Start the event manager (ipython hooks)
-    ipython = globals()['__builtins__']['get_ipython']()
+    ipython = globals()["__builtins__"]["get_ipython"]()
     setup_event_manager(ipython)
 
     ##############################################################
@@ -499,7 +499,7 @@ def stop(sync=False, _hard_stop=False):
     :return: None
     """
     logger = logging.getLogger(__name__)
-    ipython = globals()['__builtins__']['get_ipython']()
+    ipython = globals()["__builtins__"]["get_ipython"]()
 
     if not context.in_pycompss():
         return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
@@ -517,7 +517,7 @@ def stop(sync=False, _hard_stop=False):
     messages = STDW.get_messages()
     if messages:
         for message in messages:
-            sys.stderr.write("".join((message, '\n')))
+            sys.stderr.write("".join((message, "\n")))
 
     # Uncomment the following lines to see the ipython dictionary
     # in a structured way:
@@ -528,9 +528,9 @@ def stop(sync=False, _hard_stop=False):
         print(sync_msg)
         logger.debug(sync_msg)
         from pycompss.api.api import compss_wait_on
-        reserved_names = ('quit', 'exit', 'get_ipython',
-                          'APP_PATH', 'ipycompss', 'In', 'Out')
-        raw_code = ipython.__dict__['user_ns']
+        reserved_names = ("quit", "exit", "get_ipython",
+                          "APP_PATH", "ipycompss", "In", "Out")
+        raw_code = ipython.__dict__["user_ns"]
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith('_'):   # not internal objects
@@ -542,7 +542,7 @@ def stop(sync=False, _hard_stop=False):
                         print("\t - Could not retrieve object: %s" % str(k))
                         logger.debug("\t - Could not retrieve object: %s" % str(k))
                     else:
-                        ipython.__dict__['user_ns'][k] = new_obj_k
+                        ipython.__dict__["user_ns"][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
                         if OT.is_pending_to_synchronize(obj_k):

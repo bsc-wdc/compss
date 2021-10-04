@@ -470,12 +470,12 @@ class ObjectTracker(object):
         :return: None
         """
         logger.debug("Object tracker status: " +
-                    " File_names=" + str(len(self.file_names)) +
-                    " Pending_to_synchronize=" + str(len(self.pending_to_synchronize)) +  # noqa: E501
-                    " Written_objs=" + str(len(self.written_objects)) +
-                    " Obj_id_to_obj=" + str(len(self.obj_id_to_obj)) +
-                    " Address_to_obj_id=" + str(len(self.address_to_obj_id)) +
-                    " Current_id=" + str(self.current_id))
+                     " File_names=" + str(len(self.file_names)) +
+                     " Pending_to_synchronize=" + str(len(self.pending_to_synchronize)) +  # noqa: E501
+                     " Written_objs=" + str(len(self.written_objects)) +
+                     " Obj_id_to_obj=" + str(len(self.obj_id_to_obj)) +
+                     " Address_to_obj_id=" + str(len(self.address_to_obj_id)) +
+                     " Current_id=" + str(self.current_id))
 
     def __update_report__(self, first=False):
         # type: (bool) -> None

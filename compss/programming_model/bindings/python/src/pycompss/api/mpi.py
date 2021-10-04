@@ -79,8 +79,6 @@ class Mpi(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    # __slots__ = ['task_type', 'decorator_name']
-
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
@@ -140,7 +138,7 @@ class Mpi(object):
             # execution performs as parallel.
             # To disable: raise Exception(not_in_pycompss("mpi"))
             # TODO: Intercept @task parameters to get stream redirection
-            if 'binary' in self.kwargs:
+            if "binary" in self.kwargs:
                 return self.__run_mpi__(args, kwargs)
             else:
                 print("WARN: Python MPI as dummy is not fully supported. Executing decorated funtion.")
@@ -160,19 +158,19 @@ class Mpi(object):
         # WARNING: processes can be an int, a env string, a str with
         #          dynamic variable name.
         if "processes" in self.kwargs:
-            kwargs['computing_nodes'] = self.kwargs['processes']
+            kwargs["computing_nodes"] = self.kwargs["processes"]
         else:
             # If processes not defined, check computing_units or set default
             process_computing_nodes(self.decorator_name, self.kwargs)
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
         if "processes_per_node" in self.kwargs:
-            kwargs['processes_per_node'] = self.kwargs['processes_per_node']
+            kwargs["processes_per_node"] = self.kwargs["processes_per_node"]
         else:
-            kwargs['processes_per_node'] = 1
+            kwargs["processes_per_node"] = 1
         if __debug__:
             logger.debug("This MPI task will have " +
-                         str(kwargs['computing_nodes']) + " processes and " +
-                         str(kwargs['processes_per_node']) + " processes per node.")
+                         str(kwargs["computing_nodes"]) + " processes and " +
+                         str(kwargs["processes_per_node"]) + " processes per node.")
 
         if self.task_type == IMPL_PYTHON_MPI:
             prepend_strings = True

@@ -44,30 +44,30 @@ OUT_QUEUE = new_queue()
 RELOAD = False
 
 # Queue messages
-START = 'START'
-SET_DEBUG = 'SET_DEBUG'
-STOP = 'STOP'
-CANCEL_TASKS = 'CANCEL_TASKS'
-ACCESSED_FILE = 'ACCESSED_FILE'
-OPEN_FILE = 'OPEN_FILE'
-CLOSE_FILE = 'CLOSE_FILE'
-DELETE_FILE = 'DELETE_FILE'
-GET_FILE = 'GET_FILE'
-GET_DIRECTORY = 'GET_DIRECTORY'
-BARRIER = 'BARRIER'
-BARRIER_GROUP = 'BARRIER_GROUP'
-OPEN_TASK_GROUP = 'OPEN_TASK_GROUP'
-CLOSE_TASK_GROUP = 'CLOSE_TASK_GROUP'
-GET_LOGGING_PATH = 'GET_LOGGING_PATH'
-GET_NUMBER_OF_RESOURCES = 'GET_NUMBER_OF_RESOURCES'
-REQUEST_RESOURCES = 'REQUEST_RESOURCES'
-FREE_RESOURCES = 'FREE_RESOURCES'
-REGISTER_CORE_ELEMENT = 'REGISTER_CORE_ELEMENT'
-PROCESS_HTTP_TASK = 'PROCESS_HTTP_TASK'
-PROCESS_TASK = 'PROCESS_TASK'
-SET_PIPES = 'SET_PIPES'
-READ_PIPES = 'READ_PIPES'
-SET_WALL_CLOCK = 'SET_WALL_CLOCK'
+START = "START"
+SET_DEBUG = "SET_DEBUG"
+STOP = "STOP"
+CANCEL_TASKS = "CANCEL_TASKS"
+ACCESSED_FILE = "ACCESSED_FILE"
+OPEN_FILE = "OPEN_FILE"
+CLOSE_FILE = "CLOSE_FILE"
+DELETE_FILE = "DELETE_FILE"
+GET_FILE = "GET_FILE"
+GET_DIRECTORY = "GET_DIRECTORY"
+BARRIER = "BARRIER"
+BARRIER_GROUP = "BARRIER_GROUP"
+OPEN_TASK_GROUP = "OPEN_TASK_GROUP"
+CLOSE_TASK_GROUP = "CLOSE_TASK_GROUP"
+GET_LOGGING_PATH = "GET_LOGGING_PATH"
+GET_NUMBER_OF_RESOURCES = "GET_NUMBER_OF_RESOURCES"
+REQUEST_RESOURCES = "REQUEST_RESOURCES"
+FREE_RESOURCES = "FREE_RESOURCES"
+REGISTER_CORE_ELEMENT = "REGISTER_CORE_ELEMENT"
+PROCESS_HTTP_TASK = "PROCESS_HTTP_TASK"
+PROCESS_TASK = "PROCESS_TASK"
+SET_PIPES = "SET_PIPES"
+READ_PIPES = "READ_PIPES"
+SET_WALL_CLOCK = "SET_WALL_CLOCK"
 
 if __debug__:
     import logging
@@ -438,7 +438,7 @@ class COMPSs(object):
                      content_types,      # type: list
                      weights,            # type: list
                      keep_renames        # type: list
-                     ):
+                     ):                  # type: (...) -> None
         IN_QUEUE.put((PROCESS_TASK,
                       app_id,
                       signature,
@@ -491,8 +491,7 @@ class COMPSs(object):
                           distributed,          # type: bool
                           on_failure,           # type: str
                           time_out,             # type: int
-                          ):  # NOSONAR
-        # type: (...) -> None
+                          ):                    # type: (...) -> None
         IN_QUEUE.put((PROCESS_HTTP_TASK,
                       app_id,
                       service_name,

@@ -40,8 +40,8 @@ class Task(object):
         # type: (typing.Any) -> typing.Any
         def wrapped_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
-            if 'returns' in kwargs:
-                kwargs.pop('returns')
+            if "returns" in kwargs:
+                kwargs.pop("returns")
             return f(*args, **kwargs)
 
         return wrapped_f

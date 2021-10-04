@@ -85,6 +85,7 @@ from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.interactive.helpers import update_tasks_code_file
+from pycompss.util.serialization import serializer
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.objects.properties import get_module_name
@@ -390,6 +391,8 @@ class TaskMaster(TaskCommons):
 
         # Infer COMPSs types from real types, except for files
         self._serialize_objects()
+        # todo: should it go somewhere else?
+        serializer.FORCED_SERIALIZER = -1   # reset the forced serializer
 
         # Build values and COMPSs types and directions
         with event(BUILD_COMPSS_TYPES_DIRECTIONS, master=True):

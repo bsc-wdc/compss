@@ -32,6 +32,7 @@ from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.serialization import serializer
 
 
 if __debug__:
@@ -91,6 +92,8 @@ class HTTP(PyCOMPSsDecorator):
         return http_f
 
     def __decorator_body__(self, user_function, args, kwargs):
+        # force to serialize with JSON
+        serializer.FORCED_SERIALIZER = 4
         if not self.scope:
             # run http
             self.__run_http__(args, kwargs)

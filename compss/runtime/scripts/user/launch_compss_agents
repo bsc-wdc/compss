@@ -711,45 +711,25 @@ check_args() {
 
   if [ -z "${python_worker_cache}" ]; then
     python_worker_cache=${DEFAULT_PYTHON_WORKER_CACHE}
-  else
+  fi
 
   if [ -z "${python_cache_profiler}" ]; then
     python_cache_profiler=${DEFAULT_PYTHON_CACHE_PROFILER}
-  else
-
-    # Check python version >= 3.8
-    cache_supported=$($python_interpreter -c"import sys; print('true' if sys.version_info >= (3, 8) else 'false')")
-    if [ "$python_worker_cache" = "false" ]; then
+  fi
+  
+  cache_supported=$($python_interpreter -c "import sys; print('true' if sys.version_info >= (3, 8) else 'false')")
+  if [ "${cache_supported}" == "false" ]; then
+    if [ "${python_worker_cache}" == "true" ]  || [ "${python_cache_profiler}" == "true" ]; then
+      echo "WARNING: Can not enable python worker cache."
       python_worker_cache="false"
-    elif [ "$python_worker_cache" = "true" ]; then
-      if [ "$cache_supported" = "true" ]; then
-        python_worker_cache="true"
-      else
-        echo "WARNING: Can not enable python worker cache."
-        python_worker_cache="false"
-      fi
-    else
-      # size
-      if [ "$cache_supported" = "true" ]; then
-        python_worker_cache="$python_worker_cache"
-      else
-        echo "WARNING: Can not enable python worker cache."
-        python_worker_cache="false"
-      fi
+      python_cache_profiler="false"
     fi
   fi
 
-    # Check python version >= 3.8
-    cache_supported=$($python_interpreter -c"import sys; print('true' if sys.version_info >= (3, 8) else 'false')")
-    if [ "$python_cache_profiler" = "false" ]; then
+  if [ "${python_cache_profiler}" == "true" ]; then
+    if [ "${python_worker_cache}" == "false" ]; then
       python_cache_profiler="false"
-    elif [ "$python_cache_profiler" = "true" ]; then
-      if [ "$cache_supported" = "true" ]; then
-        python_cache_profiler="true"
-      else
-        echo "WARNING: Can not enable python worker cache."
-        python_cache_profiler="false"
-      fi
+    fi
   fi
 
   if [ -z "${scheduler}" ]; then

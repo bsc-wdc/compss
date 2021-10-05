@@ -109,85 +109,85 @@ public enum TraceEvent {
     TASK_TIMEOUT(58, Tracer.RUNTIME_EVENTS, "Timer: Task timed out"), // Task timeout
 
     // Python Events Inside Worker
-    WORKER_RUNNING(1, Tracer.INSIDE_WORKER_TYPE, "Worker running"), // Worker running
+    WORKER_RUNNING(1, Tracer.BINDING_INSIDE_WORKER_TYPE, "Worker running"), // Worker running
 
-    PROCESS_TASK_PYTHON(2, Tracer.INSIDE_WORKER_TYPE, "Process task"), // Process python task
-    PROCESS_PING_PYTHON(3, Tracer.INSIDE_WORKER_TYPE, "Process ping"), // Process python ping
-    PROCESS_QUIT_PYTHON(4, Tracer.INSIDE_WORKER_TYPE, "Process quit"), // Process python quit
+    PROCESS_TASK_PYTHON(2, Tracer.BINDING_INSIDE_WORKER_TYPE, "Process task"), // Process python task
+    PROCESS_PING_PYTHON(3, Tracer.BINDING_INSIDE_WORKER_TYPE, "Process ping"), // Process python ping
+    PROCESS_QUIT_PYTHON(4, Tracer.BINDING_INSIDE_WORKER_TYPE, "Process quit"), // Process python quit
 
-    INIT_STORAGE(5, Tracer.INSIDE_WORKER_TYPE, "Init storage"), // Init storage
-    STOP_STORAGE(6, Tracer.INSIDE_WORKER_TYPE, "Stop storage"), // Stop storage
-    INIT_STORAGE_WORKER(7, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker"), // Init storage at worker
-    STOP_STORAGE_WORKER(8, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker"), // Stop storage at worker
-    INIT_STORAGE_WORKER_PROCESS(9, Tracer.INSIDE_WORKER_TYPE, "Init storage at worker process"), // Init storage py
-    STOP_STORAGE_WORKER_PROCESS(10, Tracer.INSIDE_WORKER_TYPE, "Stop storage at worker process"), // Stop storage py
+    INIT_STORAGE(5, Tracer.BINDING_INSIDE_WORKER_TYPE, "Init storage"), // Init storage
+    STOP_STORAGE(6, Tracer.BINDING_INSIDE_WORKER_TYPE, "Stop storage"), // Stop storage
+    INIT_STORAGE_WORKER(7, Tracer.BINDING_INSIDE_WORKER_TYPE, "Init storage at worker"), // Init storage at worker
+    STOP_STORAGE_WORKER(8, Tracer.BINDING_INSIDE_WORKER_TYPE, "Stop storage at worker"), // Stop storage at worker
+    INIT_STORAGE_WORKER_PROCESS(9, Tracer.BINDING_INSIDE_WORKER_TYPE, "Init storage at worker process"),
+    STOP_STORAGE_WORKER_PROCESS(10, Tracer.BINDING_INSIDE_WORKER_TYPE, "Stop storage at worker process"),
 
     // Python Events Inside Tasks
-    CPU_BINDING_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "CPU binding"), // CPU binding
-    GPU_BINDING_PYTHON(2, Tracer.INSIDE_TASKS_TYPE, "GPU binding"), // GPU binding
-    SETUP_ENVIRONMENT_PYTHON(3, Tracer.INSIDE_TASKS_TYPE, "Setup environment variables"), // Setup environment
-    GET_TASK_PARAMETERS(4, Tracer.INSIDE_TASKS_TYPE, "Get parameters"), // Get task parameters
-    IMPORT_USER_MODULE(5, Tracer.INSIDE_TASKS_TYPE, "Import user module"), // Import user module
-    EXECUTE_USER_CODE_PYTHON(6, Tracer.INSIDE_TASKS_TYPE, "User code"), // User code execution
-    DESERIALIZE_STRING_PYTHON(7, Tracer.INSIDE_TASKS_TYPE, "Deserializing string"), // Deserialize from string
-    DESERIALIZE_OBJECT_PYTHON(8, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize from file
-    SERIALIZE_OBJECT_PYTHON(9, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize to file
-    SERIALIZE_MPIENV_PYTHON(10, Tracer.INSIDE_TASKS_TYPE, "Serializing object MPI env"), // Serialize to file mpienv
-    BUILD_SUCCESS_MESSAGE(11, Tracer.INSIDE_TASKS_TYPE, "Build success message"), // Build successful message
-    BUILD_COMPSS_EXCEPTION_MESSAGE(12, Tracer.INSIDE_TASKS_TYPE, "Build COMPSs exception message"),
-    BUILD_EXCEPTION_MESSAGE(13, Tracer.INSIDE_TASKS_TYPE, "Build exception message"), // Build exception message
-    CLEAN_ENVIRONMENT_PYTHON(14, Tracer.INSIDE_TASKS_TYPE, "Clean environment"), // Clean environment
+    CPU_BINDING_PYTHON(1, Tracer.BINDING_INSIDE_TASKS_TYPE, "CPU binding"), // CPU binding
+    GPU_BINDING_PYTHON(2, Tracer.BINDING_INSIDE_TASKS_TYPE, "GPU binding"), // GPU binding
+    SETUP_ENVIRONMENT_PYTHON(3, Tracer.BINDING_INSIDE_TASKS_TYPE, "Setup environment variables"), // Setup environment
+    GET_TASK_PARAMETERS(4, Tracer.BINDING_INSIDE_TASKS_TYPE, "Get parameters"), // Get task parameters
+    IMPORT_USER_MODULE(5, Tracer.BINDING_INSIDE_TASKS_TYPE, "Import user module"), // Import user module
+    EXECUTE_USER_CODE_PYTHON(6, Tracer.BINDING_INSIDE_TASKS_TYPE, "User code"), // User code execution
+    DESERIALIZE_STRING_PYTHON(7, Tracer.BINDING_INSIDE_TASKS_TYPE, "Deserializing string"), // Deserialize from string
+    DESERIALIZE_OBJECT_PYTHON(8, Tracer.BINDING_INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize from file
+    SERIALIZE_OBJECT_PYTHON(9, Tracer.BINDING_INSIDE_TASKS_TYPE, "Serializing object"), // Serialize to file
+    SERIALIZE_MPIENV_PYTHON(10, Tracer.BINDING_INSIDE_TASKS_TYPE, "Serializing object MPI env"),
+    BUILD_SUCCESS_MESSAGE(11, Tracer.BINDING_INSIDE_TASKS_TYPE, "Build success message"), // Build successful message
+    BUILD_COMPSS_EXCEPTION_MESSAGE(12, Tracer.BINDING_INSIDE_TASKS_TYPE, "Build COMPSs exception message"),
+    BUILD_EXCEPTION_MESSAGE(13, Tracer.BINDING_INSIDE_TASKS_TYPE, "Build exception message"), // Build exception message
+    CLEAN_ENVIRONMENT_PYTHON(14, Tracer.BINDING_INSIDE_TASKS_TYPE, "Clean environment"), // Clean environment
 
-    GET_BY_ID(15, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
-    GET_ID(16, Tracer.INSIDE_TASKS_TYPE, "Get object ID"), // GetID
-    MAKE_PERSISTENT(17, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
-    DELETE_PERSISTENT(18, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
-    RETRIEVE_OBJECT_INTO_CACHE(19, Tracer.INSIDE_TASKS_TYPE, "Get object from cache"), // Get from cache
-    INSERT_OBJECT_INTO_CACHE(20, Tracer.INSIDE_TASKS_TYPE, "Put object in cache"), // Put in cache
-    REMOVE_OBJECT_FROM_CACHE(21, Tracer.INSIDE_TASKS_TYPE, "Remove object from cache"), // Remove from cache
+    GET_BY_ID(15, Tracer.BINDING_INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
+    GET_ID(16, Tracer.BINDING_INSIDE_TASKS_TYPE, "Get object ID"), // GetID
+    MAKE_PERSISTENT(17, Tracer.BINDING_INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
+    DELETE_PERSISTENT(18, Tracer.BINDING_INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+    RETRIEVE_OBJECT_INTO_CACHE(19, Tracer.BINDING_INSIDE_TASKS_TYPE, "Get object from cache"), // Get from cache
+    INSERT_OBJECT_INTO_CACHE(20, Tracer.BINDING_INSIDE_TASKS_TYPE, "Put object in cache"), // Put in cache
+    REMOVE_OBJECT_FROM_CACHE(21, Tracer.BINDING_INSIDE_TASKS_TYPE, "Remove object from cache"), // Remove from cache
 
-    TASK_INSTANTIATION_PYTHON(25, Tracer.INSIDE_TASKS_TYPE, "Task instantiation"), // Task instantiation
+    TASK_INSTANTIATION_PYTHON(25, Tracer.BINDING_INSIDE_TASKS_TYPE, "Task instantiation"), // Task instantiation
 
     // Python Master Events
-    PYTHON_START_RUNTIME(1001, Tracer.BINDING_MASTER_TYPE, "Start runtime"), // Start runtime
-    PYTHON_STOP_RUNTIME(1002, Tracer.BINDING_MASTER_TYPE, "Stop runtime"), // Stop runtime
-    PYTHON_APPLICATION_RUNNING(1003, Tracer.BINDING_MASTER_TYPE, "Application running"), // Application running
-    // 1004 is empty
-    PYTHON_MASTER_INIT_STORAGE(1005, Tracer.BINDING_MASTER_TYPE, "Start storage"), // Start storage
-    PYTHON_MASTER_STOP_STORAGE(1006, Tracer.BINDING_MASTER_TYPE, "Stop storage"), // Stop storage
-    PYTHON_ACCESSED_FILE(1007, Tracer.BINDING_MASTER_TYPE, "Accessed file"), // Accessed file
-    PYTHON_OPEN_FILE(1008, Tracer.BINDING_MASTER_TYPE, "Open file"), // Open file
-    PYTHON_DELETE_FILE(1009, Tracer.BINDING_MASTER_TYPE, "Delete file"), // Delete file
-    PYTHON_GET_FILE(1010, Tracer.BINDING_MASTER_TYPE, "Get file"), // Get file
-    PYTHON_GET_DIRECTORY(1011, Tracer.BINDING_MASTER_TYPE, "Get directory"), // Get directory
-    PYTHON_DELETE_OBJECT(1012, Tracer.BINDING_MASTER_TYPE, "Delete object"), // Delete object
-    PYTHON_BARRIER(1013, Tracer.BINDING_MASTER_TYPE, "Barrier"), // Barrier
-    PYTHON_BARRIER_GROUP(1014, Tracer.BINDING_MASTER_TYPE, "Barrier group"), // Barrier group
-    PYTHON_OPEN_TASK_GROUP(1015, Tracer.BINDING_MASTER_TYPE, "Open task group"), // Open task group
-    PYTHON_CLOSE_TASK_GROUP(1016, Tracer.BINDING_MASTER_TYPE, "Close task group"), // Close task group
-    PYTHON_GET_LOG_PATH(1017, Tracer.BINDING_MASTER_TYPE, "Get log path"), // Get log path
-    PYTHON_GET_NUMBER_RESOURCES(1018, Tracer.BINDING_MASTER_TYPE, "Get number of resources"), // Get number of resources
-    PYTHON_REQUEST_RESOURCES(1019, Tracer.BINDING_MASTER_TYPE, "Request resources"), // Request resources
-    PYTHON_FREE_RESOURCES(1020, Tracer.BINDING_MASTER_TYPE, "Free resources"), // Free resources
-    PYTHON_REGISTER_CORE_ELEMENT(1021, Tracer.BINDING_MASTER_TYPE, "Register Core Element"), // Register core element
-    PYTHON_WAIT_ON(1022, Tracer.BINDING_MASTER_TYPE, "Wait on"), // Wait on
-    PYTHON_PROCESS_TASK(1023, Tracer.BINDING_MASTER_TYPE, "Call to process task"), // Process task
-    // Internal events
-    PYTHON_TASK_INSTANTIATION(2000, Tracer.BINDING_MASTER_TYPE, "Task instantiation"), // Task instantiation
-    PYTHON_EXTRACT_CORE_ELEMENT(2001, Tracer.BINDING_MASTER_TYPE, "Extract core element"), // Extract core element
-    PYTHON_INSPECT_FUNCTION_ARGUMENTS(2002, Tracer.BINDING_MASTER_TYPE, "Inspect function arguments"), // Inspect
-    PYTHON_PROCESS_PARAMETERS(2003, Tracer.BINDING_MASTER_TYPE, "Process function parameters"), // Process params
-    PYTHON_GET_FUNCTION_INFORMATION(2004, Tracer.BINDING_MASTER_TYPE, "Get function information"), // Get info
-    PYTHON_PREPARE_CORE_ELEMENT(2005, Tracer.BINDING_MASTER_TYPE, "Prepare Core Element"), // Prepare Core Element
-    PYTHON_GET_FUNCTION_SIGNATURE(2006, Tracer.BINDING_MASTER_TYPE, "Check function signature"),
-    PYTHON_UPDATE_CORE_ELEMENT(2007, Tracer.BINDING_MASTER_TYPE, "Update Core Element"), // Update Core Element
-    PYTHON_GET_COMPUTING_NODES(2008, Tracer.BINDING_MASTER_TYPE, "Get computing nodes"), // Get computing nodes
-    PYTHON_PROCESS_RETURN(2009, Tracer.BINDING_MASTER_TYPE, "Process return"), // Process return
-    PYTHON_PROCESS_OTHER_ARGUMENTS(2010, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
-    PYTHON_BUILD_RETURN_OBJECTS(2011, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
-    PYTHON_SERIALIZE_OBJECTS(2012, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
-    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(2013, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
-    PYTHON_ATTRIBUTES_CLEANUP(2014, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
+    PYTHON_START_RUNTIME(1, Tracer.BINDING_MASTER_TYPE, "Start runtime"), // Start runtime
+    PYTHON_STOP_RUNTIME(2, Tracer.BINDING_MASTER_TYPE, "Stop runtime"), // Stop runtime
+    PYTHON_APPLICATION_RUNNING(3, Tracer.BINDING_MASTER_TYPE, "Application running"), // Application running
+    // 4 is empty
+    PYTHON_MASTER_INIT_STORAGE(5, Tracer.BINDING_MASTER_TYPE, "Start storage"), // Start storage
+    PYTHON_MASTER_STOP_STORAGE(6, Tracer.BINDING_MASTER_TYPE, "Stop storage"), // Stop storage
+    PYTHON_ACCESSED_FILE(7, Tracer.BINDING_MASTER_TYPE, "Accessed file"), // Accessed file
+    PYTHON_OPEN_FILE(8, Tracer.BINDING_MASTER_TYPE, "Open file"), // Open file
+    PYTHON_DELETE_FILE(9, Tracer.BINDING_MASTER_TYPE, "Delete file"), // Delete file
+    PYTHON_GET_FILE(10, Tracer.BINDING_MASTER_TYPE, "Get file"), // Get file
+    PYTHON_GET_DIRECTORY(11, Tracer.BINDING_MASTER_TYPE, "Get directory"), // Get directory
+    PYTHON_DELETE_OBJECT(12, Tracer.BINDING_MASTER_TYPE, "Delete object"), // Delete object
+    PYTHON_BARRIER(13, Tracer.BINDING_MASTER_TYPE, "Barrier"), // Barrier
+    PYTHON_BARRIER_GROUP(14, Tracer.BINDING_MASTER_TYPE, "Barrier group"), // Barrier group
+    PYTHON_OPEN_TASK_GROUP(15, Tracer.BINDING_MASTER_TYPE, "Open task group"), // Open task group
+    PYTHON_CLOSE_TASK_GROUP(16, Tracer.BINDING_MASTER_TYPE, "Close task group"), // Close task group
+    PYTHON_GET_LOG_PATH(17, Tracer.BINDING_MASTER_TYPE, "Get log path"), // Get log path
+    PYTHON_GET_NUMBER_RESOURCES(18, Tracer.BINDING_MASTER_TYPE, "Get number of resources"), // Get number of resources
+    PYTHON_REQUEST_RESOURCES(19, Tracer.BINDING_MASTER_TYPE, "Request resources"), // Request resources
+    PYTHON_FREE_RESOURCES(20, Tracer.BINDING_MASTER_TYPE, "Free resources"), // Free resources
+    PYTHON_REGISTER_CORE_ELEMENT(21, Tracer.BINDING_MASTER_TYPE, "Register Core Element"), // Register core element
+    PYTHON_WAIT_ON(22, Tracer.BINDING_MASTER_TYPE, "Wait on"), // Wait on
+    PYTHON_PROCESS_TASK(23, Tracer.BINDING_MASTER_TYPE, "Call to process task"), // Process task
+    // Internal call events
+    PYTHON_TASK_INSTANTIATION(100, Tracer.BINDING_MASTER_TYPE, "Task instantiation"), // Task instantiation
+    PYTHON_EXTRACT_CORE_ELEMENT(101, Tracer.BINDING_MASTER_TYPE, "Extract core element"), // Extract core element
+    PYTHON_INSPECT_FUNCTION_ARGUMENTS(102, Tracer.BINDING_MASTER_TYPE, "Inspect function arguments"), // Inspect
+    PYTHON_PROCESS_PARAMETERS(103, Tracer.BINDING_MASTER_TYPE, "Process function parameters"), // Process params
+    PYTHON_GET_FUNCTION_INFORMATION(104, Tracer.BINDING_MASTER_TYPE, "Get function information"), // Get info
+    PYTHON_PREPARE_CORE_ELEMENT(105, Tracer.BINDING_MASTER_TYPE, "Prepare Core Element"), // Prepare Core Element
+    PYTHON_GET_FUNCTION_SIGNATURE(106, Tracer.BINDING_MASTER_TYPE, "Check function signature"),
+    PYTHON_UPDATE_CORE_ELEMENT(107, Tracer.BINDING_MASTER_TYPE, "Update Core Element"), // Update Core Element
+    PYTHON_GET_COMPUTING_NODES(108, Tracer.BINDING_MASTER_TYPE, "Get computing nodes"), // Get computing nodes
+    PYTHON_PROCESS_RETURN(109, Tracer.BINDING_MASTER_TYPE, "Process return"), // Process return
+    PYTHON_PROCESS_OTHER_ARGUMENTS(110, Tracer.BINDING_MASTER_TYPE, "Process task hints"), // Process task hints
+    PYTHON_BUILD_RETURN_OBJECTS(111, Tracer.BINDING_MASTER_TYPE, "Build return objects"), // Build return objects
+    PYTHON_SERIALIZE_OBJECTS(112, Tracer.BINDING_MASTER_TYPE, "Serialize objects"), // Serialize objects
+    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(113, Tracer.BINDING_MASTER_TYPE, "Build COMPSs types and directions"), // Dir
+    PYTHON_ATTRIBUTES_CLEANUP(114, Tracer.BINDING_MASTER_TYPE, "Cleanup"), // Attributes cleanup
 
     // Agent events
     AGENT_ADD_RESOURCE(6002, Tracer.AGENT_EVENTS_TYPE, "Add resources agent"), // Add resources

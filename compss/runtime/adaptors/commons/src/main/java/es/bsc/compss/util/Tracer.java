@@ -98,12 +98,14 @@ public abstract class Tracer {
     private static final String DATA_TRANSFERS_DESC = "Data Transfers";
     private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
     private static final String STORAGE_DESC = "Storage API";
-    private static final String INSIDE_TASK_DESC = "Events inside tasks";
-    private static final String INSIDE_TASK_CPU_AFFINITY_DESC = "Tasks CPU affinity";
-    private static final String INSIDE_TASK_GPU_AFFINITY_DESC = "Tasks GPU affinity";
     private static final String AGENT_EVENTS_TYPE_DESC = "Agents events";
-    private static final String INSIDE_WORKER_DESC = "Events inside worker";
-    private static final String BINDING_MASTER_DESC = "Binding events";
+    private static final String BINDING_INSIDE_TASK_DESC = "Binding events inside tasks";
+    private static final String BINDING_INSIDE_TASK_CPU_AFFINITY_DESC = "Binding Tasks CPU affinity";
+    private static final String BINDING_INSIDE_TASKS_CPU_COUNT_DESC = "Binding Tasks CPU count";
+    private static final String BINDING_INSIDE_TASK_GPU_AFFINITY_DESC = "Binding Tasks GPU affinity";
+    private static final String BINDING_TASKS_FUNC_DESC = "Binding Tasks at master";
+    private static final String BINDING_MASTER_DESC = "Binding master events";
+    private static final String BINDING_INSIDE_WORKER_DESC = "Binding events inside worker";
     private static final String BINDING_SERIALIZATION_SIZE_DESC = "Binding serialization size events";
     private static final String BINDING_DESERIALIZATION_SIZE_DESC = "Binding deserialization size events";
     private static final String BINDING_SERIALIZATION_CACHE_SIZE_DESC = "Binding serialization cache size events";
@@ -139,17 +141,20 @@ public abstract class Tracer {
     protected static final int TASKS_CPU_AFFINITY_TYPE = 8_000_150; // Java assignment
     protected static final int TASKS_GPU_AFFINITY_TYPE = 8_000_160; // Java assignment
     protected static final int AGENT_EVENTS_TYPE = 8_006_000;
-    protected static final int INSIDE_TASKS_TYPE = 60_000_100;
-    protected static final int INSIDE_TASKS_CPU_AFFINITY_TYPE = 60_000_150; // Python view
-    protected static final int INSIDE_TASKS_GPU_AFFINITY_TYPE = 60_000_160; // Python view
-    protected static final int INSIDE_WORKER_TYPE = 60_000_200;
-    protected static final int BINDING_MASTER_TYPE = 60_000_300;
-    protected static final int BINDING_SERIALIZATION_SIZE_TYPE = 60_000_600;
-    protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 60_000_601;
-    protected static final int BINDING_SERIALIZATION_CACHE_SIZE_TYPE = 60_000_602;
-    protected static final int BINDING_DESERIALIZATION_CACHE_SIZE_TYPE = 60_000_603;
-    protected static final int BINDING_SERIALIZATION_OBJECT_NUM_TYPE = 60_000_700;
-    protected static final int BINDING_DESERIALIZATION_OBJECT_NUM_TYPE = 60_000_701;
+    // PYTHON RELATED EVENT GROUPS
+    protected static final int BINDING_TASKS_FUNC_TYPE = 9_000_000; // tasks emitted from master
+    protected static final int BINDING_INSIDE_TASKS_TYPE = 9_000_100;
+    protected static final int BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE = 9_000_150;
+    protected static final int BINDING_INSIDE_TASKS_CPU_COUNT_TYPE = 9_000_151;
+    protected static final int BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE = 9_000_160;
+    protected static final int BINDING_INSIDE_WORKER_TYPE = 9_000_200;
+    protected static final int BINDING_MASTER_TYPE = 9_000_300;
+    protected static final int BINDING_SERIALIZATION_SIZE_TYPE = 9_000_600;
+    protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 9_000_601;
+    protected static final int BINDING_SERIALIZATION_CACHE_SIZE_TYPE = 9_000_602;
+    protected static final int BINDING_DESERIALIZATION_CACHE_SIZE_TYPE = 9_000_603;
+    protected static final int BINDING_SERIALIZATION_OBJECT_NUM_TYPE = 9_000_700;
+    protected static final int BINDING_DESERIALIZATION_OBJECT_NUM_TYPE = 9_000_701;
 
     public static final int EVENT_END = 0;
 
@@ -437,7 +442,7 @@ public abstract class Tracer {
     }
 
     public static int getInsideTasksEventsType() {
-        return INSIDE_TASKS_TYPE;
+        return BINDING_INSIDE_TASKS_TYPE;
     }
 
     public static int getTasksCPUAffinityEventsType() {
@@ -449,15 +454,15 @@ public abstract class Tracer {
     }
 
     public static int getInsideTasksCPUAffinityEventsType() {
-        return INSIDE_TASKS_CPU_AFFINITY_TYPE;
+        return BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE;
     }
 
     public static int getInsideTasksGPUAffinityEventsType() {
-        return INSIDE_TASKS_GPU_AFFINITY_TYPE;
+        return BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE;
     }
 
-    public static int getInsideWorkerEventsType() {
-        return INSIDE_WORKER_TYPE;
+    public static int getBindingInsideWorkerEventsType() {
+        return BINDING_INSIDE_WORKER_TYPE;
     }
 
     public static int getBindingMasterEventsType() {
@@ -760,13 +765,16 @@ public abstract class Tracer {
         defineEventsForType(API_EVENTS, API_DESC);
         defineEventsForType(RUNTIME_EVENTS, RUNTIME_DESC);
         defineEventsForFunctions(TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
+        // defineEventsForFunctions(BINDING_TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
         defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
         defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
-        defineEventsForType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC);
+        defineEventsForType(BINDING_TASKS_FUNC_TYPE, BINDING_TASKS_FUNC_DESC);
+        defineEventsForType(BINDING_INSIDE_TASKS_TYPE, BINDING_INSIDE_TASK_DESC);
         defineEventsForType(AGENT_EVENTS_TYPE, AGENT_EVENTS_TYPE_DESC);
-        defineEventsForType(INSIDE_TASKS_CPU_AFFINITY_TYPE, INSIDE_TASK_CPU_AFFINITY_DESC);
-        defineEventsForType(INSIDE_TASKS_GPU_AFFINITY_TYPE, INSIDE_TASK_GPU_AFFINITY_DESC);
-        defineEventsForType(INSIDE_WORKER_TYPE, INSIDE_WORKER_DESC);
+        defineEventsForType(BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE, BINDING_INSIDE_TASK_CPU_AFFINITY_DESC);
+        defineEventsForType(BINDING_INSIDE_TASKS_CPU_COUNT_TYPE, BINDING_INSIDE_TASKS_CPU_COUNT_DESC);
+        defineEventsForType(BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE, BINDING_INSIDE_TASK_GPU_AFFINITY_DESC);
+        defineEventsForType(BINDING_INSIDE_WORKER_TYPE, BINDING_INSIDE_WORKER_DESC);
         defineEventsForType(BINDING_MASTER_TYPE, BINDING_MASTER_DESC);
         defineEventsForType(THREAD_IDENTIFICATION_EVENTS, RUNTIME_THREAD_EVENTS_DESC);
         defineEventsForType(EXECUTOR_COUNTS, EXECUTOR_COUNTS_DESC);

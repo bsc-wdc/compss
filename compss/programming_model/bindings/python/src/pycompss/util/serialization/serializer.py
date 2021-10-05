@@ -56,10 +56,10 @@ from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.serialization.extended_support import convert_to_generator
 from pycompss.util.serialization.extended_support import GeneratorIndicator
 from pycompss.util.objects.properties import object_belongs_to_module
-from pycompss.runtime.constants import SERIALIZATION_SIZE_EVENTS
-from pycompss.runtime.constants import DESERIALIZATION_SIZE_EVENTS
-from pycompss.runtime.constants import SERIALIZATION_OBJECT_NUM
-from pycompss.runtime.constants import DESERIALIZATION_OBJECT_NUM
+from pycompss.runtime.constants import BINDING_SERIALIZATION_SIZE_TYPE
+from pycompss.runtime.constants import BINDING_DESERIALIZATION_SIZE_TYPE
+from pycompss.runtime.constants import BINDING_SERIALIZATION_OBJECT_NUM_TYPE
+from pycompss.runtime.constants import BINDING_DESERIALIZATION_OBJECT_NUM_TYPE
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import emit_event
 from pycompss.worker.commons.constants import DESERIALIZE_FROM_BYTES_EVENT
@@ -156,10 +156,11 @@ def serialize_to_handler(obj, handler):
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
-    emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, 0)
+    emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, 0)
     if hasattr(handler, 'name'):
-        emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, (abs(hash(os.path.basename(handler.name))) %
-                                                              platform_c_maxint))
+        emit_manual_event_explicit(BINDING_SERIALIZATION_OBJECT_NUM_TYPE,
+                                   (abs(hash(os.path.basename(handler.name))) %
+                                    platform_c_maxint))
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -211,8 +212,8 @@ def serialize_to_handler(obj, handler):
             except Exception:  # noqa
                 success = False
         i += 1
-    emit_manual_event_explicit(SERIALIZATION_SIZE_EVENTS, handler.tell())
-    emit_manual_event_explicit(SERIALIZATION_OBJECT_NUM, 0)
+    emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, handler.tell())
+    emit_manual_event_explicit(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, 0)
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()
@@ -292,10 +293,11 @@ def deserialize_from_handler(handler, show_exception=True):
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
-    emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, 0)
+    emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE, 0)
     if hasattr(handler, 'name'):
-        emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, (abs(hash(os.path.basename(handler.name))) %
-                                                                platform_c_maxint))
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
+                                   (abs(hash(os.path.basename(handler.name))) %
+                                    platform_c_maxint))
     original_position = None
     try:
         original_position = handler.tell()
@@ -332,8 +334,10 @@ def deserialize_from_handler(handler, show_exception=True):
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
-        emit_manual_event_explicit(DESERIALIZATION_SIZE_EVENTS, handler.tell())
-        emit_manual_event_explicit(DESERIALIZATION_OBJECT_NUM, 0)
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE,
+                                   handler.tell())
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
+                                   0)
         return ret, close_handler
     except Exception:
         if DISABLE_GC:

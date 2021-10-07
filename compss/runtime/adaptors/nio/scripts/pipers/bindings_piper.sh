@@ -162,9 +162,9 @@ process_pipe_commands() {
                 create_pipe "${workerRESULTpipe}"
 
                 # Touch the binding_worker.out and err files
-                mkdir -p "${worker_log_dir}"
-                touch "${worker_log_dir}/binding_worker.out"
-                touch "${worker_log_dir}/binding_worker.err"
+                mkdir -p "${worker_log_dir}/log"
+                touch "${worker_log_dir}/log/binding_worker.out"
+                touch "${worker_log_dir}/log/binding_worker.err"
 
                 # Build workerCMD
                 workerCMD=$(echo "${line}" | cut -d' ' -f4-)

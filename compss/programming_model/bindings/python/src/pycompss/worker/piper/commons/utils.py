@@ -138,15 +138,15 @@ def load_loggers(debug, persistent_storage):
     log_dir = get_temporary_directory()
     log_dir_temp = log_dir
     # log_dir is of the form:
-    #    With agents or worker in master: /path/to/working_directory/tmpFiles/pycompssID/
-    #    Normal master-worker execution : /path/to/working_directory/machine_name/pycompssID/
+    #    With agents or worker in master: /path/to/working_directory/tmpFiles/pycompssID/../../log
+    #    Normal master-worker execution : /path/to/working_directory/machine_name/pycompssID/../log
     # With normal master-worker execution, it transfers the err and out files in the
     # expected folder to the master.
     # With agents or worker in master it does not, so keep it in previous two folders:
     if context.is_nesting_enabled() or "tmpFiles" in log_dir:
-        log_dir = os.path.join(log_dir, "..", "..")
+        log_dir = os.path.join(log_dir, "..", "..", "log")
     else:
-        log_dir = os.path.join(log_dir, "..")
+        log_dir = os.path.join(log_dir, "..", "log")
     init_logging_worker_piper(log_json, log_dir)
 
     # Define logger facilities

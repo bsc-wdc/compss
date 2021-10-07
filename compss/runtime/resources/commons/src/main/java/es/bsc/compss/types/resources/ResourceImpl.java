@@ -632,7 +632,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         // Get Worker output
         wdil.addOperation();
-        String outFileNameOriginal = "binding_worker.out";
+        String outFileNameOriginal = "log/binding_worker.out";
         String outFileName = "binding_worker_" + getName() + ".out";
         SimpleURI outFileOrigin = this.node.getCompletePath(DataType.FILE_T, outFileNameOriginal);
         String outFileTarget =
@@ -661,7 +661,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         // Get Worker error
         wdil.addOperation();
-        String errFileNameOriginal = "binding_worker.err";
+        String errFileNameOriginal = "log/binding_worker.err";
         String errFileName = "binding_worker_" + getName() + ".err";
         SimpleURI errFileOrigin = this.node.getCompletePath(DataType.FILE_T, errFileNameOriginal);
         String errFileTarget =

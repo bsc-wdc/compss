@@ -171,6 +171,18 @@ public class HTTPInstance extends COMPSsWorker {
     }
 
     @Override
+    public DataLocation getTargetLocation(Resource resource, DataType type, String name) {
+        SimpleURI workingPath = this.getCompletePath(type, name);
+        DataLocation target = null;
+        try {
+            target = DataLocation.createLocation(Comm.getAppHost(), workingPath);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + workingPath.toString(), e);
+        }
+        return target;
+    }
+
+    @Override
     public void deleteTemporary() {
     }
 

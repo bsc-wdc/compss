@@ -82,7 +82,9 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                     performHttpRequest(httpInstance.getConfig().getBaseUrl(), namedParameters, httpImplementation);
 
                 // todo: beautify this and maybe check the empty string
+                String updates = httpImplementation.getUpdates();
                 formatResponse(httpResponse, httpImplementation.getProduces());
+                updateResponse(httpResponse, updates, namedParameters);
 
                 processResponse(job, httpResponse);
 
@@ -113,6 +115,36 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
     private String formatKey(String key) {
         return key.replaceAll(URL_PARAMETER_OPEN_TOKEN, "\\$").replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
+    }
+
+    private void updateResponse(Response response, String updates, Map<String, String> namedParameters) {
+
+        if (updates == null || updates.equals(Constants.UNASSIGNED) || updates.equals("null") || updates.equals("#")) {
+            return;
+        }
+
+        // todo: add try catch
+        String tbu = updates.split("=")[0];
+
+        String tbuName = tbu.split("\\.")[0].trim();
+        tbuName = tbuName.replaceAll(URL_PARAMETER_OPEN_TOKEN, "").replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
+
+        String tbuKey = tbu.split("\\.")[1].trim();
+
+        JsonElement outParamEl = JsonParser.parseString(namedParameters.get(tbuName));
+        JsonObject outParam = outParamEl.getAsJsonObject();
+        if (outParam.has(tbuKey)) {
+            outParam.remove(tbuKey);
+        }
+        String subsParName = updates.split("=")[1].trim();
+        JsonObject resBody = (JsonObject) response.getResponseBody();
+        JsonElement newValue = resBody.get(formatKey(subsParName));
+
+        outParam.add(tbuKey, newValue);
+
+        resBody.remove(tbuName);
+        resBody.add(tbuName, outParam);
+        response.setResponseBody(resBody);
     }
 
     private void formatResponse(Response response, String produces) {
@@ -209,25 +241,25 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         for (Parameter par : taskDescription.getParameters()) {
             final Direction parameterDirection = par.getDirection();
 
-            if (parameterDirection == Direction.IN || parameterDirection == Direction.IN_DELETE) {
+            if (parameterDirection == Direction.IN || parameterDirection == Direction.INOUT
+                || parameterDirection == Direction.IN_DELETE) {
                 switch (par.getType()) {
                     case FILE_T:
+                        DependencyParameter fileParam = (DependencyParameter) par;
                         if (par.getContentType() != null && (par.getContentType().toUpperCase().equals("FILE")
                             || par.getContentType().toUpperCase().equals("FILE_T"))) {
-                            DependencyParameter fileParam = (DependencyParameter) par;
                             String content = readFile(fileParam.getDataTarget());
                             namedParameters.put(par.getName(), content);
+                            LOGGER.debug(content);
                         } else {
-                            DependencyParameter dependencyParameter = (DependencyParameter) par;
-                            final Object objectValue = getObjectValue(dependencyParameter);
-                            addParameterToMapOfParameters(namedParameters, par, objectValue);
+                            // python object serialized as a JSON string, skip the first 4 bytes
+                            String content = readFile(fileParam.getDataTarget()).substring(4);
+                            namedParameters.put(par.getName(), content);
                         }
                         break;
                     case OBJECT_T:
                     case PSCO_T:
                     case EXTERNAL_PSCO_T:
-                        // todo: is it the case only for pycompss?
-                        // nm: check content type to know if it's a python object
                         DependencyParameter dependencyParameter = (DependencyParameter) par;
                         final Object objectValue = getObjectValue(dependencyParameter);
                         addParameterToMapOfParameters(namedParameters, par, objectValue);

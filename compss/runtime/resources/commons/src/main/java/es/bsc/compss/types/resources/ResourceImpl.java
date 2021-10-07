@@ -283,13 +283,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
                 newName = newName + "#" + bo.getType() + "#" + bo.getElements();
             }
         }
-        SimpleURI workingPath = this.node.getCompletePath(reason.getType(), newName);
-        DataLocation target = null;
-        try {
-            target = DataLocation.createLocation(this, workingPath);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + workingPath.toString(), e);
-        }
+        // for HTTP tasks, the target location should be on the Master, see HTTPInstance.getTargetLocation
+        DataLocation target = this.node.getTargetLocation(this, reason.getType(), newName);
         getData(ld, target, tgtData, reason, listener);
     }
 

@@ -226,6 +226,7 @@ public class TaskGroup implements AutoCloseable {
     }
 
     public void releaseBarrier() {
+        this.barrierSet = false;
         this.barrier.release();
     }
 

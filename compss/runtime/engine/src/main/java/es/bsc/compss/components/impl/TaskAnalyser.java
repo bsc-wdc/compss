@@ -170,12 +170,6 @@ public class TaskAnalyser implements GraphHandler {
             constrainingParam = description.getParameters().size() - 1 - description.getNumReturns();
         }
 
-        // Add task to the groups
-        for (TaskGroup group : app.getCurrentGroups()) {
-            currentTask.addTaskGroup(group);
-            group.addTask(currentTask);
-        }
-
         // Add reduction task to reduce task list
         if (description.isReduction()) {
             this.reduceTasksNames.add(description.getName());
@@ -385,7 +379,7 @@ public class TaskAnalyser implements GraphHandler {
             }
 
             // Release task groups of the task
-            releaseTaskGroups(task);
+            app.endTask(task);
 
             // Releases commutative groups dependent and releases all the waiting tasks
             releaseCommutativeGroups(task);
@@ -469,18 +463,6 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     /**
-     * Removes a given group from an application.
-     *
-     * @param app Application to which the group to be cancelled belongs
-     * @param groupName name of the group to be cancelled
-     * @return the group to be cancelled
-     */
-    public TaskGroup removeTaskGroup(Application app, String groupName) {
-        TaskGroup tg = app.removeGroup(groupName);
-        return tg;
-    }
-
-    /**
      * Returns the written files and deletes them.
      *
      * @param app Application.
@@ -526,24 +508,8 @@ public class TaskAnalyser implements GraphHandler {
      */
     public void closeCurrentTaskGroup(Application app) {
         TaskGroup tg = app.popGroup();
-        tg.setClosed();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
-        }
-    }
-
-    private void releaseTaskGroups(Task task) {
-        for (TaskGroup group : task.getTaskGroupList()) {
-            group.removeTask(task);
-            LOGGER.debug("Group " + group.getName() + " released task " + task.getId());
-            if (!group.hasPendingTasks() && group.hasBarrier()) {
-                group.releaseBarrier();
-                if (group.getBarrierDrawn()) {
-                    task.getApplication().removeGroup(group.getName());
-                    LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
-                }
-                LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
-            }
         }
     }
 
@@ -993,17 +959,10 @@ public class TaskAnalyser implements GraphHandler {
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
             }
 
-            boolean canceledByException = false;
-            if (t.hasTaskGroups()) {
-                for (TaskGroup tg : t.getTaskGroupList()) {
-                    if (tg.hasException() && t.getStatus() == TaskState.CANCELED) {
-                        canceledByException = true;
-                    }
-                }
-            }
             ReadersInfo readerData = new ReadersInfo(p, t);
             if (t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
-                && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED) || canceledByException) {
+                && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED)
+                || t.isCancelledByException()) {
                 this.dip.dataAccessHasBeenCanceled(dAccId, readerData);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);

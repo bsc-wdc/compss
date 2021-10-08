@@ -260,7 +260,9 @@ public class Application {
      * @return peek of the TaskGroup stack
      */
     public TaskGroup popGroup() {
-        return this.currentTaskGroups.pop();
+        TaskGroup tg = this.currentTaskGroups.pop();
+        tg.setClosed();
+        return tg;
     }
 
     public Iterable<TaskGroup> getCurrentGroups() {
@@ -306,6 +308,33 @@ public class Application {
      */
     public void newTask(Task task) {
         this.totalTaskCount++;
+        // Add task to the groups
+        for (TaskGroup group : this.getCurrentGroups()) {
+            task.addTaskGroup(group);
+            group.addTask(task);
+        }
+    }
+
+    /**
+     * Registers the end of a task execution belonging to the application and removes it from all the groups it belongs
+     * to.
+     * 
+     * @param task finished task to be removed
+     */
+    public void endTask(Task task) {
+        for (TaskGroup group : task.getTaskGroupList()) {
+            group.removeTask(task);
+            LOGGER.debug("Group " + group.getName() + " released task " + task.getId());
+            if (!group.hasPendingTasks()) {
+                LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
+                if (group.hasBarrier()) {
+                    group.releaseBarrier();
+                    if (group.getBarrierDrawn()) {
+                        task.getApplication().removeGroup(group.getName());
+                    }
+                }
+            }
+        }
     }
 
     /**

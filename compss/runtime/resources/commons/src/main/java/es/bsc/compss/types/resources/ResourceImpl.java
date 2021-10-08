@@ -68,7 +68,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final boolean DEBUG = LOGGER.isDebugEnabled();
-    private static final boolean CACHE_PROFILING_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER));
+    private static final boolean CACHE_PROFILING_ENABLED =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER));
     protected final String name;
     private final COMPSsNode node;
     protected Map<String, String> sharedDisks;
@@ -427,7 +428,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             }
         }
 
-        if(CACHE_PROFILING_ENABLED){
+        if (CACHE_PROFILING_ENABLED) {
             getCacheProfilerDebugInfo();
             LOGGER.debug("Cache Profiler Debug files obtained for " + this.getName());
         }

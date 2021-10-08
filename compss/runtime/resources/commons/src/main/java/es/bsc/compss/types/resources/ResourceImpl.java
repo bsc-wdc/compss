@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
@@ -67,7 +68,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final boolean DEBUG = LOGGER.isDebugEnabled();
-
+    private static final boolean CACHE_PROFILING_ENABLED =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER));
     protected final String name;
     private final COMPSsNode node;
     protected Map<String, String> sharedDisks;
@@ -423,9 +425,12 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
                 LOGGER.debug("Workers Debug files obtained for " + this.getName());
                 getBindingWorkersDebugInfo();
                 LOGGER.debug("Binding Workers Debug files obtained for " + this.getName());
-                getCacheProfilerDebugInfo();
-                LOGGER.debug("Cache Profiler Debug files obtained for " + this.getName());
             }
+        }
+
+        if (CACHE_PROFILING_ENABLED) {
+            getCacheProfilerDebugInfo();
+            LOGGER.debug("Cache Profiler Debug files obtained for " + this.getName());
         }
     }
 

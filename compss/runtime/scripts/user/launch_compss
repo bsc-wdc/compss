@@ -1472,11 +1472,11 @@ check_args() {
   if [ -z "${worker_in_master_cpus}" ]; then
     worker_in_master_cpus=${DEFAULT_WORKER_IN_MASTER_CPUS}
   fi
-  
+
   if [ "${worker_in_master_cpus}" -gt "${cpus_per_node}" ]; then
     display_error "${ERROR_WORKER_IN_MASTER_CPUS}"
   fi
-  
+
   # Check worker nodes and calculate number of workers
   if [ -z "${worker_nodes}" ]; then
     if [ "${worker_in_master_cpus}"  -lt "1" ]; then
@@ -1491,7 +1491,7 @@ check_args() {
     if [ "${worker_in_master_cpus}" -gt "0" ]; then
       total_num_workers=$((total_num_workers+1))
     fi
-  fi     
+  fi
 
   if [ -z "${worker_in_master_memory}" ]; then
     worker_in_master_memory=${DEFAULT_WORKER_IN_MASTER_MEMORY}
@@ -1592,7 +1592,7 @@ check_args() {
   if [ -z "${custom_extrae_file}" ]; then
     custom_extrae_file=${DEFAULT_CUSTOM_EXTRAE_FILE}
   fi
-  
+
   if [ -z "${trace_label}" ]; then
     trace_label=${total_num_workers}workers_${cpus_per_node}cpus_${!ENV_VAR_JOB_ID}
   fi
@@ -1879,18 +1879,22 @@ log_variables() {
 # Write usage to log file
 ###############################################
 write_log_usage() {
-  # Create file with header if required
-  local log_usage_file="${COMPSS_HOME}/usage.log"
-  if [ ! -f "${log_usage_file}" ]; then
-    echo -e "USAGE DATE\\t\\t\\tUSER" > "${log_usage_file}"
+  if [ -w ${COMPSS_HOME} ]; then
+    # The folder is writable
+
+    # Create file with header if required
+    local log_usage_file="${COMPSS_HOME}/usage.log"
+    if [ ! -f "${log_usage_file}" ]; then
+      echo -e "USAGE DATE\\t\\t\\tUSER" > "${log_usage_file}"
+    fi
+
+    # Write usage message
+    msg="$(date)\\t$(whoami)"
+    echo -e "$msg" >> "${log_usage_file}"
+
+    # Ensure file is public
+    chmod 777 "${log_usage_file}"
   fi
-
-  # Write usage message
-  msg="$(date)\\t$(whoami)"
-  echo -e "$msg" >> "${log_usage_file}"
-
-  # Ensure file is public
-  chmod 777 "${log_usage_file}"
 }
 
 

@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildMahti
+  # Description: SCRIPT FOR MareNostrum COMPSs BUILD
+  # Parameters: <Mahti_user> MareNostrum user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on MareNostrum for deployment
+  #             <FullTargetPath> Base Target Installation folder on MareNostrum
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildMahti <Mahti_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  Mahtiuser=$1
+  MahtitmpDir=$2
+  MahtitargetDir=$3
+  MahtiloginNode=mahti.csc.fi
+  MahtiauxScript=${SCRIPT_DIR}/buildMahti_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${Mahtiuser}" "${MahtiloginNode}" "${MahtitmpDir}" "${MahtitargetDir}" "${MahtiauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

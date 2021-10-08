@@ -43,9 +43,9 @@ import java.util.List;
 
 public class ContainerInvoker extends Invoker {
 
-    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 23;
+    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 25;
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
-    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 19;
+    private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
@@ -332,12 +332,18 @@ public class ContainerInvoker extends Invoker {
                 final String userFunction = parts[1];
                 cmd[cmdIndex++] = "python";
                 cmd[cmdIndex++] = pyCompssDir + REL_PATH_WORKER_CONTAINER;
-                cmd[cmdIndex++] = userModule;
-                cmd[cmdIndex++] = userFunction;
-                cmd[cmdIndex++] = String.valueOf(hasTarget);
-                cmd[cmdIndex++] = returnType;
-                cmd[cmdIndex++] = String.valueOf(returnLength);
-                cmd[cmdIndex++] = String.valueOf(numContainerCallParams);
+                cmd[cmdIndex++] = userModule; // 1
+                cmd[cmdIndex++] = userFunction; // 2
+                if (this.invocation.isDebugEnabled()) {
+                    cmd[cmdIndex++] = "true"; // debug 3
+                } else {
+                    cmd[cmdIndex++] = "false"; // debug 3
+                }
+                cmd[cmdIndex++] = "false"; // tracing 4
+                cmd[cmdIndex++] = String.valueOf(hasTarget); // 5
+                cmd[cmdIndex++] = returnType; // 6
+                cmd[cmdIndex++] = String.valueOf(returnLength); // 7
+                cmd[cmdIndex++] = String.valueOf(numContainerCallParams); // 8
                 break;
             case CET_BINARY:
                 cmd[cmdIndex++] = this.internalBinary;
@@ -346,7 +352,7 @@ public class ContainerInvoker extends Invoker {
 
         // Prepare command - Prepare user arguments
         for (int i = 0; i < containerCallParams.size(); ++i) {
-            cmd[cmdIndex++] = containerCallParams.get(i);
+            cmd[cmdIndex++] = containerCallParams.get(i); // 9:
         }
 
         // Debug information

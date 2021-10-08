@@ -1,0 +1,61 @@
+#!/bin/bash
+
+  #############################################################
+  # Name: buildMahti_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MareNostrum
+  # Parameters: <targetDir>           Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildMahti script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildMahti_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  # DEFINE MODULES
+  modules="gcc/9.3.0 openmpi/4.0.3 openblas/0.3.10 StdEnv boost/1.72.0 openjdk/1.8.0"
+  unload_before_python="ignore"
+  # Plain python modules:
+  py2_modules=""
+  py3_modules="python-env/3.8.6"
+  py3_other_modules=""
+
+  # DEFINE CONFIGURATION PARAMETERS
+  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  additionalExports=""
+
+  additional_module_use_folder="ignore"
+  queues_cfg="mahti.cfg"
+  extrae_with_openmpi="true"
+  openmpi_version="/4.0.3"
+  extrae_with_impi="false"
+  impi_version=""
+  autoparallel="false"
+  c_binding="true"
+
+  # CALL buildSC_aux
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  ev=$?
+
+  # End
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception in auxiliar script"
+    exit $ev
+  fi
+  exit 0

@@ -859,9 +859,6 @@ public class ExecutionAction extends AllocatableAction {
             }
 
             DependencyParameter dp = (DependencyParameter) p;
-            String dataName = getOuputRename(p);
-            DataLocation dl = storeHttpOutputParameter(dataName, dp);
-
             DataInstanceId dId = null;
             if (p.getDirection() == Direction.INOUT) {
                 dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
@@ -870,6 +867,9 @@ public class ExecutionAction extends AllocatableAction {
             } else {
                 continue;
             }
+
+            String dataName = getOuputRename(p);
+            DataLocation dl = storeHttpOutputParameter(dataName, dp);
 
             // Parameter found, store it
             // todo: fix this

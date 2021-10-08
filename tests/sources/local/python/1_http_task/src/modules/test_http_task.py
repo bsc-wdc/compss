@@ -8,15 +8,12 @@ PyCOMPSs Testbench Tasks
 """
 
 # Imports
-import os
-import shutil
 import unittest
 
 from pycompss.api.task import task
 from pycompss.api.http import http
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on as cwo, compss_barrier as cb
-from pycompss.api.api import compss_wait_on_directory as cwod
 
 
 class TestHttpTask(unittest.TestCase):
@@ -53,6 +50,27 @@ class TestHttpTask(unittest.TestCase):
         self.assertEqual(str(mes), message,  "TEST FAILED: GET multi return 0")
         self.assertEqual(int(length), len(message),
                          "TEST FAILED: GET multi return 1")
+
+    def test_dictionaries(self):
+
+        payload = dict(first="a", second="b")
+        res = cwo(post_with_dict_param(payload))
+        self.assertDictEqual(res, payload, "TEST FAILED: dict payload/return")
+
+        inout = dict(first="a", second="b")
+        update_inout_dict(inout)
+        inout = cwo(inout)
+        self.assertIn("third", inout,  "TEST FAILED: inout dict")
+
+    def test_with_regular_tasks(self):
+
+        inout = dict(first="a", second="b")
+        update_inout_dict(inout)
+        inout = cwo(inout)
+        regular_task(inout)
+        inout = cwo(inout)
+        self.assertIn("third", inout,  "TEST FAILED: http --> task")
+        self.assertIn("greetings_from", inout,  "TEST FAILED: http --> task")
 
 
 @http(service_name="service_1", request="POST", resource="post/")
@@ -127,3 +145,31 @@ def multi_return(message):
     """
     """
     pass
+
+
+@http(service_name="service_1", request="POST", resource="post_json/",
+      payload="{{dict_in_param}}", payload_type="application/json")
+@task(returns=dict)
+def post_with_dict_param(dict_in_param):
+    """
+    """
+    pass
+
+
+@http(service_name="service_1", request="GET",
+      resource="produce_format/test",
+      produces="{'length':'{{return_0}}', 'child_json':{'depth_1':'one',"
+               "'message':'{{param}}'}}",
+      updates='{{event}}.third = {{param}}')
+@task(event=INOUT)
+def update_inout_dict(event):
+    """
+    """
+    pass
+
+
+@task(test=INOUT)
+def regular_task(test):
+    """
+    """
+    test["greetings_from"] = "regular_task"

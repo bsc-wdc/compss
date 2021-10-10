@@ -493,11 +493,10 @@ public class TaskAnalyser implements GraphHandler {
      * @param groupName Name of the group to set
      */
     public void setCurrentTaskGroup(Application app, boolean barrier, String groupName) {
-        TaskGroup tg = app.stackTaskGroup(groupName);
+        app.stackTaskGroup(groupName);
         if (IS_DRAW_GRAPH) {
-            this.gm.addTaskGroupToGraph(tg.getName());
+            this.gm.addTaskGroupToGraph(groupName);
             LOGGER.debug("Group " + groupName + " added to graph");
-            tg.setGraphDrawn();
         }
     }
 
@@ -507,7 +506,7 @@ public class TaskAnalyser implements GraphHandler {
      * @param app Application to which the group belongs to
      */
     public void closeCurrentTaskGroup(Application app) {
-        TaskGroup tg = app.popGroup();
+        app.popGroup();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
         }

@@ -244,25 +244,20 @@ public class Application {
      * Registers a new group of tasks to the application.
      *
      * @param groupName name of the group to register
-     * @return TaskGroup corresponding to that name.
      */
-    public final TaskGroup stackTaskGroup(String groupName) {
+    public final void stackTaskGroup(String groupName) {
         LOGGER.debug("Adding group " + groupName + " to the current groups stack.");
         TaskGroup tg = new TaskGroup(groupName, this);
         this.currentTaskGroups.push(tg);
         this.taskGroups.put(groupName, tg);
-        return tg;
     }
 
     /**
      * Removes and returns the peek of the TaskGroups stack.
-     *
-     * @return peek of the TaskGroup stack
      */
-    public TaskGroup popGroup() {
+    public final void popGroup() {
         TaskGroup tg = this.currentTaskGroups.pop();
         tg.setClosed();
-        return tg;
     }
 
     public Iterable<TaskGroup> getCurrentGroups() {

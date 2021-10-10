@@ -28,7 +28,6 @@ import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.ReadersInfo;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.accesses.DataAccessesInfo;
@@ -544,17 +543,15 @@ public class TaskAnalyser implements GraphHandler {
         Application app = request.getApp();
         String groupName = request.getGroupName();
 
-        TaskGroup tg = app.getGroup(groupName);
-        if (tg != null) {
-            // Addition of missing commutative groups to graph
-            if (IS_DRAW_GRAPH) {
-                addMissingCommutativeTasksToGraph();
-                addNewGroupBarrier(tg);
-                // We can draw the graph on a barrier while we wait for tasks
-                this.gm.commitGraph();
-            }
+        // Addition of missing commutative groups to graph
+        if (IS_DRAW_GRAPH) {
+            addMissingCommutativeTasksToGraph();
+            addNewGroupBarrierToGraph(app, groupName);
+            // We can draw the graph on a barrier while we wait for tasks
+            this.gm.commitGraph();
         }
-        app.reachesGroupBarrier(tg, request);
+
+        app.reachesGroupBarrier(groupName, request);
     }
 
     private void addMissingCommutativeTasksToGraph() {
@@ -1312,9 +1309,10 @@ public class TaskAnalyser implements GraphHandler {
      * We have explicitly called the barrier group API call. STEPS: Add a new synchronization node. Add an edge from
      * last synchronization point to barrier. Add edges from group tasks to barrier.
      *
-     * @param tg Name of the group.
+     * @param app Application reaching a barrier.
+     * @param group Name of the group.
      */
-    private void addNewGroupBarrier(TaskGroup tg) {
+    private void addNewGroupBarrierToGraph(Application app, String groupName) {
         // Add barrier node
         int oldSync = this.synchronizationId;
         String oldSyncStr = "Synchro" + oldSync;
@@ -1328,13 +1326,8 @@ public class TaskAnalyser implements GraphHandler {
         // Reset task detection
         this.taskDetectedAfterSync = false;
 
-        String src = String.valueOf(tg.getLastTaskId());
-        tg.setBarrierDrawn();
-        if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
-            Application app = tg.getApp();
-            app.removeGroup(tg.getName());
-        }
-        this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", tg.getName(), "clusterTasks", EdgeType.USER_DEPENDENCY);
+        String src = String.valueOf(app.drawnBarrier(groupName));
+        this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", groupName, "clusterTasks", EdgeType.USER_DEPENDENCY);
     }
 
 }

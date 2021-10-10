@@ -354,19 +354,24 @@ public class Application {
         }
     }
 
-    /**
-     * Registers that the application has reached a group barrier and the execution thread is waiting for all the tasks
-     * to complete.
-     *
-     * @param tg group holding the barrier
-     * @param request request that waits for the barrier
-     */
-    public final void reachesGroupBarrier(TaskGroup tg, Barrier request) {
+    private void reachesGroupBarrier(TaskGroup tg, Barrier request) {
         if (tg != null) {
             tg.registerBarrier(request);
         } else {
             request.release();
         }
+    }
+
+    /**
+     * Registers that the application has reached a group barrier and the execution thread is waiting for all the tasks
+     * to complete.
+     *
+     * @param groupName name of group holding the barrier
+     * @param request request that waits for the barrier
+     */
+    public final void reachesGroupBarrier(String groupName, Barrier request) {
+        TaskGroup tg = this.getGroup(groupName);
+        reachesGroupBarrier(tg, request);
     }
 
     /**
@@ -388,6 +393,21 @@ public class Application {
     public final void endReached(Barrier barrier) {
         this.ending = true;
         reachesBarrier(barrier);
+    }
+
+    /**
+     * Indicates that a GroupBarrier has been drawn.
+     * 
+     * @param groupName name of the group whose barrier has been drawn.
+     * @return last TaskId
+     */
+    public int drawnBarrier(String groupName) {
+        TaskGroup tg = this.getGroup(groupName);
+        tg.setBarrierDrawn();
+        if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
+            removeGroup(tg.getName());
+        }
+        return tg.getLastTaskId();
     }
 
     /**

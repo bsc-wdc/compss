@@ -28,7 +28,6 @@ import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.ReadersInfo;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.accesses.DataAccessesInfo;
@@ -168,12 +167,6 @@ public class TaskAnalyser implements GraphHandler {
         int constrainingParam = -1;
         if (description.getType() == TaskType.SERVICE && description.hasTargetObject()) {
             constrainingParam = description.getParameters().size() - 1 - description.getNumReturns();
-        }
-
-        // Add task to the groups
-        for (TaskGroup group : app.getCurrentGroups()) {
-            currentTask.addTaskGroup(group);
-            group.addTask(currentTask);
         }
 
         // Add reduction task to reduce task list
@@ -385,7 +378,7 @@ public class TaskAnalyser implements GraphHandler {
             }
 
             // Release task groups of the task
-            releaseTaskGroups(task);
+            app.endTask(task);
 
             // Releases commutative groups dependent and releases all the waiting tasks
             releaseCommutativeGroups(task);
@@ -469,18 +462,6 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     /**
-     * Removes a given group from an application.
-     *
-     * @param app Application to which the group to be cancelled belongs
-     * @param groupName name of the group to be cancelled
-     * @return the group to be cancelled
-     */
-    public TaskGroup removeTaskGroup(Application app, String groupName) {
-        TaskGroup tg = app.removeGroup(groupName);
-        return tg;
-    }
-
-    /**
      * Returns the written files and deletes them.
      *
      * @param app Application.
@@ -511,11 +492,10 @@ public class TaskAnalyser implements GraphHandler {
      * @param groupName Name of the group to set
      */
     public void setCurrentTaskGroup(Application app, boolean barrier, String groupName) {
-        TaskGroup tg = app.stackTaskGroup(groupName);
+        app.stackTaskGroup(groupName);
         if (IS_DRAW_GRAPH) {
-            this.gm.addTaskGroupToGraph(tg.getName());
+            this.gm.addTaskGroupToGraph(groupName);
             LOGGER.debug("Group " + groupName + " added to graph");
-            tg.setGraphDrawn();
         }
     }
 
@@ -525,25 +505,9 @@ public class TaskAnalyser implements GraphHandler {
      * @param app Application to which the group belongs to
      */
     public void closeCurrentTaskGroup(Application app) {
-        TaskGroup tg = app.popGroup();
-        tg.setClosed();
+        app.popGroup();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
-        }
-    }
-
-    private void releaseTaskGroups(Task task) {
-        for (TaskGroup group : task.getTaskGroupList()) {
-            group.removeTask(task);
-            LOGGER.debug("Group " + group.getName() + " released task " + task.getId());
-            if (!group.hasPendingTasks() && group.hasBarrier()) {
-                group.releaseBarrier();
-                if (group.getBarrierDrawn()) {
-                    task.getApplication().removeGroup(group.getName());
-                    LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
-                }
-                LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
-            }
         }
     }
 
@@ -579,17 +543,15 @@ public class TaskAnalyser implements GraphHandler {
         Application app = request.getApp();
         String groupName = request.getGroupName();
 
-        TaskGroup tg = app.getGroup(groupName);
-        if (tg != null) {
-            // Addition of missing commutative groups to graph
-            if (IS_DRAW_GRAPH) {
-                addMissingCommutativeTasksToGraph();
-                addNewGroupBarrier(tg);
-                // We can draw the graph on a barrier while we wait for tasks
-                this.gm.commitGraph();
-            }
+        // Addition of missing commutative groups to graph
+        if (IS_DRAW_GRAPH) {
+            addMissingCommutativeTasksToGraph();
+            addNewGroupBarrierToGraph(app, groupName);
+            // We can draw the graph on a barrier while we wait for tasks
+            this.gm.commitGraph();
         }
-        app.reachesGroupBarrier(tg, request);
+
+        app.reachesGroupBarrier(groupName, request);
     }
 
     private void addMissingCommutativeTasksToGraph() {
@@ -993,17 +955,10 @@ public class TaskAnalyser implements GraphHandler {
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
             }
 
-            boolean canceledByException = false;
-            if (t.hasTaskGroups()) {
-                for (TaskGroup tg : t.getTaskGroupList()) {
-                    if (tg.hasException() && t.getStatus() == TaskState.CANCELED) {
-                        canceledByException = true;
-                    }
-                }
-            }
             ReadersInfo readerData = new ReadersInfo(p, t);
             if (t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
-                && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED) || canceledByException) {
+                && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED)
+                || t.isCancelledByException()) {
                 this.dip.dataAccessHasBeenCanceled(dAccId, readerData);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);
@@ -1354,9 +1309,10 @@ public class TaskAnalyser implements GraphHandler {
      * We have explicitly called the barrier group API call. STEPS: Add a new synchronization node. Add an edge from
      * last synchronization point to barrier. Add edges from group tasks to barrier.
      *
-     * @param tg Name of the group.
+     * @param app Application reaching a barrier.
+     * @param group Name of the group.
      */
-    private void addNewGroupBarrier(TaskGroup tg) {
+    private void addNewGroupBarrierToGraph(Application app, String groupName) {
         // Add barrier node
         int oldSync = this.synchronizationId;
         String oldSyncStr = "Synchro" + oldSync;
@@ -1370,13 +1326,8 @@ public class TaskAnalyser implements GraphHandler {
         // Reset task detection
         this.taskDetectedAfterSync = false;
 
-        String src = String.valueOf(tg.getLastTaskId());
-        tg.setBarrierDrawn();
-        if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
-            Application app = tg.getApp();
-            app.removeGroup(tg.getName());
-        }
-        this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", tg.getName(), "clusterTasks", EdgeType.USER_DEPENDENCY);
+        String src = String.valueOf(app.drawnBarrier(groupName));
+        this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", groupName, "clusterTasks", EdgeType.USER_DEPENDENCY);
     }
 
 }

@@ -72,7 +72,7 @@ public class CancelTaskGroupRequest extends APRequest {
     }
 
     protected final void cancelGroup(TaskAnalyser ta, TaskDispatcher td) {
-        TaskGroup tg = ta.removeTaskGroup(app, groupName);
+        TaskGroup tg = app.removeGroup(groupName);
         if (tg != null) {
             List<Task> tasks = tg.getTasks();
             int taskCount = tasks.size();

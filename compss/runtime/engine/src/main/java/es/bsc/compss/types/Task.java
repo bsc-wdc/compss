@@ -416,6 +416,20 @@ public class Task extends AbstractTask {
         return this.taskDescription.getOnFailure();
     }
 
+    /**
+     * Returns if the task was cancelled by an exception in any of the groups it belongs to.
+     *
+     * @return {@literal true} if the task was cancelled by an exception arisen in any of the groups it belngs to
+     */
+    public boolean isCancelledByException() {
+        for (TaskGroup tg : this.getTaskGroupList()) {
+            if (tg.hasException() && this.getStatus() == TaskState.CANCELED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public int hashCode() {
         return super.hashCode();

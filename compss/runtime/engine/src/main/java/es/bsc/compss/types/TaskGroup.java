@@ -47,8 +47,6 @@ public class TaskGroup implements AutoCloseable {
     // Barrier pending to be resolved or the information that has to be forwarded upon its arrival.
     private Barrier barrier;
 
-    private boolean graphDrawn;
-
     private boolean barrierDrawn;
 
     private int lastTaskId; // For being the source of the edge with the barrier.
@@ -67,7 +65,6 @@ public class TaskGroup implements AutoCloseable {
         this.closed = false;
         this.barrierSet = false;
         this.barrier = new PendingBarrier();
-        this.graphDrawn = false;
         this.barrierDrawn = false;
         this.lastTaskId = 0;
     }
@@ -157,22 +154,6 @@ public class TaskGroup implements AutoCloseable {
     }
 
     /**
-     * Sets the graph of the group as drawn.
-     */
-    public void setGraphDrawn() {
-        this.graphDrawn = true;
-    }
-
-    /**
-     * Returns if the graph of the group has been drawn.
-     *
-     * @return
-     */
-    public boolean getGraphDrawn() {
-        return this.graphDrawn;
-    }
-
-    /**
      * Sets the barrier of the group as drawn.
      */
     public void setBarrierDrawn() {
@@ -226,6 +207,7 @@ public class TaskGroup implements AutoCloseable {
     }
 
     public void releaseBarrier() {
+        this.barrierSet = false;
         this.barrier.release();
     }
 

@@ -244,23 +244,20 @@ public class Application {
      * Registers a new group of tasks to the application.
      *
      * @param groupName name of the group to register
-     * @return TaskGroup corresponding to that name.
      */
-    public final TaskGroup stackTaskGroup(String groupName) {
+    public final void stackTaskGroup(String groupName) {
         LOGGER.debug("Adding group " + groupName + " to the current groups stack.");
         TaskGroup tg = new TaskGroup(groupName, this);
         this.currentTaskGroups.push(tg);
         this.taskGroups.put(groupName, tg);
-        return tg;
     }
 
     /**
      * Removes and returns the peek of the TaskGroups stack.
-     *
-     * @return peek of the TaskGroup stack
      */
-    public TaskGroup popGroup() {
-        return this.currentTaskGroups.pop();
+    public final void popGroup() {
+        TaskGroup tg = this.currentTaskGroups.pop();
+        tg.setClosed();
     }
 
     public Iterable<TaskGroup> getCurrentGroups() {
@@ -306,6 +303,33 @@ public class Application {
      */
     public void newTask(Task task) {
         this.totalTaskCount++;
+        // Add task to the groups
+        for (TaskGroup group : this.getCurrentGroups()) {
+            task.addTaskGroup(group);
+            group.addTask(task);
+        }
+    }
+
+    /**
+     * Registers the end of a task execution belonging to the application and removes it from all the groups it belongs
+     * to.
+     * 
+     * @param task finished task to be removed
+     */
+    public void endTask(Task task) {
+        for (TaskGroup group : task.getTaskGroupList()) {
+            group.removeTask(task);
+            LOGGER.debug("Group " + group.getName() + " released task " + task.getId());
+            if (!group.hasPendingTasks()) {
+                LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
+                if (group.hasBarrier()) {
+                    group.releaseBarrier();
+                    if (group.getBarrierDrawn()) {
+                        task.getApplication().removeGroup(group.getName());
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -330,19 +354,24 @@ public class Application {
         }
     }
 
-    /**
-     * Registers that the application has reached a group barrier and the execution thread is waiting for all the tasks
-     * to complete.
-     *
-     * @param tg group holding the barrier
-     * @param request request that waits for the barrier
-     */
-    public final void reachesGroupBarrier(TaskGroup tg, Barrier request) {
+    private void reachesGroupBarrier(TaskGroup tg, Barrier request) {
         if (tg != null) {
             tg.registerBarrier(request);
         } else {
             request.release();
         }
+    }
+
+    /**
+     * Registers that the application has reached a group barrier and the execution thread is waiting for all the tasks
+     * to complete.
+     *
+     * @param groupName name of group holding the barrier
+     * @param request request that waits for the barrier
+     */
+    public final void reachesGroupBarrier(String groupName, Barrier request) {
+        TaskGroup tg = this.getGroup(groupName);
+        reachesGroupBarrier(tg, request);
     }
 
     /**
@@ -364,6 +393,21 @@ public class Application {
     public final void endReached(Barrier barrier) {
         this.ending = true;
         reachesBarrier(barrier);
+    }
+
+    /**
+     * Indicates that a GroupBarrier has been drawn.
+     * 
+     * @param groupName name of the group whose barrier has been drawn.
+     * @return last TaskId
+     */
+    public int drawnBarrier(String groupName) {
+        TaskGroup tg = this.getGroup(groupName);
+        tg.setBarrierDrawn();
+        if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
+            removeGroup(tg.getName());
+        }
+        return tg.getLastTaskId();
     }
 
     /**

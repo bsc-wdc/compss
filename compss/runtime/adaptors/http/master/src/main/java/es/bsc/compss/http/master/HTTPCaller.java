@@ -29,6 +29,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
@@ -308,9 +309,13 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
     private Object getObjectValue(DependencyParameter dp) throws CannotLoadException {
         final DataAccessId dataAccessId = dp.getDataAccessId();
-        final DataInstanceId dataInstanceId = ((RAccessId) dataAccessId).getReadDataInstance();
+        DataInstanceId dataInstanceId;
+        if (dp.getDirection() == Direction.IN) {
+            dataInstanceId = ((RAccessId) dataAccessId).getReadDataInstance();
+        } else {
+            dataInstanceId = ((RWAccessId) dataAccessId).getReadDataInstance();
+        }
         String renaming = dataInstanceId.getRenaming();
-
         LogicalData logicalData = Comm.getData(renaming);
 
         if (!logicalData.isInMemory()) {

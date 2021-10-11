@@ -1195,6 +1195,7 @@ public class Executor implements Runnable, InvocationRunner {
                 Tracer.emitCommEvent(true, 123, 1, invocation.getTaskId(), 0);
             }
         }
+        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getCPUCountEventsType());
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getGPUCountEventsType());
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getMemoryEventsType());
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getDiskBWEventsType());

@@ -168,4 +168,24 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     public boolean usesCPUs() {
         return false;
     }
+
+    @Override
+    public void scaleUpBy(int n) {
+        if (n < 1) {
+            throw new IllegalArgumentException("ERROR: Trying to scale by 0 or negative");
+        } else if (n > 1) {
+            this.connections = this.connections * n;
+        }
+
+    }
+
+    @Override
+    public void scaleDownBy(int n) {
+        if (n < 1) {
+            throw new IllegalArgumentException("ERROR: Trying to scale by 0 or negative");
+        } else if (n > 1) {
+            this.connections = this.connections / n;
+        }
+
+    }
 }

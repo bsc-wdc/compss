@@ -441,11 +441,27 @@ public class ITAppEditor extends ExprEditor {
             } else if (declaredMethod.isAnnotationPresent(MPI.class)) {
                 MPI mpiAnnot = declaredMethod.getAnnotation(MPI.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(mpiAnnot.priority()));
-                // Parse computingNodes from environment if needed
+                // Parse processes from environment if needed
                 String numNodesSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processes());
                 numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
                     ? Integer.valueOf(numNodesSTR)
                     : Constants.SINGLE_NODE;
+                String ppnSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processesPerNode());
+                int ppn = (ppnSTR != null && !ppnSTR.isEmpty() && !ppnSTR.equals(Constants.UNASSIGNED))
+                    ? Integer.valueOf(ppnSTR)
+                    : 1;
+                if (ppn > 1) {
+                    if (numNodes < ppn) {
+                        LOGGER.error("ERROR: The specified processes in the mpi task is smaller and processesPerNode");
+                        throw new CannotCompileException("Specified processes is smaller and processesPerNode");
+                    }
+                    if ((numNodes % ppn) > 0) {
+                        LOGGER.error(
+                            "ERROR: The specified processes in the mpi task must be multiple of processesPerNode");
+                        throw new CannotCompileException("Specified processes must be multiple of processesPerNode");
+                    }
+                    numNodes = numNodes / ppn;
+                }
             } else if (declaredMethod.isAnnotationPresent(Decaf.class)) {
                 Decaf decafAnnot = declaredMethod.getAnnotation(Decaf.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(decafAnnot.priority()));

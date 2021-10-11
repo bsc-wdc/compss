@@ -41,11 +41,15 @@ public class CommonMPIDefinition {
 
     public static final String IB_SUFFIX = "-ib0";
     private static final String ERROR_MPI_RUNNER = "ERROR: Empty runner annotation for MPI method";
+    private static final String ERROR_MPI_PPN = "ERROR: Processes per node is lower than 1 for MPI method";
     private static final String DEFAULT_HOSTFILE = "true";
+    private static final String DEFAULT_SINGLE_HOST = "true";
     private static final String DEFAULT_HOSTS_FLAG = "-hostfile";
     private static final String DEFAULT_PROCS_SEPARATOR = ""; // Empty means repeating
     private static final String DEFAULT_HOSTS_SEPARATOR = "\n";
+    private static final int DEFAULT_PPN = 1;
     protected String mpiRunner;
+    protected int ppn = DEFAULT_PPN;
     protected String mpiFlags;
     protected String workingDir;
     protected boolean scaleByCU;
@@ -55,6 +59,7 @@ public class CommonMPIDefinition {
     private boolean hostfile = Boolean.parseBoolean(DEFAULT_HOSTFILE);
     private String processesSeparator = DEFAULT_PROCS_SEPARATOR;
     private String hostsSeparator = DEFAULT_HOSTS_SEPARATOR;
+    private boolean singleHostNoProcesses = Boolean.parseBoolean(DEFAULT_SINGLE_HOST);
 
 
     public CommonMPIDefinition() {
@@ -65,19 +70,19 @@ public class CommonMPIDefinition {
      * 
      * @param workingDir Binary working directory.
      * @param mpiRunner Path to the MPI command.
+     * @param ppn Processes per node
      * @param scaleByCU Scale by computing units property.
      * @param failByEV Flag to enable failure with EV.
      */
-    public CommonMPIDefinition(String workingDir, String mpiRunner, String mpiFlags, boolean scaleByCU,
+    public CommonMPIDefinition(String workingDir, String mpiRunner, int ppn, String mpiFlags, boolean scaleByCU,
         boolean failByEV) {
         this.mpiRunner = mpiRunner;
         this.mpiFlags = mpiFlags;
         this.workingDir = workingDir;
+        this.ppn = ppn;
         this.scaleByCU = scaleByCU;
         this.failByEV = failByEV;
-        if (mpiRunner == null || mpiRunner.isEmpty()) {
-            throw new IllegalArgumentException("Empty mpiRunner annotation for MPI method ");
-        }
+        checkArguments();
     }
 
     /**
@@ -88,10 +93,6 @@ public class CommonMPIDefinition {
     public void setRunnerProperties(String installDir) {
         if (this.mpiRunner.endsWith("srun")) {
             loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + "slurm.properties");
-            this.hostsFlag = "-w";
-            this.hostfile = false; // true write a hostfile otherwise
-            this.processesSeparator = "*";
-            this.hostsSeparator = ",";
         } else {
             String type = System.getenv(COMPSsConstants.COMPSS_MPIRUN_TYPE);
             if (type != null && !type.isEmpty()) {
@@ -115,7 +116,9 @@ public class CommonMPIDefinition {
             this.hostfile = Boolean.parseBoolean(loadProperty(props, "hostfile", DEFAULT_HOSTFILE));
             this.hostsFlag = loadProperty(props, "hosts.flag", DEFAULT_HOSTS_FLAG);
             this.processesSeparator = loadProperty(props, "processes.separator", DEFAULT_PROCS_SEPARATOR);
-            this.hostsSeparator = loadProperty(props, "processes.separator", DEFAULT_HOSTS_SEPARATOR);
+            this.hostsSeparator = loadProperty(props, "hosts.separator", DEFAULT_HOSTS_SEPARATOR);
+            this.singleHostNoProcesses =
+                Boolean.parseBoolean(loadProperty(props, "single.hosts.no.processes", DEFAULT_SINGLE_HOST));
         } catch (Exception e) {
             LOGGER.warn("Can't load MPIRUN type in " + file + ".\nReason: " + e.getMessage());
         }
@@ -191,6 +194,10 @@ public class CommonMPIDefinition {
         return hostsSeparator;
     }
 
+    public int getPPN() {
+        return ppn;
+    }
+
     /**
      * Checks if properties of the MPI execution are correct.
      * 
@@ -199,6 +206,9 @@ public class CommonMPIDefinition {
     public void checkArguments() {
         if (mpiRunner == null || mpiRunner.isEmpty()) {
             throw new IllegalArgumentException(ERROR_MPI_RUNNER);
+        }
+        if (ppn < 1) {
+            throw new IllegalArgumentException(ERROR_MPI_PPN);
         }
 
     }
@@ -214,8 +224,6 @@ public class CommonMPIDefinition {
     private static String writeHostfile(File taskSandboxWorkingDir, String workers) throws IOException {
         String uuid = UUID.randomUUID().toString();
         String filename = taskSandboxWorkingDir.getAbsolutePath() + File.separator + uuid + ".hostfile";
-        LOGGER.info("Writting hostfile" + filename);
-        LOGGER.info(workers);
         // Write hostfile
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write(workers);
@@ -230,14 +238,17 @@ public class CommonMPIDefinition {
      *
      * @param taskSandboxWorkingDir Task execution sandbox directory.
      * @param workers list of workers in mpi hostfile style.
+     * @param computingUnits Number of computing units.
+     * @param ppn Number of processes per node.
      * @param procSeparator Hostname-processors separator.
      * @param hostSeparator Deparator between host definitions.
+     * @param sinleHost Flag to indicate if there is a single host no processors must be set.
      * @return location of the generated hostfile inside the task sandbox.
      * @throws IOException Exception writting hostfile.
      */
-    protected static String writeHostfile(File taskSandboxWorkingDir, List<String> workers, int computingUnits,
-        String procSeparator, String hostSeparator) throws IOException {
-        String workersStr = buildHostsString(workers, computingUnits, procSeparator, hostSeparator);
+    protected static String writeHostfile(File taskSandboxWorkingDir, List<String> workers, int computingUnits, int ppn,
+        String procSeparator, String hostSeparator, boolean singleHost) throws IOException {
+        String workersStr = buildHostsString(workers, computingUnits, ppn, procSeparator, hostSeparator, singleHost);
         return writeHostfile(taskSandboxWorkingDir, workersStr);
     }
 
@@ -254,34 +265,40 @@ public class CommonMPIDefinition {
         throws IOException {
         if (this.hostfile) {
             if (this.scaleByCU) {
-                return writeHostfile(taskSandboxWorkingDir, hostnames, computingUnits, processesSeparator,
-                    hostsSeparator);
+                return writeHostfile(taskSandboxWorkingDir, hostnames, computingUnits, ppn, processesSeparator,
+                    hostsSeparator, singleHostNoProcesses);
             } else {
-                return writeHostfile(taskSandboxWorkingDir, hostnames, 1, processesSeparator, hostsSeparator);
+                return writeHostfile(taskSandboxWorkingDir, hostnames, 1, ppn, processesSeparator, hostsSeparator,
+                    singleHostNoProcesses);
 
             }
         } else {
             if (this.scaleByCU) {
-                return buildHostsString(hostnames, computingUnits, processesSeparator, hostsSeparator);
+                return buildHostsString(hostnames, computingUnits, ppn, processesSeparator, hostsSeparator,
+                    singleHostNoProcesses);
             } else {
-                return buildHostsString(hostnames, 1, processesSeparator, hostsSeparator);
+                return buildHostsString(hostnames, 1, ppn, processesSeparator, hostsSeparator, singleHostNoProcesses);
 
             }
         }
     }
 
-    protected static String buildHostsString(List<String> hostnames, int computingUnits, String procSeparator,
-        String hostSeparator) {
+    protected static String buildHostsString(List<String> hostnames, int computingUnits, int ppn, String procSeparator,
+        String hostSeparator, boolean singleHost) {
         Map<String, Integer> hosts = new HashMap<String, Integer>();
+
         for (String hostname : hostnames) {
             // Remove infiniband suffix
             if (hostname.endsWith(IB_SUFFIX)) {
                 hostname = hostname.substring(0, hostname.lastIndexOf(IB_SUFFIX));
             }
-            hosts.put(hostname, hosts.getOrDefault(hostname, 0) + computingUnits);
+            hosts.put(hostname, hosts.getOrDefault(hostname, 0) + (computingUnits * ppn));
         }
         boolean firstElement = true;
         StringBuilder hostnamesSTR = new StringBuilder();
+        if (singleHost && hosts.size() == 1) {
+            return hosts.keySet().iterator().next();
+        }
         for (Entry<String, Integer> e : hosts.entrySet()) {
             String hostStr = genHostString(procSeparator, hostSeparator, e);
             // Add one host name per process to launch
@@ -307,6 +324,23 @@ public class CommonMPIDefinition {
             hostnameStr.append(procSeparator + e.getValue());
         }
         return hostnameStr.toString();
+    }
+
+    /**
+     * Generate the argument for number of MPI processes according to the MPI definition.
+     * 
+     * @param numWorkers Number of workers.
+     * @param computingUnits Number of Computing Units per worker.
+     * @return Argument to put in the number of MPI processes.
+     */
+    public String generateNumberOfProcesses(int numWorkers, int computingUnits) {
+        if (scaleByCU) {
+            return String.valueOf(numWorkers * computingUnits);
+        } else if (ppn > 1) {
+            return String.valueOf(numWorkers * ppn);
+        } else {
+            return String.valueOf(numWorkers);
+        }
     }
 
 }

@@ -356,7 +356,7 @@ public abstract class Invoker implements ApplicationRunner {
         cancelMethod();
     }
 
-    private void setEnvironmentVariables() {
+    protected void setEnvironmentVariables() {
         // Setup properties
         System.setProperty(COMPSsWorker.COMPSS_TASK_ID, String.valueOf(this.invocation.getTaskId()));
         System.setProperty(COMPSS_NUM_NODES, String.valueOf(this.numWorkers));

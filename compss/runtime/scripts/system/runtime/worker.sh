@@ -10,7 +10,7 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # DEFAULT VALUES
 #----------------------------------------------
 # JVM options on the worker
-DEFAULT_JVM_WORKERS="-Xms1024m,-Xmx1024m,-Xmn400m"
+DEFAULT_JVM_WORKERS="-Xms256m,-Xmx1024m,-Xmn100m"
 
 # Default (CPU, GPU and FPGA) affinity mappings for the Executors
 AFFINITY_DISABLED="disabled"

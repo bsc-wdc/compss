@@ -31,6 +31,8 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.worker.COMPSsWorker;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,14 +60,14 @@ public class PythonMPIInvoker extends ExternalInvoker {
     public PythonMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
         InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
-
         try {
-            this.mpiDef = (PythonMPIDefinition) this.invocation.getMethodImplementation().getDefinition();
+            this.mpiDef = (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
             this.mpiDef.setRunnerProperties(context.getInstallDir());
         } catch (Exception e) {
             throw new JobExecutionException(
-                ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
+                ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
+        super.appendOtherExecutionCommandArguments();
 
         // Internal binary runner
         this.br = null;
@@ -176,13 +178,9 @@ public class PythonMPIInvoker extends ExternalInvoker {
             throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
         }
         cmd[3] = "-n";
-        if (mpiDef.getScaleByCU()) {
-            cmd[4] = String.valueOf(this.numWorkers * this.computingUnits);
-        } else {
-            cmd[4] = String.valueOf(this.numWorkers);
-            // cmd[5] = "-x";
-            // cmd[6] = "OMP_NUM_THREADS";
-        }
+        cmd[4] = this.mpiDef.generateNumberOfProcesses(this.numWorkers, this.computingUnits);
+        // cmd[5] = "-x";
+        // cmd[6] = "OMP_NUM_THREADS";
 
         // Add mpiFlags
         for (int i = 0; i < numMPIFlags; ++i) {
@@ -254,6 +252,32 @@ public class PythonMPIInvoker extends ExternalInvoker {
         LOGGER.debug("Cancelling PythonMPI process");
         if (this.br != null) {
             this.br.cancelProcess();
+        }
+    }
+
+    @Override
+    protected int getNumThreads(InvocationContext context, Invocation invocation) {
+        int ppn = this.mpiDef.getPPN();
+        if (ppn > 1) {
+            return this.computingUnits / ppn;
+        } else {
+            return this.computingUnits;
+        }
+    }
+
+    @Override
+    protected void setEnvironmentVariables() {
+        super.setEnvironmentVariables();
+        int ppn = this.mpiDef.getPPN();
+        if (ppn > 1) {
+            int threads = this.computingUnits / ppn;
+            System.setProperty(COMPSS_NUM_THREADS, String.valueOf(threads));
+            System.setProperty(OMP_NUM_THREADS, String.valueOf(threads));
+
+            // LOG ENV VARS
+            if (LOGGER.isDebugEnabled()) {
+                System.out.println("[INVOKER] OVEWRITING COMPSS_NUM_THREADS: " + threads);
+            }
         }
     }
 }

@@ -66,7 +66,7 @@ public class DecafDefinition extends CommonMPIDefinition implements AbstractMeth
      */
     public DecafDefinition(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
         boolean failByEV) {
-        super(workingDir, mpiRunner, "", true, failByEV);
+        super(workingDir, mpiRunner, 1, "", true, failByEV);
         this.dfScript = dfScript;
         this.dfExecutor = dfExecutor;
         this.dfLib = dfLib;
@@ -94,6 +94,7 @@ public class DecafDefinition extends CommonMPIDefinition implements AbstractMeth
         // Set default values for this extra mpi parameters
         this.scaleByCU = true;
         this.mpiFlags = "";
+        this.ppn = 1;
     }
 
     @Override
@@ -199,6 +200,7 @@ public class DecafDefinition extends CommonMPIDefinition implements AbstractMeth
         // Set default values for this extra mpi parameters
         this.scaleByCU = true;
         this.mpiFlags = "";
+        this.ppn = 1;
     }
 
     @Override

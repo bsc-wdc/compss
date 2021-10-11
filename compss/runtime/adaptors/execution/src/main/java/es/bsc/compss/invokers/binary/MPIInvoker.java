@@ -172,11 +172,7 @@ public class MPIInvoker extends Invoker {
             throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
         }
         cmd[pos++] = "-n";
-        if (this.mpiDef.getScaleByCU()) {
-            cmd[pos++] = String.valueOf(this.numWorkers * this.computingUnits);
-        } else {
-            cmd[pos++] = String.valueOf(this.numWorkers);
-        }
+        cmd[pos++] = this.mpiDef.generateNumberOfProcesses(this.numWorkers, this.computingUnits);
 
         for (int i = 0; i < numMPIFlags; ++i) {
             cmd[pos++] = mpiflagsArray[i];
@@ -218,4 +214,21 @@ public class MPIInvoker extends Invoker {
             this.br.cancelProcess();
         }
     }
+
+    @Override
+    protected void setEnvironmentVariables() {
+        super.setEnvironmentVariables();
+        int ppn = mpiDef.getPPN();
+        if (ppn > 1) {
+            int threads = this.computingUnits / ppn;
+            System.setProperty(COMPSS_NUM_THREADS, String.valueOf(threads));
+            System.setProperty(OMP_NUM_THREADS, String.valueOf(threads));
+
+            // LOG ENV VARS
+            if (LOGGER.isDebugEnabled()) {
+                System.out.println("[INVOKER] OVEWRITING COMPSS_NUM_THREADS: " + threads);
+            }
+        }
+    }
+
 }

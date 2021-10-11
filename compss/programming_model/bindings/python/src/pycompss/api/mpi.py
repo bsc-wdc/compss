@@ -46,6 +46,7 @@ SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
                        'runner',
                        'flags',
+                       'processes_per_node',
                        'scale_by_cu',
                        'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'computing_nodes',
@@ -136,9 +137,14 @@ class MPI(PyCOMPSsDecorator):
             # If processes not defined, check computing_units or set default
             self.__process_computing_nodes__(self.decorator_name)
             kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+        if "processes_per_node" in self.kwargs:
+            kwargs['processes_per_node'] = self.kwargs['processes_per_node']
+        else:
+            kwargs['processes_per_node'] = 1
         if __debug__:
             logger.debug("This MPI task will have " +
-                         str(kwargs['computing_nodes']) + " processes.")
+                         str(kwargs['computing_nodes']) + " processes and " +
+                         str(kwargs['processes_per_node']) + " processes per node.")
 
         if self.task_type == "PYTHON_MPI":
             prepend_strings = True
@@ -288,6 +294,11 @@ class MPI(PyCOMPSsDecorator):
         else:
             proc = "1"
 
+        if "processes_per_node" in self.kwargs:
+            ppn = str(self.kwargs["processes_per_node"])
+        else:
+            ppn = "1"
+
         if binary == "[unassigned]":
             impl_signature = impl_type + '.'
         else:
@@ -297,6 +308,7 @@ class MPI(PyCOMPSsDecorator):
         impl_args = [binary,
                      self.kwargs['working_dir'],
                      runner,
+                     ppn,
                      flags,
                      scale_by_cu_str,
                      self.kwargs['fail_by_exit_value']]

@@ -209,7 +209,7 @@ class TaskMaster(TaskCommons):
     """
 
     __slots__ = ["param_defaults",
-                 "first_arg_name", "computing_nodes", "parameters",
+                 "first_arg_name", "computing_nodes", "processes_per_node", "parameters",
                  "function_name", "module_name", "function_type", "class_name",
                  "returns", "multi_return",
                  "core_element", "registered", "signature",
@@ -243,6 +243,7 @@ class TaskMaster(TaskCommons):
         # Add function related attributed that will be useful later
         self.first_arg_name = None
         self.computing_nodes = None
+        self.processes_per_node = None
         self.parameters = None
         self.function_name = function_name
         self.module_name = module_name
@@ -369,7 +370,11 @@ class TaskMaster(TaskCommons):
 
         with event(PROCESS_OTHER_ARGUMENTS, master=True):
             # Deal with dynamic computing nodes
+            processes_per_node = self.process_processes_per_node()
             computing_nodes = self.process_computing_nodes()
+            if processes_per_node > 1:
+                self.validate_processes_per_node(computing_nodes, processes_per_node)
+                computing_nodes = int(computing_nodes / processes_per_node)
             # Deal with reductions
             is_reduction, chunk_size = self.process_reduction()
             # Get other arguments if exist
@@ -632,6 +637,7 @@ class TaskMaster(TaskCommons):
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
         self.computing_nodes = kwargs.pop("computing_nodes", 1)
+        self.processes_per_node = kwargs.pop("processes_per_node", 1)
         if "on_failure" in self.decorator_arguments:
             self.on_failure = self.decorator_arguments["on_failure"]
             # if task defines on_failure property the decorator is ignored
@@ -1019,10 +1025,10 @@ class TaskMaster(TaskCommons):
         :param impl_type_args: Parameter arguments.
         :return: None
         """
-        num_layouts = int(impl_type_args[6])
+        num_layouts = int(impl_type_args[7])
         if num_layouts > 0:
             for i in range(num_layouts):
-                param_name = impl_type_args[(7+(i*4))].strip()
+                param_name = impl_type_args[(8+(i*4))].strip()
                 if param_name:
                     if param_name in self.parameters:
                         if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:      # noqa: E501
@@ -1044,6 +1050,81 @@ class TaskMaster(TaskCommons):
             logger.debug("[@TASK] Registering the function %s in module %s" %
                          (self.function_name, self.module_name))
         binding.register_ce(self.core_element)
+
+    def validate_processes_per_node(self, processes, processes_per_node):
+        # type: (list) -> None
+        """ Checks the processes per node property.
+
+        :param processes: Total processes of a task.
+        :param processes_per_node: Processes per node.
+        :return: None
+        """
+        if processes < processes_per_node:
+            raise PyCOMPSsException("Processes is smaller than processes_per_node.")
+        if (processes % processes_per_node) > 0:
+            raise PyCOMPSsException("Processes is not a multiple of processes_per_node.")
+
+    def process_processes_per_node(self):
+        # type: () -> int
+        """ Retrieve the number of computing nodes.
+
+        This value can be defined by upper decorators and can also be defined
+        dynamically defined with a global or environment variable.
+
+        :return: The number of computing nodes.
+        """
+        parsed_processes_per_node = None
+        if isinstance(self.processes_per_node, int):
+            # Nothing to do
+            parsed_processes_per_node = self.processes_per_node
+        elif isinstance(self.processes_per_node, str):
+            # Check if processes_per_node can be casted to string
+            # Check if processes_per_node is an environment variable
+            # Check if processes_per_node is a dynamic global variable
+            try:
+                # Cast string to int
+                parsed_processes_per_node = int(self.processes_per_node)
+            except ValueError:
+                # Environment variable
+                if self.processes_per_node.strip().startswith('$'):
+                    # Computing nodes is an ENV variable, load it
+                    env_var = self.processes_per_node.strip()[1:]  # Remove $
+                    if env_var.startswith('{'):
+                        env_var = env_var[1:-1]  # remove brackets
+                    try:
+                        parsed_processes_per_node = int(os.environ[env_var])
+                    except ValueError:
+                        raise PyCOMPSsException(
+                            cast_env_to_int_error("ComputingNodes")
+                        )
+                else:
+                    # Dynamic global variable
+                    try:
+                        # Load from global variables
+                        parsed_processes_per_node = \
+                            self.user_function.__globals__.get(
+                                self.processes_per_node
+                            )
+                    except AttributeError:
+                        # This is a numba jit declared task
+                        try:
+                            parsed_processes_per_node = \
+                                self.user_function.py_func.__globals__.get(
+                                    self.processes_per_node
+                                )
+                        except AttributeError:
+                            # No more chances
+                            # Ignore error and parsed_processes_per_node will
+                            # raise the exception
+                            pass
+        if parsed_processes_per_node is None:
+            raise PyCOMPSsException("ERROR: Wrong Computing Nodes value.")
+        if parsed_processes_per_node <= 0:
+            logger.warning("Registered processes_per_node is less than 1 (%s <= 0). Automatically set it to 1" %  # noqa: E501
+                           str(parsed_processes_per_node))
+            parsed_processes_per_node = 1
+
+        return parsed_processes_per_node
 
     def process_computing_nodes(self):
         # type: () -> int

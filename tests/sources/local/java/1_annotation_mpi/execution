@@ -53,7 +53,7 @@
      \
      --comm="$comm" \
      \
-     --debug \
+     --debug --keep_workingdir \
      ${runcompss_opts} \
      \
      --classpath="${base_app_dir}/${jar_name}" \

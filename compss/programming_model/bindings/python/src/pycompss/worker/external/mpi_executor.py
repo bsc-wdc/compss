@@ -233,14 +233,18 @@ def process_task(current_line,     # type: str
             sys.stderr = err
 
             # Setup process environment
-            cn = int(current_line[11])
-            cn_names = ','.join(current_line[12:12 + cn])
+            cn = int(current_line[12])
+            cn_names = ','.join(current_line[13:13 + cn])
+            cu = int(current_line[13 + cn])
             os.environ["COMPSS_NUM_NODES"] = str(cn)
             os.environ["COMPSS_HOSTNAMES"] = cn_names
+            os.environ["COMPSS_NUM_THREADS"] = str(cu)
+            os.environ["OMP_NUM_THREADS"] = str(cu)
             if __debug__:
                 logger.debug("Process environment:")
                 logger.debug("\t - Number of nodes: %s" % (str(cn)))
                 logger.debug("\t - Hostnames: %s" % str(cn_names))
+                logger.debug("\t - Number of threads: %s" % (str(cu)))
 
             # Execute task
             storage_conf = "null"

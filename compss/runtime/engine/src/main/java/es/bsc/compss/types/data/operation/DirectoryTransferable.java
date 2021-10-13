@@ -24,9 +24,15 @@ public class DirectoryTransferable implements Transferable {
 
     private Object source;
     private String target;
+    private boolean preserveSourceData;
 
 
     public DirectoryTransferable() {
+        this.preserveSourceData = true;
+    }
+
+    public DirectoryTransferable(boolean preserveSource) {
+        this.preserveSourceData = preserveSource;
     }
 
     @Override
@@ -56,7 +62,7 @@ public class DirectoryTransferable implements Transferable {
 
     @Override
     public boolean isSourcePreserved() {
-        return true;
+        return this.preserveSourceData;
     }
 
 }

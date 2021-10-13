@@ -31,8 +31,6 @@ public class RAccessId extends DataAccessId {
     // File version read
     // private DataInstanceId readDataInstance;
     private DataVersion readDataVersion;
-    // Source data preservation flag
-    private boolean preserveSourceData = true;
 
 
     /**
@@ -95,13 +93,13 @@ public class RAccessId extends DataAccessId {
      * @return {@code true} if the source data must be preserved, {@code false} otherwise.
      */
     public boolean isPreserveSourceData() {
-        return this.preserveSourceData;
+        return this.readDataVersion.hasMoreReaders();
     }
 
     @Override
     public String toString() {
         return "Read data: " + this.readDataVersion.getDataInstanceId()
-            + (this.preserveSourceData ? ", Preserved" : ", Erased");
+            + (isPreserveSourceData() ? ", Preserved" : ", Erased");
     }
 
 }

@@ -714,8 +714,16 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local move " + ld.getName() + " from " + u.getHost().getName() + " to "
                                 + targetPath);
                         }
+                        try {
+                            SimpleURI deletedUri = new SimpleURI(u.getPath());
+                            DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), deletedUri);
+                            synchronized (ld) {
+                                ld.removeLocation(loc);
+                            }
+                        } catch (Exception e) {
+                            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                        }
                         FileOpsManager.moveSync(new File(u.getPath()), new File(targetPath));
-                        uris.remove(u);
                     }
 
                     if (tgtData != null) {

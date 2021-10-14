@@ -139,11 +139,11 @@ if __name__ == "__main__":
     import time
     import numpy as np
 
-    numV = 100
+    numV = 160
     dim = 2
-    k = 2
-    numFrag = 2
+    k = 4
+    numFrag = 8
 
     startTime = time.time()
     result = kmeans_frag(numV, k, dim, 1e-4, 10, numFrag)
-    print("Ellapsed Time {} (s)".format(time.time() - startTime))
+    print("Elapsed Time {} (s)".format(time.time() - startTime))

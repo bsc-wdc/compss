@@ -54,10 +54,11 @@
   fi
 
   #----------------------------------------------------------------------------------
-  number_of_tasks=32
+  # Minimal events:
+  number_of_tasks=100
   number_of_workers=1
-  number_of_master_events=523
-  number_of_master_finish_events=522  # The last compss stop does not include 0 since the runtime has been stopped and the trace generated.
+  number_of_master_events=1581
+  number_of_master_finish_events=1580  # The last compss stop does not include 0 since the runtime has been stopped and the trace generated.
 
   # Should be equal to Tracer.java definitions
   SYNC_EVENTS=8000666
@@ -65,10 +66,12 @@
   WORKER_EVENTS=9000200
   MASTER_EVENTS=9000300
 
-  # Check that task-bindings events are present and the # is correct
+  # Check that minimal task-bindings events are present and the # is correct
 
   # GAT does not support task tracing
   if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
+    echo "BASIC EVENTS CHECK:"
+
     evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
     echo "evts_tasks: ${evts_tasks}"
     evts_tasks_end=$(grep -c ":${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv)
@@ -117,6 +120,21 @@
       # In Python3 the final end event is registered so we can have 554 or 555 end events
       echo "[ERROR] Number of master finish (0) events does not match the expected. Expected events: $number_of_master_finish_events != Found Events: ${master_evts_end}" | tee -a "${output_file}"
       exit 1
+    fi
+  fi
+
+  # Check that all task-bindings events are present and the # is correct
+  # To this end, compare as much as possible with the expected trace stored
+  # in the expected_trace folder.
+
+  # GAT does not support task tracing
+  if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
+    echo "IMPROVED EVENTS CHECK:"
+
+    python events_checker.py expected_events.txt "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv
+    exit_value=$?
+    if [ ${exit_value} -ne 0 ]; then
+      exit ${exit_value}
     fi
   fi
 

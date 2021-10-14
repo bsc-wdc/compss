@@ -191,6 +191,26 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     public abstract SimpleURI getCompletePath(DataType type, String name);
 
     /**
+     * Returns the target data location.
+     *
+     * @param resource Resource.
+     * @param type Data type.
+     * @param name Data name.
+     * @return Complete URI of the given data inside the current resource.
+     */
+    public DataLocation getTargetLocation(Resource resource, DataType type, String name) {
+
+        SimpleURI workingPath = this.getCompletePath(type, name);
+        DataLocation target = null;
+        try {
+            target = DataLocation.createLocation(resource, workingPath);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + workingPath.toString(), e);
+        }
+        return target;
+    }
+
+    /**
      * Returns the expected data target path in the node.
      *
      * @param tgtName expected data target name

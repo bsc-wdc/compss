@@ -800,6 +800,7 @@ def process_http_task(signature,             # type: str
                       payload,               # type: str
                       payload_type,          # type: str
                       produces,              # type: str
+                      updates,               # type: str
                       has_target,            # type: bool
                       names,                 # type: list
                       values,                # type: list
@@ -830,6 +831,7 @@ def process_http_task(signature,             # type: str
     :param payload: Payload to be sent in the request body if any.
     :param payload_type: Payload type. default "application/json"
     :param produces: JSON response format
+    :param updates: Formatting string to update the Response JSON.
     :param has_target: Boolean if the task has self
     :param names: Task parameter names
     :param values: Task parameter values
@@ -867,6 +869,7 @@ def process_http_task(signature,             # type: str
                              payload,
                              payload_type,
                              produces,
+                             updates,
                              signature,
                              on_failure,
                              time_out,

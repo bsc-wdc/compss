@@ -114,6 +114,8 @@ LIB2IDX = {
 IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
 platform_c_maxint = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)
 
+FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
+
 
 def get_serializer_priority(obj=()):
     # type: (object) -> list
@@ -127,6 +129,9 @@ def get_serializer_priority(obj=()):
     elif object_belongs_to_module(obj, 'pyarrow'):
         return [pyarrow, pickle, dill]
     else:
+        if FORCED_SERIALIZER > -1:
+            # todo: string to serializer module
+            return [IDX2LIB.get(FORCED_SERIALIZER)]
         return [pickle, dill]
 
 
@@ -193,6 +198,11 @@ def serialize_to_handler(obj, handler):
                     writer = pyarrow.ipc.new_file(handler, obj.schema)  # noqa
                     writer.write(obj)
                     writer.close()
+                elif serializer is json:
+                    # json doesn't like the binary mode
+                    handler = open(handler.name, "w")
+                    handler.write('%04d' % LIB2IDX[serializer])
+                    serializer.dump(obj, handler)
                 else:
                     serializer.dump(obj,
                                     handler,
@@ -227,6 +237,7 @@ def serialize_to_file(obj, file_name):
     :param file_name: File name where the object is going to be serialized.
     :return: Nothing, it just serializes the object.
     """
+    # todo: can we make the binary mode optional?
     handler = open(file_name, 'wb')
     serialize_to_handler(obj, handler)
     handler.close()

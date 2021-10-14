@@ -32,6 +32,7 @@ from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.serialization import serializer
 
 
 if __debug__:
@@ -40,7 +41,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {'service_name', 'resource', 'request'}
-SUPPORTED_ARGUMENTS = {'payload', 'payload_type',  'produces'}
+SUPPORTED_ARGUMENTS = {'payload', 'payload_type',  'produces', 'updates'}
 DEPRECATED_ARGUMENTS = set()
 
 
@@ -91,6 +92,8 @@ class HTTP(PyCOMPSsDecorator):
         return http_f
 
     def __decorator_body__(self, user_function, args, kwargs):
+        # force to serialize with JSON
+        serializer.FORCED_SERIALIZER = 4
         if not self.scope:
             # run http
             self.__run_http__(args, kwargs)
@@ -112,7 +115,7 @@ class HTTP(PyCOMPSsDecorator):
 
     def __run_http__(self, *args, **kwargs):
         # type: (..., dict) -> int
-        """ Runs the mpi binary defined in the decorator when used as dummy.
+        """ Runs the http binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
@@ -140,7 +143,8 @@ class HTTP(PyCOMPSsDecorator):
                      self.kwargs['request'],
                      self.kwargs.get('payload', "#"),
                      self.kwargs.get('payload_type', "application/json"),
-                     self.kwargs.get('produces', "#")]
+                     self.kwargs.get('produces', "#"),
+                     self.kwargs.get('updates', "#")]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

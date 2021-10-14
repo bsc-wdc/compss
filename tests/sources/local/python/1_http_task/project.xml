@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
-    <MasterNode/>
+	<MasterNode>
+        <Processor Name="MainProcessor">
+            <ComputingUnits>2</ComputingUnits>
+        </Processor>
+    </MasterNode>
 	<Http BaseUrl="http://blabla">
 		<LimitOfTasks>2</LimitOfTasks>
 	</Http>

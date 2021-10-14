@@ -69,6 +69,8 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -257,11 +259,10 @@ public class ExecutionAction extends AllocatableAction {
             if (p instanceof DependencyParameter) {
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (taskDescription.getType()) {
+                    case HTTP:
                     case METHOD:
                         transferJobData(dp, listener);
                         break;
-
-                    case HTTP:
                     case SERVICE:
                         if (dp.getDirection() != Direction.INOUT) {
                             // For services we only transfer IN parameters because the only
@@ -437,11 +438,10 @@ public class ExecutionAction extends AllocatableAction {
             if (p instanceof DependencyParameter) {
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (taskDescription.getType()) {
+                    case HTTP:
                     case METHOD:
                         removeTmpData(dp);
                         break;
-
-                    case HTTP:
                     case SERVICE:
                         if (dp.getDirection() != Direction.INOUT) {
                             // For services we only transfer IN parameters because the only
@@ -779,6 +779,28 @@ public class ExecutionAction extends AllocatableAction {
         return outLoc;
     }
 
+    private DataLocation storeHttpOutputParameter(String dataName, DependencyParameter p) {
+
+        DataLocation outLoc = null;
+        try {
+            String dataTarget = p.getDataTarget();
+            if (DEBUG) {
+                JOB_LOGGER.debug("Proposed URI for storing HTTP output param: " + dataTarget);
+            }
+            SimpleURI resultURI = new SimpleURI(dataTarget);
+            SimpleURI targetURI = new SimpleURI(resultURI.getSchema() + resultURI.getPath());
+            outLoc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+            // Data target has been stored as URI but final target data should be just the path
+            p.setDataTarget(outLoc.getPath());
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + p.getDataTarget(), e);
+        }
+        Comm.registerLocation(dataName, outLoc);
+
+        // Return location
+        return outLoc;
+    }
+
     private final void doServiceOutputTransfers(Job<?> job) {
         TaskMonitor monitor = this.task.getTaskMonitor();
 
@@ -827,91 +849,88 @@ public class ExecutionAction extends AllocatableAction {
 
     private void doHttpOutputTransfers(Job<?> job) {
         TaskMonitor monitor = this.task.getTaskMonitor();
+        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
 
-        // Search for the return object
         List<Parameter> params = job.getTaskParams().getParameters();
         for (int i = 0; i < params.size(); ++i) {
             Parameter p = params.get(i);
-            if (p instanceof DependencyParameter) {
-                // Check parameter direction
-                DataInstanceId dId = null;
-                DependencyParameter dp = (DependencyParameter) p;
-                switch (p.getDirection()) {
-                    case IN:
-                    case IN_DELETE:
-                    case CONCURRENT:
-                    case COMMUTATIVE:
-                    case INOUT:
-                        // Return value is OUT, skip the current parameter
-                        continue;
-                    case OUT:
-                        dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+            if (!(p instanceof DependencyParameter)) {
+                continue;
+            }
+
+            DependencyParameter dp = (DependencyParameter) p;
+            DataInstanceId dId = null;
+            if (p.getDirection() == Direction.INOUT) {
+                dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+            } else if (p.getDirection() == Direction.OUT) {
+                dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+            } else {
+                continue;
+            }
+
+            String dataName = getOuputRename(p);
+            DataLocation dl = storeHttpOutputParameter(dataName, dp);
+
+            // Parameter found, store it
+            // todo: fix this
+            String name = dId.getRenaming();
+            Object value;
+            LogicalData ld;
+            JsonObject retValue = (JsonObject) job.getReturnValue();
+            if (dp.getType().equals(DataType.FILE_T)) {
+                value = retValue.get(p.getName()).toString();
+                try {
+                    FileWriter file = new FileWriter(dp.getDataTarget());
+                    // 4 is JSON package ID in Python binding
+                    file.write("0004");
+                    file.write(value.toString());
+                    file.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ld = Comm.registerLocation(name, dl);
+                Object[] mp = buildMonitorParameter(p, dataName);
+                monitor.valueGenerated(i, mp);
+            } else {
+                // it's a Java HTTP task, can have only single value of a primitive type
+                Gson gson = new Gson();
+                JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
+                switch (dp.getType()) {
+                    case INT_T:
+                        value = gson.fromJson(primValue, int.class);
+                        break;
+                    case LONG_T:
+                        value = gson.fromJson(primValue, long.class);
+                        break;
+                    case STRING_T:
+                        value = gson.fromJson(primValue, String.class);
+                        break;
+                    case OBJECT_T:
+                        if (dp.getContentType().equals("int")) {
+                            value = gson.fromJson(primValue, int.class);
+                        } else if (dp.getContentType().equals("long")) {
+                            value = gson.fromJson(primValue, long.class);
+                        } else if (dp.getContentType().equals("String")) {
+                            value = gson.fromJson(primValue, String.class);
+                        } else {
+                            // todo: Strings fall here too.. why??
+                            value = gson.fromJson(primValue, Object.class);
+                        }
+                        break;
+                    default:
+                        value = null;
                         break;
                 }
-                Object value = null;
-                JsonObject retValue = (JsonObject) job.getReturnValue();
-                if (dp.getType().equals(DataType.FILE_T)) {
-                    value = retValue.get(p.getName()).toString();
-                    try {
-                        FileWriter file = new FileWriter(dp.getDataTarget());
-                        file.write("0004");
-                        file.write(value.toString());
-                        file.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    // it's a Java HTTP task, can have only single value of a primitive type
-                    Gson gson = new Gson();
-                    JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
-                    switch (dp.getType()) {
-                        case INT_T:
-                            value = gson.fromJson(primValue, int.class);
-                            break;
-                        case LONG_T:
-                            value = gson.fromJson(primValue, long.class);
-                            break;
-                        case STRING_T:
-                            value = gson.fromJson(primValue, String.class);
-                            break;
-                        case OBJECT_T:
-                            if (dp.getContentType().equals("int")) {
-                                value = gson.fromJson(primValue, int.class);
-                            } else if (dp.getContentType().equals("long")) {
-                                value = gson.fromJson(primValue, long.class);
-                            } else if (dp.getContentType().equals("String")) {
-                                value = gson.fromJson(primValue, String.class);
-                            } else {
-                                // todo: Strings fall here too.. why??
-                                value = gson.fromJson(primValue, Object.class);
-                            }
-                            break;
-                        default:
-                            value = null;
-                            break;
-                    }
-                }
-                Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
-                String dataName = getOuputRename(p);
-                storeOutputParameter(job, w, dataName, dp);
-                // monitor.valueGenerated(i, p.getName(), p.getType(), dataName, dp.getDataTarget());
+                ld = Comm.registerValue(name, value);
+            }
 
-                // Parameter found, store it
-                // todo: fix this
-                String name = dId.getRenaming();
-                if (value == null) {
-                    value = job.getReturnValue();
-                }
-                LogicalData ld = Comm.registerValue(name, value);
-
-                // Monitor one of its locations
-                Set<DataLocation> locations = ld.getLocations();
-                if (!locations.isEmpty()) {
-                    Object[] mp = buildMonitorParameter(p, getOuputRename(p));
-                    for (DataLocation loc : ld.getLocations()) {
-                        if (loc != null) {
-                            monitor.valueGenerated(i, mp);
-                        }
+            // Monitor one of its locations
+            Set<DataLocation> locations = ld.getLocations();
+            if (!locations.isEmpty()) {
+                Object[] mp = buildMonitorParameter(p, getOuputRename(p));
+                for (DataLocation loc : ld.getLocations()) {
+                    if (loc != null) {
+                        monitor.valueGenerated(i, mp);
                     }
                 }
             }

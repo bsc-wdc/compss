@@ -769,11 +769,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return task;
     }
 
-    // HTTP client add payload here
+    // HTTP
     // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
     @Override
     public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
-        String payload, String payloadType, String produces, String declareMethodFullyQualifiedName,
+        String payload, String payloadType, String produces, String updates, String declareMethodFullyQualifiedName,
         boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
         boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
         Object... parameters) {
@@ -805,7 +805,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Register the task
-        int task = ap.newTask(app, monitor, serviceName, resource, request, payload, payloadType, produces,
+        int task = ap.newTask(app, monitor, serviceName, resource, request, payload, payloadType, produces, updates,
             declareMethodFullyQualifiedName, isPrioritary, isReduce, reduceChunkSize, hasTarget, numReturns, pars,
             onFailure, timeOut);
 

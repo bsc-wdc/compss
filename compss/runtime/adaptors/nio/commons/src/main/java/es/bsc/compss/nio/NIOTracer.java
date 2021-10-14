@@ -113,14 +113,24 @@ public class NIOTracer extends Tracer {
      * Emits a new data transfer event for the given data.
      *
      * @param data Data code to emit the event.
+     * @param end If the event is communication end.
      */
-    public static void emitDataTransferEvent(String data) {
-        boolean dataTransfer = !(data.startsWith("worker")) && !(data.startsWith("tracing"));
+    public static void emitDataTransferEvent(String data, boolean end) {
+        boolean dataTransfer = !(data.startsWith("worker")) && !(data.startsWith("tracing"))
+            && !(data.startsWith("binding")) && !(data.startsWith("cache")) && !(data.endsWith("trace.tar.gz"));
 
-        int transferID = (data.equals(TRANSFER_END)) ? 0 : abs(data.hashCode());
+        int transferID = abs(data.hashCode());
 
         if (dataTransfer) {
-            emitEvent(transferID, getDataTransfersType());
+            if (end) {
+                LOGGER.debug("XXXX: emitDataTransferEvent: EMITTED 126: " + data + " - transferID: END");
+                emitEvent(0, getDataTransfersType());
+            } else {
+                LOGGER.debug("XXXX: emitDataTransferEvent: EMITTED 129: " + data + " - transferID: " + transferID);
+                emitEvent(transferID, getDataTransfersType());
+            }
+        } else {
+            LOGGER.debug("XXXX: emitDataTransferEvent: NOT_EMITTED: " + data + " - transferID: " + transferID);
         }
 
         if (DEBUG) {

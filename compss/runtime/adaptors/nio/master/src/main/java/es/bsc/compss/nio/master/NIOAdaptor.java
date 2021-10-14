@@ -736,7 +736,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
 
         if (Tracer.extraeEnabled()) {
-            NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
+            String nameId = (new File(dataId)).getName();
+            NIOTracer.emitDataTransferEvent(nameId, true);
+            LOGGER.debug("XXXX" + Thread.currentThread().getName() + ": master.NIOAdaptor: receivedValue 741: " + nameId
+                + " - " + NIOTracer.TRANSFER_END);
         }
     }
 

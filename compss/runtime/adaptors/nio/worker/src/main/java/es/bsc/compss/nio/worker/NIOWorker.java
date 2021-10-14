@@ -485,13 +485,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         for (DataRequest dr : achievedRequests) {
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
             wdr.getListener().fetchedValue(dataId);
-            if (NIOTracer.extraeEnabled()) {
-                NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
-            }
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug(
                     "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
             }
+        }
+        if (NIOTracer.extraeEnabled()) {
+            String nameId = (new File(dataId)).getName();
+            NIOTracer.emitDataTransferEvent(nameId, true);
+            WORKER_LOGGER.debug("XXXX" + Thread.currentThread().getName() + ": worker.NIOWorker: receivedValue 492: "
+                + nameId + " - " + NIOTracer.TRANSFER_END);
         }
     }
 

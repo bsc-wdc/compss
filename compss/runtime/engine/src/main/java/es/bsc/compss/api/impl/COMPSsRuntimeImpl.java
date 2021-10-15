@@ -71,6 +71,7 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.TraceEvent;
@@ -1167,15 +1168,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String renamedPath = openFile(app, fileName, Direction.INOUT);
         // If renamePth is the same as original, file has not accessed. Nothing to do.
         if (!renamedPath.equals(sourceLocation.getPath())) {
-            String intermediateTmpPath = renamedPath + ".tmp";
-            rename(renamedPath, intermediateTmpPath);
-            closeFile(app, fileName, Direction.INOUT);
-            ap.markForDeletion(app, sourceLocation, true);
-            // In the case of Java file can be stored in the Stream Registry
-            if (sReg != null) {
-                sReg.deleteTaskFile(appId, fileName);
+            try {
+                String intermediateTmpPath = renamedPath + ".tmp";
+                FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
+                closeFile(app, fileName, Direction.INOUT);
+                ap.markForDeletion(app, sourceLocation, true);
+                // In the case of Java file can be stored in the Stream Registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(appId, fileName);
+                }
+                FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
+            } catch (IOException ioe) {
+                LOGGER.error("Move not possible ", ioe);
             }
-            rename(intermediateTmpPath, fileName);
         }
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_FILE.getType());
@@ -1213,7 +1218,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         LOGGER.debug("Getting directory renamed path: " + renamedPath);
         String intermediateTmpPath = renamedPath + ".tmp";
-        rename(renamedPath, intermediateTmpPath);
+        moveDirectory(renamedPath, intermediateTmpPath);
         closeFile(app, dirName, Direction.IN);
 
         ap.markForDeletion(app, sourceLocation, true);
@@ -1226,29 +1231,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_DIRECTORY.getType());
-        }
-    }
-
-    /**
-     * Moves the file to its target location.
-     *
-     * @param source Source file path.
-     * @param target Target file path.
-     */
-    private void rename(String source, String target) {
-        Path sourcePath = Paths.get(source);
-        Path destinationPath = Paths.get(target);
-        LOGGER.info("Moving file from " + source + " to " + target);
-        try {
-            Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException e) {
-            try {
-                Files.move(sourcePath, destinationPath);
-            } catch (IOException e1) {
-                LOGGER.error("Move not possible ", e1);
-            }
-        } catch (IOException e) {
-            LOGGER.error("Atomic move not possible ", e);
         }
     }
 

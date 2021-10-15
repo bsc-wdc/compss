@@ -196,4 +196,3 @@ class DockerActions(Actions):
 
     def environment(self):
         super().exec()
-        raise Exception("Not implemented action environment")

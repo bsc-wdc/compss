@@ -11,7 +11,7 @@ class LocalActions(Actions):
     def __init__(self, arguments, debug=False) -> None:
         super().__init__(arguments, debug=debug)
 
-    def init(self, arguments, debug=False):
+    def init(self):
         super().init()
         """ Deploys COMPSs infrastructure local env
 
@@ -21,10 +21,10 @@ class LocalActions(Actions):
         """
 
         working_dir = ''
-        if 'working_dir' in arguments:
-            working_dir = arguments.working_dir
+        if 'working_dir' in self.arguments:
+            working_dir = self.arguments.working_dir
 
-        if debug:
+        if self.debug:
             print("Initializing...")
             print("Parameters:")
             # if arguments.working_dir:
@@ -65,7 +65,3 @@ class LocalActions(Actions):
 
     def exec(self, arguments, debug=False):
         super().exec()
-    
-    def environment(self):
-        super().environment()
-        pass

@@ -52,7 +52,7 @@ def parse_sys_argv():
 
     # EXEC
     parser_exec = subparsers.add_parser("exec",
-                                        aliases=["e"],
+                                        aliases=["ex"],
                                         help="Execute the given command within the COMPSs\' environment.",  # noqa: E501
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
@@ -178,7 +178,7 @@ def parse_sys_argv():
 
     # ENVIRONMENT
     parser_environment = subparsers.add_parser("environment",
-                                              aliases=["e"],
+                                              aliases=["env"],
                                               help="Manage COMPSs environments.",  # noqa: E501
                                               parents=[parent_parser],
                                               formatter_class=FORMATTER_CLASS)
@@ -190,29 +190,17 @@ def parse_sys_argv():
     parser_environment_change = subparsers_environment.add_parser("change",
                                                              aliases=["c"],
                                                              help="Change current COMPSs environment.",  # noqa: E501
-                                                             formatter_class=FORMATTER_CLASS)                                 # noqa: E501
-    subparsers_environment_change = parser_environment_change.add_subparsers(dest="change")                          # noqa: E501
-    parser_environment_change_env_id = subparsers_environment_change.add_parser("env_id",                         # noqa: E501
-                                                                        aliases=["eid"],                    # noqa: E501
-                                                                        help="Change current env to env_id.",             # noqa: E501
-                                                                        formatter_class=FORMATTER_CLASS)  # noqa: E501
-    parser_environment_change_env_id.add_argument("env_id",
+                                                             formatter_class=FORMATTER_CLASS)
+    parser_environment_change.add_argument("env_id",
                                               type=str,
-                                              default="",
                                               help="ID of the environment to set as active")  # noqa: E501                 
 
     parser_environment_remove = subparsers_environment.add_parser("remove",
                                                                 aliases=["r"],
                                                                 help="Removes COMPSs environment.",  # noqa: E501
-                                                                formatter_class=FORMATTER_CLASS)    
-    subparsers_environment_remove = parser_environment_remove.add_subparsers(dest="remove")                                           # noqa: E501
-    parser_environment_remove_env_id = subparsers_environment_remove.add_parser("env_id",                                             # noqa: E501
-                                                                              aliases=["eid"],                                        # noqa: E501
-                                                                              help="Remove an environment given env_id.",                              # noqa: E501
-                                                                              formatter_class=FORMATTER_CLASS)                      # noqa: E501
-    parser_environment_remove_env_id.add_argument("env_id",
+                                                                formatter_class=FORMATTER_CLASS)                  # noqa: E501
+    parser_environment_remove.add_argument("env_id",
                                                  type=str,
-                                                 default="1",
                                                  help="ID of the environment to remove")  # noqa: E501                                                                           
 
     # Check if the user does not include any argument

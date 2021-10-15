@@ -114,6 +114,8 @@ public abstract class Tracer {
     private static final String BINDING_DESERIALIZATION_OBJECT_NUM = "Binding deserialization object number";
     private static final String TASKTYPE_DESC = "Type of task";
     private static final String READY_COUNT_DESC = "Ready queue count";
+    private static final String TASK_CPU_AFFINITY_DESC = "Tasks CPU affinity";
+    private static final String TASK_GPU_AFFINITY_DESC = "Tasks GPU affinity";
     private static final String CPU_COUNT_DESC = "Number of requested CPUs";
     private static final String GPU_COUNT_DESC = "Number of requested GPUs";
     private static final String MEMORY_DESC = "Requested Memory";
@@ -768,6 +770,8 @@ public abstract class Tracer {
         // defineEventsForFunctions(BINDING_TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
         defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
         defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
+        defineEventsForType(TASKS_CPU_AFFINITY_TYPE, TASK_CPU_AFFINITY_DESC);
+        defineEventsForType(TASKS_GPU_AFFINITY_TYPE, TASK_GPU_AFFINITY_DESC);
         defineEventsForType(BINDING_TASKS_FUNC_TYPE, BINDING_TASKS_FUNC_DESC);
         defineEventsForType(BINDING_INSIDE_TASKS_TYPE, BINDING_INSIDE_TASK_DESC);
         defineEventsForType(AGENT_EVENTS_TYPE, AGENT_EVENTS_TYPE_DESC);

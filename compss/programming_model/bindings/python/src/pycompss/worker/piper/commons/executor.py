@@ -448,6 +448,8 @@ def process_task(current_line,              # type: list
     :return: True if processed successfully, False otherwise.
     """
     affinity_ok = True
+    binded_cpus = False
+    binded_gpus = False
 
     # CPU binding
     cpus = current_line[-3]
@@ -460,9 +462,9 @@ def process_task(current_line,              # type: list
     # GPU binding
     gpus = current_line[-2]
     if gpus != "-":
-        emit_manual_event(0, inside=True, gpu_affinity=True)  # close previous
         emit_manual_event(gpus, inside=True, gpu_affinity=True)
         bind_gpus(gpus, process_name, logger)
+        binded_gpus = True
 
     # Remove the last elements: cpu and gpu bindings
     current_line = current_line[0:-3]
@@ -526,11 +528,9 @@ def process_task(current_line,              # type: list
             real_affinity = thread_affinity.getaffinity()
             cpus = str(real_affinity[0])
             num_cpus = len(real_affinity)
-            # Close previous emitted event since this is the moment we update
-            emit_manual_event(0, inside=True, cpu_affinity=True)
             emit_manual_event(cpus, inside=True, cpu_affinity=True)
-            emit_manual_event(0, inside=True, cpu_number=True)
             emit_manual_event(num_cpus, inside=True, cpu_number=True)
+            binded_cpus = True
             if not affinity_ok:
                 logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
                                cpus)
@@ -628,6 +628,11 @@ def process_task(current_line,              # type: list
     if __debug__:
         logger.debug("Cleaning environment.")
     clean_environment(cpus, gpus)
+    if binded_cpus:
+        emit_manual_event(0, inside=True, cpu_affinity=True)
+        emit_manual_event(0, inside=True, cpu_number=True)
+    if binded_gpus:
+        emit_manual_event(0, inside=True, gpu_affinity=True)
 
     # Restore loggers
     if __debug__:
@@ -692,9 +697,6 @@ def process_quit(logger, process_name):  # noqa
     """
     if __debug__:
         logger.debug(HEADER + "[%s] Quitting." % str(process_name))
-    # Close last cpu and gpu affinity events
-    emit_manual_event(0, inside=True, cpu_affinity=True)
-    emit_manual_event(0, inside=True, gpu_affinity=True)
     return False
 
 

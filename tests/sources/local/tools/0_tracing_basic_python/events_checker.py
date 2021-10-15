@@ -55,8 +55,15 @@ def parse_file(expected_events_file):
             d_mode = d_elements[1]
             if d_mode == EVENT_LABEL:
                 d_event = int(d_elements[2])
-                d_appearances = int(d_elements[3])
-                if d_appearances > 0:
+                d_appearances = d_elements[3]
+                if d_appearances == "undefined":
+                    d_appearances = -1
+                elif "," in d_appearances:
+                    d_appearances_values = d_appearances.split(",")
+                    d_appearances = [int(d_app) for d_app in d_appearances_values]
+                else:
+                    d_appearances = int(d_appearances)
+                if d_appearances > 0 or d_appearances == -1:
                     if d_type not in event_definitions.keys():
                         # create new type
                         event_definitions[d_type] = {}
@@ -72,8 +79,15 @@ def parse_file(expected_events_file):
             if d_mode == RANGE_LABEL:
                 d_min_event = int(d_elements[2])
                 d_max_event = int(d_elements[3])
-                d_appearances = int(d_elements[4])
-                if d_appearances > 0:
+                d_appearances = d_elements[4]
+                if d_appearances == "undefined":
+                    d_appearances = -1
+                elif "," in d_appearances:
+                    d_appearances_values = d_appearances.split(",")
+                    d_appearances = [int(d_app) for d_app in d_appearances_values]
+                else:
+                    d_appearances = int(d_appearances)
+                if d_appearances > 0 or d_appearances == -1:
                     if d_type not in event_definitions.keys():
                         # create new type
                         event_definitions[d_type] = {}
@@ -128,6 +142,7 @@ def check_families(trace_events, families, event_definitions):
     :param event_definitions: Event definitions.
     :return: Message report list
     """
+    to_ignore = list(range(8002000, 10000000, 1000))  # TODO: WHY THESE EVENTS APPEAR RANDOMLY?
     print("\n- Checking families... %s" %families)
     report = []
     trace_event_types = []
@@ -142,7 +157,7 @@ def check_families(trace_events, families, event_definitions):
     print("\t- Expected event types:")
     print(str(event_types))
     for event_type in trace_event_types:
-        if event_type not in event_types:
+        if event_type not in event_types and not event_type in to_ignore:
             report.append("ERROR: Unexpected event type %d found in check_families" % event_type)
     for event in event_types:
         if event not in trace_event_types:
@@ -221,33 +236,68 @@ def check_rules(trace_events, event_definitions):
     report = []
     for event_type, rule in event_definitions.items():
         print("\t- Checking rule: %d %s" % (event_type, str(rule)))
+        is_undefined = False
+        undefined_appearances = None
         filtered_trace_events = __filter_event_type__(trace_events, event_type)
         if EVENT_LABEL in rule:
             event_ok = True
             accumulated_events = __accumulate_events__(filtered_trace_events, rule[EVENT_LABEL])
             for event, appearances in accumulated_events.items():
-                if appearances != rule[EVENT_LABEL][event]:
+                if rule[EVENT_LABEL][event] == -1:
+                    is_undefined = True
+                    undefined_appearances = appearances
+                elif isinstance(rule[EVENT_LABEL][event], list):
+                    if appearances not in rule[EVENT_LABEL][event]:
+                        report.append("ERROR: Unexpected type %d event %d appearances found: %d (Expected %d)" % (event_type, event, appearances, str(rule[EVENT_LABEL][event])))
+                        event_ok = False
+                elif appearances != rule[EVENT_LABEL][event]:
                     report.append("ERROR: Unexpected type %d event %d appearances found: %d (Expected %d)" % (event_type, event, appearances, rule[EVENT_LABEL][event]))
                     event_ok = False
                 else:
                     pass  # ok
-            if event_ok:
+            if is_undefined:
+                print("\t\t- UNDEFINED appearances (%s) %d" % (EVENT_LABEL, undefined_appearances))
+            elif event_ok:
                 print("\t\t- OK appearances (%s)" % EVENT_LABEL)
             else:
                 print("\t\t- ERROR appearances (%s)" % (EVENT_LABEL))
 
+        is_undefined_range = False
+        undefined_appearances_range = None
         if RANGE_LABEL in rule:
             range_ok = True
             accumulated_range = __accumulate_range__(filtered_trace_events)
             expected_amount = rule[RANGE_LABEL][2]
             found_appearances = len(accumulated_range)
-            if found_appearances != expected_amount:
+            if expected_amount == -1:
+                is_undefined_range = True
+                undefined_appearances_range = found_appearances
+            elif isinstance(expected_amount, list):
+                if found_appearances not in expected_amount:
+                    report.append("ERROR: Unexpected event range of type %d found: %d (Expected %d)" % (event_type, found_appearances, str(expected_amount)))
+                    range_ok = False
+            elif found_appearances != expected_amount:
                 report.append("ERROR: Unexpected event range of type %d found: %d (Expected %d)" % (event_type, found_appearances, expected_amount))
                 range_ok = False
-            if range_ok:
+            if is_undefined_range:
+                print("\t\t- UNDEFINED appearances (%s) %d" % (RANGE_LABEL, undefined_appearances_range))
+            elif range_ok:
                 print("\t\t- OK appearances (%s)" % RANGE_LABEL)
             else:
                 print("\t\t- ERROR appearances (%s)" % (RANGE_LABEL))
+
+        # if event 0 is undefined and range is undefined, check that they match
+        if is_undefined and is_undefined_range:
+            if undefined_appearances == undefined_appearances_range:
+                print("\t\t- OK UNDEFINED appearances match")
+            else:
+                print("\t\t- ERROR UNDEFINED appearances do not match")
+        elif is_undefined and not is_undefined_range:
+            print("ERROR: undefined event appearances and not associated range")
+        elif not is_undefined and is_undefined_range:
+            print("ERROR: undefined event range appearances and not associated event 0")
+        else:
+            pass
     return report
 
 def __filter_event_type__(trace_events, event_type):

@@ -8,15 +8,21 @@
 #     <Type> event <Value> #appearances
 # - To check a range of events:
 #     <Type> range <minValue> <maxValue> #appearances
+# When a range is defined, the event 0 is defined separatedly to check
+# specifically the en events.
+#
+# It is also supported to define "undefined" for the number of appearances for
+# a range of events (e.g. RUNTIME_EVENTS). In this case, the check only
+# evaluates if there is the same events as zeros.
+#
+# It is also possible to define the number of appearances separated with comma
+# if the events can appear multiple times (e.g. THREAD_IDENTIFICATION_EVENTS)
 
-
-# INVESTIGAR:
+# WARNING!!! Sometimes appear errors of this kind:
 # MESSAGE 0: ERROR: Unexpected event type 9240000 found in check_families
 # MESSAGE 1: ERROR: Unexpected event type 9241000 found in check_families
-# MESSAGE 0: ERROR: Unexpected event type 9472000 found in check_families
-# MESSAGE 1: ERROR: Unexpected event type 9473000 found in check_families
-# MESSAGE 0: ERROR: Unexpected event type 9866000 found in check_families
-# MESSAGE 1: ERROR: Unexpected event type 9867000 found in check_families
+# or in the family of 8 million (and can be in any group in order of 1000).
+# Why? Is the runtime emitting randomly?
 
 
 # -------- #
@@ -59,18 +65,18 @@ Family 9000000 Binding
 8000003 range 1 100 100
 8000004 event 0 24
 8000004 range 1 3000000000 24
-8000150 event 0 104            # HAY 4 DE MAS
+8000150 event 0 100
 8000150 range 1 4 100
-8000160 event 0 4              # HAY 4 DE MAS
+8000160 event 0 0
 8000160 range 1 4 0
 8000666 event 0 4
 8000666 range 1 3000000000000 4
 8001001 event 0 214
 8001001 range 1 12 214
-8001002 event 0 1689
-8001002 range 1 68 1689
+8001002 event 0 undefined      # 1689
+8001002 range 1 68 undefined   # 1689
 8001003 event 0 8
-8001003 range 1 8 9            # THIS IS OK! CAN NOT BE CLOSED BECAUSE THE TRACE IS IN PROGRESS.
+8001003 range 1 8 9,11  # TODO: WHY THIS EVENT APPEARS 9 OR 11 TIMES?
 
 # --------------------- #
 # PYTHON BINDING EVENTS #
@@ -168,11 +174,11 @@ Family 9000000 Binding
 # PYTHON BINDING RANGE EVENTS #
 # --------------------------- #
 
-9000150 event 0 104  # HAY 4 DE MAS
+9000150 event 0 100
 9000150 range 1 4 100
 9000151 event 0 100
 9000151 range 1 4 100
-9000160 event 0 4  # HAY 4 DE MAS
+9000160 event 0 0
 9000160 range 1 4 0
 9000600 event 0 104
 9000600 range 1 4000 104

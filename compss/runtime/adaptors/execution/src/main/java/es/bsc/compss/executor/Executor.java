@@ -127,6 +127,10 @@ public class Executor implements Runnable, InvocationRunner {
     // Executor Id
     protected final String id;
 
+    // First time boolean - to avoid the first 0 events in emitAffinityChangeEvents
+    private boolean firstTimeAffinityCPU;
+    private boolean firstTimeAffinityGPU;
+
     protected boolean isRegistered;
     protected PipePair cPipes;
     protected PipePair pyPipes;
@@ -149,6 +153,8 @@ public class Executor implements Runnable, InvocationRunner {
         this.platform = platform;
         this.id = executorId;
         this.isRegistered = false;
+        this.firstTimeAffinityCPU = true; // Set to false after the first time
+        this.firstTimeAffinityGPU = true; // Set to false after the first time
     }
 
     /**
@@ -1269,20 +1275,32 @@ public class Executor implements Runnable, InvocationRunner {
         if (this.resources != null) {
             int[] cpus = this.resources.getAssignedCPUs();
             if (cpus != null && cpus.length > 0) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+                if (this.firstTimeAffinityCPU) {
+                    this.firstTimeAffinityCPU = false;
+                } else {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+                }
                 Tracer.emitEvent(cpus[0] + 1L, Tracer.getTasksCPUAffinityEventsType());
             }
             int[] gpus = this.resources.getAssignedGPUs();
             if (gpus != null && gpus.length > 0) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+                if (this.firstTimeAffinityGPU) {
+                    this.firstTimeAffinityGPU = false;
+                } else {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+                }
                 Tracer.emitEvent(gpus[0] + 1L, Tracer.getTasksGPUAffinityEventsType());
             }
         }
     }
 
     private void emitAffinityEndEvents() {
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+        if (!this.firstTimeAffinityCPU) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+        }
+        if (!this.firstTimeAffinityGPU) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+        }
     }
 
 

@@ -17,7 +17,6 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.api.ApplicationRunner;
-import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.log.Loggers;
@@ -42,7 +41,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -62,6 +60,7 @@ public abstract class Invoker implements ApplicationRunner {
     public static final String COMPSS_HOSTNAMES = "COMPSS_HOSTNAMES";
     public static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
     public static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
+    public static final String IB_SUFFIX = "-ib0";
 
     protected final InvocationContext context;
     protected final Invocation invocation;
@@ -186,8 +185,8 @@ public abstract class Invoker implements ApplicationRunner {
         StringBuilder hostnamesSTR = new StringBuilder();
         for (String hostname : hostnames) {
             // Remove infiniband suffix
-            if (hostname.endsWith("-ib0")) {
-                hostname = hostname.substring(0, hostname.lastIndexOf("-ib0"));
+            if (hostname.endsWith(IB_SUFFIX)) {
+                hostname = hostname.substring(0, hostname.lastIndexOf(IB_SUFFIX));
             }
 
             // Add one host name per process to launch
@@ -357,7 +356,7 @@ public abstract class Invoker implements ApplicationRunner {
         cancelMethod();
     }
 
-    private void setEnvironmentVariables() {
+    protected void setEnvironmentVariables() {
         // Setup properties
         System.setProperty(COMPSsWorker.COMPSS_TASK_ID, String.valueOf(this.invocation.getTaskId()));
         System.setProperty(COMPSS_NUM_NODES, String.valueOf(this.numWorkers));
@@ -394,45 +393,6 @@ public abstract class Invoker implements ApplicationRunner {
     protected abstract void invokeMethod() throws JobExecutionException, COMPSsException;
 
     protected abstract void cancelMethod();
-
-    /**
-     * Writes the given list of workers to a hostfile inside the given task sandbox.
-     *
-     * @param taskSandboxWorkingDir task execution sandbox directory
-     * @param workers Strig with the list of workers in mpi hostfile style
-     * @return Returns the generated hostfile location inside the task sandbox
-     * @throws InvokeExecutionException Exception writting hostfile
-     */
-    protected static String writeHostfile(File taskSandboxWorkingDir, String workers) throws InvokeExecutionException {
-        // Locate hostfile file
-        String uuid = UUID.randomUUID().toString();
-        String filename = taskSandboxWorkingDir.getAbsolutePath() + File.separator + uuid + ".hostfile";
-
-        // Modify the workers' list
-        String workersInLines = workers.replace(',', '\n');
-
-        // Write hostfile
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            writer.write(workersInLines);
-        } catch (IOException ioe) {
-            throw new InvokeExecutionException("ERROR: Cannot write hostfile", ioe);
-        }
-        return filename;
-    }
-
-    /**
-     * Writes the given list of workers to a hostfile inside the given task sandbox.
-     *
-     * @param taskSandboxWorkingDir task execution sandbox directory
-     * @param workers list of workers in mpi hostfile style
-     * @return Returns the generated hostfile location inside the task sandbox
-     * @throws InvokeExecutionException Exception writting hostfile
-     */
-    protected static String writeHostfile(File taskSandboxWorkingDir, List<String> workers)
-        throws InvokeExecutionException {
-        String workersStr = buildWorkersString(workers, 1);
-        return writeHostfile(taskSandboxWorkingDir, workersStr);
-    }
 
     @Override
     public void stalledApplication() {

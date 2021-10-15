@@ -67,20 +67,23 @@ public abstract class ExternalInvoker extends Invoker {
         InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
-
         this.command =
             getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
+
+    }
+
+    protected void appendOtherExecutionCommandArguments() throws JobExecutionException {
+
         this.command.appendAllArguments(getExternalCommand(invocation, context, assignedResources));
         String streamsName = context.getStandardStreamsPath(invocation);
         this.command.prependArgument(streamsName + SUFFIX_ERR);
         this.command.prependArgument(streamsName + SUFFIX_OUT);
-
     }
 
     protected abstract ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context,
         Invocation invocation, String sandBox, InvocationResources assignedResources);
 
-    private static ArrayList<String> getExternalCommand(Invocation invocation, InvocationContext context,
+    private ArrayList<String> getExternalCommand(Invocation invocation, InvocationContext context,
         InvocationResources assignedResources) throws JobExecutionException {
 
         ArrayList<String> args = new ArrayList<>();
@@ -93,7 +96,7 @@ public abstract class ExternalInvoker extends Invoker {
         return args;
     }
 
-    private static ArrayList<String> addArguments(InvocationContext context, Invocation invocation)
+    private ArrayList<String> addArguments(InvocationContext context, Invocation invocation)
         throws JobExecutionException {
         // The implementation to execute externally can only be METHOD, MULTI_NODE or PYTHON_MPI but we double check it
         if (invocation.getMethodImplementation().getMethodType() != MethodType.METHOD
@@ -140,10 +143,11 @@ public abstract class ExternalInvoker extends Invoker {
         lArgs.add(String.valueOf(invocation.getTimeOut()));
 
         // Slave nodes and cus description
-        lArgs.add(String.valueOf(invocation.getSlaveNodesNames().size()));
-        lArgs.addAll(invocation.getSlaveNodesNames());
+        List<String> nodeNames = getNodeNames(context, invocation);
+        lArgs.add(String.valueOf(nodeNames.size()));
+        lArgs.addAll(nodeNames);
         MethodResourceDescription requirements = (MethodResourceDescription) invocation.getRequirements();
-        lArgs.add(String.valueOf(requirements.getTotalCPUComputingUnits()));
+        lArgs.add(String.valueOf(getNumThreads(context, invocation)));
 
         // Add hasTarget
         lArgs.add(Boolean.toString(invocation.getTarget() != null));
@@ -178,6 +182,15 @@ public abstract class ExternalInvoker extends Invoker {
         lArgs.addAll(invArgs);
 
         return lArgs;
+    }
+
+    protected List<String> getNodeNames(InvocationContext context, Invocation invocation) {
+        return invocation.getSlaveNodesNames();
+    }
+
+    protected int getNumThreads(InvocationContext context, Invocation invocation) {
+        MethodResourceDescription requirements = (MethodResourceDescription) invocation.getRequirements();
+        return requirements.getTotalCPUComputingUnits();
     }
 
     @SuppressWarnings("unchecked")
@@ -334,7 +347,7 @@ public abstract class ExternalInvoker extends Invoker {
         return filename.startsWith("d") && filename.endsWith(".IT");
     }
 
-    private static ArrayList<String> addThreadAffinity(InvocationResources assignedResources) {
+    private ArrayList<String> addThreadAffinity(InvocationResources assignedResources) {
         ArrayList<String> args = new ArrayList<>();
         int[] assignedCoreUnits = assignedResources.getAssignedCPUs();
         String computingUnits;
@@ -350,7 +363,7 @@ public abstract class ExternalInvoker extends Invoker {
         return args;
     }
 
-    private static ArrayList<String> addGPUAffinity(InvocationResources assignedResources) {
+    private ArrayList<String> addGPUAffinity(InvocationResources assignedResources) {
         ArrayList<String> args = new ArrayList<>();
         int[] assignedGPUs = assignedResources.getAssignedGPUs();
         String computingUnits;
@@ -366,10 +379,8 @@ public abstract class ExternalInvoker extends Invoker {
         return args;
     }
 
-    private static ArrayList<String> addHostlist(InvocationContext context, Invocation invocation) {
+    private ArrayList<String> addHostlist(InvocationContext context, Invocation invocation) {
         ArrayList<String> args = new ArrayList<>();
-        List<String> hostnames = invocation.getSlaveNodesNames();
-        hostnames.add(context.getHostName());
 
         ResourceDescription rd = invocation.getRequirements();
         int computingUnits;

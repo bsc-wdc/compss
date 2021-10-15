@@ -161,7 +161,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         es.bsc.compss.types.annotations.Processor[] processorsConstraints = constraints.processors();
         if (processorsConstraints != null && processorsConstraints.length > 0) {
             for (es.bsc.compss.types.annotations.Processor pC : processorsConstraints) {
-                this.addProcessor(getProcessorFromProcessorsConstraint(pC));
+                Processor p = getProcessorFromProcessorsConstraint(pC);
+                if (p != null) {
+                    this.addProcessor(getProcessorFromProcessorsConstraint(pC));
+                }
             }
         }
 
@@ -223,7 +226,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
                 p.setPropValue(propvalue);
             }
-            this.addProcessor(p);
+            if (cu > 0) {
+                this.addProcessor(p);
+            }
         }
 
         if (this.totalCPUs == 0) {
@@ -2166,5 +2171,48 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             sb.append("Unassigned");
         }
         return sb.toString();
+    }
+
+    @Override
+    public void scaleUpBy(int n) {
+        if (n < 1) {
+            throw new IllegalArgumentException("ERROR: Trying to scale by 0 or negative");
+        } else if (n > 1) {
+            for (Processor pThis : this.processors) {
+                int oldCUs = pThis.getComputingUnits();
+                int newCUs = oldCUs * n;
+                pThis.setComputingUnits(newCUs);
+                this.increaseComputingUnits(pThis.getType(), newCUs - oldCUs);
+            }
+
+            if (this.storageBW != UNASSIGNED_INT) {
+                this.storageBW = this.storageBW * n;
+            }
+            if (this.memorySize != UNASSIGNED_FLOAT) {
+                this.memorySize = this.memorySize * n;
+            }
+        }
+
+    }
+
+    @Override
+    public void scaleDownBy(int n) {
+        if (n < 1) {
+            throw new IllegalArgumentException("ERROR: Trying to scale by 0 or negative");
+        } else if (n > 1) {
+            for (Processor pThis : this.processors) {
+                int oldCUs = pThis.getComputingUnits();
+                int newCUs = oldCUs / n;
+                pThis.setComputingUnits(newCUs);
+                this.decreaseComputingUnits(pThis.getType(), oldCUs - newCUs);
+            }
+            if (this.storageBW != UNASSIGNED_INT) {
+                this.storageBW = this.storageBW / n;
+            }
+            if (this.memorySize != UNASSIGNED_FLOAT) {
+                this.memorySize = this.memorySize / n;
+            }
+        }
+
     }
 }

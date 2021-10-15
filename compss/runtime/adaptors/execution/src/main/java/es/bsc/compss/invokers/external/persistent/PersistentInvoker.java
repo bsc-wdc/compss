@@ -35,10 +35,20 @@ public abstract class PersistentInvoker extends ExternalInvoker {
     }
 
 
+    /**
+     * Class Constructor.
+     * 
+     * @param context Invocation Constructor.
+     * @param invocation Invocation description.
+     * @param taskSandboxWorkingDir Sandbox working directory.
+     * @param assignedResources Assigned resources to the invocation.
+     * @throws JobExecutionException Exception building the invoker.
+     */
     public PersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
         InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super.appendOtherExecutionCommandArguments();
     }
 
     @Override

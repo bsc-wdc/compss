@@ -26,22 +26,19 @@ import java.io.ObjectOutput;
 import java.util.List;
 
 
-public class MPIDefinition implements AbstractMethodImplementationDefinition {
+public class MPIDefinition extends CommonMPIDefinition implements AbstractMethodImplementationDefinition {
 
     /**
      * Runtime Objects have serialization ID 1L.
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 6;
+    public static final int NUM_PARAMS = 7;
     public static final String SIGNATURE = "mpi.MPI";
 
-    private String mpiRunner;
-    private String mpiFlags;
+    private static final String ERROR_MPI_BINARY = "ERROR: Empty binary annotation for MPI method";
+
     private String binary;
-    private String workingDir;
-    private boolean scaleByCU;
-    private boolean failByEV;
 
 
     /**
@@ -57,17 +54,15 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
      * @param binary MPI binary path.
      * @param workingDir Binary working directory.
      * @param mpiRunner Path to the MPI command.
+     * @param ppn Process per node.
      * @param scaleByCU Scale by computing units property.
      * @param failByEV Flag to enable failure with EV.
      */
-    public MPIDefinition(String binary, String workingDir, String mpiRunner, String mpiFlags, boolean scaleByCU,
-        boolean failByEV) {
-        this.mpiRunner = mpiRunner;
-        this.mpiFlags = mpiFlags;
-        this.workingDir = workingDir;
+    public MPIDefinition(String binary, String workingDir, String mpiRunner, int ppn, String mpiFlags,
+        boolean scaleByCU, boolean failByEV) {
+        super(workingDir, mpiRunner, ppn, mpiFlags, scaleByCU, failByEV);
         this.binary = binary;
-        this.scaleByCU = scaleByCU;
-        this.failByEV = failByEV;
+
     }
 
     /**
@@ -80,15 +75,11 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
         this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
-        this.mpiFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
-        this.scaleByCU = Boolean.parseBoolean(implTypeArgs[offset + 4]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 5]);
-        if (mpiRunner == null || mpiRunner.isEmpty()) {
-            throw new IllegalArgumentException("Empty mpiRunner annotation for MPI method ");
-        }
-        if (this.binary == null || this.binary.isEmpty()) {
-            throw new IllegalArgumentException("Empty binary annotation for MPI method ");
-        }
+        this.ppn = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]));
+        this.mpiFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.scaleByCU = Boolean.parseBoolean(implTypeArgs[offset + 5]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 6]);
+        checkArguments();
     }
 
     @Override
@@ -96,6 +87,7 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
         lArgs.add(this.binary);
         lArgs.add(this.workingDir);
         lArgs.add(this.mpiRunner);
+        lArgs.add(Integer.toString(this.ppn));
         lArgs.add(this.mpiFlags);
         lArgs.add(Boolean.toString(scaleByCU));
         lArgs.add(Boolean.toString(failByEV));
@@ -110,51 +102,6 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
         return this.binary;
     }
 
-    /**
-     * Returns the binary working directory.
-     * 
-     * @return The binary working directory.
-     */
-    public String getWorkingDir() {
-        return this.workingDir;
-    }
-
-    /**
-     * Returns the path to the MPI command.
-     * 
-     * @return The path to the MPI command.
-     */
-    public String getMpiRunner() {
-        return this.mpiRunner;
-    }
-
-    /**
-     * Returns the flags for the MPI command.
-     * 
-     * @return Flags for the MPI command.
-     */
-    public String getMpiFlags() {
-        return this.mpiFlags;
-    }
-
-    /**
-     * Returns the scale by computing units property.
-     * 
-     * @return scale by computing units property value.
-     */
-    public boolean getScaleByCU() {
-        return this.scaleByCU;
-    }
-
-    /**
-     * Check if fail by exit value is enabled.
-     * 
-     * @return True is fail by exit value is enabled.
-     */
-    public boolean isFailByEV() {
-        return failByEV;
-    }
-
     @Override
     public MethodType getMethodType() {
         return MethodType.MPI;
@@ -164,6 +111,7 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
     public String toMethodDefinitionFormat() {
         StringBuilder sb = new StringBuilder();
         sb.append("[MPI RUNNER=").append(this.mpiRunner);
+        sb.append(", MPI_PPN=").append(this.ppn);
         sb.append(", MPI_FLAGS=").append(this.mpiFlags);
         sb.append(", BINARY=").append(this.binary);
         sb.append("]");
@@ -179,6 +127,7 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.mpiRunner = (String) in.readObject();
+        this.ppn = in.readInt();
         this.mpiFlags = (String) in.readObject();
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
@@ -189,6 +138,7 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(this.mpiRunner);
+        out.writeInt(this.ppn);
         out.writeObject(this.mpiFlags);
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
@@ -202,6 +152,7 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
         sb.append("MPI Implementation \n");
         sb.append("\t Binary: ").append(binary).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
+        sb.append("\t MPI PPN: ").append(ppn).append("\n");
         sb.append("\t MPI flags: ").append(mpiFlags).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
@@ -214,4 +165,11 @@ public class MPIDefinition implements AbstractMethodImplementationDefinition {
         return TaskType.METHOD;
     }
 
+    @Override
+    public void checkArguments() {
+        super.checkArguments();
+        if (this.binary == null || this.binary.isEmpty()) {
+            throw new IllegalArgumentException(ERROR_MPI_BINARY);
+        }
+    }
 }

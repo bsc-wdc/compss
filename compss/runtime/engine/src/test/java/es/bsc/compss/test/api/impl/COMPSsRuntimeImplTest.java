@@ -86,6 +86,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "mpiBinary",
             "mpiWorkingDir",
             "mpiRunner",
+            "1", // processes_per_node
             "mpiFlags",
             "false",
             "false" };

@@ -10,8 +10,8 @@ import es.bsc.compss.types.annotations.task.MPI;
 
 public interface MainItf {
 
-    @MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", processes = "1", scaleByCU = true)
-    @Constraints(computingUnits = "2")
+    @MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", processes = "2", processesPerNode = "2")
+    @Constraints(computingUnits = "1")
     int taskSingleMPI(@Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data,
         @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut);
 

@@ -28,7 +28,7 @@ import java.io.ObjectOutput;
 import java.util.List;
 
 
-public class DecafDefinition implements AbstractMethodImplementationDefinition {
+public class DecafDefinition extends CommonMPIDefinition implements AbstractMethodImplementationDefinition {
 
     /**
      * Runtime Objects have serialization ID 1L.
@@ -37,16 +37,14 @@ public class DecafDefinition implements AbstractMethodImplementationDefinition {
 
     public static final int NUM_PARAMS = 6;
     public static final String SIGNATURE = "decaf.DECAF";
+    private static final String ERROR_DECAF_BINARY = "ERROR: Invalid wfScript";
 
     public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
         + "system" + File.separator + "decaf" + File.separator + "run_decaf.sh";
 
-    private String mpiRunner;
     private String dfScript;
     private String dfExecutor;
     private String dfLib;
-    private String workingDir;
-    private boolean failByEV;
 
 
     /**
@@ -68,12 +66,10 @@ public class DecafDefinition implements AbstractMethodImplementationDefinition {
      */
     public DecafDefinition(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
         boolean failByEV) {
-        this.mpiRunner = mpiRunner;
-        this.workingDir = workingDir;
+        super(workingDir, mpiRunner, 1, "", true, failByEV);
         this.dfScript = dfScript;
         this.dfExecutor = dfExecutor;
         this.dfLib = dfLib;
-        this.failByEV = failByEV;
     }
 
     /**
@@ -95,6 +91,10 @@ public class DecafDefinition implements AbstractMethodImplementationDefinition {
         if (dfScript == null || dfScript.isEmpty()) {
             throw new IllegalArgumentException("Empty dfScript annotation for DECAF method ");
         }
+        // Set default values for this extra mpi parameters
+        this.scaleByCU = true;
+        this.mpiFlags = "";
+        this.ppn = 1;
     }
 
     @Override
@@ -152,33 +152,6 @@ public class DecafDefinition implements AbstractMethodImplementationDefinition {
         return this.dfLib;
     }
 
-    /**
-     * Returns the working directory.
-     * 
-     * @return The working directory.
-     */
-    public String getWorkingDir() {
-        return this.workingDir;
-    }
-
-    /**
-     * Returns the path to the MPI binary command.
-     * 
-     * @return The path to the MPI binary command.
-     */
-    public String getMpiRunner() {
-        return this.mpiRunner;
-    }
-
-    /**
-     * Check if fail by exit value is enabled.
-     * 
-     * @return True is fail by exit value is enabled.
-     */
-    public boolean isFailByEV() {
-        return failByEV;
-    }
-
     @Override
     public MethodType getMethodType() {
         return MethodType.DECAF;
@@ -223,6 +196,11 @@ public class DecafDefinition implements AbstractMethodImplementationDefinition {
         this.dfLib = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
+
+        // Set default values for this extra mpi parameters
+        this.scaleByCU = true;
+        this.mpiFlags = "";
+        this.ppn = 1;
     }
 
     @Override
@@ -238,6 +216,28 @@ public class DecafDefinition implements AbstractMethodImplementationDefinition {
     @Override
     public TaskType getTaskType() {
         return TaskType.METHOD;
+    }
+
+    @Override
+    public void checkArguments() {
+        if (this.dfScript == null || this.dfScript.isEmpty()) {
+            throw new IllegalArgumentException(ERROR_DECAF_BINARY);
+        }
+
+        if (this.dfExecutor == null || this.dfExecutor.isEmpty() || this.dfExecutor.equals(Constants.UNASSIGNED)) {
+            this.dfExecutor = "executor.sh";
+        }
+        if (!this.dfExecutor.startsWith(File.separator) && !this.dfExecutor.startsWith("./")) {
+            this.dfExecutor = "./" + this.dfExecutor;
+        }
+        if (this.dfLib == null || this.dfLib.isEmpty()) {
+            this.dfLib = "null";
+        }
+    }
+
+    public void setDfScript(String dfScript) {
+        this.dfScript = dfScript;
+
     }
 
 }

@@ -632,6 +632,8 @@ class TaskWorker(TaskCommons):
                     vararg_name = get_name_from_vararg(name)
                     if not self.cache_profiler and vararg_name in self.decorator_arguments:
                         use_cache = self.decorator_arguments[vararg_name].cache
+                elif self.cache_profiler:
+                    use_cache = True
                 else:
                     # if not explicitly said, the object is candidate to be
                     # cached
@@ -993,6 +995,8 @@ class TaskWorker(TaskCommons):
         cache = self.cache_queue is not None
         if not self.cache_profiler and name in self.decorator_arguments:
             use_cache = self.decorator_arguments[name].cache
+        elif self.cache_profiler:
+            use_cache = True
         else:
             # if not explicitly said, the object is candidate to be cached
             use_cache = False

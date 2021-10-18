@@ -233,8 +233,8 @@ def process_task(current_line,     # type: str
                 sys.stderr = err
 
                 # Setup process environment
-                cn = int(current_line_filtered[11])
-                cn_names = ",".join(current_line_filtered[12:12 + cn])
+                cn = int(current_line_filtered[12])
+                cn_names = ",".join(current_line_filtered[13:13 + cn])
                 cu = int(current_line_filtered[13 + cn])
                 os.environ["COMPSS_NUM_NODES"] = str(cn)
                 os.environ["COMPSS_HOSTNAMES"] = cn_names

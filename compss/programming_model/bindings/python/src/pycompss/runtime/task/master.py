@@ -1080,8 +1080,8 @@ class TaskMaster(object):
             for i in range(num_layouts):
                 param_name = impl_type_args[(9+(i*4))].strip()
                 if param_name:
-                    if param_name in self.parameters:
-                        if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:      # noqa: E501
+                    if param_name in self.decorator_arguments:
+                        if self.decorator_arguments[param_name].content_type != parameter.TYPE.COLLECTION:      # noqa: E501
                             raise PyCOMPSsException("Parameter %s is not a collection!" % param_name)  # noqa: E501
                     else:
                         raise PyCOMPSsException("Parameter %s does not exist!" % param_name)           # noqa: E501
@@ -1107,9 +1107,9 @@ class TaskMaster(object):
 
         :return: None
         """
-        if self.processes < self.processes_per_node:
+        if self.computing_nodes < self.processes_per_node:
             raise PyCOMPSsException("Processes is smaller than processes_per_node.")
-        if (self.processes % self.processes_per_node) > 0:
+        if (self.computing_nodes % self.processes_per_node) > 0:
             raise PyCOMPSsException("Processes is not a multiple of processes_per_node.")
 
     def parse_processes_per_node(self, processes_per_node):

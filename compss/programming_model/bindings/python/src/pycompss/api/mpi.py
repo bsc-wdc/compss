@@ -64,7 +64,7 @@ SUPPORTED_ARGUMENTS = {BINARY,
                        WORKING_DIR,
                        RUNNER,
                        FLAGS,
-                       PROCESSES_PER_NODE
+                       PROCESSES_PER_NODE,
                        SCALE_BY_CU,
                        PARAMS,
                        FAIL_BY_EXIT_VALUE}

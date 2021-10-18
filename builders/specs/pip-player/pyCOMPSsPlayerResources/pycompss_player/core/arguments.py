@@ -4,7 +4,7 @@ from uuid import uuid4 as uuid
 
 from pycompss_player.core.docker.arguments import docker_init_parser
 from pycompss_player.core.local.arguments import local_init_parser
-from pycompss_player.core.remote.arguments import cluster_parser_job
+from pycompss_player.core.remote.arguments import cluster_init_parser, cluster_parser_job
 
 FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
 
@@ -48,7 +48,10 @@ def parse_sys_argv():
                                     parents=[docker_init_parser()])
 
     init_env_subparser.add_parser("local", add_help=False, 
-                                    parents=[local_init_parser()])                                    
+                                    parents=[local_init_parser()])
+
+    init_env_subparser.add_parser("cluster", add_help=False, 
+                                    parents=[cluster_init_parser()])
 
     # EXEC
     parser_exec = subparsers.add_parser("exec",
@@ -70,7 +73,7 @@ def parse_sys_argv():
     # RUN
     parser_run = subparsers.add_parser("run",
                                        aliases=["r"],
-                                       help="Run the application (with runcompss) within the COMPSs\' docker instance.",  # noqa: E501
+                                       help="Run the application (with runcompss) within the COMPSs\' environment.",  # noqa: E501
                                        parents=[parent_parser],
                                        formatter_class=FORMATTER_CLASS)
     parser_run.add_argument("-eid", "--env_id",
@@ -87,8 +90,10 @@ def parse_sys_argv():
 
     # JOB
     
-    parser_job = subparsers.add_parser("job", aliases=["j"], add_help=False, 
-                                    parents=[cluster_parser_job()])
+    parser_job = subparsers.add_parser("job", aliases=["j"], add_help=False,
+                                    help="Manage jobs within cluster environments.",  # noqa: E501
+                                    parents=[cluster_parser_job()],
+                                    formatter_class=FORMATTER_CLASS)
 
     parser_job.add_argument("-eid", "--env_id",
                              default="",
@@ -98,7 +103,7 @@ def parse_sys_argv():
     # MONITOR
     parser_monitor = subparsers.add_parser("monitor",
                                            aliases=["m"],
-                                           help="Start the monitor within the COMPSs\' docker instance.",  # noqa: E501
+                                           help="Start the monitor within the COMPSs\' environment.",  # noqa: E501
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
     parser_monitor.add_argument("option",
@@ -108,8 +113,8 @@ def parse_sys_argv():
                                 type=str)
     # JUPYTER
     parser_jupyter = subparsers.add_parser("jupyter",
-                                           aliases=["j"],
-                                           help="Starts Jupyter within the COMPSs\' docker instance.",  # noqa: E501
+                                           aliases=["jpy"],
+                                           help="Starts Jupyter within the COMPSs\' environment.",  # noqa: E501
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
     parser_jupyter.add_argument("-eid", "--env_id",

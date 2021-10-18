@@ -15,12 +15,12 @@ from pycompss_player.core.docker.cmd import DockerCmd
 
 class DockerActions(Actions):
 
-    def __init__(self, arguments, debug=False) -> None:
-        super().__init__(arguments, debug=debug)
+    def __init__(self, arguments, debug=False, env_conf=None) -> None:
+        super().__init__(arguments, debug=debug, env_conf=env_conf)
 
         self.docker_cmd = DockerCmd()
 
-    def init(self, arguments, debug=False):
+    def init(self):
         super().init()
         """ Deploys COMPSs infrastructure in Docker
 
@@ -28,38 +28,38 @@ class DockerActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Initializing...")
             print("Parameters:")
-            if arguments.working_dir:
-                working_dir = arguments.working_dir
+            if self.arguments.working_dir:
+                working_dir = self.arguments.working_dir
             else:
                 working_dir = "(default)"
-            if arguments.image:
-                image = arguments.image
+            if self.arguments.image:
+                image = self.arguments.image
             else:
                 image = "(default)"
             print("\t- Working dir: " + working_dir)
             print("\t- Image: " + image)
-            print("\t- Restart: " + str(arguments.restart))
-        self.docker_cmd.docker_deploy_compss(arguments.working_dir,
-                            arguments.image,
-                            arguments.restart)
+            print("\t- Restart: " + str(self.arguments.restart))
+        self.docker_cmd.docker_deploy_compss(self.arguments.working_dir,
+                            self.arguments.image,
+                            self.arguments.restart)
 
 
-    def update(self, arguments, debug=False):
+    def update(self):
         """ Deploys COMPSs infrastructure in Docker
 
         :param arguments: Command line arguments
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Updating...")
         self.docker_cmd.docker_update_image()
 
 
-    # def kill(self, arguments, debug=False):
+    # def kill(self):
     #     """ Destroys the COMPSs infrastructure in Docker
 
     #     :param arguments: Command line arguments
@@ -73,7 +73,7 @@ class DockerActions(Actions):
     #     docker_kill_compss(arguments.clean)
 
 
-    def exec(self, arguments, debug=False):
+    def exec(self):
         super().exec()
         """ Execute the given command in the running Docker image
 
@@ -81,16 +81,16 @@ class DockerActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Executing...")
             print("Parameters:")
-            print("\t- Command: " + arguments.command)
-            print("\t- Arguments: " + str(arguments.argument))
-        command = arguments.command + " ".join(arguments.argument)
+            print("\t- Command: " + self.arguments.command)
+            print("\t- self.Arguments: " + str(self.arguments.argument))
+        command = self.arguments.command + " ".join(self.arguments.argument)
         self.docker_cmd.docker_exec_in_daemon(command)
 
 
-    def run(self, arguments, debug=False):
+    def run(self):
         super().exec()
         """ Run the given command in the COMPSs infrastructure at docker
 
@@ -98,12 +98,12 @@ class DockerActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Running...")
             print("Parameters:")
-            print("\t- Application: " + arguments.application)
-            print("\t- Arguments: " + str(arguments.argument))
-        application = arguments.application + " ".join(arguments.argument)
+            print("\t- Application: " + self.arguments.application)
+            print("\t- self.Arguments: " + str(self.arguments.argument))
+        application = self.arguments.application + " ".join(self.arguments.argument)
         command = "runcompss " + \
                 "--project=/project.xml " + \
                 "--resources=/resources.xml " + \
@@ -112,37 +112,37 @@ class DockerActions(Actions):
         self.docker_cmd.docker_exec_in_daemon(command)
 
 
-    def monitor(self, arguments, debug=False):
+    def monitor(self):
         """ Starts or stops the monitor in the COMPSs infrastructure at docker
 
         :param arguments: Command line arguments
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Monitoring...")
             print("Parameters:")
-            print("\t- Option: " + arguments.option)
-        if arguments.option == "start":
+            print("\t- Option: " + self.arguments.option)
+        if self.arguments.option == "start":
             self.docker_cmd.docker_start_monitoring()
-        elif arguments.option == "stop":
+        elif self.arguments.option == "stop":
             self.docker_cmd.docker_stop_monitoring()
         else:
-            raise Exception("Unexpected monitor option: " + arguments.option)
+            raise Exception("Unexpected monitor option: " + self.arguments.option)
 
 
-    def jupyter(self, arguments, debug=False):
+    def jupyter(self):
         """ Starts jupyter in the COMPSs infrastructure at docker
 
         :param arguments: Command line arguments
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Starting jupyter...")
             print("Parameters:")
-            print("\t- Arguments: " + str(arguments.argument))
-        arguments = " ".join(arguments.argument)
+            print("\t- Arguments: " + str(self.arguments.argument))
+        arguments = " ".join(self.arguments.argument)
         command = "jupyter-notebook " + \
                 arguments + " " + \
                 "--ip=172.17.0.2 " + \
@@ -151,7 +151,7 @@ class DockerActions(Actions):
         self.docker_cmd.docker_exec_in_daemon(command)
 
 
-    def gengraph(self, arguments, debug=False):
+    def gengraph(self):
         """ Converts the given task dependency graph (dot) into pdf
         using the docker image
 
@@ -159,40 +159,40 @@ class DockerActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Converting graph...")
             print("Parameters:")
-            print("\t- Dot file: " + arguments.dot_file)
-        command = "compss_gengraph " + arguments.dot_file
+            print("\t- Dot file: " + self.arguments.dot_file)
+        command = "compss_gengraph " + self.arguments.dot_file
         self.docker_cmd.docker_exec_in_daemon(command)
 
 
-    def components(self, arguments, debug=False):
+    def components(self):
         """ Lists/add/remove workers in the COMPSs infrastructure at docker
 
         :param arguments: Command line arguments
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
-            print("Components: " + arguments.components)
+        if self.debug:
+            print("Components: " + self.arguments.components)
 
-        if arguments.components == "list":
-            if debug:
+        if self.arguments.components == "list":
+            if self.debug:
                 print("Listing components...")
-            self.docker_cmd.docker_components(arguments.components)
-        if arguments.components == "add":
-            if debug:
-                print("Adding components: " + str(arguments.worker))
-            self.docker_cmd.docker_components(arguments.components,
-                            arguments.add,
-                            arguments.worker)
-        if arguments.components == "remove":
-            if debug:
-                print("Removing components:" + str(arguments.worker))
-            self.docker_cmd.docker_components(arguments.components,
-                            arguments.remove,
-                            arguments.worker)
+            self.docker_cmd.docker_components(self.arguments.components)
+        if self.arguments.components == "add":
+            if self.debug:
+                print("Adding components: " + str(self.arguments.worker))
+            self.docker_cmd.docker_components(self.arguments.components,
+                            self.arguments.add,
+                            self.arguments.worker)
+        if self.arguments.components == "remove":
+            if self.debug:
+                print("Removing components:" + str(self.arguments.worker))
+            self.docker_cmd.docker_components(self.arguments.components,
+                            self.arguments.remove,
+                            self.arguments.worker)
 
     def environment(self):
-        super().exec()
+        super().environment()

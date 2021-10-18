@@ -8,8 +8,8 @@ from pycompss_player.core.local.cmd import local_run_app
 from pycompss_player.core.actions import Actions
 
 class LocalActions(Actions):
-    def __init__(self, arguments, debug=False) -> None:
-        super().__init__(arguments, debug=debug)
+    def __init__(self, arguments, debug=False, env_conf=None) -> None:
+        super().__init__(arguments, debug=debug, env_conf=env_conf)
 
     def init(self):
         super().init()
@@ -41,7 +41,7 @@ class LocalActions(Actions):
         local_deploy_compss(working_dir)
 
 
-    def run(self, arguments, debug=False):
+    def run(self):
         super().run()
         """ Run the given command in the COMPSs infrastructure at docker
 
@@ -49,12 +49,12 @@ class LocalActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if debug:
+        if self.debug:
             print("Running...")
             print("Parameters:")
-            print("\t- Application: " + arguments.application)
-            print("\t- Arguments: " + str(arguments.argument))
-        application = arguments.application + " ".join(arguments.argument)
+            print("\t- Application: " + self.arguments.application)
+            print("\t- Arguments: " + str(self.arguments.argument))
+        application = self.arguments.application + " ".join(self.arguments.argument)
         command = "runcompss " + application
                 # "--project=/project.xml " + \
                 # "--resources=/resources.xml " + \
@@ -65,3 +65,6 @@ class LocalActions(Actions):
 
     def exec(self, arguments, debug=False):
         super().exec()
+
+    def environment(self):
+        super().environment()

@@ -181,7 +181,7 @@ check_bindings_setup () {
     fi
 
     if [ -z "$python_cache_profiler" ]; then
-      python_cache_profiler=DEFAULT_PYTHON_CACHE_PROFILER
+      python_cache_profiler=$DEFAULT_PYTHON_CACHE_PROFILER
     else
       # Check python version >= 3.8
       cache_supported=$($python_interpreter -c"import sys; print('true' if sys.version_info >= (3, 8) else 'false')")

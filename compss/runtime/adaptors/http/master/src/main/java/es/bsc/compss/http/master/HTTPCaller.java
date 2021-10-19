@@ -172,13 +172,13 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
         for (Object key : paths.keySet()) {
             String keyString = paths.get(key).replaceFirst(",", "");
-            newBody.add((String) key, extractValueFromJSON(bodyJsonObject, keyString));
+            newBody.add((String) key, extractValueFromJsonResponse(bodyJsonObject, keyString));
         }
 
         response.setResponseBody(newBody);
     }
 
-    private JsonElement extractValueFromJSON(JsonObject json, String keyString) {
+    private JsonElement extractValueFromJsonResponse(JsonObject json, String keyString) {
         String[] keys = keyString.split(",");
         for (int i = 0; i < keys.length - 1; i++) {
             json = json.getAsJsonObject(keys[0]);
@@ -251,10 +251,8 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                             || par.getContentType().toUpperCase().equals("FILE_T"))) {
                             String content = readFile(fileParam.getDataTarget());
                             namedParameters.put(par.getName(), content);
-                            LOGGER.debug(content);
                         } else {
-                            // python object serialized as a JSON string, skip the first 4 bytes
-                            String content = readFile(fileParam.getDataTarget()).substring(4);
+                            String content = extractJsonString(fileParam.getDataTarget());
                             namedParameters.put(par.getName(), content);
                         }
                         break;
@@ -275,7 +273,9 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                         LOGGER.error("Error: HTTP CAN'T USE BINDING OBJECTS AS PARAMETERS!");
                         // Skip
                         break;
-
+                    case DICT_COLLECTION_T:
+                        LOGGER.error("Error: HTTP CAN'T USE DICTIONARY COLLECTION OBJECTS AS PARAMETERS!");
+                        break;
                     default:
                         // Basic or String
                         BasicTypeParameter basicTypeParameter = (BasicTypeParameter) par;
@@ -286,6 +286,19 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
             }
         }
         return namedParameters;
+    }
+
+    private String extractJsonString(String fileName) {
+        String jsonContent = readFile(fileName).substring(4);
+        JsonElement jsonElement = JsonParser.parseString(jsonContent);
+        if (jsonElement.isJsonPrimitive()) {
+            return jsonElement.getAsJsonPrimitive().toString();
+        } else if (jsonElement.isJsonObject()) {
+            return jsonElement.toString();
+        } else {
+            LOGGER.warn("UNSUPPORTED JSON PARAMETER IN HTTP TASK");
+        }
+        return null;
     }
 
     private void addParameterToMapOfParameters(Map<String, String> namedParameters, Parameter par, Object o) {

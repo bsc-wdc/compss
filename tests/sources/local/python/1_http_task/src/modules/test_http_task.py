@@ -26,12 +26,33 @@ class TestHttpTask(unittest.TestCase):
         mes = cwo(post_with_param(payload))
         self.assertEqual(str(mes), payload, "TEST FAILED: POST param in payload")
 
+        inner_param = "hello"
+        res = cwo(post_with_inner_param(inner_param))
+        self.assertEqual(res.get("first", None), inner_param,
+                         "TEST FAILED: POST inner param")
+
         fayl, content = "payload_file", "payload_content"
         with(open(fayl, 'w')) as nm:
             nm.write(content)
 
         ret = cwo(post_with_file_param(content))
         self.assertEqual(str(ret), content, "TEST FAILED: POST file as payload")
+
+    def test_serialization(self):
+
+        payload = "something"
+        ret = post_with_param(payload)
+
+        res = cwo(post_with_inner_param(ret))
+        self.assertEqual(res.get("first", ""), payload,
+                         "TEST FAILED: POST inner param")
+
+        inout = post_with_inner_param(ret)
+        update_inout_dict(inout)
+        regular_task(inout)
+        inout = cwo(inout)
+        self.assertIn("third", inout,  "TEST FAILED: json serialization")
+        self.assertIn("greetings_from", inout,  "TEST FAILED: json serialization")
 
     def test_get_methods(self):
         dummy()
@@ -66,7 +87,6 @@ class TestHttpTask(unittest.TestCase):
 
         inout = dict(first="a", second="b")
         update_inout_dict(inout)
-        inout = cwo(inout)
         regular_task(inout)
         inout = cwo(inout)
         self.assertIn("third", inout,  "TEST FAILED: http --> task")
@@ -85,6 +105,15 @@ def dummy_post():
       payload="{{payload}}", payload_type="application/json")
 @task(returns=str)
 def post_with_param(payload):
+    """
+    """
+    pass
+
+
+@http(service_name="service_1", request="POST", resource="post_json/",
+      payload='{ "first" : {{inner_param}} }', payload_type="application/json")
+@task(returns=dict)
+def post_with_inner_param(inner_param):
     """
     """
     pass

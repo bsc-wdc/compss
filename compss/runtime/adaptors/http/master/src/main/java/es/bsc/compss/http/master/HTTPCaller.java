@@ -253,7 +253,11 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                             namedParameters.put(par.getName(), content);
                         } else {
                             String content = extractJsonString(fileParam.getDataTarget());
-                            namedParameters.put(par.getName(), content);
+                            if (content != null) {
+                                namedParameters.put(par.getName(), content);
+                            } else {
+                                LOGGER.warn("UNSUPPORTED JSON PARAMETER IN HTTP TASK: " + fileParam.getName());
+                            }
                         }
                         break;
                     case OBJECT_T:
@@ -295,8 +299,8 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
             return jsonElement.getAsJsonPrimitive().toString();
         } else if (jsonElement.isJsonObject()) {
             return jsonElement.toString();
-        } else {
-            LOGGER.warn("UNSUPPORTED JSON PARAMETER IN HTTP TASK");
+        } else if (jsonElement.isJsonArray()) {
+            return jsonElement.getAsJsonArray().toString();
         }
         return null;
     }

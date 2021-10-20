@@ -54,6 +54,12 @@ class TestHttpTask(unittest.TestCase):
         self.assertIn("third", inout,  "TEST FAILED: json serialization")
         self.assertIn("greetings_from", inout,  "TEST FAILED: json serialization")
 
+        length = get_length("holalaa")
+        inout = post_with_inner_param(length)
+        regular_task(inout)
+        inout = cwo(inout)
+        self.assertIn("greetings_from", inout,  "TEST FAILED: json serialization")
+
     def test_get_methods(self):
         dummy()
         print("GET: dummy works.")

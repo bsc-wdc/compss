@@ -1576,7 +1576,7 @@ class TaskMaster(TaskCommons):
             _, ret_filename = OT_track(fo)
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
-            single_return.extra_content_type = eco
+            single_return.extra_content_type = "FILE"
             single_return.prefix = '#'
             single_return.file_name = ret_filename
         else:
@@ -1610,7 +1610,7 @@ class TaskMaster(TaskCommons):
                 # object
                 return_k = self.returns[k]
                 return_k.content_type = TYPE.FILE
-                return_k.extra_content_type = eco
+                return_k.extra_content_type = "FILE"
                 return_k.prefix = '#'
                 return_k.file_name = ret_filename
         return fo

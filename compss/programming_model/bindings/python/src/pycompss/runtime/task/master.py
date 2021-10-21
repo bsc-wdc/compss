@@ -768,6 +768,7 @@ class TaskMaster(TaskCommons):
             # todo: beautify this
             param.extra_content_type = "FILE"
         else:
+            param.extra_content_type = str(type(arg_object))
             param.content = arg_object
         return param
 
@@ -1558,6 +1559,7 @@ class TaskMaster(TaskCommons):
             if type(ret_value) in _PYTHON_TO_COMPSS or \
                     ret_value in _PYTHON_TO_COMPSS:
                 fo = Future()  # primitives,string,dic,list,tuple
+                eco = str(ret_value)
             elif inspect.isclass(ret_value):
                 # For objects:
                 # type of future has to be specified to allow o = func; o.func
@@ -1567,8 +1569,10 @@ class TaskMaster(TaskCommons):
                     logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
                                    str(ret_value))
                     fo = Future()
+                eco = str(ret_value)
             else:
                 fo = Future()  # modules, functions, methods
+                eco = str(type(fo))
             _, ret_filename = OT_track(fo)
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
@@ -1584,6 +1588,7 @@ class TaskMaster(TaskCommons):
                 # Build the appropriate future object
                 if v.content in _PYTHON_TO_COMPSS:
                     foe = Future()  # primitives, string, dic, list, tuple
+                    eco = str(v.content)
                 elif inspect.isclass(v.content):
                     # For objects:
                     # type of future has to be specified to allow:
@@ -1594,8 +1599,10 @@ class TaskMaster(TaskCommons):
                         logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
                                        str(v["Value"]))
                         foe = Future()
+                    eco = str(v.content)
                 else:
                     foe = Future()  # modules, functions, methods
+                    eco = str(type(foe))
                 fo.append(foe)
                 _, ret_filename = OT_track(foe)
                 # Once determined the filename where the returns are going to
@@ -2107,7 +2114,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # and we register it as file
         value = param.file_name
         # todo: make sure it works with FO
-        con_type = "FILE"
+        con_type = str(Future.__name__) if param.is_future else "FILE"
         if value:
             typ = TYPE.FILE
         else:

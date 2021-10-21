@@ -68,7 +68,10 @@ string read_result_from_pipe(){
                     // line was truncated. Read another block to complete line.
                 }
 			}
-		}
+		} else {
+			// Necessary to avoid that fgets return NULL after closing the pipe for the first time.
+			clearerr(result_pipe_stream);
+		} 
 	}   
 }
 

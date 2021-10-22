@@ -163,7 +163,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             for (es.bsc.compss.types.annotations.Processor pC : processorsConstraints) {
                 Processor p = getProcessorFromProcessorsConstraint(pC);
                 if (p != null) {
-                    this.addProcessor(getProcessorFromProcessorsConstraint(pC));
+                    if (p.hasUnassignedCUs()) {
+                        p.setComputingUnits(ONE_INT);
+
+                    }
+                    if (p.getComputingUnits() > 0) {
+                        this.addProcessor(p);
+                    }
                 }
             }
         }
@@ -225,6 +231,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             propvalue = EnvironmentLoader.loadFromEnvironment(propvalue);
             if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
                 p.setPropValue(propvalue);
+            }
+            if (p.hasUnassignedCUs()) {
+                p.setComputingUnits(ONE_INT);
             }
             if (cu > 0) {
                 this.addProcessor(p);
@@ -426,10 +435,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         if (proc.isCPU()) {
             if (proc.isModified()) {
-                if (proc.getComputingUnits() == 0) {
+                if (proc.hasUnassignedCUs()) {
                     proc.setComputingUnits(ONE_INT);
                 }
-                this.addProcessor(proc);
+                if (proc.getComputingUnits() > 0) {
+                    this.addProcessor(proc);
+                }
             } else {
                 if (this.totalCPUs == 0) {
                     // if processor has not been modified it must be added only if there are no CPU constraints already
@@ -440,10 +451,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             }
         } else {
             // If it is not CPU it must be added
-            if (proc.getComputingUnits() == 0) {
+            if (proc.hasUnassignedCUs()) {
                 proc.setComputingUnits(ONE_INT);
             }
-            this.addProcessor(proc);
+            if (proc.getComputingUnits() > 0) {
+                this.addProcessor(proc);
+            }
             if (this.totalCPUs == 0) {
                 // Task require to use at least a CPU
                 Processor p = new Processor();
@@ -484,10 +497,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             addConstraints(key, val, proc);
         }
         // CU must be 1 if not defined
-        if (proc.getComputingUnits() == 0) {
+        if (proc.hasUnassignedCUs()) {
             proc.setComputingUnits(ONE_INT);
         }
-        this.addProcessor(proc);
+        if (proc.getComputingUnits() > 0) {
+            this.addProcessor(proc);
+        }
     }
 
     /**
@@ -507,13 +522,18 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 processors[i] = processors[i].replaceAll("[,()]", "");
 
                 String[] processorConstraints = processors[i].split(" ");
-                proc = new Processor();
+                Processor currentProc = new Processor();
                 for (int j = 0; j < processorConstraints.length; ++j) {
                     String key = processorConstraints[j].split("=")[0].trim();
                     String val = processorConstraints[j].split("=")[1].trim();
-                    addConstraints(key, val, proc);
+                    addConstraints(key, val, currentProc);
                 }
-                this.addProcessor(proc);
+                if (currentProc.hasUnassignedCUs()) {
+                    currentProc.addComputingUnits(ONE_INT);
+                }
+                if (currentProc.getComputingUnits() > 0) {
+                    this.addProcessor(currentProc);
+                }
             }
         } else {
             // If no specific processor is requested, a single processor will be used with at least 1 CU

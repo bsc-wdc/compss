@@ -110,6 +110,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private static final String ERROR_BINDING_OBJECT_PARAMS =
         "ERROR: Incorrect number of parameters" + " for external objects";
     private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
+    private static final String WARN_NULL_PARAM = "WARNING: Optional parameter: ";
 
     // COMPSS Version and buildnumber attributes
     private static String COMPSs_VERSION = null;
@@ -1909,6 +1910,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 pars.add(dcp);
                 return pointer;
+            case NULL_T:
+                LOGGER.warn(WARN_NULL_PARAM + "Parameter " + name + " is defined as None or Null");
+                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null"));
+                break;
             default:
                 // Basic types (including String)
                 // The only possible direction is IN, warn otherwise

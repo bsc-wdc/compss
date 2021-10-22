@@ -42,6 +42,7 @@ except ImportError:
 
 import pycompss.runtime.management.COMPSs as COMPSs
 import pycompss.util.context as context
+from pycompss.runtime.commons import set_temporary_directory
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
@@ -159,19 +160,22 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    __slots__ = ['debug', 'tracing', 'storage_conf', 'logger', 'logger_cfg',
+    __slots__ = ['debug', 'tmp_dir',
+                 'tracing', 'storage_conf', 'logger', 'logger_cfg',
                  'persistent_storage', 'storage_loggers',
                  'stream_backend', 'stream_master_ip', 'stream_master_port',
                  'cache_ids', 'cache_queue', 'cache_profiler']
 
-    def __init__(self, debug, tracing, storage_conf, logger, logger_cfg,
+    def __init__(self, debug, tmp_dir,
+                 tracing, storage_conf, logger, logger_cfg,
                  persistent_storage, storage_loggers,
                  stream_backend, stream_master_ip, stream_master_port,
                  cache_ids=None, cache_queue=None, cache_profiler=False):
         """
         Constructs a new executor configuration.
 
-        :param debug: If debug is enabled
+        :param debug: If debug is enabled.
+        :param tmp_dir: Temporary directory for logging purposes.
         :param tracing: Enable tracing for the executor.
         :param storage_conf: Storage configuration file.
         :param logger: Main logger.
@@ -187,6 +191,7 @@ class ExecutorConf(object):
                             cache_ids.
         """
         self.debug = debug
+        self.tmp_dir = tmp_dir
         self.tracing = tracing
         self.storage_conf = storage_conf
         self.logger = logger
@@ -227,6 +232,7 @@ def executor(queue, process_name, pipe, conf):
 
         if len(conf.logger.handlers) == 0:
             # Logger has not been inherited correctly. Happens in MacOS.
+            set_temporary_directory(conf.tmp_dir, create_tmpdir=False)
             # Reload logger
             conf.logger, conf.logger_cfg, conf.storage_loggers, _ = \
                 load_loggers(conf.debug, conf.persistent_storage)

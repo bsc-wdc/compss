@@ -32,6 +32,7 @@ from pycompss.util.process.manager import Queue  # just typing
 from pycompss.util.process.manager import new_queue
 from pycompss.util.process.manager import create_process
 from pycompss.runtime.commons import range
+from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -139,6 +140,7 @@ def compss_persistent_worker(config):
 
     # Create new executor processes
     conf = ExecutorConf(config.debug,
+                        get_temporary_directory(),
                         TRACING,
                         config.storage_conf,
                         logger,

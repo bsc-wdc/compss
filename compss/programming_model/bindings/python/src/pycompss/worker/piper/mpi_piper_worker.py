@@ -27,6 +27,7 @@ import os
 import sys
 import signal
 from pycompss.runtime.commons import range
+from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
@@ -256,6 +257,7 @@ def compss_persistent_executor(config):
 
     process_name = "".join(("Rank-", str(RANK)))
     conf = ExecutorConf(config.debug,
+                        get_temporary_directory(),
                         TRACING,
                         config.storage_conf,
                         logger,

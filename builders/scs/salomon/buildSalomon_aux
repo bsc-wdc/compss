@@ -32,7 +32,9 @@
   modules="GCCcore/8.3.0 libxml2/2.9.9 binutils/2.32-GCCcore-8.3.0 bzip2/1.0.6 zlib/1.2.11 OpenMPI/3.1.5-GCCcore-8.3.0 boost-1.72.0-gcc-8.3.0-weqcjtk Java/1.8.0_202"
   unload_before_python="ignore"
   py2_modules="Python/2.7.13"
+  run_before_py3_modules="ignore"
   py3_modules="Python/3.6.1"
+  run_before_py3_other_modules="ignore"
   py3_other_modules="ignore"
 
   # DEFINE CONFIGURATION PARAMETERS
@@ -48,7 +50,7 @@
   c_binding="true"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

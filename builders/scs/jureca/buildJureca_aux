@@ -33,7 +33,9 @@
   modules="GCCcore/.5.5.0 Intel/2018.2.199-GCC-5.5.0 Java/1.8.0_162 ParaStationMPI/5.2.1-1 Python/2.7.14 Boost PAPI/5.6.0 Autotools/20170619"
   unload_before_python="ignore"
   py2_modules="Python/2.7.14"
+  run_before_py3_modules="ignore"
   py3_modules="Python/3.6.5"
+  run_before_py3_other_modules="ignore"
   py3_other_modules="ignore"
 
   # DEFINE CONFIGURATION PARAMETERS
@@ -50,7 +52,7 @@
   c_binding="true"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

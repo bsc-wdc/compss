@@ -107,6 +107,12 @@ public class Executor implements Runnable, InvocationRunner {
     // Conversion
     private static final int NANO_TO_MS = 1_000_000;
 
+
+    private enum DataComparison {
+        SAME_DATA_VERSION, SAME_DATA_MAJOR_VERSION, SAME_DATA_MINOR_VERSION, DIFF_DATA, ERROR
+    }
+
+
     static {
         // Load timer property
         String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
@@ -833,24 +839,31 @@ public class Executor implements Runnable, InvocationRunner {
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
      *         is not correct)
      */
-    private boolean isMajorVersion(String file1, String file2) {
+    private DataComparison checkDataVersion(String file1, String file2) {
         String[] version1array = file1.split("_")[0].split("v");
         String[] version2array = file2.split("_")[0].split("v");
         if (version1array.length < 2 || version2array.length < 2) {
-            return false;
+            return DataComparison.ERROR;
         }
-        Integer version1int = null;
-        Integer version2int = null;
-        try {
-            version1int = Integer.parseInt(version1array[1]);
-            version2int = Integer.parseInt(version2array[1]);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        if (version1int > version2int) {
-            return true;
+        if (version1array[1] == version2array[1]) {
+            // same data
+            Integer version1int = null;
+            Integer version2int = null;
+            try {
+                version1int = Integer.parseInt(version1array[1]);
+                version2int = Integer.parseInt(version2array[1]);
+            } catch (NumberFormatException e) {
+                return DataComparison.ERROR;
+            }
+            if (version1int > version2int) {
+                return DataComparison.SAME_DATA_MAJOR_VERSION;
+            } else if (version1int == version2int) {
+                return DataComparison.SAME_DATA_VERSION;
+            } else {
+                return DataComparison.SAME_DATA_MINOR_VERSION;
+            }
         } else {
-            return false;
+            return DataComparison.DIFF_DATA;
         }
     }
 
@@ -936,37 +949,88 @@ public class Executor implements Runnable, InvocationRunner {
                 if (renamedFile.getName().equals(param.getOriginalName())) {
                     param.setOriginalName(renamedFilePath);
                 } else {
-                    String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
-                    LOGGER.debug("Setting Original Name to " + inSandboxPath);
-                    LOGGER.debug("Renamed File Path is " + renamedFilePath);
-                    param.setOriginalName(inSandboxPath);
-                    param.setValue(inSandboxPath);
-                    File inSandboxFile = new File(inSandboxPath);
-                    if (renamedFile.exists()) {
-                        LOGGER.debug("File exists");
-                        // IN or INOUT File creating a symbolic link
-                        if (!inSandboxFile.exists()) {
-                            LOGGER.debug(
-                                "Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
-                            Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
-                        } else {
-                            if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                                Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
-                                LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to "
-                                    + oldRenamed.getFileName().toString());
-                                if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
-                                    Files.delete(inSandboxFile.toPath());
-                                    Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
-                                }
-                            }
-                        }
-                    }
+                    manageSymbolicLinks(renamedFile, renamedFilePath, param, sandbox);
                 }
             }
         }
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.BIND_ORIG_NAME.getType());
         }
+    }
+
+    private void manageSymbolicLinks(File renamedFile, String renamedFilePath, InvocationParam param, File sandbox)
+        throws IOException {
+        String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
+        File inSandboxFile = new File(inSandboxPath);
+        if (inSandboxFile.exists()) {
+            if (renamedFile.exists()) {
+                if (Files.isSymbolicLink(inSandboxFile.toPath())) {
+                    manageOverlapInSymlink(sandbox, inSandboxPath, inSandboxFile, renamedFile, param);
+                } else {
+                    LOGGER.warn("WARNING: Strange case for param " + param.getDataMgmtId()
+                        + " where renamed and in sandbox already exists and it is not linked with a Symlink");
+                }
+            } else {
+                // OUT and Overlap with previous in sandBox. Update in sandBox name.
+                File newSandboxFile = new File(sandbox, param.getDataMgmtId() + "_" + param.getOriginalName());
+                String newSandboxPath = newSandboxFile.getAbsolutePath();
+                param.setOriginalName(newSandboxPath);
+                param.setValue(newSandboxPath);
+
+            }
+        } else {
+            if (renamedFile.exists()) {
+                // IN or INOUT File creating a symbolic link
+                LOGGER.debug("Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
+                Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+                LOGGER.debug("Setting Original Name to " + inSandboxPath);
+                LOGGER.debug("Renamed File Path is " + renamedFilePath);
+                param.setOriginalName(inSandboxPath);
+                param.setValue(inSandboxPath);
+            } else {
+                // OUTPUT and do not overlap with any previous data.
+                LOGGER.debug("Setting Original Name to " + inSandboxPath);
+                LOGGER.debug("Renamed File Path is " + renamedFilePath);
+                param.setOriginalName(inSandboxPath);
+                param.setValue(inSandboxPath);
+            }
+        }
+
+    }
+
+    private void manageOverlapInSymlink(File sandbox, String inSandboxPath, File inSandboxFile, File renamedFile,
+        InvocationParam param) throws IOException {
+        Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
+        LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to " + oldRenamed.getFileName().toString());
+        switch (checkDataVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
+            case SAME_DATA_VERSION:
+            case SAME_DATA_MINOR_VERSION:
+                param.setOriginalName(inSandboxPath);
+                param.setValue(inSandboxPath);
+                break;
+            case SAME_DATA_MAJOR_VERSION:
+                LOGGER.debug("Upading Symbolic link " + inSandboxFile.toPath().toString() + "->"
+                    + renamedFile.toPath().toString());
+                Files.delete(inSandboxFile.toPath());
+                Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+                param.setOriginalName(inSandboxPath);
+                param.setValue(inSandboxPath);
+                break;
+            case DIFF_DATA:
+                ;
+                File newSandboxFile = new File(sandbox, param.getDataMgmtId() + "_" + param.getOriginalName());
+                String newSandboxPath = newSandboxFile.getAbsolutePath();
+                LOGGER.debug("Creating Symbolic link " + newSandboxFile.toPath().toString() + "->"
+                    + renamedFile.toPath().toString());
+                Files.createSymbolicLink(newSandboxFile.toPath(), renamedFile.toPath());
+                param.setOriginalName(newSandboxPath);
+                param.setValue(newSandboxPath);
+                break;
+            case ERROR:
+                LOGGER.warn("ERROR: There was an error extracting data versions for "
+                    + oldRenamed.getFileName().toString() + " and " + renamedFile.getName());
+        }
+
     }
 
     /**

@@ -71,6 +71,7 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.TraceEvent;
@@ -79,12 +80,6 @@ import es.bsc.compss.worker.COMPSsException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.FileSystemException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -350,7 +345,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * CONSTRUCTOR
      * ************************************************************************************************************
      */
-
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -1167,15 +1161,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String renamedPath = openFile(app, fileName, Direction.INOUT);
         // If renamePth is the same as original, file has not accessed. Nothing to do.
         if (!renamedPath.equals(sourceLocation.getPath())) {
-            String intermediateTmpPath = renamedPath + ".tmp";
-            rename(renamedPath, intermediateTmpPath);
-            closeFile(app, fileName, Direction.INOUT);
-            ap.markForDeletion(app, sourceLocation, true);
-            // In the case of Java file can be stored in the Stream Registry
-            if (sReg != null) {
-                sReg.deleteTaskFile(appId, fileName);
+            try {
+                String intermediateTmpPath = renamedPath + ".tmp";
+                FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
+                closeFile(app, fileName, Direction.INOUT);
+                ap.markForDeletion(app, sourceLocation, true);
+                // In the case of Java file can be stored in the Stream Registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(appId, fileName);
+                }
+                FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
+            } catch (IOException ioe) {
+                LOGGER.error("Move not possible ", ioe);
             }
-            rename(intermediateTmpPath, fileName);
         }
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_FILE.getType());
@@ -1193,12 +1191,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         try {
             // Check if dirName contains schema
             SimpleURI uri = new SimpleURI(dirName);
+            String fullUri;
             if (uri.getSchema().isEmpty()) {
                 // Add default Dir scheme and wrap local paths
                 String canonicalPath = new File(dirName).getCanonicalPath();
-                dirName = ProtocolType.DIR_URI.getSchema() + canonicalPath;
+                fullUri = ProtocolType.DIR_URI.getSchema() + canonicalPath;
+            } else {
+                fullUri = dirName;
             }
-            sourceLocation = createLocation(dirName);
+            sourceLocation = createLocation(fullUri);
 
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_DIR_NAME, ioe);
@@ -1210,98 +1211,24 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.debug("Getting directory " + dirName);
         Application app = Application.registerApplication(appId);
         String renamedPath = openDirectory(app, dirName, Direction.IN);
+        try {
+            LOGGER.debug("Getting directory renamed path: " + renamedPath);
+            String intermediateTmpPath = renamedPath + ".tmp";
+            FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
+            closeFile(app, dirName, Direction.IN);
 
-        LOGGER.debug("Getting directory renamed path: " + renamedPath);
-        String intermediateTmpPath = renamedPath + ".tmp";
-        rename(renamedPath, intermediateTmpPath);
-        closeFile(app, dirName, Direction.IN);
+            ap.markForDeletion(app, sourceLocation, true);
+            // In the case of Java file can be stored in the Stream Registry
+            if (sReg != null) {
+                sReg.deleteTaskFile(appId, dirName);
+            }
 
-        ap.markForDeletion(app, sourceLocation, true);
-        // In the case of Java file can be stored in the Stream Registry
-        if (sReg != null) {
-            sReg.deleteTaskFile(appId, dirName);
+            FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
+        } catch (IOException ioe) {
+            LOGGER.error("Move not possible ", ioe);
         }
-
-        moveDirectory(intermediateTmpPath, dirName);
-
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_DIRECTORY.getType());
-        }
-    }
-
-    /**
-     * Moves the file to its target location.
-     *
-     * @param source Source file path.
-     * @param target Target file path.
-     */
-    private void rename(String source, String target) {
-        Path sourcePath = Paths.get(source);
-        Path destinationPath = Paths.get(target);
-        LOGGER.info("Moving file from " + source + " to " + target);
-        try {
-            Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException e) {
-            try {
-                Files.move(sourcePath, destinationPath);
-            } catch (IOException e1) {
-                LOGGER.error("Move not possible ", e1);
-            }
-        } catch (IOException e) {
-            LOGGER.error("Atomic move not possible ", e);
-        }
-    }
-
-    /**
-     * Moves the directory to its target location.
-     *
-     * @param source Source dir path.
-     * @param target Target dir path.
-     */
-    private void moveDirectory(String source, String target) {
-        if (target.contains(ProtocolType.DIR_URI.getSchema())) {
-            target = target.substring(target.indexOf(File.separator));
-        }
-        LOGGER.info("Moving dir from " + source + " to " + target);
-        Path sourcePath = Paths.get(source);
-        Path destinationPath = Paths.get(target);
-
-        // todo: recursively?
-        try {
-            Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING);
-        } catch (AtomicMoveNotSupportedException e) {
-            try {
-                Files.move(sourcePath, destinationPath);
-            } catch (IOException e1) {
-                LOGGER.error("Move not possible ", e1);
-            }
-        } catch (FileSystemException fse) {
-            // Target Folder already Exists
-            deleteDestinationAndMoveFolder(sourcePath, destinationPath);
-        } catch (Exception e) {
-            LOGGER.error("Directory move failed", e);
-        }
-    }
-
-    private void deleteDestinationAndMoveFolder(Path sourcePath, Path destinationPath) {
-        deleteFolder(destinationPath.toFile());
-        try {
-            Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING);
-        } catch (Exception e) {
-            LOGGER.error("Could not move folder " + sourcePath + " to " + destinationPath, e);
-        }
-    }
-
-    private void deleteFolder(File folder) {
-        if (folder.isDirectory() && folder.listFiles() != null) {
-            for (File f : folder.listFiles()) {
-                deleteFolder(f);
-            }
-        }
-        if (!folder.delete()) {
-            LOGGER.error("Error deleting folder " + folder.getName());
         }
     }
 

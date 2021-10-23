@@ -437,6 +437,15 @@ public class LogicalData {
     }
 
     /**
+     * Removes the location as a source for the data.
+     *
+     * @param loc Location to remove
+     */
+    public synchronized void removeLocation(DataLocation loc) {
+        this.locations.remove(loc);
+    }
+
+    /**
      * Removes the object from master main memory and removes its location.
      *
      * @return
@@ -482,7 +491,7 @@ public class LogicalData {
     /**
      * Writes memory value to file.
      *
-     * @throws Exception Error writting to storage
+     * @throws Exception Error writing to storage
      */
     public synchronized void writeToStorage() throws Exception {
         if (DEBUG) {

@@ -33,6 +33,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.commons.io.FileExistsException;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -194,6 +196,51 @@ public class FileOpsManager {
     }
 
     /**
+     * Copy a directory asynchronously.
+     *
+     * @param src Directory to copy
+     * @param tgt target path
+     */
+    public static void copyDirAsync(final File src, final File tgt) {
+        copyDirAsync(src, tgt, IGNORE_LISTENER);
+    }
+
+    /**
+     * Copy a directory asynchronously.
+     *
+     * @param src Directory to copy
+     * @param tgt target path
+     * @param listener element to notify on operation end
+     */
+    public static void copyDirAsync(final File src, final File tgt, final FileOpListener listener) {
+        if (src != null) {
+            LOW_PRIORITY.execute(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        copyDirectory(src, tgt);
+                        listener.completed();
+                    } catch (IOException ioe) {
+                        listener.failed(ioe);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Copy a directory synchronously.
+     *
+     * @param src File to copy
+     * @param tgt target path
+     * @throws java.io.IOException if an I/O error occurs
+     */
+    public static void copyDirSync(final File src, final File tgt) throws IOException {
+        copyDirectory(src, tgt);
+    }
+
+    /**
      * Delete a File Asynchronously.
      *
      * @param file File to delete
@@ -259,7 +306,7 @@ public class FileOpsManager {
                 @Override
                 public void run() {
                     try {
-                        copyFile(src, tgt);
+                        moveFile(src, tgt);
                         listener.completed();
                     } catch (IOException ioe) {
                         listener.failed(ioe);
@@ -278,6 +325,51 @@ public class FileOpsManager {
      */
     public static void moveSync(final File src, final File tgt) throws IOException {
         moveFile(src, tgt);
+    }
+
+    /**
+     * Move a directory asynchronously.
+     *
+     * @param src Directory to copy
+     * @param tgt target path
+     */
+    public static void moveDirAsync(final File src, final File tgt) {
+        moveDirAsync(src, tgt, IGNORE_LISTENER);
+    }
+
+    /**
+     * Move a directory asynchronously.
+     *
+     * @param src Directory to copy
+     * @param tgt target path
+     * @param listener element to notify on operation end
+     */
+    public static void moveDirAsync(final File src, final File tgt, final FileOpListener listener) {
+        if (src != null) {
+            LOW_PRIORITY.execute(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        moveDirectory(src, tgt);
+                        listener.completed();
+                    } catch (IOException ioe) {
+                        listener.failed(ioe);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Move a Directory Synchronously.
+     *
+     * @param src Directory to copy
+     * @param tgt target path
+     * @throws java.io.IOException if an I/O error occurs
+     */
+    public static void moveDirSync(final File src, final File tgt) throws IOException {
+        moveDirectory(src, tgt);
     }
 
     /**
@@ -397,6 +489,24 @@ public class FileOpsManager {
         }
     }
 
+    private static void copyDirectory(final File source, final File target) throws IOException {
+        if (DEBUG) {
+            LOGGER.debug("Copying directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_COPY.getId(), TraceEvent.LOCAL_COPY.getType());
+        }
+        try {
+            FileUtils.copyDirectory(source, target);
+        } catch (IOException ioe) {
+            throw ioe;
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_COPY.getType());
+            }
+        }
+    }
+
     private static void deleteFile(final File f) throws IOException {
 
         if (DEBUG) {
@@ -475,4 +585,25 @@ public class FileOpsManager {
         }
     }
 
+    private static void moveDirectory(final File source, final File target) throws IOException {
+        if (DEBUG) {
+            LOGGER.debug("Moving directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
+        }
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_MOVE.getId(), TraceEvent.LOCAL_MOVE.getType());
+        }
+
+        try {
+            FileUtils.moveDirectory(source, target);
+        } catch (FileExistsException fee) {
+            deleteFile(target);
+            FileUtils.moveDirectory(source, target);
+        } catch (IOException ioe) {
+            throw ioe;
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_MOVE.getType());
+            }
+        }
+    }
 }

@@ -79,6 +79,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -651,7 +652,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                 try {
                                     FileOpsManager.copySync(new File(endedPath), new File(targetPath));
                                     if (tgtData != null) {
-                                        tgtData.addLocation(target);
+                                        synchronized (tgtData) {
+                                            tgtData.addLocation(target);
+                                        }
                                     }
                                     LOGGER.debug("File copied set dataTarget " + targetPath);
                                     reason.setDataTarget(targetPath);
@@ -711,12 +714,22 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local move " + ld.getName() + " from " + u.getHost().getName() + " to "
                                 + targetPath);
                         }
+                        try {
+                            SimpleURI deletedUri = new SimpleURI(u.getPath());
+                            DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), deletedUri);
+                            synchronized (ld) {
+                                ld.removeLocation(loc);
+                            }
+                        } catch (Exception e) {
+                            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                        }
                         FileOpsManager.moveSync(new File(u.getPath()), new File(targetPath));
-                        uris.remove(u);
                     }
 
                     if (tgtData != null) {
-                        tgtData.addLocation(target);
+                        synchronized (tgtData) {
+                            tgtData.addLocation(target);
+                        }
                     }
                     LOGGER.debug("File on path. Set data target to " + targetPath);
                     reason.setDataTarget(targetPath);
@@ -772,9 +785,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         } else {
             LOGGER.debug("Source data location is null. Trying other alternatives");
         }
-
         // Preferred source is null or copy has failed. Trying to retrieve data from any host
-        for (Resource sourceRes : ld.getAllHosts()) {
+
+        Set<Resource> hosts;
+        synchronized (ld) {
+            hosts = ld.getAllHosts();
+        }
+        for (Resource sourceRes : hosts) {
             COMPSsNode node = sourceRes.getNode();
             if (node != this) {
                 try {
@@ -871,8 +888,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
                     @Override
                     public void completed() {
-                        synchronized (ld) {
-                            if (tgtData != null) {
+                        if (tgtData != null) {
+                            synchronized (tgtData) {
                                 tgtData.addLocation(target);
                             }
                             LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
@@ -929,9 +946,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
             @Override
             public void run() {
-                synchronized (ld) {
-                    obtainFileData(ld, source, target, tgtData, reason, listener);
-                }
+                obtainFileData(ld, source, target, tgtData, reason, listener);
             }
         });
     }

@@ -104,7 +104,7 @@ public class RWAccessId extends DataAccessId {
      * @return {@code true} if the source data must be preserved, {@code false} otherwise.
      */
     public boolean isPreserveSourceData() {
-        return readDataVersion.hasMoreReaders();
+        return this.readDataVersion.hasMoreReaders();
     }
 
     @Override

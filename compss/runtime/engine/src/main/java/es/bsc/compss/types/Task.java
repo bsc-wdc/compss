@@ -134,9 +134,6 @@ public class Task extends AbstractTask {
      *
      * @param app Application.
      * @param monitor Task monitor.
-     * @param serviceName service name defined in the resources file.
-     * @param resource The base URL of the request.
-     * @param request The method type (GET, POST, PUT, DELETE ...) of the request.
      * @param isPrioritary Whether the task has priority or not.
      * @param hasTarget Whether the task has a target object or not.
      * @param numReturns Number of returns of the task.
@@ -144,10 +141,8 @@ public class Task extends AbstractTask {
      * @param onFailure OnFailure mechanisms.
      * @param timeOut Time for a task timeOut.
      */
-    public Task(Application app, String serviceName, String resource, String request, String payload,
-        String payloadType, String produces, String updates, String declareMethodFullyQualifiedName,
-        boolean isPrioritary, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
-        OnFailure onFailure, long timeOut) {
+    public Task(Application app, String declareMethodFullyQualifiedName, boolean isPrioritary, boolean hasTarget,
+        int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
         super(app);
 

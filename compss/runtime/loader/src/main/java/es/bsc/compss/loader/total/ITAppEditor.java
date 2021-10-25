@@ -508,14 +508,6 @@ public class ITAppEditor extends ExprEditor {
         } else if (declaredMethod.isAnnotationPresent(HTTP.class)) {
             HTTP httpAnnotation = declaredMethod.getAnnotation(HTTP.class);
 
-            executeTask.append("\"").append(httpAnnotation.serviceName()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.resource()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.request()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.payload()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.payloadType()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.produces()).append("\"").append(',');
-            executeTask.append("\"").append(httpAnnotation.updates()).append("\"").append(',');
-
             String declareMethodFullyQualifiedName = httpAnnotation.declaringClass() + "." + declaredMethod.getName();
 
             executeTask.append("\"").append(declareMethodFullyQualifiedName).append("\"").append(',');

@@ -71,13 +71,6 @@ extern "C" void GS_ExecuteTaskNew(long appId,
                                   void** params
                                  );
 extern "C" void GS_ExecuteHttpTask(long appId,
-                                  char* serviceName,
-                                  char* resource,
-                                  char* request,
-                                  char* payload,
-                                  char* payloadType,
-                                  char* produces,
-                                  char* updates,
                                   char* signature,
                                   char* onFailure,
                                   int timeout,

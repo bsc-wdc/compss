@@ -86,6 +86,17 @@ def print_mod_int_coll(coll):
 def print_mod_obj_coll(coll):
     print("printModifiedObjCollResult:" + str(coll))
 
+@constraint(operating_system_type="agent_2")
+@task(c={Type: COLLECTION_OUT, Depth: 1})
+def gen_coll_out(c):
+    c[0]=DummyObject(11)
+    c[1]=DummyObject(12)
+
+@constraint(operating_system_type="agent_3")
+@task(coll={Type: COLLECTION_IN, Depth: 2})
+def print_coll_out(coll):
+    print("printCollOut:" + str(coll))
+
 
 @task()
 def main():
@@ -113,6 +124,12 @@ def main():
     print(" modifiedObjColl:" + str(objCollection))
 
     print_mod_obj_coll(objCollection) #agent_2
+
+    ### COLLECTION_OUT ###
+    coll= [DummyObject(),DummyObject()]
+    gen_coll_out(coll)
+    coll = compss_wait_on(coll) #agent_2
+    print_coll_out(coll) #agent_3
 
     coll = ["1","2","3","4","5","6"]
     for elem in coll:

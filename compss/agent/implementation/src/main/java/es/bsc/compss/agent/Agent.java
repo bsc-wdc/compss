@@ -526,11 +526,11 @@ public class Agent {
     private static Object createTaskArgumentValueFromApplicationParameter(String fatherParamName, Long appId,
         int position, ApplicationParameter param) throws Exception {
         RemoteDataInformation remote = param.getRemoteData();
-        if (remote == null) {
+        Object stub;
+        if (remote == null && param.getType() != DataType.COLLECTION_T) {
             LOGGER.debug("\t\tUsing value passed in as parameter");
             return param.getValueContent();
         } else {
-            Object stub;
             if (param.getType() == DataType.FILE_T) {
                 stub = param.getValueContent();
             } else {
@@ -542,10 +542,13 @@ public class Agent {
                     stub = createTaskArgumentValueFromCollection(collSubParam, appId, position, (String) stub);
                 }
             }
-            addRemoteData(remote);
-            RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
-            return stub;
+
+            if (remote != null) {
+                addRemoteData(remote);
+                RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
+            }
         }
+        return stub;
     }
 
     private static void addParameterToTaskArguments(Long appId, ApplicationParameter param, int position,

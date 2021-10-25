@@ -222,13 +222,13 @@ if [ ! "${created_jobs_ag_1}" == "1" ]; then
     exit 1
 fi 
 created_jobs_ag_2=$(ls "${agent2_log_dir}jobs" | grep -c NEW.out)
-if [ ! "${created_jobs_ag_2}" == "11" ]; then
-    echo "[ERROR] agent 2 has generated ${created_jobs_ag_2} tasks but 11 were expected." > >(tee -a "${error_log}")
+if [ ! "${created_jobs_ag_2}" == "12" ]; then
+    echo "[ERROR] agent 2 has generated ${created_jobs_ag_2} tasks but 12 were expected." > >(tee -a "${error_log}")
     exit 1
 fi 
 created_jobs_ag_3=$(ls "${agent3_log_dir}jobs" | grep -c NEW.out)
-if [ ! "${created_jobs_ag_3}" == "5" ]; then
-    echo "[ERROR] agent 3 has generated ${created_jobs_ag_3} tasks but 5 were expected." > >(tee -a "${error_log}")
+if [ ! "${created_jobs_ag_3}" == "6" ]; then
+    echo "[ERROR] agent 3 has generated ${created_jobs_ag_3} tasks but 6 were expected." > >(tee -a "${error_log}")
     exit 1
 fi 
 
@@ -260,29 +260,37 @@ ag2_job4_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cu
 if [ -n "${ag2_job4_method}" ]; then
     ag2_job4_method="${ag2_job4_method::-1}"
 fi
-ag2_job5_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+ag2_job5_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job5_NEW.out" | cut -d '=' -f3)
 if [ -n "${ag2_job5_method}" ]; then
     ag2_job5_method="${ag2_job5_method::-1}"
 fi
-ag2_job6_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+ag2_job6_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job6_NEW.out" | cut -d '=' -f3)
 if [ -n "${ag2_job6_method}" ]; then
     ag2_job6_method="${ag2_job6_method::-1}"
 fi
-ag2_job7_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+ag2_job7_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job7_NEW.out" | cut -d '=' -f3)
 if [ -n "${ag2_job7_method}" ]; then
     ag2_job7_method="${ag2_job7_method::-1}"
 fi
-ag2_job8_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+ag2_job8_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job8_NEW.out" | cut -d '=' -f3)
 if [ -n "${ag2_job8_method}" ]; then
     ag2_job8_method="${ag2_job8_method::-1}"
 fi
-ag2_job9_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+ag2_job9_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job9_NEW.out" | cut -d '=' -f3)
 if [ -n "${ag2_job9_method}" ]; then
     ag2_job9_method="${ag2_job9_method::-1}"
 fi
-ag2_job10_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
+ag2_job10_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job10_NEW.out" | cut -d '=' -f3)
 if [ -n "${ag2_job10_method}" ]; then
     ag2_job10_method="${ag2_job10_method::-1}"
+fi
+ag2_job11_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job11_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job11_method}" ]; then
+    ag2_job11_method="${ag2_job11_method::-1}"
+fi
+ag2_job12_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job12_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag2_job12_method}" ]; then
+    ag2_job12_method="${ag2_job12_method::-1}"
 fi
 
 ag3_job1_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
@@ -300,6 +308,16 @@ fi
 ag3_job4_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
 if [ -n "${ag3_job4_method}" ]; then
     ag3_job4_method="${ag3_job4_method::-1}"
+fi
+
+ag3_job5_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job5_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag3_job5_method}" ]; then
+    ag3_job5_method="${ag3_job5_method::-1}"
+fi
+
+ag3_job6_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job6_NEW.out" | cut -d '=' -f3)
+if [ -n "${ag3_job6_method}" ]; then
+    ag3_job6_method="${ag3_job6_method::-1}"
 fi
 
 
@@ -324,33 +342,43 @@ if [ ! "${ag2_job4_method}" == "create_int_collection" ]; then
     exit 1
 fi
 
-if [ ! "${ag2_job5_method}" == "create_int_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 5, got ${ag2_job5_method}, expected create_int_collection"
+if [ ! "${ag2_job5_method}" == "print_mod_obj_coll" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 5, got ${ag2_job5_method}, expected print_mod_obj_coll"
     exit 1
 fi
 
-if [ ! "${ag2_job6_method}" == "create_int_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 6, got ${ag2_job6_method}, expected create_int_collection"
+if [ ! "${ag2_job6_method}" == "gen_coll_out" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 6, got ${ag2_job6_method}, expected gen_coll_out"
     exit 1
 fi
 
-if [ ! "${ag2_job7_method}" == "create_int_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 7, got ${ag2_job7_method}, expected create_int_collection"
+if [ ! "${ag2_job7_method}" == "print_elem" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 7, got ${ag2_job7_method}, expected print_elem"
     exit 1
 fi
 
-if [ ! "${ag2_job8_method}" == "create_int_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 8, got ${ag2_job8_method}, expected create_int_collection"
+if [ ! "${ag2_job8_method}" == "print_elem" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 8, got ${ag2_job8_method}, expected print_elem"
     exit 1
 fi
 
-if [ ! "${ag2_job9_method}" == "create_int_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 9, got ${ag2_job9_method}, expected create_int_collection"
+if [ ! "${ag2_job9_method}" == "print_elem" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 9, got ${ag2_job9_method}, expected print_elem"
     exit 1
 fi
 
-if [ ! "${ag2_job10_method}" == "create_int_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 10, got ${ag2_job10_method}, expected create_int_collection"
+if [ ! "${ag2_job10_method}" == "print_elem" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 10, got ${ag2_job10_method}, expected print_elem"
+    exit 1
+fi
+
+if [ ! "${ag2_job11_method}" == "print_elem" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 11, got ${ag2_job11_method}, expected print_elem"
+    exit 1
+fi
+
+if [ ! "${ag2_job12_method}" == "print_elem" ]; then
+    echo "[ERROR] Unexpected method name at agent 2, job 12, got ${ag2_job12_method}, expected print_elem"
     exit 1
 fi
 
@@ -376,8 +404,18 @@ if [ ! "${ag3_job4_method}" == "create_object_collection" ]; then
     exit 1
 fi
 
+if [ ! "${ag3_job5_method}" == "modify_dummy_obj" ]; then
+    echo "[ERROR] Unexpected method name at agent 3, job 5, got ${ag3_job5_method}, expected modify_dummy_obj"
+    exit 1
+fi
 
-echo  "checking method values"
+if [ ! "${ag3_job6_method}" == "print_coll_out" ]; then
+    echo "[ERROR] Unexpected method name at agent 3, job 6, got ${ag3_job6_method}, expected print_coll_out"
+    exit 1
+fi
+
+
+echo  "checking method results"
 printIntColl_value=$( grep printIntCollResult: ${agent3_log_dir}/jobs/* | cut -d ":" -f3)
 printObjColl_value=$( grep printObjCollResult: ${agent2_log_dir}/jobs/* | cut -d ":" -f3)
 createIntColl_value=$( grep createIntCollectionResult: ${agent1_log_dir}/jobs/* | cut -d ":" -f3)
@@ -385,6 +423,7 @@ createObjColl_value=$( grep createObjCollectionResult: ${agent1_log_dir}/jobs/* 
 printWorkIntColl_value=$( grep printWorkerIntCollResult: ${agent3_log_dir}/jobs/* | cut -d ":" -f3)
 printWorkObjColl_value=$( grep printWorkerObjCollResult: ${agent2_log_dir}/jobs/* | cut -d ":" -f3)
 printModObjColl_value=$( grep printModifiedObjCollResult: ${agent2_log_dir}/jobs/* | cut -d ":" -f3)
+printCollOut_value=$( grep printCollOut: ${agent3_log_dir}/jobs/* | cut -d ":" -f3)
 
 printElem1_value=$( grep "printingElem: 1" ${agent2_log_dir}/jobs/job*_NEW.out)
 printElem2_value=$( grep "printingElem: 2" ${agent2_log_dir}/jobs/job*_NEW.out)
@@ -422,9 +461,13 @@ if [ ! "${printWorkObjColl_value}" == "[D[1], D[2], D[3], [D[41], D[42], D[43]]]
     exit 1
 fi
 
-
 if [ ! "${printModObjColl_value}" == "[D[1], D[9], D[3], [D[41], D[42], D[43]]]" ]; then
-    echo "Unexpected value: ${printModObjColl_value} for tag printModifiedObjCollResult. Expectec [D[1], D[9], D[3], [D[41], D[42], D[43]]]" > >(tee -a "${error_log}")
+    echo "Unexpected value: ${printModObjColl_value} for tag printModifiedObjCollResult. Expected [D[1], D[9], D[3], [D[41], D[42], D[43]]]" > >(tee -a "${error_log}")
+    exit 1
+fi
+
+if [ ! "${printCollOut_value}" == "[D[11], D[12]]" ]; then
+    echo "Unexpected value: ${printCollOut_value} for tag printCollOut. Expected [D[11], D[12]]" > >(tee -a "${error_log}")
     exit 1
 fi
 

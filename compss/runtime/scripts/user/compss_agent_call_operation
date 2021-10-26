@@ -232,13 +232,15 @@ check_args() {
     display_error "${ERROR_MASTER_PORT}"
   fi
 
-  if [ -z "${method_name}" ]; then
-    method_name=${DEFAULT_METHOD}
-    params_as_array="true"
-  fi
-
   if [ -z "${lang}" ]; then
     lang=${DEFAULT_LANG}
+  fi
+
+  if [ -z "${method_name}" ]; then
+    method_name=${DEFAULT_METHOD}
+    if [ ${lang} = "JAVA" ]; then 
+        params_as_array="true"
+    fi
   fi
 }
 

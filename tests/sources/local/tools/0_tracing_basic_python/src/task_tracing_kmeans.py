@@ -9,6 +9,7 @@ PyCOMPSs Testbench KMeans
 
 # Imports
 from pycompss.api.task import task
+from pycompss.api.constraint import constraint
 from pycompss.functions.reduce import merge_reduce
 
 import random
@@ -35,6 +36,7 @@ def init_board_random(numV, dim):
     return [random.random(dim) for _ in range(numV)]
 
 
+@constraint(computing_units=2)
 @task(returns=dict)
 def cluster_points_partial(XP, mu, ind):
     import numpy as np
@@ -50,6 +52,7 @@ def cluster_points_partial(XP, mu, ind):
     return dic
 
 
+@constraint(memory_size=100)
 @task(returns=dict)
 def partial_sum(XP, clusters, ind):
     import numpy as np
@@ -61,6 +64,7 @@ def partial_sum(XP, clusters, ind):
     return dic
 
 
+@constraint(processors=[{'ProcessorType':'GPU', 'ComputingUnits':'1'}])
 @task(returns=dict, priority=True)
 def reduceCentersTask(a, b):
     for key in b:

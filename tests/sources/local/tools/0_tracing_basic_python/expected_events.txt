@@ -18,12 +18,6 @@
 # It is also possible to define the number of appearances separated with comma
 # if the events can appear multiple times (e.g. THREAD_IDENTIFICATION_EVENTS)
 
-# WARNING!!! Sometimes appear errors of this kind:
-# MESSAGE 0: ERROR: Unexpected event type 9240000 found in check_families
-# MESSAGE 1: ERROR: Unexpected event type 9241000 found in check_families
-# or in the family of 8 million (and can be in any group in order of 1000).
-# Why? Is the runtime emitting randomly?
-
 
 # -------- #
 # FAMILIES #

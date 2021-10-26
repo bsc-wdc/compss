@@ -109,6 +109,8 @@ def parse_file(expected_events_file):
 def parse_trace(trace_file, families):
     """
     Reads the given trace_file and filters the event types by family.
+    NOTE: Filters the lines that start with # (comments) and with 1: (states)
+          Events start with 2:
 
     :param trace_file: Trace file to parse.
     :param families: Families to look for.
@@ -119,7 +121,7 @@ def parse_trace(trace_file, families):
         trace = fd.readlines()
     parsed_trace = []
     for line in trace:
-        if not line.startswith(COMMENT_LABEL):
+        if not line.startswith(COMMENT_LABEL) and not line.startswith("1:"):
             elements = line.split(":")
             parsed_trace.append((int(elements[6].strip()), int(elements[7].strip())))
     print("\t- Filtering families... %s" % str(families))
@@ -142,7 +144,6 @@ def check_families(trace_events, families, event_definitions):
     :param event_definitions: Event definitions.
     :return: Message report list
     """
-    to_ignore = list(range(8002000, 10000000, 1000))  # TODO: WHY THESE EVENTS APPEAR RANDOMLY?
     print("\n- Checking families... %s" %families)
     report = []
     trace_event_types = []
@@ -157,7 +158,7 @@ def check_families(trace_events, families, event_definitions):
     print("\t- Expected event types:")
     print(str(event_types))
     for event_type in trace_event_types:
-        if event_type not in event_types and not event_type in to_ignore:
+        if event_type not in event_types:
             report.append("ERROR: Unexpected event type %d found in check_families" % event_type)
     for event in event_types:
         if event not in trace_event_types:

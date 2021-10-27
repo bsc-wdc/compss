@@ -1090,6 +1090,8 @@ public class ResourceManager {
         }
         if (filesExist) {
             try {
+                int totalGets = 0;
+                int totalPuts = 0;
                 String filename = "profiler_cache_summary.out";
                 FileWriter writer = new FileWriter(logPath + filename);
                 writer.write("PROFILER SUMMARY" + "\n");
@@ -1099,6 +1101,8 @@ public class ResourceManager {
                         writer.write('\t' + " " + '\t' + " " + '\t' + "PARAMETER: " + parameter + "\n");
                         int puts = (int) cacheProfiler.get(function).get(parameter).get("PUT");
                         int gets = (int) cacheProfiler.get(function).get(parameter).get("GET");
+                        totalGets += gets;
+                        totalPuts += puts;
                         ArrayList<String> used =
                             (ArrayList<String>) cacheProfiler.get(function).get(parameter).get("USED");
                         if (used.size() > 0 || gets > 0) {
@@ -1110,6 +1114,8 @@ public class ResourceManager {
                         }
                     }
                 }
+                writer.write("TOTAL GETS: " + totalGets + "\n");
+                writer.write("TOTAL PUTS: " + totalPuts + "\n");
                 writer.close();
             } catch (IOException e) {
                 e.printStackTrace();

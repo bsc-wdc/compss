@@ -22,17 +22,13 @@ PyCOMPSs API - HTTP
 ==================
     HTTP Task decorator class.
 """
-
+import json
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api import binary, mpi
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.api.commons.decorator import keep_arguments
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.api.commons.decorator import run_command
-from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.serialization import serializer
 
 if __debug__:
     import logging
@@ -43,12 +39,15 @@ MANDATORY_ARGUMENTS = {"config_file"}
 SUPPORTED_ARGUMENTS = set()
 DEPRECATED_ARGUMENTS = set()
 
+SUPPORTED_DECORATORS = {"mpi": (mpi, mpi.mpi),
+                        "binary": (binary, binary.binary)}
+
 
 class Software(PyCOMPSsDecorator):
     """
     """
 
-    __slots__ = ['task_type']
+    __slots__ = ['task_type', 'config_args', 'decor']
 
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.
@@ -60,9 +59,12 @@ class Software(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        self.task_type = "software"
         decorator_name = "".join(('@', Software.__name__.lower()))
         super(Software, self).__init__(decorator_name, *args, **kwargs)
+        self.task_type = None
+        self.config_args = None
+        self.decor = None
+
         if self.scope:
             if __debug__:
                 logger.debug("Init @software decorator..")
@@ -73,85 +75,55 @@ class Software(PyCOMPSsDecorator):
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
                             decorator_name)
+            self.parse_config_file()
 
     def __call__(self, user_function):
-        """ Parse and set the @software parameters within the task core element.
-
+        """
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
 
+        # todo: add comments
         @wraps(user_function)
         def software_f(*args, **kwargs):
-            return self.__decorator_body__(user_function, args, kwargs)
+            decorator = self.decor
+
+            def decor_f():
+                def f():
+                    ret = decorator(**self.config_args)
+                    return ret(user_function)(args, kwargs)
+                return f()
+            return decor_f()
 
         software_f.__doc__ = user_function.__doc__
         return software_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
+    def parse_config_file(self):
 
-        if not self.scope:
-            # run the software
-            self.__run_software__(args, kwargs)
-            pass
+        file_path = self.kwargs['config_file']
+        config = json.load(open(file_path, "r"))
 
-        if __debug__:
-            logger.debug("Executing software_f wrapper.")
+        exec_type = config["type"]
+        if not exec_type or exec_type.lower() not in SUPPORTED_DECORATORS:
+            msg = "Error: Executor Type {} is not supported for software task."\
+                .format(exec_type)
+            raise PyCOMPSsException(msg)
 
-        if (context.in_master() or context.is_nesting_enabled()) \
-                and not self.core_element_configured:
-            # master code - or worker with nesting enabled
-            self.__configure_core_element__(kwargs, user_function)
+        exec_type = exec_type.lower()
+        self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
 
-        with keep_arguments(args, kwargs):
-            # Call the method
-            ret = user_function(*args, **kwargs)
+        arguments = config["arguments"]
+        mand_args = self.task_type.MANDATORY_ARGUMENTS
+        if not all(arg in arguments for arg in mand_args):
+            msg = "Error: Missing arguments for '{}'.".format(self.task_type)
+            raise PyCOMPSsException(msg)
 
-        return ret
-
-    def __run_software__(self, *args, **kwargs):
-        # type: (..., dict) -> int
-        """ Runs the http binary defined in the decorator when used as dummy.
-
-        :param args: Arguments received from call.
-        :param kwargs: Keyword arguments received from call.
-        :return: Execution return code.
-        """
-        print("running @software")
-        return 200
-
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
-        """ Include the registering info related to @http.
-
-        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
-
-        :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
-        :return: None
-        """
-        if __debug__:
-            logger.debug("Configuring @software core element.")
-        impl_type = "software"
-
-        impl_args = [self.kwargs['config_file']]
-
-        # todo: remove this duplication
-        if CORE_ELEMENT_KEY in kwargs:
-            kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
-            kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
-        else:
-            core_element = CE()
-            core_element.set_impl_type(impl_type)
-            core_element.set_impl_type_args(impl_args)
-            kwargs[CORE_ELEMENT_KEY] = core_element
-
-        # Set as configured
-        self.core_element_configured = True
+        self.config_args = arguments
 
 
 # ########################################################################### #
-# ##################### Software DECORATOR ALTERNATIVE NAME ###################### #
+# ##################### Software DECORATOR ALTERNATIVE NAME ################# #
 # ########################################################################### #
+
 
 software = Software

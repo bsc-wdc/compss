@@ -88,7 +88,7 @@ def __to_camel_case(argument):
     return components[0] + ''.join(x.title() for x in components[1:])
 
 
-def __error_mandatory_argument(argument, decorator):
+def __error_mandatory_argument(decorator, argument):
     """
     Raises an exception when the argument is mandatory in the decorator
 

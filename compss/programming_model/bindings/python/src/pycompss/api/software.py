@@ -18,13 +18,12 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - HTTP
+PyCOMPSs API - Software
 ==================
-    HTTP Task decorator class.
+    Software Task decorator class.
 """
 import json
 from functools import wraps
-import pycompss.util.context as context
 from pycompss.api import binary, mpi
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.util.arguments import check_arguments
@@ -40,21 +39,26 @@ SUPPORTED_ARGUMENTS = set()
 DEPRECATED_ARGUMENTS = set()
 
 SUPPORTED_DECORATORS = {"mpi": (mpi, mpi.mpi),
-                        "binary": (binary, binary.binary)}
+                        "binary": (binary, binary.binary)
+                        }
 
 
 class Software(PyCOMPSsDecorator):
-    """
+    """ @software decorator definition class. When provided with a config file,
+    it can replicate any existing python decorator by wrapping the user function
+    with the decorator defined in the config file. Arguments of the decorator
+    should be defined in the config file which is in JSON format.
     """
 
     __slots__ = ['task_type', 'config_args', 'decor']
 
     def __init__(self, *args, **kwargs):
-        """ Store arguments passed to the decorator.
+        """ Parse the config file and store the arguments that will be used
+        later to wrap the 'real' decorator.
 
         self = itself.
         args = not used.
-        kwargs = dictionary with the given mpi parameters.
+        kwargs = dictionary with the given @software parameter (config_file).
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -78,12 +82,14 @@ class Software(PyCOMPSsDecorator):
             self.parse_config_file()
 
     def __call__(self, user_function):
-        """
-        :param user_function: Function to decorate.
-        :return: Decorated function.
+        """ When called, @software decorator basically wraps the user function
+        into the 'real' decorator and passes the args and kwargs.
+        :param user_function: User function to be decorated.
+        :return: User function decorated with the decor type defined by the user.
         """
 
-        # todo: add comments
+        # might look complicated, but what it does is just wrapping the user
+        # function with into the 'real' decorator
         @wraps(user_function)
         def software_f(*args, **kwargs):
             decorator = self.decor
@@ -99,7 +105,10 @@ class Software(PyCOMPSsDecorator):
         return software_f
 
     def parse_config_file(self):
-
+        """ Parse the config file and set self's task_type, decor, and
+        config args.
+        :return:
+        """
         file_path = self.kwargs['config_file']
         config = json.load(open(file_path, "r"))
 

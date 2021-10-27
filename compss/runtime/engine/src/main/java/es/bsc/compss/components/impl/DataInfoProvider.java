@@ -721,34 +721,39 @@ public class DataInfoProvider {
     public void dataHasBeenAccessed(DataAccessId dAccId) {
         Integer dataId = dAccId.getDataId();
         DataInfo di = this.idToData.get(dataId);
-        Integer rVersionId;
-        Integer wVersionId;
-        boolean deleted = false;
-        switch (dAccId.getDirection()) {
-            case C:
-            case R:
-                rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
-                deleted = di.versionHasBeenRead(rVersionId, null);
-                break;
-            case CV:
-            case RW:
-                rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                di.versionHasBeenRead(rVersionId, null);
-                // read data version can be removed
-                di.tryRemoveVersion(rVersionId);
-                wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                deleted = di.versionHasBeenWritten(wVersionId);
-                break;
-            default:// case W:
-                wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                Integer prevVersionId = wVersionId - 1;
-                di.tryRemoveVersion(prevVersionId);
-                deleted = di.versionHasBeenWritten(wVersionId);
-                break;
-        }
+        if (di != null) {
+            Integer rVersionId;
+            Integer wVersionId;
+            boolean deleted = false;
+            switch (dAccId.getDirection()) {
+                case C:
+                case R:
+                    rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
+                    deleted = di.versionHasBeenRead(rVersionId, null);
+                    break;
+                case CV:
+                case RW:
+                    rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
+                    di.versionHasBeenRead(rVersionId, null);
+                    // read data version can be removed
+                    di.tryRemoveVersion(rVersionId);
+                    wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                    deleted = di.versionHasBeenWritten(wVersionId);
+                    break;
+                default:// case W:
+                    wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                    Integer prevVersionId = wVersionId - 1;
+                    di.tryRemoveVersion(prevVersionId);
+                    deleted = di.versionHasBeenWritten(wVersionId);
+                    break;
+            }
 
-        if (deleted) {
-            removeDataFromInternalStructures(di);
+            if (deleted) {
+                removeDataFromInternalStructures(di);
+            }
+        } else {
+            LOGGER.warn("Access of Data" + dAccId.getDataId() + " in Mode " + dAccId.getDirection().name()
+                + "can not be mark as accessed because do not exist in DIP.");
         }
     }
 

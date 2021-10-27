@@ -40,7 +40,7 @@ public class Processor implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String name = MethodResourceDescription.UNASSIGNED_STR;
-    private int computingUnits = MethodResourceDescription.ZERO_INT;
+    private int computingUnits = MethodResourceDescription.UNASSIGNED_INT;
     private float speed = MethodResourceDescription.UNASSIGNED_FLOAT;
     private String architecture = MethodResourceDescription.UNASSIGNED_STR;
     private ProcessorType type = ProcessorType.CPU;
@@ -289,7 +289,7 @@ public class Processor implements Serializable {
     }
 
     /**
-     * Returns whether the processor is a CPU or not.
+     * getComputingUnits() Returns whether the processor is a CPU or not.
      * 
      * @return {@code true} if the processor has type CPU, {@code false} otherwise.
      */
@@ -304,6 +304,10 @@ public class Processor implements Serializable {
      */
     public boolean isModified() {
         return this.modified;
+    }
+
+    public boolean hasUnassignedCUs() {
+        return this.computingUnits == MethodResourceDescription.UNASSIGNED_INT;
     }
 
 }

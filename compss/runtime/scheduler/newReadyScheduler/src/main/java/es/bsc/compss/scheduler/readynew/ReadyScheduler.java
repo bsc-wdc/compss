@@ -519,11 +519,13 @@ public abstract class ReadyScheduler extends TaskScheduler {
     private boolean removeActionFromResource(ReadyResourceScheduler<?> scheduler, AllocatableAction action) {
         Set<ObjectValue<AllocatableAction>> actionList = scheduler.getUnassignedActions();
         ObjectValue<AllocatableAction> obj = scheduler.getAddedActions().remove(action);
+        boolean removed = false;
         if (obj != null) {
-            return actionList.remove(obj);
-        } else {
-            return false;
+            synchronized (actionList) {
+                removed = actionList.remove(obj);// NOSONAR
+            }
         }
+        return removed;
 
     }
 
@@ -532,7 +534,10 @@ public abstract class ReadyScheduler extends TaskScheduler {
         Set<ObjectValue<AllocatableAction>> actionList = scheduler.getUnassignedActions();
         Score fullScore = action.schedulingScore(scheduler, actionScore);
         ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
-        boolean added = actionList.add(obj);
+        boolean added = false;
+        synchronized (actionList) {
+            added = actionList.add(obj);
+        }
         if (added) {
             scheduler.getAddedActions().put(action, obj);
         }
@@ -544,10 +549,17 @@ public abstract class ReadyScheduler extends TaskScheduler {
         Set<ObjectValue<AllocatableAction>> actionList = scheduler.getUnassignedActions();
         ObjectValue<AllocatableAction> obj = scheduler.getAddedActions().remove(action);
         if (obj != null) {
-            if (actionList.remove(obj)) { // NOSONAR
+            boolean removed = false;
+            synchronized (actionList) {
+                removed = actionList.remove(obj);// NOSONAR
+            }
+            if (removed) {
                 Score fullScore = action.schedulingScore(scheduler, generateActionScore(action));
                 obj = new ObjectValue<>(action, fullScore);
-                boolean added = actionList.add(obj);
+                boolean added = false;
+                synchronized (actionList) {
+                    added = actionList.add(obj);
+                }
                 if (added) {
                     scheduler.getAddedActions().put(action, obj);
                 }

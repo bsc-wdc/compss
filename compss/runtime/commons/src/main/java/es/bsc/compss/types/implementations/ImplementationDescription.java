@@ -111,8 +111,9 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                         throw new IllegalArgumentException(
                             "Incorrect parameters for type PYTHON_MPI on " + implSignature);
                     }
-                    id = new ImplementationDescription<>((D) new PythonMPIDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                    PythonMPIDefinition pyMPIDef = new PythonMPIDefinition(implTypeArgs, 0);
+                    implConstraints.scaleUpBy(pyMPIDef.getPPN());
+                    id = new ImplementationDescription<>((D) pyMPIDef, implSignature, implConstraints);
                     break;
 
                 case CONTAINER:
@@ -137,8 +138,9 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     if (implTypeArgs.length != MPIDefinition.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type MPI on " + implSignature);
                     }
-                    id = new ImplementationDescription<>((D) new MPIDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                    MPIDefinition mpiDef = new MPIDefinition(implTypeArgs, 0);
+                    implConstraints.scaleUpBy(mpiDef.getPPN());
+                    id = new ImplementationDescription<>((D) mpiDef, implSignature, implConstraints);
                     break;
 
                 case COMPSs:

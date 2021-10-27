@@ -47,4 +47,8 @@ public abstract class WorkerResourceDescription extends ResourceDescription {
         super(desc);
     }
 
+    public abstract void scaleUpBy(int n);
+
+    public abstract void scaleDownBy(int n);
+
 }

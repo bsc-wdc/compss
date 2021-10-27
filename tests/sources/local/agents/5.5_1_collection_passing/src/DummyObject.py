@@ -1,5 +1,5 @@
 class DummyObject:
-    def __init__(self, n):
+    def __init__(self, n=0):
         self.n = n
     
     def __str__(self):

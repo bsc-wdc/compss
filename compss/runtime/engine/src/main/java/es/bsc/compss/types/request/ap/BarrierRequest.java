@@ -33,20 +33,17 @@ public class BarrierRequest extends APRequest implements Barrier {
     private final Application app;
 
     private boolean released;
-    private boolean stalled;
 
 
     /**
      * Creates a new barrier request.
      *
      * @param app Application.
-     * @param sem Waiting semaphore.
      */
-    public BarrierRequest(Application app, Semaphore sem) {
+    public BarrierRequest(Application app) {
         this.app = app;
-        this.sem = sem;
+        this.sem = new Semaphore(0);
         this.released = false;
-        this.stalled = false;
     }
 
     /**
@@ -70,12 +67,7 @@ public class BarrierRequest extends APRequest implements Barrier {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.barrier(this);
-        synchronized (this) {
-            if (!released) {
-                this.app.stalled();
-                this.stalled = true;
-            }
-        }
+        sem.release();
     }
 
     @Override
@@ -96,13 +88,27 @@ public class BarrierRequest extends APRequest implements Barrier {
 
     @Override
     public void release() {
-        synchronized (this) {
-            released = true;
-            if (stalled) {
-                app.readyToContinue(sem);
-            } else {
-                sem.release();
-            }
+        released = true;
+        sem.release();
+    }
+
+    /**
+     * Waits for all tasks to complete releasing and recovering the resources if needed.
+     */
+    public void waitForCompletion() {
+        // Wait for request processing
+        sem.acquireUninterruptibly();
+
+        boolean stalled = false;
+        if (!released) {
+            this.app.stalled();
+            stalled = true;
+        }
+
+        sem.acquireUninterruptibly();
+        if (stalled) {
+            app.readyToContinue(sem);
+            sem.acquireUninterruptibly();
         }
     }
 

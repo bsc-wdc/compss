@@ -35,7 +35,6 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
     private COMPSsException exception;
 
     private boolean released;
-    private boolean stalled;
 
 
     /**
@@ -43,16 +42,14 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
      * 
      * @param app Application Id.
      * @param groupName Name of the group.
-     * @param sem Waiting semaphore.
      */
-    public BarrierGroupRequest(Application app, String groupName, Semaphore sem) {
+    public BarrierGroupRequest(Application app, String groupName) {
         this.app = app;
         this.groupName = groupName;
-        this.sem = sem;
+        this.sem = new Semaphore(0);
         this.exception = null;
 
         this.released = false;
-        this.stalled = false;
     }
 
     public Application getApp() {
@@ -84,12 +81,7 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.barrierGroup(this);
-        synchronized (this) {
-            if (!released) {
-                this.app.stalled();
-                this.stalled = true;
-            }
-        }
+        sem.release();
     }
 
     @Override
@@ -99,13 +91,27 @@ public class BarrierGroupRequest extends APRequest implements Barrier {
 
     @Override
     public void release() {
-        synchronized (this) {
-            released = true;
-            if (stalled) {
-                app.readyToContinue(sem);
-            } else {
-                sem.release();
-            }
+        released = true;
+        sem.release();
+    }
+
+    /**
+     * Waits for all tasks within the group to complete releasing and recovering the resources if needed.
+     */
+    public void waitForCompletion() {
+        // Wait for request processing
+        sem.acquireUninterruptibly();
+
+        boolean stalled = false;
+        if (!released) {
+            this.app.stalled();
+            stalled = true;
+        }
+        sem.acquireUninterruptibly();
+        if (stalled) {
+            app.readyToContinue(sem);
+            sem.acquireUninterruptibly();
         }
     }
+
 }

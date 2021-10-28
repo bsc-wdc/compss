@@ -113,10 +113,10 @@ class ExecutionState:
                 for impl in impls:
                     impl_desc=""
                     if impl_count == idx+1:
-                        impl_desc = chr(192).decode('cp437')
+                        impl_desc = b'\xc0'.decode("cp437") # |_
                     else:
-                        impl_desc = chr(195).decode('cp437')
-                    impl_desc = impl_desc + (chr(196).decode('cp437') * 7 )
+                        impl_desc = b'\xc3'.decode("cp437") # |-
+                    impl_desc = impl_desc + (b'\xc4'.decode("cp437") * 7 ) # -
                     print(impl_desc+" "+self._short_signature(str(impl.signature))+"\t"+impl.get_constraints_cores()+"\t"+impl.get_constraints_memory())
             
     def query_connection(self, query):

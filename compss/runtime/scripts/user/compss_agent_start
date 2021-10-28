@@ -404,9 +404,9 @@ check_setup() {
     fi
   fi
 
-  if [ -n "${agent_rest_port}" ]; then
+  if [ -n "${agent_comm_port}" ]; then
     CLASSPATH="${CLASSPATH}:${COMPSS_HOME}Runtime/adaptors/CommAgent/worker/compss-adaptors-agent-comm-worker.jar"
-    comm_port_msg="(comm: ${agent_rest_port})"
+    comm_port_msg="(comm: ${agent_comm_port})"
   fi
   if [ -n "${agent_rest_port}" ]; then
     CLASSPATH="${CLASSPATH}:${COMPSS_HOME}Runtime/adaptors/RESTAgent/worker/compss-adaptors-agent-rest-worker.jar"
@@ -461,6 +461,6 @@ display_settings
 display_info "-----------------------------------------------"
 display_info "              AGENT  ${master_name}"
 display_info "-----------------------------------------------"
-display_info "Launching COMPSs agent on device ${master_name} and ports ${comm_port_msg} ${rest_port_msg} with debug level ${DEBUG}"
+display_info "Launching COMPSs agent on device ${master_name} and ports ${rest_port_msg} ${comm_port_msg} with debug level ${DEBUG}"
 
 start_compss_agent

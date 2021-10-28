@@ -155,6 +155,9 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     public void onCancellation() {
         super.onCancellation();
         profile.end();
+        if (this.requestListener != null) {
+            this.requestListener.requestCompleted(this);
+        }
         System.out.println("Job cancelled after " + profile.getTotalTime());
     }
 
@@ -172,6 +175,9 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     public void onFailure() {
         super.onFailure();
         profile.end();
+        if (this.requestListener != null) {
+            this.requestListener.requestCompleted(this);
+        }
         System.out.println("Job failed after " + profile.getTotalTime());
     }
 

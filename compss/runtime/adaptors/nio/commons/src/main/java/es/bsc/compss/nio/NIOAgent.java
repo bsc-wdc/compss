@@ -217,7 +217,7 @@ public abstract class NIOAgent {
             NIOUri uri = source.getFirstURI();
 
             if (NIOTracer.extraeEnabled()) {
-                NIOTracer.emitDataTransferEvent(source.getDataMgmtId());
+                NIOTracer.emitDataTransferEvent(source.getDataMgmtId(), false);
             }
             NIONode nn = uri.getHost();
             if (nn.getIp() == null) {
@@ -286,7 +286,7 @@ public abstract class NIOAgent {
             }
 
             if (NIOTracer.extraeEnabled()) {
-                NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
+                NIOTracer.emitDataTransferEvent(source.getDataMgmtId(), true);
             }
         }
     }
@@ -349,7 +349,7 @@ public abstract class NIOAgent {
             int tag = Math.abs(d.getDataMgmtId().hashCode());
             CommandTracingID cmd = new CommandTracingID(this.tracingId, tag);
             c.sendCommand(cmd);
-            NIOTracer.emitDataTransferEvent(d.getDataMgmtId());
+            NIOTracer.emitDataTransferEvent(d.getDataMgmtId(), false);
             NIOTracer.emitCommEvent(true, receiverID, tag);
         }
 
@@ -386,7 +386,7 @@ public abstract class NIOAgent {
         }
 
         if (NIOTracer.extraeEnabled()) {
-            NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
+            NIOTracer.emitDataTransferEvent(d.getDataMgmtId(), true);
         }
         c.finishConnection();
     }
@@ -619,7 +619,7 @@ public abstract class NIOAgent {
         // Add tracing event
         if (NIOTracer.extraeEnabled()) {
             int tag = Math.abs(dataId.hashCode());
-            NIOTracer.emitDataTransferEvent(dataId);
+            NIOTracer.emitDataTransferEvent(dataId, false);
             NIOTracer.emitCommEvent(false, this.connection2partner.get(c), tag, t.getSize());
             this.connection2partner.remove(c);
         }

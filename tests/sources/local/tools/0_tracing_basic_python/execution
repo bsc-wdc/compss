@@ -58,6 +58,7 @@
       ${runcompss_opts} \
       ${python_mpi_worker} \
       \
+      --cpu_affinity="0-3" \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
       --pythonpath="${base_app_dir}"/src \

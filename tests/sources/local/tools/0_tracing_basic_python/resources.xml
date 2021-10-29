@@ -4,6 +4,10 @@
         <Processor Name="MainProcessor">
             <ComputingUnits>4</ComputingUnits>
         </Processor>
+        <Processor Name="GPU">
+            <ComputingUnits>4</ComputingUnits>
+            <Type>GPU</Type>
+        </Processor>
         <Adaptors>
             <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>

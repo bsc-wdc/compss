@@ -448,7 +448,8 @@ def process_task(current_line,              # type: list
     :return: True if processed successfully, False otherwise.
     """
     affinity_ok = True
-    num_cpus = 1
+    binded_cpus = False
+    binded_gpus = False
 
     # CPU binding
     cpus = current_line[-3]
@@ -456,14 +457,14 @@ def process_task(current_line,              # type: list
         # The cpu affinity event is already emitted in Java.
         # Instead of emitting what we receive, we are emitting what whe check
         # after setting the affinity.
-        affinity_ok, num_cpus = bind_cpus(cpus, process_name, logger)
+        affinity_ok = bind_cpus(cpus, process_name, logger)
 
     # GPU binding
     gpus = current_line[-2]
     if gpus != "-":
-        emit_manual_event(0, inside=True, gpu_affinity=True)  # close previous
         emit_manual_event(gpus, inside=True, gpu_affinity=True)
         bind_gpus(gpus, process_name, logger)
+        binded_gpus = True
 
     # Remove the last elements: cpu and gpu bindings
     current_line = current_line[0:-3]
@@ -524,12 +525,12 @@ def process_task(current_line,              # type: list
         if THREAD_AFFINITY:
             # The cpu affinity can be long if multiple cores have been
             # assigned. To avoid issues, we get just the first id.
-            cpus = str(thread_affinity.getaffinity()[0])
-            # Close previous emitted event since this is the moment we update
-            emit_manual_event(0, inside=True, cpu_affinity=True)
+            real_affinity = thread_affinity.getaffinity()
+            cpus = str(real_affinity[0])
+            num_cpus = len(real_affinity)
             emit_manual_event(cpus, inside=True, cpu_affinity=True)
-            emit_manual_event(0, inside=True, cpu_number=True)
             emit_manual_event(num_cpus, inside=True, cpu_number=True)
+            binded_cpus = True
             if not affinity_ok:
                 logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
                                cpus)
@@ -627,6 +628,11 @@ def process_task(current_line,              # type: list
     if __debug__:
         logger.debug("Cleaning environment.")
     clean_environment(cpus, gpus)
+    if binded_cpus:
+        emit_manual_event(0, inside=True, cpu_affinity=True)
+        emit_manual_event(0, inside=True, cpu_number=True)
+    if binded_gpus:
+        emit_manual_event(0, inside=True, gpu_affinity=True)
 
     # Restore loggers
     if __debug__:
@@ -691,29 +697,24 @@ def process_quit(logger, process_name):  # noqa
     """
     if __debug__:
         logger.debug(HEADER + "[%s] Quitting." % str(process_name))
-    # Close last cpu and gpu affinity events
-    emit_manual_event(0, inside=True, cpu_affinity=True)
-    emit_manual_event(0, inside=True, gpu_affinity=True)
     return False
 
 
 @emit_event(BIND_CPUS_EVENT, master=False, inside=True)
 def bind_cpus(cpus, process_name, logger):  # noqa
-    # type: (str, str, ...) -> (bool, int)
+    # type: (str, str, ...) -> bool
     """ Bind the given CPUs for core affinity to this process.
 
     :param cpus: Target CPUs.
     :param process_name: Process name for logger messages.
     :param logger: Logger.
-    :return: True if success, False otherwise. And the number of binded cpus.
+    :return: True if success, False otherwise.
     """
     os.environ['COMPSS_BINDED_CPUS'] = cpus
     if __debug__:
         logger.debug(HEADER + "[%s] Assigning affinity %s" %
                      (str(process_name), str(cpus)))
-    cpus_list = cpus.split(",")
-    cpus = list(map(int, cpus_list))
-    num_cpus = len(cpus_list)
+    cpus = list(map(int, cpus.split(",")))
     try:
         thread_affinity.setaffinity(cpus)
     except Exception:  # noqa
@@ -722,7 +723,7 @@ def bind_cpus(cpus, process_name, logger):  # noqa
                          "[%s] WARNING: could not assign affinity %s" %
                          (str(process_name), str(cpus)))
         return False
-    return True, num_cpus
+    return True
 
 
 @emit_event(BIND_GPUS_EVENT, master=False, inside=True)

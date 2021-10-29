@@ -28,13 +28,13 @@ from contextlib import contextmanager
 from pycompss.util.context import in_master
 from pycompss.util.context import in_worker
 from pycompss.worker.commons.constants import SYNC_EVENTS
-from pycompss.worker.commons.constants import TASK_EVENTS
-from pycompss.worker.commons.constants import TASK_CPU_AFFINITY_EVENTS
-from pycompss.worker.commons.constants import TASK_CPU_NUMBER_EVENTS
-from pycompss.worker.commons.constants import TASK_GPU_AFFINITY_EVENTS
-from pycompss.worker.commons.constants import WORKER_EVENTS
+from pycompss.worker.commons.constants import INSIDE_TASKS_TYPE
+from pycompss.worker.commons.constants import INSIDE_TASKS_CPU_AFFINITY_TYPE
+from pycompss.worker.commons.constants import INSIDE_TASKS_CPU_COUNT_TYPE
+from pycompss.worker.commons.constants import INSIDE_TASKS_GPU_AFFINITY_TYPE
+from pycompss.worker.commons.constants import INSIDE_WORKER_TYPE
 from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
-from pycompss.runtime.constants import MASTER_EVENTS
+from pycompss.runtime.constants import BINDING_MASTER_TYPE
 
 PYEXTRAE = None
 TRACING = False
@@ -65,9 +65,9 @@ def trace_multiprocessing_worker():
     PYEXTRAE = pyextrae
     TRACING = True
     pyextrae.eventandcounters(SYNC_EVENTS, 1)
-    pyextrae.eventandcounters(WORKER_EVENTS, WORKER_RUNNING_EVENT)
+    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, WORKER_RUNNING_EVENT)
     yield  # here the worker runs
-    pyextrae.eventandcounters(WORKER_EVENTS, 0)
+    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, 0)
     pyextrae.eventandcounters(SYNC_EVENTS, 0)
     pyextrae.eventandcounters(SYNC_EVENTS, int(time.time()))
     pyextrae.eventandcounters(SYNC_EVENTS, 0)
@@ -86,9 +86,9 @@ def trace_mpi_worker():
     PYEXTRAE = pyextrae
     TRACING = True
     pyextrae.eventandcounters(SYNC_EVENTS, 1)
-    pyextrae.eventandcounters(WORKER_EVENTS, WORKER_RUNNING_EVENT)
+    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, WORKER_RUNNING_EVENT)
     yield  # here the worker runs
-    pyextrae.eventandcounters(WORKER_EVENTS, 0)
+    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, 0)
     pyextrae.eventandcounters(SYNC_EVENTS, 0)
     pyextrae.eventandcounters(SYNC_EVENTS, int(time.time()))
     pyextrae.eventandcounters(SYNC_EVENTS, 0)
@@ -241,22 +241,22 @@ def __get_proper_type_event__(event_id, master, inside,
     :return: Retrieves the appropriate event_group and event_id
     """
     if master:
-        event_group = MASTER_EVENTS
+        event_group = BINDING_MASTER_TYPE
     else:
         if inside:
             if cpu_affinity:
-                event_group = TASK_CPU_AFFINITY_EVENTS
+                event_group = INSIDE_TASKS_CPU_AFFINITY_TYPE
                 event_id = __parse_affinity_event_id__(event_id)
             elif gpu_affinity:
-                event_group = TASK_GPU_AFFINITY_EVENTS
+                event_group = INSIDE_TASKS_GPU_AFFINITY_TYPE
                 event_id = __parse_affinity_event_id__(event_id)
             elif cpu_number:
-                event_group = TASK_CPU_NUMBER_EVENTS
+                event_group = INSIDE_TASKS_CPU_COUNT_TYPE
                 event_id = int(event_id)
             else:
-                event_group = TASK_EVENTS
+                event_group = INSIDE_TASKS_TYPE
         else:
-            event_group = WORKER_EVENTS
+            event_group = INSIDE_WORKER_TYPE
     return event_group, event_id
 
 

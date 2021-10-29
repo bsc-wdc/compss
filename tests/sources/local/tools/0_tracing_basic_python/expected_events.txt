@@ -1,0 +1,191 @@
+# This file describes all checks that are performed to the test trace.
+#
+# Entry structure:
+# - Comments: Lines that start with "#"
+# - To specify a family of events (type - must be million):
+#      Family <Type> <Name>
+# - To check specific event:
+#     <Type> event <Value> #appearances
+# - To check a range of events:
+#     <Type> range <minValue> <maxValue> #appearances
+# When a range is defined, the event 0 is defined separatedly to check
+# specifically the en events.
+#
+# It is also supported to define "undefined" for the number of appearances for
+# a range of events (e.g. RUNTIME_EVENTS). In this case, the check only
+# evaluates if there is the same events as zeros.
+#
+# It is also possible to define the number of appearances separated with comma
+# if the events can appear multiple times (e.g. THREAD_IDENTIFICATION_EVENTS)
+
+
+# -------- #
+# FAMILIES #
+# -------- #
+# A family is the Type where all events from a piece of code emits events.
+# It is used to detect new events not included in the checks.
+
+Family 8000000 Runtime
+Family 9000000 Binding
+
+# -------------- #
+# RUNTIME EVENTS #
+# -------------- #
+
+# Tasks - emited by the runtime
+8000000 event 0 100
+8000000 event 1 8
+8000000 event 2 32
+8000000 event 3 32
+8000000 event 4 28
+8000006 event 0 100
+8000006 event 1 100
+8000007 event 0 100
+8000007 event 1 100
+8000008 event 0 100   # cpu
+8000008 event 1 68    # cpu
+8000008 event 2 32    # cpu
+8000009 event 0 172   # gpu      # TODO: THE ZEROS OF NON EVENTS SHOULD NOT BE EMITTED
+8000009 event 1 28    # gpu
+8000010 event 0 168   # memory   # TODO: THE ZEROS OF NON EVENTS SHOULD NOT BE EMITTED
+8000010 event 100 32  # memory
+8000011 event 0 200   # disk bandwidth  # TODO: ADD THIS CONSTRAINT
+8001004 event 0 4
+8001004 event 1 4
+
+# -------------------- #
+# RUNTIME RANGE EVENTS #
+# -------------------- #
+8000002 event 0 100
+8000002 range 1 100 100
+8000003 event 0 100
+8000003 range 1 100 100
+8000004 event 0 24
+8000004 range 1 3000000000 24
+8000150 event 0 100
+8000150 range 1 4 100   # NOTE: cpu affinity is forced from 0-3 in runcompss
+8000160 event 0 28
+8000160 range 1 4 28
+8000666 event 0 4
+8000666 range 1 3000000000000 4
+8001001 event 0 214
+8001001 range 1 12 214
+8001002 event 0 undefined      # 1689
+8001002 range 1 68 undefined   # 1689
+8001003 event 0 8
+8001003 range 1 8 9,11  # TODO: WHY THIS EVENT APPEARS 9 OR 11 TIMES?
+
+# --------------------- #
+# PYTHON BINDING EVENTS #
+# --------------------- #
+
+# Tasks - emited by the binding
+9000000 event 0 100
+9000000 event 1 8
+9000000 event 2 32
+9000000 event 3 32
+9000000 event 4 28
+
+# Inside tasks
+9000100 event 0 1112
+9000100 event 1 100
+9000100 event 2 0
+9000100 event 3 100
+9000100 event 4 100
+9000100 event 5 100
+9000100 event 6 100
+9000100 event 7 0
+9000100 event 8 184
+9000100 event 9 100
+9000100 event 10 0
+9000100 event 11 100
+9000100 event 12 0
+9000100 event 13 0
+9000100 event 14 100
+9000100 event 15 0
+9000100 event 16 0
+9000100 event 17 0
+9000100 event 18 0
+9000100 event 19 0
+9000100 event 20 0
+9000100 event 21 0
+9000100 event 25 100
+
+
+# Worker events
+9000200 event 0 105
+9000200 event 1 1
+9000200 event 2 100
+9000200 event 3 0
+9000200 event 4 4
+9000200 event 5 0
+9000200 event 6 0
+9000200 event 7 0
+9000200 event 8 0
+9000200 event 9 0
+9000200 event 10 0
+9000200 event 25 0
+
+# Master events
+9000300 event 0 1580
+9000300 event 1 1
+9000300 event 2 1
+9000300 event 3 1
+9000300 event 4 0  # NOT USED YET
+9000300 event 5 1
+9000300 event 6 0
+9000300 event 7 0
+9000300 event 8 0
+9000300 event 9 0
+9000300 event 10 0
+9000300 event 11 0
+9000300 event 12 0
+9000300 event 13 0
+9000300 event 14 0
+9000300 event 15 0
+9000300 event 16 0
+9000300 event 17 1
+9000300 event 18 0
+9000300 event 19 0
+9000300 event 20 0  # NOT USED YET
+9000300 event 21 4
+9000300 event 22 4
+9000300 event 23 100
+9000300 event 100 100
+9000300 event 101 100
+9000300 event 102 100
+9000300 event 103 100
+9000300 event 104 100
+9000300 event 105 100
+9000300 event 106 100
+9000300 event 107 4
+9000300 event 108 100
+9000300 event 109 0 # NOT USED YET
+9000300 event 110 100
+9000300 event 111 100
+9000300 event 112 264
+9000300 event 113 100
+9000300 event 114 100
+
+# --------------------------- #
+# PYTHON BINDING RANGE EVENTS #
+# --------------------------- #
+
+9000150 event 0 100
+9000150 range 1 4 100   # NOTE: cpu affinity is forced from 0-3 in runcompss
+9000151 event 0 100
+9000151 range 1 4 100
+9000160 event 0 28
+9000160 range 1 4 28
+9000600 event 0 104
+9000600 range 1 4000 104
+9000601 event 0 188
+9000601 range 1 4000 188
+9000602 event 0 0
+9000602 range 1 4000 0
+9000603 event 0 0
+9000603 range 1 4000 0
+9000700 event 0 104
+9000700 range 1 400000 104
+9000701 event 0 188
+9000701 range 1 400000 188

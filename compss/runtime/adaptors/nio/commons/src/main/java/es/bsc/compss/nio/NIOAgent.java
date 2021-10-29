@@ -218,8 +218,6 @@ public abstract class NIOAgent {
 
             if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId(), false);
-                LOGGER.debug("XXXX" + Thread.currentThread().getName() + ": nio.NIOAgent: requestTransfers 221: "
-                    + source.getDataMgmtId());
             }
             NIONode nn = uri.getHost();
             if (nn.getIp() == null) {
@@ -289,8 +287,6 @@ public abstract class NIOAgent {
 
             if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId(), true);
-                LOGGER.debug("XXXX" + Thread.currentThread().getName() + ": nio.NIOAgent: requestTransfers 291: "
-                    + source.getDataMgmtId() + " - END");
             }
         }
     }
@@ -354,8 +350,6 @@ public abstract class NIOAgent {
             CommandTracingID cmd = new CommandTracingID(this.tracingId, tag);
             c.sendCommand(cmd);
             NIOTracer.emitDataTransferEvent(d.getDataMgmtId(), false);
-            LOGGER.debug(
-                "XXXX" + Thread.currentThread().getName() + ": nio.NIOAgent: sendData 353: " + d.getDataMgmtId());
             NIOTracer.emitCommEvent(true, receiverID, tag);
         }
 
@@ -393,8 +387,6 @@ public abstract class NIOAgent {
 
         if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitDataTransferEvent(d.getDataMgmtId(), true);
-            LOGGER.debug(
-                "XXXX" + Thread.currentThread().getName() + ": nio.NIOAgent: sendData 393: " + d.getDataMgmtId());
         }
         c.finishConnection();
     }
@@ -628,7 +620,6 @@ public abstract class NIOAgent {
         if (NIOTracer.extraeEnabled()) {
             int tag = Math.abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId, false);
-            LOGGER.debug("XXXX " + Thread.currentThread().getName() + ": NIOAgent: receivedData: " + dataId);
             NIOTracer.emitCommEvent(false, this.connection2partner.get(c), tag, t.getSize());
             this.connection2partner.remove(c);
         }

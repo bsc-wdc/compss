@@ -493,8 +493,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (NIOTracer.extraeEnabled()) {
             String nameId = (new File(dataId)).getName();
             NIOTracer.emitDataTransferEvent(nameId, true);
-            WORKER_LOGGER.debug("XXXX" + Thread.currentThread().getName() + ": worker.NIOWorker: receivedValue 492: "
-                + nameId + " - " + NIOTracer.TRANSFER_END);
         }
     }
 

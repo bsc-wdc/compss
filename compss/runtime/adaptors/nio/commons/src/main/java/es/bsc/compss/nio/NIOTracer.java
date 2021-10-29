@@ -123,14 +123,10 @@ public class NIOTracer extends Tracer {
 
         if (dataTransfer) {
             if (end) {
-                LOGGER.debug("XXXX: emitDataTransferEvent: EMITTED 126: " + data + " - transferID: END");
                 emitEvent(0, getDataTransfersType());
             } else {
-                LOGGER.debug("XXXX: emitDataTransferEvent: EMITTED 129: " + data + " - transferID: " + transferID);
                 emitEvent(transferID, getDataTransfersType());
             }
-        } else {
-            LOGGER.debug("XXXX: emitDataTransferEvent: NOT_EMITTED: " + data + " - transferID: " + transferID);
         }
 
         if (DEBUG) {

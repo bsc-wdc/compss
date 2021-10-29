@@ -23,9 +23,6 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 
@@ -39,6 +36,7 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
     private final AccessMode accessMode;
 
     private int pendingOperation = 0;
+    private boolean released = false;
     private final Semaphore sem;
 
 
@@ -89,15 +87,40 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
                 int dataId = this.accessId.getDataId();
                 LOGGER.debug("Data " + dataId + " available for main access");
             }
+            released = true;
             sem.release();
-        } else {
-            Application app = this.accessParams.getApp();
-            app.stalled();
         }
+        sem.release();
     }
 
+    /**
+     * Waits for the value's producing tasks to complete releasing and recovering the resources if needed.
+     */
     public void waitForCompletion() {
+        // Wait for request processing
         sem.acquireUninterruptibly();
+
+        boolean stalled = false;
+        Application app = this.accessParams.getApp();
+        synchronized (this) {
+            LOGGER.info("App " + app.getId() + " waits for data to be produced");
+            if (!released) {
+                LOGGER.info("App " + app.getId() + " releases its resources.");
+                stalled = true;
+                app.stalled();
+            }
+        }
+        LOGGER.info("App " + app.getId() + " awaits for data to be produced.");
+        // Wait for producing task completion
+        sem.acquireUninterruptibly();
+        LOGGER.info("App " + app.getId() + " waiting data is produced.");
+        // Wait for app to have resources
+        if (stalled) {
+            LOGGER.info("App " + app.getId() + " waits for resources.");
+            app.readyToContinue(sem);
+            sem.acquireUninterruptibly();
+            LOGGER.info("App " + app.getId() + " reasources are ready.");
+        }
     }
 
     public void addPendingOperation() {
@@ -106,14 +129,17 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
 
     @Override
     public void taskFinished() {
-        pendingOperation--;
-        if (pendingOperation == 0) {
-            if (DEBUG) {
-                int dataId = this.accessId.getDataId();
-                LOGGER.debug("Data " + dataId + " available for main access");
+        Application app = this.accessParams.getApp();
+        synchronized (this) {
+            pendingOperation--;
+            if (pendingOperation == 0) {
+                if (DEBUG) {
+                    int dataId = this.accessId.getDataId();
+                    LOGGER.debug("Data " + dataId + " available for main access");
+                }
+                sem.release();
+                released = true;
             }
-            Application app = this.accessParams.getApp();
-            app.readyToContinue(sem);
         }
     }
 

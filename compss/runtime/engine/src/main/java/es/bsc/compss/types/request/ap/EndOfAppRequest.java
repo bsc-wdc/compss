@@ -32,21 +32,18 @@ public class EndOfAppRequest extends APRequest implements Barrier {
     private final Semaphore sem;
 
     private boolean released;
-    private boolean stalled;
 
 
     /**
      * Creates a new request to end the application.
      * 
      * @param app Application Id.
-     * @param sem Waiting semaphore.
      */
-    public EndOfAppRequest(Application app, Semaphore sem) {
+    public EndOfAppRequest(Application app) {
         this.app = app;
-        this.sem = sem;
+        this.sem = new Semaphore(0);
 
         this.released = false;
-        this.stalled = false;
     }
 
     /**
@@ -69,13 +66,10 @@ public class EndOfAppRequest extends APRequest implements Barrier {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+        LOGGER.info("TA Processes no More tasks for app " + this.app.getId());
         ta.noMoreTasks(this);
-        synchronized (this) {
-            if (!released) {
-                this.app.stalled();
-                this.stalled = true;
-            }
-        }
+        sem.release();
+        LOGGER.info("TA Processed no More tasks for app " + this.app.getId());
     }
 
     @Override
@@ -96,13 +90,31 @@ public class EndOfAppRequest extends APRequest implements Barrier {
 
     @Override
     public void release() {
-        synchronized (this) {
-            released = true;
-            if (stalled) {
-                app.readyToContinue(sem);
-            } else {
-                sem.release();
-            }
+        LOGGER.info("No More tasks for app " + this.app.getId() + " released");
+        released = true;
+        sem.release();
+    }
+
+    /**
+     * Waits for all application's tasks to complete releasing and recovering the resources if needed.
+     */
+    public void waitForCompletion() {
+        // Wait for processing
+        sem.acquireUninterruptibly();
+
+        boolean stalled = false;
+        if (!released) {
+            LOGGER.info("No More tasks for app " + this.app.getId() + " becomes stalled");
+            this.app.stalled();
+            stalled = true;
+        }
+        // Wait for all tasks completion
+        sem.acquireUninterruptibly();
+
+        // Wait for app to have resources
+        if (stalled) {
+            app.readyToContinue(sem);
+            sem.acquireUninterruptibly();
         }
     }
 

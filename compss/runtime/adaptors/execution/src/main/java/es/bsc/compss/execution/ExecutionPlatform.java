@@ -258,7 +258,7 @@ public class ExecutionPlatform implements ExecutorContext {
      * 
      * @param numWorkerThreads Number of worker threads to reduce
      */
-    public final synchronized void removeWorkerThreads(int numWorkerThreads) {
+    public final void removeWorkerThreads(int numWorkerThreads) {
         if (numWorkerThreads > 0) {
             LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
             // if (Tracer.basicModeEnabled()) {
@@ -273,16 +273,14 @@ public class ExecutionPlatform implements ExecutorContext {
             // Wait until all threads have completed their last request
             LOGGER.info("Waiting for " + numWorkerThreads + " threads finished");
             this.stopSemaphore.acquireUninterruptibly(numWorkerThreads);
-            // if (Tracer.basicModeEnabled()) {
-            // Tracer.disablePThreads();
-            // }
+
             // Stop specific language components
             joinThreads();
             LOGGER.info("Stopped " + numWorkerThreads + " executors from execution platform " + this.platformName);
         }
     }
 
-    private void joinThreads() {
+    private synchronized void joinThreads() {
         Iterator<Thread> iter = this.finishedWorkerThreads.iterator();
         while (iter.hasNext()) {
             Thread t = iter.next();

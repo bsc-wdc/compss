@@ -621,13 +621,12 @@ public class AccessProcessor implements Runnable {
      * @param app Application.
      */
     public void noMoreTasks(Application app) {
-        Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new EndOfAppRequest(app, sem))) {
+        EndOfAppRequest eoar = new EndOfAppRequest(app);
+        if (!this.requestQueue.offer(eoar)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "no more tasks");
         }
 
-        // Wait for response
-        sem.acquireUninterruptibly();
+        eoar.waitForCompletion();
 
         LOGGER.info("All tasks finished");
     }
@@ -658,13 +657,12 @@ public class AccessProcessor implements Runnable {
      * @param app Application .
      */
     public void barrier(Application app) {
-        Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new BarrierRequest(app, sem))) {
+        BarrierRequest br = new BarrierRequest(app);
+        if (!this.requestQueue.offer(br)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
 
-        // Wait for response
-        sem.acquireUninterruptibly();
+        br.waitForCompletion();
 
         LOGGER.info("Barrier: End of waited all tasks");
     }
@@ -677,18 +675,17 @@ public class AccessProcessor implements Runnable {
      * @throws COMPSsException Exception thrown by user
      */
     public void barrierGroup(Application app, String groupName) throws COMPSsException {
-        Semaphore sem = new Semaphore(0);
-        BarrierGroupRequest request = new BarrierGroupRequest(app, groupName, sem);
-        if (!requestQueue.offer(request)) {
+        BarrierGroupRequest bgr = new BarrierGroupRequest(app, groupName);
+        if (!requestQueue.offer(bgr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
-        // Wait for response
-        sem.acquireUninterruptibly();
 
-        if (request.getException() != null) {
-            LOGGER.debug("The thrown exception message is: " + request.getException().getMessage());
+        bgr.waitForCompletion();
+
+        if (bgr.getException() != null) {
+            LOGGER.debug("The thrown exception message is: " + bgr.getException().getMessage());
             throw new COMPSsException(
-                "Group " + groupName + " raised a COMPSs Exception ( " + request.getException().getMessage() + ")");
+                "Group " + groupName + " raised a COMPSs Exception ( " + bgr.getException().getMessage() + ")");
         }
 
         LOGGER.info("Group barrier: End of tasks of group " + groupName);

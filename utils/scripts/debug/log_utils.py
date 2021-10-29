@@ -939,6 +939,8 @@ class ObtainedObjectEvent(Event):
         :param message: object retrieval description
         """
         super(ObtainedObjectEvent, self).__init__(timestamp)
+        line_array = message.split()
+        self.data_id = line_array[6].split("v")[0].split("d")[1]
 
     def apply(self, state):
         """

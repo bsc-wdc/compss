@@ -2,7 +2,7 @@
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 2.9 Jasmine"
+  echo "COMPSs version 2.10 Kumquat"
   echo " "
 }
 
@@ -12,12 +12,12 @@ show_version() {
 show_full_version() {
   cat << EOF
                              
-        .-~~-.--.             _____      _______
-       :         )           |____ \\    /  ___  \\
- .~ ~ -.\\       /.- ~~ .      ___) |    | (___) |
- >       \`.   .'       <     / ___/      \\____  | 
-(         .- -.         )   | |____   _   ____) | 
- \`- -.-~  \`- -'  ~-.- -'    |______| |_| |______/
+        .-~~-.--.             _____       _    _______
+       :         )           |____ \\    / |  /  ___  \\
+ .~ ~ -.\\       /.- ~~ .      ___) |   /_ |  | |   | |
+ >       \`.   .'       <     / ___/      | | | |   | |
+(         .- -.         )   | |____   _   | |  | |___| | 
+ \`- -.-~  \`- -'  ~-.- -'    |______| |_| |_|  \\_____/
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
         ~-.-^-.-~ \\       .~  .-~   .~
@@ -37,9 +37,11 @@ EOF
 ###############################################
 show_flower() {
   cat << EOF
-Jasmine is a genus of shrubs and vines in the olive family (Oleaceae). The flowers are typically around 2.5 cm (0.98 in) in diameter. They are white or yellow in color, although in rare instances they can be slightly reddish. The flowers are borne in cymose clusters with a minimum of three flowers, though they can also be solitary on the ends of branchlets. Each flower has about four to nine petals, two locules, and one to four ovules. They have two stamens with very short filaments. The bracts are linear or ovated. 
+Kumquats are a group of small fruit-bearing trees in the flowering plant family Rutaceae. They were previously classified as forming the now-historical genus Fortunella, or placed within Citrus, sensu lato.
+They are slow-growing evergreen shrubs or short trees that stand 2.5 to 4.5 meters (8 to 15 ft) tall, with dense branches, sometimes bearing small thorns. The leaves are dark glossy green, and the flowers are white, similar to other citrus flowers, and can be borne singly or clustered within the leaves' axils. Depending on size, the kumquat tree can produce hundreds or even thousands of fruits each year.
+
 Check more information:
-   https://en.wikipedia.org/wiki/Jasmine
+   https://en.wikipedia.org/wiki/Kumquat
 
 EOF
 }
@@ -50,20 +52,20 @@ EOF
 show_recipe() {
   cat << EOF
 
-Jasmine - Cocktail 
+Kumquat Quest - Cocktail 
 
-From: https://www.liquor.com/recipes/jasmine/
+From: https://cocktailsdistilled.com/recipe/kumquat-quest/
 
 Ingredients:
 
-    1 1/2 oz Gin
-    1/4 oz Campari
-    1/4 oz Orange liqueur
-    3/4 oz Fresh lemon juice
-    Garnish: Lemon twist
+    2 oz Vodka
+    1/2 oz Grand Marnier
+    1/2 oz Lime Juice
+    Sugar, Demerara Brown
+    3-4 Kumquats
 
 Instructions:
-    Place all ingredients in iced cocktail shaker strain. Shake and add sugar to taste. Strain into a chilled cocktail glass. Garnish with a lemon twist
+    Cut all the kumquats in half and put all the rest of the ingredients into a highball glass. Muddle all and add crushed ice. Float Grand Marnier.
 
 EOF
 }

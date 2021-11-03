@@ -616,7 +616,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     // Parse arguments to internal structures
                     DataLocation loc;
                     try {
-                        loc = createLocation(fileName);
+                        loc = createLocation(ProtocolType.FILE_URI, fileName);
                     } catch (IOException ioe) {
                         ErrorManager.fatal(ERROR_FILE_NAME, ioe);
                         return;
@@ -990,7 +990,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Parse the file name and translate the access mode
         try {
-            DataLocation loc = createLocation(fileName);
+            DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
             Application app = Application.registerApplication(appId);
             ap.markForDeletion(app, loc, waitForData);
             // Java case where task files are stored in the registry
@@ -1140,16 +1140,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.GET_FILE.getId(), TraceEvent.GET_FILE.getType());
         }
-        String destDir = Comm.getAppHost().getTempDirPath();
-        // Parse the destination path
-        if (!destDir.endsWith(File.separator)) {
-            destDir += File.separator;
-        }
 
         // Parse the file name
         DataLocation sourceLocation = null;
         try {
-            sourceLocation = createLocation(fileName);
+            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
         }
@@ -1159,7 +1154,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         LOGGER.debug("Getting file " + fileName);
         Application app = Application.registerApplication(appId);
-        String renamedPath = openFile(app, fileName, Direction.INOUT);
+        String renamedPath = openFileSystemData(app, fileName, Direction.INOUT, false);
         // If renamePth is the same as original, file has not accessed. Nothing to do.
         if (!renamedPath.equals(sourceLocation.getPath())) {
             try {
@@ -1190,18 +1185,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Parse the dir name
         DataLocation sourceLocation = null;
         try {
-            // Check if dirName contains schema
-            SimpleURI uri = new SimpleURI(dirName);
-            String fullUri;
-            if (uri.getSchema().isEmpty()) {
-                // Add default Dir scheme and wrap local paths
-                String canonicalPath = new File(dirName).getCanonicalPath();
-                fullUri = ProtocolType.DIR_URI.getSchema() + canonicalPath;
-            } else {
-                fullUri = dirName;
-            }
-            sourceLocation = createLocation(fullUri);
-
+            sourceLocation = createLocation(ProtocolType.DIR_URI, dirName);
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_DIR_NAME, ioe);
         }
@@ -1211,7 +1195,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         LOGGER.debug("Getting directory " + dirName);
         Application app = Application.registerApplication(appId);
-        String renamedPath = openDirectory(app, dirName, Direction.IN);
+        String renamedPath = openFileSystemData(app, dirName, Direction.IN, true);
         try {
             LOGGER.debug("Getting directory renamed path: " + renamedPath);
             String intermediateTmpPath = renamedPath + ".tmp";
@@ -1339,7 +1323,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public boolean isFileAccessed(Long appId, String fileName) {
         DataLocation loc;
         try {
-            loc = createLocation(fileName);
+            loc = createLocation(ProtocolType.FILE_URI, fileName);
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
             loc = null;
@@ -1355,27 +1339,24 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public String openFile(Long appId, String fileName, Direction mode) {
         Application app = Application.registerApplication(appId);
-        return openFile(app, fileName, mode);
+        return openFileSystemData(app, fileName, mode, false);
     }
 
-    /**
-     * Main code opens a file version that the runtime may need to fetch.
-     *
-     * @param app Application opening the file
-     * @param fileName location of the file
-     * @param mode access mode
-     * @return the renaming of the file version opened.
-     */
-    public String openFile(Application app, String fileName, Direction mode) {
+    private String openFileSystemData(Application app, String fileName, Direction mode, boolean isDir) {
         LOGGER.info("Opening " + fileName + " in mode " + mode);
-
+        TraceEvent tEvent = null;
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.OPEN_FILE.getId(), TraceEvent.OPEN_FILE.getType());
+            if (isDir) {
+                tEvent = TraceEvent.OPEN_DIRECTORY;
+            } else {
+                tEvent = TraceEvent.OPEN_FILE;
+            }
+            Tracer.emitEvent(tEvent.getId(), tEvent.getType());
         }
         // Parse arguments to internal structures
         DataLocation loc;
         try {
-            loc = createLocation(fileName);
+            loc = createLocation(isDir ? ProtocolType.DIR_URI : ProtocolType.FILE_URI, fileName);
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
             return null;
@@ -1406,9 +1387,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(app, fileName, loc, am, null, false);
+                finalPath = mainAccessToFile(app, fileName, loc, am, null, isDir);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("File target Location: " + finalPath);
+
+                    LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
                 }
                 break;
             case PERSISTENT:
@@ -1419,11 +1401,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 break;
             default:
                 finalPath = null;
-                ErrorManager.error("ERROR: Unrecognised protocol requesting openFile " + fileName);
+                ErrorManager.error(
+                    "ERROR: Unrecognised protocol requesting " + (isDir ? "openDirectory " : "openFile ") + fileName);
         }
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.OPEN_FILE.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, tEvent.getType());
         }
 
         return finalPath;
@@ -1432,73 +1415,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public String openDirectory(Long appId, String dirName, Direction mode) {
         Application app = Application.registerApplication(appId);
-        return openDirectory(app, dirName, mode);
-    }
-
-    /**
-     * Main code opens a directory that the runtime may need to fetch.
-     *
-     * @param app application accessing the data.
-     * @param dirName Directory name.
-     * @param mode Access mode.
-     * @return the renaming of the file version opened.
-     */
-    public String openDirectory(Application app, String dirName, Direction mode) {
-        // todo: common in both api's ??
-        LOGGER.info("Opening " + dirName + " in mode " + mode);
-
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.OPEN_DIRECTORY.getId(), TraceEvent.OPEN_DIRECTORY.getType());
-        }
-        // Parse arguments to internal structures
-        DataLocation loc;
-        try {
-            loc = createLocation(dirName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_DIR_NAME, ioe);
-            return null;
-        }
-
-        AccessMode am = null;
-        switch (mode) {
-            case IN:
-            case IN_DELETE:
-                am = AccessMode.R;
-                break;
-            case OUT:
-                am = AccessMode.W;
-                break;
-            case INOUT:
-                am = AccessMode.RW;
-                break;
-            case CONCURRENT:
-                am = AccessMode.C;
-                break;
-            case COMMUTATIVE:
-                am = AccessMode.CV;
-                break;
-        }
-
-        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
-        String finalPath;
-        switch (loc.getType()) {
-            case PRIVATE:
-            case SHARED:
-                finalPath = mainAccessToFile(app, dirName, loc, am, null, true);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("File (dir) target Location: " + finalPath);
-                }
-                break;
-            default:
-                finalPath = null;
-                ErrorManager.error("ERROR: Unrecognised protocol requesting openDirectory " + dirName);
-        }
-
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.OPEN_DIRECTORY.getType());
-        }
-
-        return finalPath;
+        return openFileSystemData(app, dirName, mode, true);
     }
 
     @Override
@@ -1525,7 +1442,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Parse arguments to internal structures
         DataLocation loc;
         try {
-            loc = createLocation(fileName);
+            loc = createLocation(ProtocolType.FILE_URI, fileName);
         } catch (Exception e) {
             ErrorManager.fatal(ERROR_FILE_NAME, e);
             return;
@@ -1629,9 +1546,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     String dirName = content.toString();
                     File dirFile = new File(dirName);
                     String originalName = dirFile.getName();
-                    String canonicalPath = dirFile.getCanonicalPath();
-                    String fullPath = ProtocolType.DIR_URI.getSchema() + canonicalPath;
-                    DataLocation location = createLocation(fullPath);
+                    DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
                     pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName));
                 } catch (Exception e) {
@@ -1643,7 +1558,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 try {
                     String fileName = content.toString();
                     String originalName = new File(fileName).getName();
-                    DataLocation location = createLocation(content.toString());
+                    DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
                     pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
                         originalName));
                 } catch (Exception e) {
@@ -1663,9 +1578,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = content.toString();
-                    String canonicalPath = new File(fileName).getCanonicalPath();
-                    String locationPath = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + canonicalPath;
-                    DataLocation location = createLocation(locationPath);
+                    DataLocation location = createLocation(ProtocolType.EXTERNAL_STREAM_URI, fileName);
                     String originalName = new File(fileName).getName();
                     pars.add(new ExternalStreamParameter(direction, stream, prefix, name, location, originalName));
                 } catch (Exception e) {
@@ -1975,17 +1888,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return ap.mainAccessToBindingObject(app, loc.getBindingObject(), hashCode);
     }
 
-    private DataLocation createLocation(String fileName) throws IOException {
+    private DataLocation createLocation(ProtocolType defaultSchema, String fileName) throws IOException {
         // Check if fileName contains schema
         SimpleURI uri = new SimpleURI(fileName);
         if (uri.getSchema().isEmpty()) {
             if (fileName.startsWith("/")) {
                 // todo: make pretty and sure it works
-                uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + fileName);
+                uri = new SimpleURI(defaultSchema.getSchema() + fileName);
             } else {
                 // Add default File scheme and wrap local paths
                 String canonicalPath = new File(fileName).getCanonicalPath();
-                uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);
+                uri = new SimpleURI(defaultSchema.getSchema() + canonicalPath);
             }
         }
 

@@ -133,7 +133,7 @@ public class FileOpsManager {
 
     /**
      * Execute a composed operation as an Asynchronous FS operation.
-     * 
+     *
      * @param composition operation composition
      */
     public static void composedOperationAsync(final Runnable composition) {
@@ -567,13 +567,17 @@ public class FileOpsManager {
         try {
             if (tgtPath.compareTo(sourcePath) != 0) {
                 try {
-                    // todo: recursive needed for directories?
                     Files.move(sourcePath, tgtPath, StandardCopyOption.ATOMIC_MOVE,
                         StandardCopyOption.REPLACE_EXISTING);
                 } catch (AtomicMoveNotSupportedException amnse) {
                     LOGGER.warn("WARN: AtomicMoveNotSupportedException."
                         + " File cannot be atomically moved. Trying to move without atomic");
-                    Files.move(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+                    try {
+                        Files.move(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+                    } catch (DirectoryNotEmptyException dnee) {
+                        LOGGER.warn("WARN: Trying to move a directory as a file");
+                        moveDirectory(source, target);
+                    }
                 }
             }
         } catch (IOException ioe) {

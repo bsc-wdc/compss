@@ -73,6 +73,11 @@ public abstract class ReadyScheduler extends TaskScheduler {
         this.upgradedActions = new HashSet<>();
     }
 
+    @Override
+    public void customSchedulerShutdown() {
+        schedulerExecutor.shutdown();
+    }
+
     /*
      * *********************************************************************************************************
      * *********************************************************************************************************
@@ -86,12 +91,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
         if (resource.canRunSomething()) {
             this.availableWorkers.add(resource);
         }
-    }
-
-    @Override
-    public void shutdown() {
-        schedulerExecutor.shutdown();
-        super.shutdown();
     }
 
     @Override

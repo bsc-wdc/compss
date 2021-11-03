@@ -44,6 +44,20 @@ public class MOScheduler extends TaskScheduler {
     }
 
     @Override
+    public void customSchedulerShutdown() {
+        /*
+         * Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.getWorkers();
+         * System.out.println("End Profiles:"); for (ResourceScheduler<?> worker : workers) { System.out.println("\t" +
+         * worker.getName()); for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) { for (Implementation
+         * impl : CoreManager.getCoreImplementations(coreId)) { System.out.println("\t\t" +
+         * CoreManager.getSignature(coreId, impl.getImplementationId())); MOProfile profile = (MOProfile)
+         * worker.getProfile(impl); System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
+         * System.out.println("\t\t\tPower " + profile.getPower() + " W"); System.out.println("\t\t\tCost " +
+         * profile.getPrice() + " €"); } } }
+         */
+    }
+
+    @Override
     public MOProfile generateProfile(JSONObject json) {
         return new MOProfile(json);
     }
@@ -77,21 +91,6 @@ public class MOScheduler extends TaskScheduler {
     public static MOScore getActionScore(AllocatableAction action) {
         long dataTime = MOScore.getDataPredecessorTime(action.getDataPredecessors());
         return new MOScore(action.getPriority(), action.getGroupPriority(), dataTime, 0, 0, 0, 0);
-    }
-
-    @Override
-    public void shutdown() {
-        super.shutdown();
-        /*
-         * Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.getWorkers();
-         * System.out.println("End Profiles:"); for (ResourceScheduler<?> worker : workers) { System.out.println("\t" +
-         * * worker.getName()); for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) { for
-         * (Implementation impl : CoreManager.getCoreImplementations(coreId)) { System.out.println("\t\t" +
-         * CoreManager.getSignature(coreId, impl.getImplementationId())); MOProfile profile = (MOProfile)
-         * worker.getProfile(impl); System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
-         * System.out.println("\t\t\tPower " + profile.getPower() + " W"); System.out.println("\t\t\tCost " +
-         * profile.getPrice() + " €"); } } }
-         */
     }
 
     @Override

@@ -29,7 +29,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,6 +76,8 @@ public class GraphGenerator {
     private static BufferedWriter current_graph;
     private static BufferedWriter legend;
     private static HashSet<Integer> legendTasks;
+    private static int openCollectivesEdges = 0;
+    private static HashMap<String, List<String>> pendingGroupDependencies = new HashMap<>();
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.ALL_COMP);
     private static final String ERROR_MONITOR_DIR = "ERROR: Cannot create monitor directory";
@@ -199,7 +205,7 @@ public class GraphGenerator {
     /**
      * Prints in a file the final task graph.
      */
-    public void commitGraph() {
+    public void commitGraph(boolean noMoreTasks) {
         LOGGER.debug("Commiting graph to final location");
         try {
             // Move dependence graph content to final location
@@ -236,12 +242,14 @@ public class GraphGenerator {
 
             // Open tmp legend again
             legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE, true));
-
-            closeLegend(finalGraph);
+            if (noMoreTasks) {
+                closeLegend(finalGraph);
+                closeGraphFile(finalGraph);
+            }
 
             // Close graph
-            closeGraphFile(finalGraph);
             finalGraph.close();
+
         } catch (IOException e) {
             LOGGER.error(ERROR_COMMIT_FINAL_GRAPH, e);
         }
@@ -318,6 +326,20 @@ public class GraphGenerator {
     }
 
     /**
+     * Start a group collection.
+     **/
+    public void startGroupingEdges() {
+        openCollectivesEdges += 1;
+    }
+
+    /**
+     * Stop a group collection.
+     */
+    public void stopGroupingEdges() {
+        openCollectivesEdges -= 1;
+    }
+
+    /**
      * Adds an edge to the graph from {@code src} to {@code tgt} with label {@code label}.
      *
      * @param src Source node.
@@ -326,6 +348,33 @@ public class GraphGenerator {
      * @param label Edge label.
      */
     public void addEdgeToGraph(String src, String tgt, EdgeType edgeType, String label) {
+        if (openCollectivesEdges == 0) {
+            if (pendingGroupDependencies.isEmpty()) {
+                addSingleElementEdgeToGraph(src, tgt, edgeType, label);
+            } else {
+                for (Map.Entry<String, List<String>> entry : pendingGroupDependencies.entrySet()) {
+                    String srctgt = entry.getKey();
+                    try {
+                        full_graph.newLine();
+                        full_graph.write(srctgt + " [label=\"d" + label + " ("
+                            + pendingGroupDependencies.get(srctgt).size() + ")" + "\",color=\"#024b30\",penwidth=2];");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                pendingGroupDependencies.clear();
+            }
+        } else {
+            List<String> labels = pendingGroupDependencies.get(src + " -> " + tgt);
+            if (labels == null) {
+                labels = new LinkedList<>();
+                pendingGroupDependencies.put(src + " -> " + tgt, labels);
+            }
+            labels.add(label);
+        }
+    }
+
+    private void addSingleElementEdgeToGraph(String src, String tgt, EdgeType edgeType, String label) {
         try {
             // Build the edge properties tag
             StringBuilder edgeProperties = new StringBuilder();

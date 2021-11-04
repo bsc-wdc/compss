@@ -60,6 +60,7 @@
       \
       --cpu_affinity="0-3" \
       --lang=python \
+      --summary \
       --python_interpreter="${python_interpreter}" \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \

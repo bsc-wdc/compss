@@ -26,10 +26,13 @@ PyCOMPSs Persistent Worker
 import os
 import sys
 import signal
-from multiprocessing import Process
-from multiprocessing import Queue
 
+from pycompss.util.process.manager import initialize_multiprocessing
+from pycompss.util.process.manager import Queue  # just typing
+from pycompss.util.process.manager import new_queue
+from pycompss.util.process.manager import create_process
 from pycompss.runtime.commons import range
+from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event
@@ -49,7 +52,7 @@ from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.commons.utils import load_loggers
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
@@ -136,10 +139,13 @@ def compss_persistent_worker(config):
     smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
 
     # Create new executor processes
-    conf = ExecutorConf(TRACING,
+    conf = ExecutorConf(config.debug,
+                        get_temporary_directory(),
+                        TRACING,
                         config.storage_conf,
                         logger,
                         logger_cfg,
+                        persistent_storage,
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,
@@ -257,11 +263,12 @@ def create_executor_process(process_name, conf, pipe):
     :param pipe: Communication pipes (in, out).
     :return: Process identifier and queue used by the process
     """
-    queue = Queue()
-    process = Process(target=executor, args=(queue,
-                                             process_name,
-                                             pipe,
-                                             conf))
+    queue = new_queue()
+    process = create_process(target=executor,
+                             args=(queue,
+                                   process_name,
+                                   pipe,
+                                   conf))
     PROCESSES[pipe.input_pipe] = process
     process.start()
     return process.pid, queue
@@ -284,4 +291,7 @@ def main():
 
 
 if __name__ == '__main__':
+    # Initialize multiprocessing
+    initialize_multiprocessing()
+    # Then start the main function
     main()

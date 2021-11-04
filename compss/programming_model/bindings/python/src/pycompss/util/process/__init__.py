@@ -16,20 +16,3 @@
 #
 
 # -*- coding: utf-8 -*-
-
-from pycompss.runtime.management.link import c_extension_link
-from pycompss.util.process.manager import new_queue
-from pycompss.util.exceptions import PyCOMPSsException
-
-
-def test_c_extension_link_wrong_message():
-    in_queue = new_queue()
-    in_queue.put("UNSUPPORTED")
-    is_ok = False
-    try:
-        c_extension_link(in_queue, None, False, None, None)
-    except PyCOMPSsException:
-        is_ok = True
-    assert (
-        is_ok
-    ), "ERROR: Exception not raised when undefined message received in link."

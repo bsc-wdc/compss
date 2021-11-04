@@ -179,6 +179,12 @@
       exit $ev
     fi
 
+    if [ $(uname) == "Darwin" ]; then
+      otherFlags="--enable-pthread"
+    else
+      otherFlags=""
+    fi
+
     ./configure \
       --enable-gettimeofday-clock \
       --without-unwind \
@@ -193,6 +199,7 @@
       --disable-instrument-io \
       --disable-pebs-sampling \
       --disable-pthread-cond-calls \
+      "${otherFlags}" \
       --prefix="${extraeTarget}" \
       --libdir="${extraeTarget}/lib"
     ev=$?
@@ -274,4 +281,3 @@
   # ENTRY POINT
   #
   main "$@"
-

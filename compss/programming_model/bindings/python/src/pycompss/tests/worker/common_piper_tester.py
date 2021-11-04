@@ -22,9 +22,8 @@ import sys
 import time
 import tempfile
 import shutil
-import multiprocessing
-import subprocess
 
+from pycompss.util.process.manager import new_process
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.api.task import task
@@ -127,9 +126,8 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
 
     sys.path.append(current_path)
     # Start the piper worker in a separate thread
-    worker = multiprocessing.Process(
-        target=worker_thread, args=(sys.argv, current_path)
-    )
+    worker = new_process(target=worker_thread,
+                         args=(sys.argv, current_path))
 
     if mpi_worker:
         evaluate_worker(worker, "test_mpi_piper", pipes, files, current_path,

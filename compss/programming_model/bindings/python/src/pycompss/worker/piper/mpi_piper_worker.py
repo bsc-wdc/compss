@@ -27,6 +27,7 @@ import os
 import sys
 import signal
 from pycompss.runtime.commons import range
+from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import dummy_context
@@ -35,7 +36,7 @@ from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.commons.utils import load_loggers
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
 from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
 from pycompss.worker.piper.commons.constants import PING_TAG
@@ -255,10 +256,13 @@ def compss_persistent_executor(config):
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     process_name = "".join(("Rank-", str(RANK)))
-    conf = ExecutorConf(TRACING,
+    conf = ExecutorConf(config.debug,
+                        get_temporary_directory(),
+                        TRACING,
                         config.storage_conf,
                         logger,
                         logger_cfg,
+                        persistent_storage,
                         storage_loggers,
                         config.stream_backend,
                         config.stream_master_name,

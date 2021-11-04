@@ -62,6 +62,7 @@ from pycompss.util.interactive.state import show_tasks_status
 from pycompss.util.interactive.state import show_statistics
 from pycompss.util.interactive.state import show_resources_status
 from pycompss.util.interactive.state import check_monitoring_file
+from pycompss.util.process.manager import initialize_multiprocessing
 
 # Tracing imports
 from pycompss.util.tracing.helpers import emit_manual_event
@@ -83,6 +84,10 @@ STREAMING = False
 LOG_PATH = tempfile.mkdtemp()
 GRAPHING = False
 LINE_SEPARATOR = "******************************************************"
+
+
+# Initialize multiprocessing
+initialize_multiprocessing()
 
 
 def start(log_level="off",                     # type: str

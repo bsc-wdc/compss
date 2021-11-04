@@ -186,19 +186,21 @@ class event_master(object):
     :param event_id: Event identifier to emit.
     :return: None
     """
-    __slots__ = ["emit", "event_group"]
+    __slots__ = ["emitted"]
 
     def __init__(self, event_id):
         # type: (int) -> None
-        if TRACING:
-            PYEXTRAE.eventandcounters(MASTER_EVENTS, event_id)
+        self.emitted = False
+        if TRACING and in_master():
+            PYEXTRAE.eventandcounters(BINDING_MASTER_TYPE, event_id)
+            self.emitted = True
 
     def __enter__(self):
         pass
 
     def __exit__(self, type, value, traceback):
-        if TRACING:
-            PYEXTRAE.eventandcounters(MASTER_EVENTS, 0)
+        if TRACING and self.emitted:
+            PYEXTRAE.eventandcounters(BINDING_MASTER_TYPE, 0)
 
 
 class event_worker(object):
@@ -210,17 +212,21 @@ class event_worker(object):
     :return: None
     """
 
+    __slots__ = ["emitted"]
+
     def __init__(self, event_id):
         # type: (int) -> None
-        if TRACING:
-            PYEXTRAE.eventandcounters(WORKER_EVENTS, event_id)  # noqa
+        self.emitted = False
+        if TRACING and in_worker():
+            PYEXTRAE.eventandcounters(INSIDE_WORKER_TYPE, event_id)  # noqa
+            self.emitted = True
 
     def __enter__(self):
         pass
 
     def __exit__(self, type, value, traceback):
-        if TRACING:
-            PYEXTRAE.eventandcounters(WORKER_EVENTS, 0)         # noqa
+        if TRACING and self.emitted:
+            PYEXTRAE.eventandcounters(INSIDE_WORKER_TYPE, 0)         # noqa
 
 
 class event_inside_worker(object):
@@ -231,19 +237,21 @@ class event_inside_worker(object):
     :param event_id: Event identifier to emit.
     :return: None
     """
-    __slots__ = ["emit", "event_group"]
+    __slots__ = ["emitted"]
 
     def __init__(self, event_id):
         # type: (int) -> None
-        if TRACING:
-            PYEXTRAE.eventandcounters(TASK_EVENTS, event_id)  # noqa
+        self.emitted = False
+        if TRACING and in_worker():
+            PYEXTRAE.eventandcounters(INSIDE_TASKS_TYPE, event_id)  # noqa
+            self.emitted = True
 
     def __enter__(self):
         pass
 
     def __exit__(self, type, value, traceback):
-        if TRACING:
-            PYEXTRAE.eventandcounters(TASK_EVENTS, 0)         # noqa
+        if TRACING and self.emitted:
+            PYEXTRAE.eventandcounters(INSIDE_TASKS_TYPE, 0)         # noqa
 
 
 def emit_manual_event(event_id,            # type: int

@@ -499,7 +499,7 @@ def process_task(current_line,              # type: list
         # GPU binding
         gpus = current_line[-2]
         if gpus != "-":
-            emit_manual_event(int(gpus), inside=True, gpu_affinity=True)
+            emit_manual_event(int(gpus) + 1, inside=True, gpu_affinity=True)
             bind_gpus(gpus, process_name, logger)
             binded_gpus = True
 
@@ -564,7 +564,7 @@ def process_task(current_line,              # type: list
                 real_affinity = thread_affinity.getaffinity()
                 cpus = str(real_affinity[0])
                 num_cpus = len(real_affinity)
-                emit_manual_event(int(cpus), inside=True, cpu_affinity=True)
+                emit_manual_event(int(cpus) + 1, inside=True, cpu_affinity=True)
                 emit_manual_event(int(num_cpus), inside=True, cpu_number=True)
                 binded_cpus = True
                 if not affinity_ok:

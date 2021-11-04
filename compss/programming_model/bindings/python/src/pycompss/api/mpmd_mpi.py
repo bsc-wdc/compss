@@ -139,7 +139,7 @@ class MPMDMPI(PyCOMPSsDecorator):
         :raises PyCOMPSsException: If the collection layout does not contain block_count.
         """
         programs = self.kwargs["programs"]
-        programs_params = [len(programs)]
+        programs_params = [str(len(programs))]
 
         for program in programs:
             if not isinstance(program, dict):
@@ -150,7 +150,7 @@ class MPMDMPI(PyCOMPSsDecorator):
                 raise PyCOMPSsException("No binary file provided for MPMD MPI")
 
             params = program.get("params", "#")
-            procs = program.get("processes", "#")
+            procs = str(program.get("processes", "#"))
             programs_params.extend([binary, params, procs])
 
         return programs_params

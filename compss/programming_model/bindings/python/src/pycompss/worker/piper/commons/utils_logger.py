@@ -25,6 +25,7 @@ PyCOMPSs Common piper utils logger
 
 import os
 import logging
+import typing
 from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.logger.helpers import init_logging_worker_piper
 import pycompss.util.context as context

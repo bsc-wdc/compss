@@ -23,31 +23,28 @@ PyCOMPSs Util - process/manager
     This file centralizes the multiprocessing management. It helps to
     homogenize the behaviour between linux and mac.
 
-runtime/management/link.py:import multiprocessing----------------------------------------------------
-runtime/management/link.py:LINK_PROCESS = multiprocessing.Process()----------------------------------------------------
-runtime/management/link.py:IN_QUEUE = multiprocessing.Queue()----------------------------------------------------
-runtime/management/link.py:OUT_QUEUE = multiprocessing.Queue()----------------------------------------------------
-runtime/management/link.py:        IN_QUEUE = multiprocessing.Queue()----------------------------------------------------
-runtime/management/link.py:        OUT_QUEUE = multiprocessing.Queue()----------------------------------------------------
-runtime/management/link.py:    LINK_PROCESS = multiprocessing.Process(target=c_extension_link,----------------------------------------------------
-
-tests/runtime/test_link.py:from multiprocessing import Queue----------------------------------------------------
-
-tests/worker/common_piper_tester.py:import multiprocessing----------------------------------------------------
-tests/worker/common_piper_tester.py:    worker = multiprocessing.Process(----------------------------------------------------
-
-tests/streams/test_distro_stream_client.py:from multiprocessing import Process----------------------------------------------------
-
-worker/piper/cache/tracker.py:    from multiprocessing.shared_memory import SharedMemory    # noqa----------------------------------------------------
-worker/piper/cache/tracker.py:    from multiprocessing.shared_memory import ShareableList   # noqa----------------------------------------------------
-worker/piper/cache/tracker.py:    from multiprocessing.managers import SharedMemoryManager  # noqa----------------------------------------------------
-worker/piper/cache/setup.py:from multiprocessing import Process----------------------------------------------------
-worker/piper/cache/setup.py:from multiprocessing import Queue----------------------------------------------------
-worker/piper/cache/setup.py:    from multiprocessing import Manager----------------------------------------------------
-worker/piper/piper_worker.py:from multiprocessing import Process----------------------------------------------------
-worker/piper/piper_worker.py:from multiprocessing import Queue----------------------------------------------------
+runtime/management/link.py:import multiprocessing
+runtime/management/link.py:LINK_PROCESS = multiprocessing.Process()
+runtime/management/link.py:IN_QUEUE = multiprocessing.Queue()
+runtime/management/link.py:OUT_QUEUE = multiprocessing.Queue()
+runtime/management/link.py:        IN_QUEUE = multiprocessing.Queue()
+runtime/management/link.py:        OUT_QUEUE = multiprocessing.Queue()
+runtime/management/link.py:    LINK_PROCESS = multiprocessing.Process(target=c_extension_link,
+tests/runtime/test_link.py:from multiprocessing import Queue
+tests/worker/common_piper_tester.py:import multiprocessing
+tests/worker/common_piper_tester.py:    worker = multiprocessing.Process(
+tests/streams/test_distro_stream_client.py:from multiprocessing import Process
+worker/piper/cache/tracker.py:    from multiprocessing.shared_memory import SharedMemory    # noqa
+worker/piper/cache/tracker.py:    from multiprocessing.shared_memory import ShareableList   # noqa
+worker/piper/cache/tracker.py:    from multiprocessing.managers import SharedMemoryManager  # noqa
+worker/piper/cache/setup.py:from multiprocessing import Process
+worker/piper/cache/setup.py:from multiprocessing import Queue
+worker/piper/cache/setup.py:    from multiprocessing import Manager
+worker/piper/piper_worker.py:from multiprocessing import Process
+worker/piper/piper_worker.py:from multiprocessing import Queue
 """
 
+import typing
 import multiprocessing
 from multiprocessing import Queue    # Used only for typing
 from multiprocessing import Process  # Used only for typing
@@ -58,10 +55,10 @@ try:
     from multiprocessing.managers import SharedMemoryManager  # noqa
 except ImportError:
     # Unsupported in python < 3.8
-    Manager = None
-    SharedMemory = None
-    ShareableList = None
-    SharedMemoryManager = None
+    Manager = None              # type: ignore
+    SharedMemory = None         # type: ignore
+    ShareableList = None        # type: ignore
+    SharedMemoryManager = None  # type: ignore
 
 
 def initialize_multiprocessing():
@@ -104,7 +101,7 @@ def new_queue():
 
 
 def new_manager():
-    # type: () -> Manager
+    # type: () -> typing.Any
     """ Instantiate a new empty multiprocessing manager.
 
     :return: Empty multiprocessing manager
@@ -113,7 +110,7 @@ def new_manager():
 
 
 def create_process(target, args=()):
-    # type: (..., tuple) -> Process
+    # type: (typing.Any, tuple) -> Process
     """ Create a new process instance for the given target with the provided
     arguments.
 
@@ -127,7 +124,7 @@ def create_process(target, args=()):
 
 
 def create_shared_memory_manager(address, authkey):
-    # type: ((str, str), str) -> SharedMemoryManager
+    # type: (typing.Tuple[str, int], typing.Optional[bytes]) -> SharedMemoryManager
     """ Create a new shared memory manager process at the given address with
     the provided authkey.
 

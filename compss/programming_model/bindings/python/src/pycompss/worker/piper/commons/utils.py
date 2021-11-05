@@ -23,9 +23,6 @@ PyCOMPSs Common piper utils
     This file contains the common pipers methods.
 """
 
-from pycompss.runtime.commons import range
-import os
-import logging
 import typing
 from pycompss.runtime.commons import set_temporary_directory
 from pycompss.worker.piper.commons.constants import HEADER
@@ -116,4 +113,3 @@ class PiperWorkerConfiguration(object):
         logger.debug(HEADER + "Stream master  : " + str(self.stream_master_name))  # noqa: E501
         logger.debug(HEADER + "Stream port    : " + str(self.stream_master_port))  # noqa: E501
         logger.debug(HEADER + "-----------------------------")
-

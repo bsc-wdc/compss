@@ -29,6 +29,7 @@ PyCOMPSs Binding - Link
 import os
 import typing
 
+from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import new_process
 from pycompss.util.process.manager import new_queue
 from pycompss.util.process.manager import create_process

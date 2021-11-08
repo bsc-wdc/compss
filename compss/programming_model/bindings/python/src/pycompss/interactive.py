@@ -393,7 +393,7 @@ def start(log_level="off",                     # type: str
     # RUNTIME START
     ##############################################################
 
-    print("* - Starting COMPSs runtime...                       *")
+    print("* - Starting COMPSs runtime...                         *")
     sys.stdout.flush()  # Force flush
     compss_start(log_level, all_vars["trace"], True)
 
@@ -434,7 +434,7 @@ def start(log_level="off",                     # type: str
 
     # MAIN EXECUTION
     # let the user write an interactive application
-    print("* - PyCOMPSs Runtime started... Have fun!            *")
+    print("* - PyCOMPSs Runtime started... Have fun!              *")
     print(LINE_SEPARATOR)
 
     # Emit the application start event (the 0 is in the stop function)

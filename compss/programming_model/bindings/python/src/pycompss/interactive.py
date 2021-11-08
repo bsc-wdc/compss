@@ -83,7 +83,7 @@ PERSISTENT_STORAGE = False
 STREAMING = False
 LOG_PATH = tempfile.mkdtemp()
 GRAPHING = False
-LINE_SEPARATOR = "******************************************************"
+LINE_SEPARATOR = "********************************************************"
 
 
 # Initialize multiprocessing
@@ -447,26 +447,26 @@ def __show_flower__():
 
     :return: None
     """
-    print(LINE_SEPARATOR)                                            # NOSONAR # noqa
-    print("*************** PyCOMPSs Interactive *****************")  # NOSONAR # noqa
-    print(LINE_SEPARATOR)                                            # NOSONAR # noqa
-    print("*          .-~~-.--.           _____       _______   *")  # NOSONAR # noqa
-    print("*         :         )         |____ \     /  ___  \  *")  # NOSONAR # noqa
-    print("*   .~ ~ -.\       /.- ~~ .     ___) |    | (___) |  *")  # NOSONAR # noqa
-    print("*   >       `.   .'       <    / ___/     \____   /  *")  # NOSONAR # noqa
-    print("*  (         .- -.         )  | |___   _      /  /   *")  # NOSONAR # noqa
-    print("*   `- -.-~  `- -'  ~-.- -'   |_____| |_|    /__/    *")  # NOSONAR # noqa
-    print("*     (        :        )           _ _ .-:          *")  # NOSONAR # noqa
-    print("*      ~--.    :    .--~        .-~  .-~  }          *")  # NOSONAR # noqa
-    print("*          ~-.-^-.-~ \_      .~  .-~   .~            *")  # NOSONAR # noqa
-    print("*                   \ \ '     \ '_ _ -~              *")  # NOSONAR # noqa
-    print("*                    \`.\`.    //                    *")  # NOSONAR # noqa
-    print("*           . - ~ ~-.__\`.\`-.//                     *")  # NOSONAR # noqa
-    print("*       .-~   . - ~  }~ ~ ~-.~-.                     *")  # NOSONAR # noqa
-    print("*     .' .-~      .-~       :/~-.~-./:               *")  # NOSONAR # noqa
-    print("*    /_~_ _ . - ~                 ~-.~-._            *")  # NOSONAR # noqa
-    print("*                                     ~-.<           *")  # NOSONAR # noqa
-    print(LINE_SEPARATOR)                                            # NOSONAR # noqa
+    print(LINE_SEPARATOR)                                              # NOSONAR # noqa
+    print("**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
+    print(LINE_SEPARATOR)                                              # NOSONAR # noqa
+    print("*          .-~~-.--.           _____      __   ______  *")  # NOSONAR # noqa
+    print("*         :         )         |____ \    /  | /  __  \ *")  # NOSONAR # noqa
+    print("*   .~ ~ -.\       /.- ~~ .     ___) |  /_  | | |  | | *")  # NOSONAR # noqa
+    print("*   >       `.   .'       <    / ___/     | | | |  | | *")  # NOSONAR # noqa
+    print("*  (         .- -.         )  | |___   _  | | | |__| | *")  # NOSONAR # noqa
+    print("*   `- -.-~  `- -'  ~-.- -'   |_____| |_| |_| \______/ *")  # NOSONAR # noqa
+    print("*     (        :        )           _ _ .-:            *")  # NOSONAR # noqa
+    print("*      ~--.    :    .--~        .-~  .-~  }            *")  # NOSONAR # noqa
+    print("*          ~-.-^-.-~ \_      .~  .-~   .~              *")  # NOSONAR # noqa
+    print("*                   \ \ '     \ '_ _ -~                *")  # NOSONAR # noqa
+    print("*                    \`.\`.    //                      *")  # NOSONAR # noqa
+    print("*           . - ~ ~-.__\`.\`-.//                       *")  # NOSONAR # noqa
+    print("*       .-~   . - ~  }~ ~ ~-.~-.                       *")  # NOSONAR # noqa
+    print("*     .' .-~      .-~       :/~-.~-./:                 *")  # NOSONAR # noqa
+    print("*    /_~_ _ . - ~                 ~-.~-._              *")  # NOSONAR # noqa
+    print("*                                     ~-.<             *")  # NOSONAR # noqa
+    print(LINE_SEPARATOR)                                              # NOSONAR # noqa
 
 
 def __print_setup__(verbose, all_vars):

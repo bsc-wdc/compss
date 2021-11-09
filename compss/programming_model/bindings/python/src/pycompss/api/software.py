@@ -38,7 +38,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {"config_file"}
-SUPPORTED_ARGUMENTS = set()
+SUPPORTED_ARGUMENTS = {"config_file"}
 DEPRECATED_ARGUMENTS = set()
 
 SUPPORTED_DECORATORS = {"mpi": (mpi, mpi.mpi),

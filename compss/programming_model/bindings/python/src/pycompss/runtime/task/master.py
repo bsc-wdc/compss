@@ -420,7 +420,6 @@ class TaskMaster(TaskCommons):
                           self.module_name, self.class_name))
 
         is_http = self.core_element.get_impl_type() == "HTTP"
-
         binding.process_task(
             signature,
             has_target,

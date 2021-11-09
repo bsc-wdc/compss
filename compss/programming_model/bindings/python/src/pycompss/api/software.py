@@ -28,6 +28,9 @@ from pycompss.api import binary, mpi
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
+
 
 if __debug__:
     import logging
@@ -50,7 +53,7 @@ class Software(PyCOMPSsDecorator):
     should be defined in the config file which is in JSON format.
     """
 
-    __slots__ = ['task_type', 'config_args', 'decor']
+    __slots__ = ['task_type', 'config_args', 'decor', 'constraints']
 
     def __init__(self, *args, **kwargs):
         """ Parse the config file and store the arguments that will be used
@@ -68,6 +71,7 @@ class Software(PyCOMPSsDecorator):
         self.task_type = None
         self.config_args = None
         self.decor = None
+        self.constraints = None
 
         if self.scope:
             if __debug__:
@@ -92,12 +96,18 @@ class Software(PyCOMPSsDecorator):
         # function with into the 'real' decorator
         @wraps(user_function)
         def software_f(*args, **kwargs):
+
+            if self.constraints is not None:
+                core_element = CE()
+                core_element.set_impl_constraints(self.constraints)
+                kwargs[CORE_ELEMENT_KEY] = core_element
+
             decorator = self.decor
 
             def decor_f():
                 def f():
                     ret = decorator(**self.config_args)
-                    return ret(user_function)(args, kwargs)
+                    return ret(user_function)(*args, **kwargs)
                 return f()
             return decor_f()
 
@@ -121,13 +131,14 @@ class Software(PyCOMPSsDecorator):
         exec_type = exec_type.lower()
         self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
 
-        arguments = config["arguments"]
+        properties = config["properties"]
         mand_args = self.task_type.MANDATORY_ARGUMENTS
-        if not all(arg in arguments for arg in mand_args):
+        if not all(arg in properties for arg in mand_args):
             msg = "Error: Missing arguments for '{}'.".format(self.task_type)
             raise PyCOMPSsException(msg)
 
-        self.config_args = arguments
+        self.config_args = properties
+        self.constraints = config.get("constraints", None)
 
 
 # ########################################################################### #

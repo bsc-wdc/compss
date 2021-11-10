@@ -332,6 +332,11 @@ public class TaskScheduler {
             SchedulingInformation.changesOnWorker(rs);
         }
         ro.coreElementsUpdated();
+        customCoreElementsUpdated();
+    }
+    
+    public void customCoreElementsUpdated(){
+        // Do nothing. Overriden if necessary by Task Scheduler extension.
     }
 
     /**

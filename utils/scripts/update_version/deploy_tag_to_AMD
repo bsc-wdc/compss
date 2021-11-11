@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+  usage() {
+    exitValue=$1
+  
+    echo " "
+    echo "Usage $0 <version>"
+    echo " "
+  
+    exit "$exitValue"
+  }
+
+ 
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  # MAIN
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  # Check parameters
+  if [ $# -ne 1 ]; then
+    echo "ERROR: Incorrect number of parameters"
+    usage 1
+  fi
+
+  # Set parameters
+  version=$1
+  buildFolder="cte-amd"
+  buildScript="buildCTE-AMD"
+  MNuser=compss
+  MNendpoint=amdlogin1.bsc.es
+
+  # Call generic script
+  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${MNuser} ${MNendpoint}
+
+  # END
+  exit 0
+

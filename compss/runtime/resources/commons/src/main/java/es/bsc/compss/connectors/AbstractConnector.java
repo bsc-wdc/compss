@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.connectors;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.connectors.utils.CreationThread;
 import es.bsc.compss.connectors.utils.DeadlineThread;
 import es.bsc.compss.connectors.utils.DeletionThread;
@@ -28,11 +27,6 @@ import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +34,8 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
-import jdk.nashorn.internal.parser.JSONParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 
 /**

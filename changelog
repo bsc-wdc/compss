@@ -473,7 +473,43 @@ Known Limitations:
         - Delete file calls for files used as input can produce a significant synchronization of the main code.
         - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
-For further information, please refer to “COMPSs User Manual: Application development guide”.
+Release number: 2.10 (Kumquat) 
+Release date: November-2021
+-------------------------------
+New features
+         * Runtime:
+		- Support for http requests (@http decorator). 
+		- Support for Java versions higher than 8.
+		- Enable grouping processes in MPI tasks with the processes_per_node flag. 
+		- Partial support for OSX systems 
+
+         * Python:
+		- PyArrow object serialization support
+		- Cache profiling enabled
+
+Improvements:
+	- Fixes in managing directory parameters.
+        - Improvements in asynchronous file system operations.
+	- Improvements visualizing collections in task dependency graphs. 
+        - Improvements and fixes in the support for different MPI versions (COMPSS_MPIRUN_TYPE)
+	- Improvements in tracing system. Fixes in events and cfgs
+	- Configuration files for Karolina, Mahti and CTE-AMD system.
+	- Several Bug fixes.
+
+Known Limitations:
+	- Collections are not supported in http tasks
+	- OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
+        - Reduce operations can consume more disk space than the manually programmed n-ary reduction
+	- Objects used as task parameters must be serializable.
+        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP.
+        - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+        - Master as worker feature is not working for executions with persistent worker in C++.
+	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+	- Delete file calls for files used as input can produce a significant synchronization of the main code.
+	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
+
+For further information, please refer to the COMPSs Documentation at: 
+	https://compss-doc.readthedocs.io/en/stable/
 
 Please find more details about the COMP Superscalar framework at: 
-		http://compss.bsc.es/
+	http://compss.bsc.es/

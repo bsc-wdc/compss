@@ -11,10 +11,10 @@ Release date: November-2021
 -------------------------------
 New features
          * Runtime:
-		- Support REST services, http requests and Function-as-a-service tasks (@http decorator). 
+		- Support for http requests (@http decorator). 
 		- Support for Java versions higher than 8.
-		- Enable grouping processes in MPI tasks with the process_per_node flag. 
-		- Partial support for OSX systems? 
+		- Enable grouping processes in MPI tasks with the processes_per_node flag. 
+		- Partial support for OSX systems 
 
          * Python:
 		- PyArrow object serialization support
@@ -31,7 +31,7 @@ Improvements:
 
 Known Limitations:
 	- Collections are not supported in http tasks
-	- OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable)
+	- OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
         - Reduce operations can consume more disk space than the manually programmed n-ary reduction
 	- Objects used as task parameters must be serializable.
         - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP.

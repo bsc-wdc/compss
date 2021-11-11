@@ -78,8 +78,8 @@ class COMPSsFile(object):
     """
     Class that represents a file in the worker.
     """
-    # __slots__ = ["source_path", "destination_name", "keep_source",
-    #              "is_write_final", "original_path"]
+    __slots__ = ["source_path", "destination_name", "keep_source",
+                 "is_write_final", "original_path"]
 
     def __init__(self, file_name="None"):
         # type: (str) -> None
@@ -117,11 +117,11 @@ class Parameter(object):
     Used to group all parameter variables.
     """
 
-    # __slots__ = ["name", "content", "content_type", "direction", "stream",
-    #              "prefix", "file_name", "is_future", "is_file_collection",
-    #              "collection_content", "dict_collection_content",
-    #              "depth", "extra_content_type", "weight", "keep_rename",
-    #              "cache"]
+    __slots__ = ["name", "content", "content_type", "direction", "stream",
+                 "prefix", "file_name", "is_future", "is_file_collection",
+                 "collection_content", "dict_collection_content",
+                 "depth", "extra_content_type", "weight", "keep_rename",
+                 "cache"]
 
     def __init__(self,
                  name="None",                                # type: str

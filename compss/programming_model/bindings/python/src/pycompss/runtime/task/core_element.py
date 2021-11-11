@@ -29,8 +29,8 @@ import typing
 
 class CE(object):
 
-    # __slots__ = ["ce_signature", "impl_signature", "impl_constraints",
-    #              "impl_type", "impl_io", "impl_type_args", "empty"]
+    __slots__ = ["ce_signature", "impl_signature", "impl_constraints",
+                 "impl_type", "impl_io", "impl_type_args"]
 
     def __init__(self,
                  ce_signature="",        # type: str

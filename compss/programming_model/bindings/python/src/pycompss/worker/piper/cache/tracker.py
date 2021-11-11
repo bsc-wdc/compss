@@ -80,9 +80,9 @@ class CacheTrackerConf(object):
     Cache tracker configuration
     """
 
-    # __slots__ = ["logger", "size", "policy", "cache_ids",
-    #              "profiler_dict", "profiler_get_struct", "log_dir",
-    #              "cache_profiler"]
+    __slots__ = ["logger", "size", "policy", "cache_ids",
+                 "profiler_dict", "profiler_get_struct", "log_dir",
+                 "cache_profiler"]
 
     def __init__(self, logger, size, policy, cache_ids,
                  profiler_dict, profiler_get_struct, log_dir, cache_profiler):

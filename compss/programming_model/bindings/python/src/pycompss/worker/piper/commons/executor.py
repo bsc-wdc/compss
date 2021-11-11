@@ -97,7 +97,7 @@ class Pipe(object):
     Bi-directional communication channel
     """
 
-    # __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
+    __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
 
     def __init__(self, input_pipe, output_pipe):
         # type: (str, str) -> None
@@ -168,11 +168,11 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    # __slots__ = ["debug", "tmp_dir",
-    #              "tracing", "storage_conf", "logger", "logger_cfg",
-    #              "persistent_storage", "storage_loggers",
-    #              "stream_backend", "stream_master_ip", "stream_master_port",
-    #              "cache_ids", "cache_queue", "cache_profiler"]
+    __slots__ = ["debug", "tmp_dir",
+                 "tracing", "storage_conf", "logger", "logger_cfg",
+                 "persistent_storage", "storage_loggers",
+                 "stream_backend", "stream_master_ip", "stream_master_port",
+                 "cache_ids", "cache_queue", "cache_profiler"]
 
     def __init__(self,
                  debug,                # type: bool

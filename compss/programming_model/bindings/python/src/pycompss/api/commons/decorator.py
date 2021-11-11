@@ -56,8 +56,8 @@ class PyCOMPSsDecorator(object):
     This class implements all common code of the PyCOMPSs decorators.
     """
 
-    # __slots__ = ["decorator_name", "args", "kwargs",
-    #              "scope", "core_element", "core_element_configured"]
+    __slots__ = ["decorator_name", "args", "kwargs",
+                 "scope", "core_element", "core_element_configured"]
 
     def __init__(self, decorator_name, *args, **kwargs):
         # type: (str, *typing.Any, **typing.Any) -> None

@@ -55,6 +55,10 @@ class Reduction(object):
     __call__ methods, useful on Reduction task creation.
     """
 
+    __slots__ = ["decorator_name", "args", "kwargs", "scope",
+                 "core_element", "core_element_configured",
+                 "__configure_core_element__"]
+
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
         """

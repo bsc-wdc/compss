@@ -51,6 +51,8 @@ class StdWatcher(object):
     later consulted.
     """
 
+    __slots__ = ["running", "messages"]
+
     def __init__(self):
         # type: () -> None
         self.running = False

@@ -57,7 +57,9 @@ class OnFailure(object):
     __call__ methods, useful on task on_failure creation.
     """
 
-    # __slots__ = ["on_failure_action", "defaults"]
+    __slots__ = ["on_failure_action", "defaults",
+                 "decorator_name", "args", "kwargs",
+                 "scope", "core_element", "core_element_configured"]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None

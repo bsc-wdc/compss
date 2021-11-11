@@ -77,6 +77,9 @@ class Decaf(object):
     __call__ methods, useful on mpi task creation.
     """
 
+    __slots__ = ["decorator_name", "args", "kwargs", "scope",
+                 "core_element", "core_element_configured"]
+
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator

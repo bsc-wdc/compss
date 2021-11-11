@@ -56,7 +56,8 @@ class Implement(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    # __slots__ = ["first_register"]
+    __slots__ = ["first_register", "decorator_name", "args", "kwargs",
+                 "scope", "core_element", "core_element_configured"]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None

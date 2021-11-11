@@ -101,6 +101,9 @@ class _Param(object):
     """
     Private class which hides the parameter key to be used.
     """
+
+    __slots__ = ["key"]
+
     def __init__(self, key):
         # type: (str) -> None
         self.key = key

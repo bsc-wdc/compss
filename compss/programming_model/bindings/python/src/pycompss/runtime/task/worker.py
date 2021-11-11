@@ -80,7 +80,10 @@ class TaskWorker(object):
     Process the task decorator and prepare call the user function.
     """
 
-    # __slots__ = ["cache_ids", "cache_queue", "cached_references", "cache_profiler"]  # noqa: E501
+    __slots__ = ["user_function", "decorator_arguments", "param_args",
+                 "param_varargs", "on_failure", "defaults",
+                 "cache_ids", "cache_queue", "cached_references",
+                 "cache_profiler"]
 
     def __init__(self,
                  decorator_arguments,  # type: typing.Dict[str, typing.Any]

@@ -45,10 +45,10 @@ class ObjectTracker(object):
     to keep track of the objects within the python binding.
     """
 
-    # __slots__ = ["file_names", "pending_to_synchronize",
-    #              "written_objects", "current_id", "runtime_id",
-    #              "obj_id_to_obj", "address_to_obj_id",
-    #              "reporting", "reporting_info", "initial_time"]
+    __slots__ = ["file_names", "pending_to_synchronize",
+                 "written_objects", "current_id", "runtime_id",
+                 "obj_id_to_obj", "address_to_obj_id",
+                 "reporting", "reporting_info", "initial_time"]
 
     def __init__(self):
         # type: () -> None

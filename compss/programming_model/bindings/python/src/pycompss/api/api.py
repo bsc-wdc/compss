@@ -363,6 +363,8 @@ class TaskGroup(object):
         ...
     """
 
+    __slots__ = ["group_name", "implicit_barrier"]
+
     def __init__(self, group_name, implicit_barrier=True):
         # type: (str, bool) -> None
         """ Define a new group of tasks.

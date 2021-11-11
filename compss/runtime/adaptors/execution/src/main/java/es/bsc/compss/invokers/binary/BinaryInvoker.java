@@ -44,6 +44,7 @@ public class BinaryInvoker extends Invoker {
     private final String binary;
     private final boolean failByEV;
 
+    private BinaryDefinition binDef;
     private BinaryRunner br;
 
 
@@ -62,16 +63,15 @@ public class BinaryInvoker extends Invoker {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
-        BinaryDefinition binaryImpl = null;
         try {
-            binaryImpl = (BinaryDefinition) invocation.getMethodImplementation().getDefinition();
+            this.binDef = (BinaryDefinition) invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
 
-        this.binary = binaryImpl.getBinary();
-        this.failByEV = binaryImpl.isFailByEV();
+        this.binary = this.binDef.getBinary();
+        this.failByEV = this.binDef.isFailByEV();
 
         // Internal binary runner
         this.br = null;
@@ -130,17 +130,15 @@ public class BinaryInvoker extends Invoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-            this.invocation.getTarget(), streamValues, pythonInterpreter);
+        String[] appParams = BinaryRunner.buildAppParams(this.invocation.getParams(), this.invocation.getTarget(),
+            streamValues, this.binDef.getParams(), pythonInterpreter);
 
         // Prepare command
         String[] cmd = null;
         // Prepare a simple binary command
-        cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
+        cmd = new String[NUM_BASE_BINARY_ARGS + appParams.length];
         cmd[0] = this.binary;
-        for (int i = 0; i < binaryParams.size(); ++i) {
-            cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);
-        }
+        System.arraycopy(appParams, 0, cmd, 1, appParams.length);
 
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = this.context.getThreadOutStream();

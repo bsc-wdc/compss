@@ -40,6 +40,7 @@ if __debug__:
 MANDATORY_ARGUMENTS = {'binary'}
 SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
+                       'params',
                        'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'workingDir',
                         'engine',
@@ -173,6 +174,7 @@ class Binary(PyCOMPSsDecorator):
 
             impl_args = [_binary,  # internal_binary
                          _working_dir,  # working_dir
+                         self.kwargs['params'], # params string
                          _fail_by_ev]  # fail_by_ev
 
             if CORE_ELEMENT_KEY in kwargs:

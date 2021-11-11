@@ -33,12 +33,13 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 7;
+    public static final int NUM_PARAMS = 8;
     public static final String SIGNATURE = "mpi.MPI";
 
     private static final String ERROR_MPI_BINARY = "ERROR: Empty binary annotation for MPI method";
 
     private String binary;
+    private String params;
 
 
     /**
@@ -56,13 +57,14 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
      * @param mpiRunner Path to the MPI command.
      * @param ppn Process per node.
      * @param scaleByCU Scale by computing units property.
+     * @param params params string to be appended to the end of the command.
      * @param failByEV Flag to enable failure with EV.
      */
     public MPIDefinition(String binary, String workingDir, String mpiRunner, int ppn, String mpiFlags,
-        boolean scaleByCU, boolean failByEV) {
+        boolean scaleByCU, String params, boolean failByEV) {
         super(workingDir, mpiRunner, ppn, mpiFlags, scaleByCU, failByEV);
         this.binary = binary;
-
+        this.params = params;
     }
 
     /**
@@ -78,7 +80,8 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.ppn = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]));
         this.mpiFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
         this.scaleByCU = Boolean.parseBoolean(implTypeArgs[offset + 5]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 6]);
+        this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 7]);
         checkArguments();
     }
 
@@ -90,6 +93,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         lArgs.add(Integer.toString(this.ppn));
         lArgs.add(this.mpiFlags);
         lArgs.add(Boolean.toString(scaleByCU));
+        lArgs.add(this.params);
         lArgs.add(Boolean.toString(failByEV));
     }
 
@@ -100,6 +104,10 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
      */
     public String getBinary() {
         return this.binary;
+    }
+
+    public String getParams() {
+        return this.params;
     }
 
     @Override
@@ -114,7 +122,8 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         sb.append(", MPI_PPN=").append(this.ppn);
         sb.append(", MPI_FLAGS=").append(this.mpiFlags);
         sb.append(", BINARY=").append(this.binary);
-        sb.append("]");
+        sb.append(", PARAMS=").append(this.params);
+        sb.append(" ]");
 
         return sb.toString();
     }
@@ -132,6 +141,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
+        this.params = (String) in.readObject();
         this.failByEV = in.readBoolean();
     }
 
@@ -143,6 +153,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);
+        out.writeObject(this.params);
         out.writeBoolean(this.failByEV);
     }
 
@@ -156,6 +167,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         sb.append("\t MPI flags: ").append(mpiFlags).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
+        sb.append("\t Params String: ").append(this.params).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         return sb.toString();
     }

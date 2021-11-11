@@ -48,6 +48,7 @@ SUPPORTED_ARGUMENTS = {'binary',
                        'flags',
                        'processes_per_node',
                        'scale_by_cu',
+                       'params',
                        'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'computing_nodes',
                         'computingNodes',
@@ -311,6 +312,7 @@ class MPI(PyCOMPSsDecorator):
                      ppn,
                      flags,
                      scale_by_cu_str,
+                     self.kwargs['params'],
                      self.kwargs['fail_by_exit_value']]
 
         if impl_type == "PYTHON_MPI":

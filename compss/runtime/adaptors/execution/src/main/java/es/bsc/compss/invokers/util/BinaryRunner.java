@@ -69,6 +69,9 @@ public class BinaryRunner {
     private static final int PB_KILL_SIGNAL =
         Integer.valueOf(System.getProperty(COMPSsConstants.WORKER_BINARY_KILL_SIGNAL, DEFAULT_PB_KILL_SIGNAL));
 
+    private static final String APP_PARAMETER_OPEN_TOKEN = "\\{\\{";
+    private static final String APP_PARAMETER_CLOSE_TOKEN = "}}";
+
     private Process process;
 
 
@@ -104,8 +107,40 @@ public class BinaryRunner {
         return binaryParams;
     }
 
-    // PRIVATE STATIC METHODS
+    /**
+     * Replaces parameters names with their values and return as a String.
+     *
+     * @param parameters Binary parameters
+     * @param target Binary target parameter
+     * @param streamValues Binary stream values
+     * @param params parameters that should invoke
+     * @param pythonInterpreter Currently loaded python interpreter.
+     * @return formatted string where param names are replaces with the values.
+     */
+    public static String[] buildAppParams(List<? extends InvocationParam> parameters, InvocationParam target,
+        StdIOStream streamValues, String params, String pythonInterpreter) throws InvokeExecutionException {
 
+        String paramsString = params;
+        for (InvocationParam param : parameters) {
+            ArrayList<String> tmp = processParam(param, streamValues, pythonInterpreter);
+            if (paramsString != null && !paramsString.isEmpty() && !paramsString.equals("[unassigned]")) {
+                String value = String.join(" ", tmp);
+                String replacement = APP_PARAMETER_OPEN_TOKEN + param.getName() + APP_PARAMETER_CLOSE_TOKEN;
+                paramsString = paramsString.replaceAll(replacement, value);
+            }
+        }
+        if (target != null) {
+            ArrayList<String> tmp = processParam(target, streamValues, pythonInterpreter);
+            if (paramsString != null && !paramsString.isEmpty() && !paramsString.equals("[unassigned]")) {
+                String value = String.join(" ", tmp);
+                String replacement = APP_PARAMETER_OPEN_TOKEN + target.getName() + APP_PARAMETER_CLOSE_TOKEN;
+                paramsString = paramsString.replaceAll(replacement, value);
+            }
+        }
+        return paramsString == null ? new String[0] : paramsString.split(" ");
+    }
+
+    // PRIVATE STATIC METHODS
     private static ArrayList<String> processParam(InvocationParam param, StdIOStream streamValues,
         String pythonInterpreter) throws InvokeExecutionException {
 
@@ -121,6 +156,7 @@ public class BinaryRunner {
                 streamValues.setStdErr((String) param.getValue());
                 break;
             case UNSPECIFIED:
+                // keep these guys?
                 if (!param.getPrefix().equals(Constants.PREFIX_SKIP)) {
                     if (param.getValue() != null && param.getValue().getClass().isArray()) {
                         addArrayParam(param, binaryParamFields);
@@ -551,7 +587,7 @@ public class BinaryRunner {
 
     /**
      * Closes any stream parameter of the task.
-     * 
+     *
      * @param parameters Task parameters.
      * @param pythonInterpreter Currently loaded Python interpreter.
      * @throws StreamCloseException When an internal error occurs when closing the stream.

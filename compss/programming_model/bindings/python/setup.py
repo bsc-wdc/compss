@@ -102,7 +102,7 @@ else :
 setup(
     # Metadata
     name='pycompss',
-    version='2.9.rc2111',
+    version='2.10',
     description='Python Binding for COMP Superscalar Runtime',
     long_description=open('README.txt').read(),
     author='Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)',

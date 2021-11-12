@@ -431,6 +431,111 @@ echo "All Agents were properly shuts down using the flags --stop and --forward_t
 
 # Copy LOG files
 cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+
+
+# STARTING AGENT WITH --stop TO STOP IT WITH A FAILURE IN THE EXECUTION
+
+agent6_log_dir="${log_dir}/agent6/"
+agent6_output_log="${log_dir}/agent6.outputlog"
+agent6_error_log="${log_dir}/agent6.errorlog"
+
+compss_agent_start \
+  --hostname="COMPSsWorker06" \
+  --classpath="${base_app_dir}/${jar_name}" \
+  --log_dir=${agent6_log_dir} \
+  --rest_port="46601" \
+  --comm_port="46602" \
+  -d \
+  ${runcompss_opts} \
+  --project="${base_app_dir}/project.xml" \
+  --resources="${base_app_dir}/resources.xml" 1>"${agent6_output_log}" 2>"${agent6_error_log}" &
+
+agent_pid="$!"
+AGENT_PIDS="${agent_pid}"
+
+#CHECK WHETHER THE AGENTS ARE DEPLOYED
+retries="${NUM_RETRIES}"
+curl -XGET http://127.0.0.1:46601/COMPSs/test 1>/dev/null 2>/dev/null
+while [ ! "$?" == "0" ] && [ "${retries}" -gt "0" ]; do
+  sleep 1
+  retries=$((retries - 1 ))
+  curl -XGET http://127.0.0.1:46601/COMPSs/test 1>/dev/null 2>/dev/null
+done
+
+sleep 1
+
+RESULT=$(grep "test invoked" "${agent6_output_log}")
+if [ -z "${RESULT}" ]; then  
+  echo "Agent failed to start" > >(tee -a "${error_log}")
+  exit 1
+fi
+echo "Agent started" > >(tee -a "${output_log}")
+
+# CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ
+RESOURCES=$(curl -XGET http://127.0.0.1:46601/COMPSs/resources 2>/dev/null)
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+if [ ! "${num_RESOURCES}" == "1" ]; then
+  echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+  exit 1
+fi
+RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker06")')
+if [ -z "${RESOURCE}" ]; then
+  echo "Wrong Resource on Agent; COMPSsWorker06 expected." > >(tee -a "${error_log}")
+  exit 1
+fi
+DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+  echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+  exit 1
+fi
+CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+if [ ! "${CPU_COUNT}" == "1" ]; then
+  echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+  exit 1
+fi
+
+
+# INVOKING MAIN METHOD AND ENDING THE AGENT AFTERWARDS
+"${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+  --master_node="127.0.0.1" \
+  --master_port="46601" \
+  --stop \
+  es.bsc.compss.test.DemoClassError 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+
+if [ ! "$?" == "0" ]; then
+  echo "Could not invoke main method." > >(tee -a "${error_log}")
+  exit 1
+fi
+echo "Main function invoked" > >(tee -a "${output_log}")
+
+retries="${NUM_RETRIES}"
+while [ ! -f "${agent6_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+  sleep 1
+  retries=$((retries - 1 ))
+done
+if [ ! -f "${agent6_log_dir}/jobs/job1_NEW.out" ]; then
+  echo "Could not invoke main method." > >(tee -a "${error_log}")
+  exit 1
+fi
+method_name=$( grep "Executing" "${agent6_log_dir}/jobs/job1_NEW.out" | awk '{print $2}')
+if [ ! "${method_name}" == "main" ]; then
+  echo "Could not invoke main method." > >(tee -a "${error_log}")
+  exit 1
+fi
+echo  "main method properly executed" > >(tee -a "${output_log}")
+
+sleep 1
+pid_info=""
+CONFIRMATION=""
+while [ -n "${pid_info}" ] || [ -z "${CONFIRMATION}" ]; do
+  sleep 1
+  pid_info=$(ps -ef | grep "${AGENT_PIDS}" | grep -v PID | grep -v grep)
+  CONFIRMATION=$(grep "Agent was shutdown" "${agent6_log_dir}/agent.log")
+done
+echo  "The agent properly shuts when an error occurs on the execution" > >(tee -a "${output_log}")
+AGENT_PIDS=""
+
 exit_value=0
 
 #----------------------------------------------------------------------------------

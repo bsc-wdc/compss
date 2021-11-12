@@ -93,7 +93,7 @@ public class RAccessId extends DataAccessId {
      * @return {@code true} if the source data must be preserved, {@code false} otherwise.
      */
     public boolean isPreserveSourceData() {
-        return this.readDataVersion.hasMoreReaders();
+        return this.readDataVersion.hasMoreReaders() || this.readDataVersion.getDataInstanceId().getVersionId() == 1;
     }
 
     @Override

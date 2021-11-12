@@ -6,37 +6,32 @@ COMP Superscalar (COMPSs) is a programming model that aims to ease the developme
 such as Clusters, Grids and Clouds. COMP Superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number: 2.9 (Jasmine) 
-Release date: June-2021
+Release number: 2.10 (Kumquat) 
+Release date: November-2021
 -------------------------------
 New features
          * Runtime:
-		- Support for nested tasks in agents deployment 
-		- New application time out functionality to enable a controlled finalization of applications before the wall_clock_limit 
-		- New flags to simplify application debugging (--keep_workingdir, --gen_coredump)
-		- Support for loading the application environment from scripts
-		- Support for tracing in agents environment.
-		- Partial support for OSX systems. 
+		- Support for http requests (@http decorator). 
+		- Support for Java versions higher than 8.
+		- Enable grouping processes in MPI tasks with the processes_per_node flag. 
+		- Partial support for OSX systems 
 
          * Python:
-		- Support for Optional parameters and default values.
-		- Support for monitoring task status from Jupyter notebooks.
-		- Memory profile enabled
-		- Support for Python workers cache.
-		- Support for dynamic number of returns override at task invocation.
+		- PyArrow object serialization support
+		- Cache profiling enabled
 
-	* DDS:
-		- New methods and optimizations in DDS class.
 Improvements:
-        - Enabling the pass of extra flags for the queue system flags from enqueue_compss.
-        - Support for multiple data layout in MPI tasks
-	- Improvements in tracing system. More events and cfg
-	- Enabling a flag to change extrae configuration file for python processes.
-	- Configuration files for Barbora system.
+	- Fixes in managing directory parameters.
+        - Improvements in asynchronous file system operations.
+	- Improvements visualizing collections in task dependency graphs. 
+        - Improvements and fixes in the support for different MPI versions (COMPSS_MPIRUN_TYPE)
+	- Improvements in tracing system. Fixes in events and cfgs
+	- Configuration files for Karolina, Mahti and CTE-AMD system.
 	- Several Bug fixes.
 
 Known Limitations:
-	- OSX support is limited to Java and Python2 without CPU affinity (require to execute with --cpu_affinity=disable)
+	- Collections are not supported in http tasks
+	- OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
         - Reduce operations can consume more disk space than the manually programmed n-ary reduction
 	- Objects used as task parameters must be serializable.
         - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP.

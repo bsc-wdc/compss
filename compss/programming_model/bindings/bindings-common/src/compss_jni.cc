@@ -174,7 +174,7 @@ void access_revoke(ThreadStatus* status) {
 void check_exception(ThreadStatus* status, const char* message) {
     if (status->localJniEnv->ExceptionOccurred()) {
         // Log provided exception message
-        printf("\n[BINDING-COMMONS] ERROR: %s. \n", message);
+        print_error("\n[BINDING-COMMONS] ERROR: %s. \n", message);
 
         // Log exception
         status->localJniEnv->ExceptionDescribe();
@@ -848,7 +848,7 @@ void JNI_On() {
     debug_printf ("[BINDING-COMMONS] - @JNI_On - Creating the JVM\n");
     globalJniEnv = create_vm(&globalJvm);
     if (globalJniEnv == NULL) {
-        printf ("[BINDING-COMMONS] - @JNI_On - Error creating the JVM\n");
+        print_error ("[BINDING-COMMONS] - @JNI_On - Error creating the JVM\n");
         exit(1);
     }
 
@@ -876,7 +876,7 @@ void JNI_On() {
         midStartIT = status->localJniEnv->GetMethodID(clsITimpl, "startIT", "()V");
         check_exception(status, "Cannot find the startIT method");
     } else {
-        printf("[BINDING-COMMONS] - @JNI_On - Unable to find the runtime class\n");
+        print_error("[BINDING-COMMONS] - @JNI_On - Unable to find the runtime class\n");
         exit(1);
     }
 
@@ -888,7 +888,7 @@ void JNI_On() {
         globalRuntime = (jobject) status->localJniEnv->NewGlobalRef(objLocal);
         check_exception(status, "Cannot create global COMPSsRuntimeImpl object");
     } else {
-        printf("[BINDING-COMMONS] - @JNI_On - Unable to find the runtime constructor\n");
+        print_error("[BINDING-COMMONS] - @JNI_On - Unable to find the runtime constructor\n");
         exit(1);
     }
 
@@ -897,7 +897,7 @@ void JNI_On() {
         status->localJniEnv->CallVoidMethod(globalRuntime, midStartIT); //Calling the method and passing IT Object as parameter
         check_exception(status, "Exception calling start runtime");
     } else {
-        printf("[BINDING-COMMONS] - @JNI_On - Unable to find the start method\n");
+        print_error("[BINDING-COMMONS] - @JNI_On - Unable to find the start method\n");
         exit(1);
     }
 

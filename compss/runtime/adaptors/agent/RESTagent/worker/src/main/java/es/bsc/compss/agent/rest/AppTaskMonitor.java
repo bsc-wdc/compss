@@ -24,6 +24,7 @@ import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.util.ErrorManager;
 
@@ -106,8 +107,8 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void valueGenerated(int paramId, Object[] param) {
-        super.valueGenerated(paramId, param);
+    public void valueGenerated(int paramId, TaskResult result) {
+        super.valueGenerated(paramId, result);
         /*
          * this.paramTypes[paramId] = paramType; if (paramType == DataType.OBJECT_T) { LogicalData ld =
          * Comm.getData(dataId); StubItf psco = (StubItf) ld.getValue(); psco.makePersistent(ld.getName());
@@ -185,9 +186,19 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     public void notifyOrchestrator(String host, OrchestratorNotification.HttpMethod method, String operation) {
         WebTarget target = CLIENT.target(host);
         WebTarget wt = target.path(operation);
+
+        TaskResult[] results = this.getResults();
+        DataType[] paramTypes = new DataType[results.length];
+        String[] paramLocations = new String[results.length];
+        int i = 0;
+        for (TaskResult result : results) {
+            paramTypes[i] = result.getType();
+            paramLocations[i] = result.getDataLocation();
+            i++;
+        }
+
         EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
-            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.getParamTypes(),
-            this.getParamLocations());
+            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, paramTypes, paramLocations);
         Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
         if (response.getStatusInfo().getStatusCode() != 200) {
             ErrorManager.warn("AGENT Could not notify Application " + getAppId() + " end to " + wt);

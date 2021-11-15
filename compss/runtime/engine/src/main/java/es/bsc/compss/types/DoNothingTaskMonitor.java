@@ -42,7 +42,7 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, Object[] param) {
+    public void valueGenerated(int paramId, TaskResult param) {
     }
 
     @Override

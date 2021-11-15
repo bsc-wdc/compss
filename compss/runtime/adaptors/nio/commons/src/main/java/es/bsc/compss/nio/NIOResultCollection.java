@@ -17,6 +17,8 @@
 package es.bsc.compss.nio;
 
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.api.TaskMonitor.CollectionTaskResult;
+import es.bsc.compss.api.TaskMonitor.TaskResult;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 import java.io.Externalizable;
@@ -49,15 +51,14 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
     /**
      * Create a new NIOResultCollection instance from a object array following TaskMonitor indexes.
      */
-    public NIOResultCollection(Object... param) {
-        super((DataType) param[TaskMonitor.TYPE_POS], param[TaskMonitor.LOCATION_POS].toString());
-        this.elements = new ArrayList<NIOResult>();
-        for (Object[] subParam : (Object[][]) param[TaskMonitor.SUBPARAM_POS]) {
-            if ((DataType) subParam[TaskMonitor.TYPE_POS] == DataType.COLLECTION_T) {
-                this.elements.add(new NIOResultCollection(subParam));
+    public NIOResultCollection(CollectionTaskResult param) {
+        super(param.getType(), param.getDataLocation());
+        this.elements = new ArrayList<>();
+        for (TaskResult subParam : param.getSubelements()) {
+            if (subParam.getType() == DataType.COLLECTION_T) {
+                this.elements.add(new NIOResultCollection((CollectionTaskResult) subParam));
             } else {
-                this.elements.add(new NIOResult((DataType) subParam[TaskMonitor.TYPE_POS],
-                    subParam[TaskMonitor.LOCATION_POS].toString()));
+                this.elements.add(new NIOResult(subParam.getType(), subParam.getDataLocation()));
             }
         }
     }

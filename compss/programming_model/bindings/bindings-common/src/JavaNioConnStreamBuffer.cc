@@ -52,14 +52,14 @@ std::streambuf::int_type JavaNioConnStreamBuffer::overflow(std::streambuf::int_t
         if (o !=NULL && id!=NULL) {
             jni_env->CallVoidMethod(handle,id,o);
             if (jni_env->ExceptionOccurred()) {
-                printf(" [JSB-OF] Exception calling push method \n");
+                print_error(" [JSB-OF] Exception calling push method \n");
                 jni_env->ExceptionDescribe();
                 exit(0);
             }
             buff[0]=in;
             next_w_element=0;
         } else {
-            printf("[JSB-OF] Error: PUSH Method ID is null");
+            print_error("[JSB-OF] Error: PUSH Method ID is null");
             exit(0);
         }
 
@@ -86,15 +86,14 @@ std::streambuf::int_type JavaNioConnStreamBuffer::underflow() {
     if (id != NULL) {
         j_value = (jbyteArray)jni_env->CallObjectMethod(handle,id);
         if (jni_env->ExceptionOccurred()) {
-            printf(" [JSB-UF] Exception calling method \n");
+            print_error(" [JSB-UF] Exception calling method \n");
             jni_env->ExceptionDescribe();
             exit(0);
         }
         if(j_value != NULL) {
             size = jni_env->GetArrayLength(j_value);
             if (size == 0) {
-                printf(" [JSB-UF] Underflow returning EOF \n");
-                fflush(NULL);
+            	debug_printf(" [JSB-UF] Underflow returning EOF \n");
                 return traits_type::eof();
             }
             buff = (char*) jni_env->GetByteArrayElements(j_value, NULL);
@@ -109,14 +108,12 @@ std::streambuf::int_type JavaNioConnStreamBuffer::underflow() {
             fflush(NULL);*/
             return out;
         } else {
-            printf(" [JSB-UF] Underflow returning null, sending EOF \n");
-            fflush(NULL);
+            debug_printf(" [JSB-UF] Underflow returning null, sending EOF \n");
             return traits_type::eof();
         }
 
     } else {
-        printf("Error: PULL Method ID is null");
-        fflush(NULL);
+        print_error("Error: PULL Method ID is null");
         exit(0);
     }
 }

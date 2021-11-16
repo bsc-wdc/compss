@@ -516,8 +516,8 @@ public class FileOpsManager {
             Tracer.emitEvent(TraceEvent.LOCAL_DELETE.getId(), TraceEvent.LOCAL_DELETE.getType());
         }
         try {
-            if (!Files.deleteIfExists(f.toPath())) {
-                LOGGER.warn("File " + f.getAbsolutePath() + " not deleted.");
+            if (!Files.deleteIfExists(f.toPath()) && DEBUG) {
+                LOGGER.debug("File " + f.getAbsolutePath() + " not deleted.");
             }
         } catch (DirectoryNotEmptyException dne) {
             // directories must be removed recursively

@@ -34,6 +34,8 @@ public class StreamGobbler extends Thread {
     private final PrintStream out;
     private final Logger logger;
 
+    private boolean errorStream;
+
 
     /**
      * Creates a new StreamGobbler for is {@code in} and prints information to os {@code out}.
@@ -42,12 +44,13 @@ public class StreamGobbler extends Thread {
      * @param out Output stream.
      * @param logger Logger.
      */
-    public StreamGobbler(InputStream in, PrintStream out, Logger logger) {
+    public StreamGobbler(InputStream in, PrintStream out, Logger logger, boolean errorStream) {
         this.setName("Stream Gobbler");
 
         this.in = in;
         this.out = out;
         this.logger = logger;
+        this.errorStream = errorStream;
     }
 
     @Override
@@ -63,6 +66,8 @@ public class StreamGobbler extends Thread {
                 if (out != null) {
                     out.print(data);
                     out.flush();
+                } else if (errorStream) {
+                    logger.error(data);
                 } else {
                     logger.info(data);
                 }

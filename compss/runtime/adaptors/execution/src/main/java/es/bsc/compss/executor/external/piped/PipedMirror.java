@@ -173,8 +173,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             }
 
             // Enable pipes, monitor and commands
-            this.pipeBuildeOutGobbler = new StreamGobbler(this.pipeBuilderProcess.getInputStream(), null, LOGGER);
-            this.pipeBuildeErrGobbler = new StreamGobbler(this.pipeBuilderProcess.getErrorStream(), null, LOGGER);
+            this.pipeBuildeOutGobbler =
+                new StreamGobbler(this.pipeBuilderProcess.getInputStream(), null, LOGGER, false);
+            this.pipeBuildeErrGobbler = new StreamGobbler(this.pipeBuilderProcess.getErrorStream(), null, LOGGER, true);
             this.pipeBuildeOutGobbler.start();
             this.pipeBuildeErrGobbler.start();
 

@@ -16,13 +16,10 @@
  */
 package es.bsc.compss.api;
 
+import es.bsc.compss.types.annotations.parameter.DataType;
+
+
 public interface TaskMonitor {
-
-    public static final int TYPE_POS = 0;
-    public static final int LOCATION_POS = 1;
-    public static final int DATA_ID_POS = 2;
-    public static final int SUBPARAM_POS = 3;
-
 
     /**
      * Actions to be performed by monitor on task creation.
@@ -55,9 +52,9 @@ public interface TaskMonitor {
      * with name {@code paramName}.
      *
      * @param paramId Parameter id.
-     * @param param parameter
+     * @param description value description
      */
-    public void valueGenerated(int paramId, Object[] param);
+    public void valueGenerated(int paramId, TaskResult description);
 
     /**
      * Actions to be performed by monitor on task execution abortion.
@@ -98,4 +95,80 @@ public interface TaskMonitor {
      * Actions to be performed by monitor on task failure.
      */
     public void onFailure();
+
+
+    /**
+     * Class representing a result of a task execution.
+     */
+    public static class TaskResult {
+
+        private DataType type;
+        private String dataName;
+        private String dataLocation;
+
+
+        public TaskResult() {
+        }
+
+        /**
+         * Constructs an object describing a result from a task execution.
+         * 
+         * @param type type of the data produced
+         * @param dataName name of the data produced
+         * @param dataLocation location where the value has been stored
+         */
+        public TaskResult(DataType type, String dataName, String dataLocation) {
+            this.type = type;
+            this.dataName = dataName;
+            this.dataLocation = dataLocation;
+        }
+
+        public DataType getType() {
+            return type;
+        }
+
+        public void setType(DataType type) {
+            this.type = type;
+        }
+
+        public String getDataName() {
+            return dataName;
+        }
+
+        public void setDataName(String dataName) {
+            this.dataName = dataName;
+        }
+
+        public String getDataLocation() {
+            return dataLocation;
+        }
+
+        public void setDataLocation(String dataLocation) {
+            this.dataLocation = dataLocation;
+        }
+
+    }
+
+    public static class CollectionTaskResult extends TaskResult {
+
+        private TaskResult[] subelements;
+
+
+        public CollectionTaskResult() {
+        }
+
+        public CollectionTaskResult(DataType type, String dataName, String dataLocation, TaskResult[] subelements) {
+            super(type, dataName, dataLocation);
+            this.subelements = subelements;
+        }
+
+        public TaskResult[] getSubelements() {
+            return subelements;
+        }
+
+        public void setSubelements(TaskResult[] subelements) {
+            this.subelements = subelements;
+        }
+
+    }
 }

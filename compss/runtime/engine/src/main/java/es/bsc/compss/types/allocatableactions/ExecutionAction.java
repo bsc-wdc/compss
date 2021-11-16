@@ -21,6 +21,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.api.TaskMonitor.CollectionTaskResult;
+import es.bsc.compss.api.TaskMonitor.TaskResult;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
@@ -658,7 +660,7 @@ public class ExecutionAction extends AllocatableAction {
         }
     }
 
-    private final void doMethodOutputTransfers(Job<?> job) {
+    private void doMethodOutputTransfers(Job<?> job) {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         TaskMonitor monitor = this.task.getTaskMonitor();
         List<Parameter> params = job.getTaskParams().getParameters();
@@ -668,29 +670,25 @@ public class ExecutionAction extends AllocatableAction {
             if (dataName != null) {
                 DependencyParameter dp = (DependencyParameter) p;
                 storeOutputParameter(job, w, dataName, dp);
-                Object[] mp = buildMonitorParameter(p, dataName);
+                TaskResult mp = buildMonitorParameter(p, dataName);
                 monitor.valueGenerated(i, mp);
             }
         }
     }
 
-    Object[] buildMonitorParameter(Parameter p, String dataName) {
-        final int fieldsPerParameter = 3;
-        Object[] result;
+    private TaskResult buildMonitorParameter(Parameter p, String dataName) {
+        TaskResult result;
+        String dataLocation = ((DependencyParameter) p).getDataTarget();
         if (p.getType() == DataType.COLLECTION_T) {
-            result = new Object[fieldsPerParameter + 1];
             List<Parameter> subParams = ((CollectionParameter) p).getParameters();
-            Object[][] subResults = new Object[subParams.size()][];
+            TaskResult[] subResults = new TaskResult[subParams.size()];
             for (int i = 0; i < subParams.size(); i++) {
                 subResults[i] = buildMonitorParameter(subParams.get(i), getOuputRename(subParams.get(i)));
             }
-            result[TaskMonitor.SUBPARAM_POS] = subResults;
+            result = new CollectionTaskResult(p.getType(), dataName, dataLocation, subResults);
         } else {
-            result = new Object[fieldsPerParameter];
+            result = new TaskResult(p.getType(), dataName, dataLocation);
         }
-        result[TaskMonitor.TYPE_POS] = p.getType();
-        result[TaskMonitor.LOCATION_POS] = ((DependencyParameter) p).getDataTarget();
-        result[TaskMonitor.DATA_ID_POS] = dataName;
 
         return result;
     }
@@ -833,7 +831,7 @@ public class ExecutionAction extends AllocatableAction {
                 // Monitor one of its locations
                 Set<DataLocation> locations = ld.getLocations();
                 if (!locations.isEmpty()) {
-                    Object[] mp = buildMonitorParameter(p, getOuputRename(p));
+                    TaskResult mp = buildMonitorParameter(p, getOuputRename(p));
                     for (DataLocation loc : ld.getLocations()) {
                         if (loc != null) {
                             monitor.valueGenerated(i, mp);
@@ -889,7 +887,7 @@ public class ExecutionAction extends AllocatableAction {
                     e.printStackTrace();
                 }
                 ld = Comm.registerLocation(name, dl);
-                Object[] mp = buildMonitorParameter(p, dataName);
+                TaskResult mp = buildMonitorParameter(p, dataName);
                 monitor.valueGenerated(i, mp);
             } else {
                 // it's a Java HTTP task, can have only single value of a primitive type
@@ -927,7 +925,7 @@ public class ExecutionAction extends AllocatableAction {
             // Monitor one of its locations
             Set<DataLocation> locations = ld.getLocations();
             if (!locations.isEmpty()) {
-                Object[] mp = buildMonitorParameter(p, getOuputRename(p));
+                TaskResult mp = buildMonitorParameter(p, getOuputRename(p));
                 for (DataLocation loc : ld.getLocations()) {
                     if (loc != null) {
                         monitor.valueGenerated(i, mp);

@@ -74,7 +74,7 @@ class TaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, Object[] param) {
+    public void valueGenerated(int paramId, TaskResult param) {
         super.valueGenerated(paramId, param);
     }
 
@@ -104,7 +104,7 @@ class TaskMonitor extends AppMonitor {
         NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
 
         int jobId = task.getJobId();
-        NIOTaskResult tr = new NIOTaskResult(jobId, super.getParams());
+        NIOTaskResult tr = new NIOTaskResult(jobId, super.getResults());
         Connection c = TM.startConnection(n);
         CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), null);
         c.sendCommand(cmd);

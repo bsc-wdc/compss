@@ -33,12 +33,13 @@ using namespace std;
 
 char* command_pipe = NULL;
 char* result_pipe = NULL;
+FILE* result_pipe_stream;
 
 void write_command_in_pipe(stringstream& ss){
 	    string myString = ss.str();
 	    ofstream ofs;
 	    if (command_pipe == NULL){
-	    	print_error("\n[BINDING-COMMONS] ERROR: Pipe is not set");
+	    	printf("\n[BINDING-COMMONS] ERROR: Pipe is not set");
 	    	return;
 	    }
 	    ofs.open(command_pipe,ios_base::app);
@@ -47,32 +48,37 @@ void write_command_in_pipe(stringstream& ss){
 }
 
 string read_result_from_pipe(){
-	string line = "";
-    ifstream pipe;
-    if (result_pipe == NULL){
-    	print_error("\n[BINDING-COMMONS] ERROR: pipes are not correcly set");
-    	return "ERROR";
-    }
-   	pipe.open(result_pipe, std::ifstream::in);
-   	if (pipe.fail()){
-   		print_error("\n[BINDING-COMMONS] ERROR: Opening the pipe %s", result_pipe);
-   		return "ERROR";
-   	}
-    std::getline(pipe, line);
-    if (line.length() == 0){
-    	if (pipe.fail()){
-    		print_error("\n[BINDING-COMMONS] ERROR: Reading the pipe %s", result_pipe);
-    		pipe.close();
-    		return "ERROR";
-    	}else{
-    		print_error("\n[BINDING-COMMONS] WARN: Empty value read from the pipe %s", result_pipe);
-    	}
-    }
-
-    pipe.close();
-    return line;
-
-
+	if (result_pipe_stream == NULL){
+		printf("\n[BINDING-COMMONS] ERROR: Pipe is not set");
+	    return NULL;
+	}
+    
+	char buf[BUFSIZ];
+	std::stringstream oss;
+	while (1) {
+		if( fgets (buf, BUFSIZ, result_pipe_stream) != NULL ) {
+			int buflen = strlen(buf);
+			if (buflen >0){
+				if (buf[buflen-1] == '\n'){
+                        buf[buflen-1] = '\0';
+                        oss << buf;
+				    	return oss.str();
+				} else {
+                    oss << buf;
+                    // line was truncated. Read another block to complete line.
+                }
+			}
+		} else {
+			// Necessary to avoid that fgets return NULL after closing the pipe for the first time.
+			clearerr(result_pipe_stream);
+            fclose(result_pipe_stream);
+            result_pipe_stream = fopen(result_pipe , "r");
+            if (result_pipe_stream == NULL){
+		        print_error("\n[BINDING-COMMONS] ERROR: Opening the pipe %s", result_pipe);
+                return NULL;
+	        }
+		} 
+	}   
 }
 
 
@@ -80,6 +86,7 @@ void PIPE_set_pipes(char* comPipe, char* resPipe){
 	init_env_vars();
 	command_pipe = strdup(comPipe);
 	result_pipe = strdup(resPipe);
+    result_pipe_stream = fopen(result_pipe , "r");
 }
 
 void PIPE_read_command(char** command){

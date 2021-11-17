@@ -125,7 +125,7 @@ class MPMDMPI(PyCOMPSsDecorator):
         else:
             kwargs['processes_per_node'] = 1
 
-        with keep_arguments(args, kwargs):
+        with keep_arguments(args, kwargs, prepend_strings=False):
             # Call the method
             ret = user_function(*args, **kwargs)
 
@@ -149,8 +149,8 @@ class MPMDMPI(PyCOMPSsDecorator):
             if not binary:
                 raise PyCOMPSsException("No binary file provided for MPMD MPI")
 
-            params = program.get("params", "#")
-            procs = str(program.get("processes", "#"))
+            params = program.get("params", "[unassigned]")
+            procs = str(program.get("processes", "[unassigned]"))
             programs_params.extend([binary, params, procs])
 
         return programs_params
@@ -183,8 +183,8 @@ class MPMDMPI(PyCOMPSsDecorator):
         prog_params = self._get_programs_params()
 
         impl_args = [runner,
-                     ppn,
                      self.kwargs['working_dir'],
+                     ppn,
                      self.kwargs['fail_by_exit_value']]
         impl_args.extend(prog_params)
 

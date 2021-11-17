@@ -30,22 +30,20 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.definition.MPIDefinition;
-import es.bsc.compss.types.implementations.definition.MPMDMPIDefinition;
+import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 
 
-public class MPMDMPIInvoker extends Invoker {
+public class MpmdMPIInvoker extends Invoker {
 
     private static final int NUM_BASE_MPI_ARGS = 6;
 
     private static final String ERROR_TARGET_PARAM = "ERROR: MPI Execution doesn't support target parameters";
 
-    private MPMDMPIDefinition definition;
+    private MpmdMPIDefinition definition;
 
     private BinaryRunner br;
 
@@ -59,14 +57,14 @@ public class MPMDMPIInvoker extends Invoker {
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the MPI invoker.
      */
-    public MPMDMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-                          InvocationResources assignedResources) throws JobExecutionException {
+    public MpmdMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
         try {
-            this.definition = (MPMDMPIDefinition) this.invocation.getMethodImplementation().getDefinition();
+            this.definition = (MpmdMPIDefinition) this.invocation.getMethodImplementation().getDefinition();
             this.definition.setRunnerProperties(context.getInstallDir());
         } catch (Exception e) {
             throw new JobExecutionException(
@@ -98,7 +96,7 @@ public class MPMDMPIInvoker extends Invoker {
         Object retValue;
         try {
             retValue = runInvocation();
-        } catch (InvokeExecutionException iee) {
+        } catch (InvokeExecutionException | IOException iee) {
             throw new JobExecutionException(iee);
         }
 
@@ -130,48 +128,23 @@ public class MPMDMPIInvoker extends Invoker {
         }
     }
 
-    private Object runInvocation() throws InvokeExecutionException {
-        // Command similar to
-        // {{runner} {{app_file}} {{stream_string}}
+    private Object runInvocation() throws InvokeExecutionException, IOException {
 
-        // Create hostfile
+        // Python interpreter for direct access on stream property calls
+        String pythonInterpreter = null;
+        LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+        if (lp instanceof PythonParams) {
+            PythonParams pp = (PythonParams) lp;
+            pythonInterpreter = pp.checkCoverageAndGetPythonInterpreter();
 
-        // Prepare command
-        String[] cmd = new String[NUM_BASE_MPI_ARGS];
-        int pos = 0;
-        cmd[pos++] = this.definition.getMpiRunner();
-        cmd[pos++] = this.definition.getHostsFlag();
-        try {
-            cmd[pos++] =
-                this.definition.generateHostsDefinition(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
-        } catch (IOException ioe) {
-            throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
-        }
-        cmd[pos++] = "-n";
-        cmd[pos++] = this.definition.generateNumberOfProcesses(this.numWorkers, this.computingUnits);
-
-        cmd[pos++] = this.definition.getBinary();
-
-        for (int i = 0; i < binaryParams.size(); ++i) {
-            cmd[pos++] = binaryParams.get(i);
         }
 
-        // Prepare environment
-        if (this.invocation.isDebugEnabled()) {
-            PrintStream outLog = context.getThreadOutStream();
-            outLog.println("");
-            outLog.println("[MPI INVOKER] Begin MPI call to " + this.definition.getBinary());
-            outLog.println("[MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
-            // Debug command
-            outLog.print("[MPI INVOKER] MPI CMD: ");
-            for (int i = 0; i < cmd.length; ++i) {
-                outLog.print(cmd[i] + " ");
-            }
-            outLog.println("");
-            outLog.println("[MPI INVOKER] MPI STDIN: " + streamValues.getStdIn());
-            outLog.println("[MPI INVOKER] MPI STDOUT: " + streamValues.getStdOut());
-            outLog.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());
-        }
+        // Convert binary parameters and calculate binary-streams redirection
+        StdIOStream streamValues = new StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+            this.invocation.getTarget(), streamValues, pythonInterpreter);
+
+        String[] cmd = this.definition.generateCMD(this.taskSandboxWorkingDir, this.hostnames);
 
         // Launch command
         this.br = new BinaryRunner();

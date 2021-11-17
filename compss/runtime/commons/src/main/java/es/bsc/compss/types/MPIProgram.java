@@ -29,6 +29,7 @@ public class MPIProgram implements Externalizable {
     private String params;
     private int processes;
 
+
     /**
      * Default Constructor.
      */
@@ -38,6 +39,13 @@ public class MPIProgram implements Externalizable {
         this.processes = -1;
     }
 
+    /**
+     * MPI Program constructor. It represents a single program from MPMD MPI programs.
+     *
+     * @param binary program's binary.
+     * @param params program params to be added after the binary.
+     * @param processes number of processes.
+     */
     public MPIProgram(String binary, String params, int processes) {
         this.binary = binary;
         this.params = params;
@@ -77,15 +85,12 @@ public class MPIProgram implements Externalizable {
      * @return True only if binary is not provided
      */
     public boolean isEmpty() {
-        return this.binary==null || this.binary.isEmpty();
+        return this.binary == null || this.binary.isEmpty();
     }
 
     @Override
     public String toString() {
-        return "MPIProgram{" +
-                "binary='" + binary + '\'' +
-                ", params='" + params + '\'' +
-                ", processes=" + processes +
-                '}';
+        return "MPIProgram{" + "binary='" + binary + '\'' + ", params='" + params + '\'' + ", processes=" + processes
+            + '}';
     }
 }

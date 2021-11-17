@@ -106,6 +106,17 @@ def parse_file(expected_events_file):
     return families, event_definitions
 
 
+def __pairwise__(iterable):
+    """ Converts a list of elements in a list of pairs like:
+    list -> (list[0], list[1]), (list[2], list[3]), (list[4], list[5]), ...
+
+    :param iterable: Input list.
+    :return: List of pairs of the given list elements.
+    """
+    a = iter(iterable)
+    return zip(a, a)
+
+
 def parse_trace(trace_file, families):
     """
     Reads the given trace_file and filters the event types by family.
@@ -123,7 +134,10 @@ def parse_trace(trace_file, families):
     for line in trace:
         if not line.startswith(COMMENT_LABEL) and not line.startswith("1:"):
             elements = line.split(":")
-            parsed_trace.append((int(elements[6].strip()), int(elements[7].strip())))
+            event_elements = elements[6:]  # remove the headers
+            # Parse the rest by pairs
+            for event_type, event_number in __pairwise__(event_elements):
+                parsed_trace.append((int(event_type.strip()), int(event_number.strip())))
     print("\t- Filtering families... %s" % str(families))
     filtered_trace = []
     for line in parsed_trace:

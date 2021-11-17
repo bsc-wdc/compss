@@ -30,6 +30,8 @@ import re
 
 from pycompss.util.exceptions import PyCOMPSsException
 
+UNASSIGNED = "[unassigned]"
+
 
 def check_arguments(mandatory_arguments, deprecated_arguments,
                     supported_arguments, argument_names, decorator):

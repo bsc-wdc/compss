@@ -27,6 +27,7 @@ from functools import wraps
 from pycompss.api import binary, mpi
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.util.arguments import check_arguments
+from pycompss.util.arguments import UNASSIGNED
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -53,7 +54,7 @@ class Software(PyCOMPSsDecorator):
     should be defined in the config file which is in JSON format.
     """
 
-    __slots__ = ['task_type', 'config_args', 'decor', 'constraints']
+    __slots__ = ['task_type', 'config_args', 'decor', 'constraints', 'container']
 
     def __init__(self, *args, **kwargs):
         """ Parse the config file and store the arguments that will be used
@@ -72,6 +73,7 @@ class Software(PyCOMPSsDecorator):
         self.config_args = None
         self.decor = None
         self.constraints = None
+        self.container = None
 
         if self.scope:
             if __debug__:
@@ -101,6 +103,24 @@ class Software(PyCOMPSsDecorator):
                 core_element = CE()
                 core_element.set_impl_constraints(self.constraints)
                 kwargs[CORE_ELEMENT_KEY] = core_element
+
+            if self.container is not None:
+                _func = str(user_function.__name__)
+                impl_type = "CONTAINER"
+                impl_signature = '.'.join((impl_type, _func))
+
+                ce = kwargs.get(CORE_ELEMENT_KEY, CE())
+                impl_args = [self.container['engine'],  # engine
+                             self.container['image'],  # image
+                             UNASSIGNED,  # internal_type
+                             UNASSIGNED,  # internal_binary
+                             UNASSIGNED,  # internal_func
+                             UNASSIGNED,  # working_dir
+                             UNASSIGNED]  # fail_by_ev
+                ce.set_impl_type(impl_type)
+                ce.set_impl_signature(impl_signature)
+                ce.set_impl_type_args(impl_args)
+                kwargs[CORE_ELEMENT_KEY] = ce
 
             decorator = self.decor
 
@@ -139,6 +159,7 @@ class Software(PyCOMPSsDecorator):
 
         self.config_args = properties
         self.constraints = config.get("constraints", None)
+        self.container = config.get("container", None)
 
 
 # ########################################################################### #

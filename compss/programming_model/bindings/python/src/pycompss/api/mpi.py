@@ -32,6 +32,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
+from pycompss.util.arguments import UNASSIGNED
 from pycompss.util.exceptions import PyCOMPSsException
 
 
@@ -265,7 +266,7 @@ class MPI(PyCOMPSsDecorator):
             binary = self.kwargs['binary']
             impl_type = "MPI"
         else:
-            binary = "[unassigned]"
+            binary = UNASSIGNED
             impl_type = "PYTHON_MPI"
             self.task_type = impl_type
 
@@ -274,7 +275,7 @@ class MPI(PyCOMPSsDecorator):
         if 'flags' in self.kwargs:
             flags = self.kwargs['flags']
         else:
-            flags = '[unassigned]'  # Empty or '[unassigned]'
+            flags = UNASSIGNED  # Empty or '[unassigned]'
 
         # Check if scale by cu is defined
         scale_by_cu_str = self.__resolve_scale_by_cu__()
@@ -300,7 +301,7 @@ class MPI(PyCOMPSsDecorator):
         else:
             ppn = "1"
 
-        if binary == "[unassigned]":
+        if binary == UNASSIGNED:
             impl_signature = impl_type + '.'
         else:
             impl_signature = '.'.join((impl_type,
@@ -312,7 +313,7 @@ class MPI(PyCOMPSsDecorator):
                      ppn,
                      flags,
                      scale_by_cu_str,
-                     self.kwargs['params'],
+                     self.kwargs.get('params', UNASSIGNED),
                      self.kwargs['fail_by_exit_value']]
 
         if impl_type == "PYTHON_MPI":

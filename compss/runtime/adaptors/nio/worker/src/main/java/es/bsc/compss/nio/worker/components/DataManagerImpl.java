@@ -25,7 +25,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.NIOParamDictCollection;
-import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
 import es.bsc.compss.nio.listeners.DictCollectionFetchOperationsListener;
@@ -37,7 +36,6 @@ import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -56,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -623,14 +620,17 @@ public class DataManagerImpl implements DataManager {
                                 }
 
                                 if (param.isPreserveSourceData()) {
-                                    /*
-                                     * if (param.getType() == DataType.DIRECTORY_T) {
-                                     * FileUtils.copyDirectory(srcPath.toFile(), tgtPath.toFile()); } else {
-                                     * Files.copy(srcPath, tgtPath); }
-                                     */
-                                    FileOpsManager.copySync(new File(path), new File(expectedFileLocation));
+                                    if (param.getType() == DataType.DIRECTORY_T) {
+                                        FileOpsManager.copyDirSync(new File(path), new File(expectedFileLocation)); 
+                                    } else {
+                                        FileOpsManager.copySync(new File(path), new File(expectedFileLocation));
+                                    }
                                 } else {
-                                    FileOpsManager.moveSync(new File(path), new File(expectedFileLocation));
+                                    if (param.getType() == DataType.DIRECTORY_T) {
+                                        FileOpsManager.moveDirSync(new File(path), new File(expectedFileLocation));
+                                    } else {
+                                        FileOpsManager.moveSync(new File(path), new File(expectedFileLocation));
+                                    }
                                     originalRegister.removeFileLocation(path);
                                 }
                                 DataRegister dr = new DataRegister();

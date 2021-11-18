@@ -17,7 +17,6 @@
 package es.bsc.compss.types.allocatableactions;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import es.bsc.compss.api.TaskMonitor;
@@ -71,8 +70,6 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -83,7 +80,6 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 
 
 public class ExecutionAction extends AllocatableAction {

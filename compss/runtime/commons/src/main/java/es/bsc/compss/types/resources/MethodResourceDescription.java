@@ -1758,19 +1758,27 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
 
         // Applications
-        for (String app : mrd2.appSoftware) {
-            if (this.appSoftware.contains(app)) {
-                this.appSoftware.remove(app);
+        if (mrd2.appSoftware == this.appSoftware) {
+            // this is the case when it is reducing itself (avoid concurrent modification)
+            this.appSoftware.clear();
+        } else {
+            for (String app : mrd2.appSoftware) {
+                if (this.appSoftware.contains(app)) {
+                    this.appSoftware.remove(app);
+                }
             }
         }
-
         // Host queues
-        for (String queue : mrd2.hostQueues) {
-            if (this.hostQueues.contains(queue)) {
-                this.hostQueues.remove(queue);
+        if (mrd2.hostQueues == this.hostQueues) {
+            // this is the case when it is reducing itself (avoid concurrent modification)
+            this.hostQueues.clear();
+        } else {
+            for (String queue : mrd2.hostQueues) {
+                if (this.hostQueues.contains(queue)) {
+                    this.hostQueues.remove(queue);
+                }
             }
         }
-
         // Price
         if (this.pricePerUnit == UNASSIGNED_FLOAT) {
             if (mrd2.pricePerUnit > (float) 0.0) {

@@ -71,6 +71,12 @@ string read_result_from_pipe(){
 		} else {
 			// Necessary to avoid that fgets return NULL after closing the pipe for the first time.
 			clearerr(result_pipe_stream);
+            fclose(result_pipe_stream);
+            result_pipe_stream = fopen(result_pipe , "r");
+            if (result_pipe_stream == NULL){
+		        print_error("\n[BINDING-COMMONS] ERROR: Opening the pipe %s", result_pipe);
+                return NULL;
+	        }
 		} 
 	}   
 }
@@ -623,8 +629,7 @@ void PIPE_Barrier(long appId) {
 	stringstream ss;
 	ss << "BARRIER " << appId << endl;
 	write_command_in_pipe(ss);
-	string result;
-	result = read_result_from_pipe();
+	read_result_from_pipe();
 
 	debug_printf("[BINDING-COMMONS] - @PIPE_Barrier - APP id: %lu\n", appId);
 }
@@ -645,8 +650,7 @@ void PIPE_BarrierNew(long appId, int noMoreTasks) {
     }
     ss << endl;
     write_command_in_pipe(ss);
-    string result;
-    result = read_result_from_pipe();
+    read_result_from_pipe();
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Barrier - APP id: %lu\n", appId);
 }

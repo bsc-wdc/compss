@@ -88,8 +88,7 @@ void *sync_object_from_runtime(long app_id, char* name, int type, int elements) 
         debug_printf("[BindingDataManager]  -  Getting object %s from cache.\n",	runtime_filename);
         int get_res = cache->getFromCache(runtime_filename, cp);
         if (get_res != 0) {
-            printf("[BindingDataManager] - ERROR - Getting object %s from cache.\n", runtime_filename);
-            fflush(NULL);
+            print_error("[BindingDataManager] - ERROR - Getting object %s from cache.\n", runtime_filename);
             GS_Off(get_res);
             exit(get_res);
         }
@@ -101,8 +100,7 @@ void *sync_object_from_runtime(long app_id, char* name, int type, int elements) 
         GS_Delete_Object(app_id, binding_obj_id, &res);
         return cp.pointer;
     } else {
-        printf("[BindingDataManager] - ERROR - Cache is null when synchronizing object.\n");
-        fflush(NULL);
+        print_error("[BindingDataManager] - ERROR - Cache is null when synchronizing object.\n");
         GS_Off(1);
         exit(1);
     }
@@ -189,7 +187,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_loadFromFile(J
         env->ReleaseStringUTFChars( filename, filename_str);
         return res;
     } else {
-        debug_printf("[BindingDataManager]  - Error: cache is null when loading from file.\n");
+        print_error("[BindingDataManager]  - Error: cache is null when loading from file.\n");
         return (jint)-1;
     }
 }
@@ -209,7 +207,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_copyCachedData
         env->ReleaseStringUTFChars( to_id, to_id_str);
         return res;
     } else {
-        debug_printf("[BindingDataManager]  - Error: cache is null when copying cached data.\n");
+        print_error("[BindingDataManager]  - Error: cache is null when copying cached data.\n");
         return (jint)-1;
     }
 }
@@ -228,7 +226,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_moveCachedData
         env->ReleaseStringUTFChars( to_id, to_id_str);
         return res;
     } else {
-        debug_printf("[BindingDataManager]  - Error: cache is null when moving cached data.\n");
+        print_error("[BindingDataManager]  - Error: cache is null when moving cached data.\n");
         return (jint)-1;
     }
 }
@@ -255,7 +253,7 @@ JNIEXPORT jobject JNICALL Java_es_bsc_compss_data_BindingDataManager_getByteArra
         }
         env->ReleaseStringUTFChars( id, id_str);
     } else {
-        debug_printf("[BindingDataManager]  - Error: cache is null when getting bytearray.\n");
+        print_error("[BindingDataManager]  - Error: cache is null when getting bytearray.\n");
     }
     return o;
 }
@@ -280,7 +278,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_setByteArray(J
         env->ReleaseStringUTFChars( id, id_str);
         return res;
     } else {
-        debug_printf("[BindingDataManager]  - Error: cache is null when setting bytearray.\n");
+        print_error("[BindingDataManager]  - Error: cache is null when setting bytearray.\n");
         return (jint)-1;
     }
 }
@@ -298,7 +296,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_nio_utils_NIOBindingDataManager_sendNa
         env->ReleaseStringUTFChars( id, id_str);
         return res;
     } else {
-        debug_printf("[BindingDataManager]  - Error: cache is null when sending native object.\n");
+        print_error("[BindingDataManager]  - Error: cache is null when sending native object.\n");
         return (jint)-1;
     }
 }
@@ -320,7 +318,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_nio_utils_NIOBindingDataManager_receiv
         env->ReleaseStringUTFChars( id, id_str);
         return res;
     } else {
-        debug_printf("[BindingDataManager]  - Error: cache is null when receiving native object.\n");
+        print_error("[BindingDataManager]  - Error: cache is null when receiving native object.\n");
         return (jint)-1;
     }
 }

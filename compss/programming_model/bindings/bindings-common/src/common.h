@@ -19,6 +19,8 @@
 
 #define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
 
+#define print_error(args...) { fprintf(stderr, args); fflush(stderr);}
+
 const int NUM_FIELDS = 9;
 
 void init_env_vars();

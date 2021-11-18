@@ -367,7 +367,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                     listener.notifyEnd(null);
                                 } catch (Exception e) {
                                     LOGGER.error("ERROR: managing obtain binding object at cache", e);
-                                    listener.notifyFailure(null, e);
+                                    listener.notifyFailure(fOp, e);
                                 }
                             }
 
@@ -378,7 +378,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                         + " to " + tgtBO.getName());
                                 }
                                 LOGGER.error("ERROR: managing obtain binding object at cache", e);
-                                listener.notifyFailure(null, e);
+                                listener.notifyFailure(fOp, e);
                             }
                         });
                         return;
@@ -663,7 +663,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                 } catch (IOException ex) {
                                     ErrorManager.warn("Error master local copying file " + endedPath
                                         + " from master to " + targetPath + " with replacing", ex);
-                                    listener.notifyFailure(null, ex);
+                                    listener.notifyFailure(fOp, ex);
                                 }
 
                             }
@@ -677,7 +677,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                 }
                                 ErrorManager.warn("Error master local copying file " + endedPath + " from master to "
                                     + targetPath + " with replacing", e);
-                                listener.notifyFailure(null, e);
+                                listener.notifyFailure(fOp, e);
                             }
                         };
                         copy.addEventListener(el);

@@ -486,6 +486,21 @@ install_compss() {
     else
       echo "WARNING: Could not check pycodestyle format of Python Binding (pycodestyle not installed)."
     fi
+    echo "- Checking mypy in Python Binding"
+    if command_exists "/opt/python/bin/mypy" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/"
+      ./mypy_check.sh
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding typing is OK."
+      cd "${SCRIPT_DIR}"
+    else
+      echo "WARNING: Could not check typing of Python Binding (mypy not installed)."
+    fi
   fi
 
   # COPY TRUNK
@@ -684,11 +699,11 @@ install_compss() {
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/server.xml "${targetDir}/Tools/monitor/apache-tomcat/conf/"
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/*log4j* "${targetDir}/Tools/monitor/"
   fi
-  
+
   if [ "$jacoco" == "true" ]; then
     echo "- Deploying Jacoco at Tools"
     cd "${TMP_DIR}"
-    JACOCO_VER="0.8.5" 
+    JACOCO_VER="0.8.5"
     JACOCO_PCK_NAME="jacoco-${JACOCO_VER}.zip"
     JACOCO_URL="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VER}/${JACOCO_PCK_NAME}"
     wget $JACOCO_URL

@@ -327,7 +327,7 @@ def tiramisu_mockup():
 
 
 def __check_transformations__(transformation, out1, out2, out3, result):
-    # type: (str, ..., ..., ..., ...) -> bool
+    # type: (str, InputData, InputData, InputData, InputData) -> bool
     """ Checks the transformation to evaluate the result.
 
     :param transformation: Transformation name

@@ -25,11 +25,14 @@ Storage dummy connector
 
     storage.api code example.
 """
+
 import os
 import uuid
 import socket
+
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import deserialize_from_file
+from pycompss.util.typing_helper import typing
 
 
 STORAGE_PATH = '/tmp/PSCO/' + str(socket.gethostname()) + '/'  # NOSONAR
@@ -107,7 +110,7 @@ def finish_worker(**kwargs):  # noqa
 
 
 def get_by_id(id):  # noqa
-    # type: (str) -> ...
+    # type: (str) -> typing.Any
     """ This functions retrieves an object from an external storage
     technology from the obj object.
     This dummy returns the same object as submited by the parameter obj.
@@ -142,7 +145,7 @@ def get_by_id(id):  # noqa
 
 
 def make_persistent(obj, *args):  # noqa
-    # type: (..., dict) -> None
+    # type: (typing.Any, dict) -> None
     """ Persist the given object.
 
     :param obj: object to persist.
@@ -177,7 +180,7 @@ def make_persistent(obj, *args):  # noqa
 
 
 def update_persistent(obj, *args):  # noqa
-    # type: (..., dict) -> None
+    # type: (typing.Any, dict) -> None
     """ Update the given object.
 
     :param obj: object to update.

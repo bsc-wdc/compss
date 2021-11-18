@@ -26,7 +26,7 @@ PyCOMPSs DECORATOR COMMONS
 import os
 import sys
 import subprocess
-import typing
+from pycompss.util.typing_helper import typing
 from contextlib import contextmanager
 
 import pycompss.util.context as context

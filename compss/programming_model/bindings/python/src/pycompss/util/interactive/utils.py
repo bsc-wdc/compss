@@ -23,7 +23,7 @@ PyCOMPSs Interactive utils
     Provides auxiliary methods for the interactive mode
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 def parameters_to_dict(log_level,                      # type: str

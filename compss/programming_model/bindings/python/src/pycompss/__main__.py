@@ -26,7 +26,7 @@ PyCOMPSs Binding - Runnable as module
 
 import sys
 import argparse
-import typing
+from pycompss.util.typing_helper import typing
 from subprocess import Popen
 
 RUN_TAG = "run"
@@ -34,6 +34,12 @@ ENQUEUE_TAG = "enqueue"
 RUN_EXECUTABLE = "runcompss"
 ENQUEUE_EXECUTABLE = "enqueue_compss"
 TAGS = [RUN_TAG, ENQUEUE_TAG]
+
+
+class Object(object):
+    # Dummy class to mimic argparse return object
+    action = None  # type: typing.Any
+    params = None  # type: typing.Any
 
 
 def setup_parser():
@@ -83,11 +89,6 @@ def main():
             sys.argv[1] not in TAGS and \
             sys.argv[1] not in _help:
         # No action specified. Assume run.
-        class Object(object):
-            # Dummy class to mimic argparse return object
-            action = None  # type: typing.Any
-            params = None  # type: typing.Any
-
         args = Object()
         args.action = RUN_TAG
         args.params = sys.argv[1:]

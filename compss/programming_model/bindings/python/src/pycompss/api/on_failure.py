@@ -24,7 +24,7 @@ PyCOMPSs API - ON_FAILURE
     management definition through the decorator.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context

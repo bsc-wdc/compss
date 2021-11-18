@@ -24,7 +24,7 @@ PyCOMPSs Core Element
     registration.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 class CE(object):

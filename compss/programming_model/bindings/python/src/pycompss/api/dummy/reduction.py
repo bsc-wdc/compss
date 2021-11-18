@@ -23,7 +23,7 @@ PyCOMPSs Dummy API - Reduction
     This file contains the dummy class reduction used as decorator.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 class Reduction(object):

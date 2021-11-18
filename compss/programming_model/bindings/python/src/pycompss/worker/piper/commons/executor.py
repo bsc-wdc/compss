@@ -30,7 +30,7 @@ import logging
 import os
 import sys
 import time
-import typing
+from pycompss.util.typing_helper import typing
 from multiprocessing import Queue
 try:
     THREAD_AFFINITY = True

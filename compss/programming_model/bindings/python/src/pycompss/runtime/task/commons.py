@@ -21,7 +21,7 @@
 This module includes all API commons
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 import pycompss.api.parameter as parameter
 from pycompss.runtime.task.parameter import get_new_parameter

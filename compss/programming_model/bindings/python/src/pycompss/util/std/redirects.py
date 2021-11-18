@@ -30,7 +30,7 @@ import ctypes
 import io
 import os
 import sys
-import typing
+from pycompss.util.typing_helper import typing
 
 from pycompss.runtime.commons import IS_PYTHON3
 

@@ -28,7 +28,7 @@ import sys
 import logging
 import time
 import tempfile
-import typing
+from pycompss.util.typing_helper import typing
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers

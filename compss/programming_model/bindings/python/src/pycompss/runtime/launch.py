@@ -31,7 +31,7 @@ import sys
 import logging
 import traceback
 import argparse
-import typing
+from pycompss.util.typing_helper import typing
 import gc
 
 # Project imports
@@ -392,13 +392,13 @@ def launch_pycompss_application(app,
                                 reuse_on_block=True,              # type: bool
                                 nested_enabled=False,             # type: bool
                                 tracing_task_dependencies=False,  # type: bool
-                                trace_label=None,                 # type: str
-                                extrae_cfg_python=None,           # type: str
+                                trace_label="",                   # type: str
+                                extrae_cfg_python="",             # type: str
                                 wcl=0,                            # type: int
                                 cache_profiler=False,             # type: bool
                                 *args, **kwargs
                                 ):  # NOSONAR
-    # type: (...) -> None
+    # type: (...) -> typing.Any
     """ Launch PyCOMPSs application from function.
 
     :param app: Application path

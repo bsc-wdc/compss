@@ -26,7 +26,7 @@ PyCOMPSs Persistent Worker
 import os
 import sys
 import signal
-import typing
+from pycompss.util.typing_helper import typing
 from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor

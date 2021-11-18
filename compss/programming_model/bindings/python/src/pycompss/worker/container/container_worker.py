@@ -29,7 +29,7 @@ import pycompss.worker.container.pythonpath_fixer  # noqa
 import os
 import sys
 import logging
-import typing
+from pycompss.util.typing_helper import typing
 
 # PyCOMPSs imports
 import pycompss.util.context as context

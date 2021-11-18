@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 # Imports
-import typing
+from pycompss.util.typing_helper import typing
 import logging
 from abc import abstractmethod
 

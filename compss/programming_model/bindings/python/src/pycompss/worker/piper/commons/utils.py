@@ -23,7 +23,7 @@ PyCOMPSs Common piper utils
     This file contains the common pipers methods.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 from pycompss.runtime.commons import set_temporary_directory
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe

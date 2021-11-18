@@ -25,7 +25,7 @@ PyCOMPSs Interactive utils Graphs
 
 import os
 import time
-import typing
+from pycompss.util.typing_helper import typing
 
 
 def show_graph(log_path,               # type: str

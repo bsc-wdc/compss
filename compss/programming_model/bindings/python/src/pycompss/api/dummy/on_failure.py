@@ -23,7 +23,7 @@ PyCOMPSs Dummy API - On Failure
     This file contains the dummy class on failure used as decorator.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 class OnFailure(object):

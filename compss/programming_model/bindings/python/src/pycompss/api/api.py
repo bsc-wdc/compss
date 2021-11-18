@@ -43,7 +43,7 @@ PyCOMPSs API
              automatically.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 import pycompss.util.context as context
 

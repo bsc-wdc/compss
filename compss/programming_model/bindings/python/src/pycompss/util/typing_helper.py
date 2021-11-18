@@ -18,17 +18,21 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Dummy API - Container
-==============================
-    This file contains the dummy class container used as decorator.
+PyCOMPSs Binding - Utils - typing_helper
+========================================
+    This file contains the typing helpers.
 """
 
-from pycompss.util.typing_helper import typing
+try:
+    import typing
+except ImportError:
+    # No typing if not available - will not compile with mypyc
+    pass
 
 
-class Container(object):
+class dummy_mypyc_attr(object):
     """
-    Dummy Container class (decorator style)
+    Dummy on mypy_attr class (decorator style)
     """
 
     def __init__(self, *args, **kwargs):
@@ -38,11 +42,22 @@ class Container(object):
 
     def __call__(self, f):
         # type: (typing.Any) -> typing.Any
-        def wrapped_f(*args, **kwargs):
+        def wrapped_mypyc_attr(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
             return f(*args, **kwargs)
 
-        return wrapped_f
+        return wrapped_mypyc_attr
 
 
-container = Container
+import_ok = True
+try:
+    from mypy_extensions import mypyc_attr as real_mypyc_attr
+    # https://mypyc.readthedocs.io/en/latest/native_classes.html#inheritance
+except ImportError:
+    # Dummy mypyc_attr just in case mypy_extensions is not installed
+    import_ok = False
+
+if import_ok:
+    mypyc_attr = real_mypyc_attr   # type: ignore
+else:
+    mypyc_attr = dummy_mypyc_attr  # type: ignore

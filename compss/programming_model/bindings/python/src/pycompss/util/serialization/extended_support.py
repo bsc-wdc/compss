@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 class GeneratorIndicator(object):

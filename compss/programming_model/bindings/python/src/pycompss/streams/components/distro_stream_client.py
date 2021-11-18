@@ -20,7 +20,7 @@
 # Imports
 import logging
 import socket
-import typing
+from pycompss.util.typing_helper import typing
 from threading import Thread
 from pycompss.runtime.commons import IS_PYTHON3
 

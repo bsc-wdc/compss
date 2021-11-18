@@ -24,7 +24,7 @@ https://gist.github.com/earwig/28a64ffb94d51a608e3d
 + Added typing
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 import ctypes
 from ctypes import pythonapi as api
 import sys

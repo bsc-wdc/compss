@@ -25,7 +25,7 @@ PyCOMPSs Dummy API
 """
 
 import os
-import typing
+from pycompss.util.typing_helper import typing
 
 
 def compss_start(log_level="off", tracing=0, interactive=False):  # noqa

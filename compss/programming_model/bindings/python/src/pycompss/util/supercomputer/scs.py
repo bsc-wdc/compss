@@ -25,7 +25,7 @@ PyCOMPSs Utils - Supercomputer helpers
 """
 
 import os
-import typing
+from pycompss.util.typing_helper import typing
 
 
 def get_master_node():

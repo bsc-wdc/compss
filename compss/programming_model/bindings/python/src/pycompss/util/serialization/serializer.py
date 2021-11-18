@@ -48,7 +48,7 @@ import json
 import struct
 import types
 import traceback
-import typing
+from pycompss.util.typing_helper import typing
 from io import BytesIO
 
 from pycompss.runtime.commons import IS_PYTHON3

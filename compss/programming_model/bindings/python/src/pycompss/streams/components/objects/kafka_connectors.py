@@ -19,7 +19,7 @@
 
 # Imports
 import logging
-import typing
+from pycompss.util.typing_helper import typing
 
 #
 # Logger definition

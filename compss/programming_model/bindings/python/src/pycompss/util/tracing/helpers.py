@@ -25,7 +25,7 @@ PyCOMPSs Tracing helpers
 """
 
 import time
-import typing
+from pycompss.util.typing_helper import typing
 from contextlib import contextmanager
 
 from pycompss.util.context import in_master

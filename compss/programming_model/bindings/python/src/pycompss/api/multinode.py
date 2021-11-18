@@ -25,7 +25,7 @@ PyCOMPSs API - MultiNode
 """
 
 import os
-import typing
+from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context

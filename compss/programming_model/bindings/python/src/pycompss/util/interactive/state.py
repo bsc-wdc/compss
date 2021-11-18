@@ -24,7 +24,7 @@ PyCOMPSs Interactive State
 """
 
 import os
-import typing
+from pycompss.util.typing_helper import typing
 from collections import defaultdict
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.exceptions import PyCOMPSsException

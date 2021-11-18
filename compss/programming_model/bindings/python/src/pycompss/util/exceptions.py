@@ -23,7 +23,7 @@ PyCOMPSs Exceptions
     This file defines the internal PyCOMPSs exceptions.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 class SerializerException(Exception):

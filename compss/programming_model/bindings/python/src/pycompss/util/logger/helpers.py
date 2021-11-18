@@ -26,7 +26,7 @@ PyCOMPSs Util - logs
 import os
 import logging
 import json
-import typing
+from pycompss.util.typing_helper import typing
 from contextlib import contextmanager
 from logging import config
 from pycompss.util.exceptions import PyCOMPSsException

@@ -44,7 +44,7 @@ worker/piper/piper_worker.py:from multiprocessing import Process
 worker/piper/piper_worker.py:from multiprocessing import Queue
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 import multiprocessing
 from multiprocessing import Queue    # Used only for typing
 from multiprocessing import Process  # Used only for typing

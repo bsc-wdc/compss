@@ -23,7 +23,7 @@ PyCOMPSs Util - JVM Configuration Parser
     This file contains all methods required to parse the jvm options file.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 def convert_to_dict(jvm_opt_file):

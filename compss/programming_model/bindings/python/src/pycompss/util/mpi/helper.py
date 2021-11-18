@@ -24,7 +24,7 @@ PyCOMPSs Util - MPI
 """
 
 from mpi4py import MPI
-import typing
+from pycompss.util.typing_helper import typing
 
 comm = MPI.COMM_WORLD
 size = comm.size

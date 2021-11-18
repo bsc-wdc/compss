@@ -23,7 +23,7 @@ PyCOMPSs Functions: Reduce
     This file defines the common reduce functions.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 from collections import deque
 
 

@@ -23,7 +23,7 @@ PyCOMPSs API - HTTP
     HTTP Task decorator class.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.constants import SERVICE_NAME

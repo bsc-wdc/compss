@@ -21,7 +21,7 @@ import gc
 import os
 import sys
 import shutil
-import typing
+from pycompss.util.typing_helper import typing
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException

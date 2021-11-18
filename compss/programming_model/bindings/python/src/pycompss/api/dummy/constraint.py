@@ -23,7 +23,7 @@ PyCOMPSs Dummy API - Constraint
     This file contains the dummy class constraint used as decorator.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 class Constraint(object):

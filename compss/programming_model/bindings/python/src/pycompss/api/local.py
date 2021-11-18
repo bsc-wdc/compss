@@ -27,7 +27,7 @@ PyCOMPSs API - LocalTask
 """
 
 import gc
-import typing
+from pycompss.util.typing_helper import typing
 
 from pycompss.api.api import compss_wait_on
 from pycompss.util.objects.replace import replace

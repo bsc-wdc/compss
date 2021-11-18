@@ -24,7 +24,7 @@ import ast
 import threading
 import inspect
 import base64
-import typing
+from pycompss.util.typing_helper import typing
 from collections import OrderedDict
 from collections import deque
 
@@ -1601,7 +1601,6 @@ class TaskMaster(object):
             if type(ret_value) in _PYTHON_TO_COMPSS or \
                     ret_value in _PYTHON_TO_COMPSS:
                 fo = Future()  # primitives,string,dic,list,tuple
-                eco = str(ret_value)
             elif inspect.isclass(ret_value):
                 # For objects:
                 # type of future has to be specified to allow o = func; o.func
@@ -1611,10 +1610,8 @@ class TaskMaster(object):
                     logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
                                    str(ret_value))
                     fo = Future()
-                eco = str(ret_value)
             else:
                 fo = Future()  # modules, functions, methods
-                eco = str(type(fo))
             _, ret_filename = OT.track(fo)
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
@@ -1630,7 +1627,6 @@ class TaskMaster(object):
                 # Build the appropriate future object
                 if v.content in _PYTHON_TO_COMPSS:
                     foe = Future()  # primitives, string, dic, list, tuple
-                    eco = str(v.content)
                 elif inspect.isclass(v.content):
                     # For objects:
                     # type of future has to be specified to allow:
@@ -1641,10 +1637,8 @@ class TaskMaster(object):
                         logger.warning("Type %s does not have an empty constructor, building generic future object" %  # noqa: E501
                                        str(v["Value"]))
                         foe = Future()
-                    eco = str(v.content)
                 else:
                     foe = Future()  # modules, functions, methods
-                    eco = str(type(foe))
                 fo.append(foe)
                 _, ret_filename = OT.track(foe)
                 # Once determined the filename where the returns are going to

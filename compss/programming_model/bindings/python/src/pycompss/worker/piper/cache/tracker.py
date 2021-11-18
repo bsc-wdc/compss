@@ -25,7 +25,7 @@ PyCOMPSs Cache tracker
 """
 
 import os
-import typing
+from pycompss.util.typing_helper import typing
 from collections import OrderedDict
 
 from pycompss.util.exceptions import PyCOMPSsException

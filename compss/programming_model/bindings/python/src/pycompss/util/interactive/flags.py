@@ -23,7 +23,7 @@ PyCOMPSs Util - Interactive Mode Flags checker
     Provides auxiliary methods for the interactive mode flags checking
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 # None type
 NONE_TYPE = type(None)

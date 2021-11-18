@@ -27,7 +27,7 @@ PyCOMPSs Util - Object properties
 import os
 import sys
 import inspect
-import typing
+from pycompss.util.typing_helper import typing
 from collections import OrderedDict
 
 from pycompss.runtime.commons import IS_PYTHON3

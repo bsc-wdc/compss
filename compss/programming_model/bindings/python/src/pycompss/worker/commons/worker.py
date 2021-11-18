@@ -25,7 +25,7 @@ import sys
 import signal
 import traceback
 import base64
-import typing
+from pycompss.util.typing_helper import typing
 import logging
 
 import pycompss.api.parameter as parameter

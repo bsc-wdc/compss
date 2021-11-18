@@ -25,7 +25,7 @@ PyCOMPSs Util - Interactive Mode Helpers
 
 import os
 import inspect
-import typing
+from pycompss.util.typing_helper import typing
 
 # Debug mode: Changed to true from interactive.py if specified by the user
 # when starting the runtime. Enables the explicit prints.

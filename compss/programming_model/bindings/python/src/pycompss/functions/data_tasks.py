@@ -26,7 +26,7 @@ PyCOMPSs Functions: Data generators
 """
 
 import random
-import typing
+from pycompss.util.typing_helper import typing
 from pycompss.api.task import task
 
 

@@ -28,7 +28,7 @@ import os
 import sys
 import base64
 import json
-import typing
+from pycompss.util.typing_helper import typing
 from tempfile import mkstemp
 
 import pycompss.runtime.binding as binding

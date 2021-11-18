@@ -26,7 +26,7 @@ PyCOMPSs Persistent Worker
 import os
 import sys
 import signal
-import typing
+from pycompss.util.typing_helper import typing
 from pycompss.util.process.manager import initialize_multiprocessing
 from pycompss.util.process.manager import Queue  # just typing
 from pycompss.util.process.manager import new_queue

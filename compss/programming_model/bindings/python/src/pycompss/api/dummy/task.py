@@ -23,7 +23,7 @@ PyCOMPSs Dummy API - task
     This file contains the dummy class task used as decorator.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 class Task(object):

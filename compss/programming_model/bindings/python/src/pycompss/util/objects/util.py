@@ -23,7 +23,7 @@ PyCOMPSs Util - Utils
     This file contains the utilities that could be needed.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 
 def group_iterable(iterable, n):

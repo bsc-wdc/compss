@@ -25,7 +25,7 @@ PyCOMPSs Util - Context
 """
 
 import inspect
-import typing
+from pycompss.util.typing_helper import typing
 from contextlib import contextmanager
 
 MASTER = "MASTER"

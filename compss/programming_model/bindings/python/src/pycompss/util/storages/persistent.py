@@ -24,7 +24,7 @@ PyCOMPSs Utils - External Storage
     Isolates the API signature calls.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import event_master

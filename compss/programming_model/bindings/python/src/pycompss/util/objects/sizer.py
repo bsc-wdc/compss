@@ -24,7 +24,7 @@ PyCOMPSs Util - Object sizing algorithm
 """
 
 from __future__ import print_function
-import typing
+from pycompss.util.typing_helper import typing
 from sys import getsizeof
 from sys import stderr
 from itertools import chain

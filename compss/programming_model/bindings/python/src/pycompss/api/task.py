@@ -25,7 +25,7 @@ PyCOMPSs API - Task
 
 from __future__ import print_function
 import sys
-import typing
+from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.api.parameter as parameter

@@ -25,7 +25,7 @@ PyCOMPSs runtime - Parameter
 
 import sys
 import copy
-import typing
+from pycompss.util.typing_helper import typing
 
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.task.keys import PARAM_ALIAS_KEYS

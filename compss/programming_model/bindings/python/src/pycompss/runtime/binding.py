@@ -26,7 +26,7 @@ PyCOMPSs Binding - Binding
 import os
 import re
 import signal
-import typing
+from pycompss.util.typing_helper import typing
 from shutil import rmtree
 
 import pycompss.runtime.management.COMPSs as COMPSs

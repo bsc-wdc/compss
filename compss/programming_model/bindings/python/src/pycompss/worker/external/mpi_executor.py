@@ -29,7 +29,7 @@ import signal
 import logging
 import os
 import sys
-import typing
+from pycompss.util.typing_helper import typing
 from mpi4py import MPI
 
 import pycompss.util.context as context

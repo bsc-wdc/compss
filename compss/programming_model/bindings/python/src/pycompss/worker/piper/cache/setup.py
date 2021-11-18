@@ -24,7 +24,7 @@ PyCOMPSs Cache setup
     IMPORTANT: Only used with python >= 3.8.
 """
 
-import typing
+from pycompss.util.typing_helper import typing
 from multiprocessing import Process
 from multiprocessing import Queue
 from pycompss.util.process.manager import Process  # just typing

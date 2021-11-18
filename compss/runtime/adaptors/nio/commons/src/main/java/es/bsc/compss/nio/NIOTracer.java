@@ -210,8 +210,8 @@ public class NIOTracer extends Tracer {
         }
 
         // capture output/error (means 2 more threads to support large outputs (e.g. with dataClay events))
-        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER);
-        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER);
+        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER, false);
+        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER, true);
         outputGobbler.start();
         errorGobbler.start();
         if (DEBUG) {

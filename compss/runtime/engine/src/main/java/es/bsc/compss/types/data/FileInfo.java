@@ -25,6 +25,7 @@ import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileOpsManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -121,8 +122,7 @@ public class FileInfo extends DataInfo {
                             loc.modifyPath(newPath);
                             try {
                                 LOGGER.debug("[FileInfo] Moving " + uri.getPath() + " to " + newPath);
-                                Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath(),
-                                    StandardCopyOption.REPLACE_EXISTING);
+                                FileOpsManager.moveSync(new File(uri.getPath()), new File(newPath));
                             } catch (IOException e) {
                                 ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath
                                     + "Reason: " + e.getMessage());

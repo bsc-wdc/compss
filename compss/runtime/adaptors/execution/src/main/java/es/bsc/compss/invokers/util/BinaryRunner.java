@@ -611,11 +611,12 @@ public class BinaryRunner {
         if (process != null) {
             if (fileOutPath == null) {
                 outputGobbler =
-                    new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER));
+                    new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER), false);
                 outputGobbler.start();
             } else {
                 try (InputStream outputStream = new FileInputStream(fileOutPath)) {
-                    outputGobbler = new StreamGobbler(outputStream, outLog, LogManager.getLogger(Loggers.WORKER));
+                    outputGobbler =
+                        new StreamGobbler(outputStream, outLog, LogManager.getLogger(Loggers.WORKER), false);
                     outputGobbler.start();
                 } catch (IOException ioe) {
                     errLog.println(ERROR_OUTPUTREADER);
@@ -631,11 +632,11 @@ public class BinaryRunner {
         if (process != null) {
             if (fileErrPath == null) {
                 errorGobbler =
-                    new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER));
+                    new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER), true);
                 errorGobbler.start();
             } else {
                 try (InputStream errStream = new FileInputStream(fileErrPath)) {
-                    errorGobbler = new StreamGobbler(errStream, errLog, LogManager.getLogger(Loggers.WORKER));
+                    errorGobbler = new StreamGobbler(errStream, errLog, LogManager.getLogger(Loggers.WORKER), true);
                     errorGobbler.start();
                 } catch (IOException ioe) {
                     throw new InvokeExecutionException(ERROR_ERRORREADER, ioe);

@@ -79,14 +79,13 @@ public class ResultListener extends EventListener {
 
     @Override
     public synchronized void notifyFailure(DataOperation fOp, Exception e) {
-        if (DEBUG) {
-            LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                + ", file role is RESULT_FILE" + ", operation end state is FAILED", e);
-        } else {
-            LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                + ", file role is RESULT_FILE" + ", operation end state is FAILED");
+        String fOpName = "N/A";
+        if (fOp != null) {
+            fOp.getName();
         }
-        ErrorManager.warn("Result file tranfer " + fOp.getName() + " failed. Check runtime.log for more details.");
+        LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOpName
+            + ", file role is RESULT_FILE" + ", operation end state is FAILED", e);
+        ErrorManager.warn("Result file tranfer " + fOpName + " failed. Check runtime.log for more details.");
         this.operation--;
         this.errors++;
         if (this.enabled && this.operation == 0) {

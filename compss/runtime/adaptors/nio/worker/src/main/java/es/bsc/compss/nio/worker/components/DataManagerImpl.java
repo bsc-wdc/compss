@@ -621,7 +621,7 @@ public class DataManagerImpl implements DataManager {
 
                                 if (param.isPreserveSourceData()) {
                                     if (param.getType() == DataType.DIRECTORY_T) {
-                                        FileOpsManager.copyDirSync(new File(path), new File(expectedFileLocation)); 
+                                        FileOpsManager.copyDirSync(new File(path), new File(expectedFileLocation));
                                     } else {
                                         FileOpsManager.copySync(new File(path), new File(expectedFileLocation));
                                     }

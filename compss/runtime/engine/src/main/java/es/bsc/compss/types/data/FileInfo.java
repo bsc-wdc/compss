@@ -29,8 +29,6 @@ import es.bsc.compss.util.FileOpsManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.concurrent.Semaphore;
 
@@ -71,7 +69,7 @@ public class FileInfo extends DataInfo {
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
         DataVersion firstVersion = this.getFirstVersion();
         if (firstVersion != null) {
-            LogicalData ld = Comm.getData(firstVersion.getDataInstanceId().getRenaming());
+            LogicalData ld = firstVersion.getDataInstanceId().getData();
             if (ld != null) {
                 for (DataLocation loc : ld.getLocations()) {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
@@ -110,7 +108,7 @@ public class FileInfo extends DataInfo {
         if (!noReuse) {
             DataVersion firstVersion = this.getFirstVersion();
             if (firstVersion != null) {
-                LogicalData ld = Comm.getData(firstVersion.getDataInstanceId().getRenaming());
+                LogicalData ld = firstVersion.getDataInstanceId().getData();
                 if (ld != null) {
                     for (DataLocation loc : ld.getLocations()) {
                         MultiURI uri = loc.getURIInHost(Comm.getAppHost());

@@ -17,7 +17,6 @@
 package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -284,7 +283,7 @@ public class Score implements Comparable<Score> {
 
                 // Get hosts for resource score
                 if (dId != null) {
-                    LogicalData dataLD = Comm.getData(dId.getRenaming());
+                    LogicalData dataLD = dId.getData();
                     if (dataLD != null) {
                         Set<Resource> hosts = dataLD.getAllHosts();
                         for (Resource host : hosts) {

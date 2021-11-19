@@ -179,7 +179,7 @@ public class ReduceExecutionAction extends ExecutionAction {
         Resource maxResource = null;
         // Get hosts for resource score
         if (dId != null) {
-            LogicalData dataLD = Comm.getData(dId.getRenaming());
+            LogicalData dataLD = dId.getData();
             if (dataLD != null) {
                 Set<Resource> hosts = dataLD.getAllHosts();
                 maxResource = getBestHost(maxResource, hosts);

@@ -44,7 +44,7 @@ public class DataVersion {
      */
     public DataVersion(int dataId, int versionId) {
         this.readers = 0;
-        this.dataInstanceId = new DataInstanceId(dataId, versionId);
+        this.dataInstanceId = new DataInstanceId(dataId, versionId, this);
         this.writers = 0;
         this.toDelete = false;
         this.used = false;

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.comm.Comm;
 import java.io.Serializable;
 
 
@@ -32,12 +33,15 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
     // Time stamp
     private static String timeStamp = Long.toString(System.currentTimeMillis());
 
-    // File instance identifier fields
+    // Data instance identifier fields
     private int dataId;
     private int versionId;
 
-    // Renaming for this file version
+    // Renaming for this data version
     private String renaming;
+
+    // LogicalData associated to this data version
+    private LogicalData data;
 
 
     /**
@@ -53,10 +57,11 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
      * @param dataId Data Id.
      * @param versionId Version Id.
      */
-    public DataInstanceId(int dataId, int versionId) {
+    public DataInstanceId(int dataId, int versionId, DataVersion version) {
         this.dataId = dataId;
         this.versionId = versionId;
         this.renaming = "d" + dataId + "v" + versionId + "_" + timeStamp + ".IT";
+        this.data = Comm.registerData(renaming, version);
     }
 
     /**
@@ -84,6 +89,15 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
      */
     public String getRenaming() {
         return renaming;
+    }
+
+    /**
+     * Returns the LogicalData associated to this DataInstanceID.
+     *
+     * @return the LogicalData associated to this DataInstanceID.
+     */
+    public LogicalData getData() {
+        return data;
     }
 
     /**

@@ -57,11 +57,11 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
      * @param dataId Data Id.
      * @param versionId Version Id.
      */
-    public DataInstanceId(int dataId, int versionId, DataVersion version) {
+    public DataInstanceId(int dataId, int versionId) {
         this.dataId = dataId;
         this.versionId = versionId;
         this.renaming = "d" + dataId + "v" + versionId + "_" + timeStamp + ".IT";
-        this.data = Comm.registerData(renaming, version);
+        this.data = Comm.registerData(renaming);
     }
 
     /**

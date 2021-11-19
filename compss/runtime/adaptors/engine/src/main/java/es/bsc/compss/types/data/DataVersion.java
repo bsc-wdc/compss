@@ -16,9 +16,6 @@
  */
 package es.bsc.compss.types.data;
 
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.resources.Resource;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -33,7 +30,6 @@ public class DataVersion {
     private boolean used; // The version has been read or written
     private boolean semUsed;
     private List<Semaphore> semReaders;
-    private List<LocationMonitor> readersData;
 
 
     /**
@@ -44,13 +40,12 @@ public class DataVersion {
      */
     public DataVersion(int dataId, int versionId) {
         this.readers = 0;
-        this.dataInstanceId = new DataInstanceId(dataId, versionId, this);
+        this.dataInstanceId = new DataInstanceId(dataId, versionId);
         this.writers = 0;
         this.toDelete = false;
         this.used = false;
         this.semReaders = new LinkedList<>();
         this.semUsed = false;
-        this.readersData = new LinkedList<>();
     }
 
     /**
@@ -67,10 +62,9 @@ public class DataVersion {
      */
     public void willBeRead(LocationMonitor readerData) {
         this.readers++;
+        LogicalData ld = dataInstanceId.getData();
         if (readerData != null) {
-            synchronized (this.readersData) {
-                this.readersData.add(readerData);
-            }
+            ld.registerLocationMonitor(readerData);
         }
     }
 
@@ -104,15 +98,16 @@ public class DataVersion {
      *
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
      */
-    public boolean hasBeenRead(LocationMonitor readData) {
+    public boolean hasBeenRead(LocationMonitor readerData) {
         this.readers--;
         if (readers == 0 && this.semUsed == true) {
             for (Semaphore s : semReaders) {
                 s.release();
             }
         }
-        synchronized (this.readersData) {
-            this.readersData.remove(readData);
+        LogicalData ld = dataInstanceId.getData();
+        if (readerData != null) {
+            ld.unregisterLocationMonitor(readerData);
         }
         return checkDeletion();
     }
@@ -218,17 +213,4 @@ public class DataVersion {
         return false;
     }
 
-    /**
-     * Registers a new location in the readers.
-     * 
-     * @param loc Location to add.
-     */
-    public void addLocation(DataLocation loc) {
-        synchronized (this.readersData) {
-            for (LocationMonitor readerData : this.readersData) {
-                List<Resource> resources = loc.getHosts();
-                readerData.addLocation(resources, readerData.getParameter());
-            }
-        }
-    }
 }

@@ -339,7 +339,7 @@ public class ExecutionAction extends AllocatableAction {
                 listener.addOperation();
                 String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
                 String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-                LogicalData tmpData = Comm.registerData("tmp" + tgtName, null);
+                LogicalData tmpData = Comm.registerData("tmp" + tgtName);
                 w.getData(srcName, tgtName, tmpData, param, listener);
             }
         }

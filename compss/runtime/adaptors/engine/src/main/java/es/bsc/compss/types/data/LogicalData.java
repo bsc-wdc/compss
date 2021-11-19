@@ -86,8 +86,8 @@ public class LogicalData {
     private boolean isBeingSaved;
     private boolean isBindingData;
 
-    // Data Version with which the logicalData is linked
-    private LinkedList<DataVersion> dataVersions;
+    // Elements monitoring chages on this data's locations.
+    private LinkedList<LocationMonitor> locMonitors;
 
 
     /*
@@ -98,7 +98,7 @@ public class LogicalData {
      *
      * @param name Data name
      */
-    public LogicalData(String name, LinkedList<DataVersion> versions) {
+    public LogicalData(String name) {
         this.name = name;
         this.knownAlias.add(name);
         this.value = new Object[] { null };
@@ -107,7 +107,7 @@ public class LogicalData {
         this.isBeingSaved = false;
         this.isBindingData = false;
         this.size = 0;
-        this.dataVersions = versions;
+        this.locMonitors = new LinkedList<>();
     }
 
     /**
@@ -184,8 +184,8 @@ public class LogicalData {
                 ld2.bindingId = bindingId;
                 ld.locations.addAll(ld2.locations);
                 ld2.locations = ld.locations;
-                ld.dataVersions.addAll(ld2.dataVersions);
-                ld2.dataVersions = ld.dataVersions;
+                ld.locMonitors.addAll(ld2.locMonitors);
+                ld2.locMonitors = ld.locMonitors;
                 ld.inProgress.addAll(ld2.inProgress);
                 ld2.inProgress = ld.inProgress;
             }
@@ -265,7 +265,7 @@ public class LogicalData {
                 SimpleURI uri = new SimpleURI(targetPath);
                 for (Resource res : this.getAllHosts()) {
                     try {
-                        LogicalData ld = new LogicalData(alias, this.dataVersions);
+                        LogicalData ld = new LogicalData(alias);
                         DataLocation loc = DataLocation.createLocation(res, uri);
                         ld.addLocation(loc);
                         this.locations.remove(loc);
@@ -315,7 +315,25 @@ public class LogicalData {
     }
 
     /**
-     * Adds a new location.
+     * Registers a new element monitoring data's locations changes.
+     * 
+     * @param monitor element to notify location updates
+     */
+    public synchronized void registerLocationMonitor(LocationMonitor monitor) {
+        this.locMonitors.add(monitor);
+    }
+
+    /**
+     * Unregisters a new element monitoring data's locations changes.
+     * 
+     * @param monitor element to stop notifying location updates
+     */
+    public synchronized void unregisterLocationMonitor(LocationMonitor monitor) {
+        this.locMonitors.remove(monitor);
+    }
+
+    /**
+     * Adds a new location and notifies all the registered monitors.
      *
      * @param loc New location
      */
@@ -329,13 +347,12 @@ public class LogicalData {
                 ErrorManager.error("ERROR generating a new location for the object in memory for data " + this.name, e);
             }
         }
-        if (this.dataVersions != null) {
-            for (DataVersion dataVersion : this.dataVersions) {
-                if (dataVersion != null) {
-                    dataVersion.addLocation(loc);
-                }
-            }
+
+        List<Resource> resources = loc.getHosts();
+        for (LocationMonitor readerData : this.locMonitors) {
+            readerData.addLocation(resources, readerData.getParameter());
         }
+
         this.isBeingSaved = false;
         this.locations.add(loc);
         switch (loc.getType()) {

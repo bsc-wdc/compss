@@ -24,7 +24,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
-import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -370,11 +369,9 @@ public class Comm {
      * @param dataId Data Id.
      * @return The LogicalData representing the dataId after its registration.
      */
-    public static synchronized LogicalData registerData(String dataId, DataVersion version) {
+    public static synchronized LogicalData registerData(String dataId) {
         LOGGER.debug("Register new data " + dataId);
-        LinkedList<DataVersion> versions = new LinkedList<>();
-        versions.add(version);
-        LogicalData logicalData = new LogicalData(dataId, versions);
+        LogicalData logicalData = new LogicalData(dataId);
         DATA.put(dataId, logicalData);
 
         return logicalData;
@@ -528,7 +525,7 @@ public class Comm {
                 ld2.addKnownAlias(dataId);
             } else {
                 // None of the values exists. Create an empty LogicalData for both
-                ld = registerData(dataId, null);
+                ld = registerData(dataId);
                 DATA.put(dataId2, ld);
                 ld.addKnownAlias(dataId2);
             }

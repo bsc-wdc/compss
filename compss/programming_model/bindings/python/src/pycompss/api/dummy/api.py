@@ -241,9 +241,16 @@ class TaskGroup(object):
         pass
 
     def __enter__(self):
-        # Dummy: do nothing
+        # type: () -> None
+        """ Dummy: do nothing
+
+        :return: None
+        """
         pass
 
     def __exit__(self, type, value, traceback):  # noqa
-        # Dummy: do nothing
+        """ Dummy: do nothing
+
+        :return: None
+        """
         pass

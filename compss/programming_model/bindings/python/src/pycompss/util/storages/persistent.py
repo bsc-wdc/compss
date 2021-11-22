@@ -198,6 +198,7 @@ def master_init_storage(storage_conf, logger):  # noqa
 
 
 def use_storage(storage_conf):
+    # type: (str) -> bool
     """ Evaluates if the storage_conf is defined.
     The storage will be used if storage_conf is not None nor "null".
 

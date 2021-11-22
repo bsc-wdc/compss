@@ -89,6 +89,12 @@ def total_sizeof(o, handlers=None, verbose=False):
     default_size = getsizeof(0)  # estimate sizeof object without __sizeof__
 
     def sizeof(obj):
+        # type: (typing.Any) -> int
+        """ Calculate the size o the given object in bytes.
+
+        :param obj: Object to measure
+        :return: The object size in bytes
+        """
         if id(obj) in seen:  # do not double count the same object
             return 0
         seen.add(id(obj))

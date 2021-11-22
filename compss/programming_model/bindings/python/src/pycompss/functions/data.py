@@ -61,7 +61,7 @@ def generator(size, num_frag, seed=0, distribution="random", wait=False):
 
 
 def chunks(lst, n, balanced=False):
-    # type: (list, int, bool) -> typing.Iterator[typing.Any]
+    # type: (list, int, bool) -> typing.Iterator[typing.List[int]]
     """ List splitter into fragments.
 
     WARNING: Not tested!

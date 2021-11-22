@@ -358,7 +358,7 @@ def process_task(app_id,             # type: int
                  content_types,      # type: list
                  weights,            # type: list
                  keep_renames        # type: list
-                 ):
+                 ):                  # type: (...) -> None
     """ Call to process_task.
 
     :param app_id: Application identifier

@@ -196,6 +196,7 @@ class event_master(object):
             self.emitted = True
 
     def __enter__(self):
+        # type: () -> None
         pass
 
     def __exit__(self, type, value, traceback):
@@ -222,6 +223,7 @@ class event_worker(object):
             self.emitted = True
 
     def __enter__(self):
+        # type: () -> None
         pass
 
     def __exit__(self, type, value, traceback):
@@ -247,6 +249,7 @@ class event_inside_worker(object):
             self.emitted = True
 
     def __enter__(self):
+        # type: () -> None
         pass
 
     def __exit__(self, type, value, traceback):

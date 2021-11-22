@@ -681,8 +681,7 @@ def process_task(signature,             # type: str
                  on_failure,            # type: str
                  time_out,              # type: int
                  is_http=False          # type: bool
-                 ):  # NOSONAR
-    # type: (...) -> None
+                 ):                     # type: (...) -> None
     """ Submit a task to the runtime.
 
     :param signature: Task signature

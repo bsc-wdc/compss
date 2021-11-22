@@ -1522,6 +1522,7 @@ class TaskMaster(object):
                     source_code.startswith("@classmethod"):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement):
+                    # type: (str) -> bool
                     v = ast.parse(statement.strip())  # type: typing.Any
                     try:
                         if len(v.body[0].value.elts) > 1:
@@ -1534,6 +1535,7 @@ class TaskMaster(object):
                         return False
 
                 def _get_return_elements(statement):
+                    # type: (str) -> int
                     v = ast.parse(statement.strip())  # type: typing.Any
                     return len(v.body[0].value.elts)
 

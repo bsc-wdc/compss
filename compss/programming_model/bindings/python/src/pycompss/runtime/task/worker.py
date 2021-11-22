@@ -1331,6 +1331,7 @@ class TaskWorker(object):
 #######################
 
 def __get_collection_objects__(content, argument):
+    # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
     """ Retrieve collection objects recursively generator. """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for (new_con, _elem) in zip(argument.content,
@@ -1342,6 +1343,7 @@ def __get_collection_objects__(content, argument):
 
 
 def __get_dict_collection_objects__(content, argument):
+    # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
     """ Retrieve dictionary collection objects recursively generator. """
     if argument.content_type == parameter.TYPE.DICT_COLLECTION:
         elements = []

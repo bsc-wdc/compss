@@ -140,7 +140,7 @@ def process_task(current_line,     # type: str
                  logger_handlers,  # type: typing.Any
                  logger_level,     # type: int
                  logger_formatter  # type: typing.Any
-                 ):                # type: (...) -> typing.Tuple[str, str]
+                 ):                # type: (...) -> typing.Tuple[int, str]
     """ Process command received from the current_line.
 
     :param current_line: Current command (line) to process.

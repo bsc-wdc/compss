@@ -231,6 +231,7 @@ class StopRequest(Request):
         super(StopRequest, self).__init__(rt=STOP)
 
     def get_request_msg(self):
+        # type: () -> str
         s = str(self.rt)
         return s
 

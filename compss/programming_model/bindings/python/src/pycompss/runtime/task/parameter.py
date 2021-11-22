@@ -134,13 +134,15 @@ class Parameter(object):
                  is_future=False,                            # type: bool
                  is_file_collection=False,                   # type: bool
                  collection_content="",                      # type: typing.Any
-                 dict_collection_content=None,               # type: typing.Any
+                 dict_collection_content=None,               # type: typing.Optional[dict]
                  depth=1,                                    # type: int
                  extra_content_type=UNDEFINED_CONTENT_TYPE,  # type: str
                  weight="1.0",                               # type: str
                  keep_rename=True,                           # type: bool
                  cache=True                                  # type: bool
                  ):
+        if dict_collection_content is None:
+            dict_collection_content = dict()
         self.name = name
         self.content = content  # placeholder for parameter content
         self.content_type = content_type

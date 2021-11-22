@@ -510,7 +510,8 @@ def execute_task(process_name,              # type: str
                  cache_queue=None,          # type: typing.Any
                  cache_ids=None,            # type: typing.Any
                  cache_profiler=False,      # type: bool
-                 ):  # -> (str, list, list, bool, str)
+                 ):
+    # type: (...) -> typing.Tuple[int, list, list, typing.Optional[bool], str]
     """ ExecuteTask main method.
 
     :param process_name: Process name.
@@ -675,7 +676,7 @@ def execute_task(process_name,              # type: str
             exception_message = "EXCEPTION IMPORTING MODULE IN %s\n" % process_name
             exception_message += ''.join(line for line in lines)
             logger.exception(exception_message)
-            return 1, [], [], False, exception_message
+            return 1, [], [], None, exception_message
 
         if __debug__:
             logger.debug("Method in class %s of module %s" % (class_name,
@@ -711,9 +712,10 @@ def execute_task(process_name,              # type: str
                         lines = traceback.format_exception(exc_type,
                                                            exc_value,
                                                            exc_traceback)
-                        logger.exception("EXCEPTION DESERIALIZING SELF IN %s" % process_name)  # noqa: E501
-                        logger.exception(''.join(line for line in lines))
-                        return 1, [], [], False, None, []
+                        exception_message = "EXCEPTION DESERIALIZING SELF IN %s\n" % process_name
+                        exception_message += ''.join(line for line in lines)
+                        logger.exception(exception_message)
+                        return 1, [], [], None, exception_message
                     if __debug__:
                         logger.debug("Deserialized self object is: %s" %
                                      self_elem.content)
@@ -803,4 +805,4 @@ def execute_task(process_name,              # type: str
         else:
             logger.debug("END TASK execution. Status: Ok")
 
-    return exit_code, new_types, new_values, timed_out, except_msg
+    return int(exit_code), new_types, new_values, timed_out, except_msg

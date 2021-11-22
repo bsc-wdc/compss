@@ -155,6 +155,7 @@ def show_tasks_info(log_path):
     """
     if supports_dynamic_state():
         def f(i):  # noqa
+            # type: (typing.Any) -> None
             __show_tasks_info__(log_path)
 
         play = __get_play_widget(f)
@@ -228,6 +229,7 @@ def show_tasks_status(log_path):
     """
     if supports_dynamic_state():
         def f(i):  # noqa
+            # type: (typing.Any) -> None
             __show_tasks_status__(log_path)
 
         play = __get_play_widget(f)
@@ -268,6 +270,7 @@ def show_statistics(log_path):
     """
     if supports_dynamic_state():
         def f(i):  # noqa
+            # type: (typing.Any) -> None
             __show_statistics__(log_path)
 
         play = __get_play_widget(f)
@@ -299,6 +302,7 @@ def show_resources_status(log_path):
     """
     if supports_dynamic_state():
         def f(i):  # noqa
+            # type: (typing.Any) -> None
             __show_resources_status__(log_path)
 
         play = __get_play_widget(f)

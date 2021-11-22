@@ -486,14 +486,39 @@ def __get_file_name__(f_name):
 
 
 def filename_cleaned(f_name):
+    # type: (str) -> str
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param f_name:
+    :return:
+    """
     return f_name.rsplit('/', 1)[-1]
 
 
 def function_cleaned(function):
+    # type: (typing.Any) -> str
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param function:
+    :return:
+    """
     return str(function)[10:].rsplit(' ', 3)[0]
 
 
 def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
+    # type: (dict, str, str, str, str) -> None
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param profiler_dict:
+    :param function:
+    :param parameter:
+    :param filename:
+    :param type:
+    :return:
+    """
     if function not in profiler_dict:
         profiler_dict[function] = {}
     if parameter not in profiler_dict[function]:
@@ -504,6 +529,16 @@ def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
 
 
 def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
+    # type: (list, str, str, str) -> None
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param profiler_get_struct:
+    :param function:
+    :param parameter:
+    :param filename:
+    :return:
+    """
     if function not in profiler_get_struct[2] and parameter not in profiler_get_struct[1]:
         profiler_get_struct[0].append(filename)
         profiler_get_struct[1].append(parameter)
@@ -511,7 +546,10 @@ def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
 
 
 def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
+    # type: (dict, list, str) -> None
     """
+    # TODO: Complete documentation (PVB)
+
     for function in profiler_dict:
         f.write('\t' + "FUNCTION: " + str(function))
         logger.debug('\t' + "FUNCTION: " + str(function))
@@ -531,9 +569,13 @@ def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
     for i in range(len(profiler_get_struct[0])):
         logger.debug('\t' + "FILENAME: " + profiler_get_struct[0][i] + ". PARAMETER: " + profiler_get_struct[1][i]
                      + ". FUNCTION: " + profiler_get_struct[2][i])
-    """
 
-    final_dict = {}
+    :param profiler_dict:
+    :param profiler_get_struct:
+    :param log_dir:
+    :return:
+    """
+    final_dict = {}  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
     for function in profiler_dict:
         final_dict[function] = {}
         for parameter in profiler_dict[function]:

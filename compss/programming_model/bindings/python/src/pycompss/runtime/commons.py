@@ -28,9 +28,9 @@ import os
 from pycompss.util.typing_helper import typing
 from tempfile import mkdtemp
 
-########################################
-# Global variables set in this modules #
-########################################
+#######################################
+# Global variables set in this module #
+#######################################
 
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
@@ -42,12 +42,14 @@ if sys.version_info >= (3, 0):
     IS_PYTHON3 = True
     LIST_TYPE = list
     DICT_TYPE = dict
+    PYTHON_VERSION = 3
 else:
     import types
     STR_ESCAPE = "string_escape"
     IS_PYTHON3 = False
     LIST_TYPE = types.ListType  # noqa
     DICT_TYPE = types.DictType  # noqa
+    PYTHON_VERSION = 2
 
 # Determine the environment
 ENVIRONMENT = "terminal"

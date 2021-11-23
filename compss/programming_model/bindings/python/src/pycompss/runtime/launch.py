@@ -43,6 +43,7 @@ from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import set_temporary_directory
 from pycompss.runtime.commons import set_object_conversion
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.runtime.commons import PYTHON_VERSION
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
@@ -83,12 +84,6 @@ APP_PATH = None
 STREAMING = None
 PERSISTENT_STORAGE = None
 LOGGER = None
-
-# Python version: to choose the appropriate log folder
-if IS_PYTHON3:
-    _PYTHON_VERSION = 3
-else:
-    _PYTHON_VERSION = 2
 
 # Spend less time in gc; do this before significant computation
 gc.set_threshold(150000)
@@ -266,7 +261,7 @@ def compss_main():
     log_path = os.path.join(str(os.getenv("COMPSS_HOME")),
                             "Bindings",
                             "python",
-                            str(_PYTHON_VERSION),
+                            str(PYTHON_VERSION),
                             "log")
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)

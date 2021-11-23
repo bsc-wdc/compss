@@ -59,6 +59,7 @@ try:
 except ImportError:
     pass
 
+# GLOBAL VARIABLES
 HEADER = "[PYTHON CACHE] "
 SHARED_MEMORY_MANAGER = None  # type: typing.Any
 
@@ -575,7 +576,8 @@ def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
     :param log_dir:
     :return:
     """
-    final_dict = {}  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
+    d = {}  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
+    final_dict = d
     for function in profiler_dict:
         final_dict[function] = {}
         for parameter in profiler_dict[function]:

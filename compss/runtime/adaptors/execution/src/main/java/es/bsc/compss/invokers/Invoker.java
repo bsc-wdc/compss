@@ -28,7 +28,6 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.parameter.NullParameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -255,9 +254,7 @@ public abstract class Invoker implements ApplicationRunner {
                     }
                     break;
                 case NULL_T:
-                    NullParameter nullParam = new NullParameter();
-                    np.setValue(nullParam);
-                    np.setValueClass(nullParam.getClass());
+                    np.setValue("None");
                     break;
                 default:
                     throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());

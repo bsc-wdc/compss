@@ -49,7 +49,6 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.ImplementationDescription;
-import es.bsc.compss.types.implementations.ImplementationSignature;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
@@ -74,6 +73,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
+import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
@@ -872,8 +872,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Create the signature if it is not created
         if (!hasSignature) {
-            signature =
-                ImplementationSignature.getMethodSignature(methodClass, methodName, hasTarget, numReturns, pars);
+            signature = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, numReturns, pars);
         }
 
         if (monitor == null) {

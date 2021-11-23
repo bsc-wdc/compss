@@ -25,7 +25,6 @@ import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.Parameter;
 
 import java.io.Serializable;
 
@@ -163,12 +162,21 @@ public class StartApplicationRequest implements Serializable {
         addParameter(value, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
     }
 
-    public void addParameter(Parameter p, Object value) {
-        addParameter(value, p.getDirection(), p.getType(), p.getStream(), p.getPrefix(), p.getName(),
-            p.getContentType(), p.getWeight(), p.isKeepRename());
-    }
-
-    private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type, StdIOStream stream,
+    /**
+     * Constructs a new Parameter for the request and appends it to the current existing ones.
+     * 
+     * @param value value of the parameter
+     * @param direction directionality of the parameter
+     * @param type type of the data of the parameter
+     * @param stream stream redirection
+     * @param prefix prefix to add to the parameter on execution
+     * @param name name of the parameter
+     * @param contentType type of element within the parameter value
+     * @param weight scheduling weight
+     * @param keepRename should keep rename on execution
+     * @return constructed parameter
+     */
+    public ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename) {
 
         ApplicationParameterImpl p;

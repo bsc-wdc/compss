@@ -185,7 +185,10 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     BasicTypeParameter btParB = (BasicTypeParameter) param;
                     Object value = btParB.getValue();
                     System.out.println("SUBMISSION[" + this.getJobId() + "]         Value " + value);
-                    sar.addParameter(btParB, value);
+                    sar.addParameter(value, btParB.getDirection(), btParB.getType(), btParB.getStream(),
+                        btParB.getPrefix(), btParB.getName(), btParB.getContentType(), btParB.getWeight(),
+                        btParB.isKeepRename());
+
             }
         }
         System.out.println("SUBMISSION[" + this.getJobId() + "] Stage in completed.");

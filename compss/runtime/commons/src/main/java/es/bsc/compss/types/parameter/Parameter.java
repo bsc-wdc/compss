@@ -72,6 +72,14 @@ public abstract class Parameter implements Serializable {
     }
 
     /**
+     * Returns whether the parameter is a DependencyParameter or a basic type parameter.
+     *
+     * @return {@literal true}, if the parameter represents a data that may incur a dependency; {@literal false} if it
+     *         is a basic type
+     */
+    public abstract boolean isPotentialDependency();
+
+    /**
      * Returns the parameter type.
      *
      * @return The parameter type.

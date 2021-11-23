@@ -56,6 +56,11 @@ public class DependencyParameter extends Parameter implements Transferable {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename);
     }
 
+    @Override
+    public boolean isPotentialDependency() {
+        return true;
+    }
+
     /**
      * Returns the data access id.
      *

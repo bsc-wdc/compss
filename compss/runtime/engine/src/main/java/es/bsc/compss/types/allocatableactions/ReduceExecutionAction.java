@@ -128,7 +128,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     private void addNonDependentParam(List<Parameter> params) {
         for (Parameter p : params) {
             Resource r = null;
-            if (p instanceof DependencyParameter) {
+            if (p.isPotentialDependency()) {
                 r = getParameterLocation((DependencyParameter) p);
                 if (r == null) {
                     r = assignResourceToFreeParam();

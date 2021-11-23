@@ -38,4 +38,9 @@ public class NullParameter extends Parameter implements Serializable {
         super(DataType.NULL_T, Direction.IN, StdIOStream.UNSPECIFIED, null, "null", "None", 0.0, false);
     }
 
+    @Override
+    public boolean isPotentialDependency() {
+        return false;
+    }
+
 }

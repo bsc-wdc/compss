@@ -248,7 +248,7 @@ public class Score implements Comparable<Score> {
 
     private static long calculateParameterScore(Parameter p, Worker<?> w) {
         long resourceScore = 0;
-        if (p instanceof DependencyParameter && p.getDirection() != Direction.OUT) {
+        if (p.isPotentialDependency() && p.getDirection() != Direction.OUT) {
             if (p.getType() == DataType.COLLECTION_T) {
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter par : cp.getParameters()) {

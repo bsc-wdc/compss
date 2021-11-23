@@ -374,7 +374,7 @@ public class Task extends AbstractTask {
      */
     public void setVersion(DataAccessId daId) {
         for (Parameter p : this.getTaskDescription().getParameters()) {
-            if (p instanceof DependencyParameter
+            if (p.isPotentialDependency()
                 && ((DependencyParameter) p).getDataAccessId().getDataId() == daId.getDataId()) {
                 ((DependencyParameter) p).setDataAccessId(daId);
             }
@@ -397,7 +397,7 @@ public class Task extends AbstractTask {
      */
     public boolean hasCommutativeParams() {
         for (Parameter p : this.getTaskDescription().getParameters()) {
-            if (p instanceof DependencyParameter) {
+            if (p.isPotentialDependency()) {
 
                 if (p.getDirection() == Direction.COMMUTATIVE) {
                     return true;

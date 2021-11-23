@@ -28,6 +28,7 @@ from pycompss.api import binary, mpi
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.util.arguments import check_arguments
 from pycompss.util.arguments import UNASSIGNED
+import pycompss.util.context as context
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -75,7 +76,7 @@ class Software(PyCOMPSsDecorator):
         self.constraints = None
         self.container = None
 
-        if self.scope:
+        if self.scope and context.in_master():
             if __debug__:
                 logger.debug("Init @software decorator..")
 
@@ -98,6 +99,9 @@ class Software(PyCOMPSsDecorator):
         # function with into the 'real' decorator
         @wraps(user_function)
         def software_f(*args, **kwargs):
+
+            if not self.scope or not context.in_master():
+                return user_function(*args, **kwargs)
 
             if self.constraints is not None:
                 core_element = CE()
@@ -122,14 +126,18 @@ class Software(PyCOMPSsDecorator):
                 ce.set_impl_type_args(impl_args)
                 kwargs[CORE_ELEMENT_KEY] = ce
 
-            decorator = self.decor
+            if self.decor:
+                decorator = self.decor
 
-            def decor_f():
-                def f():
-                    ret = decorator(**self.config_args)
-                    return ret(user_function)(*args, **kwargs)
-                return f()
-            return decor_f()
+                def decor_f():
+                    def f():
+                        ret = decorator(**self.config_args)
+                        return ret(user_function)(*args, **kwargs)
+                    return f()
+                return decor_f()
+            else:
+                # it's a PyCOMPSs task with only @task and @software decorators
+                return user_function(*args, **kwargs)
 
         software_f.__doc__ = user_function.__doc__
         return software_f
@@ -142,20 +150,21 @@ class Software(PyCOMPSsDecorator):
         file_path = self.kwargs['config_file']
         config = json.load(open(file_path, "r"))
 
-        exec_type = config["type"]
-        if not exec_type or exec_type.lower() not in SUPPORTED_DECORATORS:
+        properties = config.get("properties", {})
+        exec_type = config.get("type", None)
+        if exec_type is None:
+            print("Execution type not provided for @software task")
+        elif exec_type.lower() not in SUPPORTED_DECORATORS:
             msg = "Error: Executor Type {} is not supported for software task."\
                 .format(exec_type)
             raise PyCOMPSsException(msg)
-
-        exec_type = exec_type.lower()
-        self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-
-        properties = config["properties"]
-        mand_args = self.task_type.MANDATORY_ARGUMENTS
-        if not all(arg in properties for arg in mand_args):
-            msg = "Error: Missing arguments for '{}'.".format(self.task_type)
-            raise PyCOMPSsException(msg)
+        else:
+            exec_type = exec_type.lower()
+            self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
+            mand_args = self.task_type.MANDATORY_ARGUMENTS
+            if not all(arg in properties for arg in mand_args):
+                msg = "Error: Missing arguments for '{}'.".format(self.task_type)
+                raise PyCOMPSsException(msg)
 
         self.config_args = properties
         self.constraints = config.get("constraints", None)

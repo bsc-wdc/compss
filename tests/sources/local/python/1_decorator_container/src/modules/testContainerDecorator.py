@@ -14,10 +14,13 @@ from __future__ import print_function
 from pycompss.api.task import task
 from pycompss.api.binary import binary
 from pycompss.api.container import container
+from pycompss.api.software import software
+from pycompss.api.api import compss_barrier, compss_wait_on
 from pycompss.api.parameter import *
 
 # Imports
 import unittest
+import os
 
 
 #
@@ -114,9 +117,31 @@ def task_python_inout(finout):
         f.write("Hello from task!\n")
 
 
+@software(config_file=os.getcwd() + "/src/config/container_basic.json")
+@task()
+def task_container_basic():
+    pass
+
+
+@software(config_file=os.getcwd() + "/src/config/container_pycompss.json")
+@task(returns=1)
+def task_python_return_int():
+    print("Hello from Task Python RETURN")
+    return 3
+
+
 # Tests
 
 class testContainerDecorator(unittest.TestCase):
+
+    def test_software_container(self):
+        task_container_basic()
+        compss_barrier()
+
+    def test_software_pycompss(self):
+        ret_int = task_python_return_int()
+        ret_int = compss_wait_on(ret_int)
+        self.assertEquals(ret_int, 3)
 
     def test_binary_container(self):
         # Imports

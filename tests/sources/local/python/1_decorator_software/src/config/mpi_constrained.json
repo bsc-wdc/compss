@@ -1,0 +1,14 @@
+
+{
+	"type":"mpi",
+	"properties":{
+        "runner": "mpirun",
+        "binary":"date",
+        "working_dir": "/tmp",
+        "scale_by_cu": "true",
+        "processes": 2
+	},
+    "constraints": {
+        "computing_units": 2
+    }
+}

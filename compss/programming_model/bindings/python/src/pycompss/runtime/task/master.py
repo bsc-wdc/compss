@@ -989,10 +989,11 @@ class TaskMaster(TaskCommons):
         :param impl_type_args: Parameter arguments.
         :return: None
         """
-        num_layouts = int(impl_type_args[7])
+        # todo: replace these INDEXES with CONSTANTS
+        num_layouts = int(impl_type_args[8])
         if num_layouts > 0:
             for i in range(num_layouts):
-                param_name = impl_type_args[(8+(i*4))].strip()
+                param_name = impl_type_args[(9+(i*4))].strip()
                 if param_name:
                     if param_name in self.parameters:
                         if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:      # noqa: E501

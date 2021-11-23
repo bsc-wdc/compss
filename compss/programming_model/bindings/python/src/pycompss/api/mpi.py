@@ -352,11 +352,11 @@ class MPI(PyCOMPSsDecorator):
                     scale_by_cu_str = 'true'
                 else:
                     scale_by_cu_str = 'false'
-            elif isinstance(scale_by_cu, str):
-                scale_by_cu_str = scale_by_cu
+            elif str(scale_by_cu).lower() in ['true', 'false']:
+                scale_by_cu_str = str(scale_by_cu).lower()
             else:
                 raise PyCOMPSsException("Incorrect format for scale_by_cu property. "
-                                        "It should be boolean or an environment variable")  # noqa: E501
+                                            "It should be boolean or an environment variable")  # noqa: E501
         else:
             scale_by_cu_str = 'false'
         return scale_by_cu_str

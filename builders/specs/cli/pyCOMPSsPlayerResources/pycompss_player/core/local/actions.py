@@ -5,7 +5,12 @@ They are invoked from cli/pycompss.py and uses core/cmd.py.
 
 from pycompss_player.core.local.cmd import local_deploy_compss
 from pycompss_player.core.local.cmd import local_run_app
+from pycompss_player.core.local.cmd import local_exec_app
+from pycompss_player.core.local.cmd import local_jupyter
+from pycompss_player.core.local.cmd import local_submit_job
 from pycompss_player.core.actions import Actions
+import pycompss_player.core.utils as utils
+import os
 
 class LocalActions(Actions):
     def __init__(self, arguments, debug=False, env_conf=None) -> None:
@@ -54,17 +59,62 @@ class LocalActions(Actions):
             print("Parameters:")
             print("\t- Application: " + self.arguments.application)
             print("\t- Arguments: " + str(self.arguments.argument))
-        application = self.arguments.application + " ".join(self.arguments.argument)
-        command = "runcompss " + application
-                # "--project=/project.xml " + \
-                # "--resources=/resources.xml " + \
-                # "--master_name=172.17.0.2 " + \
-                # "--base_log_dir=/home/user " + \
+            
+        app_args = self.arguments.rest_args
+        command = "runcompss " + ' '.join(app_args)
                 
         local_run_app(command)
 
-    def exec(self, arguments, debug=False):
-        super().exec()
+    def jupyter(self):
+        working_dir = '.'
+        if 'working_dir' in self.env_conf:
+            working_dir = self.env_conf['working_dir']
+        local_jupyter(working_dir)
+
+    def exec(self):
+        command = ' '.join(self.arguments.exec_cmd)
+        local_exec_app(command)
+
+    def app(self):
+        print("ERROR: Wrong Environment! Try switching to a `cluster` environment")
+        exit(1)
 
     def environment(self):
         super().environment()
+
+    def env_remove(self):
+        super().env_remove()
+
+    def job(self):
+        action_name = 'list'
+
+        if self.arguments.job:
+            action_name = self.arguments.job
+
+        action_name = utils.get_object_method_by_name(self, 'job_' + action_name, include_in_name=True)
+        getattr(self, action_name)()
+                
+    def job_submit(self):
+        app_args = self.arguments.rest_args
+        local_submit_job(app_args)
+
+    def job_list(self):
+        pass
+        # local_list_job(login_info)
+
+    def job_cancel(self):
+        jobid = self.arguments.job_id
+        # local_cancel_job(jobid)
+
+    def monitor(self):
+        if self.arguments.option == 'start':
+            local_exec_app('/etc/init.d/compss-monitor start')
+            local_exec_app('firefox http://localhost:8080/compss-monitor &')
+        elif self.arguments.option == 'stop':
+            local_exec_app('/etc/init.d/compss-monitor stop')
+            
+    def component(self):
+        pass
+
+    def gengraph(self):
+        pass

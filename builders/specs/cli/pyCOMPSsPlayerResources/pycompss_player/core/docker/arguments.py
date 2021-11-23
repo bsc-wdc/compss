@@ -1,11 +1,11 @@
 import sys
 import argparse
-
+import os
 
 FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
 
 
-def local_init_parser():
+def docker_init_parser():
     """ Parses the sys.argv.
 
     :returns: All arguments as namespace.
@@ -20,12 +20,20 @@ def local_init_parser():
     # INIT
     parser_init = subparsers.add_parser("init",
                                         aliases=["i"],
-                                        help="Initialize COMPSs locally.",
+                                        help="Initialize COMPSs with docker.",
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
     parser_init.add_argument("-w", "--working_dir",
-                             default="",
+                             default=os.getcwd(),
                              type=str,
                              help="Working directory")
+    parser_init.add_argument("-i", "--image",
+                             default="",
+                             type=str,
+                             help="Docker image")
+    parser_init.add_argument("-nr", "--no_restart",
+                             dest="restart",
+                             action="store_false",
+                             help='Do not restart if already deployed.')
     
     return parser_init

@@ -5,16 +5,23 @@ from pycompss_player.core import utils
 from glob import glob
 import os
 from pathlib import Path
+import json
 
-class ActionsDispatcher(object):        
+class ActionsDispatcher(object):
+    def __init__(self) -> None:
+        super().__init__()
+        self.home_path = str(Path.home())
+
     def run_action(self, arguments, debug):
-        # print(arguments)
+        print(arguments)
+
+        self.__ensure_default_env()
 
         if 'env' in arguments and arguments.env:
             self.__env = arguments.env
             env_conf = None
         else:
-            envs_path = str(Path.home()) + '/.COMPSs/envs'
+            envs_path = self.home_path + '/.COMPSs/envs'
             if not os.path.isdir(envs_path) or len(list(os.walk(envs_path))) == 1:
                 print("There are no environments created. Try using `pycompss init`")
                 exit(1)
@@ -41,3 +48,10 @@ class ActionsDispatcher(object):
             return RemoteActions(arguments, debug, env_conf)
 
     
+    def __ensure_default_env(self):
+        default_env = self.home_path + '/.COMPSs/envs/default'
+        if not os.path.isdir(default_env):
+            os.makedirs(default_env)
+            open(default_env + '/current', 'a').close()
+            with open(default_env + '/env.json', 'w') as def_env:
+                json.dump({ 'env': 'local', 'name': 'default' }, def_env)

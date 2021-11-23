@@ -1,10 +1,11 @@
 import json
 from glob import glob
 from pathlib import Path
+import subprocess
 
 def get_object_method_by_name(obj, method_name, include_in_name=False):
     for class_method_name in dir(obj):
-        if callable(getattr(obj, class_method_name)) and not class_method_name.startswith('__') and not class_method_name.endswith('__'):
+        if callable(getattr(obj, class_method_name)) and not '__' in class_method_name:
             if class_method_name.startswith(method_name) or (include_in_name and method_name in class_method_name):
                 return class_method_name
 
@@ -21,3 +22,8 @@ def get_current_env(return_path=False):
         if return_path:
             return json.load(env), current_env
         return json.load(env)
+
+def ssh_run_commands(login_info, commands, **kwargs):
+    cmd = ' ; '.join(commands)
+    res = subprocess.run(f"ssh {login_info} '{cmd}'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+    return res.stdout.decode()

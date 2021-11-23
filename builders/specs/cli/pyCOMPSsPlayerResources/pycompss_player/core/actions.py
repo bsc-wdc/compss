@@ -9,18 +9,22 @@ import shutil
 from pathlib import Path
 from glob import glob
 from pycompss_player.core import utils
+from uuid import uuid4 as uuid
 
 class Actions(ABC):
 
     def __init__(self, arguments, debug=False, env_conf=None) -> None:
         super().__init__()
-        self.env_conf = env_conf
         self.arguments = arguments
         self.debug = debug
+        self.env_conf = env_conf
         self.home_path = str(Path.home())
         
+        if self.env_conf:
+            self.env_conf['env_path'] = self.home_path + '/.COMPSs/envs/' + self.env_conf['name']
+
     
-    def add_env_config(self, extra_conf):
+    def env_add_conf(self, extra_conf):
         current_env, env_conf_path = utils.get_current_env(return_path=True)
         new_conf =  {**current_env, **extra_conf}
         with open(env_conf_path, 'w') as f:
@@ -29,8 +33,10 @@ class Actions(ABC):
 
     @abstractmethod
     def init(self):
-        # print('ABS INIT')
 
+        if self.arguments.name == 'unique uuid':
+            self.arguments.name = ''.join(str(uuid()).split('-')[:2])
+        
         if os.path.isdir(self.home_path + '/.COMPSs/envs'):
             envs = os.listdir(self.home_path + '/.COMPSs/envs')
 
@@ -38,23 +44,24 @@ class Actions(ABC):
                 print("ERROR: There's already another environment named " + self.arguments.name)
                 exit(1)
 
-        env_dir_name = self.home_path + '/.COMPSs/envs/' + self.arguments.name
+        env_path = self.home_path + '/.COMPSs/envs/' + self.arguments.name
+        self.arguments.env_path = env_path
 
-        os.makedirs(env_dir_name)
-        # print("MAKE DIRS", env_dir_name)
+        os.makedirs(env_path)
+        # print("MAKE DIRS", env_path)
 
-        with open(env_dir_name + '/env.json', 'w') as env_conf:
+        with open(env_path + '/env.json', 'w') as env_conf:
             json.dump(vars(self.arguments), env_conf)
 
         if self.arguments.config:
-            shutil.copy2(self.arguments.config, env_dir_name)
+            shutil.copy2(self.arguments.config, env_path)
 
         for current_file in glob(self.home_path + '/.COMPSs/envs/*/current'):
             os.remove(current_file)
 
-        open(env_dir_name + '/current', 'a').close()
+        open(env_path + '/current', 'a').close()
 
-        # print(self.arguments.name)
+        print(self.arguments.name)
 
     @abstractmethod
     def exec(self):
@@ -64,26 +71,31 @@ class Actions(ABC):
     def run(self):
         pass
 
-    # @abstractmethod
-    # def job(self):
-    #     pass
+    @abstractmethod
+    def job(self):
+        pass
 
-    # @abstractmethod
-    # def jupyter(self):
-    #     pass
+    @abstractmethod
+    def app(self):
+        raise NotImplementedError("Wrong Environment! Try switching to a `cluster` environment")
 
-    # @abstractmethod
-    # def monitor(self):
-    #     pass
+    @abstractmethod
+    def jupyter(self):
+        pass
 
-    # @abstractmethod
-    # def gengraph(self):
-    #     pass
+    @abstractmethod
+    def monitor(self):
+        pass
 
-    # @abstractmethod
-    # def component(self):
-    #     pass
+    @abstractmethod
+    def gengraph(self):
+        pass
 
+    @abstractmethod
+    def component(self):
+        pass
+
+    @abstractmethod
     def environment(self):
         # print('ABS ENV')
         action_name = 'list'
@@ -91,10 +103,10 @@ class Actions(ABC):
         if self.arguments.environment:
             action_name = self.arguments.environment
 
-        action_name = utils.get_object_method_by_name(self, '__env_' + action_name, include_in_name=True)
+        action_name = utils.get_object_method_by_name(self, 'env_' + action_name, include_in_name=True)
         getattr(self, action_name)()
 
-    def __env_list(self):
+    def env_list(self):
         env_dir_tree = list(os.walk(self.home_path + '/.COMPSs/envs'))
         envs_names = env_dir_tree[0][1]
         env_dir_tree = env_dir_tree[1:]
@@ -109,7 +121,7 @@ class Actions(ABC):
         utils.table_print(col_names, env_info)
 
 
-    def __env_change(self):
+    def env_change(self):
         if not os.path.isdir(self.home_path + '/.COMPSs/envs/' + self.arguments.env_id):
             print("ERROR: There's no environment named " + self.arguments.env_id)
             exit(1)
@@ -120,14 +132,24 @@ class Actions(ABC):
         open(env_dir_name + '/current', 'a').close()
         print('Environment', self.arguments.env_id, 'is now active')
 
-    def __env_remove(self):
-        if not os.path.isdir(self.home_path + '/.COMPSs/envs/' + self.arguments.env_id):
-            print("ERROR: There's no environment named " + self.arguments.env_id)
-            exit(1)
+    def remove_current_env(self):
+        env_dir_name = self.env_conf['env_path']
+        self.__param_env_remove(env_dir_name)
 
-        env_dir_name = self.home_path + '/.COMPSs/envs/' + self.arguments.env_id
+    def __param_env_remove(self, env_dir_name):
         shutil.rmtree(env_dir_name)
+        open(self.home_path + '/.COMPSs/envs/default/current', 'a').close()
 
-        other_envs = list(os.walk(self.home_path + '/.COMPSs/envs'))
-        if len(other_envs) > 1:
-            open(other_envs[1][0] + '/current', 'a').close()
+    @abstractmethod
+    def env_remove(self):
+        for env_id in self.arguments.env_id:
+            if env_id == 'default':
+                print('ERROR: `default` environment is required and cannot be deleted')
+                exit(1)
+
+            if not os.path.isdir(self.home_path + '/.COMPSs/envs/' + env_id):
+                print("ERROR: There's no environment named " + env_id)
+                exit(1)
+
+            env_dir_name = self.home_path + '/.COMPSs/envs/' + env_id
+            self.__param_env_remove(env_dir_name)

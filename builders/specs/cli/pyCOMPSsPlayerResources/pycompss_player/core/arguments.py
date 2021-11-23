@@ -1,10 +1,9 @@
 import sys
 import argparse
-from uuid import uuid4 as uuid
 
 from pycompss_player.core.docker.arguments import docker_init_parser
 from pycompss_player.core.local.arguments import local_init_parser
-from pycompss_player.core.remote.arguments import cluster_init_parser, cluster_parser_job
+from pycompss_player.core.remote.arguments import cluster_init_parser, cluster_parser_job, cluster_parser_app
 
 FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
 
@@ -29,15 +28,16 @@ def parse_sys_argv():
                                         help="Initialize COMPSs environment (default local).",
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
+
+    parser_init.set_defaults(action='init')
     
     parser_init.add_argument("-cfg", "--config",
                              default="",
                              type=str,
                              help="Configuration file")
 
-    unique_id = ''.join(str(uuid()).split('-')[:2])
     parser_init.add_argument("-n", "--name",
-                             default=unique_id,
+                             default='unique uuid',
                              type=str,
                              help="Environment name")
 
@@ -59,41 +59,53 @@ def parse_sys_argv():
                                         help="Execute the given command within the COMPSs\' environment.",  # noqa: E501
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
+    parser_exec.set_defaults(action='exec')
+
+    
     parser_exec.add_argument("-eid", "--env_id",
                              default="",
                              type=str,
                              help="Environment ID")
-    parser_exec.add_argument("command",
-                             type=str,
-                             help="Command to execute")
-    parser_exec.add_argument("argument",
-                             nargs="*",
-                             type=str,
-                             help="Command\'s arguments")
+    parser_exec.add_argument('exec_cmd', 
+                            nargs=argparse.REMAINDER,   
+                            help="Exec program arguments")
     # RUN
     parser_run = subparsers.add_parser("run",
                                        aliases=["r"],
                                        help="Run the application (with runcompss) within the COMPSs\' environment.",  # noqa: E501
                                        parents=[parent_parser],
                                        formatter_class=FORMATTER_CLASS)
+    parser_run.set_defaults(action='run')
+
+
     parser_run.add_argument("-eid", "--env_id",
                              default="",
                              type=str,
                              help="Environment ID")
-    parser_run.add_argument("application",
-                            type=str,
-                            help="Application to execute")
-    parser_run.add_argument("argument",
-                            nargs="*",
-                            type=str,
-                            help="Application\'s arguments")
+
+    parser_run.add_argument("-app", "--app_name",
+                             default="",
+                             type=str,
+                             help="Name of the app where to execute runcompss. Only required for `cluster` type environment")
+    parser_run.add_argument('rest_args',
+                            nargs=argparse.REMAINDER,   
+                            help="Runcompss program arguments")
+
+    # APP  cluster_parser_app
+    parser_app = subparsers.add_parser("app", aliases=["a"], add_help=False,
+                                    help="Manage applications within cluster environments.",  # noqa: E501
+                                    parents=[cluster_parser_app()],
+                                    formatter_class=FORMATTER_CLASS)
+    parser_app.set_defaults(action='app')
+
 
     # JOB
-    
     parser_job = subparsers.add_parser("job", aliases=["j"], add_help=False,
                                     help="Manage jobs within cluster environments.",  # noqa: E501
                                     parents=[cluster_parser_job()],
                                     formatter_class=FORMATTER_CLASS)
+    parser_job.set_defaults(action='job')
+    
 
     parser_job.add_argument("-eid", "--env_id",
                              default="",
@@ -106,31 +118,41 @@ def parse_sys_argv():
                                            help="Start the monitor within the COMPSs\' environment.",  # noqa: E501
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
+    parser_monitor.set_defaults(action='monitor')
+    
     parser_monitor.add_argument("option",
                                 help="Start or stop de monitoring service.",
                                 choices=["start", "stop"],
                                 default="start",
                                 type=str)
+
     # JUPYTER
     parser_jupyter = subparsers.add_parser("jupyter",
                                            aliases=["jpy"],
                                            help="Starts Jupyter within the COMPSs\' environment.",  # noqa: E501
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
+    parser_jupyter.set_defaults(action='jupyter')
+    
     parser_jupyter.add_argument("-eid", "--env_id",
                              default="",
                              type=str,
-                             help="Environment ID")                                           
-    parser_jupyter.add_argument("argument",
-                                nargs="*",
-                                type=str,
-                                help="Jupyter\'s arguments")
+                             help="Environment ID")
+    parser_jupyter.add_argument("-app", "--app_name",
+                             default="",
+                             type=str,
+                             help="Name of the app where the notebook will be deployed. Only required for `cluster` type environment")
+    parser_jupyter.add_argument('rest_args', 
+                            nargs=argparse.REMAINDER,   
+                            help="Jupyter arguments")
     # GENGRAPH
     parser_gengraph = subparsers.add_parser("gengraph",
                                             aliases=["g"],
                                             help="Converts the given graph into pdf.",  # noqa: E501
                                             parents=[parent_parser],
                                             formatter_class=FORMATTER_CLASS)
+    parser_gengraph.set_defaults(action='gengraph')
+
     parser_gengraph.add_argument("-eid", "--env_id",
                              default="",
                              type=str,
@@ -144,15 +166,18 @@ def parse_sys_argv():
                                               help="Manage infrastructure components.",  # noqa: E501
                                               parents=[parent_parser],
                                               formatter_class=FORMATTER_CLASS)
+    parser_components.set_defaults(action='components')
+
     parser_components.add_argument("-eid", "--env_id",
                              default="",
                              type=str,
                              help="Environment ID")                                                  
     subparsers_components = parser_components.add_subparsers(dest="components")
-    parser_components_list = subparsers_components.add_parser("list",
-                                                              aliases=["l"],
-                                                              help="List COMPSs active components.",  # noqa: E501
-                                                              formatter_class=FORMATTER_CLASS)        # noqa: E501
+    
+    subparsers_components.add_parser("list",
+                                    aliases=["l"],
+                                    help="List COMPSs active components.",  # noqa: E501
+                                    formatter_class=FORMATTER_CLASS)        # noqa: E501
     parser_components_add = subparsers_components.add_parser("add",
                                                              aliases=["a"],
                                                              help="Adds the RESOURCE to the pool of workers of the COMPSs.",  # noqa: E501
@@ -187,26 +212,31 @@ def parse_sys_argv():
                                               help="Manage COMPSs environments.",  # noqa: E501
                                               parents=[parent_parser],
                                               formatter_class=FORMATTER_CLASS)
+
+    parser_environment.set_defaults(action='environment')
+
     subparsers_environment = parser_environment.add_subparsers(dest="environment")
-    parser_environment_list = subparsers_environment.add_parser("list",
-                                                              aliases=["l"],
-                                                              help="List COMPSs active environments.",  # noqa: E501
-                                                              formatter_class=FORMATTER_CLASS)        # noqa: E501
+
+    subparsers_environment.add_parser("list",
+                                        aliases=["l"],
+                                        help="List COMPSs active environments.",  # noqa: E501
+                                        formatter_class=FORMATTER_CLASS)        # noqa: E501
     parser_environment_change = subparsers_environment.add_parser("change",
                                                              aliases=["c"],
                                                              help="Change current COMPSs environment.",  # noqa: E501
                                                              formatter_class=FORMATTER_CLASS)
     parser_environment_change.add_argument("env_id",
-                                              type=str,
-                                              help="ID of the environment to set as active")  # noqa: E501                 
+                                            type=str,
+                                            help="ID of the environment to set as active")  # noqa: E501                 
 
     parser_environment_remove = subparsers_environment.add_parser("remove",
                                                                 aliases=["r"],
                                                                 help="Removes COMPSs environment.",  # noqa: E501
                                                                 formatter_class=FORMATTER_CLASS)                  # noqa: E501
     parser_environment_remove.add_argument("env_id",
-                                                 type=str,
-                                                 help="ID of the environment to remove")  # noqa: E501                                                                           
+                                            nargs="+",
+                                            type=str,
+                                            help="ID of the environment to remove")  # noqa: E501                                                                           
 
     # Check if the user does not include any argument
     if len(sys.argv) < 2:
@@ -214,6 +244,9 @@ def parse_sys_argv():
         print(parser.print_help())
         sys.exit(1)
 
-    arguments = parser.parse_args()
+    arguments, leftovers = parser.parse_known_args()
+
+    if leftovers:
+        arguments.rest_args = leftovers + arguments.rest_args
 
     return arguments

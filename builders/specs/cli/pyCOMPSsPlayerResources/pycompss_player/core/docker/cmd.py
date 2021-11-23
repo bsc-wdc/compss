@@ -1,14 +1,15 @@
 import json
 import os
-import pickle
 import sys
 import tarfile
 import tempfile
 import shutil
+import traceback
 import docker
 from uuid import uuid4
 from docker.types import Mount
 from docker.errors import DockerException
+import inspect
 
 from pycompss_player.core.cmd_helpers import command_runner
 
@@ -78,8 +79,6 @@ class DockerCmd(object):
         :param restart: Force stop the existing and start a new one.
         :returns: None
         """
-
-
         
 
         if image:
@@ -150,7 +149,7 @@ class DockerCmd(object):
         self._stop_by_name(worker_name)
 
 
-    def docker_exec_in_daemon(self, cmd: str) -> None:
+    def docker_exec_in_daemon(self, cmd: str, return_output=False) -> None:
         """ Execute the given command in the main COMPSs image in Docker.
 
         :param cmd: Command to execute.
@@ -162,6 +161,8 @@ class DockerCmd(object):
 
         master = self._get_master()
         _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
+        if return_output:
+            return list(output)[-1].decode().strip()
         for line in output:
             print(line.strip().decode())
 

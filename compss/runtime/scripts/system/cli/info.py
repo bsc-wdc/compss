@@ -53,11 +53,7 @@ def info():
 
     # Load the Supercomputer configuration to get the appropriate status command
     setup_supercomputer_configuration()
-
-    # Check if the job_id belongs to a notebook before continuing
-    if not is_notebook_job(job_id):
-        not_a_notebook(job_id)
-
+    
     # Get the list of nodes
     raw_nodes_command = os.environ['QUEUE_JOB_NODES_CMD']
     nodes_command = update_command(raw_nodes_command, job_id)
@@ -78,13 +74,9 @@ def info():
             print(" - Found master: " + str(master))
 
         # Get the command to contact with the node where the job is running
-        jupyter_variables = get_jupyter_environment_variables()
-        to_export = "export"
-        for k, v in jupyter_variables.items():
-            to_export += " " + k + "=" + v
-        server_list = os.environ['CONTACT_CMD'] + ' ' + master + \
-                     ' \"' + to_export + ' && jupyter-notebook list\"'
-        return_code, jupyter_server_list, _ = command_runner_shell(server_list)
+        jpy_runtime_dir_cmd = os.environ['CONTACT_CMD'] + ' ' + master + \
+                     ' \'module load python/3.6.1 ; cat "$(ls -Art $(jupyter --runtime-dir)/*.html | tail -n 1)"\''
+        return_code, jpy_server_out, _ = command_runner_shell(jpy_runtime_dir_cmd)
 
         if VERBOSE:
             print("Finished checking the information.")
@@ -96,7 +88,7 @@ def info():
         else:
             print(SUCCESS_KEYWORD)
             print("MASTER:" + str(master))
-            print("SERVER: " + str(jupyter_server_list.replace('\n', ' ')))
+            print("SERVER: " + str(jpy_server_out.replace('\n', ' ')))
     else:
         # Print to provide information to the client
         print(NOT_RUNNING_KEYWORD)  # The notebook is not ready yet

@@ -42,9 +42,14 @@ class DockerActions(Actions):
             print("\t- Working dir: " + working_dir)
             print("\t- Image: " + image)
             print("\t- Restart: " + str(self.arguments.restart))
+
+
         self.docker_cmd.docker_deploy_compss(self.arguments.working_dir,
                             self.arguments.image,
                             self.arguments.restart)
+
+        master_ip = self.docker_cmd.docker_exec_in_daemon("hostname -i", return_output=True)
+        self.env_add_conf({'master_ip': master_ip})
 
 
     def update(self):
@@ -86,7 +91,7 @@ class DockerActions(Actions):
             print("Parameters:")
             print("\t- Command: " + self.arguments.command)
             print("\t- self.Arguments: " + str(self.arguments.argument))
-        command = self.arguments.command + " ".join(self.arguments.argument)
+        command = ' '.join(self.arguments.exec_cmd)
         self.docker_cmd.docker_exec_in_daemon(command)
 
 
@@ -103,12 +108,26 @@ class DockerActions(Actions):
             print("Parameters:")
             print("\t- Application: " + self.arguments.application)
             print("\t- self.Arguments: " + str(self.arguments.argument))
-        application = self.arguments.application + " ".join(self.arguments.argument)
-        command = "runcompss " + \
-                "--project=/project.xml " + \
-                "--resources=/resources.xml " + \
-                "--master_name=172.17.0.2 " + \
-                "--base_log_dir=/home/user " + application
+
+        app_args = self.arguments.rest_args
+
+        if '--project' not in app_args:
+            app_args.insert(0, '--project=/project.xml ')
+        if '--resources' not in app_args:
+            app_args.insert(0, '--resources=/resources.xml ')
+        if '--master_name' not in app_args:
+            app_args.insert(0, f"--master_name={self.env_conf['master_ip']} ")
+        if '--base_log_dir' not in app_args:
+            app_args.insert(0, '--base_log_dir=/home/user ')
+
+        command = "runcompss " + ' '.join(app_args)
+
+        # application = " ".join(app_args)
+        # command = "runcompss " + \
+        #         "--project=/project.xml " + \
+        #         "--resources=/resources.xml " + \
+        #         "--master_name=172.17.0.2 " + \
+        #         "--base_log_dir=/home/user " + application
         self.docker_cmd.docker_exec_in_daemon(command)
 
 
@@ -145,7 +164,7 @@ class DockerActions(Actions):
         arguments = " ".join(self.arguments.argument)
         command = "jupyter-notebook " + \
                 arguments + " " + \
-                "--ip=172.17.0.2 " + \
+                f"--ip={self.env_conf['master_ip']} " + \
                 "--allow-root " + \
                 "--NotebookApp.token="
         self.docker_cmd.docker_exec_in_daemon(command)
@@ -166,6 +185,8 @@ class DockerActions(Actions):
         command = "compss_gengraph " + self.arguments.dot_file
         self.docker_cmd.docker_exec_in_daemon(command)
 
+    def app(self):
+        pass
 
     def components(self):
         """ Lists/add/remove workers in the COMPSs infrastructure at docker
@@ -196,3 +217,10 @@ class DockerActions(Actions):
 
     def environment(self):
         super().environment()
+
+    def env_remove(self):
+        super().env_remove()
+        self.docker_cmd.docker_kill_compss()
+
+    def job(self):
+        raise NotImplementedError("Wrong Environment! Try using a `cluster` environment")

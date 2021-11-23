@@ -290,7 +290,8 @@ public class ContainerInvoker extends Invoker {
                         cmd[cmdIndex++] = "-v";
                         cmd[cmdIndex++] = appDir + ":" + appDir;
                         cmd[cmdIndex++] = "-v";
-                        cmd[cmdIndex++] = pyCompssDir + ":" + pyCompssDir;
+                        cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
+                            + File.separator + "pycompss" + File.separator;
                         cmd[cmdIndex++] = "--env";
                         cmd[cmdIndex++] = "PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
                         break;
@@ -330,7 +331,7 @@ public class ContainerInvoker extends Invoker {
                 final String[] parts = this.internalFunction.split("&");
                 final String userModule = parts[0];
                 final String userFunction = parts[1];
-                cmd[cmdIndex++] = "python";
+                cmd[cmdIndex++] = "python" + pythonVersion;
                 cmd[cmdIndex++] = pyCompssDir + REL_PATH_WORKER_CONTAINER;
                 cmd[cmdIndex++] = userModule; // 1
                 cmd[cmdIndex++] = userFunction; // 2

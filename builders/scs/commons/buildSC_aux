@@ -141,6 +141,7 @@
   mkdir -p "${targetDir}/Tools/storage"
   mkdir -p "${targetDir}/Bindings"
   mkdir -p "${targetDir}/Bindings/bindings-common"
+  mkdir -p "${targetDir}/cli"
 
   # RUNTIME DEPLOYMENT
   echo "- Copy Runtime deployment files"
@@ -395,6 +396,13 @@
         done
     fi
   fi
+  cd "${SCRIPT_DIR}" || exit 1
+
+  # - CLI
+  echo "- Deploying cli"
+  cd "${TMP_DIR}"/cli || exit 1
+  module load ${py3_modules}
+  ./install_sc.sh "${targetDir}"/cli 
   cd "${SCRIPT_DIR}" || exit 1
 
   # ADD RUNCOMPSS TO PROFILE

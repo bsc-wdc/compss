@@ -142,10 +142,13 @@ public class MPIInvoker extends Invoker {
 
         }
 
-        // Convert binary parameters and calculate binary-streams redirection
-        StdIOStream streamValues = new StdIOStream();
         String[] appParams = BinaryRunner.buildAppParams(this.invocation.getParams(), this.invocation.getTarget(),
-            streamValues, this.mpiDef.getParams(), pythonInterpreter);
+            this.mpiDef.getParams(), pythonInterpreter);
+
+        // Calculate binary-streams redirection
+        StdIOStream streamValues = new StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+            this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // MPI Flags
         String mpiFlags = mpiDef.getMpiFlags();
@@ -157,7 +160,7 @@ public class MPIInvoker extends Invoker {
         }
 
         // Prepare command
-        String[] cmd = new String[NUM_BASE_MPI_ARGS + numMPIFlags + appParams.length];
+        String[] cmd = new String[NUM_BASE_MPI_ARGS + numMPIFlags + appParams.length + binaryParams.size()];
         int pos = 0;
         cmd[pos++] = this.mpiDef.getMpiRunner();
         cmd[pos++] = this.mpiDef.getHostsFlag();
@@ -178,6 +181,10 @@ public class MPIInvoker extends Invoker {
 
         for (String appParam : appParams) {
             cmd[pos++] = appParam;
+        }
+
+        for (String binParam : binaryParams) {
+            cmd[pos++] = binParam;
         }
 
         // Prepare environment

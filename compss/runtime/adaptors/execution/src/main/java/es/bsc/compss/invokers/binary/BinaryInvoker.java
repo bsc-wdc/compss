@@ -128,17 +128,27 @@ public class BinaryInvoker extends Invoker {
             pythonInterpreter = pp.getPythonInterpreter();
         }
 
-        // Convert binary parameters and calculate binary-streams redirection
+        // Calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+            this.invocation.getTarget(), streamValues, pythonInterpreter);
+
         String[] appParams = BinaryRunner.buildAppParams(this.invocation.getParams(), this.invocation.getTarget(),
-            streamValues, this.binDef.getParams(), pythonInterpreter);
+            this.binDef.getParams(), pythonInterpreter);
 
         // Prepare command
         String[] cmd = null;
         // Prepare a simple binary command
-        cmd = new String[NUM_BASE_BINARY_ARGS + appParams.length];
-        cmd[0] = this.binary;
-        System.arraycopy(appParams, 0, cmd, 1, appParams.length);
+        cmd = new String[NUM_BASE_BINARY_ARGS + appParams.length + binaryParams.size()];
+        int pos = 0;
+        cmd[pos++] = this.binary;
+        for (String appParam : appParams) {
+            cmd[pos++] = appParam;
+        }
+
+        for (String binParam : binaryParams) {
+            cmd[pos++] = binParam;
+        }
 
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = this.context.getThreadOutStream();

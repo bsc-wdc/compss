@@ -112,14 +112,14 @@ public class BinaryRunner {
      *
      * @param parameters Binary parameters
      * @param target Binary target parameter
-     * @param streamValues Binary stream values
      * @param params parameters that should invoke
      * @param pythonInterpreter Currently loaded python interpreter.
      * @return formatted string where param names are replaces with the values.
      */
     public static String[] buildAppParams(List<? extends InvocationParam> parameters, InvocationParam target,
-        StdIOStream streamValues, String params, String pythonInterpreter) throws InvokeExecutionException {
+        String params, String pythonInterpreter) throws InvokeExecutionException {
 
+        StdIOStream streamValues = new StdIOStream();
         String paramsString = params;
         for (InvocationParam param : parameters) {
             ArrayList<String> tmp = processParam(param, streamValues, pythonInterpreter);
@@ -129,15 +129,7 @@ public class BinaryRunner {
                 paramsString = paramsString.replaceAll(replacement, value);
             }
         }
-        if (target != null) {
-            ArrayList<String> tmp = processParam(target, streamValues, pythonInterpreter);
-            if (paramsString != null && !paramsString.isEmpty() && !paramsString.equals("[unassigned]")) {
-                String value = String.join(" ", tmp);
-                String replacement = APP_PARAMETER_OPEN_TOKEN + target.getName() + APP_PARAMETER_CLOSE_TOKEN;
-                paramsString = paramsString.replaceAll(replacement, value);
-            }
-        }
-        return paramsString == null ? new String[0] : paramsString.split(" ");
+        return paramsString == null || paramsString.equals(params) ? new String[0] : paramsString.split(" ");
     }
 
     // PRIVATE STATIC METHODS
@@ -156,7 +148,6 @@ public class BinaryRunner {
                 streamValues.setStdErr((String) param.getValue());
                 break;
             case UNSPECIFIED:
-                // keep these guys?
                 if (!param.getPrefix().equals(Constants.PREFIX_SKIP)) {
                     if (param.getValue() != null && param.getValue().getClass().isArray()) {
                         addArrayParam(param, binaryParamFields);

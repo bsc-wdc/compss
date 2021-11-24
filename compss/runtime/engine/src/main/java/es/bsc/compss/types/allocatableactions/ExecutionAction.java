@@ -254,7 +254,7 @@ public class ExecutionAction extends AllocatableAction {
             if (DEBUG) {
                 JOB_LOGGER.debug("    * " + p);
             }
-            if (p instanceof DependencyParameter) {
+            if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (taskDescription.getType()) {
                     case HTTP:
@@ -281,7 +281,7 @@ public class ExecutionAction extends AllocatableAction {
                 JOB_LOGGER.debug("Detected CollectionParameter " + cp);
                 // Recursively send all the collection parameters
                 for (Parameter p : cp.getParameters()) {
-                    if (p instanceof DependencyParameter) {
+                    if (p.isPotentialDependency()) {
                         DependencyParameter dp = (DependencyParameter) p;
                         transferJobData(dp, listener);
                     }
@@ -295,12 +295,12 @@ public class ExecutionAction extends AllocatableAction {
                 // Recursively send all the dictionary collection parameters
                 for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
                     Parameter k = entry.getKey();
-                    if (k instanceof DependencyParameter) {
+                    if (k.isPotentialDependency()) {
                         DependencyParameter dpKey = (DependencyParameter) k;
                         transferJobData(dpKey, listener);
                     }
                     Parameter v = entry.getValue();
-                    if (v instanceof DependencyParameter) {
+                    if (v.isPotentialDependency()) {
                         DependencyParameter dpValue = (DependencyParameter) v;
                         transferJobData(dpValue, listener);
                     }
@@ -339,7 +339,7 @@ public class ExecutionAction extends AllocatableAction {
                 listener.addOperation();
                 String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
                 String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-                LogicalData tmpData = Comm.registerData("tmp" + tgtName, null);
+                LogicalData tmpData = Comm.registerData("tmp" + tgtName);
                 w.getData(srcName, tgtName, tmpData, param, listener);
             }
         }
@@ -433,7 +433,7 @@ public class ExecutionAction extends AllocatableAction {
             if (DEBUG) {
                 JOB_LOGGER.debug("    * " + p);
             }
-            if (p instanceof DependencyParameter) {
+            if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (taskDescription.getType()) {
                     case HTTP:
@@ -460,7 +460,7 @@ public class ExecutionAction extends AllocatableAction {
                 JOB_LOGGER.debug("Detected CollectionParameter " + cp);
                 // Recursively send all the collection parameters
                 for (Parameter p : cp.getParameters()) {
-                    if (p instanceof DependencyParameter) {
+                    if (p.isPotentialDependency()) {
                         DependencyParameter dp = (DependencyParameter) p;
                         removeTmpData(dp);
                     }
@@ -472,12 +472,12 @@ public class ExecutionAction extends AllocatableAction {
                 // Recursively send all the dictionary collection parameters
                 for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
                     Parameter k = entry.getKey();
-                    if (k instanceof DependencyParameter) {
+                    if (k.isPotentialDependency()) {
                         DependencyParameter dpKey = (DependencyParameter) k;
                         removeTmpData(dpKey);
                     }
                     Parameter v = entry.getValue();
-                    if (v instanceof DependencyParameter) {
+                    if (v.isPotentialDependency()) {
                         DependencyParameter dpValue = (DependencyParameter) v;
                         removeTmpData(dpValue);
                     }
@@ -691,7 +691,7 @@ public class ExecutionAction extends AllocatableAction {
 
     private String getOuputRename(Parameter p) {
         String name = null;
-        if (p instanceof DependencyParameter) {
+        if (p.isPotentialDependency()) {
             // Notify the FileTransferManager about the generated/updated OUT/INOUT datums
             DependencyParameter dp = (DependencyParameter) p;
             DataInstanceId dId = null;
@@ -802,7 +802,7 @@ public class ExecutionAction extends AllocatableAction {
         List<Parameter> params = job.getTaskParams().getParameters();
         for (int i = params.size() - 1; i >= 0; --i) {
             Parameter p = params.get(i);
-            if (p instanceof DependencyParameter) {
+            if (p.isPotentialDependency()) {
                 // Check parameter direction
                 DataInstanceId dId = null;
                 DependencyParameter dp = (DependencyParameter) p;
@@ -848,7 +848,7 @@ public class ExecutionAction extends AllocatableAction {
         List<Parameter> params = job.getTaskParams().getParameters();
         for (int i = 0; i < params.size(); ++i) {
             Parameter p = params.get(i);
-            if (!(p instanceof DependencyParameter)) {
+            if (!(p.isPotentialDependency())) {
                 continue;
             }
 

@@ -606,7 +606,7 @@ public class Agent {
 
         if (ld == null) {
             if (otherNamedLocalData == null) {
-                ld = Comm.registerData(remote.getRenaming(), null);
+                ld = Comm.registerData(remote.getRenaming());
             } else {
                 try {
                     Comm.linkData(otherNamedLocalData.getName(), remote.getRenaming());

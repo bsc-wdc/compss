@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.implementations;
+package es.bsc.compss.util;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
@@ -25,7 +25,7 @@ import es.bsc.compss.types.parameter.Parameter;
 import java.util.List;
 
 
-public abstract class ImplementationSignature {
+public class SignatureBuilder {
 
     private static final Lang LANG;
 
@@ -47,9 +47,15 @@ public abstract class ImplementationSignature {
 
 
     /**
+     * Private constructor to avoid the instantiation of the class.
+     */
+    private SignatureBuilder() {
+    }
+
+    /**
      * Builds the signature from the given parameters.
      * 
-     * @param declaringClass Method declaring classs.
+     * @param declaringClass Method declaring class.
      * @param methodName Method name.
      * @param hasTarget Whether the method has target object or not.
      * @param numReturns The number of return values of the method.

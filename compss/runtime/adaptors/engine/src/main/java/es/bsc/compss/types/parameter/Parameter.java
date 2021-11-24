@@ -51,7 +51,7 @@ public abstract class Parameter implements Serializable {
      * @param prefix Parameter prefix.
      * @param name Parameter name.
      * @param contentType Python object type.
-     * @param weight Parameter weigth for taking scheduling decisions
+     * @param weight Parameter weight for taking scheduling decisions
      * @param keepRename if {@literal true}, parameter remains renamed within the task's execution sandbox; otherwise,
      *            the value recovers its original name
      */
@@ -70,6 +70,14 @@ public abstract class Parameter implements Serializable {
         this.weight = weight;
         this.keepRename = keepRename;
     }
+
+    /**
+     * Returns whether the parameter is a DependencyParameter or a basic type parameter.
+     *
+     * @return {@literal true}, if the parameter represents a data that may incur a dependency; {@literal false} if it
+     *         is a basic type
+     */
+    public abstract boolean isPotentialDependency();
 
     /**
      * Returns the parameter type.

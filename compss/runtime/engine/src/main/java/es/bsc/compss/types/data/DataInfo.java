@@ -65,7 +65,6 @@ public abstract class DataInfo {
         this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
         this.currentVersion = new DataVersion(dataId, 1);
-        Comm.registerData(currentVersion.getDataInstanceId().getRenaming(), currentVersion);
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
@@ -167,7 +166,6 @@ public abstract class DataInfo {
     public void willBeWritten() {
         this.currentVersionId++;
         DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId);
-        Comm.registerData(newVersion.getDataInstanceId().getRenaming(), newVersion);
         newVersion.willBeWritten();
         this.versions.put(this.currentVersionId, newVersion);
         this.currentVersion = newVersion;

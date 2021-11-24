@@ -52,6 +52,11 @@ public class BasicTypeParameter extends Parameter {
         this.value = value;
     }
 
+    @Override
+    public boolean isPotentialDependency() {
+        return false;
+    }
+
     /**
      * Returns the parameter value.
      * 

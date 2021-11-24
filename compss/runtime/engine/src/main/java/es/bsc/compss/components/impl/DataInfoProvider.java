@@ -1047,7 +1047,7 @@ public class DataInfoProvider {
         if (DEBUG) {
             LOGGER.debug("Requesting getting object " + sourceName);
         }
-        LogicalData ld = Comm.getData(sourceName);
+        LogicalData ld = rwaId.getReadDataInstance().getData();
 
         if (ld == null) {
             ErrorManager.error("Unregistered data " + sourceName);
@@ -1117,7 +1117,7 @@ public class DataInfoProvider {
         if (DEBUG) {
             LOGGER.debug("[DataInfoProvider] Requesting getting object " + sourceName);
         }
-        LogicalData srcLd = Comm.getData(sourceName);
+        LogicalData srcLd = rwaId.getReadDataInstance().getData();
         if (DEBUG) {
             LOGGER.debug("[DataInfoProvider] Logical data for binding object is:" + srcLd);
         }

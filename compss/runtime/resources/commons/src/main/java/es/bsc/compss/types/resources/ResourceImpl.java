@@ -516,8 +516,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         // Ask for data
         COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("tracing" + this.getName(), null), source, tgt,
-            new LogicalData("tracing" + this.getName(), null), new TracingCopyTransferable(), tracingListener);
+        masterNode.obtainData(new LogicalData("tracing" + this.getName()), source, tgt,
+            new LogicalData("tracing" + this.getName()), new TracingCopyTransferable(), tracingListener);
 
         tracingListener.enable();
         try {
@@ -577,8 +577,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         LOGGER.debug("- Source: " + outFileOrigin);
         LOGGER.debug("- Target: " + outFileTarget);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("workerOut" + this.getName(), null), outSource, outTarget,
-            new LogicalData("workerOut" + this.getName(), null), new WorkersDebugInfoCopyTransferable(), wdil);
+        masterNode.obtainData(new LogicalData("workerOut" + this.getName()), outSource, outTarget,
+            new LogicalData("workerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Get Worker error
         wdil.addOperation();
@@ -605,8 +605,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         LOGGER.debug("- Source: " + errFileOrigin);
         LOGGER.debug("- Target: " + errFileTarget);
-        masterNode.obtainData(new LogicalData("workerErr" + this.getName(), null), errSource, errTarget,
-            new LogicalData("workerErr" + this.getName(), null), new WorkersDebugInfoCopyTransferable(), wdil);
+        masterNode.obtainData(new LogicalData("workerErr" + this.getName()), errSource, errTarget,
+            new LogicalData("workerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Wait transfers
         wdil.enable();
@@ -656,8 +656,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         LOGGER.debug("- Source: " + outFileOrigin);
         LOGGER.debug("- Target: " + outFileTarget);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("bindingWorkerOut" + this.getName(), null), outSource, outTarget,
-            new LogicalData("bindingWorkerOut" + this.getName(), null), new WorkersDebugInfoCopyTransferable(), wdil);
+        masterNode.obtainData(new LogicalData("bindingWorkerOut" + this.getName()), outSource, outTarget,
+            new LogicalData("bindingWorkerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Get Worker error
         wdil.addOperation();
@@ -684,8 +684,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         LOGGER.debug("- Source: " + errFileOrigin);
         LOGGER.debug("- Target: " + errFileTarget);
-        masterNode.obtainData(new LogicalData("bindingWorkerErr" + this.getName(), null), errSource, errTarget,
-            new LogicalData("bindingWorkerErr" + this.getName(), null), new WorkersDebugInfoCopyTransferable(), wdil);
+        masterNode.obtainData(new LogicalData("bindingWorkerErr" + this.getName()), errSource, errTarget,
+            new LogicalData("bindingWorkerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Wait transfers
         wdil.enable();
@@ -736,9 +736,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         LOGGER.debug("- Cache Source: " + cacheProfilerOutSource);
         LOGGER.debug("- Cache Target: " + cacheProfilerOutTarget);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("cache_profiler.json", null), cacheProfilerOutSource,
-            cacheProfilerOutTarget, new LogicalData("cache_profiler.json", null),
-            new WorkersDebugInfoCopyTransferable(), wdil);
+        masterNode.obtainData(new LogicalData("cache_profiler.json"), cacheProfilerOutSource, cacheProfilerOutTarget,
+            new LogicalData("cache_profiler.json"), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Wait transfers
         wdil.enable();

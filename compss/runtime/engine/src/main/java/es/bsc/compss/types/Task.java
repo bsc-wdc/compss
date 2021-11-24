@@ -24,11 +24,11 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.implementations.ImplementationSignature;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.util.SignatureBuilder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +112,7 @@ public class Task extends AbstractTask {
         long timeOut) {
 
         super(app);
-        String signature = ImplementationSignature.getServiceSignature(namespace, service, port, operation, hasTarget,
+        String signature = SignatureBuilder.getServiceSignature(namespace, service, port, operation, hasTarget,
             numReturns, parameters);
         CoreElement core = CoreManager.getCore(signature);
 
@@ -151,8 +151,8 @@ public class Task extends AbstractTask {
 
         super(app);
 
-        String signature = ImplementationSignature.getHTTPSignature(declareMethodFullyQualifiedName, hasTarget,
-            numReturns, parameters);
+        String signature =
+            SignatureBuilder.getHTTPSignature(declareMethodFullyQualifiedName, hasTarget, numReturns, parameters);
 
         this.taskDescription = new TaskDescription(TaskType.HTTP, Lang.UNKNOWN, signature,
             CoreManager.getCore(signature), app.getParallelismSource(), isPrioritary, Constants.SINGLE_NODE, false,
@@ -374,7 +374,7 @@ public class Task extends AbstractTask {
      */
     public void setVersion(DataAccessId daId) {
         for (Parameter p : this.getTaskDescription().getParameters()) {
-            if (p instanceof DependencyParameter
+            if (p.isPotentialDependency()
                 && ((DependencyParameter) p).getDataAccessId().getDataId() == daId.getDataId()) {
                 ((DependencyParameter) p).setDataAccessId(daId);
             }
@@ -397,7 +397,7 @@ public class Task extends AbstractTask {
      */
     public boolean hasCommutativeParams() {
         for (Parameter p : this.getTaskDescription().getParameters()) {
-            if (p instanceof DependencyParameter) {
+            if (p.isPotentialDependency()) {
 
                 if (p.getDirection() == Direction.COMMUTATIVE) {
                     return true;

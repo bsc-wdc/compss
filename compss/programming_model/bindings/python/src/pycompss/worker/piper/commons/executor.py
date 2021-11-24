@@ -484,7 +484,7 @@ def process_task(current_line,              # type: list
     :return: True if processed successfully, False otherwise.
     """
     with event_worker(PROCESS_TASK_EVENT):
-        affinity_ok = True
+        affinity_event_emit = False
         binded_cpus = False
         binded_gpus = False
 
@@ -494,7 +494,7 @@ def process_task(current_line,              # type: list
             # The cpu affinity event is already emitted in Java.
             # Instead of emitting what we receive, we are emitting what whe check
             # after setting the affinity.
-            affinity_ok = bind_cpus(cpus, process_name, logger)
+            binded_cpus = bind_cpus(cpus, process_name, logger)
 
         # GPU binding
         gpus = current_line[-2]
@@ -566,8 +566,8 @@ def process_task(current_line,              # type: list
                 num_cpus = len(real_affinity)
                 emit_manual_event(int(cpus) + 1, inside=True, cpu_affinity=True)
                 emit_manual_event(int(num_cpus), inside=True, cpu_number=True)
-                binded_cpus = True
-                if not affinity_ok:
+                affinity_event_emit = True
+                if not binded_cpus:
                     logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
                                    str(real_affinity))
 
@@ -662,8 +662,8 @@ def process_task(current_line,              # type: list
         # Clean environment variables
         if __debug__:
             logger.debug("Cleaning environment.")
-        clean_environment(str(cpus), gpus)
-        if binded_cpus:
+        clean_environment(binded_cpus, binded_gpus)
+        if affinity_event_emit:
             emit_manual_event(0, inside=True, cpu_affinity=True)
             emit_manual_event(0, inside=True, cpu_number=True)
         if binded_gpus:
@@ -745,7 +745,6 @@ def bind_cpus(cpus, process_name, logger):  # noqa
     :return: True if success, False otherwise.
     """
     with event_inside_worker(BIND_CPUS_EVENT):
-        os.environ["COMPSS_BINDED_CPUS"] = cpus
         if __debug__:
             logger.debug(HEADER + "[%s] Assigning affinity %s" %
                          (str(process_name), str(cpus)))
@@ -759,6 +758,8 @@ def bind_cpus(cpus, process_name, logger):  # noqa
                              "[%s] WARNING: could not assign affinity %s" %
                              (str(process_name), str(cpus_map)))
             return False
+        # Export only if success
+        os.environ["COMPSS_BINDED_CPUS"] = cpus
         return True
 
 
@@ -849,19 +850,19 @@ def build_exception_message(job_id, exit_value):
 
 
 def clean_environment(cpus, gpus):
-    # type: (str, str) -> None
+    # type: (bool, bool) -> None
     """ Clean the environment
 
-    Mainly unset environment variables).
+    Mainly unset environment variables.
 
-    :param cpus: Binded cpus.
-    :param gpus: Binded gpus.
+    :param cpus: If binded cpus.
+    :param gpus: If binded gpus.
     :return: None
     """
     with event_inside_worker(CLEAN_ENVIRONMENT_EVENT):
-        if cpus != "-" and "COMPSS_BINDED_CPUS" in os.environ:
+        if cpus:
             del os.environ["COMPSS_BINDED_CPUS"]
-        if gpus != "-":
+        if gpus:
             del os.environ["COMPSS_BINDED_GPUS"]
             del os.environ["CUDA_VISIBLE_DEVICES"]
             del os.environ["GPU_DEVICE_ORDINAL"]

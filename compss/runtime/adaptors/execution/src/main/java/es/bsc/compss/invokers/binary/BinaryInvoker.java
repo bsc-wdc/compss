@@ -133,21 +133,33 @@ public class BinaryInvoker extends Invoker {
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
             this.invocation.getTarget(), streamValues, pythonInterpreter);
 
-        String[] appParams = BinaryRunner.buildAppParams(this.invocation.getParams(), this.invocation.getTarget(),
-            this.binDef.getParams(), pythonInterpreter);
-
-        // Prepare command
-        String[] cmd = null;
-        // Prepare a simple binary command
-        cmd = new String[NUM_BASE_BINARY_ARGS + appParams.length + binaryParams.size()];
-        int pos = 0;
-        cmd[pos++] = this.binary;
-        for (String appParam : appParams) {
-            cmd[pos++] = appParam;
+        String[] appParams = new String[0];
+        if (this.binDef.hasParamsString()) {
+            appParams =
+                BinaryRunner.buildAppParams(this.invocation.getParams(), this.binDef.getParams(), pythonInterpreter);
         }
 
-        for (String binParam : binaryParams) {
-            cmd[pos++] = binParam;
+        // Prepare command
+        int cmdLength = NUM_BASE_BINARY_ARGS;
+        if (this.binDef.hasParamsString()) {
+            cmdLength += appParams.length;
+        } else {
+            cmdLength += binaryParams.size();
+        }
+        String[] cmd = new String[cmdLength];
+
+        int pos = 0;
+        cmd[pos++] = this.binary;
+
+        // if params string is not null, all the params should be included there
+        if (this.binDef.hasParamsString()) {
+            for (String appParam : appParams) {
+                cmd[pos++] = appParam;
+            }
+        } else {
+            for (String binParam : binaryParams) {
+                cmd[pos++] = binParam;
+            }
         }
 
         if (this.invocation.isDebugEnabled()) {

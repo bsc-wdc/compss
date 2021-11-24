@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -183,5 +184,9 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         if (this.binary == null || this.binary.isEmpty()) {
             throw new IllegalArgumentException(ERROR_MPI_BINARY);
         }
+    }
+
+    public boolean hasParamsString() {
+        return this.params != null && !this.params.isEmpty() && !this.params.equals(Constants.UNASSIGNED);
     }
 }

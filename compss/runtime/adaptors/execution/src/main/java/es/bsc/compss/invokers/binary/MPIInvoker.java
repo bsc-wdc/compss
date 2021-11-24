@@ -142,8 +142,11 @@ public class MPIInvoker extends Invoker {
 
         }
 
-        String[] appParams = BinaryRunner.buildAppParams(this.invocation.getParams(), this.invocation.getTarget(),
-            this.mpiDef.getParams(), pythonInterpreter);
+        String[] appParams = new String[0];
+        if (this.mpiDef.hasParamsString()) {
+            appParams =
+                BinaryRunner.buildAppParams(this.invocation.getParams(), this.mpiDef.getParams(), pythonInterpreter);
+        }
 
         // Calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
@@ -160,7 +163,14 @@ public class MPIInvoker extends Invoker {
         }
 
         // Prepare command
-        String[] cmd = new String[NUM_BASE_MPI_ARGS + numMPIFlags + appParams.length + binaryParams.size()];
+        int cmdLength = NUM_BASE_MPI_ARGS + numMPIFlags;
+        if (this.mpiDef.hasParamsString()) {
+            cmdLength += appParams.length;
+        } else {
+            cmdLength += binaryParams.size();
+        }
+        String[] cmd = new String[cmdLength];
+
         int pos = 0;
         cmd[pos++] = this.mpiDef.getMpiRunner();
         cmd[pos++] = this.mpiDef.getHostsFlag();
@@ -179,12 +189,15 @@ public class MPIInvoker extends Invoker {
 
         cmd[pos++] = this.mpiDef.getBinary();
 
-        for (String appParam : appParams) {
-            cmd[pos++] = appParam;
-        }
-
-        for (String binParam : binaryParams) {
-            cmd[pos++] = binParam;
+        // if params string is not null, all the params should be included there
+        if (this.mpiDef.hasParamsString()) {
+            for (String appParam : appParams) {
+                cmd[pos++] = appParam;
+            }
+        } else {
+            for (String binParam : binaryParams) {
+                cmd[pos++] = binParam;
+            }
         }
 
         // Prepare environment

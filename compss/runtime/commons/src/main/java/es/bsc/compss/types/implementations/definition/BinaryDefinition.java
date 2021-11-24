@@ -17,6 +17,7 @@
 
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -170,5 +171,9 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         sb.append("\t Params String: ").append(this.params).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         return sb.toString();
+    }
+
+    public boolean hasParamsString() {
+        return this.params != null && !this.params.isEmpty() && !this.params.equals(Constants.UNASSIGNED);
     }
 }

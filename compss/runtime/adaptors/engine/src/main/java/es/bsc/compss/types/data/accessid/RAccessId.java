@@ -69,6 +69,16 @@ public class RAccessId extends DataAccessId {
         return Direction.R;
     }
 
+    @Override
+    public boolean isPreserveSourceData() {
+        return this.readDataVersion.hasMoreReaders() || this.readDataVersion.getDataInstanceId().getVersionId() == 1;
+    }
+
+    @Override
+    public boolean isWrite() {
+        return true;
+    }
+
     /**
      * Returns the read data instance.
      * 
@@ -85,15 +95,6 @@ public class RAccessId extends DataAccessId {
      */
     public int getRVersionId() {
         return this.readDataVersion.getDataInstanceId().getVersionId();
-    }
-
-    /**
-     * Returns whether the source data must be preserved or not.
-     * 
-     * @return {@code true} if the source data must be preserved, {@code false} otherwise.
-     */
-    public boolean isPreserveSourceData() {
-        return this.readDataVersion.hasMoreReaders() || this.readDataVersion.getDataInstanceId().getVersionId() == 1;
     }
 
     @Override

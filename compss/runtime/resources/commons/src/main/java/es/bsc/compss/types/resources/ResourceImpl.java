@@ -239,33 +239,23 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     }
 
     @Override
-    public void getData(String dataId, String tgtDataId, Transferable reason, EventListener listener) {
-        LogicalData srcData = Comm.getData(dataId);
-        LogicalData tgtData = null;
-        if (tgtDataId != null) {
-            tgtData = Comm.getData(tgtDataId);
-        }
-        getData(srcData, dataId, tgtData, reason, listener);
+    public void getData(LogicalData srcData, Transferable reason, EventListener listener) {
+        getData(srcData, srcData.getName(), srcData, reason, listener);
     }
 
     @Override
-    public void getData(LogicalData ld, LogicalData tgtData, Transferable reason, EventListener listener) {
-        getData(ld, ld.getName(), tgtData, reason, listener);
+    public void getData(LogicalData srcData, String newName, Transferable reason, EventListener listener) {
+        getData(srcData, newName, srcData, reason, listener);
     }
 
     @Override
-    public void getData(String dataId, String newName, String tgtDataId, Transferable reason, EventListener listener) {
-        LogicalData srcData = Comm.getData(dataId);
-        LogicalData tgtData = Comm.getData(tgtDataId);
-        this.getData(srcData, newName, tgtData, reason, listener);
+    public void getData(LogicalData srcData, DataLocation target, Transferable reason, EventListener listener) {
+        getData(srcData, target, srcData, reason, listener);
     }
 
     @Override
-    public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
-        EventListener listener) {
-
-        LogicalData ld = Comm.getData(dataId);
-        this.getData(ld, newName, tgtData, reason, listener);
+    public void getData(LogicalData srcData, LogicalData tgtData, Transferable reason, EventListener listener) {
+        getData(srcData, srcData.getName(), tgtData, reason, listener);
     }
 
     @Override
@@ -285,27 +275,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         }
         // for HTTP tasks, the target location should be on the Master, see HTTPInstance.getTargetLocation
         DataLocation target = this.node.getTargetLocation(this, reason.getType(), newName);
-        getData(ld, target, tgtData, reason, listener);
-    }
-
-    @Override
-    public void getData(String dataId, DataLocation target, Transferable reason, EventListener listener) {
-        LogicalData srcData = Comm.getData(dataId);
-        getData(srcData, target, srcData, reason, listener);
-    }
-
-    @Override
-    public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason,
-        EventListener listener) {
-        LogicalData srcData = Comm.getData(dataId);
-        LogicalData tgtData = Comm.getData(tgtDataId);
-        getData(srcData, target, tgtData, reason, listener);
-    }
-
-    @Override
-    public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
-        EventListener listener) {
-        LogicalData ld = Comm.getData(dataId);
         getData(ld, target, tgtData, reason, listener);
     }
 

@@ -84,8 +84,8 @@ public class TransferRawFileRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         // Make a copy of the original logical file, we don't want to leave track
-        String sourceName = this.faId.getReadDataInstance().getRenaming();
-        Comm.getAppHost().getData(sourceName, this.location, (LogicalData) null, new FileTransferable(),
+        LogicalData sourceData = this.faId.getReadDataInstance().getData();
+        Comm.getAppHost().getData(sourceData, this.location, (LogicalData) null, new FileTransferable(),
             new OneOpWithSemListener(this.sem));
     }
 

@@ -89,6 +89,7 @@ public class COMPSsRuntimeImplTest {
             "1", // processes_per_node
             "mpiFlags",
             "false",
+            "[unassigned]",
             "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, implTypeArgs);
 
@@ -122,6 +123,7 @@ public class COMPSsRuntimeImplTest {
         implIO = "False";
         implTypeArgs = new String[] { "binary",
             "binaryWorkingDir",
+            "[unassigned]",
             "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, implTypeArgs);
 

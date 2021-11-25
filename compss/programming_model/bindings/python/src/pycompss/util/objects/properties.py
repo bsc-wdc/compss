@@ -72,22 +72,24 @@ def get_module_name(path, file_name):
 
 
 def get_wrapped_source(f):
-    # type: (typing.Any) -> str
+    # type: (typing.Callable) -> str
     """ Gets the text of the source code for the given function.
 
     :param f: Input function.
     :return: Source.
     """
     if hasattr(f, "__wrapped__"):
-        # has __wrapped__, going deep
-        return get_wrapped_source(f.__wrapped__)
+        # Has __wrapped__: going deep
+        wrapped = f.__wrapped__  # type: ignore
+        return get_wrapped_source(wrapped)
     else:
         # Returning getsource
         try:
             source = inspect.getsource(f)
         except TypeError:
             # This is a numba jit declared task
-            source = inspect.getsource(f.py_func)
+            py_func = f.py_func  # type: ignore
+            source = inspect.getsource(py_func)
         return source
 
 

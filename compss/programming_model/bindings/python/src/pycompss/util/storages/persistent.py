@@ -32,8 +32,8 @@ from pycompss.util.tracing.helpers import event_worker
 from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.worker.commons.constants import GETID_EVENT
 from pycompss.worker.commons.constants import GET_BY_ID_EVENT
-# from pycompss.worker.commons.constants import MAKE_PERSISTENT_EVENT
-# from pycompss.worker.commons.constants import DELETE_PERSISTENT_EVENT
+from pycompss.worker.commons.constants import MAKE_PERSISTENT_EVENT    # noqa Expose event id
+from pycompss.worker.commons.constants import DELETE_PERSISTENT_EVENT  # noqa Expose event id
 from pycompss.runtime.constants import INIT_STORAGE_EVENT \
     as MASTER_INIT_STORAGE_EVENT
 from pycompss.runtime.constants import STOP_STORAGE_EVENT \

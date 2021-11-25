@@ -48,8 +48,6 @@ DEFAULT_RESOURCES_PATH = "/Runtime/configuration/xml/resources/"
 DEFAULT_LOG_PATH = "/Runtime/configuration/log/"
 DEFAULT_TRACING_PATH = "/Runtime/configuration/xml/tracing/"
 
-ENVIRONMENT_VARIABLE_LOAD = "COMPSS_LOAD_SOURCE"
-
 
 def preload_user_code():
     # type: () -> bool
@@ -58,10 +56,11 @@ def preload_user_code():
 
     :return: True if preload. False otherwise.
     """
-    if ENVIRONMENT_VARIABLE_LOAD not in os.environ:
+    environment_variable_load = "COMPSS_LOAD_SOURCE"
+    if environment_variable_load not in os.environ:
         return True
-    elif ENVIRONMENT_VARIABLE_LOAD in os.environ \
-            and os.environ[ENVIRONMENT_VARIABLE_LOAD] != "false":
+    elif environment_variable_load in os.environ \
+            and os.environ[environment_variable_load] != "false":
         return True
     else:
         return False
@@ -76,8 +75,9 @@ def export_current_flags(all_vars):
     :param all_vars: Dictionary containing all flags
     :return: None
     """
+    environment_variable_current_flags = "PYCOMPSS_CURRENT_FLAGS"
     all_flags = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]
-    os.environ["PYCOMPSS_CURRENT_FLAGS"] = all_flags
+    os.environ[environment_variable_current_flags] = all_flags
 
 
 def prepare_environment(interactive,   # type: bool

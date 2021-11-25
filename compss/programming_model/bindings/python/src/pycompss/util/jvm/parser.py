@@ -27,13 +27,13 @@ from pycompss.util.typing_helper import typing
 
 
 def convert_to_dict(jvm_opt_file):
-    # type: (str) -> typing.Dict[str, typing.Any]
+    # type: (str) -> typing.Dict[str, typing.Union[bool, str]]
     """ JVM parameter file converter to dictionary.
 
     :param jvm_opt_file: JVM parameters file.
     :return: Dictionary with the parameters specified on the file.
     """
-    opts = dict()  # type: typing.Dict[str, typing.Any]
+    opts = dict()  # type: typing.Dict[str, typing.Union[bool, str]]
     with open(jvm_opt_file) as fp:
         for line in fp:
             line = line.strip()

@@ -144,7 +144,7 @@ def build_task_parameter(p_type,      # type: int
                 # the result as binary
                 p_bin = new_aux.decode(STR_ESCAPE).encode()
                 deserialized_aux = deserialize_from_bytes(p_bin,
-                                                          show_exception=False)  # noqa: E501
+                                                          show_exception=False)
             except (SerializerException, ValueError, EOFError):
                 # was not an object
                 deserialized_aux = str(real_value.decode())
@@ -169,7 +169,7 @@ def build_task_parameter(p_type,      # type: int
     else:
         # Basic numeric types. These are passed as command line arguments
         # and only a cast is needed
-        val = None  # type: typing.Any
+        val = None  # type: typing.Union[None, int, float, bool]
         if p_type == parameter.TYPE.INT:
             val = int(p_value)  # noqa
         elif p_type == parameter.TYPE.LONG:

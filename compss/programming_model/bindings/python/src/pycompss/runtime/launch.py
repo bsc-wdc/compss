@@ -341,8 +341,8 @@ def compss_main():
 # Starts a new COMPSs runtime and calls the application. #
 # ###################################################### #
 
-def launch_pycompss_application(app,
-                                func,
+def launch_pycompss_application(app,                              # type: str
+                                func,                             # type: typing.Optional[str]
                                 log_level="off",                  # type: str
                                 o_c=False,                        # type: bool
                                 debug=False,                      # type: bool

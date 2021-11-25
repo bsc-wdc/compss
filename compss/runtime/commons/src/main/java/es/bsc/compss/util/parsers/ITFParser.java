@@ -658,6 +658,7 @@ public class ITFParser {
             String mpiPPN = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processesPerNode());
             String mpiFlags = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiFlags());
             String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
+            String params = EnvironmentLoader.loadFromEnvironment(mpiAnnot.params());
             String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
 
             if (mpiRunner == null || mpiRunner.isEmpty()) {
@@ -685,7 +686,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implConstraints, binary, workingDir, mpiRunner, mpiPPN, mpiFlags, scaleByCUStr, failByEVstr);
+                    implConstraints, binary, workingDir, mpiRunner, mpiPPN, mpiFlags, scaleByCUStr, params,
+                    failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

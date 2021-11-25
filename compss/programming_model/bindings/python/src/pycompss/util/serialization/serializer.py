@@ -128,7 +128,6 @@ def get_serializer_priority(obj=()):
         return [pyarrow, pickle, dill]
     else:
         if FORCED_SERIALIZER > -1:
-            # todo: string to serializer module
             return [IDX2LIB.get(FORCED_SERIALIZER)]
         return [pickle, dill]
 
@@ -198,8 +197,11 @@ def serialize_to_handler(obj, handler):
                     writer.write(obj)
                     writer.close()
                 elif serializer is json:
-                    # json doesn't like the binary mode
-                    handler = open(handler.name, "w")
+                    # JSON doesn't like the binary mode: close handler
+                    h_name = handler.name
+                    handler.close()
+                    # Open the handler in normal mode
+                    handler = open(h_name, "w")
                     handler.write('%04d' % LIB2IDX[serializer])
                     serializer.dump(obj, handler)
                 else:
@@ -318,8 +320,12 @@ def deserialize_from_handler(handler, show_exception=True):
             if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
                 close_handler = False
         elif serializer is json and IS_PYTHON3:
-            handler = open(handler.name, "r")
-            handler.seek(4)
+            # Deserialization of json files is not in binary: close handler
+            h_name = handler.name
+            handler.close()
+            # Reopen handler with normal mode
+            handler = open(h_name, "r")
+            handler.seek(4)  # Ignore first byte
             ret = serializer.load(handler)
         else:
             ret = serializer.load(handler)

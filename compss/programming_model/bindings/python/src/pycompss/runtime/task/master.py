@@ -21,13 +21,13 @@ from __future__ import print_function
 import os
 import sys
 import ast
-import threading
 import inspect
-import base64
-from pycompss.util.typing_helper import typing
+from threading import Lock
+from base64 import b64encode
 from collections import OrderedDict
 from collections import deque
 
+from pycompss.util.typing_helper import typing
 from pycompss.api.commons.constants import RETURNS
 from pycompss.api.commons.constants import PRIORITY
 from pycompss.api.commons.constants import ON_FAILURE
@@ -222,7 +222,7 @@ ATTRIBUTES_TO_BE_REMOVED = {"decorator_arguments",
 
 # This lock allows tasks to be launched with the Threading module while
 # ensuring that no attribute is overwritten
-MASTER_LOCK = threading.Lock()
+MASTER_LOCK = Lock()
 VALUE_OF = "value_of"
 
 
@@ -2154,12 +2154,12 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
         # Considers multiple spaces between words
-        param.content = base64.b64encode(param.content.encode()).decode()
+        param.content = b64encode(param.content.encode()).decode()
         if len(param.content) == 0:
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
-            param.content = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()    # noqa: E501
+            param.content = b64encode(EMPTY_STRING_KEY.encode()).decode()    # noqa: E501
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
             "builtins", str(param.content.__class__.__name__))
 

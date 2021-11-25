@@ -20,12 +20,11 @@
 import gc
 import os
 import sys
-import shutil
-from pycompss.util.typing_helper import typing
+from shutil import copyfile
 
+from pycompss.util.typing_helper import typing
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.task.commons import TaskCommons
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
@@ -92,15 +91,6 @@ class TaskWorker(object):
                  defaults              # type: dict
                  ):                    # type: (...) -> None
         # Initialize TaskCommons
-        # super(self.__class__, self).__init__(decorator_arguments,
-        #                                      user_function,
-        #                                      on_failure,
-        #                                      defaults)
-        # Instantiate superclass explicitly to support mypy.
-        tc = TaskCommons(decorator_arguments,
-                         user_function,
-                         on_failure,
-                         defaults)
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
         self.param_args = []         # type: typing.List[typing.Any]
@@ -927,7 +917,7 @@ class TaskWorker(object):
                 arg.content = default_values[arg.name]
             else:
                 # Update file
-                shutil.copyfile(str(default_values[arg.name]), str(arg.content))
+                copyfile(str(default_values[arg.name]), str(arg.content))
 
     def manage_inouts(self, args, python_mpi):
         # type: (tuple, bool) -> None

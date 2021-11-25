@@ -28,30 +28,6 @@ from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import Parameter
 
 
-class TaskCommons(object):
-    """
-    Code shared by the TaskMaster and TaskWorker.
-    Both classes inherit from TaskCommons.
-    """
-
-    __slots__ = ["user_function", "decorator_arguments",
-                 "param_args", "param_varargs",
-                 "on_failure", "defaults"]
-
-    def __init__(self,                 # type: typing.Any
-                 decorator_arguments,  # type: typing.Dict[str, typing.Any]
-                 user_function,        # type: typing.Any
-                 on_failure,           # type: str
-                 defaults              # type: dict
-                 ):                    # type: (...) -> None
-        self.user_function = user_function
-        self.decorator_arguments = decorator_arguments
-        self.param_args = []       # type: typing.List[typing.Any]
-        self.param_varargs = None  # type: typing.Any
-        self.on_failure = on_failure
-        self.defaults = defaults
-
-
 def get_varargs_direction(param_varargs, decorator_arguments):
     # type: (typing.Any, typing.Any) -> typing.Tuple[typing.Any, Parameter]
     """ Returns the direction of the varargs arguments.

@@ -36,7 +36,6 @@ import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
@@ -154,13 +153,13 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
         }
         listener.addOperation();
         if (access instanceof RAccessId) {
-            String srcName = ((RAccessId) access).getReadDataInstance().getRenaming();
-            w.getData(srcName, srcName, dataToTransfer, listener);
+            LogicalData srcData = ((RAccessId) access).getReadDataInstance().getData();
+            w.getData(srcData, dataToTransfer, listener);
         } else {
             // Is RWAccess
-            String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
+            LogicalData srcData = ((RWAccessId) access).getReadDataInstance().getData();
             String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-            w.getData(srcName, tgtName, (LogicalData) null, dataToTransfer, listener);
+            w.getData(srcData, tgtName, (LogicalData) null, dataToTransfer, listener);
         }
     }
 

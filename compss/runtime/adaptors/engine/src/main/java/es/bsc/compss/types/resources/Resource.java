@@ -120,87 +120,62 @@ public interface Resource extends Comparable<Resource> {
         List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors);
 
     /**
-     * Retrieves a given data.
+     * Retrieves srcData data leaving it into the default folder with name srcData's name and registers the new location
+     * on srcData.
      *
-     * @param dataId Data name/identifier
-     * @param tgtDataId Target data name/identifier
+     * @param srcData Source logical data
      * @param reason Transferable action how requested the data retrieve
      * @param listener Listener to notify operation events
      */
-    public void getData(String dataId, String tgtDataId, Transferable reason, EventListener listener);
+    public void getData(LogicalData srcData, Transferable reason, EventListener listener);
 
     /**
-     * Retrieves a given data.
+     * Retrieves srcData data leaving it into the default folder with name newName and registers the new location on
+     * srcData.
      *
-     * @param ld Source logical data
-     * @param tgtData Target logical data
-     * @param reason Transferable action how requested the data retrieve
-     * @param listener Listener to notify operation events
-     */
-    public void getData(LogicalData ld, LogicalData tgtData, Transferable reason, EventListener listener);
-
-    /**
-     * Retrieves a given data.
-     *
-     * @param dataId Data name/identifier
+     * @param srcData Source logical data
      * @param newName Target data new name
-     * @param tgtDataId Target data identifier
      * @param reason Transferable action how requested the data retrieve
      * @param listener Listener to notify operation events
      */
-    public void getData(String dataId, String newName, String tgtDataId, Transferable reason, EventListener listener);
+    public void getData(LogicalData srcData, String newName, Transferable reason, EventListener listener);
 
     /**
-     * Retrieves a given data.
+     * Retrieves srcData data leaving it into the target location and registers the new location on srcData.
      *
-     * @param dataId Data name/identifier
-     * @param newName Target data new name
-     * @param tgtData Target logical data
-     * @param reason Transferable action how requested the data retrieve
-     * @param listener Listener to notify operation events
-     */
-    public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
-        EventListener listener);
-
-    /**
-     * Retrieves a given data.
-     *
-     * @param ld Source logical data
-     * @param newName Target data new name
-     * @param tgtData Target logical data
-     * @param reason Transferable action how requested the data retrieve
-     * @param listener Listener to notify operation events
-     */
-    public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
-        EventListener listener);
-
-    /**
-     * Retrieves a given data.
-     *
-     * @param dataId Data name/identifier
+     * @param srcData Source logical data
      * @param target Target location
      * @param reason Transferable action how requested the data retrieve
      * @param listener Listener to notify operation events
      */
-    public void getData(String dataId, DataLocation target, Transferable reason, EventListener listener);
-
-    public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason,
-        EventListener listener);
+    public void getData(LogicalData srcData, DataLocation target, Transferable reason, EventListener listener);
 
     /**
-     * Retrieves a given data.
+     * Retrieves srcData data leaving it into the default folder with name srcData's name and registers the new location
+     * on tgtData.
      *
-     * @param dataId Data name/identifier
-     * @param target Target location
+     * @param srcData Source logical data
      * @param tgtData Target logical data
      * @param reason Transferable action how requested the data retrieve
      * @param listener Listener to notify operation events
      */
-    public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
+    public void getData(LogicalData srcData, LogicalData tgtData, Transferable reason, EventListener listener);
+
+    /**
+     * Retrieves srcData data leaving it into the default folder with name newName and registers the new location on
+     * tgtData.
+     *
+     * @param srcData Source logical data
+     * @param newName Target data new name
+     * @param tgtData Target logical data
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
+     */
+    public void getData(LogicalData srcData, String newName, LogicalData tgtData, Transferable reason,
         EventListener listener);
 
     /**
-     * Retrieves a given data.
+     * Retrieves srcData data leaving it into the target location and registers the new location on tgtData.
      *
      * @param srcData Source logical data
      * @param target Target location

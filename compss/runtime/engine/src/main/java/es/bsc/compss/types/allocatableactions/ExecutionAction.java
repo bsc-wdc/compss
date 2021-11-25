@@ -332,36 +332,36 @@ public class ExecutionAction extends AllocatableAction {
                 // Read Access, transfer object
                 listener.addOperation();
 
-                String srcName = ((RAccessId) access).getReadDataInstance().getRenaming();
-                w.getData(srcName, srcName, param, listener);
+                LogicalData srcData = ((RAccessId) access).getReadDataInstance().getData();
+                w.getData(srcData, param, listener);
             } else {
                 // ReadWrite Access, transfer object
                 listener.addOperation();
-                String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
+                LogicalData srcData = ((RWAccessId) access).getReadDataInstance().getData();
                 String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
                 LogicalData tmpData = Comm.registerData("tmp" + tgtName);
-                w.getData(srcName, tgtName, tmpData, param, listener);
+                w.getData(srcData, tgtName, tmpData, param, listener);
             }
         }
     }
 
     private void transferStreamParameter(DependencyParameter param, JobTransfersListener listener) {
         DataAccessId access = param.getDataAccessId();
-        String source;
-        String target;
+        LogicalData source;
+        LogicalData target;
         if (access instanceof WAccessId) {
             WAccessId wAccess = (WAccessId) access;
-            source = wAccess.getWrittenDataInstance().getRenaming();
+            source = wAccess.getWrittenDataInstance().getData();
             target = source;
         } else {
             if (access instanceof RAccessId) {
                 RAccessId rAccess = (RAccessId) access;
-                source = rAccess.getReadDataInstance().getRenaming();
+                source = rAccess.getReadDataInstance().getData();
                 target = source;
             } else {
                 RWAccessId rwAccess = (RWAccessId) access;
-                source = rwAccess.getReadDataInstance().getRenaming();
-                target = rwAccess.getWrittenDataInstance().getRenaming();
+                source = rwAccess.getReadDataInstance().getData();
+                target = rwAccess.getWrittenDataInstance().getData();
             }
         }
 

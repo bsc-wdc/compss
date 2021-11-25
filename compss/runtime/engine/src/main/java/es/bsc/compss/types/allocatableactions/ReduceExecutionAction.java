@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;

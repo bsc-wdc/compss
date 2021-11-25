@@ -143,15 +143,15 @@ public class TransferOpenDirectoryRequest extends APRequest {
         } else if (this.faId instanceof RWAccessId) {
             LOGGER.debug("RW mode. Asking for transfer");
             RWAccessId rwaId = (RWAccessId) this.faId;
-            String srcName = rwaId.getReadDataInstance().getRenaming();
+            LogicalData srcData = rwaId.getReadDataInstance().getData();
             DirectoryTransferable dt = new DirectoryTransferable(rwaId.isPreserveSourceData());
-            Comm.getAppHost().getData(srcName, targetName, (LogicalData) null, dt, new CopyListener(dt, this.sem));
+            Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, dt, new CopyListener(dt, this.sem));
         } else {
             LOGGER.debug("Read only mode. Asking for transfer");
             RAccessId raId = (RAccessId) this.faId;
-            String srcName = raId.getReadDataInstance().getRenaming();
+            LogicalData srcData = raId.getReadDataInstance().getData();
             DirectoryTransferable dt = new DirectoryTransferable(raId.isPreserveSourceData());
-            Comm.getAppHost().getData(srcName, srcName, dt, new CopyListener(dt, this.sem));
+            Comm.getAppHost().getData(srcData, dt, new CopyListener(dt, this.sem));
         }
     }
 

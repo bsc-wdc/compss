@@ -1097,8 +1097,7 @@ public class DataInfoProvider {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
             }
             toRequest.setTargetData(ld);
-            Comm.getAppHost().getData(sourceName, targetLocation, new ObjectTransferable(),
-                new OneOpWithSemListener(sem));
+            Comm.getAppHost().getData(ld, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
         }
 
     }
@@ -1188,8 +1187,9 @@ public class DataInfoProvider {
                         return null;
                     }
 
+                    LogicalData data = Comm.getData(renaming);
                     // Check if data is a PSCO and must be consolidated
-                    for (DataLocation loc : Comm.getData(renaming).getLocations()) {
+                    for (DataLocation loc : data.getLocations()) {
                         if (loc instanceof PersistentLocation) {
                             String pscoId = ((PersistentLocation) loc).getId();
                             if (Tracer.extraeEnabled()) {
@@ -1213,7 +1213,7 @@ public class DataInfoProvider {
 
                     // If no PSCO location is found, perform normal getData
                     if (rf.getOriginalLocation().getProtocol() == ProtocolType.BINDING_URI) {
-                        // Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new
+                        // Comm.getAppHost().getData(data, rf.getOriginalLocation(), new
                         // BindingObjectTransferable(),
                         // listener);
                         if (DEBUG) {
@@ -1222,12 +1222,11 @@ public class DataInfoProvider {
                     } else {
                         if (rf.getOriginalLocation().getProtocol() == ProtocolType.DIR_URI) {
                             listener.addOperation();
-                            Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new DirectoryTransferable(),
+                            Comm.getAppHost().getData(data, rf.getOriginalLocation(), new DirectoryTransferable(),
                                 listener);
                         } else {
                             listener.addOperation();
-                            Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(),
-                                listener);
+                            Comm.getAppHost().getData(data, rf.getOriginalLocation(), new FileTransferable(), listener);
                         }
                     }
 

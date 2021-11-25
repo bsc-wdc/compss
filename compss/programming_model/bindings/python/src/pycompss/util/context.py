@@ -28,7 +28,6 @@ import inspect
 from contextlib import contextmanager
 # Typing imports
 from pycompss.util.typing_helper import typing
-from pycompss.runtime.task.master import TaskMaster
 
 ####################
 # GLOBAL VARIABLES #
@@ -43,7 +42,7 @@ _WHERE = OUT_OF_SCOPE  # type: str
 
 NESTING = False
 LOADING = False
-TO_REGISTER = []       # type: typing.List[typing.Tuple[TaskMaster, str]]
+TO_REGISTER = []       # type: typing.List[typing.Any]
 
 
 #############
@@ -193,7 +192,7 @@ def loading_context():
 
 
 def add_to_register_later(core_element):
-    # type: (typing.Tuple[TaskMaster, str]) -> None
+    # type: (typing.Tuple[typing.Any, str]) -> None
     """ Accumulate core elements to be registered later.
 
     :param core_element: Core element to be registered
@@ -204,7 +203,7 @@ def add_to_register_later(core_element):
 
 
 def get_to_register():
-    # type: () -> typing.List[typing.Tuple[TaskMaster, str]]
+    # type: () -> typing.List[typing.Tuple[typing.Any, str]]
     """ Retrieve the to register list.
 
     :return: To register list

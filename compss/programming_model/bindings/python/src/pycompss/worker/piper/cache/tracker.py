@@ -281,7 +281,7 @@ def stop_shared_memory_manager(smm):
 
 
 def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, parameter_name, user_function, cache_profiler):  # noqa
-    # type: (typing.Any, typing.Any, Queue, str, str, typing.Any, bool) -> typing.Any
+    # type: (typing.Any, typing.Any, Queue, str, str, typing.Callable, bool) -> typing.Any
     """ Retrieve an object from the given cache proxy dict.
 
     :param logger: Logger where to push messages.
@@ -336,7 +336,7 @@ def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, param
 
 
 def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Any) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
     """ Put an object into cache filter to avoid event emission when not
     supported.
 
@@ -358,7 +358,7 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter
 
 
 def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Any) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
     """ Put an object into cache.
 
     :param logger: Logger where to push messages.
@@ -440,7 +440,7 @@ def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
 
 
 def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Any) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
     """ Put an object into cache.
 
     :param logger: Logger where to push messages.
@@ -498,7 +498,7 @@ def filename_cleaned(f_name):
 
 
 def function_cleaned(function):
-    # type: (typing.Any) -> str
+    # type: (typing.Callable) -> str
     """
     # TODO: Complete documentation (PVB)
 

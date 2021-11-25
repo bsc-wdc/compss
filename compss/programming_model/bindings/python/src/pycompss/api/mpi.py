@@ -116,7 +116,7 @@ class Mpi(object):
                             self.decorator_name)
 
     def __call__(self, user_function):
-        # type: (typing.Any) -> typing.Any
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the mpi parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -132,7 +132,7 @@ class Mpi(object):
         return mpi_f
 
     def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Any, tuple, dict) -> typing.Any
+        # type: (typing.Callable, tuple, dict) -> typing.Any
         if not self.scope:
             # Execute the mpi as with PyCOMPSs so that sequential
             # execution performs as parallel.
@@ -277,7 +277,7 @@ class Mpi(object):
             return -1
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Any) -> None
+        # type: (dict, typing.Callable) -> None
         """ Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

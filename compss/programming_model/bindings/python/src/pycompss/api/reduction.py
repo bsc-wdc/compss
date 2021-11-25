@@ -93,7 +93,7 @@ class Reduction(object):
             self.__process_reduction_params__()
 
     def __call__(self, func):
-        # type: (typing.Any) -> typing.Any
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the reduce parameters within the task core element.
 
         :param func: Function to decorate

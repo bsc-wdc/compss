@@ -36,7 +36,7 @@ import pycompss.util.context as context
 
 
 def local(input_function):
-    # type: (typing.Any) -> typing.Any
+    # type: (typing.Callable) -> typing.Callable
     """ Local decorator.
 
     :param input_function: Input function.

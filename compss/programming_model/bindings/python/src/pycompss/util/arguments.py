@@ -29,14 +29,15 @@ import sys
 import re
 
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 UNASSIGNED = "[unassigned]"
 
 
-def check_arguments(mandatory_arguments,   # type: set
-                    deprecated_arguments,  # type: set
-                    supported_arguments,   # type: set
-                    argument_names,        # type: list
+def check_arguments(mandatory_arguments,   # type: typing.Set[str]
+                    deprecated_arguments,  # type: typing.Set[str]
+                    supported_arguments,   # type: typing.Set[str]
+                    argument_names,        # type: typing.List[str]
                     decorator              # type: str
                     ):                     # type: (...) -> None
     """
@@ -67,25 +68,27 @@ def check_arguments(mandatory_arguments,   # type: set
                                    decorator_str)
 
 
-def check_mandatory_arguments(mandatory_arguments, arguments, where):
-    # type: (set, list, str) -> None
+def check_mandatory_arguments(mandatory_arguments,  # type: typing.Set[str]
+                              argument_names,       # type: typing.List[str]
+                              where                 # type: str
+                              ):                    # type: (...) -> None
     """
     This method checks that all mandatory arguments are in arguments.
 
     :param mandatory_arguments: Set of supported arguments
-    :param arguments: List of arguments to check
+    :param argument_names: List of arguments to check
     :param where: Location of the argument
     :return: None
     """
     for argument in mandatory_arguments:
         if "_" in argument:
-            if argument not in arguments and \
-                    __to_camel_case__(argument) not in arguments:
+            if argument not in argument_names and \
+                    __to_camel_case__(argument) not in argument_names:
                 # The mandatory argument or it converted to camel case is
                 # not in the arguments
                 __error_mandatory_argument__(where, argument)
         else:
-            if argument not in arguments:
+            if argument not in argument_names:
                 # The mandatory argument is not in the arguments
                 __error_mandatory_argument__(where, argument)
 
@@ -112,19 +115,21 @@ def __error_mandatory_argument__(decorator, argument):
                                                                str(decorator)))
 
 
-def __check_deprecated_arguments__(deprecated_arguments, arguments, where):
-    # type: (set, list, str) -> None
+def __check_deprecated_arguments__(deprecated_arguments,  # type: typing.Set[str]
+                                   argument_names,        # type: typing.List[str]
+                                   where                  # type: str
+                                   ):                     # type: (...) -> None
     """
     This method looks for deprecated arguments and displays a warning
     if found.
 
     :param deprecated_arguments: Set of deprecated arguments
-    :param arguments: List of arguments to check
+    :param argument_names: List of arguments to check
     :param where: Location of the argument
     :return: None
     :raise PyCOMPSsException: With the unsupported argument
     """
-    for argument in arguments:
+    for argument in argument_names:
         if argument == "isModifier":
             message = "ERROR: Unsupported argument: isModifier Found in %s.\n" \
                       "       Please, use: target_direction" % str(where)
@@ -145,18 +150,20 @@ def __check_deprecated_arguments__(deprecated_arguments, arguments, where):
             print(message, file=sys.stderr)  # also show the warn in stderr
 
 
-def __check_unexpected_arguments__(supported_arguments, arguments, where):
-    # type: (set, list, str) -> None
+def __check_unexpected_arguments__(supported_arguments,  # type: typing.Set[str]
+                                   argument_names,       # type: typing.List[str]
+                                   where                 # type: str
+                                   ):                    # type: (...) -> None
     """
     This method looks for unexpected arguments and displays a warning
     if found.
 
     :param supported_arguments: Set of supported arguments
-    :param arguments: List of arguments to check
+    :param argument_names: List of arguments to check
     :param where: Location of the argument
     :return: None
     """
-    for argument in arguments:
+    for argument in argument_names:
         if argument not in supported_arguments:
             message = "WARNING: Unexpected argument: %s Found in %s." % \
                       (str(argument), str(where))

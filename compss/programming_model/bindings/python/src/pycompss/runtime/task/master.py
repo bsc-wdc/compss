@@ -249,7 +249,7 @@ class TaskMaster(object):
 
     def __init__(self,
                  decorator_arguments,  # type: typing.Dict[str, typing.Any]
-                 user_function,        # type: typing.Any
+                 user_function,        # type: typing.Callable
                  core_element,         # type: CE
                  registered,           # type: bool
                  signature,            # type: str
@@ -608,8 +608,39 @@ class TaskMaster(object):
             arguments = self._getargspec(self.user_function)
         except TypeError:
             # This is a numba jit declared task
-            arguments = self._getargspec(self.user_function.py_func)
+            py_func = self.get_user_function_py_func()
+            arguments = self._getargspec(py_func)
         self.param_args, self.param_varargs, _, self.param_defaults = arguments
+
+    def get_user_function_py_func(self):
+        # type: () -> typing.Callable
+        """ Retrieve py_func from self.user_function.
+        WARNING!!! Only available in numba wrapped functions.
+
+        :return: py_func
+        """
+        return self.user_function.py_func  # type: ignore
+
+    def user_func_py_func_glob_getter(self, field):
+        # type: (str) -> typing.Any
+        """ Retrieve a field from __globals__ from py_func of
+        self.user_function.
+        WARNING!!! Only available in numba wrapped functions.
+
+        :return: __globals__ getter for the given field
+        """
+        py_func = self.get_user_function_py_func()
+        return py_func.__globals__.get(field)  # type: ignore
+
+    def user_func_glob_getter(self, field):
+        # type: (str) -> typing.Any
+        """ Retrieve a field from __globals__ from py_func of
+        self.user_function.
+        WARNING!!! Only available in numba wrapped functions.
+
+        :return: __globals__ getter for the given field
+        """
+        return self.user_function.__globals__.get(field)  # type: ignore
 
     @staticmethod
     def _getargspec(function):
@@ -949,7 +980,7 @@ class TaskMaster(object):
             # MPI, BINARY, CONTAINER
             code_strings = False
 
-        self.user_function.__code_strings__ = code_strings
+        self.user_function.__code_strings__ = code_strings  # type: ignore
 
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" %
@@ -1150,12 +1181,12 @@ class TaskMaster(object):
                     try:
                         # Load from global variables
                         parsed_processes_per_node = \
-                            self.user_function.__globals__.get(processes_per_node)  # noqa: E501
+                            self.user_func_glob_getter(processes_per_node)
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
                             parsed_processes_per_node = \
-                                self.user_function.py_func.__globals__.get(processes_per_node)  # noqa: E501
+                                self.user_func_py_func_glob_getter(processes_per_node)
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_processes_per_node will
@@ -1210,12 +1241,12 @@ class TaskMaster(object):
                     try:
                         # Load from global variables
                         parsed_computing_nodes = \
-                            self.user_function.__globals__.get(computing_nodes)  # noqa: E501
+                            self.user_func_glob_getter(computing_nodes)
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
                             parsed_computing_nodes = \
-                                self.user_function.py_func.__globals__.get(computing_nodes)  # noqa: E501
+                                self.user_func_py_func_glob_getter(computing_nodes)
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_computing_nodes will
@@ -1264,11 +1295,11 @@ class TaskMaster(object):
                     # Dynamic global variable
                     try:
                         # Load from global variables
-                        return self.user_function.__globals__.get(chunk_size)
+                        return self.user_func_glob_getter(chunk_size)
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
-                            return self.user_function.py_func.__globals__.get(chunk_size)  # noqa: E501
+                            return self.user_func_py_func_glob_getter(chunk_size)
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_chunk_size will
@@ -1442,10 +1473,10 @@ class TaskMaster(object):
             else:
                 # Return is hidden by a global variable. i.e., LT_ARGS
                 try:
-                    num_rets = self.user_function.__globals__.get(returns)
+                    num_rets = self.user_func_glob_getter(returns)
                 except AttributeError:
                     # This is a numba jit declared task
-                    num_rets = self.user_function.py_func.__globals__.get(returns)  # noqa: E501
+                    num_rets = self.user_func_py_func_glob_getter(returns)
                 return int(num_rets)
 
     def update_return_if_no_returns(self, f):
@@ -1744,7 +1775,7 @@ class TaskMaster(object):
         slf_name = ""
         weights = []
         keep_renames = []
-        code_strings = self.user_function.__code_strings__
+        code_strings = self.user_function.__code_strings__  # type: ignore
 
         # Build the range of elements
         if self.function_type == FunctionType.INSTANCE_METHOD or \

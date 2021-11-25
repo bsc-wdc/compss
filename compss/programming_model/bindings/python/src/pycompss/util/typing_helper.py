@@ -27,7 +27,10 @@ try:
     import typing
 except ImportError:
     # No typing if not available - will not compile with mypyc
-    pass
+    typing = None  # type: ignore
+    message = "WARNING: Typing is not available!!!"
+    print(message)
+    raise Exception(message)
 
 
 class dummy_mypyc_attr(object):
@@ -58,6 +61,15 @@ except ImportError:
     import_ok = False
 
 if import_ok:
-    mypyc_attr = real_mypyc_attr   # type: ignore
+    mypyc_attr = real_mypyc_attr
 else:
     mypyc_attr = dummy_mypyc_attr  # type: ignore
+
+
+######################################
+# Boilerplate to mimic user fuctions #
+######################################
+
+def dummy_function():
+    # type: () -> None
+    pass

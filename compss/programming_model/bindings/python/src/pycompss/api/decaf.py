@@ -111,7 +111,7 @@ class Decaf(object):
             process_computing_nodes(decorator_name, self.kwargs)
 
     def __call__(self, user_function):
-        # type: (typing.Any) -> typing.Any
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the decaf parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -145,7 +145,7 @@ class Decaf(object):
         return decaf_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Any) -> None
+        # type: (dict, typing.Callable) -> None
         """ Include the registering info related to @decaf.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

@@ -67,7 +67,7 @@ class Constraint(object):
         self.core_element_configured = False
 
     def __call__(self, user_function):
-        # type: (typing.Any) -> typing.Any
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the constraints within the task core element.
 
         :param user_function: Function to decorate.
@@ -100,7 +100,7 @@ class Constraint(object):
         return constrained_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Any) -> None
+        # type: (dict, typing.Callable) -> None
         """ Include the registering info related to @constraint.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

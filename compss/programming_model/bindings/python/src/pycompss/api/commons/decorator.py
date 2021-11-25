@@ -48,9 +48,6 @@ if __debug__:
 # Global name to be used within kwargs for the core element.
 CORE_ELEMENT_KEY = "compss_core_element"
 
-# Generic types:
-F_type = typing.TypeVar("F_type", bound=typing.Callable[..., typing.Any])
-
 
 class PyCOMPSsDecorator(object):
     """

@@ -93,7 +93,7 @@ class Container(object):
                             decorator_name)
 
     def __call__(self, user_function):
-        # type: (typing.Any) -> typing.Any
+        # type: (typing.Callable) -> typing.Callable
         """
         Parse and set the container parameters within the task core element.
 
@@ -125,7 +125,7 @@ class Container(object):
         return container_f
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Any) -> None
+        # type: (dict, typing.Callable) -> None
         """ Include the registering info related to @container.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

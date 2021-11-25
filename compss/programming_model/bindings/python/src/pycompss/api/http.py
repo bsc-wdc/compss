@@ -89,7 +89,7 @@ class HTTP(object):
                             decorator_name)
 
     def __call__(self, user_function):
-        # type: (typing.Any) -> typing.Any
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the http parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -105,7 +105,7 @@ class HTTP(object):
         return http_f
 
     def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Any, tuple, dict) -> typing.Any
+        # type: (typing.Callable, tuple, dict) -> typing.Any
         # force to serialize with JSON
         serializer.FORCED_SERIALIZER = 4
         if not self.scope:
@@ -138,7 +138,7 @@ class HTTP(object):
         return 200
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Any) -> None
+        # type: (dict, typing.Callable) -> None
         """ Include the registering info related to @http.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

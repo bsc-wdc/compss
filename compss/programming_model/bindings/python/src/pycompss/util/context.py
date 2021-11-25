@@ -25,8 +25,14 @@ PyCOMPSs Util - Context
 """
 
 import inspect
-from pycompss.util.typing_helper import typing
 from contextlib import contextmanager
+# Typing imports
+from pycompss.util.typing_helper import typing
+from pycompss.runtime.task.master import TaskMaster
+
+####################
+# GLOBAL VARIABLES #
+####################
 
 MASTER = "MASTER"
 WORKER = "WORKER"
@@ -37,8 +43,12 @@ _WHERE = OUT_OF_SCOPE  # type: str
 
 NESTING = False
 LOADING = False
-TO_REGISTER = []
+TO_REGISTER = []       # type: typing.List[typing.Tuple[TaskMaster, str]]
 
+
+#############
+# FUNCTIONS #
+#############
 
 def in_master():
     # type: () -> bool
@@ -140,19 +150,6 @@ def disable_nesting():
     NESTING = False
 
 
-@contextmanager
-def loading_context():
-    # type: () -> typing.Iterator[None]
-    """ Context which sets the loading mode (intended to be used only with
-    the @implements decorators, since they try to register on loading).
-
-    :return: None
-    """
-    __enable_loading__()
-    yield
-    __disable_loading__()
-
-
 def is_loading():
     # type: () -> bool
     """ Check if is loading is enabled.
@@ -172,8 +169,31 @@ def __enable_loading__():
     LOADING = True
 
 
+def __disable_loading__():
+    # type: () -> None
+    """ Enable loading.
+
+    :returns: None
+    """
+    global LOADING
+    LOADING = False
+
+
+@contextmanager
+def loading_context():
+    # type: () -> typing.Iterator[None]
+    """ Context which sets the loading mode (intended to be used only with
+    the @implements decorators, since they try to register on loading).
+
+    :return: None
+    """
+    __enable_loading__()
+    yield
+    __disable_loading__()
+
+
 def add_to_register_later(core_element):
-    # type: (typing.Any) -> None
+    # type: (typing.Tuple[TaskMaster, str]) -> None
     """ Accumulate core elements to be registered later.
 
     :param core_element: Core element to be registered
@@ -184,19 +204,9 @@ def add_to_register_later(core_element):
 
 
 def get_to_register():
-    # type: () -> list
+    # type: () -> typing.List[typing.Tuple[TaskMaster, str]]
     """ Retrieve the to register list.
 
     :return: To register list
     """
     return TO_REGISTER
-
-
-def __disable_loading__():
-    # type: () -> None
-    """ Enable loading.
-
-    :returns: None
-    """
-    global LOADING
-    LOADING = False

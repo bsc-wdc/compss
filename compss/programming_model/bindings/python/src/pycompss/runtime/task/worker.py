@@ -86,7 +86,7 @@ class TaskWorker(object):
 
     def __init__(self,
                  decorator_arguments,  # type: typing.Dict[str, typing.Any]
-                 user_function,        # type: typing.Any
+                 user_function,        # type: typing.Callable
                  on_failure,           # type: str
                  defaults              # type: dict
                  ):                    # type: (...) -> None

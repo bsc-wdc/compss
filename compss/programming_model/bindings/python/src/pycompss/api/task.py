@@ -26,6 +26,7 @@ PyCOMPSs API - Task
 from __future__ import print_function
 import sys
 from pycompss.util.typing_helper import typing
+from pycompss.util.typing_helper import dummy_function
 from functools import wraps
 
 import pycompss.api.parameter as parameter
@@ -42,7 +43,6 @@ from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
 from pycompss.runtime.task.core_element import CE
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.api.commons.decorator import F_type
 from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.helpers import event_inside_worker
@@ -171,9 +171,7 @@ class Task(object):
                     # It is a reserved word that we need to keep the user
                     # defined value (not a Parameter object)
                     self.decorator_arguments[key] = value
-
-        # Function to execute as task
-        self.user_function = None          # type: typing.Any
+        self.user_function = dummy_function  # type: typing.Callable
         # Global variables common for all tasks of this kind
         self.registered = False
         self.signature = ""
@@ -190,7 +188,7 @@ class Task(object):
         self.defaults = dict()             # type: dict
 
     def __call__(self, user_function):
-        # type: (F_type) -> F_type
+        # type: (typing.Callable) -> typing.Callable
         """ This function is called in all explicit function calls.
 
         Note that in PyCOMPSs a single function call will be transformed into
@@ -216,10 +214,10 @@ class Task(object):
             # type: (*typing.Any, **typing.Any) -> typing.Any
             return self.__decorator_body__(user_function, args, kwargs)
 
-        return typing.cast(F_type, task_decorator)
+        return task_decorator
 
     def __decorator_body__(self, user_function, args, kwargs):
-        # type: (F_type, tuple, dict) -> typing.Any
+        # type: (typing.Callable, tuple, dict) -> typing.Any
         # Determine the context and decide what to do
         if context.in_master():
             # @task being executed in the master
@@ -332,7 +330,7 @@ class Task(object):
 
     @staticmethod
     def __check_core_element__(kwargs, user_function):
-        # type: (dict, F_type) -> None
+        # type: (dict, typing.Callable) -> None
         """ Check Core Element for containers.
 
         :param kwargs: Keyword arguments

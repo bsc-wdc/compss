@@ -619,6 +619,7 @@ public class ITFParser {
         for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
+            String params = EnvironmentLoader.loadFromEnvironment(binaryAnnot.params());
             String failByEVstr = EnvironmentLoader.loadFromEnvironment(binaryAnnot.failByExitValue());
 
             if (binary == null || binary.isEmpty() || binary.equals(Constants.UNASSIGNED)) {
@@ -637,7 +638,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binary, workingDir, failByEVstr);
+                    implConstraints, binary, workingDir, params, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage(), e);
             }

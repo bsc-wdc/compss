@@ -96,7 +96,7 @@ class IO(object):
             if (context.in_master() or context.is_nesting_enabled()) \
                     and not self.core_element_configured:
                 # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
+                self.__configure_core_element__(kwargs)
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -107,14 +107,13 @@ class IO(object):
         io_f.__doc__ = user_function.__doc__
         return io_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Callable) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @IO.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

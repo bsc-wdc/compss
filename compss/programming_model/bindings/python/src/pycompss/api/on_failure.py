@@ -119,7 +119,7 @@ class OnFailure(object):
             if (context.in_master() or context.is_nesting_enabled()) \
                     and not self.core_element_configured:
                 # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
+                self.__configure_core_element__(kwargs)
 
             # Set the on failure management action and default variables in
             # kwargs for its usage in @task decorator
@@ -135,15 +135,14 @@ class OnFailure(object):
         constrained_f.__doc__ = user_function.__doc__
         return constrained_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Callable) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @on_failure.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Current keyword arguments to be updated with the core
                        element information.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

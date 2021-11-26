@@ -58,9 +58,12 @@ public abstract class DataAccessId implements Serializable {
      * 
      * @return {@code true} if the data access will write, {@code false} otherwise.
      */
-    public boolean isWrite() {
-        Direction accessDirection = getDirection();
-        return !accessDirection.equals(Direction.R);
-    }
+    public abstract boolean isWrite();
 
+    /**
+     * Returns whether the source data must be preserved or not.
+     * 
+     * @return {@code true} if the source data must be preserved, {@code false} otherwise.
+     */
+    public abstract boolean isPreserveSourceData();
 }

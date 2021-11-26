@@ -22,8 +22,6 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 
 
 public class DependencyParameter extends Parameter implements Transferable {
@@ -129,18 +127,7 @@ public class DependencyParameter extends Parameter implements Transferable {
 
     @Override
     public boolean isSourcePreserved() {
-        boolean preserveSourceData;
-        if (this.daId instanceof RAccessId) {
-            // Parameter is a R, has sources
-            preserveSourceData = ((RAccessId) this.daId).isPreserveSourceData();
-        } else if (this.daId instanceof RWAccessId) {
-            // Parameter is a RW, has sources
-            preserveSourceData = ((RWAccessId) this.daId).isPreserveSourceData();
-        } else {
-            // Parameter is a W, it has no sources
-            preserveSourceData = false;
-        }
-        return preserveSourceData;
+        return this.daId.isPreserveSourceData();
     }
 
 }

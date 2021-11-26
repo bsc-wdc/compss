@@ -319,8 +319,10 @@ public class LogicalData {
      * 
      * @param monitor element to notify location updates
      */
-    public synchronized void registerLocationMonitor(LocationMonitor monitor) {
-        this.locMonitors.add(monitor);
+    public void registerLocationMonitor(LocationMonitor monitor) {
+        synchronized (this.locMonitors) {
+            this.locMonitors.add(monitor);
+        }
     }
 
     /**
@@ -328,8 +330,10 @@ public class LogicalData {
      * 
      * @param monitor element to stop notifying location updates
      */
-    public synchronized void unregisterLocationMonitor(LocationMonitor monitor) {
-        this.locMonitors.remove(monitor);
+    public void unregisterLocationMonitor(LocationMonitor monitor) {
+        synchronized (this.locMonitors) {
+            this.locMonitors.remove(monitor);
+        }
     }
 
     /**
@@ -349,8 +353,10 @@ public class LogicalData {
         }
 
         List<Resource> resources = loc.getHosts();
-        for (LocationMonitor readerData : this.locMonitors) {
-            readerData.addLocation(resources, readerData.getParameter());
+        synchronized (this.locMonitors) {
+            for (LocationMonitor readerData : this.locMonitors) {
+                readerData.addLocation(resources, readerData.getParameter());
+            }
         }
 
         this.isBeingSaved = false;

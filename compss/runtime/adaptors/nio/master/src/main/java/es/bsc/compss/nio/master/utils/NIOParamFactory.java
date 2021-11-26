@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.nio.master.utils;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
@@ -25,6 +24,7 @@ import es.bsc.compss.nio.NIOParamDictCollection;
 import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
@@ -94,14 +94,14 @@ public class NIOParamFactory {
 
         // Check if the parameter has a valid PSCO and change its type
         // OUT objects are restricted by the API
-        String renaming = null;
+        LogicalData ld = null;
         String dataMgmtId;
         DataAccessId dAccId = dPar.getDataAccessId();
         boolean preserveSourceData = fromReplicatedTask;
         if (dAccId instanceof RWAccessId) {
             // Read write mode
             RWAccessId rwaId = (RWAccessId) dAccId;
-            renaming = rwaId.getReadDataInstance().getRenaming();
+            ld = rwaId.getReadDataInstance().getData();
             dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
             if (!fromReplicatedTask) {
                 preserveSourceData = dPar.isSourcePreserved();
@@ -109,8 +109,8 @@ public class NIOParamFactory {
         } else if (dAccId instanceof RAccessId) {
             // Read only mode
             RAccessId raId = (RAccessId) dAccId;
-            renaming = raId.getReadDataInstance().getRenaming();
-            dataMgmtId = renaming;
+            ld = raId.getReadDataInstance().getData();
+            dataMgmtId = ld.getName();
             if (!fromReplicatedTask) {
                 preserveSourceData = dPar.isSourcePreserved();
             }
@@ -119,8 +119,8 @@ public class NIOParamFactory {
             dataMgmtId = waId.getWrittenDataInstance().getRenaming();
             preserveSourceData = dPar.isSourcePreserved();
         }
-        if (renaming != null) {
-            String pscoId = Comm.getData(renaming).getPscoId();
+        if (ld != null) {
+            String pscoId = ld.getPscoId();
             if (pscoId != null) {
                 if (param.getType().equals(DataType.OBJECT_T)) {
                     // Change Object type if it is a PSCO

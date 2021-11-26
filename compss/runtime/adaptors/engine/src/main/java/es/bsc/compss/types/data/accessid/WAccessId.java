@@ -68,6 +68,16 @@ public class WAccessId extends DataAccessId {
         return Direction.W;
     }
 
+    @Override
+    public boolean isPreserveSourceData() {
+        return false;
+    }
+
+    @Override
+    public boolean isWrite() {
+        return true;
+    }
+
     /**
      * Returns the written data instance.
      * 

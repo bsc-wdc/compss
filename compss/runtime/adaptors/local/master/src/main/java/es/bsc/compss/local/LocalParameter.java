@@ -82,19 +82,8 @@ public class LocalParameter implements InvocationParam {
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
                 DependencyParameter dPar = (DependencyParameter) param;
-                DataAccessId dAccId = dPar.getDataAccessId();
                 this.value = dPar.getDataTarget();
-                boolean preserveSourceData = true;
-                if (dAccId instanceof RAccessId) {
-                    // Parameter is a R, has sources
-                    preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
-                } else if (dAccId instanceof RWAccessId) {
-                    // Parameter is a RW, has sources
-                    preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
-                } else {
-                    // Parameter is a W, it has no sources
-                    preserveSourceData = false;
-                }
+                this.preserveSourceData = dPar.isSourcePreserved();
 
                 // Check if the parameter has a valid PSCO and change its type
                 // OUT objects are restricted by the API
@@ -131,9 +120,7 @@ public class LocalParameter implements InvocationParam {
                         this.param.setType(param.getType());
                     }
                 }
-
-                this.preserveSourceData = preserveSourceData;
-                this.writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
+                this.writeFinalValue = faId.isWrite();
                 this.originalName = dPar.getOriginalName();
                 break;
             default:

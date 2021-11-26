@@ -16,14 +16,10 @@
  */
 package es.bsc.compss.types.data.operation.copy;
 
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 /**
@@ -48,22 +44,7 @@ public class StorageCopy extends Copy {
         Transferable reason, EventListener listener) {
 
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
-
-        DependencyParameter dPar = (DependencyParameter) reason;
-        DataAccessId dAccId = dPar.getDataAccessId();
-        if (dAccId instanceof RAccessId) {
-            // Parameter is a R, has sources
-            this.preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
-        } else {
-            if (dAccId instanceof RWAccessId) {
-                // Parameter is a RW, has sources
-                this.preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
-            } else {
-                // Parameter is a W, it has no sources
-                this.preserveSourceData = false;
-            }
-        }
-
+        this.preserveSourceData = reason.isSourcePreserved();
         if (DEBUG) {
             LOGGER.debug("Created StorageCopy " + this.getName() + " (id: " + this.getId() + ")");
         }

@@ -322,7 +322,10 @@ def main():
         if is_cache_enabled(str(WORKER_CONF.cache)):
             # Deploy the necessary processes
             cache = True
-            cache_params = start_cache(None, str(WORKER_CONF.cache), cache_profiler, log_dir)
+            cache_params = start_cache(None,
+                                       str(WORKER_CONF.cache),
+                                       cache_profiler,
+                                       log_dir)
         else:
             # No cache
             cache = False

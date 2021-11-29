@@ -25,9 +25,9 @@ PyCOMPSs Cache tracker
 """
 
 import os
-from pycompss.util.typing_helper import typing
 from collections import OrderedDict
 
+from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.tracing.helpers import event_inside_worker
@@ -81,13 +81,21 @@ class CacheTrackerConf(object):
     Cache tracker configuration
     """
 
-    __slots__ = ["logger", "size", "policy", "cache_ids",
+    __slots__ = ["logger", "size", "policy", "cache_ids", "cache_hits",
                  "profiler_dict", "profiler_get_struct", "log_dir",
                  "cache_profiler"]
 
-    def __init__(self, logger, size, policy, cache_ids,
-                 profiler_dict, profiler_get_struct, log_dir, cache_profiler):
-        # type: (typing.Any, int, str, typing.Any, dict, typing.Any, str, bool) -> None
+    def __init__(self,
+                 logger,               # type: typing.Any
+                 size,                 # type: int
+                 policy,               # type: str
+                 cache_ids,            # type: typing.Any
+                 cache_hits,           # type: typing.Dict[int, typing.Dict[str, int]]
+                 profiler_dict,        # type: dict
+                 profiler_get_struct,  # type: typing.Any
+                 log_dir,              # type: str
+                 cache_profiler        # type: bool
+                 ):                    # type: (...) -> None
         """
         Constructs a new cache tracker configuration.
 
@@ -96,11 +104,17 @@ class CacheTrackerConf(object):
         :param policy: Eviction policy.
         :param cache_ids: Shared dictionary proxy where the ids and
                           (size, hits) as its value are.
+        :param cache_hits: Dictionary containing size and keys to ease management.
+        :param profiler_dict:
+        :param profiler_get_struct:
+        :param log_dir:
+        :param cache_profiler:
         """
         self.logger = logger
         self.size = size
         self.policy = policy  # currently no policies defined.
-        self.cache_ids = cache_ids  # key - (id, shape, dtype, size, hits, shared_type)
+        self.cache_ids = cache_ids    # key - (id, shape, dtype, size, hits, shared_type)
+        self.cache_hits = cache_hits  # hits - {key1: size1, key2: size2, etc.}
         self.profiler_dict = profiler_dict
         self.profiler_get_struct = profiler_get_struct
         self.log_dir = log_dir
@@ -121,6 +135,7 @@ def cache_tracker(queue, process_name, conf):
     logger = conf.logger
     max_size = conf.size
     cache_ids = conf.cache_ids
+    cache_hits = conf.cache_hits
     profiler_dict = conf.profiler_dict
     profiler_get_struct = conf.profiler_get_struct
     log_dir = conf.log_dir
@@ -163,7 +178,17 @@ def cache_tracker(queue, process_name, conf):
                             logger.debug(HEADER + "[%s] Cache hit" %
                                          str(process_name))
                         # Increment hits
-                        cache_ids[f_name][4] += 1
+                        current = cache_ids[f_name]
+                        current_hits = current[4]
+                        new_hits = current_hits + 1
+                        current[4] = new_hits
+                        cache_ids[f_name] = current  # forces updating whole entry
+                        # Keep cache_hits structure
+                        cache_hits[current_hits].pop(f_name)
+                        if new_hits in cache_hits:
+                            cache_hits[new_hits][f_name] = obj_size
+                        else:
+                            cache_hits[new_hits] = {f_name: obj_size}
                     else:
                         # Add new entry request
                         if __debug__:
@@ -180,14 +205,22 @@ def cache_tracker(queue, process_name, conf):
                             used_size = check_cache_status(conf,
                                                            used_size,
                                                            obj_size)
-                        # Add without problems
+                            # used_size = check_cache_status_old(conf,
+                            #                                    used_size,
+                            #                                    obj_size)
+                        # Accumulate size
                         used_size = used_size + obj_size
+                        # Initial hits
+                        hits = 0
+                        # Add without problems
                         cache_ids[f_name] = [cache_id,
                                              shape,
                                              dtype,
                                              obj_size,
-                                             0,
+                                             hits,
                                              shared_type]
+                        # Register in hits dictionary
+                        cache_hits[hits] = {f_name: obj_size}
                 elif action == "REMOVE":
                     f_name = __get_file_name__(message)
                     logger.debug(HEADER + "[%s] Removing: %s" %
@@ -199,7 +232,7 @@ def cache_tracker(queue, process_name, conf):
                 alive = False
 
 
-def check_cache_status(conf, used_size, requested_size):
+def check_cache_status_old(conf, used_size, requested_size):
     # type: (CacheTrackerConf, int, int) -> int
     """ Checks the cache status looking into the shared dictionary.
 
@@ -240,6 +273,59 @@ def check_cache_status(conf, used_size, requested_size):
     for entry in to_evict:
         cache_ids.pop(entry)
     return used_size - recovered_size
+
+
+def check_cache_status(conf, used_size, requested_size):
+    # type: (CacheTrackerConf, int, int) -> int
+    """ Checks the cache status looking into the shared dictionary.
+
+    :param conf: configuration of the cache tracker.
+    :param used_size: Current used size of the cache.
+    :param requested_size: Size needed to fit the new object.
+    :return: new used size
+    """
+    logger = conf.logger  # noqa
+    max_size = conf.size
+    cache_ids = conf.cache_ids
+    cache_hits = conf.cache_hits
+    if __debug__:
+        logger.debug(HEADER + "Checking cache status: Requested %s bytes" %
+                     str(requested_size))
+
+    # Sort by number of hits (from lower to higher)
+    sorted_hits = sorted(cache_hits.keys())
+    # Calculate size to recover
+    size_to_recover = used_size + requested_size - max_size
+    # Select how many to evict
+    to_evict, recovered_size = __evict__(sorted_hits, cache_hits, size_to_recover)
+    if __debug__:
+        logger.debug(HEADER + "Evicting %d entries" % (len(to_evict)))
+    # Evict
+    for entry in to_evict:
+        cache_ids.pop(entry)
+    return used_size - recovered_size
+
+
+def __evict__(sorted_hits, cache_hits, size_to_recover):
+    """ Select how many to evict.
+
+    :param sorted_hits: List of current hits sorted from lower to higher.
+    :param cache_hits: Cache hits structure.
+    :param size_to_recover: Amount of size to recover.
+    :return: List of f_names to evict.
+    """
+    to_evict = list()
+    total_recovered_size = 0
+    for hits in sorted_hits:
+        # Does not check the order by size of the objects since they have the
+        # same amount of hits
+        for f_name in cache_hits[hits]:
+            recovered_size = cache_hits[hits].pop(f_name)
+            to_evict.append(f_name)
+            size_to_recover -= recovered_size
+            total_recovered_size += recovered_size
+            if size_to_recover <= 0:
+                return to_evict, total_recovered_size
 
 
 def load_shared_memory_manager():

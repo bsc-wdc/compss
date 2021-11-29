@@ -31,6 +31,7 @@ from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
 from pycompss.worker.piper.cache.tracker import remove_object_from_cache
 from pycompss.worker.piper.cache.tracker import replace_object_into_cache
 from pycompss.worker.piper.cache.tracker import in_cache
+from pycompss.util.exceptions import PyCOMPSsException
 
 
 NOT_PYTHON_3_8 = "WARNING: Could not perform cache test since python version is lower than 3.8"  # noqa: E501
@@ -144,19 +145,25 @@ def test_piper_worker_cache_reuse():
     if sys.version_info >= (3, 8):
         # Initiate cache
         smm, cache_process, cache_queue, cache_ids = start_cache(logging,
-                                                                 "true:100",
+                                                                 "true:100000",
                                                                  False,
                                                                  "")
         load_shared_memory_manager()
         # Create multiple objects and store with the same name:
         amount = 10
         np_objs = [np.random.rand(4) for _ in range(amount)]
-        np_objs_names = ["name" for _ in range(amount)]
+        obj_name = "name"
+        np_objs_names = [obj_name for _ in range(amount)]
         # Check insertions
         for i in range(amount):
             insert_object_into_cache_wrapper(logging, cache_queue,
                                              np_objs[i], np_objs_names[i],
                                              np_objs_names[i], None)
+        if obj_name not in cache_ids:
+            raise Exception("Object " + obj_name + " not found in cache_ids.")
+        else:
+            if cache_ids[obj_name][4] != 9:
+                raise Exception("Wrong number of hits!!!")
         # Stop cache
         stop_cache(smm, cache_queue, False, cache_process)
     else:

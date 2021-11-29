@@ -419,68 +419,30 @@ class TaskMaster(TaskCommons):
                          (self.function_name, self.function_type,
                           self.module_name, self.class_name))
 
-        if self.core_element.get_impl_type() == "HTTP":
-            # todo: nm: beautify this (indexes are set in http.py)..
-            service_name = self.core_element.get_impl_type_args()[0]
-            resource = self.core_element.get_impl_type_args()[1]
-            request = self.core_element.get_impl_type_args()[2]
-            payload = self.core_element.get_impl_type_args()[3]
-            payload_type = self.core_element.get_impl_type_args()[4]
-            produces = self.core_element.get_impl_type_args()[5]
-            updates = self.core_element.get_impl_type_args()[6]
-            binding.process_http_task(
-                signature,
-                service_name,
-                resource,
-                request,
-                payload,
-                payload_type,
-                produces,
-                updates,
-                has_target,
-                names,
-                values,
-                num_returns,
-                compss_types,
-                compss_directions,
-                compss_streams,
-                compss_prefixes,
-                content_types,
-                weights,
-                keep_renames,
-                has_priority,
-                computing_nodes,
-                is_reduction,
-                chunk_size,
-                is_replicated,
-                is_distributed,
-                self.on_failure,
-                time_out
-            )
-        else:
-            # Process the task
-            binding.process_task(
-                signature,
-                has_target,
-                names,
-                values,
-                num_returns,
-                compss_types,
-                compss_directions,
-                compss_streams,
-                compss_prefixes,
-                content_types,
-                weights,
-                keep_renames,
-                has_priority,
-                computing_nodes,
-                is_reduction,
-                chunk_size,
-                is_replicated,
-                is_distributed,
-                self.on_failure,
-                time_out
-            )
+        is_http = self.core_element.get_impl_type() == "HTTP"
+        binding.process_task(
+            signature,
+            has_target,
+            names,
+            values,
+            num_returns,
+            compss_types,
+            compss_directions,
+            compss_streams,
+            compss_prefixes,
+            content_types,
+            weights,
+            keep_renames,
+            has_priority,
+            computing_nodes,
+            is_reduction,
+            chunk_size,
+            is_replicated,
+            is_distributed,
+            self.on_failure,
+            time_out,
+            is_http
+        )
 
         # Remove unused attributes from the memory
         with event(ATTRIBUTES_CLEANUP, master=True):
@@ -1027,10 +989,11 @@ class TaskMaster(TaskCommons):
         :param impl_type_args: Parameter arguments.
         :return: None
         """
-        num_layouts = int(impl_type_args[7])
+        # todo: replace these INDEXES with CONSTANTS
+        num_layouts = int(impl_type_args[8])
         if num_layouts > 0:
             for i in range(num_layouts):
-                param_name = impl_type_args[(8+(i*4))].strip()
+                param_name = impl_type_args[(9+(i*4))].strip()
                 if param_name:
                     if param_name in self.parameters:
                         if self.parameters[param_name].content_type != parameter.TYPE.COLLECTION:      # noqa: E501

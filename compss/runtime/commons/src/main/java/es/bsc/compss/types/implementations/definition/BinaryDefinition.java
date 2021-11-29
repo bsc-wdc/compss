@@ -17,6 +17,7 @@
 
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -37,11 +38,12 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 3;
+    public static final int NUM_PARAMS = 4;
     public static final String SIGNATURE = "binary.BINARY";
 
     private String binary;
     private String workingDir;
+    private String params;
     private boolean failByEV;
 
 
@@ -56,9 +58,10 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
      * @param workingDir Working directory.
      * @param failByEV Flag to enable failure with EV.
      */
-    public BinaryDefinition(String binary, String workingDir, boolean failByEV) {
+    public BinaryDefinition(String binary, String workingDir, String params, boolean failByEV) {
         this.binary = binary;
         this.workingDir = workingDir;
+        this.params = params;
         this.failByEV = failByEV;
     }
 
@@ -71,7 +74,8 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
     public BinaryDefinition(String[] implTypeArgs, int offset) {
         this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 2]);
+        this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 3]);
 
         if (binary == null || binary.isEmpty() || binary.equals("[unassigned]")) {
             throw new IllegalArgumentException("Empty binary annotation for BINARY method");
@@ -82,6 +86,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
     public void appendToArgs(List<String> lArgs, String auxParam) {
         lArgs.add(binary);
         lArgs.add(workingDir);
+        lArgs.add(params);
         lArgs.add(Boolean.toString(failByEV));
     }
 
@@ -92,6 +97,10 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
      */
     public String getBinary() {
         return this.binary;
+    }
+
+    public String getParams() {
+        return params;
     }
 
     /**
@@ -126,6 +135,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
     public String toMethodDefinitionFormat() {
         StringBuilder sb = new StringBuilder();
         sb.append("[BINARY=").append(this.binary);
+        sb.append("\t   PARAMS=").append(this.params);
         sb.append("]");
 
         return sb.toString();
@@ -140,6 +150,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
+        this.params = (String) in.readObject();
         this.failByEV = in.readBoolean();
     }
 
@@ -147,6 +158,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
+        out.writeObject(this.params);
         out.writeBoolean(this.failByEV);
     }
 
@@ -156,7 +168,12 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         sb.append("Binary Definition \n");
         sb.append("\t Binary: ").append(this.binary).append("\n");
         sb.append("\t Working directory: ").append(this.workingDir).append("\n");
+        sb.append("\t Params String: ").append(this.params).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         return sb.toString();
+    }
+
+    public boolean hasParamsString() {
+        return this.params != null && !this.params.isEmpty() && !this.params.equals(Constants.UNASSIGNED);
     }
 }

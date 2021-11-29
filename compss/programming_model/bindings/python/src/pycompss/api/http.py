@@ -56,7 +56,7 @@ class HTTP(PyCOMPSsDecorator):
 
         self = itself.
         args = not used.
-        kwargs = dictionary with the given mpi parameters.
+        kwargs = dictionary with the given http parameters.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -78,7 +78,7 @@ class HTTP(PyCOMPSsDecorator):
                             decorator_name)
 
     def __call__(self, user_function):
-        """ Parse and set the mpi parameters within the task core element.
+        """ Parse and set the http parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
@@ -115,7 +115,7 @@ class HTTP(PyCOMPSsDecorator):
 
     def __run_http__(self, *args, **kwargs):
         # type: (..., dict) -> int
-        """ Runs the http binary defined in the decorator when used as dummy.
+        """ HTTP tasks are meant to be dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
@@ -137,7 +137,6 @@ class HTTP(PyCOMPSsDecorator):
         if __debug__:
             logger.debug("Configuring @http core element.")
         impl_type = "HTTP"
-        # todo: nm: beautify this..
         impl_args = [self.kwargs['service_name'],
                      self.kwargs['resource'],
                      self.kwargs['request'],

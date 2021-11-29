@@ -767,8 +767,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // HTTP
     // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
     @Override
-    public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
-        String payload, String payloadType, String produces, String updates, String declareMethodFullyQualifiedName,
+    public int executeTask(Long appId, TaskMonitor monitor, String declareMethodFullyQualifiedName,
         boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
         boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
         Object... parameters) {
@@ -781,8 +780,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
         }
 
-        LOGGER.info("Creating HTTP task with service name " + serviceName + " and resource " + resource
-            + ", for application " + appId + "and declaring class:" + declareMethodFullyQualifiedName);
+        LOGGER.info(
+            "Creating HTTP task for application " + appId + " and declaring class:" + declareMethodFullyQualifiedName);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
@@ -800,9 +799,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Register the task
-        int task = ap.newTask(app, monitor, serviceName, resource, request, payload, payloadType, produces, updates,
-            declareMethodFullyQualifiedName, isPrioritary, isReduce, reduceChunkSize, hasTarget, numReturns, pars,
-            onFailure, timeOut);
+        int task = ap.newTask(app, monitor, declareMethodFullyQualifiedName, isPrioritary, isReduce, reduceChunkSize,
+            hasTarget, numReturns, pars, onFailure, timeOut);
 
         for (Parameter p : pars) {
             if (p.getDirection().equals(Direction.IN_DELETE)) {

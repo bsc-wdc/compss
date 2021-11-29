@@ -1,0 +1,10 @@
+
+{
+	"type":"mpi",
+	"properties":{
+        "runner": "mpirun",
+        "binary":"sed",
+        "working_dir": ".",
+        "processes": 4
+	}
+}

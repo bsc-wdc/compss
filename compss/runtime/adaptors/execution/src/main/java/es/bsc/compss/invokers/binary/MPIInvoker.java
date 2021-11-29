@@ -142,14 +142,16 @@ public class MPIInvoker extends Invoker {
 
         }
 
-        // Convert binary parameters and calculate binary-streams redirection
+        String[] appParams = new String[0];
+        if (this.mpiDef.hasParamsString()) {
+            appParams =
+                BinaryRunner.buildAppParams(this.invocation.getParams(), this.mpiDef.getParams(), pythonInterpreter);
+        }
+
+        // Calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
             this.invocation.getTarget(), streamValues, pythonInterpreter);
-
-        // Create hostfile
-
-        int numMPIArgs = NUM_BASE_MPI_ARGS;
 
         // MPI Flags
         String mpiFlags = mpiDef.getMpiFlags();
@@ -161,7 +163,14 @@ public class MPIInvoker extends Invoker {
         }
 
         // Prepare command
-        String[] cmd = new String[numMPIArgs + numMPIFlags + binaryParams.size()];
+        int cmdLength = NUM_BASE_MPI_ARGS + numMPIFlags;
+        if (this.mpiDef.hasParamsString()) {
+            cmdLength += appParams.length;
+        } else {
+            cmdLength += binaryParams.size();
+        }
+        String[] cmd = new String[cmdLength];
+
         int pos = 0;
         cmd[pos++] = this.mpiDef.getMpiRunner();
         cmd[pos++] = this.mpiDef.getHostsFlag();
@@ -180,8 +189,15 @@ public class MPIInvoker extends Invoker {
 
         cmd[pos++] = this.mpiDef.getBinary();
 
-        for (int i = 0; i < binaryParams.size(); ++i) {
-            cmd[pos++] = binaryParams.get(i);
+        // if params string is not null, all the params should be included there
+        if (this.mpiDef.hasParamsString()) {
+            for (String appParam : appParams) {
+                cmd[pos++] = appParam;
+            }
+        } else {
+            for (String binParam : binaryParams) {
+                cmd[pos++] = binParam;
+            }
         }
 
         // Prepare environment
@@ -192,8 +208,8 @@ public class MPIInvoker extends Invoker {
             outLog.println("[MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[MPI INVOKER] MPI CMD: ");
-            for (int i = 0; i < cmd.length; ++i) {
-                outLog.print(cmd[i] + " ");
+            for (String s : cmd) {
+                outLog.print(s + " ");
             }
             outLog.println("");
             outLog.println("[MPI INVOKER] MPI STDIN: " + streamValues.getStdIn());

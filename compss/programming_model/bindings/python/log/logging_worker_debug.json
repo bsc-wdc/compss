@@ -62,6 +62,7 @@
     "pycompss.api.opencl":                           { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.parameter":                        { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.reduction":                        { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
+    "pycompss.api.software":                         { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.api.task":                             { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.runtime.management.classes":           { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "pycompss.runtime.management.COMPSs":            { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },

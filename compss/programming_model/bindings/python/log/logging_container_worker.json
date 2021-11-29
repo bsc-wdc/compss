@@ -53,6 +53,7 @@
     "pycompss.api.opencl":                           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.parameter":                        { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.reduction":                        { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.api.software":                         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.api.task":                             { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.management.classes":           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.management.COMPSs":            { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },

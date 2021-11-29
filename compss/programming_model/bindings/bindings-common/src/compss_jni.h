@@ -68,13 +68,6 @@ void JNI_ExecuteTaskNew(long appId,
                                  );
 
 void JNI_ExecuteHttpTask(long appId,
-                         char* serviceName,
-                         char* resource,
-                         char* request,
-                         char* payload,
-                         char* payloadType,
-                         char* produces,
-                         char* updates,
                          char* signature,
                          char* onFailure,
                          int timeout,

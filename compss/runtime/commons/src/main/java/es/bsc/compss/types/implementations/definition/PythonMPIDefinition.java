@@ -34,11 +34,12 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 9;
+    public static final int NUM_PARAMS = 10;
     private static final String ERROR_MPI_DC = "ERROR: Empty declaring class for Python MPI method";
     private static final String ERROR_MPI_METHOD = "ERROR: Empty method name for Python MPI method";
     private String declaringClass;
     private String methodName;
+    private String params;
     private CollectionLayout[] cls;
 
 
@@ -61,10 +62,11 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
      * @param cls Collections layouts.
      */
     public PythonMPIDefinition(String methodClass, String altMethodName, String workingDir, String mpiRunner, int ppn,
-        String mpiFlags, boolean scaleByCU, boolean failByEV, CollectionLayout[] cls) {
+        String mpiFlags, boolean scaleByCU, String params, boolean failByEV, CollectionLayout[] cls) {
         super(workingDir, mpiRunner, ppn, mpiFlags, scaleByCU, failByEV);
         this.declaringClass = methodClass;
         this.methodName = altMethodName;
+        this.params = params;
         this.cls = cls;
     }
 
@@ -88,8 +90,9 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
         this.ppn = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]));
         this.mpiFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
         this.scaleByCU = Boolean.parseBoolean(implTypeArgs[offset + 6]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 7]);
-        int numLayouts = Integer.parseInt(implTypeArgs[offset + 8]);
+        this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 7]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 8]);
+        int numLayouts = Integer.parseInt(implTypeArgs[offset + 9]);
         this.cls = new CollectionLayout[numLayouts];
         for (int i = 0; i < numLayouts; i++) {
             int index = offset + NUM_PARAMS + (i * 4);
@@ -112,6 +115,7 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
         lArgs.add(Integer.toString(this.ppn));
         lArgs.add(this.mpiFlags);
         lArgs.add(Boolean.toString(scaleByCU));
+        lArgs.add(this.params);
         lArgs.add(Boolean.toString(failByEV));
         lArgs.add(Integer.toString(this.cls.length));
         for (CollectionLayout cl : this.cls) {
@@ -120,6 +124,10 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
             lArgs.add(Integer.toString(cl.getBlockLen()));
             lArgs.add(Integer.toString(cl.getBlockStride()));
         }
+    }
+
+    public String getParams() {
+        return this.params;
     }
 
     /**
@@ -172,6 +180,7 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
         sb.append(", MPI PPN=").append(this.ppn);
         sb.append(", MPI FLAGS=").append(this.mpiFlags);
         sb.append(", SCALE_BY_CU=").append(this.scaleByCU);
+        sb.append(", PARAMS=").append(this.params);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
         sb.append(", Collection Layouts=").append(this.cls.length);
 
@@ -195,6 +204,7 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
         sb.append("\t MPI flags: ").append(mpiFlags).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
+        sb.append("\t Params String: ").append(this.params).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         sb.append("\t Collection Layouts: ").append("\n");
         for (CollectionLayout cl : cls) {
@@ -212,6 +222,7 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
         this.mpiFlags = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
+        this.params = (String) in.readObject();
         this.failByEV = in.readBoolean();
         this.cls = (CollectionLayout[]) in.readObject();
     }
@@ -225,6 +236,7 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
         out.writeObject(this.mpiFlags);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);
+        out.writeObject(this.params);
         out.writeBoolean(this.failByEV);
         out.writeObject(this.cls);
     }

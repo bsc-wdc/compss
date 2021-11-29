@@ -255,8 +255,6 @@ public interface COMPSsRuntime {
      *
      * @param appId The application id.
      * @param monitor The pointer to the TaskMonitor implementation.
-     * @param request The request type of the request (GET, POST, PUT, DELETE...)
-     * @param resource The base URL to fermorm the request to
      * @param isPrioritary Whether the task is set as prioritary or not.
      * @param numNodes The number of nodes required to execute the task.
      * @param isReduce Whether the task is of type reduce.
@@ -270,8 +268,7 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, String serviceName, String resource, String request,
-        String payload, String payloadType, String produces, String updates, String declareMethodFullyQualifiedName,
+    public int executeTask(Long appId, TaskMonitor monitor, String declareMethodFullyQualifiedName,
         boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
         boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
         Object... parameters);

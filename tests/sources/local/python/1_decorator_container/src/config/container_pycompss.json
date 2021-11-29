@@ -1,0 +1,6 @@
+{
+    "container": {
+        "engine": "DOCKER",
+        "image": "compss/compss"
+    }
+}

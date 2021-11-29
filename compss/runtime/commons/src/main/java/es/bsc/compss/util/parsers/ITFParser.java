@@ -619,6 +619,7 @@ public class ITFParser {
         for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
+            String params = EnvironmentLoader.loadFromEnvironment(binaryAnnot.params());
             String failByEVstr = EnvironmentLoader.loadFromEnvironment(binaryAnnot.failByExitValue());
 
             if (binary == null || binary.isEmpty() || binary.equals(Constants.UNASSIGNED)) {
@@ -637,7 +638,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binary, workingDir, failByEVstr);
+                    implConstraints, binary, workingDir, params, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage(), e);
             }
@@ -657,6 +658,7 @@ public class ITFParser {
             String mpiPPN = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processesPerNode());
             String mpiFlags = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiFlags());
             String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
+            String params = EnvironmentLoader.loadFromEnvironment(mpiAnnot.params());
             String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
 
             if (mpiRunner == null || mpiRunner.isEmpty()) {
@@ -684,7 +686,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implConstraints, binary, workingDir, mpiRunner, mpiPPN, mpiFlags, scaleByCUStr, failByEVstr);
+                    implConstraints, binary, workingDir, mpiRunner, mpiPPN, mpiFlags, scaleByCUStr, params,
+                    failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

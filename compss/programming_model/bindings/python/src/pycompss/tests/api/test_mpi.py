@@ -134,7 +134,7 @@ def test_mpi_binary_scale_bool_false():
 def test_mpi_binary_scale_str():
     context.set_pycompss_context(context.MASTER)
     my_mpi = Mpi(
-        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="ENV_VAR"
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="true"
     )  # noqa: E501
     f = my_mpi(dummy_function)
     result = f()

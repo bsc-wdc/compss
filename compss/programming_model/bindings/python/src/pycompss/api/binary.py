@@ -64,7 +64,7 @@ DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR,
 class Binary(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on binary task creation.
     """
 
     __slots__ = ["decorator_name", "args", "kwargs", "scope",
@@ -184,7 +184,7 @@ class Binary(object):
                          _binary,  # internal_binary
                          UNASSIGNED,  # internal_func
                          _working_dir,  # working_dir
-                         self.kwargs.get('params', UNASSIGNED),
+                         self.kwargs.get('params', UNASSIGNED),  # params
                          _fail_by_ev]  # fail_by_ev
 
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
@@ -198,7 +198,7 @@ class Binary(object):
 
             impl_args = [_binary,       # internal_binary
                          _working_dir,  # working_dir
-                         self.kwargs.get('params', UNASSIGNED),
+                         self.kwargs.get('params', UNASSIGNED),  # params
                          _fail_by_ev]  # fail_by_ev
 
             if CORE_ELEMENT_KEY in kwargs:

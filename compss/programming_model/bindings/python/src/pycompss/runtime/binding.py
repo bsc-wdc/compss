@@ -741,6 +741,7 @@ def process_task(signature,             # type: str
             logger.debug("\t- Distributed: " + str(distributed))
             logger.debug("\t- On failure behavior: " + on_failure)
             logger.debug("\t- Task time out: " + str(time_out))
+            logger.debug("\t- Is http: " + str(is_http))
 
         # Check that there is the same amount of values as their types, as well
         # as their directions, streams and prefixes.

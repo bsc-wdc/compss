@@ -22,12 +22,22 @@ PyCOMPSs API - Software
 ==================
     Software Task decorator class.
 """
+from pycompss.util.typing_helper import typing
 import json
+
 from functools import wraps
-from pycompss.api import binary, mpi
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api import binary
+from pycompss.api import mpi
+from pycompss.api.commons.constants import CONFIG_FILE
+from pycompss.api.commons.constants import MPI
+from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import ENGINE
+from pycompss.api.commons.constants import IMAGE
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import PROPERTIES
+from pycompss.api.commons.constants import TYPE
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.util.arguments import check_arguments
-from pycompss.util.arguments import UNASSIGNED
 import pycompss.util.context as context
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -36,30 +46,34 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {"config_file"}
-SUPPORTED_ARGUMENTS = {"config_file"}
-DEPRECATED_ARGUMENTS = set()
+MANDATORY_ARGUMENTS = {CONFIG_FILE}
+SUPPORTED_ARGUMENTS = {CONFIG_FILE}
+DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
-SUPPORTED_DECORATORS = {"mpi": (mpi, mpi.mpi),
-                        "binary": (binary, binary.binary)
+SUPPORTED_DECORATORS = {MPI: (mpi, mpi.mpi),
+                        BINARY: (binary, binary.binary)
                         }
 
 
-class Software(PyCOMPSsDecorator):
-    """ @software decorator definition class. When provided with a config file,
-    it can replicate any existing python decorator by wrapping the user function
-    with the decorator defined in the config file. Arguments of the decorator
-    should be defined in the config file which is in JSON format.
+class Software(object):
+    """ @software decorator definition class.
+
+    When provided with a config file, it can replicate any existing python
+    decorator by wrapping the user function with the decorator defined in
+    the config file. Arguments of the decorator should be defined in the
+    config file which is in JSON format.
     """
 
-    __slots__ = ['task_type', 'config_args', 'decor', 'constraints', 'container']
+    __slots__ = ["decorator_name", "args", "kwargs", "scope",
+                 "core_element", "core_element_configured",
+                 "task_type", "config_args", "decor", "constraints", "container"]
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Parse the config file and store the arguments that will be used
-        later to wrap the 'real' decorator.
+        later to wrap the "real" decorator.
 
         self = itself.
         args = not used.
@@ -69,17 +83,23 @@ class Software(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         decorator_name = "".join(('@', Software.__name__.lower()))
-        super(Software, self).__init__(decorator_name, *args, **kwargs)
-        self.task_type = None
-        self.config_args = None
-        self.decor = None
-        self.constraints = None
-        self.container = None
+        # super(Software, self).__init__(decorator_name, *args, **kwargs)
+        self.task_type = None  # type: typing.Any
+        self.config_args = None  # type: typing.Any
+        self.decor = None  # type: typing.Any
+        self.constraints = None  # type: typing.Any
+        self.container = None  # type: typing.Any
+
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
 
         if self.scope and context.in_master():
             if __debug__:
                 logger.debug("Init @software decorator..")
-
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
                             DEPRECATED_ARGUMENTS,
@@ -89,19 +109,25 @@ class Software(PyCOMPSsDecorator):
             self.parse_config_file()
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ When called, @software decorator basically wraps the user function
-        into the 'real' decorator and passes the args and kwargs.
+        into the "real" decorator and passes the args and kwargs.
+
         :param user_function: User function to be decorated.
         :return: User function decorated with the decor type defined by the user.
         """
 
-        # might look complicated, but what it does is just wrapping the user
-        # function with into the 'real' decorator
         @wraps(user_function)
         def software_f(*args, **kwargs):
-
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope or not context.in_master():
+                # Execute the software as with PyCOMPSs so that sequential
+                # execution performs as parallel.
+                # To disable: raise Exception(not_in_pycompss(BINARY))
                 return user_function(*args, **kwargs)
+
+            if __debug__:
+                logger.debug("Executing software_f wrapper.")
 
             if self.constraints is not None:
                 core_element = CE()
@@ -110,12 +136,12 @@ class Software(PyCOMPSsDecorator):
 
             if self.container is not None:
                 _func = str(user_function.__name__)
-                impl_type = "CONTAINER"
+                impl_type = IMPL_CONTAINER
                 impl_signature = '.'.join((impl_type, _func))
 
                 ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-                impl_args = [self.container['engine'],  # engine
-                             self.container['image'],  # image
+                impl_args = [self.container[ENGINE],  # engine
+                             self.container[IMAGE],  # image
                              UNASSIGNED,  # internal_type
                              UNASSIGNED,  # internal_binary
                              UNASSIGNED,  # internal_func
@@ -136,22 +162,24 @@ class Software(PyCOMPSsDecorator):
                     return f()
                 return decor_f()
             else:
-                # it's a PyCOMPSs task with only @task and @software decorators
+                # It's a PyCOMPSs task with only @task and @software decorators
                 return user_function(*args, **kwargs)
 
         software_f.__doc__ = user_function.__doc__
         return software_f
 
     def parse_config_file(self):
+        # type: () -> None
         """ Parse the config file and set self's task_type, decor, and
         config args.
-        :return:
+
+        :return: None
         """
-        file_path = self.kwargs['config_file']
+        file_path = self.kwargs[CONFIG_FILE]
         config = json.load(open(file_path, "r"))
 
-        properties = config.get("properties", {})
-        exec_type = config.get("type", None)
+        properties = config.get(PROPERTIES, {})
+        exec_type = config.get(TYPE, None)
         if exec_type is None:
             print("Execution type not provided for @software task")
         elif exec_type.lower() not in SUPPORTED_DECORATORS:
@@ -161,7 +189,7 @@ class Software(PyCOMPSsDecorator):
         else:
             exec_type = exec_type.lower()
             self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-            mand_args = self.task_type.MANDATORY_ARGUMENTS
+            mand_args = self.task_type.MANDATORY_ARGUMENTS  # type: ignore
             if not all(arg in properties for arg in mand_args):
                 msg = "Error: Missing arguments for '{}'.".format(self.task_type)
                 raise PyCOMPSsException(msg)

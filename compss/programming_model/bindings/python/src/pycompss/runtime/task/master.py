@@ -431,6 +431,7 @@ class TaskMaster(object):
             if not self.hints:
                 self.hints = self.check_task_hints()
             is_replicated, is_distributed, time_out, has_priority, has_target = self.hints  # noqa: E501
+            is_http = self.core_element.get_impl_type() == "HTTP"
 
         # Process the parameters, give them a proper direction
         with event_master(PROCESS_PARAMETERS):
@@ -464,7 +465,6 @@ class TaskMaster(object):
                          (self.function_name, self.function_type,
                           self.module_name, self.class_name))
 
-        is_http = self.core_element.get_impl_type() == "HTTP"
         # Process the task
         with event_master(PROCESS_TASK_BINDING):
             binding.process_task(

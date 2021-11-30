@@ -130,16 +130,24 @@ set_env() {
 
     # Look for the JVM Library
     if [ -n "${JAVA_HOME}" ]; then
-      libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
-      if [ -z "$libjava" ]; then
-        libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
+      if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case 
+        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
         if [ -z "$libjava" ]; then
           libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
           if [ -z "$libjava" ]; then
-      	    echo "WARNNING: Java lib dir not found."
+            echo "WARNNING: Java lib dir not found."
           fi
-    	fi
+        fi
+      else # Java 9+
+        libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
+        if [ -z "$libjava" ]; then
+          libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.dylib | head -n 1)
+          if [ -z "$libjava" ]; then
+            echo "WARNNING: Java lib dir not found."
+          fi
+        fi
       fi
+
       if [ -n "$libjava" ]; then
         libjavafolder=$(dirname "$libjava")
         export LD_LIBRARY_PATH=${libjavafolder}:$LD_LIBRARY_PATH

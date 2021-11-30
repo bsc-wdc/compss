@@ -1,4 +1,5 @@
 #!/bin/bash
+  JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
   NUM_PARAMS=39
 
@@ -229,12 +230,22 @@
     mkdir -p "$workingDir"/jobs
 
     # Look for the JVM Library
-    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
-    if [ -z "$libjava" ]; then
-      libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
-      if [ -z "$libjava" ]; then
-        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
-      fi
+    if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case
+    	libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+    	if [ -z "$libjava" ]; then
+		ibjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+                if [ -z "$libjava" ]; then
+                   error_msg "${JAVA_JRE_ERROR}" 
+                fi
+	fi
+    else # Java 9+
+      	libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
+      	if [ -z "$libjava" ]; then
+           libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.dylib | head -n 1)
+	   if [ -z "$libjava" ]; then
+               error_msg "${JAVA_JRE_ERROR}"
+           fi
+        fi
     fi
     if [ -n "$libjava" ]; then
         libjavafolder=$(dirname "$libjava")
@@ -274,11 +285,8 @@
     local JAVA=java
     worker_jar=${SCRIPT_DIR}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
     local main_worker_class=es.bsc.compss.nio.worker.NIOWorker
-    worker_jvm_flags="${jvmFlags} \
-    -XX:+PerfDisableSharedMem \
-    -XX:-UsePerfData \
-    -XX:+UseG1GC \
-    -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
+    perf_jvm_flags="-XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC"
+    compss_jvm_flags="-Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
     -Dcompss.streaming=${streaming} \
     -Dcompss.python.interpreter=${pythonInterpreter} \
     -Dcompss.python.version=${pythonVersion} \
@@ -286,6 +294,11 @@
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
     -Dcompss.extrae.file.python=${pythonExtraeFile}
     -Djava.library.path=$LD_LIBRARY_PATH"
+    if [ "$(uname -m)" == "riscv64" ]; then
+	worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"
+    else 
+        worker_jvm_flags="${jvmFlags} ${perf_jvm_flags} ${compss_jvm_flags}"
+    fi
 
     if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
     	generate_jvm_opts_file

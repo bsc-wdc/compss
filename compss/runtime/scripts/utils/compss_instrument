@@ -22,11 +22,6 @@
   cd "$destDir" || exit 1
   runtimeClassPath=$libDir/compss-engine.jar
   java \
-    -XX:+PerfDisableSharedMem \
-    -XX:-UsePerfData \
-    -XX:+UseG1GC \
-    -XX:+UseThreadPriorities \
-    -XX:ThreadPriorityPolicy=0 \
     -Dlog4j.configurationFile="$runtimeInstDir"/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
     -Dcompss.to.file=true \
     -Dcompss.is.ws="$isWs" \

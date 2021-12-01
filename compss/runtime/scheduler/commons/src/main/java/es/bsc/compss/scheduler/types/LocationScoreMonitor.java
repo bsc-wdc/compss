@@ -40,7 +40,7 @@ public class LocationScoreMonitor implements LocationMonitor {
 
     @Override
     public void addedLocation(List<Resource> list) {
-        info.increaseScores(list, score);
+        info.increasePreregisteredScores(list, score);
     }
 
 }

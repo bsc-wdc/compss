@@ -59,9 +59,8 @@ public class MOSchedulingInformation extends SchedulingInformation {
      * 
      * @param enforcedTargetResource Enforced target resource.
      */
-    public <T extends WorkerResourceDescription> MOSchedulingInformation(ResourceScheduler<T> enforcedTargetResource,
-        List<Parameter> params, Integer coreId) {
-        super(enforcedTargetResource, params, coreId);
+    public <T extends WorkerResourceDescription> MOSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
+        super(enforcedTargetResource);
         this.resourcePredecessors = new LinkedList<>();
         this.resourceSuccessors = new LinkedList<>();
 

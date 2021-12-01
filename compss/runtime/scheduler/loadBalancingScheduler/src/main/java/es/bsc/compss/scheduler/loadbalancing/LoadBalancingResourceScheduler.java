@@ -99,7 +99,7 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
             if (parameters.isEmpty()) {
                 resourceScore = 0;
             } else {
-                resourceScore = 200 * (long) action.getSchedulingInfo().getScore(myWorker);
+                resourceScore = 200 * (long) action.getSchedulingInfo().getPreregisteredScore(myWorker);
             }
         }
 

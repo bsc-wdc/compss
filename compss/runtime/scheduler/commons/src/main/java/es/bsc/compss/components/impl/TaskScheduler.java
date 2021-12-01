@@ -33,6 +33,7 @@ import es.bsc.compss.scheduler.types.WorkloadState;
 import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StopWorkerAction;
+import es.bsc.compss.scheduler.types.schedulinginformation.DataLocality;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -255,7 +256,7 @@ public class TaskScheduler {
      */
     public <T extends WorkerResourceDescription> SchedulingInformation generateSchedulingInformation(
         ResourceScheduler<T> rs, List<Parameter> params, Integer coreId) {
-        return new SchedulingInformation(rs, params, coreId);
+        return new DataLocality(rs, params, coreId);
     }
 
     /**

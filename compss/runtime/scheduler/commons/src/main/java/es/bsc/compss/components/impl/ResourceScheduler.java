@@ -588,7 +588,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         // Computes the resource waiting score
         long waitingScore = -this.blocked.size();
         // Computes the priority of the resource
-        long resourceScore = (long) action.getSchedulingInfo().getScore(myWorker);
+        long resourceScore = (long) action.getSchedulingInfo().getPreregisteredScore(myWorker);
         if (this.myWorker == Comm.getAppHost()) {
             resourceScore++;
         }

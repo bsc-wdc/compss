@@ -60,7 +60,7 @@ public class MOScheduler extends TaskScheduler {
     public <T extends WorkerResourceDescription> MOSchedulingInformation generateSchedulingInformation(
         ResourceScheduler<T> enforcedTargetResource, List<Parameter> params, Integer coreId) {
 
-        return new MOSchedulingInformation(enforcedTargetResource, params, coreId);
+        return new MOSchedulingInformation(enforcedTargetResource);
     }
 
     @Override

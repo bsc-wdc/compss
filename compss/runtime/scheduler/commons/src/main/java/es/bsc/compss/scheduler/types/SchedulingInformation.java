@@ -18,26 +18,16 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.LocationMonitor;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.parameter.CollectionParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -126,16 +116,10 @@ public class SchedulingInformation {
      * 
      * @param enforcedTargetResource Enforced resource.
      */
-    public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource,
-        List<Parameter> params, Integer coreId) {
+    public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
         this.constrainingPredecessors = new LinkedList<>();
         this.enforcedTargetResource = enforcedTargetResource;
         this.perResourceScore = new HashMap<>();
-        if (enforcedTargetResource == null && coreId != null) {
-            if (params != null) {
-                registerLocalityScoreMonitoring(params);
-            }
-        }
     }
 
     /**
@@ -175,11 +159,12 @@ public class SchedulingInformation {
     }
 
     /**
-     * Returns the score for a given worker.
+     * Returns the score for a given resource where to run the action.
      * 
+     * @param r candidate resource to execute the action
      * @return The score for the worker.
      */
-    public double getScore(Resource r) {
+    public double getPreregisteredScore(Resource r) {
         Double score = perResourceScore.get(r);
         if (score == null) {
             LOGGER.warn("The resource " + r.toString() + " is not registered");
@@ -195,74 +180,11 @@ public class SchedulingInformation {
      * @param resources List of resources whose score should be increased
      * @param rise augmented score value
      */
-    public void increaseScores(List<Resource> resources, double rise) {
+    public void increasePreregisteredScores(Collection<Resource> resources, double rise) {
         for (Resource r : resources) {
-            Double score = this.getScore(r) + rise;
+            Double score = this.getPreregisteredScore(r) + rise;
             perResourceScore.put(r, score);
         }
-    }
-
-    private void registerLocalityScoreMonitoring(List<Parameter> params) {
-        for (Parameter p : params) {
-            registerLocalityScoreMonitoring(p);
-        }
-    }
-
-    private void registerLocalityScoreMonitoring(Parameter p) {
-        if (p.isPotentialDependency() && p.getDirection() != Direction.OUT) {
-            switch (p.getType()) {
-                case COLLECTION_T: {
-                    CollectionParameter cp = (CollectionParameter) p;
-                    registerLocalityScoreMonitoring(cp.getParameters());
-                }
-                    break;
-                case DICT_COLLECTION_T: {
-                    DictCollectionParameter dcp = (DictCollectionParameter) p;
-                    for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                        registerLocalityScoreMonitoring(entry.getKey());
-                        registerLocalityScoreMonitoring(entry.getValue());
-                    }
-                }
-                    break;
-                default: {
-                    DependencyParameter dp = (DependencyParameter) p;
-                    DataInstanceId dId = null;
-                    switch (dp.getDirection()) {
-                        case IN:
-                        case IN_DELETE:
-                        case CONCURRENT:
-                            RAccessId raId = (RAccessId) dp.getDataAccessId();
-                            dId = raId.getReadDataInstance();
-                            break;
-                        case COMMUTATIVE:
-                        case INOUT:
-                            RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
-                            dId = rwaId.getReadDataInstance();
-                            break;
-                        case OUT:
-                            // Cannot happen because of previous if
-                            return;
-                    }
-                    if (dId != null) {
-                        LogicalData dataLD = dId.getData();
-
-                        if (dataLD != null) {
-                            // Update current locality score
-                            Set<Resource> hosts = dataLD.getAllHosts();
-                            for (Resource host : hosts) {
-                                Double score = this.getScore(host) + p.getWeight();
-                                perResourceScore.put(host, score);
-                            }
-                            LocationMonitor monitor = new LocationScoreMonitor(this, p.getWeight());
-                            // Register future score monitoring
-                            dataLD.registerLocationMonitor(monitor);
-                        }
-
-                    }
-                }
-            }
-        }
-        // Basic types and outputs have 0 locality score. Ignore them.
     }
 
 }

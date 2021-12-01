@@ -184,7 +184,6 @@ class Binary(object):
                          _binary,  # internal_binary
                          UNASSIGNED,  # internal_func
                          _working_dir,  # working_dir
-                         self.kwargs.get('params', UNASSIGNED),  # params
                          _fail_by_ev]  # fail_by_ev
 
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)

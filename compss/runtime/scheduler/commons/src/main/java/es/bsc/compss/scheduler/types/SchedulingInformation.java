@@ -18,6 +18,15 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.LocationMonitor;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -28,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -122,12 +132,8 @@ public class SchedulingInformation {
         this.enforcedTargetResource = enforcedTargetResource;
         this.perResourceScore = new HashMap<>();
         if (enforcedTargetResource == null && coreId != null) {
-            List<ResourceScheduler<? extends WorkerResourceDescription>> res = getCoreElementExecutors(coreId);
             if (params != null) {
-                for (ResourceScheduler<? extends WorkerResourceDescription> rs : res) {
-                    double initialScore = (double) Score.calculateDataLocalityScore(params, rs.getResource());
-                    perResourceScore.put(rs.getResource(), initialScore);
-                }
+                registerLocalityScoreMonitoring(params);
             }
         }
     }
@@ -184,12 +190,79 @@ public class SchedulingInformation {
     }
 
     /**
-     * Adds a score for a worker.
+     * Increases the pre-registered score for a set of workers.
+     * 
+     * @param resources List of resources whose score should be increased
+     * @param rise augmented score value
      */
-    public void setScore(List<Resource> resources, Parameter p) {
+    public void increaseScores(List<Resource> resources, double rise) {
         for (Resource r : resources) {
-            Double score = this.getScore(r) + p.getWeight();
+            Double score = this.getScore(r) + rise;
             perResourceScore.put(r, score);
         }
     }
+
+    private void registerLocalityScoreMonitoring(List<Parameter> params) {
+        for (Parameter p : params) {
+            registerLocalityScoreMonitoring(p);
+        }
+    }
+
+    private void registerLocalityScoreMonitoring(Parameter p) {
+        if (p.isPotentialDependency() && p.getDirection() != Direction.OUT) {
+            switch (p.getType()) {
+                case COLLECTION_T: {
+                    CollectionParameter cp = (CollectionParameter) p;
+                    registerLocalityScoreMonitoring(cp.getParameters());
+                }
+                    break;
+                case DICT_COLLECTION_T: {
+                    DictCollectionParameter dcp = (DictCollectionParameter) p;
+                    for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                        registerLocalityScoreMonitoring(entry.getKey());
+                        registerLocalityScoreMonitoring(entry.getValue());
+                    }
+                }
+                    break;
+                default: {
+                    DependencyParameter dp = (DependencyParameter) p;
+                    DataInstanceId dId = null;
+                    switch (dp.getDirection()) {
+                        case IN:
+                        case IN_DELETE:
+                        case CONCURRENT:
+                            RAccessId raId = (RAccessId) dp.getDataAccessId();
+                            dId = raId.getReadDataInstance();
+                            break;
+                        case COMMUTATIVE:
+                        case INOUT:
+                            RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
+                            dId = rwaId.getReadDataInstance();
+                            break;
+                        case OUT:
+                            // Cannot happen because of previous if
+                            return;
+                    }
+                    if (dId != null) {
+                        LogicalData dataLD = dId.getData();
+
+                        if (dataLD != null) {
+                            // Update current locality score
+                            Set<Resource> hosts = dataLD.getAllHosts();
+                            for (Resource host : hosts) {
+                                Double score = this.getScore(host) + p.getWeight();
+                                perResourceScore.put(host, score);
+                            }
+                            LocationMonitor monitor = new LocationScoreMonitor(this, p.getWeight());
+                            // Register future score monitoring
+                            dataLD.registerLocationMonitor(monitor);
+                        }
+
+                    }
+                }
+            }
+        }
+        // Basic types and outputs have 0 locality score. Ignore them.
+    }
+
 }

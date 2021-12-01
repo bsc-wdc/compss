@@ -43,7 +43,7 @@ public class StreamAccessParams extends ObjectAccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerStreamAccess(this.app, this.mode, getValue(), getCode(), null);
+        return dip.registerStreamAccess(this.app, this.mode, getValue(), getCode());
     }
 
 }

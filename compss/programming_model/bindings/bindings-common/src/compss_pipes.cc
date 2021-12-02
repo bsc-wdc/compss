@@ -678,7 +678,7 @@ void PIPE_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
     // MESSAGE: OPEN_TASK_GROUP appId groupName implicitBarrier(boolean)
     // NO RETURN
     stringstream ss;
-    ss << "OPEN_TASK_GROUP " << appId << " " << groupName << endl;
+    ss << "OPEN_TASK_GROUP " << appId << " " << groupName << " ";
     if (implicitBarrier != 0) {
     	ss << "true ";
     } else {

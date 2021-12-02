@@ -17,6 +17,7 @@
 package es.bsc.compss.api;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.worker.COMPSsException;
 
 
 public interface TaskMonitor {
@@ -73,8 +74,10 @@ public interface TaskMonitor {
 
     /**
      * Actions to be performed by monitor on task execution COMPSs exception.
+     * 
+     * @param e Exception raised during the task execution
      */
-    public void onException();
+    public void onException(COMPSsException e);
 
     /**
      * Actions to be performed by monitor on task execution success.

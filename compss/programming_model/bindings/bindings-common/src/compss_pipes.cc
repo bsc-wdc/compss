@@ -665,10 +665,22 @@ void PIPE_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
     ss << "BARRIER_GROUP " << appId << " " << groupName << endl;
     write_command_in_pipe(ss);
     string result;
-    result = read_result_from_pipe();
-    *exceptionMessage = strdup(result.c_str());
-
-    debug_printf("[BINDING-COMMONS] - @PIPE_BarrierGroup - Barrier ended for COMPSs group name: %s\n", groupName);
+    bool barrier_finished = false;
+    while (!barrier_finished) {
+        result = read_result_from_pipe();
+        const char* buf = result.c_str();
+        if(strncmp(buf, "COMPSS_EXCEPTION", 16) == 0){
+            buf = buf + 22;
+            *exceptionMessage = strdup(buf);    
+            barrier_finished = true;
+            debug_printf("[BINDING-COMMONS] - @PIPE_BarrierGroup - Barrier ended for COMPSs group name: %s with an exception\n", groupName);
+        } else if(strncmp(buf, "SYNCH", 5) == 0){
+            debug_printf("[BINDING-COMMONS] - @PIPE_BarrierGroup - Barrier ended for COMPSs group name: %s\n", groupName);
+            barrier_finished = true;
+        } else{
+            debug_printf("[BINDING-COMMONS] - @PIPE_BarrierGroup - Unexpected command %s to release group: %s\n", groupName);
+        }
+    }
 }
 
 

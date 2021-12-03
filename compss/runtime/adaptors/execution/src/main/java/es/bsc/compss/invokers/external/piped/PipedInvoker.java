@@ -237,10 +237,18 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         case BARRIER_GROUP: {
                             BarrierTaskGroupPipeCommand bgpc = (BarrierTaskGroupPipeCommand) rcvdCommand;
                             String groupName = bgpc.getGroupName();
+                            boolean synch = true;
                             if (this.appId != null) {
-                                this.context.getRuntimeAPI().barrierGroup(appId, groupName);
+                                try {
+                                    this.context.getRuntimeAPI().barrierGroup(appId, groupName);
+                                } catch (COMPSsException ce) {
+                                    this.pipes.sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
+                                    synch = false;
+                                }
                             }
-                            this.pipes.sendCommand(new SynchPipeCommand());
+                            if (synch) {
+                                this.pipes.sendCommand(new SynchPipeCommand());
+                            }
                         }
                             break;
                         case OPEN_TASK_GROUP: {

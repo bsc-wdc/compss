@@ -290,7 +290,7 @@ class Task(object):
                                             self.hints,
                                             self.on_failure,
                                             self.defaults)
-                    result = master.call(*args, **kwargs)
+                    result = master.call(args, kwargs)
                     fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
                     del master
                     return fo

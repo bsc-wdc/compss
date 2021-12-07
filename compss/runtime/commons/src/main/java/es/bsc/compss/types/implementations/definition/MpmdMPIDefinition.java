@@ -235,30 +235,24 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             cmd.append(getTotalNumOfProcesses()).append(DUMMY_SEPARATOR);
         }
 
-        LOGGER.info("0 _______cmd: " + cmd.toString());
-
         if (this.binaryInCmd) {
             // we can handle everything within cmd w/o creating files
             for (MPIProgram program : this.programs) {
                 String tmp = buildSPString(program, hostnames);
-                cmd.append(tmp).append(DUMMY_SEPARATOR).append(this.programsSeparator);
+                cmd.append(tmp).append(DUMMY_SEPARATOR).append(this.programsSeparator).append(DUMMY_SEPARATOR);
             }
-            LOGGER.info("1 _______cmd: " + cmd.toString());
             return cmd.toString().split(DUMMY_SEPARATOR);
         }
-        LOGGER.info("2 _______cmd: " + cmd.toString());
 
         if (this.hostStringInCmd) {
             cmd.append(buildHostsString(hostnames)).append(DUMMY_SEPARATOR);
         }
-        LOGGER.info("3 _______cmd: " + cmd.toString());
 
         if (this.configFile) {
             String content = buildConfigFileString(hostnames);
             String fileName = writeToFile(taskSandboxWorkingDir, content, ".config");
             cmd.append(this.configFlag).append(DUMMY_SEPARATOR).append(fileName);
         }
-        LOGGER.info("4 _______cmd: " + cmd.toString());
 
         return cmd.toString().split(DUMMY_SEPARATOR);
     }
@@ -340,7 +334,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
 
         // hosts
         if (this.hostStringInCmd) {
-            ret.append(buildHostsString(hostnames));
+            ret.append(buildHostsString(hostnames)).append(DUMMY_SEPARATOR);
         }
 
         // nop
@@ -430,7 +424,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             this.totalNopInCMD = Boolean.parseBoolean(loadProperty(props, "mpmd.total.nop.in.cmd", "false"));
             this.binaryInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.binary.in.cmd", "false"));
             this.hostStringInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.host.string.in.cmd", "false"));
-            this.nopInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.nop.in.cmd", "false"));
+            this.nopInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.nop.string.in.cmd", "false"));
             this.configFile = Boolean.parseBoolean(loadProperty(props, "mpmd.config.file", "false"));
 
             this.programsSeparator = loadProperty(props, "mpmd.programs.separator", ":");

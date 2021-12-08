@@ -457,7 +457,7 @@ public class Agent {
                 params[position + 8] = new Boolean(param.isKeepRename());
                 position += PARAM_LENGTH;
             }
-
+            onFailure = OnFailure.FAIL;
             RUNTIME.registerCoreElement(ced);
             int numNodes = 1;
             RUNTIME.executeTask(appId, // APP ID

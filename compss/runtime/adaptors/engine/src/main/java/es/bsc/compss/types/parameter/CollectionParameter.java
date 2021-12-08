@@ -116,12 +116,4 @@ public class CollectionParameter extends DependencyParameter {
         this.parameters = parameters;
     }
 
-    /**
-     * Returns the parameter's original name.
-     *
-     * @return The parameter's original name.
-     */
-    public String getOriginalName() {
-        return getParameters().toString();
-    }
 }

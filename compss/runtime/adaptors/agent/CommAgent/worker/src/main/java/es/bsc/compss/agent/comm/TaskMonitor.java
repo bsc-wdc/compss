@@ -106,7 +106,8 @@ class TaskMonitor extends AppMonitor {
         int jobId = task.getJobId();
         NIOTaskResult tr = new NIOTaskResult(jobId, super.getResults());
         Connection c = TM.startConnection(n);
-        CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), null);
+        CommandNIOTaskDone cmd =
+            new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), this.getException());
         c.sendCommand(cmd);
         c.finishConnection();
     }

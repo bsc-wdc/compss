@@ -1062,7 +1062,7 @@ public class ExecutionAction extends AllocatableAction {
         ErrorManager.warn(sb.toString());
 
         TaskMonitor monitor = this.task.getTaskMonitor();
-        monitor.onException();
+        monitor.onException(e);
 
         // Decrease the execution counter and set the task as finished and notify the producer
         this.task.decreaseExecutionCount();

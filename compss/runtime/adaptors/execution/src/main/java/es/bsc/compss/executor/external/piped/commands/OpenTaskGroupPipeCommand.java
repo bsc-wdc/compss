@@ -29,7 +29,11 @@ public class OpenTaskGroupPipeCommand extends OpenTaskGroupExternalCommand imple
     public OpenTaskGroupPipeCommand(String[] command) {
         super();
         this.groupName = command[2];
-        this.implicitBarrier = Boolean.parseBoolean(command[3]);
+        if (command.length == 4) {
+            this.implicitBarrier = Boolean.parseBoolean(command[3]);
+        } else {
+            this.implicitBarrier = true;
+        }
     }
 
     @Override

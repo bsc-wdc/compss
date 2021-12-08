@@ -28,6 +28,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ public abstract class AppMonitor implements TaskMonitor {
     private long appId;
     private final ApplicationParameter[] taskParams;
     private TaskResult[] taskResults;
+    private COMPSsException exception;
 
 
     /**
@@ -160,7 +162,8 @@ public abstract class AppMonitor implements TaskMonitor {
     }
 
     @Override
-    public void onException() {
+    public void onException(COMPSsException e) {
+        this.exception = e;
     }
 
     public TaskResult[] getResults() {
@@ -180,4 +183,9 @@ public abstract class AppMonitor implements TaskMonitor {
     public void onFailure() {
         Agent.finishedApplication(appId);
     }
+
+    public COMPSsException getException() {
+        return exception;
+    }
+
 }

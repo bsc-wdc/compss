@@ -1067,7 +1067,7 @@ public class AccessProcessor implements Runnable {
      * Registers a collection data as available on remote locations.
      *
      * @param app application accessing the file.
-     * @param collection colllection identifier
+     * @param collection collection identifier
      * @param dataId name of the data associated to the file
      */
     public void registerRemoteCollection(Application app, String collection, String dataId) {

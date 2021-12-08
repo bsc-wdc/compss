@@ -17,6 +17,7 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.worker.COMPSsException;
 
 
 public class DoNothingTaskMonitor implements TaskMonitor {
@@ -74,6 +75,6 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
-    public void onException() {
+    public void onException(COMPSsException e) {
     }
 }

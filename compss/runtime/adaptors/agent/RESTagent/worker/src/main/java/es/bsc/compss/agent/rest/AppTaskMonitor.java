@@ -27,6 +27,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
 
@@ -140,8 +141,8 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void onException() {
-        super.onException();
+    public void onException(COMPSsException e) {
+        super.onException(e);
         profile.finished();
     }
 

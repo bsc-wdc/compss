@@ -25,6 +25,11 @@ public class CompssExceptionPipeCommand extends CompssExceptionExternalCommand i
     public final String message;
 
 
+    public CompssExceptionPipeCommand(Integer jobId, String message) {
+        this.jobId = jobId;
+        this.message = message;
+    }
+
     public CompssExceptionPipeCommand(String[] line) {
         this.jobId = Integer.parseInt(line[1]);
         this.message = line[2].replaceAll("_", " ");
@@ -46,5 +51,16 @@ public class CompssExceptionPipeCommand extends CompssExceptionExternalCommand i
     @Override
     public void join(PipeCommand receivedCommand) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String getAsString() {
+        StringBuilder sb = new StringBuilder(super.getAsString());
+        sb.append(TOKEN_SEP);
+        sb.append(this.jobId);
+        sb.append(TOKEN_SEP);
+        sb.append(message.replace(" ", "_"));
+
+        return sb.toString();
     }
 }

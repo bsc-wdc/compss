@@ -96,7 +96,7 @@
   fi
     
   # Check the exception message
-  output1=$(cat "${runtime_log}" | grep "The thrown exception message is: Second task threw an exception" | wc -l)
+  output1=$(grep -c -E "Group FailedGroup[0-9]* raised a COMPSsException \( Second task threw an exception\)" "${runtime_log}")
   if [ "${output1}" -ne 2 ]; then
   	echo "ERROR: The thrown exception message is not correct."
   	exit 1

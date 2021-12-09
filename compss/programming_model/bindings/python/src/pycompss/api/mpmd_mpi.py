@@ -52,7 +52,7 @@ class MPMDMPI(PyCOMPSsDecorator):
     """
     """
 
-    __slots__ = ['task_type', 'decorator_name']
+    __slots__ = ['task_type', 'decorator_name', 'processes']
 
     def __init__(self, *args, **kwargs):
         """ Store arguments passed to the decorator.
@@ -66,6 +66,7 @@ class MPMDMPI(PyCOMPSsDecorator):
         """
         self.task_type = "mpmd_mpi"
         self.decorator_name = "".join(('@', MPMDMPI.__name__.lower()))
+        self.processes = 0
         super(MPMDMPI, self).__init__(self.decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
@@ -109,21 +110,8 @@ class MPMDMPI(PyCOMPSsDecorator):
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs, user_function)
 
-        # The processes parameter will have to go down until the execution
-        # is invoked. To this end, set the computing_nodes variable in kwargs
-        # for its usage in @task decorator
-        # WARNING: processes can be an int, a env string, a str with
-        #          dynamic variable name.
-        # if "processes" in self.kwargs:
-        #     kwargs['computing_nodes'] = self.kwargs['processes']
-        # else:
-        #     # If processes not defined, check computing_units or set default
-        #     self.__process_computing_nodes__(self.decorator_name)
-        #     kwargs['computing_nodes'] = self.kwargs['computing_nodes']
-        if "processes_per_node" in self.kwargs:
-            kwargs['processes_per_node'] = self.kwargs['processes_per_node']
-        else:
-            kwargs['processes_per_node'] = 1
+        kwargs['processes_per_node'] = self.kwargs.get('processes_per_node', 1)
+        kwargs['computing_nodes'] = self.processes
 
         with keep_arguments(args, kwargs, prepend_strings=False):
             # Call the method
@@ -135,8 +123,8 @@ class MPMDMPI(PyCOMPSsDecorator):
         # type: () -> list
         """ Resolve the collection layout, such as blocks, strides, etc.
 
-        :return: list(param_name, block_count, block_length, stride)
-        :raises PyCOMPSsException: If the collection layout does not contain block_count.
+        :return: list(programs_length, binary, params, processes)
+        :raises PyCOMPSsException: If programs are not dict objects.
         """
         programs = self.kwargs["programs"]
         programs_params = [str(len(programs))]
@@ -152,6 +140,9 @@ class MPMDMPI(PyCOMPSsDecorator):
             params = program.get("params", "[unassigned]")
             procs = str(program.get("processes", "[unassigned]"))
             programs_params.extend([binary, params, procs])
+
+            # increase total # of processes for this mpmd task
+            self.processes += program.get("processes", 1)
 
         return programs_params
 

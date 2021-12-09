@@ -425,7 +425,7 @@ class TaskMaster(object):
         # Extract task related parameters (e.g. returns, computing_nodes, etc.)
         with event_master(POP_TASK_PARAMETERS):
             self.pop_task_parameters(kwargs)
-
+            # this is total # of processes for this task
         with event_master(PROCESS_OTHER_ARGUMENTS):
             # Get other arguments if exist
             if not self.hints:
@@ -1150,7 +1150,7 @@ class TaskMaster(object):
         This value can be defined by upper decorators and can also be defined
         dynamically defined with a global or environment variable.
 
-        :return: The number of computing nodes.
+        :return: The number of processes per node.
         """
         parsed_processes_per_node = 1
         if isinstance(processes_per_node, int):

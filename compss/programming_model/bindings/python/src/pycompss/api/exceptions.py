@@ -32,5 +32,5 @@ class COMPSsException(Exception):
     __slots__ = ['message']
 
     def __init__(self, message):
-        # super().__init__(message)  # show traceback
+        super(COMPSsException, self).__init__(message)  # show traceback
         self.message = message

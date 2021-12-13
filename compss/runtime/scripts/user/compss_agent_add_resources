@@ -14,6 +14,7 @@ source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
 
 source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 
 
 

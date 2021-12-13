@@ -12,6 +12,7 @@ export COMPSS_HOME=${COMPSS_HOME}
 # Load auxiliar scripts
 source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION

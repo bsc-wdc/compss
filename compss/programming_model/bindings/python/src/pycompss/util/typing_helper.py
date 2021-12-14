@@ -30,7 +30,7 @@ except ImportError:
     typing = None  # type: ignore
     message = "WARNING: Typing is not available!!!"
     print(message)
-    raise Exception(message)
+    # raise Exception(message)
 
 
 class dummy_mypyc_attr(object):

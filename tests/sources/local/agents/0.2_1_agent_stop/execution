@@ -111,7 +111,7 @@ fi
 
 
 # STOPING AGENT WITH CURL AND CHECKING IF IT WORKED
-curl -XDELETE http://127.0.0.1:46101/COMPSs
+curl -XDELETE http://127.0.0.1:46101/COMPSs 1>/dev/null 2>/dev/null
 pid_info=""
 CONFIRMATION=""
 while [ -n "${pid_info}" ] || [ -z "${CONFIRMATION}" ]; do

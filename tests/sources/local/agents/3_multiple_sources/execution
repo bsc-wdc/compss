@@ -190,22 +190,22 @@
   done
 
   retries="${NUM_RETRIES}"
-  curl -XGET http://127.0.0.1:46201/COMPSs/test
+  curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
   exit_value=$?
   while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
     sleep 1
     retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:46201/COMPSs/test
+    curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
     exit_value=$?
   done
 
   retries="${NUM_RETRIES}"
-  curl -XGET http://127.0.0.1:46301/COMPSs/test
+  curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
   exit_value=$?
   while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
     sleep 1
     retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:46301/COMPSs/test
+    curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
     exit_value=$?
   done
 

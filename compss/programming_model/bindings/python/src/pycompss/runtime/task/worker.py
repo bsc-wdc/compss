@@ -23,8 +23,10 @@ import sys
 from shutil import copyfile
 
 from pycompss.util.typing_helper import typing
+import pycompss.util.context as context
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
+from pycompss.runtime.binding import wait_on
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
@@ -1024,6 +1026,15 @@ class TaskWorker(object):
                 if __debug__:
                     logger.debug("Serializing object: " +
                                  str(arg.name) + " to " + str(f_name))
+
+                if context.is_nesting_enabled():
+                    # When using nesting, objects may have been used in other
+                    # tasks and may need to be synchronized and re-serialized.
+                    # The wait_on call checks the object tracker to see if it
+                    # has been used and needs to be synchronized. Otherwise,
+                    # it retrieves the same object.
+                    arg.content = wait_on(arg.content, master_event=False)
+
                 if python_mpi:
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:

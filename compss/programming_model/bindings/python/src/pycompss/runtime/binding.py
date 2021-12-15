@@ -42,6 +42,7 @@ import pycompss.util.context as context
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
 from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.runtime.constants import START_RUNTIME_EVENT
 from pycompss.runtime.constants import STOP_RUNTIME_EVENT
 from pycompss.runtime.constants import ACCESSED_FILE_EVENT
@@ -633,7 +634,28 @@ def register_ce(core_element):  # noqa
             logger.debug("CE with signature %s registered." % ce_signature)
 
 
-def wait_on(*args, **kwargs):
+def wait_on(*args, master_event=True, **kwargs):
+    # type: (*typing.Any, bool, **typing.Any) -> typing.Any
+    """ Wait on a set of objects.
+
+    Waits on a set of objects defined in args with the options defined in
+    kwargs.
+
+    :param args: Objects to wait on.
+    :param master_event: Emit master event. [True | False] Default = True.
+                         False will emit the event inside task (for nested).
+    :param kwargs: Options: Write enable? [True | False] Default = True.
+    :return: Real value of the objects requested.
+    """
+    if master_event:
+        with event_master(WAIT_ON_EVENT):
+            return __wait_on__(*args, **kwargs)
+    else:
+        with event_inside_worker(WAIT_ON_EVENT):
+            return __wait_on__(*args, **kwargs)
+
+
+def __wait_on__(*args, **kwargs):
     # type: (*typing.Any, **typing.Any) -> typing.Any
     """ Wait on a set of objects.
 
@@ -644,20 +666,20 @@ def wait_on(*args, **kwargs):
     :param kwargs: Options: Write enable? [True | False] Default = True.
     :return: Real value of the objects requested.
     """
-    with event_master(WAIT_ON_EVENT):
-        ret = list(map(wait_on_object, args,
-                       [kwargs.get("mode", "rw")] * len(args)))
-        if len(ret) == 1:
-            ret_lst = ret[0]
-        else:
-            ret_lst = ret
-        # Check if there are empty elements return elements that need to be removed
-        if isinstance(ret_lst, LIST_TYPE):
-            # Look backwards the list removing the first EmptyReturn elements
-            for elem in reversed(ret_lst):
-                if isinstance(elem, EmptyReturn):
-                    ret_lst.remove(elem)
-        return ret_lst
+    ret = list(map(wait_on_object, args,
+                   [kwargs.get("mode", "rw")] * len(args)))
+    if len(ret) == 1:
+        ret_lst = ret[0]
+    else:
+        ret_lst = ret
+    # Check if there are empty elements return elements that need to be removed
+    if isinstance(ret_lst, LIST_TYPE):
+        # Look backwards the list removing the first EmptyReturn elements
+        for elem in reversed(ret_lst):
+            if isinstance(elem, EmptyReturn):
+                ret_lst.remove(elem)
+    return ret_lst
+
 
 
 def process_task(signature,             # type: str

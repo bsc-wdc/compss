@@ -24,7 +24,7 @@ ALIAS = "py_psco_stream"
 
 def test_produce_consume(num_producers, producer_sleep, num_consumers, consumer_sleep):
     # Create stream
-    pds = PscoDistroStream()
+    pds = PscoDistroStream(alias=None)
 
     # Create producers
     for _ in range(num_producers):
@@ -46,7 +46,7 @@ def test_produce_gen_tasks(num_producers, producer_sleep, consumer_sleep):
     import time
 
     # Create stream
-    pds = PscoDistroStream()
+    pds = PscoDistroStream(alias=None)
 
     # Create producers
     for _ in range(num_producers):

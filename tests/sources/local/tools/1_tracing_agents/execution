@@ -149,32 +149,32 @@ while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
 done
 
 retries="${NUM_RETRIES}"
-curl -XGET http://127.0.0.1:46201/COMPSs/test
+curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
 exit_value=$?
 while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
 sleep 1
     retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:46201/COMPSs/test
+    curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
     exit_value=$?
 done
 
 retries="${NUM_RETRIES}"
-curl -XGET http://127.0.0.1:46301/COMPSs/test
+curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
 exit_value=$?
 while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
     sleep 1
     retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:46301/COMPSs/test
+    curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
     exit_value=$?
 done
 
 retries="${NUM_RETRIES}"
-curl -XGET http://127.0.0.1:46401/COMPSs/test
+curl -XGET http://127.0.0.1:46401/COMPSs/test 1>/dev/null 2>/dev/null
 exit_value=$?
 while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
     sleep 1
     retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:46401/COMPSs/test
+    curl -XGET http://127.0.0.1:46401/COMPSs/test 1>/dev/null 2>/dev/null
     exit_value=$?
 done
 
@@ -255,7 +255,6 @@ fi
     --stop \
     --forward_to="COMPSsWorker02:46201;COMPSsWorker03:46301;COMPSsWorker04:46401" \
     tracing.DemoClass "2" > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
-
 sleep 3
 
 if [ ! "$?" == "0" ]; then
@@ -281,7 +280,8 @@ if [ ! "${method_name}" == "main" ]; then
     exit 1
 fi
 echo  "main method properly started" > >(tee -a "${output_log}")
-sleep 2
+
+wait ${AGENT_PIDS}
 
 compss_agent_merge_traces \
     --result_trace_name="${app_name}" \

@@ -419,7 +419,7 @@ compss_agent_start \
   echo  "4 simultaneous demoFunction methods properly managed with 1 cpu" > >(tee -a "${output_log}")
 
   # Stopping agent
-  curl -XDELETE http://127.0.0.1:46101/COMPSs
+  curl -XDELETE http://127.0.0.1:46101/COMPSs 1>/dev/null 2>/dev/null
 
   alive_agents="true"
   while [ "${alive_agents}" = "true" ]; do

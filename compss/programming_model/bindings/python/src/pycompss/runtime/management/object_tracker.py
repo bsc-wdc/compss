@@ -45,7 +45,7 @@ class ObjectTracker(object):
     to keep track of the objects within the python binding.
     """
 
-    __slots__ = ["file_names", "pending_to_synchronize",
+    __slots__ = ["file_names", "obj_names", "pending_to_synchronize",
                  "written_objects", "current_id", "runtime_id",
                  "obj_id_to_obj", "address_to_obj_id",
                  "reporting", "reporting_info", "initial_time"]
@@ -57,6 +57,11 @@ class ObjectTracker(object):
         # The filename will be used for requesting an object to
         # the runtime (its corresponding version).
         self.file_names = dict()             # type: typing.Dict[str, str]
+        # Dictionary to contain the conversion from object id to the
+        # parameter name (object name mapping).
+        # The object name will be used to map the tracked objects with the
+        # updated within a task (e.g. synchronize within task).
+        self.obj_names = dict()              # type: typing.Dict[str, typing.Optional[str]]
         # Set that contains the object identifiers of the objects to pending
         # to be synchronized.
         self.pending_to_synchronize = set()  # type: typing.Set[str]
@@ -89,8 +94,8 @@ class ObjectTracker(object):
         # Store the initial time as reference for the reporting.
         self.initial_time = 0.0
 
-    def track(self, obj, collection=False):
-        # type: (typing.Any, bool) -> typing.Tuple[str, str]
+    def track(self, obj, obj_name=None, collection=False):
+        # type: (typing.Any, typing.Optional[str], bool) -> typing.Tuple[str, str]
         """ Start tracking an object.
 
         Collections are not stored into a file. Consequently, we just register
@@ -98,6 +103,7 @@ class ObjectTracker(object):
         the collection elements are stored into files.
 
         :param obj: Object to track.
+        :param obj_name: Object name (variable placeholder name).
         :param collection: If the object to be tracked is a collection.
         :return: Object identifier and its corresponding file name.
         """
@@ -110,6 +116,7 @@ class ObjectTracker(object):
             obj_id = self._register_object(obj, True)
             file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
             self._set_file_name(obj_id, file_name)
+            self._set_obj_name(obj_id, obj_name)
             self.set_pending_to_synchronize(obj_id)
             if __debug__:
                 logger.debug("Tracking object %s to file %s" % (obj_id,
@@ -148,6 +155,7 @@ class ObjectTracker(object):
                 if __debug__:
                     logger.debug("Stop tracking object %s" % obj_id)
                 self._delete_file_name(obj_id)
+                self._delete_obj_name(obj_id)
                 self._remove_from_pending_to_synchronize(obj_id)
                 self._pop_object_id(obj_id)
         self.report_now()
@@ -198,6 +206,18 @@ class ObjectTracker(object):
         :return: File name.
         """
         return self.file_names[obj_id]
+
+    def get_obj_name(self, obj_id):
+        # type: (str) -> typing.Optional[str]
+        """ Get the object name associated to the given object identifier.
+
+        :param obj_id: Object identifier.
+        :return: Object name.
+        """
+        if obj_id:
+            return self.obj_names[obj_id]
+        else:
+            return None
 
     def is_obj_pending_to_synchronize(self, obj):
         # type: (typing.Any) -> bool
@@ -360,6 +380,25 @@ class ObjectTracker(object):
         :return: None
         """
         del self.file_names[obj_id]
+
+    def _set_obj_name(self, obj_id, obj_name):
+        # type: (str, typing.Optional[str]) -> None
+        """ Set the object name for the given object identifier.
+
+        :param obj_id: Object identifier.
+        :param obj_name: Object name.
+        :return: None
+        """
+        self.obj_names[obj_id] = obj_name
+
+    def _delete_obj_name(self, obj_id):
+        # type: (str) -> None
+        """ Remove the object name of the given object identifier.
+
+        :param obj_id: Object identifier.
+        :return: None
+        """
+        del self.obj_names[obj_id]
 
     def _remove_from_pending_to_synchronize(self, obj_id):
         # type: (str) -> None

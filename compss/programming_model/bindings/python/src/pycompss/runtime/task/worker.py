@@ -28,6 +28,8 @@ from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
+from pycompss.runtime.global_args import set_worker_args
+from pycompss.runtime.global_args import delete_worker_args
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.arguments import get_name_from_vararg
@@ -119,6 +121,9 @@ class TaskWorker(object):
                  the affected objects.
         """
         global logger
+        # Save the args in a global place (needed from synchronize when using
+        # nesting)
+        set_worker_args(args)
         # Grab logger from kwargs (shadows outer logger since it is set by
         # the worker).
         logger = kwargs["compss_logger"]  # noqa
@@ -275,6 +280,7 @@ class TaskWorker(object):
 
         :return: None
         """
+        delete_worker_args()
         # Call garbage collector: The memory may not be freed to the SO,
         # although the objects are removed.
         gc.collect()

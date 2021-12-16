@@ -12,6 +12,7 @@ export COMPSS_HOME=${COMPSS_HOME}
 # Load auxiliar scripts
 source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
@@ -47,6 +48,8 @@ Usage: ${SCRIPT_NAME} [options] application_name application_arguments
     --opts                                  Show available options
 
     --version, -v                           Print COMPSs version
+
+    --debug, -d                             Print details of the submitted invocation
 
     --master_node=<string>                  Node where to run the COMPSs Master
                                             Mandatory
@@ -136,7 +139,7 @@ get_args() {
   if [ $# -eq 0 ]; then
     usage 1
   fi
-
+  display_invocation="false"
   params_as_array="false"
   # Parse COMPSs Options
   while getopts hvgtmd-: flag; do
@@ -151,6 +154,10 @@ get_args() {
         show_version
         exit 0
         ;;
+      d)
+        # Display invocation
+        display_invocation="true"
+        ;;
       -)
       # Check more complex arguments
       case "$OPTARG" in
@@ -159,6 +166,9 @@ get_args() {
           ;;
         parameters_array)
           params_as_array="true"
+          ;;
+        debug)
+           display_invocation="true"
           ;;
         help)
           # Display help
@@ -249,7 +259,9 @@ check_args() {
 # Invoke remote method
 ###############################################
 call(){
-  display_invocation "$@"
+  if [ "${display_invocation}" == "true" ]; then
+    display_invocation "$@"
+  fi
   local http_cei=""
   if [ ! -z "${cei}" ]; then
     http_cei="<ceiClass>${cei}</ceiClass>"

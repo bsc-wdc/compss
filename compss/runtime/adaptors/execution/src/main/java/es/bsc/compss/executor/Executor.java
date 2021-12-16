@@ -242,27 +242,29 @@ public class Executor implements Runnable, InvocationRunner {
             LOGGER.debug("Dequeuing job " + invocation.getJobId());
         }
 
-        Exception e = execute();
-        boolean success = (e == null);
+        boolean success = false;
+        COMPSsException returnException = null;
+        try {
+            execute();
+            success = true;
+        } catch (COMPSsException e) {
+            returnException = e;
+        } catch (Exception e) {
+            Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof COMPSsException) {
+                returnException = (COMPSsException) rootCause;
+            }
+        }
 
         if (WORKER_DEBUG) {
             LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
         }
+        execution.notifyEnd(returnException, success);
 
-        Throwable rootCause = ExceptionUtils.getRootCause(e);
-        if (rootCause instanceof COMPSsException) {
-            e = (COMPSsException) rootCause;
-        }
-
-        if (e instanceof COMPSsException) {
-            execution.notifyEnd((COMPSsException) e, success);
-        } else {
-            execution.notifyEnd(null, success);
-        }
         invocation = null;
     }
 
-    private Exception execute() {
+    private void execute() throws Exception {
         if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
             && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
             && invocation.getLang() != Lang.C) {
@@ -270,16 +272,24 @@ public class Executor implements Runnable, InvocationRunner {
             LOGGER.error(errMsg);
             // Print to the job.err file
             this.context.getThreadErrStream().println(errMsg);
-            return null;
+            throw new JobExecutionException("Incorrect language " + invocation.getLang());
         }
 
-        return executeTaskWrapper();
+        totalTimerAndTracingWrapperAndRun();
     }
 
-    private Exception executeTaskWrapper() {
+    private void logExecutionException(Exception e) {
+        LOGGER.error("ERROR: Executing task" + e.getMessage(), e);
+
+        // Writing in the task .err/.out
         PrintStream out = this.context.getThreadOutStream();
+        out.println("Exception executing task " + e.getMessage());
+
         PrintStream err = this.context.getThreadErrStream();
-        boolean cleanSandBox = true; // included to keep the sandbox if job fails
+        e.printStackTrace(err);
+    }
+
+    private void totalTimerAndTracingWrapperAndRun() throws Exception {
         if (Tracer.extraeEnabled()) {
             emitingTaskStartEvents();
         }
@@ -288,128 +298,122 @@ public class Executor implements Runnable, InvocationRunner {
         if (IS_TIMER_COMPSS_ENABLED) {
             timeTotalStart = System.nanoTime();
         }
-
-        int jobId = invocation.getJobId();
-        TaskWorkingDir twd = null;
-        // Flag to check if exception was unbinding files
-        boolean failureUnbindingFiles = false;
-        boolean areResourcesAcquired = false;
-        long timeUnbindOriginalFilesStart = 0L;
         try {
-            // Bind computing units
-            LOGGER.debug("Assigning resources for Job " + jobId);
+            resourcesWrapperAndRun();
+        } finally {
+            // Always end task tracing
+            if (Tracer.extraeEnabled()) {
+                emitTaskEndEvents();
+            }
+            // Write timer if needed
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeTotalEnd = System.nanoTime();
+                final float timeTotalElapsed = (timeTotalEnd - timeTotalStart) / (float) NANO_TO_MS;
+                final int jobId = invocation.getJobId();
+                TIMER_LOGGER.info("[TIMER] Total time for job " + jobId + ": " + timeTotalElapsed + " ms");
+            }
+        }
+    }
+
+    private void resourcesWrapperAndRun() throws Exception {
+        final int jobId = invocation.getJobId();
+
+        if (IS_TIMER_COMPSS_ENABLED) {
+            obtainExecutionResourcesWithTimer(jobId, invocation.getRequirements());
+        } else {
             obtainExecutionResources(jobId, invocation.getRequirements());
-            areResourcesAcquired = true;
+        }
 
-            // Set the Task working directory
-            LOGGER.debug("Creating task sandbox for Job " + jobId);
-            twd = createTaskSandbox();
-
-            // Bind files to task sandbox working dir
-            LOGGER.debug("Binding renamed files to sandboxed original names for Job " + jobId);
-            bindOriginalFilenamesToRenames(twd.getWorkingDir());
-
-            // Execute task
-            LOGGER.debug("Executing task invocation for Job " + jobId);
-            long timeExecTaskStart = 0L;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                timeExecTaskStart = System.nanoTime();
-            }
-            executeTask(twd.getWorkingDir());
-            if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeExecTaskEnd = System.nanoTime();
-                final float timeExecTaskElapsed = (timeExecTaskEnd - timeExecTaskStart) / (float) NANO_TO_MS;
-                TIMER_LOGGER.info("[TIMER] Execute job " + jobId + ": " + timeExecTaskElapsed + " ms");
-            }
-            failureUnbindingFiles = true;
-            // Unbind files from task sandbox working dir
-            LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
-            if (IS_TIMER_COMPSS_ENABLED) {
-                timeUnbindOriginalFilesStart = System.nanoTime();
-            }
-            // todo: second trace
-            unbindOriginalFileNamesToRenames(false);
-
-        } catch (Exception e) {
-            cleanSandBox = false;
-            LOGGER.error("ERROR: Executing task" + e.getMessage(), e);
-            // Writing in the task .err/.out
-            out.println("Exception executing task " + e.getMessage());
-            e.printStackTrace(err);
-            if (!failureUnbindingFiles) {
-                LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
-                if (IS_TIMER_COMPSS_ENABLED) {
-                    timeUnbindOriginalFilesStart = System.nanoTime();
-                }
-                try {
-                    unbindOriginalFileNamesToRenames(true);
-                } catch (IOException | JobExecutionException ex) {
-                    LOGGER.warn("Another exception after unbinding files: " + ex.getMessage(), ex);
-                    out.println("Another exception unbinding files: " + ex.getMessage());
-                    ex.printStackTrace(err);
-                }
-            }
-            return e;
+        try {
+            sandBoxWrapperAndRun();
         } finally {
             if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeUnbindOriginalFilesEnd = System.nanoTime();
-                final float timeUnbindOriginalFilesElapsed =
-                    (timeUnbindOriginalFilesEnd - timeUnbindOriginalFilesStart) / (float) NANO_TO_MS;
-                TIMER_LOGGER.debug(
-                    "[TIMER] Unbind original files for job " + jobId + ": " + timeUnbindOriginalFilesElapsed + " ms");
+                releaseResourcesWithTimer(jobId);
+            } else {
+                releaseResources(jobId);
             }
+        }
+    }
 
-            // Check job output files
-            LOGGER.debug("Checking generated files for Job " + jobId);
-            long timeCheckOutputFilesStart = 0L;
+    private void sandBoxWrapperAndRun() throws Exception {
+        TaskWorkingDir twd;
+
+        // Set the Task working directory
+        if (IS_TIMER_COMPSS_ENABLED) {
+            twd = createTaskSandboxWithTimer();
+        } else {
+            twd = createTaskSandbox();
+        }
+
+        filesWrapperAndRun(twd);
+
+        // Clean the task sandbox working dir if no error
+        if (IS_TIMER_COMPSS_ENABLED) {
+            cleanTaskSandboxWithTimer(twd);
+        } else {
+            cleanTaskSandbox(twd);
+        }
+    }
+
+    private void filesWrapperAndRun(TaskWorkingDir twd) throws Exception {
+        boolean alreadyFailed = false;
+        try {
             if (IS_TIMER_COMPSS_ENABLED) {
-                timeCheckOutputFilesStart = System.nanoTime();
+                // Bind files to task sandbox working dir
+                bindOriginalFilenamesToRenamesWithTimer(twd.getWorkingDir());
+                executeTaskWithTimer(twd);
+            } else {
+                // Bind files to task sandbox working dir
+                bindOriginalFilenamesToRenames(twd.getWorkingDir());
+                executeTask(twd);
             }
+        } catch (Exception e) {
+            logExecutionException(e);
+            alreadyFailed = true;
+            throw e;
+        } finally {
+            // Unbind files from task sandbox working dir
             try {
-                checkJobFiles(invocation);
-            } catch (JobExecutionException e) {
-                cleanSandBox = false;
-                LOGGER.error(e.getMessage(), e);
-                // Writing in the task .err/.out
-                out.println("Exception executing task " + e.getMessage());
-                e.printStackTrace(err);
-                return e;
+                if (IS_TIMER_COMPSS_ENABLED) {
+                    unbindOriginalFileNamesToRenamesWithTimer();
+                } else {
+                    unbindOriginalFileNamesToRenames();
+                }
+            } catch (Exception ex) {
+                if (alreadyFailed) {
+                    LOGGER.warn("Another exception after unbinding files: " + ex.getMessage(), ex);
+                    PrintStream out = this.context.getThreadOutStream();
+                    out.println("Another exception unbinding files: " + ex.getMessage());
+                    PrintStream err = this.context.getThreadErrStream();
+                    ex.printStackTrace(err);
+                } else {
+                    logExecutionException(ex);
+                    throw ex;
+                }
             } finally {
                 if (IS_TIMER_COMPSS_ENABLED) {
-                    final long timeCheckOutputFilesEnd = System.nanoTime();
-                    final float timeCheckOutputFilesElapsed =
-                        (timeCheckOutputFilesEnd - timeCheckOutputFilesStart) / (float) NANO_TO_MS;
-                    TIMER_LOGGER.debug(
-                        "[TIMER] Check output files for job " + jobId + ": " + timeCheckOutputFilesElapsed + " ms");
-                }
-
-                // Always release the binded computing units
-                if (areResourcesAcquired) {
-                    releaseResources(jobId);
-                }
-
-                // Clean the task sandbox working dir if no error
-                if (cleanSandBox) {
-                    LOGGER.debug("Cleaning task sandbox for Job " + jobId);
-                    cleanTaskSandbox(twd, jobId);
-                }
-                // Always end task tracing
-                if (Tracer.extraeEnabled()) {
-                    emitTaskEndEvents();
-                }
-                // Write timer if needed
-                if (IS_TIMER_COMPSS_ENABLED) {
-                    final long timeTotalEnd = System.nanoTime();
-                    final float timeTotalElapsed = (timeTotalEnd - timeTotalStart) / (float) NANO_TO_MS;
-                    TIMER_LOGGER.info("[TIMER] Total time for job " + jobId + ": " + timeTotalElapsed + " ms");
+                    checkJobFilesWithTimer(invocation);
+                } else {
+                    checkJobFiles(invocation);
                 }
             }
         }
-        // Any exception thrown, successful execution
-        return null;
     }
 
-    private void executeTask(File taskSandboxWorkingDir) throws Exception {
+    private void executeTaskWithTimer(TaskWorkingDir twd) throws Exception {
+        int jobId = invocation.getJobId();
+        // Execute task
+        LOGGER.debug("Executing task invocation for Job " + jobId);
+        long timeExecTaskStart = 0L;
+        timeExecTaskStart = System.nanoTime();
+
+        executeTask(twd);
+        final long timeExecTaskEnd = System.nanoTime();
+        final float timeExecTaskElapsed = (timeExecTaskEnd - timeExecTaskStart) / (float) NANO_TO_MS;
+        TIMER_LOGGER.info("[TIMER] Execute job " + jobId + ": " + timeExecTaskElapsed + " ms");
+    }
+
+    private void executeTask(TaskWorkingDir twd) throws Exception {
 
         /* Register outputs **************************************** */
         String streamsPath = this.context.getStandardStreamsPath(invocation);
@@ -417,6 +421,7 @@ public class Executor implements Runnable, InvocationRunner {
         PrintStream out = this.context.getThreadOutStream();
 
         /* TRY TO PROCESS THE TASK ******************************** */
+        File taskSandboxWorkingDir = twd.getWorkingDir();
         if (invocation.isDebugEnabled()) {
             out.println("[EXECUTOR] executeTask - Begin task execution");
         }
@@ -481,7 +486,27 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
+    private void checkJobFilesWithTimer(Invocation invocation) throws JobExecutionException {
+        long timeCheckOutputFilesStart = 0L;
+        timeCheckOutputFilesStart = System.nanoTime();
+        try {
+            checkJobFiles(invocation);
+        } finally {
+            final long timeCheckOutputFilesEnd = System.nanoTime();
+            final float timeCheckOutputFilesElapsed =
+                (timeCheckOutputFilesEnd - timeCheckOutputFilesStart) / (float) NANO_TO_MS;
+
+            final int jobId = this.invocation.getJobId();
+            TIMER_LOGGER
+                .debug("[TIMER] Check output files for job " + jobId + ": " + timeCheckOutputFilesElapsed + " ms");
+        }
+    }
+
     private void checkJobFiles(Invocation invocation) throws JobExecutionException {
+        // Check job output files
+        final int jobId = this.invocation.getJobId();
+        LOGGER.debug("Checking generated files for Job " + jobId);
+
         // Check if all the output files have been actually created (in case user has forgotten)
         // No need to distinguish between IN or OUT files, because IN files will exist, and
         // if there's one or more missing, they will be necessarily out.
@@ -622,20 +647,30 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void obtainExecutionResources(int jobId, ResourceDescription requirements)
+    private void obtainExecutionResourcesWithTimer(int jobId, ResourceDescription requirements)
         throws UnsufficientAvailableResourcesException {
-        long timeAssignResourcesStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeAssignResourcesStart = System.nanoTime();
-        }
-        this.resources = this.platform.acquireResources(jobId, requirements, resources);
-        assignExecutionResources();
 
-        if (IS_TIMER_COMPSS_ENABLED) {
+        long timeAssignResourcesStart = 0L;
+        timeAssignResourcesStart = System.nanoTime();
+        try {
+            obtainExecutionResources(jobId, requirements);
+        } finally {
             final long timeAssignResourcesEnd = System.nanoTime();
             final float timeAssignResourcesElapsed =
                 (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
             TIMER_LOGGER.debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+        }
+    }
+
+    private void obtainExecutionResources(int jobId, ResourceDescription requirements)
+        throws UnsufficientAvailableResourcesException {
+        LOGGER.debug("Assigning resources for Job " + jobId);
+        try {
+            this.resources = this.platform.acquireResources(jobId, requirements, resources);
+            assignExecutionResources();
+        } catch (Exception e) {
+            logExecutionException(e);
+            throw e;
         }
     }
 
@@ -689,24 +724,42 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void releaseResources(int jobId) {
-        LOGGER.debug("Release binded resources for Job " + jobId);
+    private void releaseResourcesWithTimer(int jobId) {
         long timeUnassignResourcesStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeUnassignResourcesStart = System.nanoTime();
-        }
-        this.platform.releaseResources(jobId);
-        if (IS_TIMER_COMPSS_ENABLED) {
+        timeUnassignResourcesStart = System.nanoTime();
+        try {
+            this.platform.releaseResources(jobId);
+        } finally {
             final long timeUnassignResourcesEnd = System.nanoTime();
             final float timeUnassignResourcesElapsed =
                 (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
             TIMER_LOGGER
                 .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
         }
+
+    }
+
+    private void releaseResources(int jobId) {
+        LOGGER.debug("Release binded resources for Job " + jobId);
+        this.platform.releaseResources(jobId);
     }
     /*
      * ---------------------- SANDBOX MAGEMENT --------------------------------
      */
+
+    private TaskWorkingDir createTaskSandboxWithTimer() throws IOException {
+        // Start timer
+        long timeSandboxStart = 0L;
+        timeSandboxStart = System.nanoTime();
+        try {
+            return createTaskSandbox();
+        } finally {
+            final long timeSandboxEnd = System.nanoTime();
+            final float timeSandboxElapsed = (timeSandboxEnd - timeSandboxStart) / (float) NANO_TO_MS;
+            TIMER_LOGGER
+                .debug("[TIMER] Create sandbox for job " + invocation.getJobId() + ": " + timeSandboxElapsed + " ms");
+        }
+    }
 
     /**
      * Creates a sandbox for a task.
@@ -715,100 +768,113 @@ public class Executor implements Runnable, InvocationRunner {
      * @throws IOException Error creating sandbox
      */
     private TaskWorkingDir createTaskSandbox() throws IOException {
-        // Start timer
-        long timeSandboxStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeSandboxStart = System.nanoTime();
-        }
-        // Check if an specific working dir is provided
-        String specificWD = null;
-        switch (invocation.getMethodImplementation().getMethodType()) {
-            case CONTAINER:
-                ContainerDefinition contImpl =
-                    (ContainerDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = contImpl.getWorkingDir();
-                break;
-            case BINARY:
-                BinaryDefinition binaryImpl = (BinaryDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = binaryImpl.getWorkingDir();
-                break;
-            case MPI:
-                MPIDefinition mpiImpl = (MPIDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = mpiImpl.getWorkingDir();
-                break;
-            case PYTHON_MPI:
-                PythonMPIDefinition nativeMPIImpl =
-                    (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = nativeMPIImpl.getWorkingDir();
-                break;
-            case COMPSs:
-                COMPSsDefinition compssImpl = (COMPSsDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = compssImpl.getWorkingDir() + File.separator + compssImpl.getParentAppId() + File.separator
-                    + "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
-                break;
-            case DECAF:
-                DecafDefinition decafImpl = (DecafDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = decafImpl.getWorkingDir();
-                break;
-            case OMPSS:
-                OmpSsDefinition ompssImpl = (OmpSsDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = ompssImpl.getWorkingDir();
-                break;
-            case OPENCL:
-                OpenCLDefinition openclImpl = (OpenCLDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = openclImpl.getWorkingDir();
-                break;
-            case METHOD:
-            case MULTI_NODE: // It is executed as a regular native method
-                specificWD = null;
-                break;
-        }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX.getId(), TraceEvent.CREATING_TASK_SANDBOX.getType());
-        }
+        final int jobId = invocation.getJobId();
+        LOGGER.debug("Creating task sandbox for Job " + jobId);
         TaskWorkingDir taskWD;
-        if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
-            // Binary has an specific working dir, set it
-            File workingDir = new File(specificWD);
-            taskWD = new TaskWorkingDir(workingDir, true);
-
-            // Create structures
-            Files.createDirectories(workingDir.toPath());
-        } else {
-            // No specific working dir provided, set default sandbox
-            String completePath =
-                this.context.getWorkingDir() + "sandBox" + File.separator + "job_" + invocation.getJobId();
-            File workingDir = new File(completePath);
-            taskWD = new TaskWorkingDir(workingDir, false);
-
-            // Clean-up previous versions if any
-            if (workingDir.exists()) {
-                LOGGER.debug("Deleting folder " + workingDir.toString());
-                if (!workingDir.delete()) {
-                    LOGGER.warn("Cannot delete working dir folder: " + workingDir.toString());
-                }
+        try {
+            // Check if an specific working dir is provided
+            String specificWD = null;
+            switch (invocation.getMethodImplementation().getMethodType()) {
+                case CONTAINER:
+                    ContainerDefinition contImpl =
+                        (ContainerDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = contImpl.getWorkingDir();
+                    break;
+                case BINARY:
+                    BinaryDefinition binaryImpl =
+                        (BinaryDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = binaryImpl.getWorkingDir();
+                    break;
+                case MPI:
+                    MPIDefinition mpiImpl = (MPIDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = mpiImpl.getWorkingDir();
+                    break;
+                case PYTHON_MPI:
+                    PythonMPIDefinition nativeMPIImpl =
+                        (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = nativeMPIImpl.getWorkingDir();
+                    break;
+                case COMPSs:
+                    COMPSsDefinition compssImpl =
+                        (COMPSsDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = compssImpl.getWorkingDir() + File.separator + compssImpl.getParentAppId()
+                        + File.separator + "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
+                    break;
+                case DECAF:
+                    DecafDefinition decafImpl = (DecafDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = decafImpl.getWorkingDir();
+                    break;
+                case OMPSS:
+                    OmpSsDefinition ompssImpl = (OmpSsDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = ompssImpl.getWorkingDir();
+                    break;
+                case OPENCL:
+                    OpenCLDefinition openclImpl =
+                        (OpenCLDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = openclImpl.getWorkingDir();
+                    break;
+                case METHOD:
+                case MULTI_NODE: // It is executed as a regular native method
+                    specificWD = null;
+                    break;
             }
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX.getId(), TraceEvent.CREATING_TASK_SANDBOX.getType());
+            }
+            if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
+                // Binary has an specific working dir, set it
+                File workingDir = new File(specificWD);
+                taskWD = new TaskWorkingDir(workingDir, true);
 
-            // Create structures
-            Files.createDirectories(workingDir.toPath());
-        }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CREATING_TASK_SANDBOX.getType());
-        }
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeSandboxEnd = System.nanoTime();
-            final float timeSandboxElapsed = (timeSandboxEnd - timeSandboxStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER
-                .debug("[TIMER] Create sandbox for job " + invocation.getJobId() + ": " + timeSandboxElapsed + " ms");
+                // Create structures
+                Files.createDirectories(workingDir.toPath());
+            } else {
+                // No specific working dir provided, set default sandbox
+                String completePath =
+                    this.context.getWorkingDir() + "sandBox" + File.separator + "job_" + invocation.getJobId();
+                File workingDir = new File(completePath);
+                taskWD = new TaskWorkingDir(workingDir, false);
+
+                // Clean-up previous versions if any
+                if (workingDir.exists()) {
+                    LOGGER.debug("Deleting folder " + workingDir.toString());
+                    if (!workingDir.delete()) {
+                        LOGGER.warn("Cannot delete working dir folder: " + workingDir.toString());
+                    }
+                }
+
+                // Create structures
+                Files.createDirectories(workingDir.toPath());
+            }
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CREATING_TASK_SANDBOX.getType());
+            }
+        } catch (Exception e) {
+            logExecutionException(e);
+            throw e;
         }
         return taskWD;
     }
 
-    private void cleanTaskSandbox(TaskWorkingDir twd, int jobId) {
+    private void cleanTaskSandboxWithTimer(TaskWorkingDir twd) {
         long timeCleanSandboxStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeCleanSandboxStart = System.nanoTime();
+
+        timeCleanSandboxStart = System.nanoTime();
+        try {
+            cleanTaskSandbox(twd);
+        } finally {
+            final long timeCleanSandboxEnd = System.nanoTime();
+            final float timeCleanSandboxElapsed = (timeCleanSandboxEnd - timeCleanSandboxStart) / (float) NANO_TO_MS;
+            final int jobId = invocation.getJobId();
+            TIMER_LOGGER.debug("[TIMER] Clean sandbox for job " + jobId + ": " + timeCleanSandboxElapsed + " ms");
         }
+
+    }
+
+    private void cleanTaskSandbox(TaskWorkingDir twd) {
+        final int jobId = invocation.getJobId();
+        LOGGER.debug("Cleaning task sandbox for Job " + jobId);
+
         if (twd != null && !twd.isSpecific()) {
             // Only clean task sandbox if it is not specific
             File workingDir = twd.getWorkingDir();
@@ -827,14 +893,7 @@ public class Executor implements Runnable, InvocationRunner {
                     Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.REMOVING_TASK_SANDBOX.getType());
                 }
             }
-
         }
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeCleanSandboxEnd = System.nanoTime();
-            final float timeCleanSandboxElapsed = (timeCleanSandboxEnd - timeCleanSandboxStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER.debug("[TIMER] Clean sandbox for job " + jobId + ": " + timeCleanSandboxElapsed + " ms");
-        }
-
     }
 
     /**
@@ -873,56 +932,67 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
+    private void bindOriginalFilenamesToRenamesWithTimer(File sandbox) throws Exception {
+        long timeBindOriginalFilesStart = 0L;
+        timeBindOriginalFilesStart = System.nanoTime();
+        try {
+            bindOriginalFilenamesToRenames(sandbox);
+        } finally {
+            final long timeBindOriginalFilesEnd = System.nanoTime();
+            final float timeBindOriginalFilesElapsed =
+                (timeBindOriginalFilesEnd - timeBindOriginalFilesStart) / (float) NANO_TO_MS;
+            TIMER_LOGGER.debug("[TIMER] Bind original files for job " + invocation.getJobId() + ": "
+                + timeBindOriginalFilesElapsed + " ms");
+        }
+    }
+
     /**
      * Create symbolic links from files with the original name in task sandbox to the renamed file.
      *
      * @param sandbox created sandbox
      * @throws IOException returns exception is a problem occurs during creation
      */
-    private void bindOriginalFilenamesToRenames(File sandbox) throws IOException {
-        long timeBindOriginalFilesStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeBindOriginalFilesStart = System.nanoTime();
-        }
-        for (InvocationParam param : invocation.getParams()) {
-            if (!param.isKeepRename()) {
-                bindOriginalFilenameToRenames(param, sandbox);
-            } else {
-                // collection should enter here
-                String renamedFilePath = (String) param.getValue();
-                LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
-                param.setRenamedName(renamedFilePath);
-                param.setOriginalName(renamedFilePath);
+    private void bindOriginalFilenamesToRenames(File sandbox) throws Exception {
+        final int jobId = invocation.getJobId();
+        LOGGER.debug("Binding renamed files to sandboxed original names for Job " + jobId);
+        try {
+
+            for (InvocationParam param : invocation.getParams()) {
+                if (!param.isKeepRename()) {
+                    bindOriginalFilenameToRenames(param, sandbox);
+                } else {
+                    // collection should enter here
+                    String renamedFilePath = (String) param.getValue();
+                    LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                    param.setRenamedName(renamedFilePath);
+                    param.setOriginalName(renamedFilePath);
+                }
             }
-        }
-        if (invocation.getTarget() != null) {
-            LOGGER.debug("Invocation has non-null target");
-            InvocationParam param = invocation.getTarget();
-            if (!param.isKeepRename()) {
-                bindOriginalFilenameToRenames(param, sandbox);
-            } else {
-                String renamedFilePath = (String) param.getValue();
-                LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
-                param.setRenamedName(renamedFilePath);
-                param.setOriginalName(renamedFilePath);
+            if (invocation.getTarget() != null) {
+                LOGGER.debug("Invocation has non-null target");
+                InvocationParam param = invocation.getTarget();
+                if (!param.isKeepRename()) {
+                    bindOriginalFilenameToRenames(param, sandbox);
+                } else {
+                    String renamedFilePath = (String) param.getValue();
+                    LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                    param.setRenamedName(renamedFilePath);
+                    param.setOriginalName(renamedFilePath);
+                }
             }
-        }
-        for (InvocationParam param : invocation.getResults()) {
-            if (!param.isKeepRename()) {
-                bindOriginalFilenameToRenames(param, sandbox);
-            } else {
-                String renamedFilePath = (String) param.getValue();
-                LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
-                param.setRenamedName(renamedFilePath);
-                param.setOriginalName(renamedFilePath);
+            for (InvocationParam param : invocation.getResults()) {
+                if (!param.isKeepRename()) {
+                    bindOriginalFilenameToRenames(param, sandbox);
+                } else {
+                    String renamedFilePath = (String) param.getValue();
+                    LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                    param.setRenamedName(renamedFilePath);
+                    param.setOriginalName(renamedFilePath);
+                }
             }
-        }
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeBindOriginalFilesEnd = System.nanoTime();
-            final float timeBindOriginalFilesElapsed =
-                (timeBindOriginalFilesEnd - timeBindOriginalFilesStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER.debug("[TIMER] Bind original files for job " + invocation.getJobId() + ": "
-                + timeBindOriginalFilesElapsed + " ms");
+        } catch (Exception e) {
+            logExecutionException(e);
+            throw e;
         }
     }
 
@@ -1023,7 +1093,6 @@ public class Executor implements Runnable, InvocationRunner {
                 param.setValue(inSandboxPath);
                 break;
             case DIFF_DATA:
-                ;
                 File newSandboxFile = new File(sandbox, param.getDataMgmtId() + "_" + param.getOriginalName());
                 String newSandboxPath = newSandboxFile.getAbsolutePath();
                 LOGGER.debug("Creating Symbolic link " + newSandboxFile.toPath().toString() + "->"
@@ -1039,13 +1108,31 @@ public class Executor implements Runnable, InvocationRunner {
 
     }
 
+    private void unbindOriginalFileNamesToRenamesWithTimer() throws IOException, JobExecutionException {
+        long timeUnbindOriginalFilesStart = 0L;
+        timeUnbindOriginalFilesStart = System.nanoTime();
+        try {
+            unbindOriginalFileNamesToRenames();
+        } finally {
+            final long timeUnbindOriginalFilesEnd = System.nanoTime();
+            final float timeUnbindOriginalFilesElapsed =
+                (timeUnbindOriginalFilesEnd - timeUnbindOriginalFilesStart) / (float) NANO_TO_MS;
+            final int jobId = invocation.getJobId();
+            TIMER_LOGGER.debug(
+                "[TIMER] Unbind original files for job " + jobId + ": " + timeUnbindOriginalFilesElapsed + " ms");
+        }
+    }
+
     /**
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file.
      *
      * @throws IOException Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
-    private void unbindOriginalFileNamesToRenames(boolean alreadyFailed) throws IOException, JobExecutionException {
+    private void unbindOriginalFileNamesToRenames() throws IOException, JobExecutionException {
+        // Unbind files from task sandbox working dir
+        final int jobId = invocation.getJobId();
+        LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
         String message = null;
         boolean failure = false;
         for (InvocationParam param : invocation.getParams()) {
@@ -1086,7 +1173,7 @@ public class Executor implements Runnable, InvocationRunner {
                 failure = true;
             }
         }
-        if (failure && !alreadyFailed) {
+        if (failure) {
             throw new JobExecutionException(message);
         }
     }

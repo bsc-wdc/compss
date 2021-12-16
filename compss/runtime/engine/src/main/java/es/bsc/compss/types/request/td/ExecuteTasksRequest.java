@@ -164,7 +164,7 @@ public class ExecuteTasksRequest extends TDRequest {
         } else {
             LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
             ExecutionAction action = new ExecutionAction(
-                ts.generateSchedulingInformation(specificResource, this.task.getFreeParams(),
+                ts.generateSchedulingInformation(specificResource, this.task.getParameters(),
                     this.task.getTaskDescription().getCoreElement().getCoreId()),
                 ts.getOrchestrator(), this.ap, this.task);
             ts.newAllocatableAction(action);

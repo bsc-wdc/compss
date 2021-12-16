@@ -72,7 +72,7 @@ public class DataResourceScheduler<T extends WorkerResourceDescription> extends 
         long groupId = action.getGroupPriority();
 
         // Compute new score fields
-        long resourceScore = (long) action.getSchedulingInfo().getScore(myWorker);
+        long resourceScore = (long) action.getSchedulingInfo().getPreregisteredScore(myWorker);
         long waitingScore = -this.blocked.size();
 
         return new Score(priority, groupId, resourceScore, waitingScore, 0);

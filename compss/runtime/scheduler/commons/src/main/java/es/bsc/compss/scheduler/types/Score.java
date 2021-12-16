@@ -16,25 +16,6 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.comm.Comm;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.parameter.CollectionParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.Worker;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-
 /**
  * Action score representation.
  */
@@ -211,92 +192,6 @@ public class Score implements Comparable<Score> {
         } else {
             return -1;
         }
-    }
-
-    /**
-     * Calculates the number of Parameters in {@code params} located in a given worker {@code w}.
-     *
-     * @param params Task parameters.
-     * @param w Target worker.
-     * @return Number of paramters already located in a given worker.
-     */
-    public static long calculateDataLocalityScore(List<Parameter> params, Worker<?> w) {
-        long resourceScore = 0;
-        if (params != null) {
-            // Obtain the scores for the host: number of task parameters that
-            // are located in the host
-            for (Parameter p : params) {
-                if (p.getType() == DataType.COLLECTION_T) {
-                    CollectionParameter cp = (CollectionParameter) p;
-                    for (Parameter par : cp.getParameters()) {
-                        resourceScore = resourceScore + calculateParameterScore(par, w);
-                    }
-                } else if (p.getType() == DataType.DICT_COLLECTION_T) {
-                    DictCollectionParameter dcp = (DictCollectionParameter) p;
-                    for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                        long keyScore = calculateParameterScore(entry.getKey(), w);
-                        long valueScore = calculateParameterScore(entry.getValue(), w);
-                        resourceScore = resourceScore + keyScore + valueScore;
-                    }
-                } else {
-                    resourceScore = resourceScore + calculateParameterScore(p, w);
-                }
-            }
-        }
-        return resourceScore;
-    }
-
-    private static long calculateParameterScore(Parameter p, Worker<?> w) {
-        long resourceScore = 0;
-        if (p.isPotentialDependency() && p.getDirection() != Direction.OUT) {
-            if (p.getType() == DataType.COLLECTION_T) {
-                CollectionParameter cp = (CollectionParameter) p;
-                for (Parameter par : cp.getParameters()) {
-                    resourceScore = resourceScore + calculateParameterScore(par, w);
-                }
-            } else if (p.getType() == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) p;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    long keyScore = calculateParameterScore(entry.getKey(), w);
-                    long valueScore = calculateParameterScore(entry.getValue(), w);
-                    resourceScore = resourceScore + keyScore + valueScore;
-                }
-            } else {
-                DependencyParameter dp = (DependencyParameter) p;
-                DataInstanceId dId = null;
-                switch (dp.getDirection()) {
-                    case IN:
-                    case IN_DELETE:
-                    case CONCURRENT:
-                        RAccessId raId = (RAccessId) dp.getDataAccessId();
-                        dId = raId.getReadDataInstance();
-                        break;
-                    case COMMUTATIVE:
-                    case INOUT:
-                        RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
-                        dId = rwaId.getReadDataInstance();
-                        break;
-                    case OUT:
-                        // Cannot happen because of previous if
-                        break;
-                }
-
-                // Get hosts for resource score
-                if (dId != null) {
-                    LogicalData dataLD = dId.getData();
-                    if (dataLD != null) {
-                        Set<Resource> hosts = dataLD.getAllHosts();
-                        for (Resource host : hosts) {
-                            if (host == w) {
-                                resourceScore++;
-                            }
-                        }
-                    }
-                }
-                resourceScore = (long) (p.getWeight() * resourceScore);
-            }
-        }
-        return resourceScore;
     }
 
     @Override

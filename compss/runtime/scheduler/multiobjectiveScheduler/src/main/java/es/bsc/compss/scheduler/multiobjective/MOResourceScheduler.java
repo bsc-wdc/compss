@@ -131,7 +131,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
-        long resScore = (long) action.getSchedulingInfo().getScore(myWorker);
+        long resScore = (long) action.getSchedulingInfo().getPreregisteredScore(myWorker);
         for (AllocatableAction pred : action.getDataPredecessors()) {
             if (pred.isPending() && pred.getAssignedResource() == this) {
                 resScore++;

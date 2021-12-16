@@ -89,7 +89,7 @@ public class FIFODataLocationResourceScheduler<T extends WorkerResourceDescripti
             if (parameters.size() == 0) {
                 return 1;
             }
-            resourceScore = (long) action.getSchedulingInfo().getScore(myWorker);
+            resourceScore = (long) action.getSchedulingInfo().getPreregisteredScore(myWorker);
         }
         return resourceScore;
     }

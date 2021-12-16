@@ -152,7 +152,7 @@ public class ExecutionPlatform implements ExecutorContext {
      * Stops all the threads. Inserts as many null objects to the queue as threads are managed. It wakes up all the
      * threads and wait until they process the null objects inserted which will stop them.
      */
-    public final synchronized void stop() {
+    public final void stop() {
         LOGGER.info("Stopping execution platform " + this.platformName);
         /*
          * Empty queue to discard any pending requests and make threads finish
@@ -214,41 +214,45 @@ public class ExecutionPlatform implements ExecutorContext {
 
     /**
      * Add worker threads to Execution Platform.
-     * 
+     *
      * @param numWorkerThreads Number of new worker threads
      */
-    public final synchronized void addWorkerThreads(int numWorkerThreads) {
+    public final void addWorkerThreads(int numWorkerThreads) {
+        boolean wait = false;
         Semaphore startSem;
-        if (this.started) {
-            startSem = new Semaphore(numWorkerThreads);
-        } else {
-            startSem = this.startSemaphore;
-        }
-        if (Tracer.basicModeEnabled()) {
-            Tracer.enablePThreads(numWorkerThreads);
-        }
-        for (int i = 0; i < numWorkerThreads; i++) {
-            int id = this.nextThreadId++;
-            Executor executor = new Executor(this.context, this, "executor" + id) {
-
-                @Override
-                public void run() {
-                    startSem.release();
-                    super.run();
-                    synchronized (ExecutionPlatform.this.finishedWorkerThreads) {
-                        ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
-                    }
-                    ExecutionPlatform.this.stopSemaphore.release();
-                }
-            };
-            Thread t = new Thread(executor);
-            t.setName(this.platformName + " executor thread # " + id);
-            this.workerThreads.add(t);
+        synchronized (this) {
             if (this.started) {
-                t.start();
+                startSem = new Semaphore(numWorkerThreads);
+                wait = true;
+            } else {
+                startSem = this.startSemaphore;
+            }
+            if (Tracer.basicModeEnabled()) {
+                Tracer.enablePThreads(numWorkerThreads);
+            }
+            for (int i = 0; i < numWorkerThreads; i++) {
+                int id = this.nextThreadId++;
+                Executor executor = new Executor(this.context, this, "executor" + id) {
+
+                    @Override
+                    public void run() {
+                        startSem.release();
+                        super.run();
+                        synchronized (ExecutionPlatform.this) {
+                            ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
+                        }
+                        ExecutionPlatform.this.stopSemaphore.release();
+                    }
+                };
+                Thread t = new Thread(executor);
+                t.setName(this.platformName + " executor thread # " + id);
+                this.workerThreads.add(t);
+                if (this.started) {
+                    t.start();
+                }
             }
         }
-        if (this.started) {
+        if (wait) {
             startSem.acquireUninterruptibly(numWorkerThreads);
         }
     }
@@ -280,18 +284,20 @@ public class ExecutionPlatform implements ExecutorContext {
         }
     }
 
-    private synchronized void joinThreads() {
-        Iterator<Thread> iter = this.finishedWorkerThreads.iterator();
-        while (iter.hasNext()) {
-            Thread t = iter.next();
-            if (t != null) {
-                try {
-                    t.join();
-                    iter.remove();
-                    this.workerThreads.remove(t);
-                    t = null;
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+    private void joinThreads() {
+        synchronized (this) {
+            Iterator<Thread> iter = this.finishedWorkerThreads.iterator();
+            while (iter.hasNext()) {
+                Thread t = iter.next();
+                if (t != null) {
+                    try {
+                        t.join();
+                        iter.remove();
+                        this.workerThreads.remove(t);
+                        t = null;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
         }
@@ -301,7 +307,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
     /**
      * Cancels a running job or sets it to cancel if it is not running.
-     * 
+     *
      * @param jobId Id of the job to cancel.
      */
     public void cancelJob(int jobId) {

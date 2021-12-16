@@ -14,23 +14,33 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data;
+package es.bsc.compss.scheduler.types;
 
+import es.bsc.compss.types.data.LocationMonitor;
 import es.bsc.compss.types.resources.Resource;
-
 import java.util.List;
 
 
-/**
- * Interface that an object implements to be notified about data location updates.
- */
-public interface LocationMonitor {
+public class LocationScoreMonitor implements LocationMonitor {
+
+    private final double score;
+    private final SchedulingInformation info;
+
 
     /**
-     * Notifies the addition of a new location of a data.
+     * Constructs a new LocationScoreMonitor to update the locality score.
      * 
-     * @param resources list of new locations where the data is available
+     * @param info scheduling info structure to notify the update
+     * @param score amount of score increase
      */
-    public void addedLocation(List<Resource> resources);
+    public LocationScoreMonitor(SchedulingInformation info, double score) {
+        this.info = info;
+        this.score = score;
+    }
+
+    @Override
+    public void addedLocation(List<Resource> list) {
+        info.increasePreregisteredScores(list, score);
+    }
 
 }

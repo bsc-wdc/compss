@@ -355,7 +355,7 @@ public class LogicalData {
         List<Resource> resources = loc.getHosts();
         synchronized (this.locMonitors) {
             for (LocationMonitor readerData : this.locMonitors) {
-                readerData.addLocation(resources, readerData.getParameter());
+                readerData.addedLocation(resources);
             }
         }
 

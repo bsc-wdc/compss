@@ -678,10 +678,10 @@ public class AccessProcessor implements Runnable {
 
         bgr.waitForCompletion();
 
-        if (bgr.getException() != null) {
-            LOGGER.debug("The thrown exception message is: " + bgr.getException().getMessage());
-            throw new COMPSsException(
-                "Group " + groupName + " raised a COMPSs Exception ( " + bgr.getException().getMessage() + ")");
+        COMPSsException exception = bgr.getException();
+        if (exception != null) {
+            LOGGER.debug("Group " + groupName + " raised a COMPSsException ( " + exception.getMessage() + ")");
+            throw exception;
         }
 
         LOGGER.info("Group barrier: End of tasks of group " + groupName);

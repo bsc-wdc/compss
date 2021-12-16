@@ -18,7 +18,6 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.ReadersInfo;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
@@ -120,9 +119,9 @@ public abstract class DataInfo {
     /**
      * Marks the data to be read.
      */
-    public final void willBeRead(ReadersInfo readerData) {
+    public final void willBeRead() {
         this.currentVersion.versionUsed();
-        this.currentVersion.willBeRead(readerData);
+        this.currentVersion.willBeRead();
     }
 
     /**
@@ -149,9 +148,9 @@ public abstract class DataInfo {
      * @param versionId Version Id.
      * @return {@code true} if the version Id has no pending reads, {@code false} otherwise.
      */
-    public final boolean versionHasBeenRead(int versionId, ReadersInfo readData) {
+    public final boolean versionHasBeenRead(int versionId) {
         DataVersion readVersion = this.versions.get(versionId);
-        if (readVersion.hasBeenRead(readData)) {
+        if (readVersion.hasBeenRead()) {
             Comm.removeData(readVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
             // return (this.toDelete && versions.size() == 0);
@@ -290,13 +289,14 @@ public abstract class DataInfo {
      * Cancels the given read version {@code versionId}.
      *
      * @param versionId Version Id.
+     * @return {@literal true} if there are no more versions for the data; {@literal false} otherwise.
      */
-    public final boolean canceledReadVersion(Integer versionId, ReadersInfo readData) {
+    public final boolean canceledReadVersion(Integer versionId) {
         DataVersion readVersion = this.versions.get(versionId);
         if (!deleted && readVersion.isToDelete() && readVersion.hasBeenUsed()) {
             readVersion.unmarkToDelete();
         }
-        if (readVersion.hasBeenRead(readData)) {
+        if (readVersion.hasBeenRead()) {
             Comm.removeData(readVersion.getDataInstanceId().getRenaming(), true);
             this.versions.remove(versionId);
             // return (this.toDelete && versions.size() == 0);

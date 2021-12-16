@@ -29,7 +29,7 @@ public class Action extends AllocatableAction {
 
     public Action(ActionOrchestrator orchestrator, CoreElement core) {
 
-        super(new SchedulingInformation(null, null, null), orchestrator);
+        super(new SchedulingInformation(null), orchestrator);
         this.core = core;
     }
 

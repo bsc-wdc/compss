@@ -53,7 +53,7 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerBindingObjectAccess(this.app, this.mode, this.getBindingObject(), this.getCode(), null);
+        return dip.registerBindingObjectAccess(this.app, this.mode, this.getBindingObject(), this.getCode());
     }
 
 }

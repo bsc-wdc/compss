@@ -18,12 +18,12 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -116,20 +116,10 @@ public class SchedulingInformation {
      * 
      * @param enforcedTargetResource Enforced resource.
      */
-    public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource,
-        List<Parameter> params, Integer coreId) {
+    public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
         this.constrainingPredecessors = new LinkedList<>();
         this.enforcedTargetResource = enforcedTargetResource;
         this.perResourceScore = new HashMap<>();
-        if (enforcedTargetResource == null && coreId != null) {
-            List<ResourceScheduler<? extends WorkerResourceDescription>> res = getCoreElementExecutors(coreId);
-            if (params != null) {
-                for (ResourceScheduler<? extends WorkerResourceDescription> rs : res) {
-                    double initialScore = (double) Score.calculateDataLocalityScore(params, rs.getResource());
-                    perResourceScore.put(rs.getResource(), initialScore);
-                }
-            }
-        }
     }
 
     /**
@@ -169,11 +159,12 @@ public class SchedulingInformation {
     }
 
     /**
-     * Returns the score for a given worker.
+     * Returns the score for a given resource where to run the action.
      * 
+     * @param r candidate resource to execute the action
      * @return The score for the worker.
      */
-    public double getScore(Resource r) {
+    public double getPreregisteredScore(Resource r) {
         Double score = perResourceScore.get(r);
         if (score == null) {
             LOGGER.warn("The resource " + r.toString() + " is not registered");
@@ -184,12 +175,16 @@ public class SchedulingInformation {
     }
 
     /**
-     * Adds a score for a worker.
+     * Increases the pre-registered score for a set of workers.
+     * 
+     * @param resources List of resources whose score should be increased
+     * @param rise augmented score value
      */
-    public void setScore(List<Resource> resources, Parameter p) {
+    public void increasePreregisteredScores(Collection<Resource> resources, double rise) {
         for (Resource r : resources) {
-            Double score = this.getScore(r) + p.getWeight();
+            Double score = this.getPreregisteredScore(r) + rise;
             perResourceScore.put(r, score);
         }
     }
+
 }

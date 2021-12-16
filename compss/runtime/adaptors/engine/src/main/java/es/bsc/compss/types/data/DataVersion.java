@@ -60,12 +60,8 @@ public class DataVersion {
     /**
      * Marks a read access on the data version.
      */
-    public void willBeRead(LocationMonitor readerData) {
+    public void willBeRead() {
         this.readers++;
-        LogicalData ld = dataInstanceId.getData();
-        if (readerData != null) {
-            ld.registerLocationMonitor(readerData);
-        }
     }
 
     /**
@@ -98,16 +94,12 @@ public class DataVersion {
      *
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
      */
-    public boolean hasBeenRead(LocationMonitor readerData) {
+    public boolean hasBeenRead() {
         this.readers--;
         if (readers == 0 && this.semUsed == true) {
             for (Semaphore s : semReaders) {
                 s.release();
             }
-        }
-        LogicalData ld = dataInstanceId.getData();
-        if (readerData != null) {
-            ld.unregisterLocationMonitor(readerData);
         }
         return checkDeletion();
     }

@@ -104,8 +104,10 @@ public class BarrierRequest extends APRequest implements Barrier {
 
     /**
      * Waits for all tasks to complete releasing and recovering the resources if needed.
+     * 
+     * @throws COMPSsException User-code exception raised on any of the tasks for which the barrier awaits
      */
-    public final void waitForCompletion() {
+    public final void waitForCompletion() throws COMPSsException {
         // Wait for request processing
         sem.acquireUninterruptibly();
 
@@ -125,6 +127,11 @@ public class BarrierRequest extends APRequest implements Barrier {
             app.readyToContinue(sem);
             sem.acquireUninterruptibly();
             LOGGER.info(this.barrierName + " for app " + this.app.getId() + " reacquired resources");
+        }
+
+        if (exception != null) {
+            LOGGER.debug(this.barrierName + " raised a COMPSsException ( " + exception.getMessage() + ")");
+            throw exception;
         }
     }
 

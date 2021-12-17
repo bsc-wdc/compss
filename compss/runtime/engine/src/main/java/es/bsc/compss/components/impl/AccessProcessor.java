@@ -626,12 +626,6 @@ public class AccessProcessor implements Runnable {
 
         bgr.waitForCompletion();
 
-        COMPSsException exception = bgr.getException();
-        if (exception != null) {
-            LOGGER.debug("Group " + groupName + " raised a COMPSsException ( " + exception.getMessage() + ")");
-            throw exception;
-        }
-
         LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 
@@ -646,7 +640,11 @@ public class AccessProcessor implements Runnable {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
 
-        br.waitForCompletion();
+        try {
+            br.waitForCompletion();
+        } catch (COMPSsException ce) {
+            // This exception should be forwarded through the API
+        }
 
         LOGGER.info("Barrier: End of waited all tasks");
     }
@@ -662,7 +660,11 @@ public class AccessProcessor implements Runnable {
             ErrorManager.error(ERROR_QUEUE_OFFER + "no more tasks");
         }
 
-        eoar.waitForCompletion();
+        try {
+            eoar.waitForCompletion();
+        } catch (COMPSsException ce) {
+            // This exception should be forwarded through the API
+        }
 
         LOGGER.info("All tasks finished");
     }

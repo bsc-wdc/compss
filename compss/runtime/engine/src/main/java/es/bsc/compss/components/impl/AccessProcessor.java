@@ -612,6 +612,46 @@ public class AccessProcessor implements Runnable {
     }
 
     /**
+     * Barrier for group.
+     *
+     * @param app Application .
+     * @param groupName Name of the task group
+     * @throws COMPSsException Exception thrown by user
+     */
+    public void barrierGroup(Application app, String groupName) throws COMPSsException {
+        BarrierGroupRequest bgr = new BarrierGroupRequest(app, groupName);
+        if (!requestQueue.offer(bgr)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
+        }
+
+        bgr.waitForCompletion();
+
+        COMPSsException exception = bgr.getException();
+        if (exception != null) {
+            LOGGER.debug("Group " + groupName + " raised a COMPSsException ( " + exception.getMessage() + ")");
+            throw exception;
+        }
+
+        LOGGER.info("Group barrier: End of tasks of group " + groupName);
+    }
+
+    /**
+     * Barrier.
+     *
+     * @param app Application .
+     */
+    public void barrier(Application app) {
+        BarrierRequest br = new BarrierRequest(app);
+        if (!this.requestQueue.offer(br)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
+        }
+
+        br.waitForCompletion();
+
+        LOGGER.info("Barrier: End of waited all tasks");
+    }
+
+    /**
      * Notification for no more tasks.
      *
      * @param app Application.
@@ -645,46 +685,6 @@ public class AccessProcessor implements Runnable {
         sem.acquireUninterruptibly();
 
         return request.getResponse();
-    }
-
-    /**
-     * Barrier.
-     *
-     * @param app Application .
-     */
-    public void barrier(Application app) {
-        BarrierRequest br = new BarrierRequest(app);
-        if (!this.requestQueue.offer(br)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
-        }
-
-        br.waitForCompletion();
-
-        LOGGER.info("Barrier: End of waited all tasks");
-    }
-
-    /**
-     * Barrier for group.
-     *
-     * @param app Application .
-     * @param groupName Name of the task group
-     * @throws COMPSsException Exception thrown by user
-     */
-    public void barrierGroup(Application app, String groupName) throws COMPSsException {
-        BarrierGroupRequest bgr = new BarrierGroupRequest(app, groupName);
-        if (!requestQueue.offer(bgr)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
-        }
-
-        bgr.waitForCompletion();
-
-        COMPSsException exception = bgr.getException();
-        if (exception != null) {
-            LOGGER.debug("Group " + groupName + " raised a COMPSsException ( " + exception.getMessage() + ")");
-            throw exception;
-        }
-
-        LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 
     /**

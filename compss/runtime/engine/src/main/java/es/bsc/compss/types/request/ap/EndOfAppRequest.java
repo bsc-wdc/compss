@@ -16,60 +16,19 @@
  */
 package es.bsc.compss.types.request.ap;
 
-import es.bsc.compss.components.impl.AccessProcessor;
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
-import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.Barrier;
-import es.bsc.compss.worker.COMPSsException;
-import java.util.concurrent.Semaphore;
 
 
-public class EndOfAppRequest extends APRequest implements Barrier {
-
-    private final Application app;
-    private final Semaphore sem;
-
-    private boolean released;
-
+public class EndOfAppRequest extends BarrierRequest {
 
     /**
      * Creates a new request to end the application.
-     * 
+     *
      * @param app Application Id.
      */
     public EndOfAppRequest(Application app) {
-        this.app = app;
-        this.sem = new Semaphore(0);
-
-        this.released = false;
-    }
-
-    /**
-     * Returns the application of the request.
-     * 
-     * @return The application of the request.
-     */
-    public Application getApp() {
-        return this.app;
-    }
-
-    /**
-     * Returns the waiting semaphore of the request.
-     * 
-     * @return The waiting semaphore of the request.
-     */
-    public Semaphore getSemaphore() {
-        return this.sem;
-    }
-
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("TA Processes no More tasks for app " + this.app.getId());
-        ta.noMoreTasks(this);
-        sem.release();
-        LOGGER.info("TA Processed no More tasks for app " + this.app.getId());
+        super(app, "No more tasks");
     }
 
     @Override
@@ -78,44 +37,10 @@ public class EndOfAppRequest extends APRequest implements Barrier {
     }
 
     @Override
-    public void setException(COMPSsException exception) {
-        // EndOfApp does not support exceptions.
+    public void handleBarrier(TaskAnalyser ta) {
+        LOGGER.info("TA Processes no More tasks for app " + this.getApp().getId());
+        ta.noMoreTasks(this);
+        LOGGER.info("TA Processed no More tasks for app " + this.getApp().getId());
+
     }
-
-    @Override
-    public COMPSsException getException() {
-        // EndOfApp does not support exceptions.
-        return null;
-    }
-
-    @Override
-    public void release() {
-        LOGGER.info("No More tasks for app " + this.app.getId() + " released");
-        released = true;
-        sem.release();
-    }
-
-    /**
-     * Waits for all application's tasks to complete releasing and recovering the resources if needed.
-     */
-    public void waitForCompletion() {
-        // Wait for processing
-        sem.acquireUninterruptibly();
-
-        boolean stalled = false;
-        if (!released) {
-            LOGGER.info("No More tasks for app " + this.app.getId() + " becomes stalled");
-            this.app.stalled();
-            stalled = true;
-        }
-        // Wait for all tasks completion
-        sem.acquireUninterruptibly();
-
-        // Wait for app to have resources
-        if (stalled) {
-            app.readyToContinue(sem);
-            sem.acquireUninterruptibly();
-        }
-    }
-
 }

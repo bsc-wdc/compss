@@ -29,10 +29,13 @@ import java.util.concurrent.Semaphore;
 
 public class BarrierRequest extends APRequest implements Barrier {
 
-    private final Semaphore sem;
+    private final String barrierName;
     private final Application app;
 
+    private COMPSsException exception;
+
     private boolean released;
+    private final Semaphore sem;
 
 
     /**
@@ -41,33 +44,21 @@ public class BarrierRequest extends APRequest implements Barrier {
      * @param app Application.
      */
     public BarrierRequest(Application app) {
+        this(app, "Barrier");
+    }
+
+    /**
+     * Creates a new barrier request.
+     *
+     * @param app Application.
+     * @param name Name of the request
+     */
+    public BarrierRequest(Application app, String name) {
         this.app = app;
+        this.exception = null;
         this.sem = new Semaphore(0);
         this.released = false;
-    }
-
-    /**
-     * Returns the application of the request.
-     *
-     * @return The application of the request.
-     */
-    public Application getApp() {
-        return this.app;
-    }
-
-    /**
-     * Returns the waiting semaphore of the request.
-     *
-     * @return The waiting semaphore of the request.
-     */
-    public Semaphore getSemaphore() {
-        return this.sem;
-    }
-
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.barrier(this);
-        sem.release();
+        this.barrierName = name;
     }
 
     @Override
@@ -75,40 +66,65 @@ public class BarrierRequest extends APRequest implements Barrier {
         return APRequestType.WAIT_FOR_ALL_TASKS;
     }
 
-    @Override
-    public void setException(COMPSsException exception) {
-        // Barrier does not support COMPSsExceptions
+    /**
+     * Returns the application of the request.
+     *
+     * @return The application of the request.
+     */
+    public final Application getApp() {
+        return this.app;
     }
 
     @Override
-    public COMPSsException getException() {
-        // Barrier does not support COMPSsExceptions
-        return null;
+    public final void setException(COMPSsException exception) {
+        this.exception = exception;
     }
 
     @Override
-    public void release() {
+    public final COMPSsException getException() {
+        return exception;
+    }
+
+    @Override
+    public final void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+        handleBarrier(ta);
+        sem.release();
+    }
+
+    public void handleBarrier(TaskAnalyser ta) {
+        ta.barrier(this);
+    }
+
+    @Override
+    public final void release() {
         released = true;
+        LOGGER.info(this.barrierName + " for app " + this.app.getId() + " released");
         sem.release();
     }
 
     /**
      * Waits for all tasks to complete releasing and recovering the resources if needed.
      */
-    public void waitForCompletion() {
+    public final void waitForCompletion() {
         // Wait for request processing
         sem.acquireUninterruptibly();
 
+        // Release resources while barrier not resolved
         boolean stalled = false;
         if (!released) {
+            LOGGER.info(this.barrierName + " for app " + this.app.getId() + " becomes stalled. Releasing resources");
             this.app.stalled();
             stalled = true;
         }
 
+        // Wait for all tasks completion
         sem.acquireUninterruptibly();
+
+        // Wait for app to have resources
         if (stalled) {
             app.readyToContinue(sem);
             sem.acquireUninterruptibly();
+            LOGGER.info(this.barrierName + " for app " + this.app.getId() + " reacquired resources");
         }
     }
 

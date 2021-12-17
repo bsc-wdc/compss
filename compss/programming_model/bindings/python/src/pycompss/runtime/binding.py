@@ -634,19 +634,23 @@ def register_ce(core_element):  # noqa
             logger.debug("CE with signature %s registered." % ce_signature)
 
 
-def wait_on(*args, master_event=True, **kwargs):
-    # type: (*typing.Any, bool, **typing.Any) -> typing.Any
+def wait_on(*args, **kwargs):
+    # type: (*typing.Any, **typing.Any) -> typing.Any
     """ Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in
     kwargs.
 
     :param args: Objects to wait on.
-    :param master_event: Emit master event. [True | False] Default = True.
-                         False will emit the event inside task (for nested).
     :param kwargs: Options: Write enable? [True | False] Default = True.
+        May include: master_event: Emit master event. [Default: True | False]
+                                   False will emit the event inside task
+                                   (for nested).
     :return: Real value of the objects requested.
     """
+    master_event = True
+    if "master_event" in kwargs:
+        master_event = kwargs["master_event"]
     if master_event:
         with event_master(WAIT_ON_EVENT):
             return __wait_on__(*args, **kwargs)
@@ -679,7 +683,6 @@ def __wait_on__(*args, **kwargs):
             if isinstance(elem, EmptyReturn):
                 ret_lst.remove(elem)
     return ret_lst
-
 
 
 def process_task(signature,             # type: str

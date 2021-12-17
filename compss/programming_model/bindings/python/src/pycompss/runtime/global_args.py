@@ -61,7 +61,9 @@ def update_worker_argument_parameter_content(name, content):
     """
     if name:
         for param in __WORKER_ARGS__:
-            if param.name == name:
+            if not param.is_collection() and \
+               not param.is_dict_collection() and \
+               param.name == name:
                 param.content = content
                 return
 

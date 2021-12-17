@@ -207,6 +207,22 @@ class Parameter(object):
         """
         return self.content_type is TYPE.DIRECTORY
 
+    def is_collection(self):
+        # type: () -> bool
+        """ Determine if parameter is a COLLECTION.
+
+        :return: True if param represents an COLLECTION.
+        """
+        return self.content_type is TYPE.COLLECTION
+
+    def is_dict_collection(self):
+        # type: () -> bool
+        """ Determine if parameter is a DICT_COLLECTION.
+
+        :return: True if param represents an DICT_COLLECTION.
+        """
+        return self.content_type is TYPE.DICT_COLLECTION
+
 
 # Parameter conversion dictionary.
 _param_conversion_dict_ = {

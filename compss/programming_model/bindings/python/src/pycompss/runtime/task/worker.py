@@ -1339,19 +1339,38 @@ class TaskWorker(object):
 
 def __get_collection_objects__(content, argument):
     # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
-    """ Retrieve collection objects recursively generator. """
+    """ Retrieve collection objects recursively generator.
+    Updates the collection with any modification from content.
+    """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for (new_con, _elem) in zip(argument.content,
                                     argument.collection_content):
-            for sub_el in __get_collection_objects__(new_con, _elem):
-                yield sub_el
+            # Update the sub-parameter content with the existing content
+            # to keep track of the synchronized.
+            _elem.content = new_con
+            for sub_el, sub_param in __get_collection_objects__(new_con, _elem):
+                # Update the sub-parameter content with the existing content
+                # to keep track of the synchronized.
+                sub_param.content = sub_el
+                yield sub_el, sub_param
     else:
+        # Update the sub-parameter content with the existing content
+        # to keep track of the synchronized.
+        argument.content = content
+        if context.is_nesting_enabled():
+            # When using nesting, objects may have been used in other
+            # tasks and may need to be synchronized and re-serialized.
+            # The wait_on call checks the object tracker to see if it
+            # has been used and needs to be synchronized. Otherwise,
+            # it retrieves the same object.
+            content = wait_on(content, master_event=False)
         yield content, argument
 
 
 def __get_dict_collection_objects__(content, argument):
     # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
-    """ Retrieve dictionary collection objects recursively generator. """
+    """ Retrieve dictionary collection objects recursively generator.
+    Updates the dictionary collection with any modification from content."""
     if argument.content_type == parameter.TYPE.DICT_COLLECTION:
         elements = []
         for k, v in argument.content.items():
@@ -1369,9 +1388,24 @@ def __get_dict_collection_objects__(content, argument):
         # Loop recursively
         for (new_con, _elem) in zip(elements,
                                     elements_parameters):
-            for sub_el in __get_dict_collection_objects__(new_con, _elem):
-                yield sub_el
+            _elem.content = new_con
+            for sub_el, sub_param in __get_dict_collection_objects__(new_con,
+                                                                     _elem):
+                # Update the sub-parameter content with the existing content
+                # to keep track of the synchronized.
+                sub_param.content = sub_el
+                yield sub_el, sub_param
     else:
+        # Update the sub-parameter content with the existing content
+        # to keep track of the synchronized.
+        argument.content = content
+        if context.is_nesting_enabled():
+            # When using nesting, objects may have been used in other
+            # tasks and may need to be synchronized and re-serialized.
+            # The wait_on call checks the object tracker to see if it
+            # has been used and needs to be synchronized. Otherwise,
+            # it retrieves the same object.
+            content = wait_on(content, master_event=False)
         yield content, argument
 
 

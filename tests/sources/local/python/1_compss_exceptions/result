@@ -90,7 +90,7 @@
   fi
 
   # Check the exception message
-  output1=$(grep -c -E "Group exceptionGroup[1|2|3] raised a COMPSsException \( Exception has been raised\!\!\)" "${runtime_log}")
+  output1=$(grep -c -E "Group exceptionGroup[1|2|3]'s barrier raised a COMPSsException \( Exception has been raised\!\!\)" "${runtime_log}")
   if [ "${output1}" -ne 3 ]; then
   	echo "ERROR: The thrown exception message is not correct."
   	exit 1

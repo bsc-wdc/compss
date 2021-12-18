@@ -102,7 +102,7 @@
   fi
 
   # Check the exception message
-  output1=$(grep -c -E "Group failedGroup[0-9]* raised a COMPSsException \( Exception raised from the third task\)" "${runtime_log}")
+  output1=$(grep -c -E "Group failedGroup[0-9]*'s barrier raised a COMPSsException \( Exception raised from the third task\)" "${runtime_log}")
   if [ "${output1}" -ne 2 ]; then
   	echo "ERROR: The thrown exception message is not correct. ${output1}" | tee -a "${output_file}"
   	exit 1

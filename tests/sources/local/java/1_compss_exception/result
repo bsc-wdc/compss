@@ -88,7 +88,7 @@
   fi
   
   # Check the exception message
-  output1=$(grep -c -E "Group FailedGroup[0-9]* raised a COMPSsException \( Exception from write one\)" "${runtime_log}")
+  output1=$(grep -c -E "Group FailedGroup[0-9]*'s barrier raised a COMPSsException \( Exception from write one\)" "${runtime_log}")
   if [ "${output1}" -ne 2 ]; then
   	echo "ERROR: The thrown exception message is not correct."
   	exit 1

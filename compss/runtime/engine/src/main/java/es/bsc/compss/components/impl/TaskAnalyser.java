@@ -395,6 +395,26 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     /**
+     * Barrier for group.
+     *
+     * @param request Barrier group request
+     */
+    public void barrierGroup(BarrierGroupRequest request) {
+        Application app = request.getApp();
+        String groupName = request.getGroupName();
+
+        // Addition of missing commutative groups to graph
+        if (IS_DRAW_GRAPH) {
+            addMissingCommutativeTasksToGraph();
+            addNewGroupBarrierToGraph(app, groupName);
+            // We can draw the graph on a barrier while we wait for tasks
+            this.gm.commitGraph(false);
+        }
+
+        app.reachesGroupBarrier(groupName, request);
+    }
+
+    /**
      * Barrier.
      *
      * @param request Barrier request.
@@ -531,26 +551,6 @@ public class TaskAnalyser implements GraphHandler {
                 }
             }
         }
-    }
-
-    /**
-     * Barrier for group.
-     *
-     * @param request Barrier group request
-     */
-    public void barrierGroup(BarrierGroupRequest request) {
-        Application app = request.getApp();
-        String groupName = request.getGroupName();
-
-        // Addition of missing commutative groups to graph
-        if (IS_DRAW_GRAPH) {
-            addMissingCommutativeTasksToGraph();
-            addNewGroupBarrierToGraph(app, groupName);
-            // We can draw the graph on a barrier while we wait for tasks
-            this.gm.commitGraph(false);
-        }
-
-        app.reachesGroupBarrier(groupName, request);
     }
 
     private void addMissingCommutativeTasksToGraph() {

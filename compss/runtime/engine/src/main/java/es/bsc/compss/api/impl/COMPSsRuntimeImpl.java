@@ -900,32 +900,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public void noMoreTasks(Long appId) {
-        Application app = Application.registerApplication(appId);
-        noMoreTasks(app);
-    }
-
-    /**
-     * Notifies the runtime that an application will not produce more tasks.
-     *
-     * @param app Application that finished generating tasks
-     */
-    public void noMoreTasks(Application app) {
+    public void barrierGroup(Long appId, String groupName) throws COMPSsException {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.NO_MORE_TASKS.getId(), TraceEvent.NO_MORE_TASKS.getType());
+            Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS.getId(), TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
 
-        LOGGER.info("No more tasks for app " + app.getId());
-        // Wait until all tasks have finished
-        ap.noMoreTasks(app);
-
-        app.cancelTimerTask();
-        // Retrieve result files
-        LOGGER.debug("Getting Result Files for app" + app.getId());
-        ap.getResultFiles(app);
+        Application app = Application.registerApplication(appId);
+        // Regular barrier
+        ap.barrierGroup(app, groupName);
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NO_MORE_TASKS.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
     }
 
@@ -957,17 +942,32 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public void barrierGroup(Long appId, String groupName) throws COMPSsException {
+    public void noMoreTasks(Long appId) {
+        Application app = Application.registerApplication(appId);
+        noMoreTasks(app);
+    }
+
+    /**
+     * Notifies the runtime that an application will not produce more tasks.
+     *
+     * @param app Application that finished generating tasks
+     */
+    public void noMoreTasks(Application app) {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS.getId(), TraceEvent.WAIT_FOR_ALL_TASKS.getType());
+            Tracer.emitEvent(TraceEvent.NO_MORE_TASKS.getId(), TraceEvent.NO_MORE_TASKS.getType());
         }
 
-        Application app = Application.registerApplication(appId);
-        // Regular barrier
-        ap.barrierGroup(app, groupName);
+        LOGGER.info("No more tasks for app " + app.getId());
+        // Wait until all tasks have finished
+        ap.noMoreTasks(app);
+
+        app.cancelTimerTask();
+        // Retrieve result files
+        LOGGER.debug("Getting Result Files for app" + app.getId());
+        ap.getResultFiles(app);
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.WAIT_FOR_ALL_TASKS.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NO_MORE_TASKS.getType());
         }
     }
 

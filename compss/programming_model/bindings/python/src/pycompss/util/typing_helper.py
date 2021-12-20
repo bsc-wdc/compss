@@ -28,8 +28,8 @@ try:
 except ImportError:
     # No typing if not available - will not compile with mypyc
     typing = None  # type: ignore
-    message = "WARNING: Typing is not available!!!"
-    print(message)
+    # message = "WARNING: Typing is not available!!!"
+    # print(message)
     # raise Exception(message)
 
 

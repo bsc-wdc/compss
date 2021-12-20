@@ -189,10 +189,14 @@ class DistroStreamClient(Thread):
             req_msg = req_msg + "\n"
             req_msg = req_msg.encode()
             s.sendall(req_msg)
+            if __debug__:
+                logger.debug("Sent request to server")
 
             # Receive answer
             chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
             answer = chunk
+            if __debug__:
+                logger.debug("Received answer from server: %s" % str(answer))
             while chunk is not None and \
                     chunk and not chunk.endswith("\n".encode()):
                 if __debug__:

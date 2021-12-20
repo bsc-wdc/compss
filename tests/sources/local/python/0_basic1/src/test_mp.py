@@ -740,7 +740,7 @@ def testInDeleteObject():
     obj_2 = increment_object_delete(obj_1)
     obj_2 = compss_wait_on(obj_2)
     obj_1_id = OT.get_object_id(obj_1)
-    if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) is None:
+    if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) == "":
         print("- Test 1 IN_DELETE object: OK")
     else:
         print("- Test 1 IN_DELETE object: ERROR")
@@ -754,7 +754,7 @@ def testInDeleteObject2():
         obj_2 = increment_object_delete(obj_1)
         obj_2 = compss_wait_on(obj_2)
         obj_1_id = OT.get_object_id(obj_1)
-        if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) is None and i == obj_2[0]:
+        if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) == "" and i == obj_2[0]:
             count += 1
     if count == 10:
         print("- Test 2 IN_DELETE object: OK")
@@ -781,7 +781,7 @@ def testInDeleteObject4():
     obj_2 = modify_obj(obj_1)
     obj_2 = compss_wait_on(obj_2)
     obj_1_id = OT.get_object_id(obj_1)
-    if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) is None:
+    if not (obj_1_id in OT.pending_to_synchronize) and OT.get_object_id(obj_1) == "":
         print("- Test 4 IN_DELETE object: OK")
     else:
         print("- Test 4 IN_DELETE object: ERROR")

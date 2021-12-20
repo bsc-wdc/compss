@@ -19,23 +19,45 @@
 
 """
 PyCOMPSs Functions: Profiling decorator
-==========================================
+=======================================
     This file defines the time it decorator to be used below the task decorator.
 """
 
-from decorator import decorator  # noqa
+from pycompss.util.typing_helper import typing
+from functools import wraps
 from memory_profiler import profile as mem_profile
 
 
-@decorator  # Mandatory in order to preserver the argspec
-def profile(func, *a, **k):
-    """ Memory profiler decorator.
+class Profile(object):
 
-    :param func: Function to be profiled (can be a decorated function, usually
-                 with @task decorator).
-    :param a: args
-    :param k: kwargs
-    :return: the function result.
-    """
-    result = mem_profile(func)(*a, **k)
-    return result
+    def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, f):
+        # type: (typing.Any) -> typing.Any
+        """ Memory profiler decorator.
+
+        :param f: Function to be profiled (can be a decorated function, usually
+                  with @task decorator).
+        :return: the decorator wrapper.
+        """
+
+        @wraps(f)
+        def wrapped_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
+            """ Memory profiler decorator.
+
+            :param args: args
+            :param kwargs: kwargs
+            :return: a list with [the function result, The elapsed time]
+            """
+            result = mem_profile(f)(*args, **kwargs)
+            return result
+
+        return wrapped_f
+
+
+# For lower-case usage:
+profile = Profile

@@ -43,27 +43,30 @@ def init_streaming(streaming_backend,
     :return: True if initialized successfully, False otherwise.
     """
     # Fix options if necessary
-    if streaming_master_name is None or \
+    if streaming_master_name == "" or \
             not streaming_master_name or \
             streaming_master_name == "null":
         streaming_master_name = "localhost"
-    if streaming_master_port is None or \
+    if streaming_master_port == "" or \
             not streaming_master_port or \
             streaming_master_port == "null":
         streaming_master_port = "49049"
 
     # Check if the stream backend is enabled
-    streaming_enabled = streaming_backend is not None \
-        and streaming_backend \
-        and streaming_backend != "null" \
-        and streaming_backend != "NONE"
+    if streaming_backend != "" \
+            and streaming_backend != "null" \
+            and streaming_backend != "None" \
+            and streaming_backend != "NONE":
+        streaming_enabled = True
+    else:
+        streaming_enabled = False
 
     # Init stream backend if needed
     if streaming_enabled:
         if __debug__:
             logger.debug("Starting DistroStream library")
-        DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,         # noqa: E501
-                                                 master_port=int(streaming_master_port))  # noqa: E501
+        DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,    # noqa: E501
+                                                 master_port=streaming_master_port)  # noqa: E501
 
     # Return whether the streaming backend is enabled or not
     return streaming_enabled

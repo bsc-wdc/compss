@@ -25,6 +25,7 @@ PyCOMPSs Util - Interactive Mode Helpers
 
 import os
 import inspect
+from pycompss.util.typing_helper import typing
 
 # Debug mode: Changed to true from interactive.py if specified by the user
 # when starting the runtime. Enables the explicit prints.
@@ -32,17 +33,22 @@ DEBUG = False
 
 
 SEPARATORS = {  # for user defined lines in the entire/global scope
-              'globals_separator': "### GLOBALS ###",
+              "globals_separator": "### GLOBALS ###",
                 # for user defined classes
-              'classes_separator': '### CLASSES ###',
+              "classes_separator": "### CLASSES ###",
                 # for user defined functions (that are not decorated)
-              'functions_separator': "### FUNCTIONS ###",
+              "functions_separator": "### FUNCTIONS ###",
                 # for user defined tasks
-              'tasks_separator': "### TASKS ###"}
+              "tasks_separator": "### TASKS ###"}
 
 
-PREFIXES = ("@implement", "@constraint", "@decaf", "@mpi",
-            "@ompss", "@binary", "@opencl")
+PREFIXES = ("@implement",
+            "@constraint",
+            "@decaf",
+            "@mpi",
+            "@ompss",
+            "@binary",
+            "@opencl")
 
 # ################################################################# #
 # ################# MAIN FUNCTION ################################# #
@@ -50,7 +56,7 @@ PREFIXES = ("@implement", "@constraint", "@decaf", "@mpi",
 
 
 def update_tasks_code_file(f, file_path):
-    # type: (..., str) -> None
+    # type: (typing.Any, str) -> None
     """ Main interactive helper function.
 
     Analyses the user code that has been executed and parses it looking for:
@@ -73,27 +79,27 @@ def update_tasks_code_file(f, file_path):
     # Intercept the code
     imports = _get_ipython_imports()      # [import\n, import\n, ...]
     global_code = _get_ipython_globals()  # [var\n, var\n, ...]
-    classes_code = _get_classes()         # {'name': str(line\nline\n...)}
-    functions_code = _get_functions()     # {'name': str(line\nline\n...)}
-    task_code = _get_task_code(f)         # {'name': str(line\nline\n...)}
+    classes_code = _get_classes()         # {"name": str(line\nline\n...)}
+    functions_code = _get_functions()     # {"name": str(line\nline\n...)}
+    task_code = _get_task_code(f)         # {"name": str(line\nline\n...)}
     old_code = _get_old_code(file_path)   # old_code structure:
-    # {'imports':[import\n, import\n, ...],
-    #  'tasks':{'name':str(line\nline\n...),
-    #  'name':str(line\nline\n...), ...}}
+    # {"imports":[import\n, import\n, ...],
+    #  "tasks":{"name":str(line\nline\n...),
+    #  "name":str(line\nline\n...), ...}}
 
     # Look for new/modified pieces of code and compares the existing code with
     # the new additions.
-    new_imports = _update_imports(imports, old_code['imports'])
-    new_globals = _update_globals(global_code, old_code['globals'])
-    new_classes = _update_classes(classes_code, old_code['classes'])
+    new_imports = _update_imports(imports, old_code["imports"])
+    new_globals = _update_globals(global_code, old_code["globals"])
+    new_classes = _update_classes(classes_code, old_code["classes"])
     # Check that there are no functions with the same name as a newly defined
     # tasks
     for k in task_code.keys():
         functions_code.pop(k, None)
-        old_code['functions'].pop(k, None)
+        old_code["functions"].pop(k, None)
     # Continue with comparisons
-    new_functions = _update_functions(functions_code, old_code['functions'])
-    new_tasks = _update_tasks(task_code, old_code['tasks'])
+    new_functions = _update_functions(functions_code, old_code["functions"])
+    new_tasks = _update_tasks(task_code, old_code["tasks"])
 
     # Update the file where the code is stored.
     _update_code_file(new_imports,
@@ -117,16 +123,16 @@ def _create_tasks_code_file(file_path):
     :param file_path: File location and name.
     :return: None
     """
-    user_code_file = open(file_path, 'a')
-    user_code_file.write('\n')
-    user_code_file.write(SEPARATORS['globals_separator'] + "\n")
-    user_code_file.write('\n')
-    user_code_file.write(SEPARATORS['classes_separator'] + "\n")
-    user_code_file.write('\n')
-    user_code_file.write(SEPARATORS['functions_separator'] + "\n")
-    user_code_file.write('\n')
-    user_code_file.write(SEPARATORS['tasks_separator'] + "\n")
-    user_code_file.write('\n')
+    user_code_file = open(file_path, "a")
+    user_code_file.write("\n")
+    user_code_file.write(SEPARATORS["globals_separator"] + "\n")
+    user_code_file.write("\n")
+    user_code_file.write(SEPARATORS["classes_separator"] + "\n")
+    user_code_file.write("\n")
+    user_code_file.write(SEPARATORS["functions_separator"] + "\n")
+    user_code_file.write("\n")
+    user_code_file.write(SEPARATORS["tasks_separator"] + "\n")
+    user_code_file.write("\n")
     user_code_file.close()
 
 
@@ -139,7 +145,7 @@ def _get_raw_code():
     """
     import IPython  # noqa
     ipython = IPython.get_ipython()
-    raw_code = ipython.user_ns['In']
+    raw_code = ipython.user_ns["In"]
     return raw_code
 
 
@@ -155,11 +161,11 @@ def _get_ipython_imports():
         # Each i can have more than one line (jupyter-notebook block)
         # We only get the lines that start with from or import and do not
         # have blank spaces before.
-        lines = i.split('\n')
+        lines = i.split("\n")
         for line in lines:
             if (line.startswith("from") or line.startswith("import")) \
                     and "pycompss.interactive" not in line:
-                imports.append(line + '\n')
+                imports.append(line + "\n")
     return imports
 
 
@@ -178,24 +184,24 @@ def _get_ipython_globals():
 
     :return: A list of lines: [var\n, var\n, ...].
     """
-    api_calls = ['compss_open',
-                 'compss_delete_file',
-                 'compss_wait_on_file',
-                 'compss_delete_object',
-                 'compss_wait_on']
+    api_calls = ["compss_open",
+                 "compss_delete_file",
+                 "compss_wait_on_file",
+                 "compss_delete_object",
+                 "compss_wait_on"]
 
     raw_code = _get_raw_code()
     glob_lines = {}
-    glob_name = ''
+    glob_name = ""
     for i in raw_code:
         # Each i can have more than one line (jupyter-notebook block)
         # We only get the lines that start with from or import and do not
         # have blank spaces before.
-        lines = i.split('\n')
+        lines = i.split("\n")
         found_one = False
         for line in lines:
             # if the line starts without spaces and is a variable assignation
-            if not (line.startswith(' ') or line.startswith('\t')) and \
+            if not (line.startswith(" ") or line.startswith("\t")) and \
                     _is_variable_assignation(line):
                 line_parts = line.split()
                 glob_name = line_parts[0]
@@ -213,7 +219,7 @@ def _get_ipython_globals():
                 continue
             # if the next line/s start with space or tab belong also to the
             # global variable
-            if found_one and (line.startswith(' ') or line.startswith('\t')):
+            if found_one and (line.startswith(" ") or line.startswith("\t")):
                 # It is a multiple lines global variable definition
                 glob_lines[glob_name] += line.strip()
             else:
@@ -227,28 +233,28 @@ def _is_variable_assignation(line):
 
     This function is used to check if a line of code represents a variable
     assignation:
-    * if contains a '=' (assignation) and does not start with import, nor @,
+    * if contains a "=" (assignation) and does not start with import, nor @,
       nor def, nor class.
     * then it is ==> is a global variable assignation.
 
     :param line: Line to parse
     :return: <Boolean>
     """
-    if '=' in line:
+    if "=" in line:
         parts = line.split()
         if not (line.startswith("from") or
                 line.startswith("import") or
                 line.startswith("@") or
                 line.startswith("def") or
                 line.startswith("class")) \
-                and len(parts) >= 3 and parts[1] == '=':
+                and len(parts) >= 3 and parts[1] == "=":
             # It is actually an assignation
             return True
         else:
             # It is an import/function/decorator/class definition
             return False
     else:
-        # Not an assignation if does not contain '='
+        # Not an assignation if does not contain "="
         return False
 
 
@@ -256,7 +262,7 @@ def _get_classes():
     # type: () -> dict
     """ Finds the user defined classes in the code.
 
-    Output dictionary: {'name': str(line\nline\n...)}
+    Output dictionary: {"name": str(line\nline\n...)}
 
     :return: A dictionary with the user classes code:
     """
@@ -264,55 +270,56 @@ def _get_classes():
     raw_code = _get_raw_code()
     classes = {}
     for block in raw_code:
-        lines = block.split('\n')
+        lines = block.split("\n")
         # Look for classes in the block
         class_found = False
-        class_name = ''
+        class_name = ""
         for line in lines:
-            if line.startswith('class'):
+            if line.startswith("class"):
                 # Class header: find name and include it in the functions dict
                 # split and remove empty spaces
                 header = [name for name in line.split(" ") if name]
                 # the name may be followed by the parameters parenthesis
                 class_name = header[1].split("(")[0].strip()
                 # create an entry in the functions dict
-                classes[class_name] = [line + '\n']
+                classes[class_name] = [line + "\n"]
                 class_found = True
             elif (line.startswith("  ") or
                   (line.startswith("\t")) or
-                  (line.startswith('\n')) or
-                  (line == '')) and class_found:
+                  (line.startswith("\n")) or
+                  (line == "")) and class_found:
                 # class body found: append
-                classes[class_name].append(line + '\n')
+                classes[class_name].append(line + "\n")
             else:
                 class_found = False
     # Plain classes content (from {key: [line, line,...]} to {key: line\nline})
+    plain_classes = dict()
     for k, v in list(classes.items()):
         # Collapse all lines into a single one
-        classes[k] = ''.join(v).strip()
-    return classes
+        plain_classes[k] = "".join(v).strip()
+    return plain_classes
 
 
 def _get_functions():
     # type: () -> dict
     """ Finds the user defined functions in the code.
 
-    Output dictionary: {'name': str(line\nline\n...)}
+    Output dictionary: {"name": str(line\nline\n...)}
 
     :return: A dictionary with the user functions code
     """
     raw_code = _get_raw_code()
     functions = {}
     for block in raw_code:
-        lines = block.split('\n')
+        lines = block.split("\n")
         # Look for functions in the block
         is_task = False
         is_function = False
         function_found = False
-        func_name = ''
-        decorators = ''
+        func_name = ""
+        decorators = ""
         for line in lines:
-            if line.startswith('@task'):
+            if line.startswith("@task"):
                 # The following function detected will be a task --> ignore
                 is_task = True
             if line.startswith("@") and \
@@ -330,7 +337,7 @@ def _get_functions():
                 is_task = False
             if is_function:
                 if line.startswith("@"):
-                    decorators += line + '\n'
+                    decorators += line + "\n"
                 if line.startswith("def"):
                     # Function header: find name and include it in the
                     # functions dict. Split and remove empty spaces
@@ -338,45 +345,46 @@ def _get_functions():
                     # the name may be followed by the parameters parenthesis
                     func_name = header[1].split("(")[0].strip()
                     # create an entry in the functions dict
-                    functions[func_name] = [decorators + line + '\n']
-                    decorators = ''
+                    functions[func_name] = [decorators + line + "\n"]
+                    decorators = ""
                     function_found = True
                 elif (line.startswith("  ") or
                       (line.startswith("\t")) or
-                      (line.startswith('\n')) or
-                      (line == '')) and function_found:
+                      (line.startswith("\n")) or
+                      (line == "")) and function_found:
                     # Function body: append
-                    functions[func_name].append(line + '\n')
+                    functions[func_name].append(line + "\n")
                 else:
                     function_found = False
     # Plain functions content:
     # from {key: [line, line,...]} to {key: line\nline}
+    plain_functions = dict()
     for k, v in list(functions.items()):
-        functions[k] = ''.join(v).strip()  # Collapse all lines into one
-    return functions
+        plain_functions[k] = "".join(v).strip()  # Collapse all lines into one
+    return plain_functions
 
 
 def _get_task_code(f):
-    # type: (...) -> dict
+    # type: (typing.Any) -> dict
     """ Finds the task code.
 
     :param f: Task function
-    :return: A dictionary with the task code: {'name': str(line\nline\n...)}
+    :return: A dictionary with the task code: {"name": str(line\nline\n...)}
     """
     try:
         task_code = inspect.getsource(f)
     except TypeError:
         # This is a numba jit declared task
         task_code = inspect.getsource(f.py_func)
-    if task_code.startswith((' ', '\t')):
+    if task_code.startswith((" ", "\t")):
         return {}
     else:
-        name = ''
-        lines = task_code.split('\n')
+        name = ""
+        lines = task_code.split("\n")
         for line in lines:
             # Ignore the decorator stack
-            if line.strip().startswith('def'):
-                name = line.replace('(', ' (').split(' ')[1].strip()
+            if line.strip().startswith("def"):
+                name = line.replace("(", " (").split(" ")[1].strip()
                 break  # Just need the first
         return {name: task_code}
 
@@ -388,16 +396,16 @@ def _clean(lines_list):
     * _get_old_code auxiliary method - Clean imports list.
 
     :param lines_list: List of strings.
-    :return: The list without '\n' strings.
+    :return: The list without "\n" strings.
     """
-    result = []
-    if len(lines_list) == 1 and lines_list[0].strip() == '':
+    result = list()  # type: typing.List[str]
+    if len(lines_list) == 1 and lines_list[0].strip() == "":
         # If the lines_list only contains a single line jump remove it
         return result
     else:
         # If it is longer, remove all single \n appearances
         for line in lines_list:
-            if line.strip() != '':
+            if line.strip() != "":
                 result.append(line)
         return result
 
@@ -410,7 +418,7 @@ def _get_old_code(file_path):
     :return: A dictionary with the imports and existing tasks.
     """
     # Read the entire file
-    code_file = open(file_path, 'r')
+    code_file = open(file_path, "r")
     contents = code_file.readlines()
     code_file.close()
 
@@ -425,13 +433,13 @@ def _get_old_code(file_path):
     found_func_separator = False
     found_task_separator = False
     for line in contents:
-        if line == SEPARATORS['globals_separator'] + '\n':
+        if line == SEPARATORS["globals_separator"] + "\n":
             found_glob_separator = True
-        elif line == SEPARATORS['classes_separator'] + '\n':
+        elif line == SEPARATORS["classes_separator"] + "\n":
             found_class_separator = True
-        elif line == SEPARATORS['functions_separator'] + '\n':
+        elif line == SEPARATORS["functions_separator"] + "\n":
             found_func_separator = True
-        elif line == SEPARATORS['tasks_separator'] + '\n':
+        elif line == SEPARATORS["tasks_separator"] + "\n":
             found_task_separator = True
         else:
             if not found_glob_separator and \
@@ -468,27 +476,26 @@ def _get_old_code(file_path):
     globs = {}
     if len(file_globals) != 0:
         # Collapse all lines into a single one
-        collapsed = ''.join(file_globals).strip()
-        scattered = collapsed.split('\n')
+        collapsed = "".join(file_globals).strip()
+        scattered = collapsed.split("\n")
         # Add classes to dictionary by class name:
         for g in scattered:
             glob_code = g.strip()
             glob_name = g.split()[0].strip()
             globs[glob_name] = glob_code
-    file_globals = globs
 
     # Process classes
     classes = {}
     # Collapse all lines into a single one
-    collapsed = ''.join(file_classes).strip()
+    collapsed = "".join(file_classes).strip()
     # Then split by "class" and filter the empty results, then iterate
     # concatenating "class" to all results.
-    cls = [('class ' + class_line) for class_line in
-           [name for name in collapsed.split('class ') if name]]
+    cls = [("class " + class_line) for class_line in
+           [name for name in collapsed.split("class ") if name]]
     # Add classes to dictionary by class name:
     for c in cls:
         class_code = c.strip()
-        class_name = c.replace('(', ' (').split(' ')[1].strip()
+        class_name = c.replace("(", " (").split(" ")[1].strip()
         classes[class_name] = class_code
 
     # Process functions
@@ -497,9 +504,9 @@ def _get_old_code(file_path):
     clean_functions = [f_line for f_line in file_functions if f_line]
     # Iterate over the lines splitting by the ones that start with def
     funcs = []
-    f = ''
+    f = ""
     for line in clean_functions:
-        if line.startswith('def'):
+        if line.startswith("def"):
             if f:
                 funcs.append(f)
             f = line
@@ -508,17 +515,17 @@ def _get_old_code(file_path):
     # Add functions to dictionary by function name:
     for f in funcs:
         func_code = f.strip()
-        func_name = f.replace('(', ' (').split(' ')[1].strip()
+        func_name = f.replace("(", " (").split(" ")[1].strip()
         functions[func_name] = func_code
 
     # Process tasks
     tasks = {}
     # Collapse all lines into a single one
-    collapsed = ''.join(file_tasks).strip()
+    collapsed = "".join(file_tasks).strip()
     # Then split by "@" and filter the empty results, then iterate
     # concatenating "@" to all results.
-    tsks = [('@' + deco_line) for deco_line in
-            [deco for deco in collapsed.split('@') if deco]]
+    tsks = [("@" + deco_line) for deco_line in
+            [deco for deco in collapsed.split("@") if deco]]
     # Take into account that other decorators my be over @task, so it is
     # necessary to collapse the function stack
     tasks_list = []
@@ -536,17 +543,17 @@ def _get_old_code(file_path):
             tasks_list[-1] += t
     # Add functions to dictionary by function name:
     for t in tasks_list:
-        # Example: '@task(returns=int)\ndef mytask(v):\n    return v+1'
+        # Example: "@task(returns=int)\ndef mytask(v):\n    return v+1"
         task_code = t.strip()
-        task_header = t.split('\ndef')[1]
-        task_name = task_header.replace('(', ' (').split(' ')[1].strip()
+        task_header = t.split("\ndef")[1]
+        task_name = task_header.replace("(", " (").split(" ")[1].strip()
         tasks[task_name] = task_code
 
-    old = {'imports': file_imports,
-           'globals': file_globals,
-           'classes': classes,
-           'functions': functions,
-           'tasks': tasks}
+    old = {"imports": file_imports,
+           "globals": globs,
+           "classes": classes,
+           "functions": functions,
+           "tasks": tasks}
     return old
 
 
@@ -699,54 +706,54 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions,
     :param file_path: File to update.
     :return: None
     """
-    code_file = open(file_path, 'w')
+    code_file = open(file_path, "w")
     # Write imports
     for i in new_imports:
         code_file.write(i)
-    code_file.write('\n')
+    code_file.write("\n")
     # Write globals separator
-    code_file.write(SEPARATORS['globals_separator'] + '\n')
+    code_file.write(SEPARATORS["globals_separator"] + "\n")
     # Write globals
     if len(new_globals) == 0:
-        code_file.write('\n')
+        code_file.write("\n")
     else:
         for _, v in list(new_globals.items()):
             for line in v:
                 code_file.write(line)
-            code_file.write('\n')
-            code_file.write('\n')
+            code_file.write("\n")
+            code_file.write("\n")
     # Write classes separator
-    code_file.write(SEPARATORS['classes_separator'] + '\n')
+    code_file.write(SEPARATORS["classes_separator"] + "\n")
     # Write classes
     if len(new_classes) == 0:
-        code_file.write('\n')
+        code_file.write("\n")
     else:
         for _, v in list(new_classes.items()):
             for line in v:
                 code_file.write(line)
-            code_file.write('\n')
-            code_file.write('\n')
+            code_file.write("\n")
+            code_file.write("\n")
     # Write functions separator
-    code_file.write(SEPARATORS['functions_separator'] + '\n')
+    code_file.write(SEPARATORS["functions_separator"] + "\n")
     # Write functions
     if len(new_functions) == 0:
-        code_file.write('\n')
+        code_file.write("\n")
     else:
         for _, v in list(new_functions.items()):
             for line in v:
                 code_file.write(line)
-            code_file.write('\n')
-            code_file.write('\n')
+            code_file.write("\n")
+            code_file.write("\n")
     # Write tasks separator
-    code_file.write(SEPARATORS['tasks_separator'] + '\n')
+    code_file.write(SEPARATORS["tasks_separator"] + "\n")
     # Write tasks
     if len(new_tasks) == 0:
-        code_file.write('\n')
+        code_file.write("\n")
     else:
         for _, v in list(new_tasks.items()):
             for line in v:
                 code_file.write(line)
-            code_file.write('\n')
-            code_file.write('\n')
+            code_file.write("\n")
+            code_file.write("\n")
     code_file.flush()
     code_file.close()

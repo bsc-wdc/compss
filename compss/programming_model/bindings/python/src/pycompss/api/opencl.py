@@ -24,11 +24,17 @@ PyCOMPSs API - OPENCL
     definition through the decorator.
 """
 
+from pycompss.util.typing_helper import typing
 from functools import wraps
+
 import pycompss.util.context as context
+from pycompss.api.commons.constants import KERNEL
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.implementation_types import IMPL_OPENCL
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -38,21 +44,20 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'kernel'}
-SUPPORTED_ARGUMENTS = {'kernel',
-                       'working_dir'}
-DEPRECATED_ARGUMENTS = {'workingDir'}
+MANDATORY_ARGUMENTS = {KERNEL}
+SUPPORTED_ARGUMENTS = {KERNEL,
+                       WORKING_DIR}
+DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR}
 
 
-class OpenCL(PyCOMPSsDecorator):
+class OpenCL(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on opencl task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -62,8 +67,14 @@ class OpenCL(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', OpenCL.__name__.lower()))
-        super(OpenCL, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", OpenCL.__name__.lower()))
+        # super(OpenCL, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -73,6 +84,7 @@ class OpenCL(PyCOMPSsDecorator):
                             decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the opencl parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -80,6 +92,7 @@ class OpenCL(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def opencl_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("opencl"))
 
@@ -89,7 +102,7 @@ class OpenCL(PyCOMPSsDecorator):
             if (context.in_master() or context.is_nesting_enabled()) \
                     and not self.core_element_configured:
                 # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
+                self.__configure_core_element__(kwargs)
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -100,28 +113,27 @@ class OpenCL(PyCOMPSsDecorator):
         opencl_f.__doc__ = user_function.__doc__
         return opencl_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @opencl.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
             logger.debug("Configuring @opencl core element.")
 
         # Resolve @opencl specific parameters
-        kernel = self.kwargs['kernel']
+        kernel = self.kwargs[KERNEL]
 
         # Resolve the working directory
-        self.__resolve_working_dir__()
+        resolve_working_dir(self.kwargs)
 
-        impl_type = 'OPENCL'
-        impl_signature = '.'.join((impl_type, kernel))
-        impl_args = [kernel, self.kwargs['working_dir']]
+        impl_type = IMPL_OPENCL
+        impl_signature = ".".join((impl_type, kernel))
+        impl_args = [kernel, self.kwargs[WORKING_DIR]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -148,4 +160,3 @@ class OpenCL(PyCOMPSsDecorator):
 # ########################################################################### #
 
 opencl = OpenCL
-OPENCL = OpenCL

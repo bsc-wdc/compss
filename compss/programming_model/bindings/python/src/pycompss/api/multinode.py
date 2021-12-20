@@ -25,12 +25,17 @@ PyCOMPSs API - MultiNode
 """
 
 import os
+from pycompss.util.typing_helper import typing
 from functools import wraps
+
 import pycompss.util.context as context
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -39,21 +44,27 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {}
-SUPPORTED_ARGUMENTS = {'computing_nodes'}
-DEPRECATED_ARGUMENTS = {'computingNodes'}
-SLURM_SKIP_VARS = ["SLURM_JOBID", "SLURM_JOB_ID", "SLURM_USER", "SLURM_QOS", "SLURM_PARTITION"]
+MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = {COMPUTING_NODES}
+DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES}
+SLURM_SKIP_VARS = ["SLURM_JOBID",
+                   "SLURM_JOB_ID",
+                   "SLURM_USER",
+                   "SLURM_QOS",
+                   "SLURM_PARTITION"]
 
 
-class MultiNode(PyCOMPSsDecorator):
+class MultiNode(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on MultiNode task creation.
     """
 
-    __slots__ = []
+    __slots__ = ["decorator_name", "args", "kwargs", "scope",
+                 "core_element", "core_element_configured"]
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -63,8 +74,14 @@ class MultiNode(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        decorator_name = "".join(('@', MultiNode.__name__.lower()))
-        super(MultiNode, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", MultiNode.__name__.lower()))
+        # super(MultiNode, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -74,9 +91,10 @@ class MultiNode(PyCOMPSsDecorator):
                             decorator_name)
 
             # Get the computing nodes
-            self.__process_computing_nodes__(decorator_name)
+            process_computing_nodes(decorator_name, self.kwargs)
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the multinode parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -85,6 +103,7 @@ class MultiNode(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def multinode_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("MultiNode"))
 
@@ -94,14 +113,14 @@ class MultiNode(PyCOMPSsDecorator):
             if (context.in_master() or context.is_nesting_enabled()) \
                     and not self.core_element_configured:
                 # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
+                self.__configure_core_element__(kwargs)
 
             if context.in_worker():
                 old_slurm_env = set_slurm_environment()
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -115,21 +134,20 @@ class MultiNode(PyCOMPSsDecorator):
         multinode_f.__doc__ = user_function.__doc__
         return multinode_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @multinode.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
             logger.debug("Configuring @multinode core element.")
 
         # Resolve @multinode specific parameters
-        impl_type = "MULTI_NODE"
+        impl_type = IMPL_MULTI_NODE
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -188,6 +206,8 @@ def remove_slurm_environment():
             if key not in SLURM_SKIP_VARS:
                 old_slurm_env[key] = value
                 os.environ.pop(key)
+    # TODO: ISSUE DECTECTED - WAS NOT RETURNING old_slurm_env: ASK JORGE
+    return old_slurm_env
 
 
 def reset_slurm_environment(old_slurm_env=None):
@@ -197,7 +217,7 @@ def reset_slurm_environment(old_slurm_env=None):
     :return: None
     """
     if old_slurm_env:
-        for key, value in old_slurm_env:
+        for key, value in old_slurm_env.items():
             os.environ[key] = value
 
 
@@ -206,4 +226,3 @@ def reset_slurm_environment(old_slurm_env=None):
 # ########################################################################### #
 
 multinode = MultiNode
-MULTINODE = MultiNode

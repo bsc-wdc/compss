@@ -25,8 +25,8 @@ import redis
 import rediscluster
 import logging
 # Use some existing PyCOMPSs functions to serialize/deserialize
-from pycompss.util.serialization.serializer import serialize_to_string
-from pycompss.util.serialization.serializer import deserialize_from_string
+from pycompss.util.serialization.serializer import serialize_to_bytes
+from pycompss.util.serialization.serializer import deserialize_from_bytes
 from pycompss.util.serialization.serializer import deserialize_from_handler
 # Enable to do from storage.api import StorageObject
 # WARN: It is import to avoid circular import error
@@ -181,7 +181,7 @@ def getByID(*identifiers):
     ret = p.execute()
     # Deserialize and delete the serialized contents for each object
     for i in range(len(identifiers)):
-        ret[i] = deserialize_from_string(
+        ret[i] = deserialize_from_bytes(
                 b''.join(
                     ret[i]
                 )
@@ -210,7 +210,7 @@ def makePersistent(obj, identifier=None):
     else:
         obj.pycompss_psco_identifier = identifier
     # Serialize the object and store the pair (id, serialized_object)
-    serialized_object = serialize_to_string(obj)
+    serialized_object = serialize_to_bytes(obj)
     bytes_size = len(serialized_object)
     num_blocks = (bytes_size + MAX_BLOCK_SIZE - 1) // MAX_BLOCK_SIZE
     for block in range(num_blocks):

@@ -23,12 +23,15 @@ PyCOMPSs Functions: Data generators
     This file defines the common data producing functions.
 """
 
-import random
-from pycompss.api.task import task
+from pycompss.util.typing_helper import typing
+
+from pycompss.functions.data_tasks import gen_random as _gen_random
+from pycompss.functions.data_tasks import gen_normal as _gen_normal
+from pycompss.functions.data_tasks import gen_uniform as _gen_uniform
 
 
-def generator(size, num_frag, seed=None, distribution='random', wait=False):
-    # type: (tuple, int, int, str, bool) -> object
+def generator(size, num_frag, seed=0, distribution="random", wait=False):
+    # type: (typing.Tuple[int, int], int, int, str, bool) -> typing.Any
     """ Data generator.
 
     Generates a list of fragments.
@@ -40,16 +43,15 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
     :param wait: if we want to wait for result. Default False
     :return: random dataset
     """
-
     data = None
     frag_size = int(size[0] / num_frag)
-    if distribution == 'random':
+    if distribution == "random":
         data = [_gen_random(size[1], frag_size, seed)
                 for _ in range(num_frag)]
-    elif distribution == 'normal':
+    elif distribution == "normal":
         data = [_gen_normal(size[1], frag_size, seed)
                 for _ in range(num_frag)]
-    elif distribution == 'uniform':
+    elif distribution == "uniform":
         data = [_gen_uniform(size[1], frag_size, seed)
                 for _ in range(num_frag)]
     if wait:
@@ -58,53 +60,8 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
     return data
 
 
-@task(returns=list)
-def _gen_random(size, frag_size, seed):
-    # type: (int, int, int) -> list
-    """ Random generator.
-
-    :param size: Size
-    :param frag_size: Fragment size
-    :param seed: Random seed
-    :return: a fragment of elements
-    """
-
-    random.seed(seed)
-    return [[random.random() for _ in range(size)] for _ in range(frag_size)]  # NOSONAR
-
-
-@task(returns=list)
-def _gen_normal(size, frag_size, seed):
-    # type: (int, int, int) -> list
-    """ Normal generator.
-
-    :param size: Size
-    :param frag_size: Fragment size
-    :param seed: Random seed
-    :return: a fragment of elements
-    """
-    random.seed(seed)
-    return [[random.gauss(mu=0.0, sigma=1.0) for _ in range(size)]
-            for _ in range(frag_size)]
-
-
-@task(returns=list)
-def _gen_uniform(size, frag_size, seed):
-    # type: (int, int, int) -> list
-    """ Uniform generator.
-
-    :param size: Size
-    :param frag_size: Fragment size
-    :param seed: Random seed
-    :return: a fragment of elements
-    """
-    random.seed(seed)
-    return [[random.uniform(-1.0, 1.0) for _ in range(size)]
-            for _ in range(frag_size)]
-
-
 def chunks(lst, n, balanced=False):
-    # type: (list, int, bool) -> list
+    # type: (list, int, bool) -> typing.Iterator[typing.List[int]]
     """ List splitter into fragments.
 
     WARNING: Not tested!

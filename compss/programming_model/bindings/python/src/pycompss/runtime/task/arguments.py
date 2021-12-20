@@ -52,7 +52,7 @@ def is_kwarg(param_name):
     :param param_name: String with a parameter name
     :return: True if the name has the form of an internal kwarg name
     """
-    return param_name.startswith('#kwarg')
+    return param_name.startswith("#kwarg")
 
 
 def is_return(param_name):
@@ -62,7 +62,7 @@ def is_return(param_name):
     :param param_name: String with a parameter name
     :returns: True if the name has the form of an internal return name
     """
-    return param_name.startswith('$return')
+    return param_name.startswith("$return")
 
 
 def get_vararg_name(varargs_name, i):
@@ -78,7 +78,7 @@ def get_vararg_name(varargs_name, i):
     :return: The name of the ith vararg according to our internal naming
              convention
     """
-    return '*%s*_%d' % (varargs_name, i)
+    return "*%s*_%d" % (str(varargs_name), i)
 
 
 def get_kwarg_name(var):
@@ -88,7 +88,7 @@ def get_kwarg_name(var):
     :param var: A string with a variable name
     :return: The name of the kwarg according to our internal naming convention
     """
-    return '#kwarg_%s' % var
+    return "#kwarg_%s" % var
 
 
 def get_name_from_kwarg(var):
@@ -98,7 +98,7 @@ def get_name_from_kwarg(var):
     :param var: A string with a (internal) kwarg name
     :return: The original variable name
     """
-    return var.replace('#kwarg_', '')
+    return var.replace("#kwarg_", "")
 
 
 def get_return_name(i):
@@ -108,4 +108,4 @@ def get_return_name(i):
     :param i: A non negative integer
     :return: The name of the return identifier according to our internal naming
     """
-    return '$return_%d' % i
+    return "$return_%d" % i

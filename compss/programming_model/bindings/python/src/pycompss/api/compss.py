@@ -24,12 +24,29 @@ PyCOMPSs API - COMPSs
     definition through the decorator.
 """
 
+from pycompss.util.typing_helper import typing
 from functools import wraps
+
 import pycompss.util.context as context
+from pycompss.api.commons.constants import APP_NAME
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import RUNCOMPSS
+from pycompss.api.commons.constants import FLAGS
+from pycompss.api.commons.constants import WORKER_IN_MASTER
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKER_IN_MASTER
+from pycompss.api.commons.constants import LEGACY_APP_NAME
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_COMPSs
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -38,29 +55,31 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'app_name'}
-SUPPORTED_ARGUMENTS = {'computing_nodes',
-                       'runcompss',
-                       'flags',
-                       'worker_in_master',
-                       'app_name',
-                       'working_dir',
-                       'fail_by_exit_value'}
-DEPRECATED_ARGUMENTS = {'computingNodes',
-                        'workerInMaster',
-                        'appName',
-                        'workingDir'}
+MANDATORY_ARGUMENTS = {APP_NAME}
+SUPPORTED_ARGUMENTS = {COMPUTING_NODES,
+                       RUNCOMPSS,
+                       FLAGS,
+                       WORKER_IN_MASTER,
+                       APP_NAME,
+                       WORKING_DIR,
+                       FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES,
+                        LEGACY_WORKER_IN_MASTER,
+                        LEGACY_APP_NAME,
+                        LEGACY_WORKING_DIR}
 
 
-class COMPSs(PyCOMPSsDecorator):
+class COMPSs(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on compss task creation.
     """
 
-    __slots__ = []
+    __slots__ = ["decorator_name", "args", "kwargs", "scope",
+                 "core_element", "core_element_configured"]
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -70,8 +89,14 @@ class COMPSs(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', COMPSs.__name__.lower()))
-        super(COMPSs, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", COMPSs.__name__.lower()))
+        # super(COMPSs, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -81,9 +106,10 @@ class COMPSs(PyCOMPSsDecorator):
                             decorator_name)
 
             # Get the computing nodes
-            self.__process_computing_nodes__(decorator_name)
+            process_computing_nodes(decorator_name, self.kwargs)
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the compss parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -91,6 +117,7 @@ class COMPSs(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def compss_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("compss"))
 
@@ -100,11 +127,11 @@ class COMPSs(PyCOMPSsDecorator):
             if (context.in_master() or context.is_nesting_enabled()) \
                     and not self.core_element_configured:
                 # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
+                self.__configure_core_element__(kwargs)
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -115,55 +142,54 @@ class COMPSs(PyCOMPSsDecorator):
         compss_f.__doc__ = user_function.__doc__
         return compss_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @compss.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
             logger.debug("Configuring @compss core element.")
 
         # Resolve @compss specific parameters
-        if 'runcompss' in self.kwargs:
-            runcompss = self.kwargs['runcompss']
+        if RUNCOMPSS in self.kwargs:
+            runcompss = self.kwargs[RUNCOMPSS]
         else:
-            runcompss = '[unassigned]'  # Empty or '[unassigned]'
+            runcompss = UNASSIGNED  # Empty or UNASSIGNED
 
-        if 'flags' in self.kwargs:
-            flags = self.kwargs['flags']
+        if FLAGS in self.kwargs:
+            flags = self.kwargs[FLAGS]
         else:
-            flags = '[unassigned]'  # Empty or '[unassigned]'
+            flags = UNASSIGNED  # Empty or UNASSIGNED
 
-        if 'worker_in_master' in self.kwargs:
-            worker_in_master = self.kwargs['worker_in_master']
-        elif 'workerInMaster' in self.kwargs:
-            worker_in_master = self.kwargs['workerInMaster']
+        if WORKER_IN_MASTER in self.kwargs:
+            worker_in_master = self.kwargs[WORKER_IN_MASTER]
+        elif LEGACY_WORKER_IN_MASTER in self.kwargs:
+            worker_in_master = self.kwargs[LEGACY_WORKER_IN_MASTER]
         else:
-            worker_in_master = 'true'  # Empty or '[unassigned]'
+            worker_in_master = "true"  # Empty or UNASSIGNED
 
-        if 'appName' in self.kwargs:
-            app_name = self.kwargs['appName']
+        if LEGACY_APP_NAME in self.kwargs:
+            app_name = self.kwargs[LEGACY_APP_NAME]
         else:
-            app_name = self.kwargs['app_name']
+            app_name = self.kwargs[APP_NAME]
 
         # Resolve the working directory
-        self.__resolve_working_dir__()
+        resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
-        self.__resolve_fail_by_exit_value__()
+        resolve_fail_by_exit_value(self.kwargs)
 
-        impl_type = 'COMPSs'
-        impl_signature = '.'.join((impl_type, app_name))
+        impl_type = IMPL_COMPSs
+        impl_signature = ".".join((impl_type, app_name))
         impl_args = [runcompss,
                      flags,
                      app_name,
                      worker_in_master,
-                     self.kwargs['working_dir'],
-                     self.kwargs['fail_by_exit_value']]
+                     self.kwargs[WORKING_DIR],
+                     self.kwargs[FAIL_BY_EXIT_VALUE]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -190,4 +216,3 @@ class COMPSs(PyCOMPSsDecorator):
 # ########################################################################### #
 
 compss = COMPSs
-COMPSS = COMPSs

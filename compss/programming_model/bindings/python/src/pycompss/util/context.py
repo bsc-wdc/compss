@@ -19,25 +19,35 @@
 
 """
 PyCOMPSs Util - Context
-===================
+=======================
     This file contains the methods to detect the origin of the call stack.
     Useful to detect if we are in the master or in the worker.
 """
 
 import inspect
 from contextlib import contextmanager
+# Typing imports
+from pycompss.util.typing_helper import typing
 
-MASTER = 'MASTER'
-WORKER = 'WORKER'
-OUT_OF_SCOPE = 'OUT_OF_SCOPE'
+####################
+# GLOBAL VARIABLES #
+####################
 
-_WHO = OUT_OF_SCOPE
-_WHERE = OUT_OF_SCOPE
+MASTER = "MASTER"
+WORKER = "WORKER"
+OUT_OF_SCOPE = "OUT_OF_SCOPE"
+
+_WHO = OUT_OF_SCOPE    # type: str
+_WHERE = OUT_OF_SCOPE  # type: str
 
 NESTING = False
 LOADING = False
-TO_REGISTER = []
+TO_REGISTER = []       # type: typing.List[typing.Any]
 
+
+#############
+# FUNCTIONS #
+#############
 
 def in_master():
     # type: () -> bool
@@ -78,14 +88,14 @@ def set_pycompss_context(where):
     :return: None
     """
     assert where in [MASTER, WORKER, OUT_OF_SCOPE], \
-        'PyCOMPSs context must be %s, %s or %s' % \
+        "PyCOMPSs context must be %s, %s or %s" % \
         (MASTER, WORKER, OUT_OF_SCOPE)
     global _WHERE
     _WHERE = where
     global _WHO
     caller_stack = inspect.stack()[1]
     caller_module = inspect.getmodule(caller_stack[0])
-    _WHO = caller_module
+    _WHO = str(caller_module)
 
 
 def get_pycompss_context():
@@ -139,19 +149,6 @@ def disable_nesting():
     NESTING = False
 
 
-@contextmanager
-def loading_context():
-    # type: () -> None
-    """ Context which sets the loading mode (intended to be used only with
-    the @implements decorators, since they try to register on loading).
-
-    :return: None
-    """
-    __enable_loading__()
-    yield
-    __disable_loading__()
-
-
 def is_loading():
     # type: () -> bool
     """ Check if is loading is enabled.
@@ -171,8 +168,31 @@ def __enable_loading__():
     LOADING = True
 
 
+def __disable_loading__():
+    # type: () -> None
+    """ Enable loading.
+
+    :returns: None
+    """
+    global LOADING
+    LOADING = False
+
+
+@contextmanager
+def loading_context():
+    # type: () -> typing.Iterator[None]
+    """ Context which sets the loading mode (intended to be used only with
+    the @implements decorators, since they try to register on loading).
+
+    :return: None
+    """
+    __enable_loading__()
+    yield
+    __disable_loading__()
+
+
 def add_to_register_later(core_element):
-    # type: (...) -> None
+    # type: (typing.Tuple[typing.Any, str]) -> None
     """ Accumulate core elements to be registered later.
 
     :param core_element: Core element to be registered
@@ -183,19 +203,9 @@ def add_to_register_later(core_element):
 
 
 def get_to_register():
-    # type: () -> list
+    # type: () -> typing.List[typing.Tuple[typing.Any, str]]
     """ Retrieve the to register list.
 
     :return: To register list
     """
     return TO_REGISTER
-
-
-def __disable_loading__():
-    # type: () -> None
-    """ Enable loading.
-
-    :returns: None
-    """
-    global LOADING
-    LOADING = False

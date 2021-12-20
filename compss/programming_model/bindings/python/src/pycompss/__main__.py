@@ -26,17 +26,25 @@ PyCOMPSs Binding - Runnable as module
 
 import sys
 import argparse
+from pycompss.util.typing_helper import typing
+from pycompss.runtime.commons import PYTHON_VERSION
 from subprocess import Popen
 
-RUN_TAG = 'run'
-ENQUEUE_TAG = 'enqueue'
-RUN_EXECUTABLE = 'runcompss'
-ENQUEUE_EXECUTABLE = 'enqueue_compss'
+RUN_TAG = "run"
+ENQUEUE_TAG = "enqueue"
+RUN_EXECUTABLE = "runcompss"
+ENQUEUE_EXECUTABLE = "enqueue_compss"
 TAGS = [RUN_TAG, ENQUEUE_TAG]
 
 
+class Object(object):
+    # Dummy class to mimic argparse return object
+    action = None  # type: typing.Any
+    params = None  # type: typing.Any
+
+
 def setup_parser():
-    # type: () -> ...
+    # type: () -> typing.Any
     """ Argument parser.
 
     - Argument defining run for runcompss or enqueue for enqueue_compss.
@@ -44,15 +52,15 @@ def setup_parser():
 
     :return: the parser
     """
-    parser = argparse.ArgumentParser(prog='python -m pycompss')
-    parser.add_argument('action', choices=TAGS, nargs='?',
-                        help="Execution mode: \'run\' for launching an" +
-                             " execution and \'enqueue\' for submitting a" +
+    parser = argparse.ArgumentParser(prog="python -m pycompss")
+    parser.add_argument("action", choices=TAGS, nargs="?",
+                        help="Execution mode: \"run\" for launching an" +
+                             " execution and \"enqueue\" for submitting a" +
                              " job to the queuing system." +
-                             " Default value: \'run\'")
-    parser.add_argument('params', nargs=argparse.REMAINDER,
+                             " Default value: \"run\"")
+    parser.add_argument("params", nargs=argparse.REMAINDER,
                         help="COMPSs and application arguments" +
-                             " (check \'runcompss\' or \'enqueue_compss\'" +
+                             " (check \"runcompss\" or \"enqueue_compss\"" +
                              " commands help).")
     return parser
 
@@ -69,23 +77,19 @@ def run(cmd):
 
 
 def main():
-    # type () -> None
+    # type: () -> None
     """ Main method.
 
     :return: None
     """
-    _help = ['-h', '--help']
-    parser = None
+    _help = ["-h", "--help"]
+    parser = None  # type: typing.Any
 
     # Check params
     if len(sys.argv) > 1 and \
             sys.argv[1] not in TAGS and \
             sys.argv[1] not in _help:
         # No action specified. Assume run.
-        class Object(object):
-            # Dummy class to mimic argparse return object
-            pass
-
         args = Object()
         args.action = RUN_TAG
         args.params = sys.argv[1:]
@@ -94,14 +98,14 @@ def main():
         args = parser.parse_args()
 
     # Check if the user has specified to use a specific python interpreter
-    if any('--python_interpreter=' in param for param in args.params):
+    if any("--python_interpreter=" in param for param in args.params):
         # The user specified explicitly a python interpreter to use
         # Do not include the python_interpreter variable in the cmd call
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = ['--python_interpreter=python' +
-                              str(sys.version_info[0])]
+        python_interpreter = ["--python_interpreter=python" +
+                              str(PYTHON_VERSION)]
 
     # Take an action
     if args.action == RUN_TAG:
@@ -115,5 +119,5 @@ def main():
         parser.print_usage()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -28,12 +28,12 @@ import sys
 import logging
 import time
 import tempfile
+from pycompss.util.typing_helper import typing
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.management.object_tracker import OT_is_pending_to_synchronize        # noqa: E501
-from pycompss.runtime.management.object_tracker import OT_clean_object_tracker
+from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.commons import DEFAULT_SCHED
 from pycompss.runtime.commons import DEFAULT_CONN
@@ -95,22 +95,22 @@ def start(log_level="off",                     # type: str
           o_c=False,                           # type: bool
           graph=False,                         # type: bool
           trace=False,                         # type: bool
-          monitor=None,                        # type: int
-          project_xml=None,                    # type: str
-          resources_xml=None,                  # type: str
+          monitor=-1,                          # type: int
+          project_xml="",                      # type: str
+          resources_xml="",                    # type: str
           summary=False,                       # type: bool
           task_execution="compss",             # type: str
-          storage_impl=None,                   # type: str
-          storage_conf="null",                 # type: str
-          streaming_backend=None,              # type: str
-          streaming_master_name=None,          # type: str
-          streaming_master_port=None,          # type: str
+          storage_impl="",                     # type: str
+          storage_conf="",                     # type: str
+          streaming_backend="",                # type: str
+          streaming_master_name="",            # type: str
+          streaming_master_port="",            # type: str
           task_count=50,                       # type: int
           app_name=INTERACTIVE_FILE_NAME,      # type: str
-          uuid=None,                           # type: str
-          base_log_dir=None,                   # type: str
-          specific_log_dir=None,               # type: str
-          extrae_cfg=None,                     # type: str
+          uuid="",                             # type: str
+          base_log_dir="",                     # type: str
+          specific_log_dir="",                 # type: str
+          extrae_cfg="",                       # type: str
           comm="NIO",                          # type: str
           conn=DEFAULT_CONN,                   # type: str
           master_name="",                      # type: str
@@ -127,20 +127,19 @@ def start(log_level="off",                     # type: str
           external_adaptation=False,           # type: bool
           propagate_virtual_environment=True,  # type: bool
           mpi_worker=False,                    # type: bool
-          worker_cache=False,                  # type: bool or str
+          worker_cache=False,                  # type: typing.Union[bool, str]
           shutdown_in_node_failure=False,      # type: bool
           io_executors=0,                      # type: int
           env_script="",                       # type: str
           reuse_on_block=True,                 # type: bool
           nested_enabled=False,                # type: bool
           tracing_task_dependencies=False,     # type: bool
-          trace_label=None,                    # type: str
-          extrae_cfg_python=None,              # type: str
+          trace_label="",                      # type: str
+          extrae_cfg_python="",                # type: str
           wcl=0,                               # type: int
           cache_profiler=False,                # type: bool
           verbose=False                        # type: bool
-          ):  # NOSONAR
-    # type: (...) -> None
+          ):  # type: (...) -> None
     """ Start the runtime in interactive mode.
 
     :param log_level: Logging level [ "trace"|"debug"|"info"|"api"|"off" ]
@@ -386,7 +385,7 @@ def start(log_level="off",                     # type: str
     create_init_config_file(**all_vars)
 
     # Start the event manager (ipython hooks)
-    ipython = globals()['__builtins__']['get_ipython']()
+    ipython = globals()["__builtins__"]["get_ipython"]()
     setup_event_manager(ipython)
 
     ##############################################################
@@ -500,7 +499,7 @@ def stop(sync=False, _hard_stop=False):
     :return: None
     """
     logger = logging.getLogger(__name__)
-    ipython = globals()['__builtins__']['get_ipython']()
+    ipython = globals()["__builtins__"]["get_ipython"]()
 
     if not context.in_pycompss():
         return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
@@ -518,7 +517,7 @@ def stop(sync=False, _hard_stop=False):
     messages = STDW.get_messages()
     if messages:
         for message in messages:
-            sys.stderr.write("".join((message, '\n')))
+            sys.stderr.write("".join((message, "\n")))
 
     # Uncomment the following lines to see the ipython dictionary
     # in a structured way:
@@ -529,9 +528,9 @@ def stop(sync=False, _hard_stop=False):
         print(sync_msg)
         logger.debug(sync_msg)
         from pycompss.api.api import compss_wait_on
-        reserved_names = ('quit', 'exit', 'get_ipython',
-                          'APP_PATH', 'ipycompss', 'In', 'Out')
-        raw_code = ipython.__dict__['user_ns']
+        reserved_names = ("quit", "exit", "get_ipython",
+                          "APP_PATH", "ipycompss", "In", "Out")
+        raw_code = ipython.__dict__["user_ns"]
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith('_'):   # not internal objects
@@ -543,10 +542,10 @@ def stop(sync=False, _hard_stop=False):
                         print("\t - Could not retrieve object: %s" % str(k))
                         logger.debug("\t - Could not retrieve object: %s" % str(k))
                     else:
-                        ipython.__dict__['user_ns'][k] = new_obj_k
+                        ipython.__dict__["user_ns"][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
-                        if OT_is_pending_to_synchronize(obj_k):
+                        if OT.is_pending_to_synchronize(obj_k):
                             print("Found an object to synchronize: %s" % str(k))       # noqa: E501
                             logger.debug("Found an object to synchronize: %s" % (k,))  # noqa: E501
                             ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)     # noqa: E501
@@ -596,7 +595,7 @@ def stop(sync=False, _hard_stop=False):
 
 
 def __hard_stop__(debug, sync, logger, ipython):
-    # type: (bool, bool, ..., ...) -> None
+    # type: (bool, bool, typing.Any, typing.Any) -> None
     """ The runtime has been stopped by any error and this method stops the
     remaining things in the binding.
 
@@ -618,7 +617,7 @@ def __hard_stop__(debug, sync, logger, ipython):
         master_stop_storage(logger)
 
     # Clean any left object in the object tracker
-    OT_clean_object_tracker()
+    OT.clean_object_tracker()
 
     # Cleanup events and files
     release_event_manager(ipython)
@@ -638,7 +637,7 @@ def __hard_stop__(debug, sync, logger, ipython):
 
 
 def current_task_graph(fit=False, refresh_rate=1, timeout=0):
-    # type: (bool, int, int) -> ...
+    # type: (bool, int, int) -> typing.Any
     """ Show current graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
@@ -660,7 +659,7 @@ def current_task_graph(fit=False, refresh_rate=1, timeout=0):
 
 
 def complete_task_graph(fit=False, refresh_rate=1, timeout=0):
-    # type: (bool, int, int) -> ...
+    # type: (bool, int, int) -> typing.Any
     """ Show complete graph.
 
     :param fit: Fit to width [ True | False ] (default: False)

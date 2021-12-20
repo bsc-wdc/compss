@@ -26,26 +26,42 @@ PyCOMPSs Cache tracker
 
 import os
 from collections import OrderedDict
+
+from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
-from pycompss.util.tracing.helpers import emit_event
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
 from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
-from pycompss.util.process.manager import SharedMemory
-from pycompss.util.process.manager import ShareableList
-from pycompss.util.process.manager import SharedMemoryManager  # just typing
-from pycompss.util.process.manager import create_shared_memory_manager
-try:
-    import numpy as np
-except ImportError:
-    np = None
 from pycompss.worker.commons.constants import BINDING_SERIALIZATION_CACHE_SIZE_TYPE    # noqa: E501
 from pycompss.worker.commons.constants import BINDING_DESERIALIZATION_CACHE_SIZE_TYPE  # noqa: E501
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 
+
+from multiprocessing import Queue
+try:
+    from pycompss.util.process.manager import SharedMemory
+    from pycompss.util.process.manager import ShareableList
+    from pycompss.util.process.manager import SharedMemoryManager  # just typing
+    from pycompss.util.process.manager import create_shared_memory_manager
+except ImportError:
+    # Unsupported in python < 3.8
+    SharedMemory = None         # type: ignore
+    ShareableList = None        # type: ignore
+    SharedMemoryManager = None  # type: ignore
+
+# Try to import numpy
+np = None  # type: typing.Any
+try:
+    import numpy  # noqa
+    np = numpy
+except ImportError:
+    pass
+
+# GLOBAL VARIABLES
 HEADER = "[PYTHON CACHE] "
-SHARED_MEMORY_MANAGER = None
+SHARED_MEMORY_MANAGER = None  # type: typing.Any
 
 # Supported shared objects (remind that nested lists are not supported).
 SHARED_MEMORY_TAG = "SharedMemory"
@@ -65,10 +81,21 @@ class CacheTrackerConf(object):
     Cache tracker configuration
     """
 
-    __slots__ = ['logger', 'size', 'policy', 'cache_ids', 'profiler_dict', 'profiler_get_struct', 'log_dir',
-                 'cache_profiler']
+    __slots__ = ["logger", "size", "policy", "cache_ids", "cache_hits",
+                 "profiler_dict", "profiler_get_struct", "log_dir",
+                 "cache_profiler"]
 
-    def __init__(self, logger, size, policy, cache_ids, profiler_dict, profiler_get_struct, log_dir, cache_profiler):
+    def __init__(self,
+                 logger,               # type: typing.Any
+                 size,                 # type: int
+                 policy,               # type: str
+                 cache_ids,            # type: typing.Any
+                 cache_hits,           # type: typing.Dict[int, typing.Dict[str, int]]
+                 profiler_dict,        # type: dict
+                 profiler_get_struct,  # type: typing.Any
+                 log_dir,              # type: str
+                 cache_profiler        # type: bool
+                 ):                    # type: (...) -> None
         """
         Constructs a new cache tracker configuration.
 
@@ -77,11 +104,17 @@ class CacheTrackerConf(object):
         :param policy: Eviction policy.
         :param cache_ids: Shared dictionary proxy where the ids and
                           (size, hits) as its value are.
+        :param cache_hits: Dictionary containing size and keys to ease management.
+        :param profiler_dict:
+        :param profiler_get_struct:
+        :param log_dir:
+        :param cache_profiler:
         """
         self.logger = logger
         self.size = size
         self.policy = policy  # currently no policies defined.
-        self.cache_ids = cache_ids  # key - (id, shape, dtype, size, hits, shared_type)
+        self.cache_ids = cache_ids    # key - (id, shape, dtype, size, hits, shared_type)
+        self.cache_hits = cache_hits  # hits - {key1: size1, key2: size2, etc.}
         self.profiler_dict = profiler_dict
         self.profiler_get_struct = profiler_get_struct
         self.log_dir = log_dir
@@ -89,7 +122,7 @@ class CacheTrackerConf(object):
 
 
 def cache_tracker(queue, process_name, conf):
-    # type: (..., str, CacheTrackerConf) -> None
+    # type: (Queue, str, CacheTrackerConf) -> None
     """ Process main body
 
     :param queue: Queue where to put exception messages.
@@ -102,6 +135,7 @@ def cache_tracker(queue, process_name, conf):
     logger = conf.logger
     max_size = conf.size
     cache_ids = conf.cache_ids
+    cache_hits = conf.cache_hits
     profiler_dict = conf.profiler_dict
     profiler_get_struct = conf.profiler_get_struct
     log_dir = conf.log_dir
@@ -144,7 +178,17 @@ def cache_tracker(queue, process_name, conf):
                             logger.debug(HEADER + "[%s] Cache hit" %
                                          str(process_name))
                         # Increment hits
-                        cache_ids[f_name][4] += 1
+                        current = cache_ids[f_name]
+                        current_hits = current[4]
+                        new_hits = current_hits + 1
+                        current[4] = new_hits
+                        cache_ids[f_name] = current  # forces updating whole entry
+                        # Keep cache_hits structure
+                        cache_hits[current_hits].pop(f_name)
+                        if new_hits in cache_hits:
+                            cache_hits[new_hits][f_name] = obj_size
+                        else:
+                            cache_hits[new_hits] = {f_name: obj_size}
                     else:
                         # Add new entry request
                         if __debug__:
@@ -161,14 +205,22 @@ def cache_tracker(queue, process_name, conf):
                             used_size = check_cache_status(conf,
                                                            used_size,
                                                            obj_size)
-                        # Add without problems
+                            # used_size = check_cache_status_old(conf,
+                            #                                    used_size,
+                            #                                    obj_size)
+                        # Accumulate size
                         used_size = used_size + obj_size
+                        # Initial hits
+                        hits = 0
+                        # Add without problems
                         cache_ids[f_name] = [cache_id,
                                              shape,
                                              dtype,
                                              obj_size,
-                                             0,
+                                             hits,
                                              shared_type]
+                        # Register in hits dictionary
+                        cache_hits[hits] = {f_name: obj_size}
                 elif action == "REMOVE":
                     f_name = __get_file_name__(message)
                     logger.debug(HEADER + "[%s] Removing: %s" %
@@ -180,7 +232,7 @@ def cache_tracker(queue, process_name, conf):
                 alive = False
 
 
-def check_cache_status(conf, used_size, requested_size):
+def check_cache_status_old(conf, used_size, requested_size):
     # type: (CacheTrackerConf, int, int) -> int
     """ Checks the cache status looking into the shared dictionary.
 
@@ -223,6 +275,59 @@ def check_cache_status(conf, used_size, requested_size):
     return used_size - recovered_size
 
 
+def check_cache_status(conf, used_size, requested_size):
+    # type: (CacheTrackerConf, int, int) -> int
+    """ Checks the cache status looking into the shared dictionary.
+
+    :param conf: configuration of the cache tracker.
+    :param used_size: Current used size of the cache.
+    :param requested_size: Size needed to fit the new object.
+    :return: new used size
+    """
+    logger = conf.logger  # noqa
+    max_size = conf.size
+    cache_ids = conf.cache_ids
+    cache_hits = conf.cache_hits
+    if __debug__:
+        logger.debug(HEADER + "Checking cache status: Requested %s bytes" %
+                     str(requested_size))
+
+    # Sort by number of hits (from lower to higher)
+    sorted_hits = sorted(cache_hits.keys())
+    # Calculate size to recover
+    size_to_recover = used_size + requested_size - max_size
+    # Select how many to evict
+    to_evict, recovered_size = __evict__(sorted_hits, cache_hits, size_to_recover)
+    if __debug__:
+        logger.debug(HEADER + "Evicting %d entries" % (len(to_evict)))
+    # Evict
+    for entry in to_evict:
+        cache_ids.pop(entry)
+    return used_size - recovered_size
+
+
+def __evict__(sorted_hits, cache_hits, size_to_recover):
+    """ Select how many to evict.
+
+    :param sorted_hits: List of current hits sorted from lower to higher.
+    :param cache_hits: Cache hits structure.
+    :param size_to_recover: Amount of size to recover.
+    :return: List of f_names to evict.
+    """
+    to_evict = list()
+    total_recovered_size = 0
+    for hits in sorted_hits:
+        # Does not check the order by size of the objects since they have the
+        # same amount of hits
+        for f_name in cache_hits[hits]:
+            recovered_size = cache_hits[hits].pop(f_name)
+            to_evict.append(f_name)
+            size_to_recover -= recovered_size
+            total_recovered_size += recovered_size
+            if size_to_recover <= 0:
+                return to_evict, total_recovered_size
+
+
 def load_shared_memory_manager():
     # type: () -> None
     """ Connects to the main shared memory manager initiated in piper_worker.py.
@@ -241,7 +346,7 @@ def start_shared_memory_manager():
 
     :return: Shared memory manager instance.
     """
-    smm = create_shared_memory_manager(address=('', PORT),
+    smm = create_shared_memory_manager(address=("", PORT),
                                        authkey=AUTH_KEY)
     smm.start()
     return smm
@@ -261,56 +366,63 @@ def stop_shared_memory_manager(smm):
     smm.shutdown()
 
 
-@emit_event(RETRIEVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
-def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, parameter, user_function, cache_profiler):  # noqa
-    # type: (..., ..., str) -> ...
+def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, parameter_name, user_function, cache_profiler):  # noqa
+    # type: (typing.Any, typing.Any, Queue, str, str, typing.Callable, bool) -> typing.Any
     """ Retrieve an object from the given cache proxy dict.
 
     :param logger: Logger where to push messages.
     :param cache_ids: Cache proxy dictionary.
+    :param cache_queue: Cache notification queue.
     :param identifier: Object identifier.
+    :param parameter_name: Parameter name.
+    :param user_function: Function name.
+    :param cache_profiler: If cache profiling is enabled.
     :return: The object from cache.
     """
-    emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, 0)
-    identifier = __get_file_name__(identifier)
-    if __debug__:
-        logger.debug(HEADER + "Retrieving: " + str(identifier))
-    obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
-    size = 0
-    if shared_type == SHARED_MEMORY_TAG:
-        existing_shm = SharedMemory(name=obj_id)
-        size = len(existing_shm.buf)
-        output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)  # noqa: E501
-    elif shared_type == SHAREABLE_LIST_TAG:
-        existing_shm = ShareableList(name=obj_id)
-        size = len(existing_shm.shm.buf)
-        output = list(existing_shm)
-    elif shared_type == SHAREABLE_TUPLE_TAG:
-        existing_shm = ShareableList(name=obj_id)
-        size = len(existing_shm.shm.buf)
-        output = tuple(existing_shm)
-    # Currently unsupported since conversion requires lists of lists.
-    # elif shared_type == SHAREABLE_DICT_TAG:
-    #     existing_shm = ShareableList(name=obj_id)
-    #     output = dict(existing_shm)
-    else:
-        raise PyCOMPSsException("Unknown cacheable type.")
-    if __debug__:
-        logger.debug(HEADER + "Retrieved: " + str(identifier))
-    emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, size)
+    with event_inside_worker(RETRIEVE_OBJECT_FROM_CACHE_EVENT):
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, 0)
+        identifier = __get_file_name__(identifier)
+        if __debug__:
+            logger.debug(HEADER + "Retrieving: " + str(identifier))
+        obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
+        output = None        # type: typing.Any
+        existing_shm = None  # type: typing.Any
+        object_size = 0
+        if shared_type == SHARED_MEMORY_TAG:
+            existing_shm = SharedMemory(name=obj_id)
+            output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)    # noqa: E501
+            object_size = len(existing_shm.buf)
+        elif shared_type == SHAREABLE_LIST_TAG:
+            existing_shm = ShareableList(name=obj_id)
+            output = list(existing_shm)
+            object_size = len(existing_shm.shm.buf)
+        elif shared_type == SHAREABLE_TUPLE_TAG:
+            existing_shm = ShareableList(name=obj_id)
+            output = tuple(existing_shm)
+            object_size = len(existing_shm.shm.buf)
+        # Currently unsupported since conversion requires lists of lists.
+        # elif shared_type == SHAREABLE_DICT_TAG:
+        #     existing_shm = ShareableList(name=obj_id)
+        #     output = dict(existing_shm)
+        else:
+            raise PyCOMPSsException("Unknown cacheable type.")
+        if __debug__:
+            logger.debug(HEADER + "Retrieved: " + str(identifier))
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, object_size)
 
-    filename = filename_cleaned(identifier)
-    parameter = parameter
-    function = function_cleaned(user_function)
-    if cache_profiler:
-        cache_queue.put(("GET", (filename, parameter, function)))
+        # Profiling
+        filename = filename_cleaned(identifier)
+        function_name = function_cleaned(user_function)
+        if cache_profiler:
+            cache_queue.put(("GET", (filename, parameter_name, function_name)))
 
-    cache_ids[identifier][4] = obj_hits + 1
-    return output, existing_shm
+        # Add hit
+        cache_ids[identifier][4] = obj_hits + 1
+        return output, existing_shm
 
 
 def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (..., ..., ..., ...) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
     """ Put an object into cache filter to avoid event emission when not
     supported.
 
@@ -318,6 +430,8 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter
     :param cache_queue: Cache notification queue.
     :param obj: Object to store.
     :param f_name: File name that corresponds to the object (used as id).
+    :param parameter: Parameter name.
+    :param user_function: Function.
     :return: None
     """
 
@@ -329,75 +443,72 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter
         insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function)
 
 
-@emit_event(INSERT_OBJECT_INTO_CACHE_EVENT, master=False, inside=True)
 def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (..., ..., ..., ...) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
     """ Put an object into cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
     :param obj: Object to store.
     :param f_name: File name that corresponds to the object (used as id).
+    :param parameter: Parameter name.
+    :param user_function: Function.
     :return: None
     """
-    function = function_cleaned(user_function)
-    f_name = __get_file_name__(f_name)
-    if __debug__:
-        logger.debug(HEADER + "Inserting into cache (%s): %s" %
-                     (str(type(obj)), str(f_name)))
-    try:
-        inserted = True
-        if isinstance(obj, np.ndarray):
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
-            shape = obj.shape
-            d_type = obj.dtype
-            size = obj.nbytes
-            shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
-            within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
-            within_cache[:] = obj[:]  # Copy contents
-            new_cache_id = shm.name
-            cache_queue.put(("PUT", (
-                f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG, parameter, function)))  # noqa: E501
-        elif isinstance(obj, list):
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
-            sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-            new_cache_id = sl.shm.name
-            size = total_sizeof(obj)
-            cache_queue.put(
-                ("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG, parameter, function)))  # noqa: E501
-        elif isinstance(obj, tuple):
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
-            sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
-            new_cache_id = sl.shm.name
-            size = total_sizeof(obj)
-            cache_queue.put(
-                ("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG, parameter, function)))  # noqa: E501
-        # Unsupported dicts since they are lists of lists when converted.
-        # elif isinstance(obj, dict):
-        #     # Convert dict to list of tuples
-        #     list_tuples = list(zip(obj.keys(), obj.values()))
-        #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
-        #     new_cache_id = sl.shm.name
-        #     size = total_sizeof(obj)
-        #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG, parameter, function)))  # noqa: E501
-        else:
-            inserted = False
-            if __debug__:
-                logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
-        if inserted:
-            emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, size)
-        if __debug__ and inserted:
-            logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
-    except KeyError as e:  # noqa
+    with event_inside_worker(INSERT_OBJECT_INTO_CACHE_EVENT):
+        function = function_cleaned(user_function)
+        f_name = __get_file_name__(f_name)
         if __debug__:
-            logger.debug(
-                HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
-            logger.debug(str(e))
+            logger.debug(HEADER + "Inserting into cache (%s): %s" %
+                         (str(type(obj)), str(f_name)))
+        try:
+            inserted = True
+            if isinstance(obj, np.ndarray):
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                shape = obj.shape
+                d_type = obj.dtype
+                size = obj.nbytes
+                shm = SHARED_MEMORY_MANAGER.SharedMemory(size=size)  # noqa
+                within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
+                within_cache[:] = obj[:]  # Copy contents
+                new_cache_id = shm.name
+                cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG, parameter, function)))  # noqa: E501
+            elif isinstance(obj, list):
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+                new_cache_id = sl.shm.name
+                size = total_sizeof(obj)
+                cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG, parameter, function)))  # noqa: E501
+            elif isinstance(obj, tuple):
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
+                new_cache_id = sl.shm.name
+                size = total_sizeof(obj)
+                cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG, parameter, function)))  # noqa: E501
+            # Unsupported dicts since they are lists of lists when converted.
+            # elif isinstance(obj, dict):
+            #     # Convert dict to list of tuples
+            #     list_tuples = list(zip(obj.keys(), obj.values()))
+            #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
+            #     new_cache_id = sl.shm.name
+            #     size = total_sizeof(obj)
+            #     cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_DICT_TAG, parameter, function)))  # noqa: E501
+            else:
+                inserted = False
+                if __debug__:
+                    logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
+            if inserted:
+                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, size)
+            if __debug__ and inserted:
+                logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
+        except KeyError as e:  # noqa
+            if __debug__:
+                logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
+                logger.debug(str(e))
 
 
-@emit_event(REMOVE_OBJECT_FROM_CACHE_EVENT, master=False, inside=True)
 def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
-    # type: (..., ..., ...) -> None
+    # type: (typing.Any, Queue, str) -> None
     """ Removes an object from cache.
 
     :param logger: Logger where to push messages.
@@ -405,22 +516,25 @@ def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
-    f_name = __get_file_name__(f_name)
-    if __debug__:
-        logger.debug(HEADER + "Removing from cache: " + str(f_name))
-    cache_queue.put(("REMOVE", f_name))
-    if __debug__:
-        logger.debug(HEADER + "Removed from cache: " + str(f_name))
+    with event_inside_worker(REMOVE_OBJECT_FROM_CACHE_EVENT):
+        f_name = __get_file_name__(f_name)
+        if __debug__:
+            logger.debug(HEADER + "Removing from cache: " + str(f_name))
+        cache_queue.put(("REMOVE", f_name))
+        if __debug__:
+            logger.debug(HEADER + "Removed from cache: " + str(f_name))
 
 
 def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (..., ..., ..., ..., ..., ...) -> None
+    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
     """ Put an object into cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
     :param obj: Object to store.
     :param f_name: File name that corresponds to the object (used as id).
+    :param parameter: Parameter name.
+    :param user_function: Function.
     :return: None
     """
     f_name = __get_file_name__(f_name)
@@ -433,7 +547,7 @@ def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_
 
 
 def in_cache(f_name, cache):
-    # type: (str, dict) -> bool
+    # type: (str, typing.Any) -> bool
     """ Checks if the given file name is in the cache
 
     :param f_name: Absolute file name.
@@ -459,14 +573,39 @@ def __get_file_name__(f_name):
 
 
 def filename_cleaned(f_name):
+    # type: (str) -> str
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param f_name:
+    :return:
+    """
     return f_name.rsplit('/', 1)[-1]
 
 
 def function_cleaned(function):
+    # type: (typing.Callable) -> str
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param function:
+    :return:
+    """
     return str(function)[10:].rsplit(' ', 3)[0]
 
 
 def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
+    # type: (dict, str, str, str, str) -> None
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param profiler_dict:
+    :param function:
+    :param parameter:
+    :param filename:
+    :param type:
+    :return:
+    """
     if function not in profiler_dict:
         profiler_dict[function] = {}
     if parameter not in profiler_dict[function]:
@@ -477,6 +616,16 @@ def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
 
 
 def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
+    # type: (list, str, str, str) -> None
+    """
+    # TODO: Complete documentation (PVB)
+
+    :param profiler_get_struct:
+    :param function:
+    :param parameter:
+    :param filename:
+    :return:
+    """
     if function not in profiler_get_struct[2] and parameter not in profiler_get_struct[1]:
         profiler_get_struct[0].append(filename)
         profiler_get_struct[1].append(parameter)
@@ -484,7 +633,10 @@ def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
 
 
 def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
+    # type: (dict, list, str) -> None
     """
+    # TODO: Complete documentation (PVB)
+
     for function in profiler_dict:
         f.write('\t' + "FUNCTION: " + str(function))
         logger.debug('\t' + "FUNCTION: " + str(function))
@@ -504,9 +656,14 @@ def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
     for i in range(len(profiler_get_struct[0])):
         logger.debug('\t' + "FILENAME: " + profiler_get_struct[0][i] + ". PARAMETER: " + profiler_get_struct[1][i]
                      + ". FUNCTION: " + profiler_get_struct[2][i])
-    """
 
-    final_dict = {}
+    :param profiler_dict:
+    :param profiler_get_struct:
+    :param log_dir:
+    :return:
+    """
+    d = {}  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
+    final_dict = d
     for function in profiler_dict:
         final_dict[function] = {}
         for parameter in profiler_dict[function]:

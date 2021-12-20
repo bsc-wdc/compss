@@ -24,37 +24,47 @@ PyCOMPSs Core Element
     registration.
 """
 
+from pycompss.util.typing_helper import typing
+
 
 class CE(object):
 
-    __slots__ = ['ce_signature', 'impl_signature', 'impl_constraints',
-                 'impl_type', 'impl_io', 'impl_type_args']
+    __slots__ = ["ce_signature", "impl_signature", "impl_constraints",
+                 "impl_type", "impl_io", "impl_type_args"]
 
     def __init__(self,
-                 ce_signature=None,
-                 impl_signature=None,
-                 impl_constraints=None,
-                 impl_type=None,
-                 impl_io=None,
-                 impl_type_args=None):
+                 ce_signature="",        # type: str
+                 impl_signature="",      # type: str
+                 impl_constraints=None,  # type: typing.Dict[str, str]
+                 impl_type=None,         # type: typing.Optional[str]
+                 impl_io=False,          # type: bool
+                 impl_type_args=None,    # type: typing.List[str]
+                 ):                      # type: (...) -> None
         self.ce_signature = ce_signature
         self.impl_signature = impl_signature
-        self.impl_constraints = impl_constraints
+        if impl_constraints is None:
+            self.impl_constraints = dict()
+        else:
+            self.impl_constraints = impl_constraints
         self.impl_type = impl_type
         self.impl_io = impl_io
-        self.impl_type_args = impl_type_args
+        if impl_type_args is None:
+            self.impl_type_args = list()
+        else:
+            self.impl_type_args = impl_type_args
 
     ###########
     # METHODS #
     ###########
 
     def reset(self):
-        self.ce_signature = None
-        self.impl_signature = None
-        self.impl_constraints = None
-        self.impl_type = None
-        self.impl_io = None
-        self.impl_type_args = None
+        # type: () -> None
+        self.ce_signature = ""
+        self.impl_signature = ""
+        self.impl_constraints = dict()
+        self.impl_type = ""
+        self.impl_io = False
+        self.impl_type_args = list()
 
     ###########
     # GETTERS #
@@ -69,11 +79,11 @@ class CE(object):
         return self.impl_signature
 
     def get_impl_constraints(self):
-        # type: () -> dict
+        # type: () -> typing.Dict[str, str]
         return self.impl_constraints
 
     def get_impl_type(self):
-        # type: () -> str
+        # type: () -> typing.Optional[str]
         return self.impl_type
 
     def get_impl_io(self):
@@ -81,7 +91,7 @@ class CE(object):
         return self.impl_io
 
     def get_impl_type_args(self):
-        # type: () -> list
+        # type: () -> typing.List[str]
         return self.impl_type_args
 
     ###########
@@ -122,17 +132,17 @@ class CE(object):
 
         :return: The core element representation.
         """
-        _repr = 'CORE ELEMENT: \n'
-        _repr += '\t - CE signature     : ' + str(self.ce_signature) + '\n'
-        _repr += '\t - Impl. signature  : ' + str(self.impl_signature) + '\n'
+        _repr = "CORE ELEMENT: \n"
+        _repr += "\t - CE signature     : " + str(self.ce_signature) + "\n"
+        _repr += "\t - Impl. signature  : " + str(self.impl_signature) + "\n"
         if self.impl_constraints:
-            impl_constraints = ''
+            impl_constraints = ""
             for key, value in self.impl_constraints.items():
-                impl_constraints += key + ':' + str(value) + ';'
+                impl_constraints += key + ":" + str(value) + ";"
         else:
             impl_constraints = str(self.impl_constraints)
-        _repr += '\t - Impl. constraints: ' + impl_constraints + '\n'
-        _repr += '\t - Impl. type       : ' + str(self.impl_type) + '\n'
-        _repr += '\t - Impl. io         : ' + str(self.impl_io) + '\n'
-        _repr += '\t - Impl. type args  : ' + str(self.impl_type_args)
+        _repr += "\t - Impl. constraints: " + impl_constraints + "\n"
+        _repr += "\t - Impl. type       : " + str(self.impl_type) + "\n"
+        _repr += "\t - Impl. io         : " + str(self.impl_io) + "\n"
+        _repr += "\t - Impl. type args  : " + str(self.impl_type_args)
         return _repr

@@ -28,6 +28,9 @@ class MPILayoutKeys(object):
     """
     Strings used in MPI layout for collections
     """
-    block_count = 'block_count'
-    block_length = 'block_length'
-    stride = 'stride'
+    block_count = "block_count"
+    block_length = "block_length"
+    stride = "stride"
+
+
+MPI_LAYOUT_KEYS = MPILayoutKeys()

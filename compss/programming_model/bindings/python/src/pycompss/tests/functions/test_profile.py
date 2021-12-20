@@ -21,7 +21,7 @@
 def test_profile():
     from pycompss.functions.profile import profile
 
-    @profile
+    @profile()
     def increment(value):
         return value + 1
 

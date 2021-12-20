@@ -27,7 +27,9 @@ PyCOMPSs Binding - Link
 """
 
 import os
+from pycompss.util.typing_helper import typing
 
+from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import new_process
 from pycompss.util.process.manager import new_queue
 from pycompss.util.process.manager import create_process
@@ -43,30 +45,30 @@ OUT_QUEUE = new_queue()
 RELOAD = False
 
 # Queue messages
-START = 'START'
-SET_DEBUG = 'SET_DEBUG'
-STOP = 'STOP'
-CANCEL_TASKS = 'CANCEL_TASKS'
-ACCESSED_FILE = 'ACCESSED_FILE'
-OPEN_FILE = 'OPEN_FILE'
-CLOSE_FILE = 'CLOSE_FILE'
-DELETE_FILE = 'DELETE_FILE'
-GET_FILE = 'GET_FILE'
-GET_DIRECTORY = 'GET_DIRECTORY'
-BARRIER = 'BARRIER'
-BARRIER_GROUP = 'BARRIER_GROUP'
-OPEN_TASK_GROUP = 'OPEN_TASK_GROUP'
-CLOSE_TASK_GROUP = 'CLOSE_TASK_GROUP'
-GET_LOGGING_PATH = 'GET_LOGGING_PATH'
-GET_NUMBER_OF_RESOURCES = 'GET_NUMBER_OF_RESOURCES'
-REQUEST_RESOURCES = 'REQUEST_RESOURCES'
-FREE_RESOURCES = 'FREE_RESOURCES'
-REGISTER_CORE_ELEMENT = 'REGISTER_CORE_ELEMENT'
-PROCESS_HTTP_TASK = 'PROCESS_HTTP_TASK'
-PROCESS_TASK = 'PROCESS_TASK'
-SET_PIPES = 'SET_PIPES'
-READ_PIPES = 'READ_PIPES'
-SET_WALL_CLOCK = 'SET_WALL_CLOCK'
+START = "START"
+SET_DEBUG = "SET_DEBUG"
+STOP = "STOP"
+CANCEL_TASKS = "CANCEL_TASKS"
+ACCESSED_FILE = "ACCESSED_FILE"
+OPEN_FILE = "OPEN_FILE"
+CLOSE_FILE = "CLOSE_FILE"
+DELETE_FILE = "DELETE_FILE"
+GET_FILE = "GET_FILE"
+GET_DIRECTORY = "GET_DIRECTORY"
+BARRIER = "BARRIER"
+BARRIER_GROUP = "BARRIER_GROUP"
+OPEN_TASK_GROUP = "OPEN_TASK_GROUP"
+CLOSE_TASK_GROUP = "CLOSE_TASK_GROUP"
+GET_LOGGING_PATH = "GET_LOGGING_PATH"
+GET_NUMBER_OF_RESOURCES = "GET_NUMBER_OF_RESOURCES"
+REQUEST_RESOURCES = "REQUEST_RESOURCES"
+FREE_RESOURCES = "FREE_RESOURCES"
+REGISTER_CORE_ELEMENT = "REGISTER_CORE_ELEMENT"
+PROCESS_HTTP_TASK = "PROCESS_HTTP_TASK"
+PROCESS_TASK = "PROCESS_TASK"
+SET_PIPES = "SET_PIPES"
+READ_PIPES = "READ_PIPES"
+SET_WALL_CLOCK = "SET_WALL_CLOCK"
 
 if __debug__:
     import logging
@@ -74,6 +76,7 @@ if __debug__:
 
 
 def shutdown_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Shutdown handler.
 
     Do not remove the parameters.
@@ -88,7 +91,7 @@ def shutdown_handler(signal, frame):  # noqa
 
 def c_extension_link(in_queue, out_queue,
                      redirect_std, out_file_name, err_file_name):
-    # type: (..., ..., bool, str, str) -> None
+    # type: (Queue, Queue, bool, str, str) -> None
     """ Main C extension process.
 
     :param in_queue: Queue to receive messages.
@@ -110,9 +113,9 @@ def c_extension_link(in_queue, out_queue,
         while alive:
             message = in_queue.get()
             command = message[0]
-            parameters = []
+            parameters = []  # type: list
             if len(message) > 0:
-                parameters = message[1:]
+                parameters = list(message[1:])
             if command == START:
                 compss.start_runtime()
             elif command == SET_DEBUG:
@@ -173,7 +176,7 @@ def c_extension_link(in_queue, out_queue,
 
 
 def establish_link(logger=None):  # noqa
-    # type: (...) -> ...
+    # type: (typing.Any) -> typing.Any
     """ Loads the compss C extension within the same process.
 
     Does not implement support for stdout and stderr redirecting as the
@@ -199,7 +202,7 @@ def establish_link(logger=None):  # noqa
 
 
 def establish_interactive_link(logger=None, redirect_std=False):  # noqa
-    # type: (..., bool) -> ...
+    # type: (typing.Any, bool) -> typing.Tuple[typing.Any, str, str]
     """ Starts a new process which will be in charge of communicating with the
     C-extension.
 
@@ -218,13 +221,12 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
     global OUT_QUEUE
     global RELOAD
 
+    out_file_name = ""
+    err_file_name = ""
     if redirect_std:
         pid = str(os.getpid())
         out_file_name = "compss-" + pid + ".out"
         err_file_name = "compss-" + pid + ".err"
-    else:
-        out_file_name = None
-        err_file_name = None
 
     if RELOAD:
         IN_QUEUE = new_queue()
@@ -338,7 +340,10 @@ class COMPSs(object):
         # type: (int, str, bool) -> bool
         IN_QUEUE.put((DELETE_FILE, app_id, file_name, mode))
         result = OUT_QUEUE.get(block=True)
-        return result
+        if result is None:
+            return False
+        else:
+            return result
 
     @staticmethod
     def get_file(app_id, file_name):
@@ -398,13 +403,12 @@ class COMPSs(object):
 
     @staticmethod
     def register_core_element(ce_signature,      # type: str
-                              impl_signature,    # type: str
-                              impl_constraints,  # type: str
-                              impl_type,         # type: str
+                              impl_signature,    # type: typing.Optional[str]
+                              impl_constraints,  # type: typing.Optional[str]
+                              impl_type,         # type: typing.Optional[str]
                               impl_io,           # type: str
-                              impl_type_args     # type: list
-                              ):
-        # type: (...) -> None
+                              impl_type_args     # type: typing.List[str]
+                              ):                 # type: (...) -> None
         IN_QUEUE.put((REGISTER_CORE_ELEMENT,
                       ce_signature,
                       impl_signature,
@@ -435,8 +439,7 @@ class COMPSs(object):
                      content_types,      # type: list
                      weights,            # type: list
                      keep_renames        # type: list
-                     ):  # NOSONAR
-        # type: (...) -> None
+                     ):                  # type: (...) -> None
         IN_QUEUE.put((PROCESS_TASK,
                       app_id,
                       signature,
@@ -489,8 +492,7 @@ class COMPSs(object):
                           distributed,          # type: bool
                           on_failure,           # type: str
                           time_out,             # type: int
-                          ):  # NOSONAR
-        # type: (...) -> None
+                          ):                    # type: (...) -> None
         IN_QUEUE.put((PROCESS_HTTP_TASK,
                       app_id,
                       service_name,
@@ -535,5 +537,5 @@ class COMPSs(object):
 
     @staticmethod
     def set_wall_clock(app_id, wcl):
-        # type: (long, long) -> None
+        # type: (int, int) -> None
         IN_QUEUE.put((SET_WALL_CLOCK, app_id, wcl))

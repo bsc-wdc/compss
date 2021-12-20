@@ -15,7 +15,7 @@ from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
 from pycompss.functions.elapsed_time import timeit
 
-@timeit
+@timeit()
 @task(returns=1)
 def increment(value):
     return value + 1

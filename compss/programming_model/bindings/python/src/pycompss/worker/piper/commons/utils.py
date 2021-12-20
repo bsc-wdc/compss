@@ -23,7 +23,7 @@ PyCOMPSs Common piper utils
     This file contains the common pipers methods.
 """
 
-from pycompss.runtime.commons import range
+from pycompss.util.typing_helper import typing
 from pycompss.runtime.commons import set_temporary_directory
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
@@ -35,26 +35,28 @@ class PiperWorkerConfiguration(object):
     Description of the configuration parameters for the Piper Worker.
     """
 
-    __slots__ = ['nesting', 'debug', 'tracing', 'storage_conf',
-                 'stream_backend', 'stream_master_name', 'stream_master_port',
-                 'tasks_x_node', 'pipes', 'control_pipe', 'cache', 'cache_profiler']
+    __slots__ = ["nesting", "debug", "tracing", "storage_conf",
+                 "stream_backend", "stream_master_name", "stream_master_port",
+                 "tasks_x_node", "pipes", "control_pipe", "cache",
+                 "cache_profiler"]
 
     def __init__(self):
+        # type: () -> None
         """
         Constructs an empty configuration description for the piper worker.
         """
-        self.nesting = False
-        self.debug = False
-        self.tracing = False
-        self.storage_conf = None
-        self.stream_backend = None
-        self.stream_master_name = None
-        self.stream_master_port = None
-        self.tasks_x_node = 0
-        self.pipes = []
-        self.control_pipe = None
-        self.cache = False
-        self.cache_profiler = False
+        self.nesting = False            # type: bool
+        self.debug = False              # type: bool
+        self.tracing = False            # type: bool
+        self.storage_conf = ""          # type: str
+        self.stream_backend = ""        # type: str
+        self.stream_master_name = ""    # type: str
+        self.stream_master_port = ""    # type: str
+        self.tasks_x_node = 0           # type: int
+        self.pipes = []                 # type: typing.List[Pipe]
+        self.control_pipe = None        # type: typing.Union[None, Pipe]
+        self.cache = False              # type: typing.Union[str, bool]
+        self.cache_profiler = ""        # type: str
 
     def update_params(self, argv):
         # type: (list) -> None
@@ -65,11 +67,11 @@ class PiperWorkerConfiguration(object):
         :return: None
         """
         set_temporary_directory(argv[1], create_tmpdir=False)
-        if argv[2] == 'true':
+        if argv[2] == "true":
             context.enable_nesting()
             self.nesting = True
-        self.debug = argv[3] == 'true'
-        self.tracing = argv[4] == '1'
+        self.debug = argv[3] == "true"
+        self.tracing = argv[4] == "1"
         self.storage_conf = argv[5]
         self.stream_backend = argv[6]
         self.stream_master_name = argv[7]
@@ -88,7 +90,7 @@ class PiperWorkerConfiguration(object):
         self.control_pipe = Pipe(argv[-2], argv[-1])
 
     def print_on_logger(self, logger):
-        # type: (...) -> None
+        # type: (typing.Any) -> None
         """ Prints the configuration through the given logger.
 
         :param logger: logger to output the configuration.
@@ -107,4 +109,7 @@ class PiperWorkerConfiguration(object):
         for pipe in self.pipes:
             logger.debug(HEADER + "                 * " + str(pipe))
         logger.debug(HEADER + "Storage conf.  : " + str(self.storage_conf))
+        logger.debug(HEADER + "Stream backend : " + str(self.stream_backend))
+        logger.debug(HEADER + "Stream master  : " + str(self.stream_master_name))  # noqa: E501
+        logger.debug(HEADER + "Stream port    : " + str(self.stream_master_port))  # noqa: E501
         logger.debug(HEADER + "-----------------------------")

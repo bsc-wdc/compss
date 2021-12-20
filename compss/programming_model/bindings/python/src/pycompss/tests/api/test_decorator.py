@@ -21,6 +21,9 @@ import shutil
 import tempfile
 
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.util.exceptions import MissingImplementedException
 import pycompss.util.context as context
 
@@ -51,10 +54,10 @@ def test_decorator_core_element_exception():
 def test_decorator_resolve_working_dir():
     context.set_pycompss_context(context.MASTER)
     working_dir = tempfile.mkdtemp()
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=DECORATOR_NAME, working_dir=working_dir
-    )
-    my_deco.__resolve_working_dir__()
+    kwargs = {"decorator_name": DECORATOR_NAME,
+              "working_dir": working_dir}
+    resolve_working_dir(kwargs)
+    my_deco = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         my_deco.kwargs["working_dir"] == working_dir
@@ -62,13 +65,13 @@ def test_decorator_resolve_working_dir():
     shutil.rmtree(working_dir)
 
 
-def test_decorator_resolve_workingDir():  # NOSONAR
+def test_decorator_resolve_workingDir():  # noqa
     context.set_pycompss_context(context.MASTER)
     working_dir = tempfile.mkdtemp()
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=DECORATOR_NAME, workingDir=working_dir
-    )
-    my_deco.__resolve_working_dir__()
+    kwargs = {"decorator_name": DECORATOR_NAME,
+              "workingDir": working_dir}
+    resolve_working_dir(kwargs)
+    my_deco = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         my_deco.kwargs["working_dir"] == working_dir
@@ -79,10 +82,10 @@ def test_decorator_resolve_workingDir():  # NOSONAR
 def test_decorator_resolve_fail_by_exit_value_bool_true():
     context.set_pycompss_context(context.MASTER)
     fail_by_exit_value = True
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=DECORATOR_NAME, fail_by_exit_value=fail_by_exit_value
-    )
-    my_deco.__resolve_fail_by_exit_value__()
+    kwargs = {"decorator_name": DECORATOR_NAME,
+              "fail_by_exit_value": fail_by_exit_value}
+    resolve_fail_by_exit_value(kwargs)
+    my_deco = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert my_deco.kwargs["fail_by_exit_value"] == str(
         fail_by_exit_value
@@ -92,10 +95,10 @@ def test_decorator_resolve_fail_by_exit_value_bool_true():
 def test_decorator_resolve_fail_by_exit_value_bool_false():
     context.set_pycompss_context(context.MASTER)
     fail_by_exit_value = False
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=DECORATOR_NAME, fail_by_exit_value=fail_by_exit_value
-    )
-    my_deco.__resolve_fail_by_exit_value__()
+    kwargs = {"decorator_name": DECORATOR_NAME,
+              "fail_by_exit_value": fail_by_exit_value}
+    resolve_fail_by_exit_value(kwargs)
+    my_deco = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert my_deco.kwargs["fail_by_exit_value"] == str(
         fail_by_exit_value
@@ -105,44 +108,44 @@ def test_decorator_resolve_fail_by_exit_value_bool_false():
 def test_decorator_resolve_fail_by_exit_value_str():
     context.set_pycompss_context(context.MASTER)
     fail_by_exit_value = "true"
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=DECORATOR_NAME, fail_by_exit_value=fail_by_exit_value
-    )
-    my_deco.__resolve_fail_by_exit_value__()
+    kwargs = {"decorator_name": DECORATOR_NAME,
+              "fail_by_exit_value": fail_by_exit_value}
+    resolve_fail_by_exit_value(kwargs)
+    my_deco = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        my_deco.kwargs["fail_by_exit_value"] == fail_by_exit_value
+    assert my_deco.kwargs["fail_by_exit_value"] == str(
+            fail_by_exit_value
     ), "Wrong fail_by_exit_value string."
 
 
 def test_decorator_resolve_fail_by_exit_value_exception():
     context.set_pycompss_context(context.MASTER)
     fail_by_exit_value = [1, 2]  # any object
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=DECORATOR_NAME, fail_by_exit_value=fail_by_exit_value
-    )
+    kwargs = {"decorator_name": DECORATOR_NAME,
+              "fail_by_exit_value": fail_by_exit_value}
     raised = False
     try:
-        my_deco.__resolve_fail_by_exit_value__()
+        resolve_fail_by_exit_value(kwargs)
     except Exception:  # noqa
         raised = True
+    _ = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
         raised
     ), "Expected exception with wrong fail_by_exit_value not raised."
 
 
-def test_decorator_process_computingNodes():  # NOSONAR
+def test_decorator_process_computingNodes():  # noqa
     context.set_pycompss_context(context.MASTER)
     decorator_name = DECORATOR_NAME
     computing_nodes = 1
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=decorator_name, computingNodes=computing_nodes
-    )
-    my_deco.__process_computing_nodes__(decorator_name=decorator_name)
+    kwargs = {"decorator_name": decorator_name,
+              "computingNodes": computing_nodes}
+    process_computing_nodes(decorator_name, kwargs)
+    my_deco = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
-        my_deco.kwargs["computing_nodes"] == computing_nodes
+        my_deco.kwargs["computing_nodes"] == str(computing_nodes)
     ), "Wrong computing_nodes value."
 
 
@@ -150,11 +153,11 @@ def test_decorator_process_computing_nodes():
     context.set_pycompss_context(context.MASTER)
     decorator_name = DECORATOR_NAME
     computing_nodes = 1
-    my_deco = PyCOMPSsDecorator(
-        decorator_name=decorator_name, computingNodes=computing_nodes
-    )
-    my_deco.__process_computing_nodes__(decorator_name=decorator_name)
+    kwargs = {"decorator_name": decorator_name,
+              "computing_odes": computing_nodes}
+    process_computing_nodes(decorator_name, kwargs)
+    my_deco = PyCOMPSsDecorator(**kwargs)
     context.set_pycompss_context(context.OUT_OF_SCOPE)
     assert (
-        my_deco.kwargs["computing_nodes"] == computing_nodes
+            my_deco.kwargs["computing_nodes"] == str(computing_nodes)
     ), "Wrong computing_nodes value."

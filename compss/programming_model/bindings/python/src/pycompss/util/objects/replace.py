@@ -20,8 +20,11 @@
 """
 SOURCE CODE TAKEN FROM BEN KURTOVIC'S GITHUB REPO replace.py FILE
 https://gist.github.com/earwig/28a64ffb94d51a608e3d
+
++ Added typing
 """
 
+from pycompss.util.typing_helper import typing
 import ctypes
 from ctypes import pythonapi as api
 import sys
@@ -140,102 +143,113 @@ def replace(old, new):
         func(path.src.theone, relation.r, new)
 
 
-# -----------------------------------------------------------------------------
-class A(object):     # NOSONAR
-    def func(self):  # NOSONAR
-        return self  # NOSONAR
-
-
-class B(object):  # NOSONAR
-    pass          # NOSONAR
-
-
-class X(object):  # NOSONAR
-    pass          # NOSONAR
-
-
-def sure(obj):
-    def inner():
-        return obj
-
-    return inner
-
-
-def gen(obj):
-    while 1:
-        yield obj
-
-
-class S(object):            # NOSONAR
-    __slots__ = ("p", "q")  # NOSONAR
-
-
-class T(object):            # NOSONAR
-    __slots__ = ("p", "q")  # NOSONAR
-
-
-class U(object):  # NOSONAR
-    pass          # NOSONAR
-
-
-class V(object):  # NOSONAR
-    pass          # NOSONAR
-
-
-class W(U):  # NOSONAR
-    pass     # NOSONAR
-
-
-# -----------------------------------------------------------------------------
-a = A()
-b = B()
-
-X.cattr = a
-x = X()
-x.iattr = a
-d = {a: a}
-L = [a]
-t = (a,)
-f = a.func
-meth = a.__sizeof__
-clo = sure(a)
-g = gen(a)
-s = S()
-s.p = a
-u = U()
-ud = U.__dict__["__dict__"]
-s.q = S
-sd = S.q
-
-
-# -----------------------------------------------------------------------------
-def examine_vars(id1, id2, id3):
-    def ex(v, id_):  # NOSONAR
-        return str(v) + ("" if id(v) == id_ else " - ERROR!")
-    print("dict (local var):  ", ex(a, id1))
-    print("dict (class attr): ", ex(X.cattr, id1))
-    print("dict (inst attr):  ", ex(x.iattr, id1))
-    print("dict (key):        ", ex(list(d.keys())[0], id1))
-    print("dict (value):      ", ex(list(d.values())[0], id1))
-    print("list:              ", ex(L[0], id1))
-    print("tuple:             ", ex(t[0], id1))
-    print("method (instance): ", ex(f(), id1))
-    print("method (builtin):  ", ex(meth.__self__, id1))
-    print("closure:           ", ex(clo(), id1))
-    print("frame (generator): ", ex(next(g), id1))
-    print("slots:             ", ex(s.p, id1))
-    print("class (instance):  ", ex(type(u), id2))
-    print("class (subclass):  ", ex(W.__bases__[0], id2))
-    print("class (g/s descr): ", ex(ud.__get__(u, U) or type(u), id2))
-    print("class (mem descr): ", ex(sd.__get__(s, S), id3))
-
-
-# For testing purposes:
-# if __name__ == "__main__":
-#     examine_vars(id(a), id(U), id(S))
-#     print("-" * 35)
-#     replace(a, b)
-#     replace(U, V)
-#     replace(S, T)
-#     print("-" * 35)
-# examine_vars(id(b), id(V), id(T))
+# Commented out due to fails with mypy.
+# TODO: Include this code in unittests.
+# # -----------------------------------------------------------------------------
+# class A(object):     # NOSONAR
+#     def func(self):  # NOSONAR
+#         return self  # NOSONAR
+#
+#
+# class B(object):  # NOSONAR
+#     pass          # NOSONAR
+#
+#
+# class X(object):  # NOSONAR
+#     cattr = None  # type: typing.Any
+#     iattr = None  # type: typing.Any
+#
+#
+# def sure(obj):
+#     def inner():
+#         return obj
+#
+#     return inner
+#
+#
+# def gen(obj):
+#     while 1:
+#         yield obj
+#
+#
+# class S(object):              # NOSONAR
+#     # __slots__ = ("p", "q")  # NOSONAR
+#
+#     def __init__(self):
+#         self.p = None  # type: typing.Any
+#         self.q = None  # type: typing.Any
+#
+#
+# class T(object):              # NOSONAR
+#     # __slots__ = ("p", "q")  # NOSONAR
+#
+#     def __init__(self):
+#         self.p = None  # type: typing.Any
+#         self.q = None  # type: typing.Any
+#
+#
+# class U(object):  # NOSONAR
+#     pass          # NOSONAR
+#
+#
+# class V(object):  # NOSONAR
+#     pass          # NOSONAR
+#
+#
+# class W(U):  # NOSONAR
+#     pass     # NOSONAR
+#
+#
+# # -----------------------------------------------------------------------------
+# a = A()
+# b = B()
+#
+# X.cattr = a
+# x = X()
+# x.iattr = a
+# d = {a: a}
+# L = [a]
+# t = (a,)
+# f = a.func
+# meth = a.__sizeof__
+# clo = sure(a)
+# g = gen(a)
+# s = S()
+# s.p = a
+# u = U()
+# ud = U.__dict__["__dict__"]
+# s.q = S
+# sd = S.q
+#
+#
+# # -----------------------------------------------------------------------------
+# def examine_vars(id1, id2, id3):
+#     def ex(v, id_):  # NOSONAR
+#         return str(v) + ("" if id(v) == id_ else " - ERROR!")
+#     print("dict (local var):  ", ex(a, id1))
+#     print("dict (class attr): ", ex(X.cattr, id1))
+#     print("dict (inst attr):  ", ex(x.iattr, id1))
+#     print("dict (key):        ", ex(list(d.keys())[0], id1))
+#     print("dict (value):      ", ex(list(d.values())[0], id1))
+#     print("list:              ", ex(L[0], id1))
+#     print("tuple:             ", ex(t[0], id1))
+#     print("method (instance): ", ex(f(), id1))
+#     print("method (builtin):  ", ex(meth.__self__, id1))
+#     print("closure:           ", ex(clo(), id1))
+#     print("frame (generator): ", ex(next(g), id1))
+#     print("slots:             ", ex(s.p, id1))
+#     print("class (instance):  ", ex(type(u), id2))
+#     print("class (subclass):  ", ex(W.__bases__[0], id2))
+#     print("class (g/s descr): ", ex(ud.__get__(u, U) or type(u), id2))
+#     print("class (mem descr): ", ex(sd.__get__(s, S), id3))
+#
+#
+# # For testing purposes:
+# # if __name__ == "__main__":
+# #     examine_vars(id(a), id(U), id(S))
+# #     print("-" * 35)
+# #     replace(a, b)
+# #     replace(U, V)
+# #     replace(S, T)
+# #     print("-" * 35)
+# # examine_vars(id(b), id(V), id(T))

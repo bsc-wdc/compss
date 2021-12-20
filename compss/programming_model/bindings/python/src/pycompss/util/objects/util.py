@@ -23,20 +23,18 @@ PyCOMPSs Util - Utils
     This file contains the utilities that could be needed.
 """
 
-from pycompss.runtime.commons import IS_PYTHON3
-
-if not IS_PYTHON3:
-    # Python 3 provides zip
-    from itertools import izip as zip  # noqa
+from pycompss.util.typing_helper import typing
 
 
 def group_iterable(iterable, n):
-    # type: (..., int) -> list
+    # type: (typing.Iterable, int) -> typing.Iterator[typing.Any]
     """
     Return a list of lists containing n elements:
-    s -> (s0,s1,s2,...sn-1),
-         (sn,sn+1,sn+2,...s2n-1),
-         (s2n,s2n+1,s2n+2,...s3n-1), ..."
+    s -> [(s0, s1, s2, ..., sn-1),
+          (sn, sn+1, sn+2, ..., s2n-1),
+          (s2n, s2n+1, s2n+2, ..., s3n-1),
+          ...,
+          (sNn, sNn+1, sNn+2, ..., sMn-1)]"
     :param iterable: Iterable to group
     :param n: Number of elements per group
     :return: A list of lists where the inner contain n elements.

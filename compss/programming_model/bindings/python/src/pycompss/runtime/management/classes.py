@@ -19,12 +19,12 @@
 
 """
 PyCOMPSs Binding - Management - Classes
-======================================================
+=======================================
     This file contains the internal classes.
 """
 
 
-class FunctionType(object):
+class SupportedFunctionTypes(object):
     """
     Used as enum to identify the function type
     """
@@ -45,3 +45,6 @@ class EmptyReturn(object):
     For functions with empty return
     """
     pass
+
+
+FunctionType = SupportedFunctionTypes()

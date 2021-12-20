@@ -23,6 +23,8 @@ PyCOMPSs Dummy API - task
     This file contains the dummy class task used as decorator.
 """
 
+from pycompss.util.typing_helper import typing
+
 
 class Task(object):
     """
@@ -30,17 +32,19 @@ class Task(object):
     """
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f):
+        # type: (typing.Any) -> typing.Any
         def wrapped_f(*args, **kwargs):
-            if 'returns' in kwargs:
-                kwargs.pop('returns')
+            # type: (*typing.Any, **typing.Any) -> typing.Any
+            if "returns" in kwargs:
+                kwargs.pop("returns")
             return f(*args, **kwargs)
 
         return wrapped_f
 
 
 task = Task
-TASK = Task

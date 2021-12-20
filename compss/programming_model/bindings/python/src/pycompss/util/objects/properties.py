@@ -27,14 +27,18 @@ PyCOMPSs Util - Object properties
 import os
 import sys
 import inspect
+from pycompss.util.typing_helper import typing
 from collections import OrderedDict
 
 from pycompss.runtime.commons import IS_PYTHON3
 
+_builtins = None  # type: typing.Any
 if IS_PYTHON3:
-    import builtins as _builtins
+    import builtins
+    _builtins = builtins
 else:
-    import __builtin__ as _builtins  # noqa
+    import __builtin__  # noqa
+    _builtins = __builtin__
 
 
 def get_module_name(path, file_name):
@@ -58,32 +62,34 @@ def get_module_name(path, file_name):
     while i > 0:
         new_l = len(path) - (len(dirs[i]) + 1)
         path = path[0:new_l]
-        if '__init__.py' in os.listdir(path):
+        if "__init__.py" in os.listdir(path):
             # directory is a package
             i -= 1
-            mod_name = dirs[i] + '.' + mod_name
+            mod_name = dirs[i] + "." + mod_name
         else:
             break
     return mod_name
 
 
 def get_wrapped_source(f):
-    # type: (...) -> str
+    # type: (typing.Callable) -> str
     """ Gets the text of the source code for the given function.
 
     :param f: Input function.
     :return: Source.
     """
     if hasattr(f, "__wrapped__"):
-        # has __wrapped__, going deep
-        return get_wrapped_source(f.__wrapped__)
+        # Has __wrapped__: going deep
+        wrapped = f.__wrapped__  # type: ignore
+        return get_wrapped_source(wrapped)
     else:
         # Returning getsource
         try:
             source = inspect.getsource(f)
         except TypeError:
             # This is a numba jit declared task
-            source = inspect.getsource(f.py_func)
+            py_func = f.py_func  # type: ignore
+            source = inspect.getsource(py_func)
         return source
 
 
@@ -99,7 +105,8 @@ def is_module_available(module_name):
         if py_version > (3, 4):
             try:
                 import importlib
-                module = importlib.util.find_spec(module_name)  # noqa
+                _importlib = importlib  # type: typing.Any
+                module = _importlib.util.find_spec(module_name)  # noqa
             except AttributeError:
                 # This can only happen in conda
                 import imp  # noqa # Deprecated in python 3
@@ -116,7 +123,7 @@ def is_module_available(module_name):
 
 
 def is_basic_iterable(obj):
-    # type: (object) -> bool
+    # type: (typing.Any) -> bool
     """ Checks if an object is a basic iterable.
 
     By basic iterable we want to mean objects that are iterable and from a
@@ -129,7 +136,7 @@ def is_basic_iterable(obj):
 
 
 def is_dict(obj):
-    # type: (object) -> bool
+    # type: (typing.Any) -> bool
     """
     Checks if an object is a dictionary.
 
@@ -140,29 +147,28 @@ def is_dict(obj):
 
 
 def object_belongs_to_module(obj, module_name):
-    # type: (object, str) -> bool
+    # type: (typing.Any, str) -> bool
     """ Checks if a given object belongs to a given module (or some sub-module).
 
     :param obj: Object to be analysed
     :param module_name: Name of the module we want to check
     :return: True if obj belongs to the given module. False otherwise
     """
-    return any(module_name == x for x in type(obj).__module__.split('.'))
+    return any(module_name == x for x in type(obj).__module__.split("."))
 
 
 def create_object_by_con_type(con_type):
-    # type: (str) -> object
-    """ Knowing its class name create an 'empty' object.
+    # type: (str) -> typing.Any
+    """ Knowing its class name create an "empty" object.
 
     :param con_type: object type info in <path_to_module>:<class_name> format.
-    :return: 'empty' object of a type.
+    :return: "empty" object of a type.
     """
     path, class_name = con_type.split(":")
     if hasattr(_builtins, class_name):
         _obj = getattr(_builtins, class_name)
         return _obj()
 
-    # try:
     directory, module_name = os.path.split(path)
     module_name = os.path.splitext(module_name)[0]
 
@@ -202,8 +208,8 @@ def create_object_by_con_type(con_type):
 #                 return cls
 #     if inspect.isfunction(method):
 #         return getattr(inspect.getmodule(method),
-#                        method.__qualname__.split('.<locals>',
-#                                                  1)[0].rsplit('.', 1)[0])
+#                        method.__qualname__.split(".<locals>",
+#                                                  1)[0].rsplit(".", 1)[0])
 #     # Return not required since None would have been implicitly
 #     # returned anyway
 #     return None
@@ -224,16 +230,16 @@ def create_object_by_con_type(con_type):
 #     # code[1] = the number of lines of the function code.
 #     func_code = code[0]
 #     decorators = [code_line.strip() for code_line in
-#                   func_code if code_line.strip().startswith('@')]
+#                   func_code if code_line.strip().startswith("@")]
 #     # Could be improved if it stops when the first line without @ is found,
 #     # but we have to be care if a decorator is commented (# before @)
 #     # The strip is due to the spaces that appear before functions
 #     # definitions, such as class methods.
 #     for dk in decorator_keys:
 #         for d in decorators:
-#             if d.startswith('@' + dk):
+#             if d.startswith("@" + dk):
 #                 # each decorator __name__
-#                 return 'pycompss.api.' + dk.lower()
+#                 return "pycompss.api." + dk.lower()
 #     # If no decorator is found, the current decorator is the one to register
 #     return __name__
 #
@@ -246,7 +252,7 @@ def create_object_by_con_type(con_type):
 #     :param f: Input function.
 #     :return: Source lines.
 #     """
-#     if hasattr(f, '__wrapped__'):
+#     if hasattr(f, "__wrapped__"):
 #         # has __wrapped__, apply the same function to the wrapped content
 #         return _get_wrapped_source_lines(f.__wrapped__)
 #     else:

@@ -20,8 +20,7 @@
 """
 PyCOMPSs API - COMMONS - ERROR MESSAGES
 =======================================
-    This file defines the public PyCOMPSs error messages displayed
-    by the api.
+    This file defines the public PyCOMPSs error messages displayed by the api.
 """
 
 

@@ -28,15 +28,15 @@ def test_is_redirected():
     old_stdout = COMPSs._STDOUT
     old_stderr = COMPSs._STDOUT
     # First case: Both not initialized -> False
-    COMPSs._STDOUT = None
-    COMPSs._STDERR = None
+    COMPSs._STDOUT = ""
+    COMPSs._STDERR = ""
     none_none = is_redirected()
     # Second case: Both initialized -> True
     COMPSs._STDOUT = "file.out"
     COMPSs._STDERR = "file.err"
     something_something = is_redirected()
     # Third case: One not initialized -> Raise exception
-    COMPSs._STDERR = None
+    COMPSs._STDERR = ""
     is_ok = False
     try:
         _ = is_redirected()
@@ -61,8 +61,8 @@ def test_get_redirection():
     old_stdout = COMPSs._STDOUT
     old_stderr = COMPSs._STDOUT
     # First case: Both not initialized -> Raise exception
-    COMPSs._STDOUT = None
-    COMPSs._STDERR = None
+    COMPSs._STDOUT = ""
+    COMPSs._STDERR = ""
     is_ok = False
     try:
         _, _ = get_redirection_file_names()

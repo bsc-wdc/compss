@@ -24,9 +24,10 @@ PyCOMPSs API - CONSTRAINT
     definition through the decorator.
 """
 
+from pycompss.util.typing_helper import typing
 from functools import wraps
+
 import pycompss.util.context as context
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -36,15 +37,17 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class Constraint(PyCOMPSsDecorator):
+class Constraint(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on task constraint creation.
     """
 
-    __slots__ = []
+    __slots__ = ["decorator_name", "args", "kwargs", "scope",
+                 "core_element", "core_element_configured"]
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -54,10 +57,17 @@ class Constraint(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', Constraint.__name__.lower()))
-        super(Constraint, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", Constraint.__name__.lower()))
+        # super(Constraint, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the constraints within the task core element.
 
         :param user_function: Function to decorate.
@@ -65,6 +75,7 @@ class Constraint(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def constrained_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 from pycompss.api.dummy.constraint import constraint \
                     as dummy_constraint
@@ -77,7 +88,7 @@ class Constraint(PyCOMPSsDecorator):
             if (context.in_master() or context.is_nesting_enabled()) \
                     and not self.core_element_configured:
                 # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
+                self.__configure_core_element__(kwargs)
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -88,15 +99,14 @@ class Constraint(PyCOMPSsDecorator):
         constrained_f.__doc__ = user_function.__doc__
         return constrained_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @constraint.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Current keyword arguments to be updated with the core
                        element information.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -123,4 +133,3 @@ class Constraint(PyCOMPSsDecorator):
 # ########################################################################### #
 
 constraint = Constraint
-CONSTRAINT = Constraint

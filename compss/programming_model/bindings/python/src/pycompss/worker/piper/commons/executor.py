@@ -30,6 +30,8 @@ import logging
 import os
 import sys
 import time
+from pycompss.util.typing_helper import typing
+from multiprocessing import Queue
 try:
     THREAD_AFFINITY = True
     import thread_affinity  # noqa
@@ -60,9 +62,9 @@ from pycompss.worker.commons.constants import CLEAN_ENVIRONMENT_EVENT
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.tracing.helpers import emit_event
 from pycompss.util.tracing.helpers import emit_manual_event
-from pycompss.util.tracing.helpers import event
+from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
 from pycompss.worker.commons.constants import PROCESS_PING_EVENT
 from pycompss.worker.commons.constants import PROCESS_QUIT_EVENT
@@ -77,6 +79,7 @@ HEADER = "*[PYTHON EXECUTOR] "
 
 
 def shutdown_handler(signal, frame):  # noqa
+    # type: (int, typing.Any) -> None
     """ Shutdown handler
 
     Do not remove the parameters.
@@ -94,9 +97,10 @@ class Pipe(object):
     Bi-directional communication channel
     """
 
-    __slots__ = ['input_pipe', 'input_pipe_open', 'output_pipe']
+    __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
 
     def __init__(self, input_pipe, output_pipe):
+        # type: (str, str) -> None
         """ Constructs a new Pipe.
 
         :param input_pipe: Input pipe for the thread. To receive messages from
@@ -105,7 +109,7 @@ class Pipe(object):
                             the runtime.
         """
         self.input_pipe = input_pipe
-        self.input_pipe_open = None
+        self.input_pipe_open = None  # type: typing.Any
         self.output_pipe = output_pipe
 
     def read_command(self, retry_period=0.5):
@@ -117,11 +121,10 @@ class Pipe(object):
         :return: the first command available on the pipe.
         """
         if self.input_pipe_open is None:
-            print("PYTHON_DEBUG Opening pipe " + self.input_pipe)
             self.input_pipe_open = open(self.input_pipe, 'r')
             # Non blocking open:
             # fd = os.open(self.input_pipe, os.O_RDWR)
-            # self.input_pipe_open = os.fdopen(fd, 'r')
+            # self.input_pipe_open = os.fdopen(fd, "r")
 
         line = self.input_pipe_open.readline()
         if line == "":
@@ -137,7 +140,7 @@ class Pipe(object):
         :param message: message sent through the pipe
         :return: None
         """
-        with open(self.output_pipe, 'w') as out_pipe:
+        with open(self.output_pipe, "w") as out_pipe:
             out_pipe.write("".join((message, "\n")))
 
     def close(self):
@@ -151,6 +154,11 @@ class Pipe(object):
             self.input_pipe_open = None
 
     def __str__(self):
+        # type: () -> str
+        """ Representation of the Pipe.
+
+        :return: String representing the Pipe object.
+        """
         return " ".join(("PIPE IN", self.input_pipe,
                          "PIPE OUT", self.output_pipe))
 
@@ -160,17 +168,28 @@ class ExecutorConf(object):
     Executor configuration
     """
 
-    __slots__ = ['debug', 'tmp_dir',
-                 'tracing', 'storage_conf', 'logger', 'logger_cfg',
-                 'persistent_storage', 'storage_loggers',
-                 'stream_backend', 'stream_master_ip', 'stream_master_port',
-                 'cache_ids', 'cache_queue', 'cache_profiler']
+    __slots__ = ["debug", "tmp_dir",
+                 "tracing", "storage_conf", "logger", "logger_cfg",
+                 "persistent_storage", "storage_loggers",
+                 "stream_backend", "stream_master_ip", "stream_master_port",
+                 "cache_ids", "cache_queue", "cache_profiler"]
 
-    def __init__(self, debug, tmp_dir,
-                 tracing, storage_conf, logger, logger_cfg,
-                 persistent_storage, storage_loggers,
-                 stream_backend, stream_master_ip, stream_master_port,
-                 cache_ids=None, cache_queue=None, cache_profiler=False):
+    def __init__(self,
+                 debug,                # type: bool
+                 tmp_dir,              # type: str
+                 tracing,              # type: bool
+                 storage_conf,         # type: str
+                 logger,               # type: typing.Any
+                 logger_cfg,           # type: str
+                 persistent_storage,   # type: bool
+                 storage_loggers,      # type: typing.Any
+                 stream_backend,       # type: str
+                 stream_master_ip,     # type: str
+                 stream_master_port,   # type: str
+                 cache_ids=None,       # type: typing.Any
+                 cache_queue=None,     # type: Queue
+                 cache_profiler=False  # type: bool
+                 ):  # type: (...) -> None
         """
         Constructs a new executor configuration.
 
@@ -211,7 +230,7 @@ class ExecutorConf(object):
 ######################
 
 def executor(queue, process_name, pipe, conf):
-    # type: (..., str, Pipe, ...) -> None
+    # type: (typing.Union[None, Queue], str, Pipe, typing.Any) -> None
     """Thread main body - Overrides Threading run method.
 
     Iterates over the input pipe in order to receive tasks (with their
@@ -259,19 +278,19 @@ def executor(queue, process_name, pipe, conf):
         COMPSs.load_runtime(external_process=False, _logger=logger)
         COMPSs.set_pipes(pipe.output_pipe, pipe.input_pipe)
 
-        if storage_conf != 'null':
+        if storage_conf != "null":
             try:
                 from storage.api import initWorkerPostFork  # noqa
-                with event(INIT_WORKER_POSTFORK_EVENT):
+                with event_worker(INIT_WORKER_POSTFORK_EVENT):
                     initWorkerPostFork()
-            except ImportError:
+            except (ImportError, AttributeError):
                 if __debug__:
                     logger.info(HEADER + "[%s] Could not find initWorkerPostFork storage call. Ignoring it." %  # noqa: E501
                                 str(process_name))
 
         # Start the streaming backend if necessary
         streaming = False
-        if conf.stream_backend not in [None, 'null', 'NONE']:
+        if conf.stream_backend not in [None, "null", "NONE"]:
             streaming = True
 
         if streaming:
@@ -281,7 +300,7 @@ def executor(queue, process_name, pipe, conf):
             try:
                 DistroStreamClientHandler.init_and_start(
                     master_ip=conf.stream_master_ip,
-                    master_port=int(conf.stream_master_port))
+                    master_port=conf.stream_master_port)
             except Exception as e:
                 logger.error(e)
                 raise e
@@ -325,12 +344,12 @@ def executor(queue, process_name, pipe, conf):
                                         conf.cache_profiler
                                         )
         # Stop storage
-        if storage_conf != 'null':
+        if storage_conf != "null":
             try:
                 from storage.api import finishWorkerPostFork  # noqa
-                with event(FINISH_WORKER_POSTFORK_EVENT):
+                with event_worker(FINISH_WORKER_POSTFORK_EVENT):
                     finishWorkerPostFork()
-            except ImportError:
+            except (ImportError, AttributeError):
                 if __debug__:
                     logger.info(HEADER +
                                 "[%s] Could not find finishWorkerPostFork storage call. Ignoring it." %  # noqa: E501
@@ -357,21 +376,20 @@ def executor(queue, process_name, pipe, conf):
 def process_message(current_line,              # type: str
                     process_name,              # type: str
                     pipe,                      # type: Pipe
-                    queue,                     # type: ...
+                    queue,                     # type: typing.Optional[Queue]
                     tracing,                   # type: bool
-                    logger,                    # type: ...
+                    logger,                    # type: typing.Any
                     logger_cfg,                # type: str
                     logger_handlers,           # type: list
                     logger_level,              # type: int
-                    logger_formatter,          # type: ...
+                    logger_formatter,          # type: typing.Any
                     storage_conf,              # type: str
                     storage_loggers,           # type: list
                     storage_loggers_handlers,  # type: list
-                    cache_queue=None,          # type: queue
-                    cache_ids=None,            # type: ...
+                    cache_queue=None,          # type: typing.Optional[Queue]
+                    cache_ids=None,            # type: typing.Any
                     cache_profiler=False,      # type: bool
-                    ):
-    # type: (...) -> bool
+                    ):                         # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
 
     :param current_line: Current command (line) to process
@@ -396,10 +414,10 @@ def process_message(current_line,              # type: str
         logger.debug(HEADER + "[%s] Processing message: %s" %
                      (str(process_name), str(current_line)))
 
-    current_line = current_line.split()
-    if current_line[0] == EXECUTE_TASK_TAG:
+    current_line_split = current_line.split()
+    if current_line_split[0] == EXECUTE_TASK_TAG:
         # Process task
-        return process_task(current_line,
+        return process_task(current_line_split,
                             process_name,
                             pipe,
                             queue,
@@ -415,38 +433,36 @@ def process_message(current_line,              # type: str
                             cache_queue,
                             cache_ids,
                             cache_profiler)
-    elif current_line[0] == PING_TAG:
+    elif current_line_split[0] == PING_TAG:
         # Response -> Pong
         return process_ping(pipe, logger, process_name)
-    elif current_line[0] == QUIT_TAG:
+    elif current_line_split[0] == QUIT_TAG:
         # Received quit message -> Suicide
         return process_quit(logger, process_name)
     else:
         if __debug__:
             logger.debug(HEADER + "[%s] Unexpected message: %s" %
-                         (str(process_name), str(current_line)))
-        raise PyCOMPSsException("Unexpected message: %s" % str(current_line))
+                         (str(process_name), str(current_line_split)))
+        raise PyCOMPSsException("Unexpected message: %s" % str(current_line_split))
 
 
-@emit_event(PROCESS_TASK_EVENT)
 def process_task(current_line,              # type: list
                  process_name,              # type: str
                  pipe,                      # type: Pipe
-                 queue,                     # type: ...
+                 queue,                     # type: typing.Optional[Queue]
                  tracing,                   # type: bool
-                 logger,                    # type: ...
+                 logger,                    # type: typing.Any
                  logger_cfg,                # type: str
                  logger_handlers,           # type: list
                  logger_level,              # type: int
-                 logger_formatter,          # type: ...
+                 logger_formatter,          # type: typing.Any
                  storage_conf,              # type: str
                  storage_loggers,           # type: list
                  storage_loggers_handlers,  # type: list
-                 cache_queue,               # type: queue
-                 cache_ids,                 # type: ...
+                 cache_queue,               # type: typing.Optional[Queue]
+                 cache_ids,                 # type: typing.Any
                  cache_profiler,            # type: bool
-                 ):
-    # type: (...) -> bool
+                 ):                         # type: (...) -> bool
     """ Process command received from the runtime through a pipe.
 
     :param current_line: Current command (line) to process.
@@ -467,225 +483,223 @@ def process_task(current_line,              # type: list
     :param cache_profiler: Cache profiler
     :return: True if processed successfully, False otherwise.
     """
-    affinity_ok = True
-    binded_cpus = False
-    binded_gpus = False
+    with event_worker(PROCESS_TASK_EVENT):
+        affinity_event_emit = False
+        binded_cpus = False
+        binded_gpus = False
 
-    # CPU binding
-    cpus = current_line[-3]
-    if cpus != "-" and THREAD_AFFINITY:
-        # The cpu affinity event is already emitted in Java.
-        # Instead of emitting what we receive, we are emitting what whe check
-        # after setting the affinity.
-        affinity_ok = bind_cpus(cpus, process_name, logger)
+        # CPU binding
+        cpus = current_line[-3]
+        if cpus != "-" and THREAD_AFFINITY:
+            # The cpu affinity event is already emitted in Java.
+            # Instead of emitting what we receive, we are emitting what whe check
+            # after setting the affinity.
+            binded_cpus = bind_cpus(cpus, process_name, logger)
 
-    # GPU binding
-    gpus = current_line[-2]
-    if gpus != "-":
-        emit_manual_event(gpus, inside=True, gpu_affinity=True)
-        bind_gpus(gpus, process_name, logger)
-        binded_gpus = True
+        # GPU binding
+        gpus = current_line[-2]
+        if gpus != "-":
+            emit_manual_event(int(gpus) + 1, inside=True, gpu_affinity=True)
+            bind_gpus(gpus, process_name, logger)
+            binded_gpus = True
 
-    # Remove the last elements: cpu and gpu bindings
-    current_line = current_line[0:-3]
+        # Remove the last elements: cpu and gpu bindings
+        current_line = current_line[0:-3]
 
-    # task jobId command
-    job_id, job_out, job_err = current_line[1:4]  # 4th is not taken
-    # current_line[4] = <boolean> = tracing
-    # current_line[5] = <integer> = task id
-    # current_line[6] = <boolean> = debug
-    # current_line[7] = <string>  = storage conf.
-    # current_line[8] = <string>  = operation type (e.g. METHOD)
-    # current_line[9] = <string>  = module
-    # current_line[10]= <string>  = method
-    # current_line[11]= <string>  = time out
-    # current_line[12]= <integer> = Number of slaves (worker nodes)==#nodes
-    # <<list of slave nodes>>
-    # current_line[12 + #nodes] = <integer> = computing units
-    # current_line[13 + #nodes] = <boolean> = has target
-    # current_line[14 + #nodes] = <string>  = has return (always 'null')
-    # current_line[15 + #nodes] = <integer> = Number of parameters
-    # <<list of parameters>>
-    #       !---> type, stream, prefix , value
+        # task jobId command
+        job_id, job_out, job_err = current_line[1:4]  # 4th is not taken
+        # current_line[4] = <boolean> = tracing
+        # current_line[5] = <integer> = task id
+        # current_line[6] = <boolean> = debug
+        # current_line[7] = <string>  = storage conf.
+        # current_line[8] = <string>  = operation type (e.g. METHOD)
+        # current_line[9] = <string>  = module
+        # current_line[10]= <string>  = method
+        # current_line[11]= <string>  = time out
+        # current_line[12]= <integer> = Number of slaves (worker nodes)==#nodes
+        # <<list of slave nodes>>
+        # current_line[12 + #nodes] = <integer> = computing units
+        # current_line[13 + #nodes] = <boolean> = has target
+        # current_line[14 + #nodes] = <string>  = has return (always "null")
+        # current_line[15 + #nodes] = <integer> = Number of parameters
+        # <<list of parameters>>
+        #       !---> type, stream, prefix , value
 
-    if __debug__:
-        # Worker log
-        logger.debug(HEADER + "[%s] Received task with id: %s" %
-                     (str(process_name), str(job_id)))
-        logger.debug(HEADER + "[%s] - TASK CMD: %s" %
-                     (str(process_name), str(current_line)))
-
-    # Swap logger from stream handler to file handler
-    # All task output will be redirected to job.out/err
-    for log_handler in logger_handlers:
-        logger.removeHandler(log_handler)
-    for storage_logger in storage_loggers:
-        for log_handler in storage_logger.handlers:
-            storage_logger.removeHandler(log_handler)
-    out_file_handler = logging.FileHandler(job_out)
-    out_file_handler.setLevel(logger_level)
-    out_file_handler.setFormatter(logger_formatter)
-    err_file_handler = logging.FileHandler(job_err)
-    err_file_handler.setLevel("ERROR")
-    err_file_handler.setFormatter(logger_formatter)
-    logger.addHandler(out_file_handler)
-    logger.addHandler(err_file_handler)
-    for storage_logger in storage_loggers:
-        storage_logger.addHandler(out_file_handler)
-        storage_logger.addHandler(err_file_handler)
-
-    if __debug__:
-        # From now onwards the log is in the job out and err files
-        logger.debug("-" * 100)
-        logger.debug("Received task in process: %s" % str(process_name))
-        logger.debug("TASK CMD: %s" % str(current_line))
-
-    try:
-        # Check thread affinity
-        if THREAD_AFFINITY:
-            # The cpu affinity can be long if multiple cores have been
-            # assigned. To avoid issues, we get just the first id.
-            real_affinity = thread_affinity.getaffinity()
-            cpus = str(real_affinity[0])
-            num_cpus = len(real_affinity)
-            emit_manual_event(cpus, inside=True, cpu_affinity=True)
-            emit_manual_event(num_cpus, inside=True, cpu_number=True)
-            binded_cpus = True
-            if not affinity_ok:
-                logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
-                               cpus)
-
-        # Setup process environment
-        cn = int(current_line[12])
-        cn_names = ','.join(current_line[13:13 + cn])
-        cu = current_line[13 + cn]
         if __debug__:
-            logger.debug("Process environment:")
-            logger.debug("\t - Number of nodes: %s" % (str(cn)))
-            logger.debug("\t - Hostnames: %s" % str(cn_names))
-            logger.debug("\t - Number of threads: %s" % (str(cu)))
-        setup_environment(cn, cn_names, cu)
+            logger.debug(HEADER + "[%s] Received task with id: %s" %
+                         (str(process_name), str(job_id)))
+            logger.debug(HEADER + "[%s] - TASK CMD: %s" %
+                         (str(process_name), str(current_line)))
 
-        # Execute task
-        result = execute_task(process_name,
-                              storage_conf,
-                              current_line[9:],
-                              tracing,
-                              logger,
-                              logger_cfg,
-                              (job_out, job_err),
-                              False,
-                              None,
-                              cache_queue,
-                              cache_ids,
-                              cache_profiler
-                              )
-        # The ignored variable is timed_out
-        exit_value, new_types, new_values, _, except_msg = result
+        # Swap logger from stream handler to file handler
+        # All task output will be redirected to job.out/err
+        for log_handler in logger_handlers:
+            logger.removeHandler(log_handler)
+        for storage_logger in storage_loggers:
+            for log_handler in storage_logger.handlers:
+                storage_logger.removeHandler(log_handler)
+        out_file_handler = logging.FileHandler(job_out)
+        out_file_handler.setLevel(logger_level)
+        out_file_handler.setFormatter(logger_formatter)
+        err_file_handler = logging.FileHandler(job_err)
+        err_file_handler.setLevel("ERROR")
+        err_file_handler.setFormatter(logger_formatter)
+        logger.addHandler(out_file_handler)
+        logger.addHandler(err_file_handler)
+        for storage_logger in storage_loggers:
+            storage_logger.addHandler(out_file_handler)
+            storage_logger.addHandler(err_file_handler)
 
-        if exit_value == 0:
-            # Task has finished without exceptions
-            # endTask jobId exitValue message
-            message = build_successful_message(new_types, new_values, job_id, exit_value)  # noqa: E501
+        if __debug__:
+            # From now onwards the log is in the job out and err files
+            logger.debug("-" * 100)
+            logger.debug("Received task in process: %s" % str(process_name))
+            logger.debug("TASK CMD: %s" % str(current_line))
+
+        try:
+            # Check thread affinity
+            if THREAD_AFFINITY:
+                # The cpu affinity can be long if multiple cores have been
+                # assigned. To avoid issues, we get just the first id.
+                real_affinity = thread_affinity.getaffinity()
+                cpus = str(real_affinity[0])
+                num_cpus = len(real_affinity)
+                emit_manual_event(int(cpus) + 1, inside=True, cpu_affinity=True)
+                emit_manual_event(int(num_cpus), inside=True, cpu_number=True)
+                affinity_event_emit = True
+                if not binded_cpus:
+                    logger.warning("This task is going to be executed with default thread affinity %s" %  # noqa: E501
+                                   str(real_affinity))
+
+            # Setup process environment
+            cn = int(current_line[12])
+            cn_names = ",".join(current_line[13:13 + cn])
+            cu = current_line[13 + cn]
             if __debug__:
-                logger.debug("%s - Pipe %s END TASK MESSAGE: %s" %
-                             (str(process_name),
-                              str(pipe.output_pipe),
-                              str(message)))
-        elif exit_value == 2:
-            # Task has finished with a COMPSs Exception
-            # compssExceptionTask jobId exitValue message
-            except_msg, message = build_compss_exception_message(except_msg, job_id)  # noqa: E501
-            if __debug__:
-                logger.debug(
-                    "%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s" %
-                    (str(process_name),
-                     str(pipe.output_pipe),
-                     str(except_msg)))
-        else:
-            # An exception other than COMPSsException has been raised
-            # within the task
-            message = build_exception_message(job_id, exit_value)
-            if __debug__:
-                logger.debug("%s - Pipe %s END TASK MESSAGE: %s" %
-                             (str(process_name),
-                              str(pipe.output_pipe),
-                              str(message)))
+                logger.debug("Process environment:")
+                logger.debug("\t - Number of nodes: %s" % (str(cn)))
+                logger.debug("\t - Hostnames: %s" % str(cn_names))
+                logger.debug("\t - Number of threads: %s" % (str(cu)))
+            setup_environment(cn, cn_names, cu)
 
-        # The return message is:
-        #
-        # TaskResult ==> jobId exitValue D List<Object>
-        #
-        # Where List<Object> has D * 2 length:
-        # D = #parameters == #task_parameters +
-        #                    (has_target ? 1 : 0) +
-        #                    #returns
-        # And contains a pair of elements per parameter:
-        #     - Parameter new type.
-        #     - Parameter new value:
-        #         - 'null' if it is NOT a PSCO
-        #         - PSCOId (String) if is a PSCO
-        # Example:
-        #     4 null 9 null 12 <pscoid>
-        #
-        # The order of the elements is: parameters + self + returns
-        #
-        # This is sent through the pipe with the END_TASK message.
-        # If the task had an object or file as parameter and the worker
-        # returns the id, the runtime can change the type (and locations)
-        # to a EXTERNAL_OBJ_T.
+            # Execute task
+            result = execute_task(process_name,
+                                  storage_conf,
+                                  current_line[9:],
+                                  tracing,
+                                  logger,
+                                  logger_cfg,
+                                  (job_out, job_err),
+                                  False,
+                                  None,
+                                  cache_queue,
+                                  cache_ids,
+                                  cache_profiler)
+            # The ignored variable is timed_out
+            exit_value, new_types, new_values, _, except_msg = result
 
-    except Exception as e:
-        logger.exception("%s - Exception %s" % (str(process_name),
-                                                str(e)))
-        if queue:
-            queue.put("EXCEPTION")
+            if exit_value == 0:
+                # Task has finished without exceptions
+                # endTask jobId exitValue message
+                message = build_successful_message(new_types, new_values, job_id, exit_value)  # noqa: E501
+                if __debug__:
+                    logger.debug("%s - Pipe %s END TASK MESSAGE: %s" %
+                                 (str(process_name),
+                                  str(pipe.output_pipe),
+                                  str(message)))
+            elif exit_value == 2:
+                # Task has finished with a COMPSs Exception
+                # compssExceptionTask jobId exitValue message
+                except_msg, message = build_compss_exception_message(except_msg, job_id)  # noqa: E501
+                if __debug__:
+                    logger.debug(
+                        "%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s" %
+                        (str(process_name),
+                         str(pipe.output_pipe),
+                         str(except_msg)))
+            else:
+                # An exception other than COMPSsException has been raised
+                # within the task
+                message = build_exception_message(job_id, exit_value)
+                if __debug__:
+                    logger.debug("%s - Pipe %s END TASK MESSAGE: %s" %
+                                 (str(process_name),
+                                  str(pipe.output_pipe),
+                                  str(message)))
 
-        # Stop the worker process
-        return False
+            # The return message is:
+            #
+            # TaskResult ==> jobId exitValue D List<Object>
+            #
+            # Where List<Object> has D * 2 length:
+            # D = #parameters == #task_parameters +
+            #                    (has_target ? 1 : 0) +
+            #                    #returns
+            # And contains a pair of elements per parameter:
+            #     - Parameter new type.
+            #     - Parameter new value:
+            #         - "null" if it is NOT a PSCO
+            #         - PSCOId (String) if is a PSCO
+            # Example:
+            #     4 null 9 null 12 <pscoid>
+            #
+            # The order of the elements is: parameters + self + returns
+            #
+            # This is sent through the pipe with the END_TASK message.
+            # If the task had an object or file as parameter and the worker
+            # returns the id, the runtime can change the type (and locations)
+            # to a EXTERNAL_OBJ_T.
 
-    # Clean environment variables
-    if __debug__:
-        logger.debug("Cleaning environment.")
-    clean_environment(cpus, gpus)
-    if binded_cpus:
-        emit_manual_event(0, inside=True, cpu_affinity=True)
-        emit_manual_event(0, inside=True, cpu_number=True)
-    if binded_gpus:
-        emit_manual_event(0, inside=True, gpu_affinity=True)
+        except Exception as e:
+            logger.exception("%s - Exception %s" % (str(process_name),
+                                                    str(e)))
+            if queue:
+                queue.put("EXCEPTION")
 
-    # Restore loggers
-    if __debug__:
-        logger.debug("Restoring loggers.")
-        logger.debug("-" * 100)
-        # No more logs in job out and err files
-    # Restore worker log
-    logger.removeHandler(out_file_handler)
-    logger.removeHandler(err_file_handler)
-    logger.handlers = []
-    for handler in logger_handlers:
-        logger.addHandler(handler)
-    i = 0
-    for storage_logger in storage_loggers:
-        storage_logger.removeHandler(out_file_handler)
-        storage_logger.removeHandler(err_file_handler)
-        storage_logger.handlers = []
-        for handler in storage_loggers_handlers[i]:
-            storage_logger.addHandler(handler)
-        i += 1
-    if __debug__:
-        logger.debug(HEADER + "[%s] Finished task with id: %s" %
-                     (str(process_name), str(job_id)))
+            # Stop the worker process
+            return False
 
-    # Notify the runtime that the task has finished
-    pipe.write(message)
+        # Clean environment variables
+        if __debug__:
+            logger.debug("Cleaning environment.")
+        clean_environment(binded_cpus, binded_gpus)
+        if affinity_event_emit:
+            emit_manual_event(0, inside=True, cpu_affinity=True)
+            emit_manual_event(0, inside=True, cpu_number=True)
+        if binded_gpus:
+            emit_manual_event(0, inside=True, gpu_affinity=True)
 
-    return True
+        # Restore loggers
+        if __debug__:
+            logger.debug("Restoring loggers.")
+            logger.debug("-" * 100)
+            # No more logs in job out and err files
+        # Restore worker log
+        logger.removeHandler(out_file_handler)
+        logger.removeHandler(err_file_handler)
+        logger.handlers = []
+        for handler in logger_handlers:
+            logger.addHandler(handler)
+        i = 0
+        for storage_logger in storage_loggers:
+            storage_logger.removeHandler(out_file_handler)
+            storage_logger.removeHandler(err_file_handler)
+            storage_logger.handlers = []
+            for handler in storage_loggers_handlers[i]:
+                storage_logger.addHandler(handler)
+            i += 1
+        if __debug__:
+            logger.debug(HEADER + "[%s] Finished task with id: %s" %
+                         (str(process_name), str(job_id)))
+
+        # Notify the runtime that the task has finished
+        pipe.write(message)
+
+        return True
 
 
-@emit_event(PROCESS_PING_EVENT)
 def process_ping(pipe, logger, process_name):  # noqa
-    # type: (Pipe, ..., str) -> bool
+    # type: (Pipe, typing.Any, str) -> bool
     """ Process ping message.
 
     Response: Pong.
@@ -695,18 +709,18 @@ def process_ping(pipe, logger, process_name):  # noqa
     :param process_name: Process name.
     :return: True if success. False otherwise.
     """
-    if __debug__:
-        logger.debug(HEADER + "[%s] Received ping." % str(process_name))
-    try:
-        pipe.write(PONG_TAG)
-    except Exception:  # noqa
-        return False
-    return True
+    with event_worker(PROCESS_PING_EVENT):
+        if __debug__:
+            logger.debug(HEADER + "[%s] Received ping." % str(process_name))
+        try:
+            pipe.write(PONG_TAG)
+        except Exception:  # noqa
+            return False
+        return True
 
 
-@emit_event(PROCESS_QUIT_EVENT)
 def process_quit(logger, process_name):  # noqa
-    # type: (..., str) -> bool
+    # type: (typing.Any, str) -> bool
     """ Process quit message.
 
     Response: False.
@@ -715,14 +729,14 @@ def process_quit(logger, process_name):  # noqa
     :param process_name: Process name.
     :return: Always false.
     """
-    if __debug__:
-        logger.debug(HEADER + "[%s] Quitting." % str(process_name))
-    return False
+    with event_worker(PROCESS_QUIT_EVENT):
+        if __debug__:
+            logger.debug(HEADER + "[%s] Received quit." % str(process_name))
+        return False
 
 
-@emit_event(BIND_CPUS_EVENT, master=False, inside=True)
 def bind_cpus(cpus, process_name, logger):  # noqa
-    # type: (str, str, ...) -> bool
+    # type: (str, str, typing.Any) -> bool
     """ Bind the given CPUs for core affinity to this process.
 
     :param cpus: Target CPUs.
@@ -730,25 +744,27 @@ def bind_cpus(cpus, process_name, logger):  # noqa
     :param logger: Logger.
     :return: True if success, False otherwise.
     """
-    os.environ['COMPSS_BINDED_CPUS'] = cpus
-    if __debug__:
-        logger.debug(HEADER + "[%s] Assigning affinity %s" %
-                     (str(process_name), str(cpus)))
-    cpus = list(map(int, cpus.split(",")))
-    try:
-        thread_affinity.setaffinity(cpus)
-    except Exception:  # noqa
+    with event_inside_worker(BIND_CPUS_EVENT):
         if __debug__:
-            logger.error(HEADER +
-                         "[%s] WARNING: could not assign affinity %s" %
+            logger.debug(HEADER + "[%s] Assigning affinity %s" %
                          (str(process_name), str(cpus)))
-        return False
-    return True
+        cpus_list = cpus.split(",")
+        cpus_map = list(map(int, cpus_list))
+        try:
+            thread_affinity.setaffinity(cpus_map)
+        except Exception:  # noqa
+            if __debug__:
+                logger.error(HEADER +
+                             "[%s] WARNING: could not assign affinity %s" %
+                             (str(process_name), str(cpus_map)))
+            return False
+        # Export only if success
+        os.environ["COMPSS_BINDED_CPUS"] = cpus
+        return True
 
 
-@emit_event(BIND_GPUS_EVENT, master=False, inside=True)
 def bind_gpus(gpus, process_name, logger):  # noqa
-    # type: (str, str, ...) -> None
+    # type: (str, str, typing.Any) -> None
     """ Bind the given GPUs to this process.
 
     :param gpus: Target GPUs.
@@ -756,15 +772,15 @@ def bind_gpus(gpus, process_name, logger):  # noqa
     :param logger: Logger.
     :return: None
     """
-    os.environ['COMPSS_BINDED_GPUS'] = gpus
-    os.environ['CUDA_VISIBLE_DEVICES'] = gpus
-    os.environ['GPU_DEVICE_ORDINAL'] = gpus
-    if __debug__:
-        logger.debug(HEADER + "[%s] Assigning GPU %s" %
-                     (str(process_name), str(gpus)))
+    with event_inside_worker(BIND_GPUS_EVENT):
+        os.environ["COMPSS_BINDED_GPUS"] = gpus
+        os.environ["CUDA_VISIBLE_DEVICES"] = gpus
+        os.environ["GPU_DEVICE_ORDINAL"] = gpus
+        if __debug__:
+            logger.debug(HEADER + "[%s] Assigning GPU %s" %
+                         (str(process_name), str(gpus)))
 
 
-@emit_event(SETUP_ENVIRONMENT_EVENT, master=False, inside=True)
 def setup_environment(cn, cn_names, cu):
     # type: (int, str, str) -> None
     """ Sets the environment (mainly environment variables).
@@ -774,15 +790,15 @@ def setup_environment(cn, cn_names, cu):
     :param cu: Number of COMPSs threads.
     :return: None
     """
-    os.environ["COMPSS_NUM_NODES"] = str(cn)
-    os.environ["COMPSS_HOSTNAMES"] = cn_names
-    os.environ["COMPSS_NUM_THREADS"] = cu
-    os.environ["OMP_NUM_THREADS"] = cu
+    with event_inside_worker(SETUP_ENVIRONMENT_EVENT):
+        os.environ["COMPSS_NUM_NODES"] = str(cn)
+        os.environ["COMPSS_HOSTNAMES"] = cn_names
+        os.environ["COMPSS_NUM_THREADS"] = cu
+        os.environ["OMP_NUM_THREADS"] = cu
 
 
-@emit_event(BUILD_SUCCESSFUL_MESSAGE_EVENT, master=False, inside=True)
 def build_successful_message(new_types, new_values, job_id, exit_value):
-    # type: (list, list, int, int) -> str
+    # type: (list, list, str, int) -> str
     """ Generate a successful message.
 
     :param new_types: New types (can change if INOUT).
@@ -791,33 +807,33 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
     :param exit_value: Exit value.
     :return: Successful message.
     """
-    # Task has finished without exceptions
-    # endTask jobId exitValue message
-    params = build_return_params_message(new_types, new_values)
-    message = " ".join((END_TASK_TAG,
-                        str(job_id),
-                        str(exit_value),
-                        str(params) + "\n"))
-    return message
+    with event_inside_worker(BUILD_SUCCESSFUL_MESSAGE_EVENT):
+        # Task has finished without exceptions
+        # endTask jobId exitValue message
+        params = build_return_params_message(new_types, new_values)
+        message = " ".join((END_TASK_TAG,
+                            str(job_id),
+                            str(exit_value),
+                            str(params) + "\n"))
+        return message
 
 
-@emit_event(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_compss_exception_message(except_msg, job_id):
-    # type: (str, int) -> (str, str)
+    # type: (str, str) -> typing.Tuple[str, str]
     """ Generate a COMPSs exception message.
 
     :param except_msg: Exception stacktrace.
     :param job_id: Job identifier.
     :return: Exception message and message.
     """
-    except_msg = except_msg.replace(" ", "_")
-    message = " ".join((COMPSS_EXCEPTION_TAG,
-                        str(job_id),
-                        str(except_msg) + "\n"))
-    return except_msg, message
+    with event_inside_worker(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT):
+        except_msg = except_msg.replace(" ", "_")
+        message = " ".join((COMPSS_EXCEPTION_TAG,
+                            str(job_id),
+                            str(except_msg) + "\n"))
+        return except_msg, message
 
 
-@emit_event(BUILD_EXCEPTION_MESSAGE_EVENT, master=False, inside=True)
 def build_exception_message(job_id, exit_value):
     # type: (str, int) -> str
     """ Generate an exception message.
@@ -826,27 +842,28 @@ def build_exception_message(job_id, exit_value):
     :param exit_value: Exit value.
     :return: Exception message.
     """
-    message = " ".join((END_TASK_TAG,
-                        str(job_id),
-                        str(exit_value) + "\n"))
-    return message
+    with event_inside_worker(BUILD_EXCEPTION_MESSAGE_EVENT):
+        message = " ".join((END_TASK_TAG,
+                            str(job_id),
+                            str(exit_value) + "\n"))
+        return message
 
 
-@emit_event(CLEAN_ENVIRONMENT_EVENT, master=False, inside=True)
 def clean_environment(cpus, gpus):
-    # type: (str, str) -> None
+    # type: (bool, bool) -> None
     """ Clean the environment
 
-    Mainly unset environment variables).
+    Mainly unset environment variables.
 
-    :param cpus: Binded cpus.
-    :param gpus: Binded gpus.
+    :param cpus: If binded cpus.
+    :param gpus: If binded gpus.
     :return: None
     """
-    if cpus != "-" and 'COMPSS_BINDED_CPUS' in os.environ:
-        del os.environ['COMPSS_BINDED_CPUS']
-    if gpus != "-":
-        del os.environ['COMPSS_BINDED_GPUS']
-        del os.environ['CUDA_VISIBLE_DEVICES']
-        del os.environ['GPU_DEVICE_ORDINAL']
-    del os.environ['COMPSS_HOSTNAMES']
+    with event_inside_worker(CLEAN_ENVIRONMENT_EVENT):
+        if cpus:
+            del os.environ["COMPSS_BINDED_CPUS"]
+        if gpus:
+            del os.environ["COMPSS_BINDED_GPUS"]
+            del os.environ["CUDA_VISIBLE_DEVICES"]
+            del os.environ["GPU_DEVICE_ORDINAL"]
+        del os.environ["COMPSS_HOSTNAMES"]

@@ -23,7 +23,7 @@ import time
 import tempfile
 import shutil
 
-from pycompss.util.process.manager import new_process
+from pycompss.util.process.manager import create_process
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.api.task import task
@@ -88,6 +88,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
             "localhost",
             "49049",
             "false",
+            "false",
             "1",
             executor_outbound,
             executor_inbound,
@@ -100,11 +101,12 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
             temp_folder,
             "false",
             "true",
-            0,
+            "0",
             "null",
             "NONE",
             "localhost",
             "49049",
+            "false",
             "false",
             "1",
             executor_outbound,
@@ -126,9 +128,8 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
 
     sys.path.append(current_path)
     # Start the piper worker in a separate thread
-    worker = new_process(target=worker_thread,
-                         args=(sys.argv, current_path))
-
+    worker = create_process(target=worker_thread,
+                            args=(sys.argv, current_path))
     if mpi_worker:
         evaluate_worker(worker, "test_mpi_piper", pipes, files, current_path,
                         executor_out, executor_in,
@@ -145,6 +146,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
 
 def create_files():
     temp_folder = tempfile.mkdtemp()
+    os.mkdir(os.path.join(temp_folder, "log"))
     executor_outbound = tempfile.NamedTemporaryFile(delete=False).name
     executor_inbound = tempfile.NamedTemporaryFile(delete=False).name
     control_worker_outbound = tempfile.NamedTemporaryFile(delete=False).name
@@ -260,8 +262,8 @@ def evaluate_worker(worker, name, pipes, files, current_path,
         if os.path.isfile(pipe):
             os.remove(pipe)
     # Check logs
-    out_log = os.path.join(temp_folder, "binding_worker.out")
-    err_log = os.path.join(temp_folder, "binding_worker.err")
+    out_log = os.path.join(temp_folder, "log", "binding_worker.out")
+    err_log = os.path.join(temp_folder, "log", "binding_worker.err")
     if os.path.exists(err_log):
         raise PyCOMPSsException(ERROR_MESSAGE + err_log)
     with open(out_log, "r") as f:

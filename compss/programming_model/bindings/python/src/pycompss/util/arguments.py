@@ -19,9 +19,9 @@
 
 """
 PyCOMPSs Util - Arguments
-==========================
-    This file contains the common methods to do any argument check
-    or management.
+=========================
+    This file contains the common methods to do any argument (used in a
+    decorator) check or management.
 """
 
 from __future__ import print_function
@@ -29,12 +29,17 @@ import sys
 import re
 
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 UNASSIGNED = "[unassigned]"
 
 
-def check_arguments(mandatory_arguments, deprecated_arguments,
-                    supported_arguments, argument_names, decorator):
+def check_arguments(mandatory_arguments,   # type: typing.Set[str]
+                    deprecated_arguments,  # type: typing.Set[str]
+                    supported_arguments,   # type: typing.Set[str]
+                    argument_names,        # type: typing.List[str]
+                    decorator              # type: str
+                    ):                     # type: (...) -> None
     """
     Performs all needed checks to the decorator definition:
         1.- Checks that the mandatory arguments are present (otherwise, raises
@@ -54,79 +59,89 @@ def check_arguments(mandatory_arguments, deprecated_arguments,
                               argument_names,
                               decorator_str)
     # Look for deprecated arguments
-    __check_deprecated_arguments(deprecated_arguments,
-                                 argument_names,
-                                 decorator_str)
+    __check_deprecated_arguments__(deprecated_arguments,
+                                   argument_names,
+                                   decorator_str)
     # Look for unexpected arguments
-    __check_unexpected_arguments(supported_arguments,
-                                 argument_names,
-                                 decorator_str)
+    __check_unexpected_arguments__(supported_arguments,
+                                   argument_names,
+                                   decorator_str)
 
 
-def check_mandatory_arguments(mandatory_arguments, arguments, where):
+def check_mandatory_arguments(mandatory_arguments,  # type: typing.Set[str]
+                              argument_names,       # type: typing.List[str]
+                              where                 # type: str
+                              ):                    # type: (...) -> None
     """
     This method checks that all mandatory arguments are in arguments.
 
     :param mandatory_arguments: Set of supported arguments
-    :param arguments: List of arguments to check
+    :param argument_names: List of arguments to check
     :param where: Location of the argument
     :return: None
     """
     for argument in mandatory_arguments:
-        if '_' in argument:
-            if argument not in arguments and \
-                    __to_camel_case(argument) not in arguments:
+        if "_" in argument:
+            if argument not in argument_names and \
+                    __to_camel_case__(argument) not in argument_names:
                 # The mandatory argument or it converted to camel case is
                 # not in the arguments
-                __error_mandatory_argument(where, argument)
+                __error_mandatory_argument__(where, argument)
         else:
-            if argument not in arguments:
+            if argument not in argument_names:
                 # The mandatory argument is not in the arguments
-                __error_mandatory_argument(where, argument)
+                __error_mandatory_argument__(where, argument)
 
 
-def __to_camel_case(argument):
-    components = argument.split('_')
-    return components[0] + ''.join(x.title() for x in components[1:])
+def __to_camel_case__(argument):
+    # type: (str) -> str
+    components = argument.split("_")
+    return components[0] + "".join(x.title() for x in components[1:])
 
 
-def __error_mandatory_argument(decorator, argument):
+def __error_mandatory_argument__(decorator, argument):
+    # type: (str, str) -> None
     """
     Raises an exception when the argument is mandatory in the decorator
 
     :param argument: Argument name
     :param decorator: Decorator name
     :return: None
-    :raise PyCOMPSsException: With the decorator and argument that produced the error
+    :raise PyCOMPSsException: With the decorator and argument that produced
+                              the error
     """
-    raise PyCOMPSsException("The argument " + str(argument) +
-                            " is mandatory in the " + str(decorator) + " decorator.")
+    raise PyCOMPSsException(
+        "The argument %s is mandatory in the %s decorator." % (str(argument),
+                                                               str(decorator)))
 
 
-def __check_deprecated_arguments(deprecated_arguments, arguments, where):
+def __check_deprecated_arguments__(deprecated_arguments,  # type: typing.Set[str]
+                                   argument_names,        # type: typing.List[str]
+                                   where                  # type: str
+                                   ):                     # type: (...) -> None
     """
     This method looks for deprecated arguments and displays a warning
     if found.
 
     :param deprecated_arguments: Set of deprecated arguments
-    :param arguments: List of arguments to check
+    :param argument_names: List of arguments to check
     :param where: Location of the argument
     :return: None
     :raise PyCOMPSsException: With the unsupported argument
     """
-    for argument in arguments:
-        if argument == 'isModifier':
-            message = "ERROR: Unsupported argument: isModifier Found in " + \
-                      str(where) + ".\n" + \
-                      "       Please, use: target_direction"
+    for argument in argument_names:
+        if argument == "isModifier":
+            message = "ERROR: Unsupported argument: isModifier Found in %s.\n" \
+                      "       Please, use: target_direction" % str(where)
             print(message, file=sys.stderr)  # also show the warn in stderr
             raise PyCOMPSsException("Unsupported argument: " + str(argument))
 
         if argument in deprecated_arguments:
-            current_argument = re.sub('([A-Z]+)', r'_\1', argument).lower()
-            message = "WARNING: Deprecated argument: " + str(argument) + \
-                      " Found in " + str(where) + ".\n" + \
-                      "         Please, use: " + current_argument
+            current_argument = re.sub("([A-Z]+)", r"_\1", argument).lower()
+            message = "WARNING: Deprecated argument: %s Found in %s.\n" \
+                      "         Please, use: %s" % (str(argument),
+                                                    str(where),
+                                                    current_argument)
 
             # The print through stdout is disabled to prevent the message to
             # appear twice in the console. So the warning message will only
@@ -135,20 +150,23 @@ def __check_deprecated_arguments(deprecated_arguments, arguments, where):
             print(message, file=sys.stderr)  # also show the warn in stderr
 
 
-def __check_unexpected_arguments(supported_arguments, arguments, where):
+def __check_unexpected_arguments__(supported_arguments,  # type: typing.Set[str]
+                                   argument_names,       # type: typing.List[str]
+                                   where                 # type: str
+                                   ):                    # type: (...) -> None
     """
     This method looks for unexpected arguments and displays a warning
     if found.
 
     :param supported_arguments: Set of supported arguments
-    :param arguments: List of arguments to check
+    :param argument_names: List of arguments to check
     :param where: Location of the argument
     :return: None
     """
-    for argument in arguments:
+    for argument in argument_names:
         if argument not in supported_arguments:
-            message = "WARNING: Unexpected argument: " + str(argument) + \
-                      " Found in " + str(where) + "."
+            message = "WARNING: Unexpected argument: %s Found in %s." % \
+                      (str(argument), str(where))
             # The print through stdout is disabled to prevent the message to
             # appear twice in the console. So the warning message will only
             # appear in STDERR.

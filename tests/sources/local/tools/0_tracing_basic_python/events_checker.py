@@ -203,11 +203,19 @@ def check_events(trace_events, event_definitions):
             if EVENT_LABEL in rule:
                 expected_events = rule[EVENT_LABEL].keys()
                 expected_events.sort()
+                # Check that all expected events are found
                 for ev in expected_events:
                     if ev not in unique_events_type:
                         report.append("ERROR: Missing event %d:%d found" % (event_type, ev))
                         ok = False
+                # Check if there are events not defined in expected events
+                if RANGE_LABEL not in rule:
+                    for ev in unique_events_type:
+                        if ev not in expected_events:
+                            report.append("ERROR: Unexpected event %d:%d found" % (event_type, ev))
+                            ok = False
             if RANGE_LABEL in rule:
+                ## falta aqui comprobar que la suma de eventos equivale al 0
                 expected_range = (rule[RANGE_LABEL][0], rule[RANGE_LABEL][1])
                 unique_events_type.pop(0)  # remove 0
                 for ev in unique_events_type:
@@ -216,6 +224,9 @@ def check_events(trace_events, event_definitions):
                     if ev < min_ev or ev > max_ev:
                         report.append("ERROR: Event out of range of type %d found with value %d (Expected range: %d-%d)" % (event_type, ev, min_ev, max_ev))
                         ok = False
+                if not EVENT_LABEL in rule:
+                    report.append("ERROR: 0 events undefined for range %d" % (event_type))
+                    ok = False
         if not ok:
             print("\t\t- ERROR found")
     return report
@@ -276,6 +287,15 @@ def check_rules(trace_events, event_definitions):
                 print("\t\t- OK appearances (%s)" % EVENT_LABEL)
             else:
                 print("\t\t- ERROR appearances (%s)" % (EVENT_LABEL))
+            # TODO: Check amount of zeros - some of the runtime 0 events are emitted as 0 (constraints)
+            # if RANGE_LABEL not in rule:
+            #     expected_zeros = accumulated_events[0]
+            #     amount_zeros = 0
+            #     for event, appearances in accumulated_events.items():
+            #         if event != 0:
+            #             amount_zeros += appearances
+            #     if expected_zeros != amount_zeros:
+            #         report.append("ERROR: Unexpected amount of zeros in type %d found %d (Expected %d)" % (event_type, amount_zeros, expected_zeros))
 
         is_undefined_range = False
         undefined_appearances_range = None

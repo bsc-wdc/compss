@@ -98,6 +98,11 @@
         # Pip package sets these symbolic links and updates the 'activate' script accordingly.
         create_symbolic_links "${python_version}" "${PYCOMPSS_HOME}"
       fi
+
+      # Copy mypy compiling script
+      if [ "${python_version}" == "3" ]; then
+        cp "${SCRIPT_DIR}/src/mypy_compile.sh" "${targetDir}/3"
+      fi
     else
       echo "ERROR! ${python_command} IS NOT AVAILABLE."
       exit 1

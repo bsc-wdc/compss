@@ -24,7 +24,9 @@ PyCOMPSs Util - Object sizing algorithm
 """
 
 from __future__ import print_function
-from sys import getsizeof, stderr
+from pycompss.util.typing_helper import typing
+from sys import getsizeof
+from sys import stderr
 from itertools import chain
 from collections import deque
 from collections import Iterator
@@ -46,7 +48,7 @@ def _dict_handler(d):
 
 
 def _user_object_handler(d):
-    # type: (dict) -> Iterator
+    # type: (typing.Any) -> Iterator
     """ User object to dictionary handler converter.
 
     :param d: User object.
@@ -56,7 +58,7 @@ def _user_object_handler(d):
 
 
 def total_sizeof(o, handlers=None, verbose=False):
-    # type: (object, Iterator, bool) -> int
+    # type: (typing.Any, Iterator, bool) -> int
     """ Calculate the size of an object.
 
     Returns the approximate memory footprint an object and all of its contents.
@@ -77,8 +79,8 @@ def total_sizeof(o, handlers=None, verbose=False):
                     dict: _dict_handler,
                     set: iter,
                     frozenset: iter,
-                    }
-    if type(o) not in all_handlers.keys() and hasattr(o, '__dict__'):
+                    }  # type: typing.Dict[typing.Any, typing.Any]
+    if type(o) not in all_handlers.keys() and hasattr(o, "__dict__"):
         # It is something else include its __dict__
         all_handlers[type(o)] = _user_object_handler
     if handlers is not None:
@@ -87,6 +89,12 @@ def total_sizeof(o, handlers=None, verbose=False):
     default_size = getsizeof(0)  # estimate sizeof object without __sizeof__
 
     def sizeof(obj):
+        # type: (typing.Any) -> int
+        """ Calculate the size o the given object in bytes.
+
+        :param obj: Object to measure
+        :return: The object size in bytes
+        """
         if id(obj) in seen:  # do not double count the same object
             return 0
         seen.add(id(obj))

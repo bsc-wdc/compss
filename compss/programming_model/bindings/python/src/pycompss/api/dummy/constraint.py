@@ -23,6 +23,8 @@ PyCOMPSs Dummy API - Constraint
     This file contains the dummy class constraint used as decorator.
 """
 
+from pycompss.util.typing_helper import typing
+
 
 class Constraint(object):
     """
@@ -30,15 +32,17 @@ class Constraint(object):
     """
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f):
+        # type: (typing.Any) -> typing.Any
         def wrapped_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return f(*args, **kwargs)
 
         return wrapped_f
 
 
 constraint = Constraint
-CONSTRAINT = Constraint

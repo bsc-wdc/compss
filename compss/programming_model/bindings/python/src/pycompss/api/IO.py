@@ -19,17 +19,18 @@
 
 """
 PyCOMPSs API - IO
-=====================
+=================
     This file contains the class constraint, needed for the IO task
     definition through the decorator.
 """
 
+from pycompss.util.typing_helper import typing
 from functools import wraps
+
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -38,20 +39,19 @@ if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {}
-SUPPORTED_ARGUMENTS = {''}
-DEPRECATED_ARGUMENTS = {''}
+MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = set()   # type: typing.Set[str]
+DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class IO(PyCOMPSsDecorator):
+class IO(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on IO task creation.
     """
 
-    __slots__ = []
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -61,8 +61,14 @@ class IO(PyCOMPSsDecorator):
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         """
-        decorator_name = "".join(('@', IO.__name__.lower()))
-        super(IO, self).__init__(decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", IO.__name__.lower()))
+        # super(IO, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
         if self.scope:
             # Check the arguments
             check_arguments(MANDATORY_ARGUMENTS,
@@ -72,6 +78,7 @@ class IO(PyCOMPSsDecorator):
                             decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the IO parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -79,6 +86,7 @@ class IO(PyCOMPSsDecorator):
         """
         @wraps(user_function)
         def io_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("IO"))
 
@@ -88,7 +96,7 @@ class IO(PyCOMPSsDecorator):
             if (context.in_master() or context.is_nesting_enabled()) \
                     and not self.core_element_configured:
                 # master code - or worker with nesting enabled
-                self.__configure_core_element__(kwargs, user_function)
+                self.__configure_core_element__(kwargs)
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -99,14 +107,13 @@ class IO(PyCOMPSsDecorator):
         io_f.__doc__ = user_function.__doc__
         return io_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @IO.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:

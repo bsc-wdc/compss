@@ -25,6 +25,7 @@ PyCOMPSs Util - Interactive Events
 """
 
 import os
+from pycompss.util.typing_helper import typing
 
 from pycompss.util.interactive.outwatcher import STDW
 
@@ -80,8 +81,8 @@ def __pre_run_cell__():
         if runtime_crashed:
             # Display popup with the error messages
             current_flags = str(os.environ["PYCOMPSS_CURRENT_FLAGS"])
-            header = []
-            footer = []
+            header = []  # type: typing.List[str]
+            footer = []  # type: typing.List[str]
             popup_body = header + messages + footer
             error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
             error_messages_html = error_messages_html.replace("'", "")
@@ -178,30 +179,30 @@ def __post_run_cell__():
 #######################################
 
 def setup_event_manager(ipython):
-    # type: (...) -> None
+    # type: (typing.Any) -> None
     """ Instantiates an Ipython event manager and registers the event handlers.
 
     :param ipython: IPython instance where to register the event manager.
     :return: None
     """
-    # ipython.events.register('pre_execute', __pre_execute__)
-    ipython.events.register('pre_run_cell', __pre_run_cell__)
-    # ipython.events.register('post_execute', __post_execute__)
-    ipython.events.register('post_run_cell', __post_run_cell__)
+    # ipython.events.register("pre_execute", __pre_execute__)
+    ipython.events.register("pre_run_cell", __pre_run_cell__)
+    # ipython.events.register("post_execute", __post_execute__)
+    ipython.events.register("post_run_cell", __post_run_cell__)
 
 
 def release_event_manager(ipython):
-    # type: (...) -> None
+    # type: (typing.Any) -> None
     """ Releases the event manager in the given ipython instance.
 
     :param ipython: IPython instance where to release the event manager.
     :return: None
     """
     try:
-        # ipython.events.unregister('pre_execute', __pre_execute__)
-        ipython.events.unregister('pre_run_cell', __pre_run_cell__)
-        # ipython.events.unregister('post_execute', __post_execute__)
-        ipython.events.unregister('post_run_cell', __post_run_cell__)
+        # ipython.events.unregister("pre_execute", __pre_execute__)
+        ipython.events.unregister("pre_run_cell", __pre_run_cell__)
+        # ipython.events.unregister("post_execute", __post_execute__)
+        ipython.events.unregister("post_run_cell", __post_run_cell__)
     except ValueError:
         # The event was already unregistered
         pass

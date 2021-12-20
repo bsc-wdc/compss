@@ -29,6 +29,7 @@ import pycompss.worker.container.pythonpath_fixer  # noqa
 import os
 import sys
 import logging
+from pycompss.util.typing_helper import typing
 
 # PyCOMPSs imports
 import pycompss.util.context as context
@@ -45,7 +46,7 @@ from pycompss.util.logger.helpers import init_logging_worker
 # Main method for Python task execution inside a Container
 #
 def main():
-    # type: (...) -> int
+    # type: () -> int
     """ Main method to process the task execution.
 
     :return: Exit value
@@ -86,9 +87,10 @@ def main():
         logger = logging.getLogger('pycompss.worker.container.container_worker')  # noqa: E501
         logger.debug("Initialising Python worker inside the container...")
 
-    execute_task_params = [func_file_path, func_name, num_slaves,
-                           timeout, cus, has_target, return_type,
-                           return_length, num_params] + func_params
+    task_params = [func_file_path, func_name, num_slaves,
+                   timeout, cus, has_target, return_type,
+                   return_length, num_params]  # type: typing.List[typing.Any]
+    execute_task_params = task_params + func_params
 
     if __debug__:
         logger.debug("- File: " + str(func_file_path))
@@ -107,16 +109,16 @@ def main():
     process_name = "ContainerInvoker"
     storage_conf = "null"
     tracing = False
-    log_files = None
+    log_files = ()
     python_mpi = False
-    collections_layouts = None
+    collections_layouts = None  # type: typing.Optional[dict]
     context.set_pycompss_context(context.WORKER)
     result = execute_task(process_name,
                           storage_conf,
                           execute_task_params,
                           tracing,
                           logger,
-                          None,
+                          "None",
                           log_files,           # noqa
                           python_mpi,
                           collections_layouts  # noqa

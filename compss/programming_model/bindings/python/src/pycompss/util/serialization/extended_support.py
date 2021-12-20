@@ -17,6 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
+from pycompss.util.typing_helper import typing
+
 
 class GeneratorIndicator(object):
     """
@@ -26,7 +28,7 @@ class GeneratorIndicator(object):
 
 
 def pickle_generator(f_gen, f, serializer):
-    # type: (..., ..., ...) -> None
+    # type: (typing.Any, typing.Any, typing.Any) -> None
     """ Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.
@@ -43,7 +45,7 @@ def pickle_generator(f_gen, f, serializer):
 
 
 def convert_to_generator(lst):
-    # type: (list) -> ...
+    # type: (list) -> typing.Generator
     """ Converts a list into a generator.
 
     :param lst: List to be converted.

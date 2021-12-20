@@ -17,16 +17,21 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs API - COMMONS - Implementation types
+=============================================
+    This file contains the implementation types definitions.
+"""
 
-def test_information_available_decorators():
-    from pycompss.api.commons.information import available_decorators
-
-    assert isinstance(available_decorators, tuple)
-    assert len(available_decorators) >= 13
-
-
-def test_information_non_worker_decorators():
-    from pycompss.api.commons.information import non_worker_decorators
-
-    assert isinstance(non_worker_decorators, tuple)
-    assert len(non_worker_decorators) >= 7
+# Supported implementation types
+IMPL_BINARY = "BINARY"
+IMPL_CET_BINARY = "CET_BINARY"
+IMPL_COMPSs = "COMPSs"
+IMPL_CONTAINER = "CONTAINER"
+IMPL_DECAF = "DECAF"
+IMPL_METHOD = "METHOD"
+IMPL_MPI = "MPI"
+IMPL_MULTI_NODE = "MULTI_NODE"
+IMPL_OMPSS = "OMPSS"
+IMPL_OPENCL = "OPENCL"
+IMPL_PYTHON_MPI = "PYTHON_MPI"

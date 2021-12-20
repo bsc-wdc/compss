@@ -26,9 +26,18 @@ PyCOMPSs DECORATOR COMMONS
 import os
 import sys
 import subprocess
+from pycompss.util.typing_helper import typing
 from contextlib import contextmanager
 
 import pycompss.util.context as context
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.runtime.task.core_element import CE  # noqa - used in typing
+from pycompss.runtime.commons import PYTHON_VERSION
 from pycompss.util.exceptions import MissingImplementedException
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -37,7 +46,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 # Global name to be used within kwargs for the core element.
-CORE_ELEMENT_KEY = 'compss_core_element'
+CORE_ELEMENT_KEY = "compss_core_element"
 
 
 class PyCOMPSsDecorator(object):
@@ -45,15 +54,16 @@ class PyCOMPSsDecorator(object):
     This class implements all common code of the PyCOMPSs decorators.
     """
 
-    __slots__ = ['decorator_name', 'args', 'kwargs',
-                 'scope', 'core_element', 'core_element_configured']
+    __slots__ = ["decorator_name", "args", "kwargs",
+                 "scope", "core_element", "core_element_configured"]
 
-    def __init__(self, decorator_name, *args, **kwargs):  # noqa
+    def __init__(self, decorator_name, *args, **kwargs):
+        # type: (str, *typing.Any, **typing.Any) -> None
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
-        self.core_element = None
+        self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         # This enables the decorator to get info from the caller
         # (e.g. self.source_frame_info.filename or
@@ -63,10 +73,10 @@ class PyCOMPSsDecorator(object):
 
         if __debug__ and self.scope:
             # Log only in the master
-            logger.debug("Init " + decorator_name + " decorator...")
+            logger.debug("Init %s decorator..." % decorator_name)
 
     def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+        # type: (dict, typing.Any) -> None
         """
         Include the registering info related to the decorator which inherits
 
@@ -77,81 +87,87 @@ class PyCOMPSsDecorator(object):
         """
         raise MissingImplementedException("__configure_core_element__")
 
-    #########################################
-    # VERY USUAL FUNCTIONS THAT MODIFY SELF #
-    #########################################
 
-    def __resolve_working_dir__(self):
-        # type: () -> None
-        """
-        Resolve the working directory considering deprecated naming.
-        Updates self.kwargs:
-            - Removes workingDir if exists.
-            - Updates working_dir with the working directory.
+##############################################
+# VERY USUAL FUNCTIONS THAT MODIFY SOMETHING #
+##############################################
 
-        :return: None
-        """
-        if 'working_dir' in self.kwargs:
+def resolve_working_dir(kwargs):
+    # type: (dict) -> None
+    """
+    Resolve the working directory considering deprecated naming.
+    Updates kwargs:
+        - Removes workingDir if exists.
+        - Updates working_dir with the working directory.
+
+    :return: None
+    """
+    if WORKING_DIR in kwargs:
+        # Accepted argument
+        pass
+    elif LEGACY_WORKING_DIR in kwargs:
+        kwargs[WORKING_DIR] = kwargs.pop(LEGACY_WORKING_DIR)
+    else:
+        kwargs[WORKING_DIR] = UNASSIGNED
+
+
+def resolve_fail_by_exit_value(kwargs):
+    # type: (dict) -> None
+    """
+    Resolve the fail by exit value.
+    Updates kwargs:
+        - Updates fail_by_exit_value if necessary.
+
+    :return: None
+    """
+    if FAIL_BY_EXIT_VALUE in kwargs:
+        fail_by_ev = kwargs[FAIL_BY_EXIT_VALUE]
+        if isinstance(fail_by_ev, bool):
+            kwargs[FAIL_BY_EXIT_VALUE] = str(fail_by_ev)
+        elif isinstance(fail_by_ev, str):
             # Accepted argument
             pass
-        elif 'workingDir' in self.kwargs:
-            self.kwargs['working_dir'] = self.kwargs.pop('workingDir')
+        elif isinstance(fail_by_ev, int):
+            kwargs[FAIL_BY_EXIT_VALUE] = str(fail_by_ev)
         else:
-            self.kwargs['working_dir'] = '[unassigned]'
+            raise PyCOMPSsException(
+                "Incorrect format for fail_by_exit_value property. "
+                "It should be boolean or an environment variable")
+    else:
+        kwargs[FAIL_BY_EXIT_VALUE] = "false"
 
-    def __resolve_fail_by_exit_value__(self):
-        # type: () -> None
-        """
-        Resolve the fail by exit value.
-        Updates self.kwargs:
-            - Updates fail_by_exit_value if necessary.
 
-        :return: None
-        """
-        if 'fail_by_exit_value' in self.kwargs:
-            fail_by_ev = self.kwargs['fail_by_exit_value']
-            if isinstance(fail_by_ev, bool):
-                self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
-            elif isinstance(fail_by_ev, str):
-                # Accepted argument
-                pass
-            elif isinstance(fail_by_ev, int):
-                self.kwargs['fail_by_exit_value'] = str(fail_by_ev)
-            else:
-                raise PyCOMPSsException("Incorrect format for fail_by_exit_value property. "    # noqa: E501
-                                        "It should be boolean or an environment variable")      # noqa: E501
+def process_computing_nodes(decorator_name, kwargs):
+    # type: (str, dict) -> None
+    """
+    Processes the computing_nodes from the decorator.
+    We only ensure that the correct self.kwargs entry exists since its
+    value will be parsed and resolved by the
+    master.process_computing_nodes.
+    Used in decorators:
+        - mpi
+        - multinode
+        - compss
+        - decaf
+
+    WARNING: Updates kwargs.
+
+    :return: None
+    """
+    if COMPUTING_NODES not in kwargs:
+        if LEGACY_COMPUTING_NODES not in kwargs:
+            # No annotation present, adding default value
+            kwargs[COMPUTING_NODES] = str(1)
         else:
-            self.kwargs['fail_by_exit_value'] = 'false'
+            # Legacy annotation present, switching
+            kwargs[COMPUTING_NODES] = str(kwargs.pop(LEGACY_COMPUTING_NODES))
+    else:
+        # Valid annotation found, nothing to do
+        pass
 
-    def __process_computing_nodes__(self, decorator_name):
-        # type: (str) -> None
-        """
-        Processes the computing_nodes from the decorator.
-        We only ensure that the correct self.kwargs entry exists since its value
-        will be parsed and resolved by the master.process_computing_nodes.
-        Used in decorators:
-            - mpi
-            - multinode
-            - compss
-            - decaf
-
-        :return: None
-        """
-        if 'computing_nodes' not in self.kwargs:
-            if 'computingNodes' not in self.kwargs:
-                # No annotation present, adding default value
-                self.kwargs['computing_nodes'] = 1
-            else:
-                # Legacy annotation present, switching
-                self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')  # noqa: E501
-        else:
-            # Valid annotation found, nothing to do
-            pass
-
-        if __debug__:
-            logger.debug("This " + decorator_name + " task will have " +
-                         str(self.kwargs['computing_nodes']) +
-                         " computing nodes.")
+    if __debug__:
+        logger.debug("This %s task will have %s computing nodes." %
+                     (decorator_name, str(kwargs[COMPUTING_NODES])))
 
 
 ###################
@@ -160,7 +176,7 @@ class PyCOMPSsDecorator(object):
 
 @contextmanager
 def keep_arguments(args, kwargs, prepend_strings=True):
-    # type: (tuple, dict, bool) -> None
+    # type: (tuple, dict, bool) -> typing.Iterator[None]
     """
     Context which saves and restores the function arguments.
     It also enables or disables the PREPEND_STRINGS property from @task.
@@ -171,14 +187,13 @@ def keep_arguments(args, kwargs, prepend_strings=True):
     :return: None
     """
     # Keep function arguments
-    saved = None
+    saved = {}
     slf = None
     if len(args) > 0:
-        # The 'self' for a method function is passed as args[0]
+        # The "self" for a method function is passed as args[0]
         slf = args[0]
 
         # Replace and store the attributes
-        saved = {}
         for k, v in kwargs.items():
             if hasattr(slf, k):
                 saved[k] = getattr(slf, k)
@@ -218,23 +233,23 @@ def run_command(cmd, args, kwargs):
         cmd += args_elements
     my_env = os.environ.copy()
     env_path = my_env["PATH"]
-    if "working_dir" in kwargs:
-        my_env["PATH"] = kwargs["working_dir"] + env_path
-    elif "workingDir" in kwargs:
-        my_env["PATH"] = kwargs["workingDir"] + env_path
+    if WORKING_DIR in kwargs:
+        my_env["PATH"] = kwargs[WORKING_DIR] + env_path
+    elif LEGACY_WORKING_DIR in kwargs:
+        my_env["PATH"] = kwargs[LEGACY_WORKING_DIR] + env_path
     proc = subprocess.Popen(cmd,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             env=my_env)
     out, err = proc.communicate()
-    if sys.version_info[0] < 3:
-        out_message = out.strip()
-        err_message = err.strip()
+    if PYTHON_VERSION < 3:
+        out_message = str(out.strip())
+        err_message = str(err.strip())
     else:
         out_message = out.decode().strip()
         err_message = err.decode().strip()
     if out_message:
         print(out_message)
     if err_message:
-        sys.stderr.write(err_message + '\n')
+        sys.stderr.write(err_message + "\n")
     return proc.returncode

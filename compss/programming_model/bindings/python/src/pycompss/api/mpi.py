@@ -24,9 +24,28 @@ PyCOMPSs API - MPI
     definition through the decorator.
 """
 
+from pycompss.util.typing_helper import typing
 from functools import wraps
+
 import pycompss.util.context as context
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.constants import RUNNER
+from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import PROCESSES
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import PARAMS
+from pycompss.api.commons.constants import FLAGS
+from pycompss.api.commons.constants import PROCESSES_PER_NODE
+from pycompss.api.commons.constants import SCALE_BY_CU
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.implementation_types import IMPL_MPI
+from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import run_command
@@ -35,36 +54,33 @@ from pycompss.util.arguments import check_arguments
 from pycompss.util.arguments import UNASSIGNED
 from pycompss.util.exceptions import PyCOMPSsException
 
-
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'runner'}
-SUPPORTED_ARGUMENTS = {'binary',
-                       'processes',
-                       'working_dir',
-                       'runner',
-                       'flags',
-                       'processes_per_node',
-                       'scale_by_cu',
-                       'params',
-                       'fail_by_exit_value'}
-DEPRECATED_ARGUMENTS = {'computing_nodes',
-                        'computingNodes',
-                        'workingDir'}
+MANDATORY_ARGUMENTS = {RUNNER}
+SUPPORTED_ARGUMENTS = {BINARY,
+                       PROCESSES,
+                       WORKING_DIR,
+                       RUNNER,
+                       FLAGS,
+                       PROCESSES_PER_NODE,
+                       SCALE_BY_CU,
+                       PARAMS,
+                       FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {COMPUTING_NODES,
+                        LEGACY_COMPUTING_NODES,
+                        LEGACY_WORKING_DIR}
 
 
-class MPI(PyCOMPSsDecorator):
+class Mpi(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ['task_type', 'decorator_name']
-
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -75,8 +91,13 @@ class MPI(PyCOMPSsDecorator):
         :param kwargs: Keyword arguments
         """
         self.task_type = "mpi"
-        self.decorator_name = "".join(('@', MPI.__name__.lower()))
-        super(MPI, self).__init__(self.decorator_name, *args, **kwargs)
+        self.decorator_name = "".join(('@', Mpi.__name__.lower()))
+        # super(MPI, self).__init__(decorator_name, *args, **kwargs)
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
@@ -95,6 +116,7 @@ class MPI(PyCOMPSsDecorator):
                             self.decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the mpi parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -103,18 +125,20 @@ class MPI(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def mpi_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return self.__decorator_body__(user_function, args, kwargs)
 
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
     def __decorator_body__(self, user_function, args, kwargs):
+        # type: (typing.Callable, tuple, dict) -> typing.Any
         if not self.scope:
             # Execute the mpi as with PyCOMPSs so that sequential
             # execution performs as parallel.
             # To disable: raise Exception(not_in_pycompss("mpi"))
             # TODO: Intercept @task parameters to get stream redirection
-            if 'binary' in self.kwargs:
+            if "binary" in self.kwargs:
                 return self.__run_mpi__(args, kwargs)
             else:
                 print("WARN: Python MPI as dummy is not fully supported. Executing decorated funtion.")
@@ -126,7 +150,7 @@ class MPI(PyCOMPSsDecorator):
         if (context.in_master() or context.is_nesting_enabled()) \
                 and not self.core_element_configured:
             # master code - or worker with nesting enabled
-            self.__configure_core_element__(kwargs, user_function)
+            self.__configure_core_element__(kwargs)
 
         # The processes parameter will have to go down until the execution
         # is invoked. To this end, set the computing_nodes variable in kwargs
@@ -134,21 +158,21 @@ class MPI(PyCOMPSsDecorator):
         # WARNING: processes can be an int, a env string, a str with
         #          dynamic variable name.
         if "processes" in self.kwargs:
-            kwargs['computing_nodes'] = self.kwargs['processes']
+            kwargs["computing_nodes"] = self.kwargs["processes"]
         else:
             # If processes not defined, check computing_units or set default
-            self.__process_computing_nodes__(self.decorator_name)
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            process_computing_nodes(self.decorator_name, self.kwargs)
+            kwargs["computing_nodes"] = self.kwargs["computing_nodes"]
         if "processes_per_node" in self.kwargs:
-            kwargs['processes_per_node'] = self.kwargs['processes_per_node']
+            kwargs["processes_per_node"] = self.kwargs["processes_per_node"]
         else:
-            kwargs['processes_per_node'] = 1
+            kwargs["processes_per_node"] = 1
         if __debug__:
             logger.debug("This MPI task will have " +
-                         str(kwargs['computing_nodes']) + " processes and " +
-                         str(kwargs['processes_per_node']) + " processes per node.")
+                         str(kwargs["computing_nodes"]) + " processes and " +
+                         str(kwargs["processes_per_node"]) + " processes per node.")
 
-        if self.task_type == "PYTHON_MPI":
+        if self.task_type == IMPL_PYTHON_MPI:
             prepend_strings = True
         else:
             prepend_strings = False
@@ -159,25 +183,25 @@ class MPI(PyCOMPSsDecorator):
 
         return ret
 
-    def __run_mpi__(self, *args, **kwargs):
-        # type: (..., dict) -> int
+    def __run_mpi__(self, args, kwargs):
+        # type: (tuple, dict) -> int
         """ Runs the mpi binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs['runner']]
-        if 'processes' in self.kwargs:
-            cmd += ['-np', self.kwargs['processes']]
-        elif 'computing_nodes' in self.kwargs:
-            cmd += ['-np', self.kwargs['computing_nodes']]
-        elif 'computingNodes' in self.kwargs:
-            cmd += ['-np', self.kwargs['computingNodes']]
+        cmd = [self.kwargs[RUNNER]]
+        if PROCESSES in self.kwargs:
+            cmd += ["-np", self.kwargs[PROCESSES]]
+        elif COMPUTING_NODES in self.kwargs:
+            cmd += ["-np", self.kwargs[COMPUTING_NODES]]
+        elif LEGACY_COMPUTING_NODES in self.kwargs:
+            cmd += ["-np", self.kwargs[LEGACY_COMPUTING_NODES]]
 
-        if 'flags' in self.kwargs:
-            cmd += self.kwargs['flags'].split()
-        cmd += [self.kwargs['binary']]
+        if FLAGS in self.kwargs:
+            cmd += self.kwargs[FLAGS].split()
+        cmd += [self.kwargs[BINARY]]
 
         return run_command(cmd, args, kwargs)
 
@@ -186,7 +210,8 @@ class MPI(PyCOMPSsDecorator):
         """ Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(param_name, block_count, block_length, stride)
-        :raises PyCOMPSsException: If the collection layout does not contain block_count.
+        :raises PyCOMPSsException: If the collection layout does not contain
+                                   block_count.
         """
 
         num_layouts = 0
@@ -205,7 +230,10 @@ class MPI(PyCOMPSsDecorator):
                         (stride != -1 and block_count == -1):
                     msg = "Error: collection_layout must contain block_count!"
                     raise PyCOMPSsException(msg)
-                layout_params.extend([param_name, str(block_count), str(block_length), str(stride)])
+                layout_params.extend([param_name,
+                                      str(block_count),
+                                      str(block_length),
+                                      str(stride)])
         layout_params.insert(0, str(num_layouts))
         return layout_params
 
@@ -248,42 +276,41 @@ class MPI(PyCOMPSsDecorator):
         else:
             return -1
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
             logger.debug("Configuring @mpi core element.")
 
         # Resolve @mpi specific parameters
-        if "binary" in self.kwargs:
-            binary = self.kwargs['binary']
-            impl_type = "MPI"
+        if BINARY in self.kwargs:
+            binary = self.kwargs[BINARY]
+            impl_type = IMPL_MPI
         else:
             binary = UNASSIGNED
-            impl_type = "PYTHON_MPI"
+            impl_type = IMPL_PYTHON_MPI
             self.task_type = impl_type
 
-        runner = self.kwargs['runner']
+        runner = self.kwargs[RUNNER]
 
-        if 'flags' in self.kwargs:
-            flags = self.kwargs['flags']
+        if FLAGS in self.kwargs:
+            flags = self.kwargs[FLAGS]
         else:
-            flags = UNASSIGNED  # Empty or '[unassigned]'
+            flags = UNASSIGNED  # Empty or UNASSIGNED
 
         # Check if scale by cu is defined
         scale_by_cu_str = self.__resolve_scale_by_cu__()
 
         # Resolve the working directory
-        self.__resolve_working_dir__()
+        resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
-        self.__resolve_fail_by_exit_value__()
+        resolve_fail_by_exit_value(self.kwargs)
         # Resolve parameter collection layout
         collection_layout_params = self.__resolve_collection_layout_params__()
 
@@ -308,15 +335,15 @@ class MPI(PyCOMPSsDecorator):
                                        str(proc),
                                        binary))
         impl_args = [binary,
-                     self.kwargs['working_dir'],
+                     self.kwargs[WORKING_DIR],
                      runner,
                      ppn,
                      flags,
                      scale_by_cu_str,
-                     self.kwargs.get('params', UNASSIGNED),
-                     self.kwargs['fail_by_exit_value']]
+                     self.kwargs.get("params", UNASSIGNED),
+                     self.kwargs[FAIL_BY_EXIT_VALUE]]
 
-        if impl_type == "PYTHON_MPI":
+        if impl_type == IMPL_PYTHON_MPI:
             impl_args = impl_args + collection_layout_params
 
         if CORE_ELEMENT_KEY in kwargs:
@@ -345,20 +372,20 @@ class MPI(PyCOMPSsDecorator):
         :return: Scale by cu value as string.
         :raises PyCOMPSsException: If scale_by_cu is not bool or string.
         """
-        if 'scale_by_cu' in self.kwargs:
-            scale_by_cu = self.kwargs['scale_by_cu']
+        if SCALE_BY_CU in self.kwargs:
+            scale_by_cu = self.kwargs[SCALE_BY_CU]
             if isinstance(scale_by_cu, bool):
                 if scale_by_cu:
-                    scale_by_cu_str = 'true'
+                    scale_by_cu_str = "true"
                 else:
-                    scale_by_cu_str = 'false'
-            elif str(scale_by_cu).lower() in ['true', 'false']:
+                    scale_by_cu_str = "false"
+            elif str(scale_by_cu).lower() in ["true", "false"]:
                 scale_by_cu_str = str(scale_by_cu).lower()
             else:
-                raise PyCOMPSsException("Incorrect format for scale_by_cu property. "
-                                            "It should be boolean or an environment variable")  # noqa: E501
+                raise PyCOMPSsException("Incorrect format for scale_by_cu property. "  # noqa: E501
+                                        "It should be boolean or 'true' or 'false'")   # noqa: E501
         else:
-            scale_by_cu_str = 'false'
+            scale_by_cu_str = "false"
         return scale_by_cu_str
 
 
@@ -366,4 +393,4 @@ class MPI(PyCOMPSsDecorator):
 # ##################### MPI DECORATOR ALTERNATIVE NAME ###################### #
 # ########################################################################### #
 
-mpi = MPI
+mpi = Mpi

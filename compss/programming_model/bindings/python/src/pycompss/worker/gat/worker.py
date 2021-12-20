@@ -34,15 +34,9 @@ from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.helpers import dummy_context
-from pycompss.util.tracing.helpers import event
+from pycompss.util.tracing.helpers import event_worker
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.gat.commons.constants import PROCESS_CREATION
-from pycompss.worker.gat.commons.constants import PARAMETER_PROCESSING
-from pycompss.worker.gat.commons.constants import LOGGING
-from pycompss.worker.gat.commons.constants import MODULES_IMPORT
-from pycompss.worker.gat.commons.constants import WORKER_END
-from pycompss.worker.gat.commons.constants import PROCESS_DESTRUCTION
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
@@ -57,7 +51,7 @@ else:
 
 
 def compss_worker(tracing, task_id, storage_conf, params, log_json):
-    # type: (bool, str, str, list, str) -> str
+    # type: (bool, str, str, list, str) -> int
     """ Worker main method (invoked from __main__).
 
     :param tracing: Tracing boolean
@@ -83,7 +77,10 @@ def compss_worker(tracing, task_id, storage_conf, params, log_json):
                           logger,
                           log_json,
                           (),
-                          False)
+                          False,
+                          dict(),
+                          None,
+                          None)
     # Result contains:
     # exit_code, new_types, new_values, timed_out, except_msg = result
     exit_code, _, _, _, _ = result
@@ -163,7 +160,7 @@ def main():
 
         if persistent_storage:
             # Initialize storage
-            with event(INIT_STORAGE_AT_WORKER_EVENT):
+            with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
                 from storage.api import initWorker as initStorageAtWorker  # noqa
                 initStorageAtWorker(config_file_path=storage_conf)
 
@@ -180,7 +177,7 @@ def main():
 
         if persistent_storage:
             # Finish storage
-            with event(FINISH_STORAGE_AT_WORKER_EVENT):
+            with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
                 from storage.api import finishWorker as finishStorageAtWorker  # noqa
                 finishStorageAtWorker()
 

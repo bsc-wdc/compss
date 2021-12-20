@@ -23,6 +23,8 @@ PyCOMPSs Dummy API - On Failure
     This file contains the dummy class on failure used as decorator.
 """
 
+from pycompss.util.typing_helper import typing
+
 
 class OnFailure(object):
     """
@@ -30,16 +32,18 @@ class OnFailure(object):
     """
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f):
+        # type: (typing.Any) -> typing.Any
         def wrapped_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return f(*args, **kwargs)
 
         return wrapped_f
 
 
-onFailure = OnFailure
-ONFAILURE = OnFailure
 on_failure = OnFailure
+onFailure = OnFailure

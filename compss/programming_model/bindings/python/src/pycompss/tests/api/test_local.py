@@ -17,8 +17,14 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.local import local
 import pycompss.util.context as context
+using_mypy = False
+try:
+    from pycompss.api.local import local
+except ImportError:
+    def local(func):
+        return func
+    using_mypy = True
 
 
 @local
@@ -27,6 +33,8 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_local_instantiation():
+    if using_mypy:
+        raise Exception("UNSUPPORTED WITH MYPY")
     context.set_pycompss_context(context.MASTER)
     result = dummy_function(1, 2)
     context.set_pycompss_context(context.OUT_OF_SCOPE)

@@ -31,7 +31,7 @@ def test_client_handler():
     def runner():
         print("Starting process")
         print("Init Client Handler")
-        DistroStreamClientHandler.init_and_start()
+        DistroStreamClientHandler.init_and_start("localhost", "49049")
         print("Stop Client Handler")
         DistroStreamClientHandler.set_stop()
         print("End process")

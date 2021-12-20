@@ -19,7 +19,10 @@
 
 
 def test_mpi_helper():
-    from pycompss.util.mpi.helper import rank_distributor
+    try:
+        from pycompss.util.mpi.helper import rank_distributor
+    except AttributeError:
+        raise Exception("UNSUPPORTED WITH MYPY")
 
     result = rank_distributor((2, 3, 4))
     expected_result = [0, 1, 2, 4, 5, 6]

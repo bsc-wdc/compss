@@ -22,8 +22,12 @@ import sys
 import tempfile
 
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.worker.external.mpi_executor import main
 from pycompss.api.task import task
+using_mypy = False
+try:
+    from pycompss.worker.external.mpi_executor import main
+except AttributeError:
+    using_mypy = True
 
 
 @task()
@@ -38,6 +42,8 @@ def increment(value):
 
 
 def test_external_mpi_worker_simple_task():
+    if using_mypy:
+        raise Exception("UNSUPPORTED WITH MYPY")
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
@@ -83,6 +89,8 @@ def test_external_mpi_worker_simple_task():
 
 
 def test_external_mpi_worker_increment_task():
+    if using_mypy:
+        raise Exception("UNSUPPORTED WITH MYPY")
     # Override sys.argv to mimic runtime call
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)

@@ -27,7 +27,7 @@ class testDeleteObject(unittest.TestCase):
         deletion_result = compss_delete_object(obj_1)
         self.assertTrue(deletion_result)
         self.assertFalse(obj_1_id in OT.pending_to_synchronize)
-        self.assertTrue(OT.get_object_id(obj_1) is None)
+        self.assertTrue(OT.get_object_id(obj_1) is "")
 
     def testDeleteObject2(self):
         obj_1 = [0]

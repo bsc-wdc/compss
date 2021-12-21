@@ -403,15 +403,15 @@ public class TaskAnalyser implements GraphHandler {
         Application app = request.getApp();
         String groupName = request.getGroupName();
 
+        app.reachesGroupBarrier(groupName, request);
+
         // Addition of missing commutative groups to graph
         if (IS_DRAW_GRAPH) {
             addMissingCommutativeTasksToGraph();
-            addNewGroupBarrierToGraph(app, groupName);
+            addNewGroupBarrierToGraph(request);
             // We can draw the graph on a barrier while we wait for tasks
             this.gm.commitGraph(false);
         }
-
-        app.reachesGroupBarrier(groupName, request);
     }
 
     /**
@@ -421,6 +421,9 @@ public class TaskAnalyser implements GraphHandler {
      */
     public void barrier(BarrierRequest request) {
         Application app = request.getApp();
+
+        app.reachesBarrier(request);
+
         if (IS_DRAW_GRAPH) {
             // Addition of missing commutative groups to graph
             addMissingCommutativeTasksToGraph();
@@ -429,9 +432,6 @@ public class TaskAnalyser implements GraphHandler {
             // We can draw the graph on a barrier while we wait for tasks
             this.gm.commitGraph(false);
         }
-
-        app.reachesBarrier(request);
-
     }
 
     /**
@@ -440,12 +440,13 @@ public class TaskAnalyser implements GraphHandler {
      * @param request End of execution request.
      */
     public void noMoreTasks(EndOfAppRequest request) {
+        Application app = request.getApp();
+        app.endReached(request);
+
         if (IS_DRAW_GRAPH) {
             addMissingCommutativeTasksToGraph();
             this.gm.commitGraph(true);
         }
-        Application app = request.getApp();
-        app.endReached(request);
     }
 
     /**
@@ -1316,10 +1317,9 @@ public class TaskAnalyser implements GraphHandler {
      * We have explicitly called the barrier group API call. STEPS: Add a new synchronization node. Add an edge from
      * last synchronization point to barrier. Add edges from group tasks to barrier.
      *
-     * @param app Application reaching a barrier.
      * @param groupName Name of the group.
      */
-    private void addNewGroupBarrierToGraph(Application app, String groupName) {
+    private void addNewGroupBarrierToGraph(BarrierGroupRequest barrier) {
         // Add barrier node
         int oldSync = this.synchronizationId;
         String oldSyncStr = "Synchro" + oldSync;
@@ -1333,8 +1333,12 @@ public class TaskAnalyser implements GraphHandler {
         // Reset task detection
         this.taskDetectedAfterSync = false;
 
-        String src = String.valueOf(app.drawnBarrier(groupName));
-        this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", groupName, "clusterTasks", EdgeType.USER_DEPENDENCY);
+        int groupsLastTaskID = barrier.getGraphSource();
+        if (groupsLastTaskID > 0) {
+            String src = String.valueOf(groupsLastTaskID);
+            String groupName = barrier.getGroupName();
+            this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", groupName, "clusterTasks", EdgeType.USER_DEPENDENCY);
+        }
     }
 
 }

@@ -37,6 +37,8 @@ public class BarrierRequest extends APRequest implements Barrier {
     private boolean released;
     private final Semaphore sem;
 
+    private int graphSource = Integer.MIN_VALUE;
+
 
     /**
      * Creates a new barrier request.
@@ -133,6 +135,16 @@ public class BarrierRequest extends APRequest implements Barrier {
             LOGGER.debug(this.barrierName + " raised a COMPSsException ( " + exception.getMessage() + ")");
             throw exception;
         }
+    }
+
+    @Override
+    public int getGraphSource() {
+        return this.graphSource;
+    }
+
+    @Override
+    public void setGraphSource(int id) {
+        this.graphSource = id;
     }
 
 }

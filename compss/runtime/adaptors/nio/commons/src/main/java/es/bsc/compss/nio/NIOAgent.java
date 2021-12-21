@@ -457,6 +457,11 @@ public abstract class NIOAgent {
     private void compressAndSendDir(Connection c, String path, NIOData d) {
         File f = new File(path);
         if (f.exists()) {
+            if (path.endsWith(File.separator)) {
+                // This avoids /path/to/directory/.zip with infinite size
+                // File must be /path/to/directory.zip to avoid self compression
+                path = path.substring(0, path.length() - 1);
+            }
             if (DEBUG) {
                 LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will compress and transfer directory " + path
                     + " as data " + d.getDataMgmtId());

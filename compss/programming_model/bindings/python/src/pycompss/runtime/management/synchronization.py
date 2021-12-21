@@ -29,6 +29,8 @@ import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.global_args import update_worker_argument_parameter_content  # noqa: E501
+import pycompss.util.context as context
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
@@ -59,8 +61,7 @@ def wait_on_object(obj, mode):
             return _synchronize(obj, compss_mode)
         else:
             # Will be a iterable object
-            res = _wait_on_iterable(obj, compss_mode)
-            return res
+            return _wait_on_iterable(obj, compss_mode)
 
 
 def _synchronize(obj, mode):
@@ -99,6 +100,7 @@ def _synchronize(obj, mode):
             return new_obj
 
     obj_id = OT.is_tracked(obj)
+    obj_name = OT.get_obj_name(obj_id)
     if obj_id is None:  # Not being tracked
         return obj
     if not OT.is_pending_to_synchronize(obj_id):
@@ -124,6 +126,11 @@ def _synchronize(obj, mode):
         COMPSs.close_file(app_id, file_name, mode)
     else:
         new_obj = get_by_id(compss_file)
+
+    if context.is_nesting_enabled() and context.in_worker():
+        # If nesting and in worker, the user wants to synchronize an object.
+        # So it is necessary to update the parameter with the new object.
+        update_worker_argument_parameter_content(obj_name, new_obj)
 
     if mode == 'r':
         OT.update_mapping(obj_id, new_obj)

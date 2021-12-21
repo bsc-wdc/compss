@@ -2030,7 +2030,7 @@ def _serialize_object_into_file(name, p):
                                      [mode] * len(p.content)))
             _skip_file_creation = (p.direction == DIRECTION.OUT and
                                    p.content_type != TYPE.EXTERNAL_STREAM)
-            _turn_into_file(p, skip_creation=_skip_file_creation)
+            _turn_into_file(p, name, skip_creation=_skip_file_creation)
         except SerializerException:
             import traceback
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -2056,7 +2056,7 @@ def _serialize_object_into_file(name, p):
             # This must be serialized to prevent overflow with Java long
             p.content_type = TYPE.OBJECT
             _skip_file_creation = (p.direction == DIRECTION.OUT)
-            _turn_into_file(p, _skip_file_creation)
+            _turn_into_file(p, name, _skip_file_creation)
     elif p.content_type == TYPE.STRING:
         # Do not move this import to the top
         from pycompss.api.task import PREPEND_STRINGS  # noqa
@@ -2097,7 +2097,7 @@ def _serialize_object_into_file(name, p):
         p.content = new_object_col
         # Give this object an identifier inside the binding
         if p.direction != DIRECTION.IN_DELETE:
-            _, _ = OT.track(p.content, collection=True)
+            _, _ = OT.track(p.content, obj_name=name, collection=True)
     elif p.content_type == TYPE.DICT_COLLECTION:
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
@@ -2128,12 +2128,12 @@ def _serialize_object_into_file(name, p):
         p.content = new_object_dict
         # Give this object an identifier inside the binding
         if p.direction != DIRECTION.IN_DELETE:
-            _, _ = OT.track(p.content, collection=True)
+            _, _ = OT.track(p.content, obj_name=name, collection=True)
     return p
 
 
-def _turn_into_file(p, skip_creation=False):
-    # type: (Parameter, bool) -> None
+def _turn_into_file(p, name, skip_creation=False):
+    # type: (Parameter, str, bool) -> None
     """ Write a object into a file if the object has not been already written.
 
     Consults the obj_id_to_filename to check if it has already been written
@@ -2142,6 +2142,7 @@ def _turn_into_file(p, skip_creation=False):
     This functions stores the object into pending_to_synchronize.
 
     :param p: Wrapper of the object to turn into file.
+    :param name: Name of the object.
     :param skip_creation: Skips the serialization to file.
     :return: None
     """
@@ -2151,7 +2152,7 @@ def _turn_into_file(p, skip_creation=False):
         if p.direction == DIRECTION.IN_DELETE:
             obj_id, file_name = OT.not_track()
         else:
-            obj_id, file_name = OT.track(p.content)
+            obj_id, file_name = OT.track(p.content, obj_name=name)
         if not skip_creation:
             serialize_to_file(p.content, file_name)
     else:

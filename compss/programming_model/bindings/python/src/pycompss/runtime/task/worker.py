@@ -23,11 +23,15 @@ import sys
 from shutil import copyfile
 
 from pycompss.util.typing_helper import typing
+import pycompss.util.context as context
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
+from pycompss.runtime.binding import wait_on
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
+from pycompss.runtime.global_args import set_worker_args
+from pycompss.runtime.global_args import delete_worker_args
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.arguments import get_name_from_vararg
@@ -119,6 +123,9 @@ class TaskWorker(object):
                  the affected objects.
         """
         global logger
+        # Save the args in a global place (needed from synchronize when using
+        # nesting)
+        set_worker_args(args)
         # Grab logger from kwargs (shadows outer logger since it is set by
         # the worker).
         logger = kwargs["compss_logger"]  # noqa
@@ -275,6 +282,7 @@ class TaskWorker(object):
 
         :return: None
         """
+        delete_worker_args()
         # Call garbage collector: The memory may not be freed to the SO,
         # although the objects are removed.
         gc.collect()
@@ -1018,6 +1026,15 @@ class TaskWorker(object):
                 if __debug__:
                     logger.debug("Serializing object: " +
                                  str(arg.name) + " to " + str(f_name))
+
+                if context.is_nesting_enabled():
+                    # When using nesting, objects may have been used in other
+                    # tasks and may need to be synchronized and re-serialized.
+                    # The wait_on call checks the object tracker to see if it
+                    # has been used and needs to be synchronized. Otherwise,
+                    # it retrieves the same object.
+                    arg.content = wait_on(arg.content, master_event=False)
+
                 if python_mpi:
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
@@ -1322,19 +1339,38 @@ class TaskWorker(object):
 
 def __get_collection_objects__(content, argument):
     # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
-    """ Retrieve collection objects recursively generator. """
+    """ Retrieve collection objects recursively generator.
+    Updates the collection with any modification from content.
+    """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for (new_con, _elem) in zip(argument.content,
                                     argument.collection_content):
-            for sub_el in __get_collection_objects__(new_con, _elem):
-                yield sub_el
+            # Update the sub-parameter content with the existing content
+            # to keep track of the synchronized.
+            _elem.content = new_con
+            for sub_el, sub_param in __get_collection_objects__(new_con, _elem):
+                # Update the sub-parameter content with the existing content
+                # to keep track of the synchronized.
+                sub_param.content = sub_el
+                yield sub_el, sub_param
     else:
+        # Update the sub-parameter content with the existing content
+        # to keep track of the synchronized.
+        argument.content = content
+        if context.is_nesting_enabled():
+            # When using nesting, objects may have been used in other
+            # tasks and may need to be synchronized and re-serialized.
+            # The wait_on call checks the object tracker to see if it
+            # has been used and needs to be synchronized. Otherwise,
+            # it retrieves the same object.
+            content = wait_on(content, master_event=False)
         yield content, argument
 
 
 def __get_dict_collection_objects__(content, argument):
     # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
-    """ Retrieve dictionary collection objects recursively generator. """
+    """ Retrieve dictionary collection objects recursively generator.
+    Updates the dictionary collection with any modification from content."""
     if argument.content_type == parameter.TYPE.DICT_COLLECTION:
         elements = []
         for k, v in argument.content.items():
@@ -1352,9 +1388,24 @@ def __get_dict_collection_objects__(content, argument):
         # Loop recursively
         for (new_con, _elem) in zip(elements,
                                     elements_parameters):
-            for sub_el in __get_dict_collection_objects__(new_con, _elem):
-                yield sub_el
+            _elem.content = new_con
+            for sub_el, sub_param in __get_dict_collection_objects__(new_con,
+                                                                     _elem):
+                # Update the sub-parameter content with the existing content
+                # to keep track of the synchronized.
+                sub_param.content = sub_el
+                yield sub_el, sub_param
     else:
+        # Update the sub-parameter content with the existing content
+        # to keep track of the synchronized.
+        argument.content = content
+        if context.is_nesting_enabled():
+            # When using nesting, objects may have been used in other
+            # tasks and may need to be synchronized and re-serialized.
+            # The wait_on call checks the object tracker to see if it
+            # has been used and needs to be synchronized. Otherwise,
+            # it retrieves the same object.
+            content = wait_on(content, master_event=False)
         yield content, argument
 
 

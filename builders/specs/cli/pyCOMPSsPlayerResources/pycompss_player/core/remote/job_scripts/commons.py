@@ -80,15 +80,6 @@ def command_runner_shell(cmd, exception=True, cwd=None):
         _raise_command_exception(cmd, return_code, stdout, stderr)
     return return_code, stdout, stderr
 
-def get_installation_path():
-    """
-    Retrieve the COMPSs installation root folder
-    :return: COMPSs installation root folder
-    """
-    script_path = os.path.dirname(os.path.realpath(__file__))
-    root_path = os.path.sep + os.path.join(*(script_path.split(os.path.sep)[:-4]))
-    return root_path
-
 def get_jupyter_environment_variables():
     """
     Get the jupyter environment variables as dictionary.
@@ -126,14 +117,14 @@ def setup_supercomputer_configuration():
     include = get_jupyter_environment_variables()
     # Get the scripts directory
     sc_cfg_name = 'default.cfg'
-    sc_cfg = os.path.join(get_installation_path(),
+    sc_cfg = os.path.join(os.environ["COMPSS_HOME"],
                           'Runtime', 'scripts', 'queues', 'supercomputers', sc_cfg_name)
     if VERBOSE:
         print("* Loading SC cfg file")
     _export_environment_variables(sc_cfg, include)
     # Export the environment variables
     qs_cfg_name = str(os.environ['QUEUE_SYSTEM'].strip()) + '.cfg'
-    qs_cfg = os.path.join(get_installation_path(),
+    qs_cfg = os.path.join(os.environ["COMPSS_HOME"],
                           'Runtime', 'scripts', 'queues', 'queue_systems', qs_cfg_name)
     if VERBOSE:
         print("* Loading QS cfg file")

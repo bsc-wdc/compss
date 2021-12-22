@@ -47,6 +47,7 @@ def info():
 
     # Get command line arguments
     job_id = sys.argv[1]
+    app_path = sys.argv[2]
 
     if VERBOSE:
         print(" - Job: " + str(job_id))
@@ -73,22 +74,18 @@ def info():
             print(" - Nodes: " + str(expanded_nodes))
             print(" - Found master: " + str(master))
 
-        # Get the command to contact with the node where the job is running
-        jpy_runtime_dir_cmd = os.environ['CONTACT_CMD'] + ' ' + master + \
-                     ' \'module load python/3.6.1 ; cat "$(ls -Art $(jupyter --runtime-dir)/*.html | tail -n 1)"\''
-        return_code, jpy_server_out, _ = command_runner_shell(jpy_runtime_dir_cmd)
+        jpy_server_out = ''
+        while 'The Jupyter Notebook is running at' not in jpy_server_out:
+            with open(f'{app_path}/compss-{job_id}.err', 'r') as of:
+                jpy_server_out = of.read()
 
         if VERBOSE:
             print("Finished checking the information.")
 
         # Print to notify the info result
-        if return_code != 0:
-            print(ERROR_KEYWORD)
-            exit(1)
-        else:
-            print(SUCCESS_KEYWORD)
-            print("MASTER:" + str(master))
-            print("SERVER: " + str(jpy_server_out.replace('\n', ' ')))
+        print(SUCCESS_KEYWORD)
+        print("MASTER:" + str(master))
+        print("SERVER: " + str(jpy_server_out.replace('\n', ' ')))
     else:
         # Print to provide information to the client
         print(NOT_RUNNING_KEYWORD)  # The notebook is not ready yet

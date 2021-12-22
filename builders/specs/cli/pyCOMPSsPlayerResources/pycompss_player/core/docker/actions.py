@@ -64,20 +64,6 @@ class DockerActions(Actions):
         self.docker_cmd.docker_update_image()
 
 
-    # def kill(self):
-    #     """ Destroys the COMPSs infrastructure in Docker
-
-    #     :param arguments: Command line arguments
-    #     :param debug: Debug mode
-    #     :returns: None
-    #     """
-    #     if debug:
-    #         print("Killing...")
-    #         print("Parameters:")
-    #         print("\t- Clean: " + str(arguments.clean))
-    #     docker_kill_compss(arguments.clean)
-
-
     def exec(self):
         super().exec()
         """ Execute the given command in the running Docker image
@@ -122,12 +108,6 @@ class DockerActions(Actions):
 
         command = "runcompss " + ' '.join(app_args)
 
-        # application = " ".join(app_args)
-        # command = "runcompss " + \
-        #         "--project=/project.xml " + \
-        #         "--resources=/resources.xml " + \
-        #         "--master_name=172.17.0.2 " + \
-        #         "--base_log_dir=/home/user " + application
         self.docker_cmd.docker_exec_in_daemon(command)
 
 
@@ -157,17 +137,18 @@ class DockerActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if self.debug:
-            print("Starting jupyter...")
-            print("Parameters:")
-            print("\t- Arguments: " + str(self.arguments.argument))
-        arguments = " ".join(self.arguments.argument)
+
+        self.docker_cmd.docker_exec_in_daemon('pkill jupyter')
+        
+        arguments = " ".join(self.arguments.rest_args)
         command = "jupyter-notebook " + \
                 arguments + " " + \
                 f"--ip={self.env_conf['master_ip']} " + \
                 "--allow-root " + \
                 "--NotebookApp.token="
         self.docker_cmd.docker_exec_in_daemon(command)
+
+        self.docker_cmd.docker_exec_in_daemon('pkill jupyter')
 
 
     def gengraph(self):
@@ -186,7 +167,8 @@ class DockerActions(Actions):
         self.docker_cmd.docker_exec_in_daemon(command)
 
     def app(self):
-        pass
+        print("ERROR: Wrong Environment! Try using a `cluster` environment")
+        exit(1)
 
     def components(self):
         """ Lists/add/remove workers in the COMPSs infrastructure at docker
@@ -215,12 +197,10 @@ class DockerActions(Actions):
                             self.arguments.remove,
                             self.arguments.worker)
 
-    def environment(self):
-        super().environment()
-
     def env_remove(self):
         super().env_remove()
         self.docker_cmd.docker_kill_compss()
 
     def job(self):
-        raise NotImplementedError("Wrong Environment! Try using a `cluster` environment")
+        print("ERROR: Wrong Environment! Try using a `cluster` environment")
+        exit(1)

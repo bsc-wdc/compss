@@ -5,7 +5,7 @@ import subprocess
 
 def get_object_method_by_name(obj, method_name, include_in_name=False):
     for class_method_name in dir(obj):
-        if callable(getattr(obj, class_method_name)) and not '__' in class_method_name:
+        if not '__' in class_method_name and callable(getattr(obj, class_method_name)):
             if class_method_name.startswith(method_name) or (include_in_name and method_name in class_method_name):
                 return class_method_name
 

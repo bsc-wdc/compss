@@ -233,6 +233,12 @@ def parse_sys_argv():
                                                                 aliases=["r"],
                                                                 help="Removes COMPSs environment.",  # noqa: E501
                                                                 formatter_class=FORMATTER_CLASS)                  # noqa: E501
+
+    parser_environment_remove.add_argument("-f", "--force",
+                             action='store_true',
+                             default=False,
+                             help="Force deleting de environment and the applications") 
+
     parser_environment_remove.add_argument("env_id",
                                             nargs="+",
                                             type=str,

@@ -500,7 +500,8 @@ class TaskWorker(object):
                             ((_col_dir is None) and _col_dep > 0):
                         # if we are at the last level of COL_OUT param,
                         # create "empty" instances of elements
-                        if _col_dep == 1:
+                        if _col_dep == 1 or \
+                           content_type_elem != "collection:list":
                             temp = create_object_by_con_type(content_type_elem)
                             sub_arg.content = temp
                             # In case that only one element is used in this
@@ -608,7 +609,8 @@ class TaskWorker(object):
 
                     # if we are at the last level of DICT_COL_OUT param,
                     # create "empty" instances of elements
-                    if _dict_col_dep == 1:
+                    if _dict_col_dep == 1 or \
+                       content_type_elem != "collection:dict":
                         temp_k = create_object_by_con_type(content_type_key)    # noqa: E501
                         temp_v = create_object_by_con_type(content_type_value)  # noqa: E501
                         sub_arg_key.content = temp_k

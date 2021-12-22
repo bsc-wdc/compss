@@ -116,38 +116,7 @@ def __display_warning(message):
     print("WARNING: " + message)
 
 
-def _check_remote_compss(login_info, modules_path):
-    """
-    Check if COMPSs is available in the remote supercomputer and retrieve the
-    its installation path.
-    This path is used to infer the submit_jupyter_job.sh path.
-    :return: Remote COMPSs installation path.
-    """
-    cmd = ['which', 'enqueue_compss']
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules_path=modules_path)
-    if return_code != 0:
-        __display_error(ERROR_CONNECTING, return_code, stdout, stderr)
-    if stdout == '':
-        __display_error(ERROR_COMPSS_NOT_DEFINED)
-    user_scripts_path = os.path.dirname(stdout.strip().split('\n')[-1])
-    # Remove the last 3 folders: Runtime/scripts/user to get the real path
-    compss_path = '/'.join(user_scripts_path.split('/')[:-3])
-    return compss_path
-
-
-def _infer_scripts_path(compss_path):
-    """
-    Infer the remote helper scripts path.
-    Uses the COMPSs installation path as base and includes the necessary
-    folders: Runtime/scripts/system/cli
-    :param compss_path: Remote COMPSs installation path.
-    :return: Remote helper scripts path.
-    """
-    # Append the folders to reach teh helper scripts
-    scripts_path = compss_path + '/Runtime/scripts/system/cli'
-    return scripts_path
-
-def job_status(scripts_path, job_id, login_info, modules_path):
+def job_status(scripts_path, job_id, login_info, modules):
     """
     Checks the status of a job in the supercomputer.
     :param scripts_path: Remote helper scripts path
@@ -157,7 +126,7 @@ def job_status(scripts_path, job_id, login_info, modules_path):
     cmd = [INTERPRETER,
            str(scripts_path + '/' + STATUS_SCRIPT),
            job_id]
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules_path=modules_path)
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
     # if return_code != 0:
     #     __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
 
@@ -168,7 +137,7 @@ def job_status(scripts_path, job_id, login_info, modules_path):
         return status
     return ERROR_STATUS_JOB
 
-def job_list(scripts_path, login_info, modules_path):
+def job_list(scripts_path, login_info, modules):
     """
     Checks the list of available jobs in the supercomputer.
     :param scripts_path: Remote helper scripts path
@@ -176,7 +145,7 @@ def job_list(scripts_path, login_info, modules_path):
     """
     cmd = [INTERPRETER,
            str(scripts_path + '/' + FIND_SCRIPT)]
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules_path=modules_path)
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
     if return_code != 0:
         __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
 
@@ -189,7 +158,7 @@ def job_list(scripts_path, login_info, modules_path):
     else:
         __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
 
-def connect_job(scripts_path, job_id, login_info, modules_path, port_forward='8888', web_browser='firefox'):
+def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forward='8888', web_browser='firefox'):
     """
     Establish the connection with an existing notebook.
     :param scripts_path: Remote helper scripts path
@@ -205,8 +174,8 @@ def connect_job(scripts_path, job_id, login_info, modules_path, port_forward='88
     
     cmd = [INTERPRETER,
            str(scripts_path + '/' + INFO_SCRIPT),
-           job_id]
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules_path=modules_path)
+           job_id, app_path]
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
     # if return_code != 0:
     #     __display_error(ERROR_INFO_JOB, return_code, stdout, stderr)
 
@@ -230,16 +199,16 @@ def connect_job(scripts_path, job_id, login_info, modules_path, port_forward='88
     else:
         __display_error(ERROR_INFO_JOB, return_code, stdout, stderr)
 
-    cmd = ['-L', '8888:localhost:' + port_forward,
+    cmd = ['-L', f'{port_forward}:localhost:{port_forward}',
            'ssh', node,
-           '-L', port_forward + ':localhost:8888']
+           '-L', f'{port_forward}:localhost:8888']
     _command_runner(cmd, login_info, blocking=False)
 
     time.sleep(5)  # Wait 5 seconds
 
     if web_browser is None:
         print(INFO_CONNECTION_ESTABLISHED)
-        print(CONNECTION_URL + token)
+        print(CONNECTION_URL.replace(':8888', f':{port_forward}') + token)
     else:
         print("Opening the " + web_browser + " browser with the connection URL.")
         if is_windows():
@@ -272,7 +241,7 @@ def connect_job(scripts_path, job_id, login_info, modules_path, port_forward='88
     # The signal is captured and everything cleaned and canceled (if needed)
 
 
-def cancel_job(scripts_path, job_ids, login_info, modules_path):
+def cancel_job(scripts_path, job_ids, login_info, modules):
     """
     Cancel a list of notebook jobs running in the supercomputer.
     :param scripts_path: Path where the remote helper scripts are
@@ -281,7 +250,7 @@ def cancel_job(scripts_path, job_ids, login_info, modules_path):
     """
     cmd = [INTERPRETER,
            str(scripts_path + '/' + CANCEL_SCRIPT)] + job_ids
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules_path=modules_path)
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
     if return_code != 0:
         __display_error(ERROR_CANCELLING_JOB, return_code, stdout, stderr)
 
@@ -293,7 +262,7 @@ def cancel_job(scripts_path, job_ids, login_info, modules_path):
         __display_error(ERROR_CANCELLING_JOB, return_code, stdout, stderr)
 
 
-def _command_runner(cmd, login_info, modules_path=None, blocking=True, remote=True):
+def _command_runner(cmd, login_info, modules=None, blocking=True, remote=True):
     """
     Run the command defined in the cmd list.
     Decodes the stdout and stderr following the DECODING_FORMAT.
@@ -314,9 +283,9 @@ def _command_runner(cmd, login_info, modules_path=None, blocking=True, remote=Tr
             raise NotImplementedError()
         else:
             cmd = ' '.join(cmd)
-            if modules_path:
-                cmd = f"'{modules_path};{cmd}'"
-            cmd = f"ssh {login_info} {cmd}"
+            if modules:
+                cmd = ';'.join([*modules, cmd])
+            cmd = f"ssh {login_info} '{cmd}'"
 
             print(cmd)
     else:

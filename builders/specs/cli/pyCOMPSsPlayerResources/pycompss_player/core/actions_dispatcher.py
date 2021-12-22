@@ -55,3 +55,5 @@ class ActionsDispatcher(object):
             open(default_env + '/current', 'a').close()
             with open(default_env + '/env.json', 'w') as def_env:
                 json.dump({ 'env': 'local', 'name': 'default' }, def_env)
+            with open(default_env + '/modules.sh', 'w') as mod_file:
+                mod_file.write('module load COMPSS')

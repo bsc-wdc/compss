@@ -9,28 +9,37 @@ from pycompss_player.core.remote.cmd import remote_list_job
 from pycompss_player.core.remote.cmd import remote_cancel_job
 from pycompss_player.core.remote.cmd import remote_run_app
 from pycompss_player.core.remote.cmd import remote_exec_app
+from pycompss_player.core.remote.cmd import remote_list_apps
+from pycompss_player.core.remote.cmd import remote_get_home
+from pycompss_player.core.remote.cmd import remote_env_remove
 from pycompss_player.core.actions import Actions
 from pycompss_player.core import utils
 from pycompss_player.core.remote.interactive_sc import core, defaults
-import os, json, time
+import os, json, time, datetime
 from collections import defaultdict
 
 class RemoteActions(Actions):
     def __init__(self, arguments, debug=False, env_conf=None) -> None:
         super().__init__(arguments, debug=debug, env_conf=env_conf)
 
-        self.apps = {}
-        if self.env_conf and os.path.isfile(self.env_conf['env_path'] + '/apps.json'):
-            with open(self.env_conf['env_path'] + '/apps.json') as f:
-                self.apps = json.load(f)
-
-        self.jobs = defaultdict(list)
+        self.apps = None
+        self.past_jobs = defaultdict(list)
         if self.env_conf and os.path.isfile(self.env_conf['env_path'] + '/jobs.json'):
             with open(self.env_conf['env_path'] + '/jobs.json') as f:
-                self.jobs = defaultdict(list, json.load(f))
+                self.past_jobs = defaultdict(list, json.load(f))
+
+    def get_apps(self, env_id=None):
+        if self.apps is not None:
+            return self.apps
+
+        if env_id is not None:
+            return remote_list_apps(env_id, self.env_conf['login'], self.env_conf['remote_home'])
+        
+        self.apps = remote_list_apps(self.env_conf['name'], self.env_conf['login'], self.env_conf['remote_home'])
+        return self.apps
 
     def init(self):
-        """ Deploys COMPSs infrastructure remote|cluster env
+        """ Deploys COMPSs infrastructure on remote|cluster env
 
         :param arguments: Command line arguments
         :param debug: Debug mode
@@ -44,11 +53,13 @@ class RemoteActions(Actions):
             self.arguments.modules = self.arguments.modules[0]
         elif 'COMPSs' not in [m[:len('COMPSs')] for m in self.arguments.modules]:
             self.arguments.modules.append('COMPSs')
-
-        # Check if there's already another env in the cluster
-
-
+        
+        print('Deploying environment...')
         remote_deploy_compss(self.arguments.name, self.arguments.login, self.arguments.modules)
+
+        remote_home_path = remote_get_home(self.arguments.login)
+
+        self.env_add_conf({'remote_home':  remote_home_path})
 
     def run(self):
         app_name = self.arguments.app_name
@@ -56,18 +67,23 @@ class RemoteActions(Actions):
             print(f"ERROR: Application ID argument (-app) is required for executing runcompss in cluster")
             exit(1)
 
-        if app_name not in self.apps:
+        if app_name not in self.get_apps():
             print(f"ERROR: Application `{app_name}` not found")
             exit(1)
 
         app_args = self.arguments.rest_args
         command = "runcompss " + ' '.join(app_args)
         login_info = self.env_conf['login']
-        user = login_info.split('@')[0]
-        remote_dir = self.apps[app_name]['remote_dir'].replace('~', f'/home/{user[:5]}/{user}')
+        env_id = self.env_conf['name']
+        remote_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
         env_name = self.env_conf['name']
+        modules = self.__get_modules()
 
-        print(remote_run_app(remote_dir, login_info, env_name, command))
+        print(remote_run_app(remote_dir, login_info, env_name, command, modules))
+
+    def __get_modules(self):
+        with open(self.env_conf['env_path'] + '/modules.sh', 'r') as mod_file:
+            return mod_file.read().strip().split('\n')
 
     def job(self):
         action_name = 'list'
@@ -81,37 +97,62 @@ class RemoteActions(Actions):
     def job_submit(self):
         app_name = self.arguments.app_name
 
-        if app_name not in self.apps:
+        if app_name not in self.get_apps():
             print(f"ERROR: Application {app_name} not found")
             exit(1)
 
         login_info = self.env_conf['login']
-        app_args = " ".join(self.arguments.rest_args)
-        remote_dir = self.apps[app_name]['remote_dir']
         env_id = self.env_conf['name']
-        job_id = remote_submit_job(env_id, login_info, remote_dir, app_args)
+        remote_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
 
-        self.jobs[job_id] = {
+        if len(self.arguments.rest_args) == 1 and os.path.isfile(self.arguments.rest_args[0]):
+            with open(self.arguments.rest_args[0], 'r') as args_file:
+                app_args = args_file.read().strip().replace('\n', ' ').replace('\\', '')
+        else:
+            app_args = " ".join(self.arguments.rest_args)
+
+        app_args = app_args.replace('{COMPS_APP_PATH}', remote_dir)
+
+        modules = self.__get_modules()
+        env_vars = [item for sublist in self.arguments.env_var for item in sublist]
+        job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars)
+
+        self.past_jobs[job_id] = {
             'app_name': app_name,
-            'enqueue_args': app_args
+            'env_vars': '; '.join(env_vars) if env_vars else 'None',
+            'enqueue_args': app_args,
+            'timestamp': str(datetime.datetime.utcnow())[:-7] + ' UTC'
         }
 
         with open(self.env_conf['env_path'] + '/jobs.json', 'w') as f:
-            json.dump(self.jobs, f)
+            json.dump(self.past_jobs, f)
 
     def job_history(self):
         job_id = self.arguments.job_id
-        app_jobs = self.jobs[job_id]
-        utils.table_print(['App Name', 'Enqueue Args'], [[app_jobs['app_name'], '    ' + app_jobs['enqueue_args']]])
+        if job_id:
+            app_jobs = self.past_jobs[job_id]
+            print('\tApp name:', app_jobs['app_name'])
+            print('\tSubmit time:', app_jobs['timestamp'])
+            print('\tEnvironment Variables:', app_jobs['env_vars'])
+            print('\tEnqueue Args:', app_jobs['enqueue_args'])
+            print()
+        else:
+            col_names = ['JobIDs', 'App']
+            rows = []
+            for job_id, app_job in self.past_jobs.items():
+                rows.append([job_id, app_job['app_name']])
+            utils.table_print(col_names, rows)
 
     def job_list(self):
         login_info = self.env_conf['login']
-        remote_list_job(login_info)
+        modules = self.__get_modules()
+        remote_list_job(login_info, modules)
 
     def job_cancel(self):
         login_info = self.env_conf['login']
         jobid = self.arguments.job_id
-        remote_cancel_job(login_info, jobid)
+        modules = self.__get_modules()
+        remote_cancel_job(login_info, jobid, modules)
 
     def app(self):
         action_name = 'list'
@@ -123,122 +164,125 @@ class RemoteActions(Actions):
         getattr(self, action_name)()
 
     def app_deploy(self):
-        if self.arguments.local_dir == 'current directory':
-            self.arguments.local_dir = os.getcwd()
+        if self.arguments.local_source == 'current directory':
+            self.arguments.local_source = os.getcwd()
 
         app_name = self.arguments.app_name
+        if app_name in self.get_apps():
+            print(f'ERROR: There is already another application named `{app_name}`')
+            exit(0)
+
+        # if self.arguments.remote_dir:
+        #     self.arguments.remote_dir = self.arguments.remote_dir.replace('{COMPSS_REMOTE_HOME}', )
+
         env_id = self.env_conf['name']
+        app_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
 
-        if not self.arguments.remote_dir:
-            self.arguments.remote_dir = f'~/.COMPSsApps/{env_id}/{app_name}'
+        remote_app_deploy(app_dir, self.env_conf['login'], self.arguments.local_source, self.arguments.remote_dir)
 
-        remote_app_deploy(self.env_conf['name'], self.env_conf['login'], self.arguments.local_dir, self.arguments.remote_dir)
-
-        self.apps[app_name] = {
-            'remote_dir': self.arguments.remote_dir
-        }
-
-        with open(self.env_conf['env_path'] + '/apps.json', 'w') as f:
-            json.dump(self.apps, f)
 
     def app_remove(self):
         app_names = self.arguments.app_name
         for app_name in app_names:
-            if app_name in self.apps:
+            if app_name in self.get_apps():
                 login_info = self.env_conf['login']
-                remote_work_dir = self.apps[app_name]['remote_dir']
-                remote_app_remove(login_info, remote_work_dir)
-
-                if len(self.apps) == 1:
-                    os.remove(self.env_conf['env_path'] + '/apps.json')
-                    if os.path.isfile(self.env_conf['env_path'] + '/removed'):
-                        self.env_remove()
-                else:
-                    del self.apps[app_name]
-                    with open(self.env_conf['env_path'] + '/apps.json', 'w') as f:
-                        json.dump(self.apps, f)
+                env_id = self.env_conf['name']
+                app_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
+                remote_app_remove(login_info, app_dir)
             else:
                 print('ERROR: Application not found')
                 exit(1)
 
     def app_list(self):
-        if not self.apps:
-            print('ERROR: There are no applications binded to this environment')
-            print('       Try deploying an application to the cluster')
-            exit(1)
+        apps = self.get_apps()
 
-        login_info = self.env_conf['login']
-        apps_dirs = [app['remote_dir'] for app in self.apps.values() ]
-        # apps_size = remote_app_size(login_info, apps_dirs)
-        
-        with open(self.env_conf['env_path'] + '/apps.json') as f:
-            apps = json.load(f)
-            utils.table_print(['Name'], [[k] for k in apps.keys()])
+        if not apps:
+            print('INFO: There are no applications binded to this environment yet')
+            print('       Try deploying an application to the cluster')
+            exit(0)
+
+        utils.table_print(['Name'], [[a] for a in apps])
 
     def exec(self):
         login_info = self.env_conf['login']
         command = ' '.join(self.arguments.exec_cmd)
         remote_exec_app(login_info, command)
 
-    def environment(self):
-        super().environment()
-
     def env_remove(self):
-        if os.path.isfile(self.env_conf['env_path'] + '/apps.json'):
-            open(self.env_conf['env_path'] + '/removed', 'a').close()
-            print('WARNING: There are still applications binded to this environment')
-            print('         When all the apps are removed the environment will be also removed')
-        else:
-            if self.arguments.action == 'environment':
-                super().env_remove()
+        env_ids = self.arguments.env_id
+        for env_id in env_ids:
+            env_apps = self.get_apps(env_id=env_id)
+            if len(env_apps) > 0:
+                print('WARNING: There are still applications binded to this environment')
+                answer = 'y'
+                if not self.arguments.force:
+                    answer = input('Do you want to delete this environment and all the applications? (y/N) ')
+                if answer == 'Y' or answer == 'y' or answer == 'yes':
+                    login_info = self.env_conf['login']
+                    remote_env_remove(login_info, env_id, env_apps)
+                    super().env_remove()
             else:
-                super().remove_current_env()
+                super().env_remove()
 
     def component(self):
-        pass
+        print('ERROR: Not Implemented Yet')
+        exit(1)
 
     def gengraph(self):
-        pass
+        print('ERROR: Not Implemented Yet')
+        exit(1)
 
     def monitor(self):
-        pass
+        print('ERROR: Not Implemented Yet')
+        exit(1)
 
     def jupyter(self):
-
         app_name = self.arguments.app_name
         if not app_name:
             print(f"ERROR: Application ID argument (-app) is required for starting jupyter on cluster")
             exit(1)
 
-        if app_name not in self.apps:
+        if app_name not in self.get_apps():
             print(f"ERROR: Application `{app_name}` not found")
             exit(1)
         
-        login_info = self.env_conf['login']
         app_args = self.arguments.rest_args
-        user = login_info.split('@')[0]
-        remote_dir = self.apps[app_name]['remote_dir'].replace('~', f'/home/{user[:5]}/{user}')
-        job_name = app_name + '-PyCOMPSsInteractive'
-        app_args += ['--jupyter_notebook='+remote_dir, '--job_name='+job_name, '--lang=python', f'--master_working_dir={remote_dir}', '--tracing=false']
-        app_args = ' '.join(app_args)
+        if len(app_args) > 2:
+            print(f"ERROR: Only accepted argument for jupyter command is --port")
+            exit(1)
+
+        port = '8888'
+
+        if len(app_args) == 2:
+            if not app_args[0].startswith('--port'):
+                print(f"ERROR: Only accepted argument for jupyter command is --port")
+                exit(1)
+            else:
+                port = app_args[1]
+
+        login_info = self.env_conf['login']
         env_id = self.env_conf['name']
+        remote_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
+        job_name = app_name + '-PyCOMPSsInteractive'
+        app_args = ' '.join(['--jupyter_notebook='+remote_dir, '--job_name='+job_name, '--lang=python', f'--master_working_dir={remote_dir}', '--tracing=false'])
+        modules = self.__get_modules()
+        if 'module load python' not in [m[:len('module load python')] for m in modules]:
+            modules.append('module load python/3.6.1')
 
-        job_id = remote_submit_job(env_id, login_info, remote_dir, app_args, envars=['pythonversion=3-jupyter'])
+        job_id = remote_submit_job(login_info, remote_dir, app_args, modules)
 
-        modules_path = f'source ~/.COMPSs/envs/{env_id}/modules.sh'
-
-        compss_path = core._check_remote_compss(login_info, modules_path)
-
-        scripts_path = core._infer_scripts_path(compss_path)
+        scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
 
         print('Waiting for jupyter to start...')
         jupyter_job_status = defaults.NOT_RUNNING_KEYWORD
         while jupyter_job_status != 'RUNNING':
-            jupyter_job_status = core.job_status(scripts_path, job_id, login_info, modules_path)
+            jupyter_job_status = core.job_status(scripts_path, job_id, login_info, modules)
+
+        print('Jupyter started')
 
         print('Connecting to jupyter server...')
         time.sleep(5)
 
-        core.connect_job(scripts_path, job_id, login_info, modules_path, web_browser=None)
+        core.connect_job(scripts_path, job_id, login_info, modules, remote_dir, port_forward=port, web_browser=None)
         
-        core.cancel_job(scripts_path, [job_id], login_info, modules_path)
+        core.cancel_job(scripts_path, [job_id], login_info, modules)

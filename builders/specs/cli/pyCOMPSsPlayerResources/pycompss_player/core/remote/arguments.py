@@ -61,14 +61,14 @@ def cluster_parser_app():
                              type=str,
                              help="Name of the application")
 
-    app_deploy_parser.add_argument("-l", "--local_dir",
+    app_deploy_parser.add_argument("-ls", "--local_source",
                              default='current directory',
                              type=str,
-                             help="Directory from which the files will be copied")
+                             help="Path from which the files will be copied. Can be a directory or a single file")
 
-    app_deploy_parser.add_argument("-r", "--remote_dir",
+    app_deploy_parser.add_argument("-rd", "--remote_dir",
                              type=str,
-                             help="Remote destination directory for the local app files")
+                             help="Remote destination directory to copy the local app files")
 
     app_remove_parser = app_subparsers.add_parser("remove",
                                 aliases=["r"],
@@ -116,9 +116,16 @@ def cluster_parser_job():
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
 
+    submit_job_parser.add_argument("--env_var", "-e",
+                                    action='append',
+                                    nargs=1,
+                                    type=str,
+                                    help="Set environment variables")  # noqa: E501   
+
     submit_job_parser.add_argument("app_name",
                              type=str,
                              help="Name of the application on which to submit the job")
+
 
     submit_job_parser.add_argument('rest_args', 
                             nargs=argparse.REMAINDER,   
@@ -152,7 +159,7 @@ def cluster_parser_job():
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
 
-    history_parser.add_argument("--app",
+    history_parser.add_argument("--job_id", '-j',
                              type=str,
                              help="")
 

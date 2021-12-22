@@ -1,14 +1,10 @@
-import json
 import os
-import pickle
-import sys
-import tarfile
+from re import sub
+from sys import stdout
 import tempfile
-import shutil
-from uuid import uuid4
+from shutil import copyfile
 import subprocess
 import tempfile
-from pycompss_player.core.cmd_helpers import command_runner
 import pycompss_player.core.utils as utils
 
 # ################ #
@@ -29,11 +25,7 @@ def remote_deploy_compss(env_id: str, login_info: str, modules) -> None:
     :returns: None
     """
 
-    print('Copying files to remote...')
-
-    remote_env_dir = '~/.COMPSs/envs/' + env_id
-    subprocess.run(f"ssh {login_info} 'mkdir -p {remote_env_dir}'", shell=True)
-
+    subprocess.run(f"ssh {login_info} 'mkdir -p ~/.COMPSs'", shell=True)
 
     if isinstance(modules, str):
         modules_file = modules
@@ -44,30 +36,48 @@ def remote_deploy_compss(env_id: str, login_info: str, modules) -> None:
         tmp_modules.close()
         modules_file = tmp_modules.name
 
-    subprocess.run(f'scp {modules_file} {login_info}:{remote_env_dir}/modules.sh', shell=True)
+    copyfile(modules_file, f'{os.path.expanduser("~")}/.COMPSs/envs/{env_id}/modules.sh')
 
     if not isinstance(modules, str):
         os.unlink(tmp_modules.name)
 
-def remote_app_deploy(env_id: str, login_info: str, working_dir: str, remote_working_dir: str):
+    path = os.path.abspath(__file__)
+    local_job_scripts_dir = os.path.dirname(path) + '/job_scripts/'
+    subprocess.run(f"scp -r {local_job_scripts_dir} '{login_info}:~/.COMPSs/'", shell=True, stdout=subprocess.PIPE)
     
-    subprocess.run(f"ssh {login_info} 'mkdir -p {remote_working_dir}'", shell=True)
-    subprocess.run(f"scp -r {working_dir}/* {login_info}:'{remote_working_dir}/'", shell=True)
-    
-    return remote_working_dir
 
-def remote_app_remove(login_info: str, remote_working_dir: str):
-    subprocess.run(f"ssh {login_info} 'rm -rf {remote_working_dir}'", shell=True)
+def remote_app_deploy(app_dir: str, login_info: str, local_source: str, remote_dest_dir: str = None):
+    print('Deploying app...')
+    utils.ssh_run_commands(login_info, [f'mkdir -p {app_dir}'])
 
-def remote_run_app(remote_dir: str, login_info: str, env_name: str, command: str):
+    cmd_copy_files = f"scp -r {local_source}/* {login_info}:'{app_dir}/'"
+
+    if os.path.isfile(local_source):
+        cmd_copy_files = cmd_copy_files.replace('/*', '')
+
+    subprocess.run(cmd_copy_files, shell=True)
+
+    if remote_dest_dir:
+        utils.ssh_run_commands(login_info, [
+            f'echo {remote_dest_dir} > {app_dir}/.compss'
+            f'ln -s {app_dir} {remote_dest_dir}',
+        ])
+
+def remote_app_remove(login_info: str, app_dir: str):
+    utils.ssh_run_commands(login_info, [
+            f'cat {app_dir}/.compss | xargs rm',
+            f'rm -rf {app_dir}'
+        ])
+
+def remote_run_app(remote_dir: str, login_info: str, env_name: str, command: str, modules):
     commands = [
         f'cd {remote_dir}',
-        f'source ~/.COMPSs/envs/{env_name}/modules.sh',
+        *modules,
         command
     ]
     return utils.ssh_run_commands(login_info, commands)
 
-def remote_submit_job(env_id: str, login_info: str, remote_dir: str, app_args: str, envars=[]) -> None:
+def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, envars=None) -> None:
     """ Execute the given command in the cluster COMPSs environment.
 
     :param cmd: Command to execute.
@@ -75,10 +85,12 @@ def remote_submit_job(env_id: str, login_info: str, remote_dir: str, app_args: s
     """
     commands = [
         f'cd {remote_dir}',
-        f'source ~/.COMPSs/envs/{env_id}/modules.sh',
-        *[f'export {var}' for var in envars],
+        *modules,
         f'enqueue_compss {app_args}'
     ]
+
+    if envars:
+        commands = [f'export {var}' for var in envars] + commands
 
     print(commands)
 
@@ -87,11 +99,50 @@ def remote_submit_job(env_id: str, login_info: str, remote_dir: str, app_args: s
     print('Job submitted:', job_id)
     return job_id
 
-def remote_list_job(login_info: str):
-    subprocess.run(f"ssh {login_info} squeue", shell=True)
+def remote_get_home(login_info: str):
+    return utils.ssh_run_commands(login_info, ['echo $HOME']).strip()
 
-def remote_cancel_job(login_info: str, job_id: str):
-    subprocess.run(f"ssh {login_info} scancel {job_id}", shell=True)
+def remote_list_apps(env_id: str, login_info: str, remote_home: str):
+    commands = [
+        f'[ ! -d "{remote_home}/.COMPSsApps/{env_id}" ] && echo "NO_APPS"',
+        f'ls ~/.COMPSsApps/{env_id}/',
+    ]
+
+    stdout = utils.ssh_run_commands(login_info, commands).strip()
+    if 'NO_APPS' in stdout:
+        return []
+
+    return stdout.split('\n')
+
+def remote_env_remove(login_info, env_id, env_apps):
+    for app_name in env_apps:
+        print(f'Deleting {app_name}...')
+        remote_dir = f'~/.COMPSsApps/{env_id}/{app_name}'
+        remote_app_remove(login_info, remote_dir)
+
+    utils.ssh_run_commands(login_info, [f'rm -rf ~/.COMPSsApps/{env_id}',])
+
+def remote_list_job(login_info: str, modules):
+
+    commands = [
+        *modules,
+        f'python3 ~/.COMPSs/job_scripts/find.py',
+    ]
+
+    stdout = utils.ssh_run_commands(login_info, commands).strip()
+    if stdout != 'SUCCESS':
+        print(stdout)
+    else:
+        print('No jobs found')
+
+def remote_cancel_job(login_info: str, job_id: str, modules):
+    commands = [
+        *modules,
+        f'python3 ~/.COMPSs/job_scripts/cancel.py {job_id}',
+    ]
+
+    stdout = utils.ssh_run_commands(login_info, commands).strip()
+    print(stdout)
 
 def remote_exec_app(login_info: str, exec_cmd: str):
     subprocess.run(f"ssh {login_info} {exec_cmd}", shell=True)

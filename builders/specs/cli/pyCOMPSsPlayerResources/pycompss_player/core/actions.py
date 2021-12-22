@@ -61,7 +61,7 @@ class Actions(ABC):
 
         open(env_path + '/current', 'a').close()
 
-        print(self.arguments.name)
+        print('Environemnt ID:', self.arguments.name)
 
     @abstractmethod
     def exec(self):
@@ -87,15 +87,14 @@ class Actions(ABC):
     def monitor(self):
         pass
 
-    @abstractmethod
-    def gengraph(self):
-        pass
+    # @abstractmethod
+    # def gengraph(self):
+    #     pass
 
-    @abstractmethod
-    def component(self):
-        pass
-
-    @abstractmethod
+    # @abstractmethod
+    # def component(self):
+    #     pass
+    
     def environment(self):
         # print('ABS ENV')
         action_name = 'list'
@@ -121,24 +120,18 @@ class Actions(ABC):
         utils.table_print(col_names, env_info)
 
 
-    def env_change(self):
-        if not os.path.isdir(self.home_path + '/.COMPSs/envs/' + self.arguments.env_id):
-            print("ERROR: There's no environment named " + self.arguments.env_id)
+    def env_change(self, env_id=None):
+        env_id = self.arguments.env_id if env_id is None else env_id
+        if not os.path.isdir(self.home_path + '/.COMPSs/envs/' + env_id):
+            print("ERROR: There's no environment named " + env_id)
             exit(1)
 
-        current_file = glob(self.home_path + '/.COMPSs/envs/*/current')[0]
-        os.remove(current_file)
-        env_dir_name = self.home_path + '/.COMPSs/envs/' + self.arguments.env_id
+        current_files = glob(self.home_path + '/.COMPSs/envs/*/current')
+        if current_files:
+            os.remove(current_files[0])
+        env_dir_name = self.home_path + '/.COMPSs/envs/' + env_id
         open(env_dir_name + '/current', 'a').close()
-        print('Environment', self.arguments.env_id, 'is now active')
-
-    def remove_current_env(self):
-        env_dir_name = self.env_conf['env_path']
-        self.__param_env_remove(env_dir_name)
-
-    def __param_env_remove(self, env_dir_name):
-        shutil.rmtree(env_dir_name)
-        open(self.home_path + '/.COMPSs/envs/default/current', 'a').close()
+        print(f'Environment `{env_id}` is now active')
 
     @abstractmethod
     def env_remove(self):
@@ -152,4 +145,7 @@ class Actions(ABC):
                 exit(1)
 
             env_dir_name = self.home_path + '/.COMPSs/envs/' + env_id
-            self.__param_env_remove(env_dir_name)
+            
+            print(f'Deleting environemnt `{env_id}`...')
+            shutil.rmtree(env_dir_name)
+        self.env_change(env_id='default')

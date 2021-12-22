@@ -49,8 +49,6 @@ public class TaskGroup implements AutoCloseable {
 
     private boolean barrierDrawn;
 
-    private int lastTaskId; // For being the source of the edge with the barrier.
-
 
     /**
      * Creates a task group.
@@ -66,7 +64,6 @@ public class TaskGroup implements AutoCloseable {
         this.barrierSet = false;
         this.barrier = new PendingBarrier();
         this.barrierDrawn = false;
-        this.lastTaskId = 0;
     }
 
     /**
@@ -94,7 +91,7 @@ public class TaskGroup implements AutoCloseable {
      */
     public void addTask(Task task) {
         tasks.add(task);
-        this.lastTaskId = task.getId();
+        this.barrier.setGraphSource(task.getId());
     }
 
     /**
@@ -112,7 +109,7 @@ public class TaskGroup implements AutoCloseable {
      * @return Id of the last task registered added to the group.
      */
     public int getLastTaskId() {
-        return this.lastTaskId;
+        return this.barrier.getGraphSource();
     }
 
     /**
@@ -141,8 +138,10 @@ public class TaskGroup implements AutoCloseable {
      */
     public void registerBarrier(Barrier request) {
         LOGGER.debug("Added barrier for group " + this.name);
+        int currentGraphSource = this.barrier.getGraphSource();
         COMPSsException currentException = this.barrier.getException();
         request.setException(currentException);
+        request.setGraphSource(currentGraphSource);
         if (hasPendingTasks()) {
             this.barrierSet = true;
             this.barrier = request;
@@ -151,22 +150,6 @@ public class TaskGroup implements AutoCloseable {
             this.barrier = new PendingBarrier();
             request.release();
         }
-    }
-
-    /**
-     * Sets the barrier of the group as drawn.
-     */
-    public void setBarrierDrawn() {
-        this.barrierDrawn = true;
-    }
-
-    /**
-     * Returns if the barrier of the group has been added to the graph.
-     *
-     * @return
-     */
-    public boolean getBarrierDrawn() {
-        return this.barrierDrawn;
     }
 
     @Override
@@ -231,6 +214,7 @@ public class TaskGroup implements AutoCloseable {
     private class PendingBarrier implements Barrier {
 
         private COMPSsException exception;
+        private int graphSource = Integer.MIN_VALUE;
 
 
         @Override
@@ -246,6 +230,16 @@ public class TaskGroup implements AutoCloseable {
         @Override
         public void release() {
             // Do nothign
+        }
+
+        @Override
+        public int getGraphSource() {
+            return this.graphSource;
+        }
+
+        @Override
+        public void setGraphSource(int id) {
+            this.graphSource = id;
         }
     }
 }

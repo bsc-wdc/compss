@@ -313,7 +313,7 @@ public class Application {
     /**
      * Registers the end of a task execution belonging to the application and removes it from all the groups it belongs
      * to.
-     * 
+     *
      * @param task finished task to be removed
      */
     public void endTask(Task task) {
@@ -324,8 +324,8 @@ public class Application {
                 LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
                 if (group.hasBarrier()) {
                     group.releaseBarrier();
-                    if (group.getBarrierDrawn()) {
-                        task.getApplication().removeGroup(group.getName());
+                    if (group.isClosed()) {
+                        removeGroup(group.getName());
                     }
                 }
             }
@@ -393,21 +393,6 @@ public class Application {
     public final void endReached(Barrier barrier) {
         this.ending = true;
         reachesBarrier(barrier);
-    }
-
-    /**
-     * Indicates that a GroupBarrier has been drawn.
-     * 
-     * @param groupName name of the group whose barrier has been drawn.
-     * @return last TaskId
-     */
-    public int drawnBarrier(String groupName) {
-        TaskGroup tg = this.getGroup(groupName);
-        tg.setBarrierDrawn();
-        if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
-            removeGroup(tg.getName());
-        }
-        return tg.getLastTaskId();
     }
 
     /**

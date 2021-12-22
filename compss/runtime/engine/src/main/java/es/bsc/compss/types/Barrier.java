@@ -27,4 +27,8 @@ public interface Barrier {
 
     public void release();
 
+    public int getGraphSource();
+
+    public void setGraphSource(int id);
+
 }

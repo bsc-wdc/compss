@@ -9,7 +9,7 @@ import docker
 from uuid import uuid4
 from docker.types import Mount
 from docker.errors import DockerException
-import inspect
+import subprocess
 
 from pycompss_player.core.cmd_helpers import command_runner
 
@@ -101,6 +101,7 @@ class DockerCmd(object):
             print("If this is your first time running PyCOMPSs it may take a " +
                 "while because it needs to download the docker image. " +
                 "Please be patient.")
+            subprocess.run(f'docker pull {docker_image}', shell=True)
             mounts = self._get_mounts(user_working_dir=working_dir)
             ports = {"8888/tcp": 8888,  # required for jupyter notebooks
                     "8080/tcp": 8080}  # required for monitor
@@ -163,8 +164,11 @@ class DockerCmd(object):
         _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
         if return_output:
             return list(output)[-1].decode().strip()
-        for line in output:
-            print(line.strip().decode())
+        try:
+            for line in output:
+                print(line.strip().decode())
+        except KeyboardInterrupt:
+            pass
 
 
     def docker_start_monitoring(self) -> None:

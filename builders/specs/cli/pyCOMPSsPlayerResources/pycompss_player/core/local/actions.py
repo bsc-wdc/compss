@@ -59,17 +59,25 @@ class LocalActions(Actions):
             print("Parameters:")
             print("\t- Application: " + self.arguments.application)
             print("\t- Arguments: " + str(self.arguments.argument))
-            
+
         app_args = self.arguments.rest_args
-        command = "runcompss " + ' '.join(app_args)
+
+        commands = [
+            "runcompss " + ' '.join(app_args)
+        ]
+
+        if self.env_conf['working_dir']:
+            commands.insert(0, 'cd ' + self.env_conf['working_dir'])
                 
-        local_run_app(command)
+        local_run_app(commands)
 
     def jupyter(self):
         working_dir = '.'
         if 'working_dir' in self.env_conf:
             working_dir = self.env_conf['working_dir']
-        local_jupyter(working_dir)
+
+        jupyter_args = self.arguments.rest_args
+        local_jupyter(working_dir, ' '.join(jupyter_args))
 
     def exec(self):
         command = ' '.join(self.arguments.exec_cmd)
@@ -78,9 +86,6 @@ class LocalActions(Actions):
     def app(self):
         print("ERROR: Wrong Environment! Try switching to a `cluster` environment")
         exit(1)
-
-    def environment(self):
-        super().environment()
 
     def env_remove(self):
         super().env_remove()
@@ -95,8 +100,12 @@ class LocalActions(Actions):
         getattr(self, action_name)()
                 
     def job_submit(self):
+        modules = [
+            'module load COMPs',
+            'module load python/3.6.1'
+        ]
         app_args = self.arguments.rest_args
-        local_submit_job(app_args)
+        local_submit_job(modules, app_args)
 
     def job_list(self):
         pass

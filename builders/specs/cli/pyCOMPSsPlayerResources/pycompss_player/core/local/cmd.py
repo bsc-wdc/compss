@@ -6,6 +6,7 @@ import sys
 import tarfile
 import tempfile
 import shutil
+from typing import List
 from uuid import uuid4
 import signal
 
@@ -34,25 +35,27 @@ def local_deploy_compss(working_dir: str = "") -> None:
     # tmp_path, cfg_file = _store_temp_cfg(cfg_content)
     # _copy_file(cfg_file, default_cfg)
     # shutil.rmtree(tmp_path)
-    print('LOCAL INIT')
     pass
 
 
-def local_run_app(cmd: str) -> None:
+def local_run_app(cmd: List[str]) -> None:
     """ Execute the given command in the main COMPSs image in Docker.
 
     :param cmd: Command to execute.
     :returns: The execution stdout.
     """
+
+    cmd = ';'.join(cmd)
+
     print("Executing cmd: %s" % cmd)
 
     subprocess.run(cmd, shell=True)
 
 
-def local_jupyter(work_dir):
+def local_jupyter(work_dir, jupyter_args):
     cmd = 'jupyter notebook --notebook-dir=' + work_dir
     # run cmd in a subprocess, print the output and handle SIGINT signal for the subprocess
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(cmd + ' ' + jupyter_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     try:
         while True:
             line = process.stdout.readline()
@@ -71,8 +74,9 @@ def local_exec_app(command):
     subprocess.run(command, shell=True)
 
 
-def local_submit_job(app_args):
-    res = subprocess.run(f'enqueue_compss {app_args}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def local_submit_job(modules, app_args):
+    mod_cmds = ' && '.join(modules)
+    res = subprocess.run(f'{mod_cmds} && enqueue_compss {app_args}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     job_id = res.stdout.decode().strip().split('\n')[-1].split(' ')[-1]
     if res.returncode != 0:
         print('ERROR:', res.stderr.decode())

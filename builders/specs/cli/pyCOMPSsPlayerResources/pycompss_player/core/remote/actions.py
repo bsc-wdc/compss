@@ -107,7 +107,7 @@ class RemoteActions(Actions):
 
         if len(self.arguments.rest_args) == 1 and os.path.isfile(self.arguments.rest_args[0]):
             with open(self.arguments.rest_args[0], 'r') as args_file:
-                app_args = args_file.read().strip().replace('\n', ' ').replace('\\', '')
+                app_args = args_file.read().strip().replace('\n', ' ')
         else:
             app_args = " ".join(self.arguments.rest_args)
 

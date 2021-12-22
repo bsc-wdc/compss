@@ -87,6 +87,9 @@ show_opts() {
     --no-jacoco, -J             Disable Jacoco module installation
                                 Default: ${DEFAULT_JACOCO}
 
+    --cli, -c                   Enable Command Line Interface module installation
+    --no-cli, -C                Disable Command Line Interface module installation
+
     --nothing, -N               Disable all previous options
                                 Default: unused
 
@@ -207,6 +210,14 @@ get_args() {
         # Custom Jacoco value
         jacoco=false
         ;;
+      c)
+        # Custom CLI value
+        cli=true
+        ;;
+      C)
+        # Custom CLI value
+        cli=false
+        ;;
       N)
         # Disables all flags
         tracing=false
@@ -215,7 +226,8 @@ get_args() {
         pycompss=false
         autoparallel=false
         kafka=false
-	jacoco=false
+	      jacoco=false
+        cli=false
         ;;
       -)
 	# Check more complex arguments
@@ -284,13 +296,21 @@ get_args() {
             # Custom Kafka value
             kafka=false
             ;;
-	  jacoco)
+          jacoco)
             # Custom Jacoco value
             jacoco=true
             ;;
           no-jacoco)
             # Custom Jacoco value
             jacoco=false
+            ;;
+          cli)
+            # Custom CLI value
+            cli=true
+            ;;
+          no-cli)
+            # Custom CLI value
+            cli=false
             ;;
           nothing)
             # Disables all flags
@@ -300,7 +320,8 @@ get_args() {
             pycompss=false
             autoparallel=false
             kafka=false
-	    jacoco=false
+	          jacoco=false
+            cli=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution
@@ -367,6 +388,11 @@ check_args() {
   if [ -z "${jacoco}" ]; then
     display_warning "${NO_JACOCO}"
     jacoco=${DEFAULT_JACOCO}
+  fi
+
+  if [ -z "${cli}" ]; then
+    display_warning "${NO_CLI}"
+    cli=${DEFAULT_CLI}
   fi
 
   if [ -z "${user_exec}" ]; then
@@ -515,6 +541,7 @@ install_compss() {
   cp -r "${SOURCES_DIR}/files" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/maven-plugins" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/utils" "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}/builders/specs/cli" "${TMP_DIR}"
   cp "${SOURCES_DIR}/LICENSE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/NOTICE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
@@ -712,6 +739,13 @@ install_compss() {
     unzip ${JACOCO_PCK_NAME} -d jacoco
     cd "${SCRIPT_DIR}"
     mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
+  fi
+
+  if [ "$cli" == "true" ]; then
+    echo "- Deploying CLI at Tools"
+    cd "${TMP_DIR}/builders/specs/cli"
+    ./install.sh
+    cd "${SCRIPT_DIR}"
   fi
 
   # BINDINGS DEPLOYMENT

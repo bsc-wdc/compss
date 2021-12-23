@@ -69,7 +69,9 @@ except ImportError:
 
 # Determine if running in a supercomputer
 RUNNING_IN_SUPERCOMPUTER = False
-if "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4":
+if "COMPSS_RUNNING_IN_SC" in os.environ and os.environ["COMPSS_RUNNING_IN_SC"] == "true":
+    RUNNING_IN_SUPERCOMPUTER = True
+elif "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4":
     # Only supported in MN4 currently
     RUNNING_IN_SUPERCOMPUTER = True
 

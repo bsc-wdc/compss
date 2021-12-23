@@ -944,7 +944,7 @@ get_args() {
         display_version 0
         ;;
       d)
-        log_level=${DEFAULT_DEBUG_ARG}
+	log_level=${DEFAULT_DEBUG_ARG}
         #Keep it for runcompss (to add them to master)
         args_pass="$args_pass -$flag"
         ;;
@@ -969,10 +969,18 @@ get_args() {
           show_opts 0
           ;;
         master_node=*)
-          master_node=${OPTARG//master_node=/}
+	  if [ -z "${master_node}" ]; then
+             master_node=${OPTARG//master_node=/}
+          else
+             action_error "Duplicated master_node parameter. Please check command arguments."
+	  fi
           ;;
         worker_nodes=*)
-          worker_nodes=${OPTARG//worker_nodes=/}
+	  if [ -z "${worker_nodes}" ]; then
+             worker_nodes=${OPTARG//worker_nodes=/}
+	  else
+             action_error "Duplicated worker_nodes parameter. Please check command arguments."
+          fi
           ;;
         resources=*)
           resources=${OPTARG//resources=/}
@@ -1257,6 +1265,9 @@ get_args() {
         ipython)
           ipython=true
           ;;
+	command)
+	  run_command=true
+	  ;;
         xmls_phase=*)
           # Added for heterogeneity
           xmls_phase=${OPTARG//xmls_phase=/}
@@ -1297,9 +1308,11 @@ get_args() {
 
   # Wrap full app path for lang inference
   fullAppPath=$1
-
+  
+  
   # Pass application name and args
   args_pass="$args_pass $*"
+  command_to_run="$*"
 }
 
 ###############################################
@@ -2003,7 +2016,7 @@ launch() {
   # Launching the master
   if [ ! -z "${master_node}" ]; then
     # Launch master
-    if [ "${jupyter_notebook}" = false ] && [ "${ipython}" = false ]; then
+    if [ "${jupyter_notebook}" = false ] && [ "${ipython}" = false ] && [ "${run_command}" = false ]; then
       master_cmd "${master_node}${network}"
       MCMD="${MCMD} ${args_pass}"
       if [ "${log_level}" != "off" ]; then
@@ -2015,31 +2028,27 @@ launch() {
         echo "Master execution failed. Exiting job."
         exit $ev
       fi
-    elif [ "${ipython}" = true ]; then
-      # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
-      export PYTHONPATH=${pythonpath}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
-      # JAVA_HOME variable must exist
-      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
-      unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
-      export COMPSS_LOG_LEVEL=${log_level}
-      export COMPSS_TRACING=${tracing}
-      if [ -v "$tracing" ] && [ $tracing != "false" ]; then
-        load_tracing_env
-      fi
-      # Export project and resources xmls as environment variables to be used from PyCOMPSs binding
-      # Also export the master name, master port, and worker nodes to be used from PyCOMPSs binding
-      export COMPSS_PROJECT_XML=${PROJECT_FILE}
-      export COMPSS_RESOURCES_XML=${RESOURCES_FILE}
-      export COMPSS_MASTER_NODE=${master_node}
-      export COMPSS_MASTER_PORT=${master_port}
-      export COMPSS_WORKER_NODES=${worker_nodes}
-      export COMPSS_UUID=${uuid}
-      export COMPSS_BASE_LOG_DIR=${base_log_dir}
-      export COMPSS_SPECIFIC_LOG_DIR=${specific_log_dir}
-      export COMPSS_STORAGE_CONF=${storage_conf}
-      ipython
     else
-      # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
+      load_external_compss_environment	    
+      if [ "${ipython}" = true ]; then
+      	 ipython
+      elif [ "${run_command}" = true ]; then
+	 echo "Running command: ${command_to_run}" 
+         eval ${command_to_run}
+      elif [ "${jupyter_notebook}" = true ]; then
+         # Run jupyter notebook instead of the master within the jupyter_notebook_path
+         # The master will be started when the user wants later from the notebook (the workers have already been launched)
+         (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
+      fi
+    fi
+    no_wait=false
+  else
+    echo "No master to run..."
+    no_wait=true   
+  fi
+}
+
+load_external_compss_environment() {
       export PYTHONPATH=${jupyter_notebook_path}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
       # JAVA_HOME variable must exist
       export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/lib/amd64/server/:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
@@ -2060,11 +2069,6 @@ launch() {
       export COMPSS_BASE_LOG_DIR="${base_log_dir}"
       export COMPSS_SPECIFIC_LOG_DIR="${specific_log_dir}"
       export COMPSS_STORAGE_CONF="${storage_conf}"
-      # Run jupyter notebook instead of the master within the jupyter_notebook_path
-      # The master will be started when the user wants later from the notebook (the workers have already been launched)
-      (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
-    fi
-  fi
 }
 
 ###############################################
@@ -2208,7 +2212,9 @@ cleanup() {
   launch
 
   # Wait
-  wait_for_completion
+  if [ "${no_wait}" = false ]; then
+     wait_for_completion
+  fi
 
   # Epilog
   epilog

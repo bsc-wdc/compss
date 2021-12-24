@@ -1,7 +1,7 @@
 if [ -z "${COMPSS_SC_CFG}" ]; then
-	COMPSS_SC_CFG=default.cfg
+	COMPSS_SC_CFG=${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/default.cfg
 fi
-source ${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${COMPSS_SC_CFG}
+source ${COMPSS_SC_CFG}
 source ${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg
 
 if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then

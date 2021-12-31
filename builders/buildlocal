@@ -448,6 +448,8 @@ install_compss() {
   # COMPILE
   echo "- Compile sources"
   cd "${SOURCES_DIR}"
+  touch compss/runtime/config/xml/projects/project_schema.xsd
+  touch compss/runtime/config/xml/resources/resources_schema.xsd
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
     echo "   (as root)"
     mvn -U clean install ${mvnTests}

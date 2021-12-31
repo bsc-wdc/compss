@@ -73,6 +73,8 @@
   # Compile sources
   echo "- Compile sources"
   cd "${SOURCES_DIR}"
+  touch compss/runtime/config/xml/projects/project_schema.xsd
+  touch compss/runtime/config/xml/resources/resources_schema.xsd
   mvn -U -Dmaven.test.skip=true clean package
   cd "${SCRIPT_DIR}"
 

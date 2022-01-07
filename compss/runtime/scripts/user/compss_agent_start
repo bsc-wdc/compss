@@ -38,107 +38,118 @@ usage() {
   cat << EOF
 Usage: $0 [OPTION]...
 
+EOF
+
+show_opts
+}
+
+show_opts() {
+
+  cat << EOF
 COMPSs options:
 
-  --appdir=<path>                         Path for the application class folder.
+    --appdir=<path>                         Path for the application class folder.
                                           Default: ${DEFAULT_APPDIR}
 
-  --classpath=<path>                      Path for the application classes / modules
+    --classpath=<path>                      Path for the application classes / modules
                                           Default: Working Directory
 
-  --comm=<className>                      Class that implements the adaptor for communications with other nodes
-                                          Supported adaptors:
-                                              ├── ${NIO_ADAPTOR}
-                                              ├── ${GAT_ADAPTOR}
-                                              ├── ${REST_AGENT_ADAPTOR}
-                                              └── ${COMM_AGENT_ADAPTOR}
-                                          Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
+    --comm=<className>                      Class that implements the adaptor for communications with other nodes
+                                            Supported adaptors:
+                                                ├── ${NIO_ADAPTOR}
+                                                ├── ${GAT_ADAPTOR}
+                                                ├── ${REST_AGENT_ADAPTOR}
+                                                └── ${COMM_AGENT_ADAPTOR}
+                                            Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
 
-  --comm_port=<int>                       Port on which the agent sets up a Comm interface. (<=0: Disabled)
+    --comm_port=<int>                       Port on which the agent sets up a Comm interface. (<=0: Disabled)
 
-  -d, --debug                             Enable debug. (Default: disabled)
+    -d, --debug                             Enable debug. (Default: disabled)
 
-  --hostname                              Name with which itself and other agents will identify the agent.
+    --hostname                              Name with which itself and other agents will identify the agent.
 
-  --jvm_opts="string"                     Extra options for the COMPSs Runtime JVM. Each option separed by "," and without blank spaces (Notice the quotes)
+    --jvm_opts="string"                     Extra options for the COMPSs Runtime JVM. Each option separed by "," and without blank spaces (Notice the quotes)
 
-  --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
-                                          Default: Working Directory
+    --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
+                                            Default: Working Directory
 
-  --log_dir=<path>                        Log directory. (Default: /tmp/${app_uuid})
+    --log_dir=<path>                        Log directory. (Default: /tmp/${app_uuid})
 
-  --log_level=<level>                     Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
-                                          Default: ${DEFAULT_LOG_LEVEL}
+    --log_level=<level>                     Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
+                                            Default: ${DEFAULT_LOG_LEVEL}
 
-  --master_port=<int>                     Port to run the COMPSs master communications.
-                                          (Only when ${NIO_ADAPTOR} is used. The value is overriden by the comm_port value.)
-                                          Default: ${DEFAULT_MASTER_PORT}
+    --master_port=<int>                     Port to run the COMPSs master communications.
+                                            (Only when ${NIO_ADAPTOR} is used. The value is overriden by the comm_port value.)
+                                            Default: ${DEFAULT_MASTER_PORT}
 
-  --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
-                                          Default: ${DEFAULT_PYTHONPATH}
+    --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
+                                            Default: ${DEFAULT_PYTHONPATH}
 
-  --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
-                                          Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
+    --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
+                                            Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
 
-  --python_propagate_virtual_environment=<true>   Propagate the master virtual environment to the workers (true/false).
-                                                  Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
+    --python_propagate_virtual_environment=<true>   Propagate the master virtual environment to the workers (true/false).
+                                                    Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
 
-  --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
-                                          Default: $DEFAULT_PYTHON_MPI_WORKER
+    --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
+                                            Default: $DEFAULT_PYTHON_MPI_WORKER
 
-  --python_memory_profile                 Generate a memory profile of the master.
-                                          Default: $DEFAULT_PYTHON_MEMORY_PROFILE
-  --python_worker_cache=<string>          Python worker cache (true/size/false).
-                                          Only for NIO without mpi worker and python >= 3.8.
-                                          Default: ${DEFAULT_PYTHON_WORKER_CACHE}
+    --python_memory_profile                 Generate a memory profile of the master.
+                                            Default: $DEFAULT_PYTHON_MEMORY_PROFILE
 
-  --python_cache_profiler=<bool>                 Python cache profiler (true/false).
-                                          Only for NIO without mpi worker and python >= 3.8.
-                                          Default: ${DEFAULT_PYTHON_CACHE_PROFILER}
+    --python_worker_cache=<string>          Python worker cache (true/size/false).
+                                            Only for NIO without mpi worker and python >= 3.8.
+                                            Default: ${DEFAULT_PYTHON_WORKER_CACHE}
 
-  --project=<path>                        Path of the project file
-                                          (Default: ${DEFAULT_PROJECT})
+    --python_cache_profiler=<bool>          Python cache profiler (true/false).
+                                            Only for NIO without mpi worker and python >= 3.8.
+                                            Default: ${DEFAULT_PYTHON_CACHE_PROFILER}
 
-  --resources=<path>                      Path of the resources file
-                                          (Default: ${DEFAULT_RESOURCES})
+    --project=<path>                        Path of the project file
+                                            (Default: ${DEFAULT_PROJECT})
 
-  --rest_port=<int>                       Port on which the agent sets up a REST interface. (<=0: Disabled)
+    --resources=<path>                      Path of the resources file
+                                            (Default: ${DEFAULT_RESOURCES})
 
-  --reuse_resources_on_block=<boolean>    Enables/Disables reusing the resources assigned to a task when its execution stalls.
-                                          (Default:${DEFAULT_REUSE_RESOURCES_ON_BLOCK})
+    --rest_port=<int>                       Port on which the agent sets up a REST interface. (<=0: Disabled)
 
-  --scheduler=<className>                 Class that implements the Scheduler for COMPSs
-                                          Supported schedulers:
-                                              ├── ${DATA_SCHEDULER}
-                                              ├── ${FIFO_SCHEDULER}
-                                              ├── ${FIFO_DATA_SCHEDULER}
-                                              ├── ${LIFO_SCHEDULER}
-                                              ├── ${BASE_SCHEDULER}
-                                              └── ${LOAD_BALANCING_SCHEDULER}
-                                          Default: ${DEFAULT_SCHEDULER}
+    --reuse_resources_on_block=<boolean>    Enables/Disables reusing the resources assigned to a task when its execution stalls.
+                                            (Default:${DEFAULT_REUSE_RESOURCES_ON_BLOCK})
 
-  --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
-                                          Default: Empty
+    --scheduler=<className>                 Class that implements the Scheduler for COMPSs
+                                            Supported schedulers:
+                                                ├── ${DATA_SCHEDULER}
+                                                ├── ${FIFO_SCHEDULER}
+                                                ├── ${FIFO_DATA_SCHEDULER}
+                                                ├── ${LIFO_SCHEDULER}
+                                                ├── ${BASE_SCHEDULER}
+                                                └── ${LOAD_BALANCING_SCHEDULER}
+                                            Default: ${DEFAULT_SCHEDULER}
 
-  --input_profile=<path>                  Path to the file which stores the input application profile
-                                          Default: Empty
+    --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
+                                            Default: Empty
 
-  --output_profile=<path>                 Path to the file to store the application profile at the end of the execution
-                                          Default: Empty
+    --input_profile=<path>                  Path to the file which stores the input application profile
+                                            Default: Empty
 
-  --summary                               Displays a task execution summary at the end of the application execution
-                                          Default: ${DEFAULT_SUMMARY}
+    --output_profile=<path>                 Path to the file to store the application profile at the end of the execution
+                                            Default: Empty
 
-  --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | scorep | arm-map | arm-ddt | false)
-                                          True and basic levels will produce the same traces.
-                                          When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
-                                          Default: ${DEFAULT_TRACING}
+    --summary                               Displays a task execution summary at the end of the application execution
+                                            Default: ${DEFAULT_SUMMARY}
 
-  --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
-                                          Default: None
+    --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | scorep | arm-map | arm-ddt | false)
+                                            True and basic levels will produce the same traces.
+                                            When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
+                                            Default: ${DEFAULT_TRACING}
 
-Other options:
-  --help                                  prints this message
+    --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
+                                            Default: None
+
+  Other options:
+    --help, -h                              Prints this message
+
+    --version, v                            Prints COMPSs version
 
 EOF
 }
@@ -258,6 +269,11 @@ parse_options() {
           master_port=*)
             # Preset a Master port
             master_port=${OPTARG//master_port=/}
+            ;;
+          opts)
+            # Show launch options
+            show_opts
+            exit 0
             ;;
           output_profile=*)
             # Specify the file where COMPSs will store the tasks profile

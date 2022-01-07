@@ -75,88 +75,22 @@
   touch "${output_log}"
   touch "${error_log}"
 
+  agent1_log_dir="${log_dir}/COMPSsWorker01"
+  agent2_log_dir="${log_dir}/COMPSsWorker02"
+
   # Starting agent
-  for agent_id in $(seq 1 2); do
-    agent_log_dir="${log_dir}/agent${agent_id}/"
-    mkdir -p "${agent_log_dir}" 
-    agent_output_log="${log_dir}agent${agent_id}.outputlog"
-    agent_error_log="${log_dir}agent${agent_id}.errorlog"
-
-    eval "agent${agent_id}_log_dir=${agent_log_dir}"
-    eval "agent${agent_id}_output_log=${agent_output_log}"
-    eval "agent${agent_id}_errput_log=${agent_error_log}"
-
-    compss_agent_start \
-      --hostname="COMPSsWorker0${agent_id}" \
-      --pythonpath="${base_app_dir}/src" \
-      --log_dir="${agent_log_dir}" \
-      --rest_port="46${agent_id}01" \
-      --comm_port="46${agent_id}02" \
-      -d \
-      ${runcompss_opts} \
-      --project="${base_app_dir}/project.xml" \
-      --resources="${base_app_dir}/resources.xml" 1>"${agent_output_log}" 2>"${agent_error_log}" &
-
-      agent_pid="$!"
-      AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
-  done
-
-  for agent_id in $(seq 1 2); do
-    agent_port=46${agent_id}01
-    out_log_name=agent${agent_id}_output_log
-    eval agent_output_log=${!out_log_name}
-
-    retries="${NUM_RETRIES}"
-    curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
-    ev=$?
-    while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
-      sleep 2s
-      retries=$((retries - 1 ))
-      curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
-      ev=$?
-    done
-
-
-    RESULT=$(grep "test invoked" "${agent_output_log}")
-    if [ -z "${RESULT}" ]; then  
-      echo "Agent failed to start" > >(tee -a "${error_log}")
-      exit 1
-    fi
-    echo "Agent started" > >(tee -a "${output_log}")
-    sleep 2s
-
-  done
- 
-  compss_agent_add_resources "--agent_node=127.0.0.1" "--agent_port=46101" "127.0.0.2" "Port=46202" > /dev/null 2>/dev/null
-
-
-
-  # Invoking DemoFunction method
-  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
-   --lang="PYTHON" \
-   --master_node="127.0.0.1" \
-   --master_port="46101" \
-   --method_name="main" \
-   "simple" > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
-   ev=$?
-
-   sleep 5s
-   if [ "$ev" != "0" ]; then
-    echo "Could not invoke main method." > >(tee -a "${error_log}")
-    exit $ev
-  fi
-  echo "main function invoked" > >(tee -a "${output_log}")
-
-  retries="3"
-  while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
-    sleep 2s
-    retries=$((retries - 1 ))
-  done
-  if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
-    echo "Could not invoke main method." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  sleep 5
+  compss_agent_start_service \
+    --num_agents=2 \
+    --pythonpath="${base_app_dir}/src" \
+    --log_dir="${log_dir}" \
+    -d \
+    ${runcompss_opts} \
+    --project="${base_app_dir}/project.xml" \
+    --resources="${base_app_dir}/resources.xml" \
+    --lang="PYTHON" \
+    --stop \
+    --method_name="main" \
+    "simple"
 
   job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
   if [ -n "${job1_method}" ]; then

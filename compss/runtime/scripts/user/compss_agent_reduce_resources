@@ -36,13 +36,11 @@ ERROR_NO_TARGET_HOST="Target host not specified."
 usage() {
   SCRIPT_NAME=$(basename "$0")
   cat <<EOT
-Usage: ${SCRIPT_NAME} [options] resource_name
+Usage: $0 [OPTION]... RESOURCE_NAME
 
 * Options:
   General:
     --help, -h                              Print this help message
-
-    --opts                                  Show available options
 
     --version, -v                           Print COMPSs version
 

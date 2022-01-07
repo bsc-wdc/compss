@@ -17,13 +17,20 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
 
-#---------------------------------------------------------------------------------------
+
+
+###############################################
 # SCRIPT CONSTANTS DECLARATION
-#---------------------------------------------------------------------------------------
+###############################################
 DEFAULT_DC_ENABLED="false"
 DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
 DEFAULT_TRACING_ARGUMENT=${TRACING_BASIC}
+
+###############################################
+# ERROR CONSTANTS DECLARATION
+###############################################
 TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
+
 
 ###############################################
 ###############################################
@@ -38,16 +45,62 @@ usage() {
   cat << EOF
 Usage: $0 [OPTION]...
 
+COMPSs options:
 EOF
+  show_opts
 
-show_opts
+  cat << EOF
+General options:
+    --help, -h                              Prints this message
+
+    --version, v                            Prints COMPSs version
+EOF
 }
 
+###############################################
+# Display Arguments & Environment error
+###############################################
+arguments_error() {
+  local error_msg=$1
+  display_error "${error_msg}"
+  usage
+  exit 1
+}
+
+###############################################
+# Display Runtime configuration
+###############################################
+display_settings () {
+  display_info \
+"Options setup:
+    AGENT NAME: ${master_name}
+    AGENT REST PORT: ${agent_rest_port}
+    AGENT COMM PORT: ${agent_comm_port}
+
+    RESOURCES FILE: ${resFile}
+    PROJECT FILE: ${projFile}
+    COMM ADAPTOR: ${comm}
+
+    DEBUG: ${log_level}
+    PYTHON INTERPRETER: ${python_interpreter}
+    MPI PYTHON: ${python_mpi_worker}
+    PYTHON CACHE: ${python_worker_cache}
+    PYTHON PROFILER: ${python_cache_profiler}"
+}
+
+
+###############################################
+###############################################
+# Option management functions
+###############################################
+###############################################
+
+###############################################
+# Display Script Options
+###############################################
 show_opts() {
 
   cat << EOF
-COMPSs options:
-
     --appdir=<path>                         Path for the application class folder.
                                           Default: ${DEFAULT_APPDIR}
 
@@ -146,42 +199,7 @@ COMPSs options:
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
                                             Default: None
 
-  Other options:
-    --help, -h                              Prints this message
-
-    --version, v                            Prints COMPSs version
-
 EOF
-}
-
-###############################################
-# Display Arguments & Environment error
-###############################################
-arguments_error() {
-  local error_msg=$1
-  display_error "${error_msg}"
-  usage
-  exit 1
-}
-
-###############################################
-# Display Runtime configuration
-###############################################
-display_settings () {
-  display_info "Options setup:
-        AGENT NAME: ${master_name}
-        AGENT REST PORT: ${agent_rest_port}
-        AGENT COMM PORT: ${agent_comm_port}
-
-        RESOURCES FILE: ${resFile}
-        PROJECT FILE: ${projFile}
-        COMM ADAPTOR: ${comm}
-
-        DEBUG: ${log_level}
-        PYTHON INTERPRETER: ${python_interpreter}
-        MPI PYTHON: ${python_mpi_worker}
-        PYTHON CACHE: ${python_worker_cache}
-        PYTHON PROFILER: ${python_cache_profiler}"
 }
 
 ###############################################
@@ -195,13 +213,14 @@ parse_options() {
         # Enable debug in log level
         log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
         ;;
+      h)
+        # Display help
+        usage
+        exit 0
+        ;;
       t)
         # Enable tracing
         tracing=${DEFAULT_TRACING_ARGUMENT}
-        ;;
-      h)
-        usage
-        exit 0
         ;;
       v)
         # Display version
@@ -211,18 +230,39 @@ parse_options() {
       -)
 	      # Check more complex arguments
 	      case "$OPTARG" in
-          appdir=*)
-	          # Main binary directory (only for C/C++ applications)
-	          appdir=${OPTARG//appdir=/}
+        # Options Description options
+          opts)
+            # Show launch options
+            show_opts
+            exit 0
+            ;;
+        	help)
+	          # Display help
+	          usage
+            exit 0
 	          ;;
+
+          # Version options
           flower)
             # Display flower
             show_flower
             exit 0
             ;;
-        	help)
-	          # Display help
-	          usage 0
+          recipe)
+            # Display recipe
+            show_recipe
+            exit 0
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+
+          # COMPSs options
+          appdir=*)
+	          # Main binary directory (only for C/C++ applications)
+	          appdir=${OPTARG//appdir=/}
 	          ;;
           hostname=*)
             master_name=${OPTARG//hostname=/}
@@ -270,11 +310,6 @@ parse_options() {
             # Preset a Master port
             master_port=${OPTARG//master_port=/}
             ;;
-          opts)
-            # Show launch options
-            show_opts
-            exit 0
-            ;;
           output_profile=*)
             # Specify the file where COMPSs will store the tasks profile
             output_profile=${OPTARG//output_profile=/}
@@ -314,11 +349,6 @@ parse_options() {
 	            display_warning "Project XML file '$projFile' could not be found."
 	          fi
 	          ;;
-          recipe)
-            # Display recipe
-            show_recipe
-            exit 0
-            ;;
  	        resources=*)
 	          # Custom resources file
 	          resFile=${OPTARG//resources=/}
@@ -372,11 +402,6 @@ parse_options() {
           trace_label=*)
             # Tracing system
             trace_label=${OPTARG//trace_label=/}
-            ;;
-          version)
-            # Show version
-            show_full_version
-            exit 0
             ;;
         *)
 	        # Flag didn't match any patern. Raise exception
@@ -451,19 +476,29 @@ check_setup() {
   check_compss_setup
 }
 
+
+###############################################
+###############################################
+# Secondary functions
+###############################################
+###############################################
+
 clean_script(){
   if [ -n "${WORKING_DIR}" ]; then
     rm -rf "${WORKING_DIR}"
   fi
-
 }
 
 clean_agent(){
     clean_runtime_environment
 }
-##############################################
-############### MAIN CODE ####################
-##############################################
+
+
+###############################################
+###############################################
+# Main code
+###############################################
+###############################################
 check_compss_env
 
 
@@ -474,9 +509,10 @@ display_settings
 
 # trap clean_agent EXIT
 
-display_info "-----------------------------------------------"
-display_info "              AGENT  ${master_name}"
-display_info "-----------------------------------------------"
-display_info "Launching COMPSs agent on device ${master_name} and ports ${rest_port_msg} ${comm_port_msg} with debug level ${DEBUG}"
+display_info \
+"-----------------------------------------------
+              AGENT  ${master_name}
+-----------------------------------------------
+Launching COMPSs agent on device ${master_name} and ports ${rest_port_msg} ${comm_port_msg} with debug level ${DEBUG}"
 
 start_compss_agent

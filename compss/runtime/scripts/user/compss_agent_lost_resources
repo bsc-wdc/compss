@@ -16,37 +16,78 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 
-#---------------------------------------------------------------------------------------
+
+
+###############################################
 # SCRIPT CONSTANTS DECLARATION
-#---------------------------------------------------------------------------------------
+###############################################
 APP_CMD="curl"
 
-
-#---------------------------------------------------------------------------------------
+###############################################
 # ERROR CONSTANTS DECLARATION
-#---------------------------------------------------------------------------------------
+###############################################
 ERROR_NO_TARGET_HOST="Target host not specified."
+UNKNOWN_OPTION="Unknown option tag. Ignoring option"
 
-#---------------------------------------------------------------------------------------
-# GENERIC HELPER FUNCTIONS
-#---------------------------------------------------------------------------------------
+
+###############################################
+###############################################
+# Display functions
+###############################################
+###############################################
 
 ###############################################
 # Displays usage
 ###############################################
 usage() {
-  SCRIPT_NAME=$(basename "$0")
-  cat <<EOT
+  cat <<EOF
 Usage: $0 [OPTION]... RESOURCE_NAME
+EOF
+  show_opts
+  cat << EOF
+General options:
+    --help, -h                              Prints this message
 
-* Options:
-  General:
-    --help, -h                              Print this help message
+    --version, v                            Prints COMPSs version
+EOF
+}
 
-    --opts                                  Show available options
+###############################################
+# Display Invocation details
+###############################################
+display_invocation() {
+  display_info \
+"Target agent details: 
+    Host:                     ${agent_node} 
+    Port:                     ${agent_port} 
+  
+  Lost agent details: 
+    Resource Name:            ${resource_node}"
+  
+}
 
-    --version, -v                           Print COMPSs version
 
+###############################################
+###############################################
+# Option management functions
+###############################################
+###############################################
+
+###############################################
+# Display All Script Options
+############################################### 
+show_opts() {
+    cat <<EOF
+Target Options:
+EOF
+  show_target_opts
+}
+
+###############################################
+# Display Script Target Options
+###############################################
+show_target_opts() {
+cat <<EOT
     --agent_node=<string>                   Name of the node where to add the resource
                                             Default: ${DEFAULT_AGENT_NODE}
 
@@ -56,23 +97,7 @@ EOT
 }
 
 ###############################################
-# Displays errors when treating arguments
-###############################################
-display_invocation() {
-  display_info "Target agent details: 
-      Host:                     ${agent_node} 
-      Port:                     ${agent_port} 
-  
-  Lost agent details: 
-      Resource Name:            ${resource_node}"
-  
-}
-
-#---------------------------------------------------------------------------------------
-# MAIN FUNCTIONS
-#---------------------------------------------------------------------------------------
-###############################################
-# Function to get the arguments
+# Parses the options from the commandline and updates the current option values
 ###############################################
 get_args() {
   # Parse COMPSs Options
@@ -90,36 +115,54 @@ get_args() {
         exit 0
         ;;
       -)
-      # Check more complex arguments
-      case "$OPTARG" in
-        help)
-          # Display help
-          usage 0
-          ;;
-        version)
-          # Display version
-          show_full_version
-          exit 0
-          ;;
-        opts)
-          # Display options
-          show_opts 0
-          ;;
-        agent_node=*)
-          agent_node=${OPTARG//agent_node=/}
-          ;;
-        agent_port=*)
-          agent_port=${OPTARG//agent_port=/}
-          ;;
-        *)
-          # Flag didn't match any patern. Add to COMPSs
-          args_pass="$args_pass --$OPTARG"
-          ;;
-      esac
-      ;;
-    *)
-      # Flag didn't match any patern. End of description flags
-      ;;
+        # Check more complex arguments
+        case "$OPTARG" in
+
+          # Options Description options
+          help)
+            # Display help
+            usage
+            exit 0
+            ;;
+          opts)
+            # Display options
+            show_opts
+            exit 0
+            ;;
+
+          # Version Options
+          flower)
+            # Display flower
+            show_flower
+            exit 0
+            ;;
+          recipe)
+            # Display recipe
+            show_recipe
+            exit 0
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+
+          # Invocation options
+          agent_node=*)
+            agent_node=${OPTARG//agent_node=/}
+            ;;
+          agent_port=*)
+            agent_port=${OPTARG//agent_port=/}
+            ;;
+          *)
+            # Flag didn't match any pattern. Ignoring option 
+            display_warning "${UNKNOWN_OPTION} ${OPTARG}"
+            ;;
+        esac
+        ;;
+      *)
+        # Flag didn't match any patern. End of description flags
+        ;;
     esac
   done
 
@@ -127,8 +170,8 @@ get_args() {
 }
 
 ###############################################
-# Function to check the arguments
-###############################################
+# Validates the current script configuration
+################################################
 check_args() {
   
   if [ -z "${agent_node}" ]; then
@@ -138,6 +181,14 @@ check_args() {
     agent_port=${DEFAULT_AGENT_PORT}
   fi
 }
+
+
+###############################################
+###############################################
+# Secondary functions
+###############################################
+###############################################
+
 ###############################################
 # Agent Invocation
 ###############################################
@@ -152,8 +203,11 @@ notify_lost_node() {
 
 
 ###############################################
-# Agent Invocation
 ###############################################
+# Main code
+###############################################
+###############################################
+
 get_args "$@"
 check_args "$@"
 shift $((options_index - 1))

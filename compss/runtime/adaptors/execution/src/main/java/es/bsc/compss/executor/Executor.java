@@ -793,10 +793,11 @@ public class Executor implements Runnable, InvocationRunner {
                 case MPI:
                     MPIDefinition mpiImpl = (MPIDefinition) invocation.getMethodImplementation().getDefinition();
                     specificWD = mpiImpl.getWorkingDir();
-                break;
-            case MPMDMPI:
-                MpmdMPIDefinition mpmpdDef = (MpmdMPIDefinition) invocation.getMethodImplementation().getDefinition();
-                specificWD = mpmpdDef.getWorkingDir();
+                    break;
+                case MPMDMPI:
+                    MpmdMPIDefinition mpmpdDef =
+                        (MpmdMPIDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = mpmpdDef.getWorkingDir();
                     break;
                 case PYTHON_MPI:
                     PythonMPIDefinition nativeMPIImpl =

@@ -29,7 +29,8 @@ import pycompss.util.context as context
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.api.commons.decorator import run_command
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
@@ -164,9 +165,9 @@ class MPMDMPI(PyCOMPSsDecorator):
         runner = self.kwargs['runner']
 
         # Resolve the working directory
-        self.__resolve_working_dir__()
+        resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
-        self.__resolve_fail_by_exit_value__()
+        resolve_fail_by_exit_value(self.kwargs)
 
         ppn = str(self.kwargs.get("processes_per_node", 1))
         impl_signature = '.'.join((impl_type, str(ppn)))

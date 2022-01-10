@@ -144,7 +144,12 @@ public class MpmdMPIInvoker extends Invoker {
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
             this.invocation.getTarget(), streamValues, pythonInterpreter);
 
-        String[] cmd = this.definition.generateCMD(this.taskSandboxWorkingDir, this.hostnames);
+        // Update params string for each program
+        for (MPIProgram program : this.definition.getPrograms()) {
+            String[] tmp =
+                BinaryRunner.buildAppParams(this.invocation.getParams(), program.getParams(), pythonInterpreter);
+            program.setParams(String.join(" ", tmp));
+        }
 
         // Launch command
         this.br = new BinaryRunner();

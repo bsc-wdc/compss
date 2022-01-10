@@ -18,6 +18,7 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.MPIProgram;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -55,11 +56,15 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
     private boolean hostStringInCmd = false;
     private boolean nopInCmd = false;
     private boolean configFile = false;
+    private boolean hostfile = false;
+    private boolean assignPPN = false;
 
     private String totalNopFlag = "-n";
     private String programsSeparator = ":";
+    private String hostFileFlag = "--hostfile";
     private String hostFlag = "--host";
     private String hostSeparator = ",";
+    private String ppnSeparator = " ";
     private String nopFlag = "-n";
     private boolean isNopByRank = false;
     private String configFlag = "--config-file";
@@ -155,6 +160,13 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         sb.append(", PPN=").append(this.ppn);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
         sb.append(", NUM_OF_PROGRAMS=").append(this.programs.length);
+
+        sb.append(", PROGRAMS= [\n");
+        for (MPIProgram program : this.getPrograms()) {
+            sb.append("\t").append(program.toString()).append(", \n");
+        }
+        sb.append(" \t ]\n");
+
         sb.append("]");
 
         return sb.toString();
@@ -216,8 +228,8 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
      * @param hostnames names of the hosts this MPMD MPI command can use.
      * @return full CMD as string[].
      */
-    public String[] generateCMD(File taskSandboxWorkingDir, List<String> hostnames) throws IOException {
-
+    public String[] generateCMD(File taskSandboxWorkingDir, List<String> hostnames, int computingUnits)
+        throws IOException {
         // Remove infiniband suffix
         for (int i = 0; i < hostnames.size(); i++) {
             String tmp = hostnames.get(i);
@@ -235,8 +247,15 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             cmd.append(getTotalNumOfProcesses()).append(DUMMY_SEPARATOR);
         }
 
+        // hostfile
+        if (this.hostfile) {
+            String content = buildHostFileString(hostnames, computingUnits);
+            String fileName = writeToFile(taskSandboxWorkingDir, content, ".hostfile");
+            cmd.append(this.hostFileFlag).append(DUMMY_SEPARATOR).append(fileName).append(DUMMY_SEPARATOR);
+        }
+
+        // binary in CMD, generate with a loop
         if (this.binaryInCmd) {
-            // we can handle everything within cmd w/o creating files
             for (MPIProgram program : this.programs) {
                 String tmp = buildSPString(program, hostnames);
                 cmd.append(tmp).append(DUMMY_SEPARATOR).append(this.programsSeparator).append(DUMMY_SEPARATOR);
@@ -257,6 +276,10 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         return cmd.toString().split(DUMMY_SEPARATOR);
     }
 
+    private String buildHostFileString(List<String> hostnames, int computingUnits) {
+        return buildHostsString(hostnames, computingUnits, this.ppn, this.ppnSeparator, this.hostSeparator, false);
+    }
+
     private String buildConfigFileString(List<String> hostnames) {
         StringBuilder content = new StringBuilder();
         int offset = 0;
@@ -271,6 +294,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
                         content.append(this.hostSeparator);
                     }
                 }
+                content.append(" ");
             }
 
             // nop
@@ -282,7 +306,15 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             }
 
             // binary
-            content.append(program.getBinary());
+            if (!this.binaryInCmd) {
+                content.append(program.getBinary());
+            }
+
+            // args
+            if (program.getParams() != null && !program.getParams().isEmpty()
+                && program.getParams().equals(Constants.UNASSIGNED)) {
+                content.append(" ").append(program.getParams());
+            }
 
             // next program will start with a new line
             content.append("\n");
@@ -303,8 +335,11 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
     private static String writeToFile(File taskSandboxWorkingDir, String content, String extension) throws IOException {
         String uuid = UUID.randomUUID().toString();
         String filename = taskSandboxWorkingDir.getAbsolutePath() + File.separator + uuid + extension;
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
-        writer.write(content);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write(content);
+        } catch (IOException ioe) {
+            throw ioe;
+        }
         return filename;
     }
 
@@ -322,7 +357,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
     }
 
     /**
-     * generates execution cmd for a single program to be executed from CMD line within MPMD MPI.
+     * generates execution cmd for a Single Program to be executed from CMD line within MPMD MPI.
      *
      * @param program MPI Program to create the execution command for.
      * @param hostnames names of the hosts this MPMD MPI command can use.
@@ -346,6 +381,12 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         // binary
         ret.append(program.getBinary());
 
+        // args
+        if (program.getParams() != null && !program.getParams().isEmpty()
+            && !program.getParams().equals(Constants.UNASSIGNED)) {
+            ret.append(DUMMY_SEPARATOR).append(program.getParams());
+        }
+
         return ret.toString();
     }
 
@@ -357,7 +398,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
      */
     private String buildHostsString(List<String> hostnames) {
         StringBuilder ret = new StringBuilder();
-        ret.append(this.hostFlag).append(DUMMY_SEPARATOR);
+        ret.append(this.hostFlag);
         for (int i = 0; i < hostnames.size(); i++) {
             ret.append(hostnames.get(i));
             if (i < hostnames.size() - 1) {
@@ -376,7 +417,11 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
      */
     private String buildNopString(MPIProgram program, int offSet) {
         StringBuilder ret = new StringBuilder();
-        ret.append(this.nopFlag).append(" ");
+
+        if (this.nopFlag != null && !this.nopFlag.isEmpty()) {
+            ret.append(this.nopFlag).append(" ");
+        }
+
         if (this.isNopByRank) {
             for (int i = 0; i < program.getProcesses(); i++) {
                 ret.append(offSet + i);
@@ -397,6 +442,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
      */
     public void setRunnerProperties(String installDir) {
 
+        // todo: nm remove this method
         if (this.mpiRunner.endsWith("srun")) {
             loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + "slurm.properties");
         } else {
@@ -423,13 +469,17 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             // todo: tidy up these strings
             this.totalNopInCMD = Boolean.parseBoolean(loadProperty(props, "mpmd.total.nop.in.cmd", "false"));
             this.binaryInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.binary.in.cmd", "false"));
-            this.hostStringInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.host.string.in.cmd", "false"));
+            this.hostStringInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.hosts.string.in.cmd", "false"));
+            this.hostfile = Boolean.parseBoolean(loadProperty(props, "mpmd.hostfile", "false"));
             this.nopInCmd = Boolean.parseBoolean(loadProperty(props, "mpmd.nop.string.in.cmd", "false"));
             this.configFile = Boolean.parseBoolean(loadProperty(props, "mpmd.config.file", "false"));
+            this.assignPPN = Boolean.parseBoolean(loadProperty(props, "mpmd.assign.ppn", "false"));
 
             this.programsSeparator = loadProperty(props, "mpmd.programs.separator", ":");
-            this.hostFlag = loadProperty(props, "mpmd.host.flag", "--host");
-            this.hostSeparator = loadProperty(props, "mpmd.host.separator", ",");
+            this.hostFlag = loadProperty(props, "mpmd.hosts.flag", "--host");
+            this.hostFileFlag = loadProperty(props, "mpmd.hostfile.flag", "--hostfile");
+            this.hostSeparator = loadProperty(props, "mpmd.hosts.separator", ",");
+            this.ppnSeparator = loadProperty(props, "mpmd.ppn.separator", " ");
             this.totalNopFlag = loadProperty(props, "mpmd.total.nop.flag", "-n");
             this.nopFlag = loadProperty(props, "mpmd.nop.flag", "-n");
             this.isNopByRank = Boolean.parseBoolean(loadProperty(props, "mpmd.nop.is.rank", "false"));

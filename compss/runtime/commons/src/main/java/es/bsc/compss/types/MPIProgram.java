@@ -60,6 +60,10 @@ public class MPIProgram implements Externalizable {
         return params;
     }
 
+    public void setParams(String params) {
+        this.params = params;
+    }
+
     public int getProcesses() {
         return processes;
     }

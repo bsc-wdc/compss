@@ -65,7 +65,11 @@ EOF
 General options:
     --help, -h                              Prints this message
 
-    --version, v                            Prints COMPSs version
+    --version, -v                           Prints COMPSs version
+
+    --verbose                               Makes this script verbose. Useful for debugging and seeing what's going on "under the hood".
+
+    --silent, -s                            Silent  or  quiet  mode.  Don't show progress meter or error messages.
 EOF
 }
 
@@ -142,7 +146,8 @@ EOT
 # Parses the options from the commandline and updates the current option values
 ###############################################
 get_args() {
-  while getopts hvgtmd-: flag; do
+  verbose_level="1"
+  while getopts hvsgtmd-: flag; do
     case "$flag" in
       h)
         # Display help
@@ -153,6 +158,10 @@ get_args() {
         # Enable tracing
         tracing="true"
         add_param_to_agent_start "-$flag"
+        ;;
+      s)
+        # Enable silent mode
+        verbose_level="0"
         ;;
       v)
         # Display version
@@ -216,6 +225,9 @@ get_args() {
             project=${OPTARG//project=/}
             add_param_to_agent_start "--$OPTARG"
             ;;
+          silent)
+            verbose_level="0"
+            ;;
           stop)
             action="stop" #there could be other actions in the future
             add_param_to_call_operation "--stop"
@@ -226,6 +238,9 @@ get_args() {
           tracing*)
             tracing="true"
             add_param_to_agent_start "--$OPTARG"
+            ;;
+          verbose)
+            verbose_level="2"
             ;;
           *)
             add_param_to_agent_start "--$OPTARG"
@@ -282,11 +297,17 @@ check_args() {
 # Create log folder
 ###############################################
 create_log_folder() {
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Generated service's log folder" 
+  fi
   mkdir -p "${log_dir}"
   output_log="${log_dir}/outputlog"
   error_log="${log_dir}/errorlog"
   touch "${output_log}"
   touch "${error_log}"
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Generated service's log folder" "${output_log}"
+  fi
 }
 
 ###############################################
@@ -322,8 +343,12 @@ print_and_run_cmd() {
   cmd=${1}
   output=${2}
   error=${3}
+  
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Executing command:
+${cmd}    1>${output} 2>${error} &" "${output_log}"
+  fi
 
-  printf '%b\n' "${cmd}    1>${output} 2>${error} &"
   ${cmd} 1>"${output}" 2>"${error}" &
   cmd_pid=$!
 }
@@ -434,7 +459,9 @@ check_agent() {
   fi
 
   check_local_resources "${agent_name}" "${agent_rest_port}" "${num_cpu}"
-  display_success "${agent_name} started"
+  if [ ${verbose_level} -gt 0 ]; then
+    display_success "${agent_name} started"
+  fi
 }
 
 ###############################################
@@ -539,7 +566,9 @@ check_topology() {
   done
 
   if [[ ${cpus_topology} -eq ${cpus_num_agents} ]]; then
-    display_success "${GREEN}Topology created successfully${NC}"
+    if [ ${verbose_level} -gt 0 ]; then
+      display_success "${GREEN}Topology created successfully${NC}"
+    fi
   else
     fatal_error "${RED}Error creating topology${NC}" 1
   fi
@@ -589,27 +618,28 @@ call_operation() {
         sleep 3
         retries=$((retries - 1 ))
     done
-    display_info
+    
     if [ -f "${master_log}/jobs/job1_NEW.out" ]; then
+      if [ ${verbose_level} -gt 0 ]; then
         display_success "Execution properly started"
-        display_info
+      fi
     else
-        fatal_error "Call operation didn't start any job" 1
+      fatal_error "Call operation didn't start any job" 1
     fi
 
-    display_info "waiting for agent1 with pid: ": $pidAgent1
-    display_info
+    if [ ${verbose_level} -gt 1 ]; then
+      display_info "waiting for agent1 with pid: $pidAgent1"
+    fi
     wait $pidAgent1
+
     if grep -q "Job completed after" "${master_log}.outputlog"; then
+      if [ ${verbose_level} -gt 0 ]; then
         display_success "Execution ended succesfully"
+      fi
     else
-        fatal_error "${RED}Execution failed${NC}" 1
+      fatal_error "${RED}Execution failed${NC}" 1
     fi
 }
-
-GREEN=$(tput setaf 2)
-RED=$(tput setaf 1)
-NC=$(tput sgr0)
 
 action=""
 
@@ -645,33 +675,36 @@ create_log_folder
 num_cpu=$(grep "<Computing" "${project}" | cut -f2 -d">"|cut -f1 -d"<")
 
 shopt -s nocasematch
-
-display_info ""
-display_info "---------------------------------------------------------------------------"
-display_info "------------------------ STARTING ${num_agents} AGENTS -----------------------"
-display_info "---------------------------------------------------------------------------"
-display_info ""
-
+if [ ${verbose_level} -gt 0 ]; then
+  if [[ ${num_agents} -gt 1 ]]; then
+    display_info "Starting ${num_agents} agents"
+  else
+    display_info "Starting 1 agent"
+  fi
+fi
 
 for i in $(seq 1 $num_agents)
 do
-  display_info "Starting agent ${i}" 
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Starting agent ${i}" 
+  fi
   start_agent "$i"
 done
 
 
 for i in $(seq 1 $num_agents)
 do
-  display_info "Checking ${i}" 
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Checking ${i}" 
+  fi
   check_agent "$i"
 done
 
 if [[ ${num_agents} -gt 1 ]]; then
-  display_info ""
-  display_info "---------------------------------------------------------------------------"
-  display_info "------------------ ADDING AGENTS AS RESOURCES AS ${topology^^} -----------------"
-  display_info "---------------------------------------------------------------------------"
-  display_info ""
+  if [ ${verbose_level} -gt 0 ]; then
+    display_info "Organizing agents forming a ${topology} topology"
+  fi
+
   if [[ $topology == "tree" ]]; then
     create_tree_topology
   elif [[ $topology == "chain" ]]; then
@@ -684,13 +717,15 @@ if [[ ${num_agents} -gt 1 ]]; then
 fi
 
 if [ -n "${executable}" ]; then
-  display_info ""
-  display_info "---------------------------------------------------------------------------"
-  display_info "----------------------------- CALLING OPERATION ---------------------------"
-  display_info "---------------------------------------------------------------------------"
-  display_info ""
+  if [ ${verbose_level} -gt 0 ]; then
+    display_info "Calling operation"
+  fi
   call_operation 1
+
   if [ -n "${tracing}" ]; then
+    if [ ${verbose_level} -gt 0 ]; then
+      display_info "Merging traces"
+    fi
     merge_traces
   fi
 fi

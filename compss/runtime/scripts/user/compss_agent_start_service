@@ -69,26 +69,32 @@ General options:
 EOF
 }
 
-add_param_to_agent_start() {
-    if [[ ! -z $1 ]]; then
-        agentStartCommand="${agentStartCommand}
-    $1"
-    fi
-}
-
-add_param_to_call_operation() {
-    if [[ ! -z $1 ]]; then
-        callOperationCommand="${callOperationCommand}
-    $1"
-    fi
-}
-
 
 ###############################################
 ###############################################
 # Option management functions
 ###############################################
 ###############################################
+
+###############################################
+# Adds an option to the Agent start command
+############################################### 
+add_param_to_agent_start() {
+    if [ -n "${1}" ]; then
+        agentStartCommand="${agentStartCommand}
+    $1"
+    fi
+}
+
+###############################################
+# Adds an option to the call operation command
+############################################### 
+add_param_to_call_operation() {
+    if [ -n "${1}" ]; then
+        callOperationCommand="${callOperationCommand}
+    $1"
+    fi
+}
 
 ###############################################
 # Display All Script Options
@@ -185,25 +191,26 @@ get_args() {
 
           # Invocation options
           array)
-            array_param=true
+            add_param_to_call_operation "--array"
             ;;
           cei=*)
-            cei=${OPTARG//cei=/}
+            add_param_to_call_operation "--$OPTARG"
             ;;
           lang=*)
             lang=${OPTARG//lang=/}
+            add_param_to_call_operation "--lang=${lang}"
             ;;
           log_dir=*)
             log_dir=${OPTARG//log_dir=/}
             ;;
           method_name=*)
-            method_name=${OPTARG//method_name=/}
+            add_param_to_call_operation "--$OPTARG"
             ;;
           num_agents=*)
             num_agents=${OPTARG//num_agents=/}
             ;;
           parameters_array)
-            array_param="true"
+            add_param_to_call_operation "--array"
             ;;
           project=*)
             project=${OPTARG//project=/}
@@ -211,6 +218,7 @@ get_args() {
             ;;
           stop)
             action="stop" #there could be other actions in the future
+            add_param_to_call_operation "--stop"
             ;;
           topology=*)
             topology=${OPTARG//topology=/}
@@ -551,63 +559,28 @@ call_operation() {
     master_name=${agent_name}
     master_rest_port=${agent_rest_port}
     master_log=${agent_log}
-
-
-    if [ ${action} = "stop" ]; then
-        end_agents="--stop"
-        fwd_action_to=""
-        if [ "${num_agents}" -gt 1 ]; then
-          for i in $(seq 2 ${num_agents})
-          do
-            compute_agent_setup "${i}"
-            agent_rest_api="${agent_name}:${agent_rest_port}"
-            if [ -z "${fwd_action_to}" ]; then
-              fwd_action_to="${agent_rest_api}"
-            else
-              fwd_action_to="${fwd_action_to};${agent_rest_api}"
-            fi
-          done
-
-          end_agents="${end_agents}
---forward_to=${fwd_action_to}"
-        fi
-    fi
-
-
-    if [ ${array_param} ]; then
-        params_array="--array"
-    fi
-
-    compute_agent_setup "${i}"
-
-
-
-
-    if [ -n "${lang}" ]; then
-        add_param_to_call_operation "--lang=${lang^^}"
-    fi
-
     add_param_to_call_operation "--master_node=${master_name}"
     add_param_to_call_operation "--master_port=${master_rest_port}"
 
-    if [ -n "${method_name}" ]; then
-        add_param_to_call_operation "--method_name=${method_name}"
+    if [ ${action} = "stop" ]; then
+        if [ "${num_agents}" -gt 1 ]; then
+            fwd_action_to=""
+            for i in $(seq 2 ${num_agents})
+            do
+                compute_agent_setup "${i}"
+                agent_rest_api="${agent_name}:${agent_rest_port}"
+                if [ -z "${fwd_action_to}" ]; then
+                    fwd_action_to="${agent_rest_api}"
+                else
+                    fwd_action_to="${fwd_action_to};${agent_rest_api}"
+                fi
+            done
+        add_param_to_call_operation "--forward_to=${fwd_action_to}"
+        fi
     fi
 
-    if [ -n "${cei}" ]; then
-        add_param_to_call_operation "--cei=${cei}"
-    fi
-
-    if [ -n "${end_agents}" ]; then
-        add_param_to_call_operation "${end_agents}"
-    fi
-
-    if [ -n "${params_array}" ]; then
-        add_param_to_call_operation "${params_array}"
-    fi
-
+    compute_agent_setup "${i}"
     add_param_to_call_operation "${executable} ${execution_params}"
-
     print_and_run_cmd "${callOperationCommand}" "${output_log}" "${error_log}"
 
     # check execution start

@@ -141,14 +141,28 @@
   echo "- Deploy files to TMP_DIR in SC"
   # shellcheck disable=2029
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "rm -rf ${SCTMP_DIR}; mkdir -p ${SCTMP_DIR}"
-  scp -r -q -o StrictHostKeyChecking=no "${TMP_DIR}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+
+  cd "${TMP_DIR}"
+  echo "PACKAGING RUNTIME FILES"
+  tar czf COMPSs_TMPDIR.tgz *
+  cd "${SCRIPT_DIR}"
+  echo "COPYING RUNTIME FILES TO THE SUPERCOMPUTER"
+  scp -r -q -o StrictHostKeyChecking=no "${TMP_DIR}/COMPSs_TMPDIR.tgz" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+
   scp -r -q -o StrictHostKeyChecking=no "${SCauxScript}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
   scp -r -q -o StrictHostKeyChecking=no "${SCauxScript_generic}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+
+  rm -f "${TMP_DIR}"/COMPSs_TMPDIR.tgz
 
   # Execute deployment aux script
   echo "- Execute installation on SC"
   SCauxScriptName=$(basename "${SCauxScript}")
   # shellcheck disable=2029
+
+  echo "REMOTE EXTRACTION OF THE RUNTIME"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" mkdir -p "${SCTMP_DIR}/tmp"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "tar xzf ${SCTMP_DIR}/COMPSs_TMPDIR.tgz --directory ${SCTMP_DIR}/tmp/ && rm -f ${SCTMP_DIR}/COMPSs_TMPDIR.tgz"
+
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "${PRELOAD_ENV} ${SCTMP_DIR}/${SCauxScriptName} ${SCtargetDir}"
   ev=$?
   if [ $ev -ne 0 ]; then

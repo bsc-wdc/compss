@@ -26,7 +26,7 @@ FOLDER = "resources"
 PACKAGE = "main"
 
 
-def test_launch_application():
+def test_launch_increment():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +36,17 @@ def test_launch_application():
     )
 
 
-# def test_launch_application_with_cache():
+def test_launch_application():
+    from pycompss.runtime.launch import launch_pycompss_application
+
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    app = os.path.join(current_path, "..", FOLDER, "api_tester.py")
+    launch_pycompss_application(
+        app, PACKAGE, debug=True, trace=False, app_name=APPLICATION_NAME
+    )
+
+
+# def test_launch_increment_with_cache():
 #     if sys.version_info >= (3, 8):
 #         from pycompss.runtime.launch import launch_pycompss_application
 #         current_path = os.path.dirname(os.path.abspath(__file__))
@@ -49,7 +59,7 @@ def test_launch_application():
 #         print("WARNING: Cache not tested because python version is not >= 3.8")
 #
 #
-# def test_launch_application_mpi_worker():
+# def test_launch_increment_mpi_worker():
 #     from pycompss.runtime.launch import launch_pycompss_application
 #
 #     current_path = os.path.dirname(os.path.abspath(__file__))

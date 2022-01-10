@@ -35,6 +35,10 @@ DEFAULT_TOPOLOGY="plain"
 
 NUM_CHECK_RETRIES="10"
 
+agentStartCommand="${AGENTS_SCRIPTS_HOME}compss_agent_start"
+callOperationCommand="${AGENTS_SCRIPTS_HOME}compss_agent_call_operation"
+
+
 
 ###############################################
 # ERROR CONSTANTS DECLARATION
@@ -65,6 +69,19 @@ General options:
 EOF
 }
 
+add_param_to_agent_start() {
+    if [[ ! -z $1 ]]; then
+        agentStartCommand="${agentStartCommand}
+    $1"
+    fi
+}
+
+add_param_to_call_operation() {
+    if [[ ! -z $1 ]]; then
+        callOperationCommand="${callOperationCommand}
+    $1"
+    fi
+}
 
 
 ###############################################
@@ -129,8 +146,7 @@ get_args() {
       t)
         # Enable tracing
         tracing="true"
-        args_start="$args_start
--$flag"
+        add_param_to_agent_start "-$flag"
         ;;
       v)
         # Display version
@@ -191,8 +207,7 @@ get_args() {
             ;;
           project=*)
             project=${OPTARG//project=/}
-            args_start="${args_start}
---$OPTARG"
+            add_param_to_agent_start "--$OPTARG"
             ;;
           stop)
             action="stop" #there could be other actions in the future
@@ -202,18 +217,15 @@ get_args() {
             ;;
           tracing*)
             tracing="true"
-            args_start="${args_start}
---$OPTARG"
+            add_param_to_agent_start "--$OPTARG"
             ;;
           *)
-            args_start="${args_start}
---$OPTARG"
+            add_param_to_agent_start "--$OPTARG"
             ;;
         esac
           ;;
       *)
-        args_start="${args_start}
--$flag"
+        add_param_to_agent_start "-$flag"
         ;;
     esac
   done
@@ -327,17 +339,13 @@ start_agent() {
     rm -r "${agent_log}"; 
   fi
 
-  local agentStartCommand="${AGENTS_SCRIPTS_HOME}compss_agent_start
---hostname=${agent_name}
---log_dir=${agent_log}
---rest_port=${agent_rest_port}
---comm_port=${agent_comm_port}"
-  if [ -n "${args_start}" ]; then
-    agentStartCommand="${agentStartCommand}
-${args_start}"
-  fi
+specific_agent_start_command="${agentStartCommand}
+    --hostname=${agent_name}
+    --log_dir=${agent_log}
+    --rest_port=${agent_rest_port}
+    --comm_port=${agent_comm_port}"
 
-  print_and_run_cmd "${agentStartCommand}" "${agent_log_output}" "${agent_log_error}"
+  print_and_run_cmd "${specific_agent_start_command}" "${agent_log_output}" "${agent_log_error}"
   if [ -z "${pidAgent1}" ]; then
     pidAgent1=${cmd_pid}
   fi
@@ -572,40 +580,33 @@ call_operation() {
 
     compute_agent_setup "${i}"
 
-    # call command
-    callOperationCommand="${AGENTS_SCRIPTS_HOME}compss_agent_call_operation"
+
+
 
     if [ -n "${lang}" ]; then
-      callOperationCommand="${callOperationCommand} 
---lang=${lang^^}"
+        add_param_to_call_operation "--lang=${lang^^}"
     fi
 
-      callOperationCommand="${callOperationCommand} 
---master_node=${master_name}
---master_port=${master_rest_port}"
+    add_param_to_call_operation "--master_node=${master_name}"
+    add_param_to_call_operation "--master_port=${master_rest_port}"
 
     if [ -n "${method_name}" ]; then
-      callOperationCommand="${callOperationCommand} 
---method_name=${method_name}"
+        add_param_to_call_operation "--method_name=${method_name}"
     fi
 
     if [ -n "${cei}" ]; then
-      callOperationCommand="${callOperationCommand} 
---cei=${cei}"
+        add_param_to_call_operation "--cei=${cei}"
     fi
 
     if [ -n "${end_agents}" ]; then
-      callOperationCommand="${callOperationCommand} 
-${end_agents}"
+        add_param_to_call_operation "${end_agents}"
     fi
 
     if [ -n "${params_array}" ]; then
-      callOperationCommand="${callOperationCommand} 
-${params_array}"
+        add_param_to_call_operation "${params_array}"
     fi
 
-    callOperationCommand="${callOperationCommand} 
-${executable} ${execution_params}"
+    add_param_to_call_operation "${executable} ${execution_params}"
 
     print_and_run_cmd "${callOperationCommand}" "${output_log}" "${error_log}"
 

@@ -239,9 +239,7 @@ check_args() {
   fi
 
   if [[ "${topology}" != "tree" ]] && [[ "${topology}" != "chain" ]] && [[ "${topology}" != "plain" ]]; then
-    echo "Topology not supported."
-    echo "Available options: tree, chain, plain (default) "
-    exit 1
+    fatal_error "Topology not supported. Available options: tree, chain, plain (default)" 1
   fi
 
   if [ -z "${project}" ]; then
@@ -377,24 +375,20 @@ check_local_resources() {
   done
 
   if [ ! "${num_resources}" == "1" ]; then
-    echo "Wrong number of RESOURCE tags on the agent's output. Found ${num_resources}; 1 expected." > >(tee -a "${error_log}")
-    exit 1
+    fatal_error "Wrong number of RESOURCE tags on the agent's output. Found ${num_resources}; 1 expected."  1 "${error_log}"
   fi
   resource=$(echo "${resources}" | jq '.resources[] | select(.name=='\"${agent_name}\"')')
   if [ -z "${resource}" ]; then
-    echo "Wrong Resource on Agent; ${2} expected." > >(tee -a "${error_log}")
-    exit 1
+    fatal_error "Wrong Resource on Agent; ${2} expected." 1 "${error_log}"
   fi
   description=$(echo "${resource}" | jq '.description ')
   processors_count=$(echo "${description}" | jq '.processors | length')
   if [ ! "${processors_count}" == "1" ]; then
-    echo "Wrong number of Processors configured for the Agent. Found ${processors_count}; 1 expected." > >(tee -a "${error_log}")
-    exit 1
+    fatal_error "Wrong number of Processors configured for the Agent. Found ${processors_count}; 1 expected." 1 "${error_log}"
   fi
   cpu_count=$(echo "${description}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${cpu_count}" == "${assumed_cpus}" ]; then
-    echo "Wrong number of CPU cores configured for the Agent. Found ${cpu_count}; ${assumed_cpus} expected." > >(tee -a "${error_log}")
-    exit 1
+    fatal_error "Wrong number of CPU cores configured for the Agent. Found ${cpu_count}; ${assumed_cpus} expected." 1 "${error_log}"
   fi
 }
 
@@ -420,15 +414,11 @@ check_agent() {
     RESULT=$(grep "test invoked" "${agent_log_output}")
   done
   if [ -z "${RESULT}" ]; then
-    echo "${agent_name} failed to start" >> "${error_log}"
-    fatal_error "${agent_name} failed to start" 1
+    fatal_error "${agent_name} failed to start" >> "${error_log}" 1
   fi
 
   check_local_resources "${agent_name}" "${agent_rest_port}" "${num_cpu}"
-  
-  echo "${agent_name} started" >> "${output_log}"
-  echo "${GREEN}${agent_name} started${NC}"
-  echo ""
+  display_success "${agent_name} started"
 }
 
 ###############################################
@@ -531,13 +521,11 @@ check_topology() {
     retries=$((retries - 1 ))
     cpus_topology=$(curl -s -XGET "http://${agent_name}:${agent_rest_port}/COMPSs/resources" | jq '.resources | .[] | .description | .processors | .[] | .units' | paste -sd+ | bc)
   done
-  echo ""
 
   if [[ ${cpus_topology} -eq ${cpus_num_agents} ]]; then
-    echo "${GREEN}Topology created successfully${NC}"
+    display_success "${GREEN}Topology created successfully${NC}"
   else
-    echo "${RED}Error creating topology${NC}"
-    exit 1
+    fatal_error "${RED}Error creating topology${NC}" 1
   fi
 }
 
@@ -545,11 +533,6 @@ check_topology() {
 # Call operation
 ###############################################
 call_operation() {
-    echo ""
-    echo "---------------------------------------------------------------------------"
-    echo "----------------------------- CALLING OPERATION ---------------------------"
-    echo "---------------------------------------------------------------------------"
-    echo ""
     local agent_id
     agent_id=${1}
     local master_name
@@ -632,24 +615,22 @@ ${executable} ${execution_params}"
         sleep 3
         retries=$((retries - 1 ))
     done
-    echo ""
+    display_info
     if [ -f "${master_log}/jobs/job1_NEW.out" ]; then
-        echo "${GREEN}Execution properly started${NC}"
-        echo ""
+        display_success "Execution properly started"
+        display_info
     else
-        echo "Call operation didn't start any job"
-        exit 1
+        fatal_error "Call operation didn't start any job" 1
     fi
 
-    echo "waiting for agent1 with pid: ": $pidAgent1
-    echo ""
+    display_info "waiting for agent1 with pid: ": $pidAgent1
+    display_info
     wait $pidAgent1
     if grep -q "Job completed after" "${master_log}.outputlog"; then
-        echo "${GREEN}Execution ended succesfully${NC}"
+        display_success "Execution ended succesfully"
     else
-        echo "${RED}Execution failed${NC}"
+        fatal_error "${RED}Execution failed${NC}" 1
     fi
-    echo ""
 }
 
 GREEN=$(tput setaf 2)
@@ -691,32 +672,32 @@ num_cpu=$(grep "<Computing" "${project}" | cut -f2 -d">"|cut -f1 -d"<")
 
 shopt -s nocasematch
 
-echo ""
-echo "---------------------------------------------------------------------------"
-echo "------------------------ STARTING ${num_agents} AGENTS -----------------------"
-echo "---------------------------------------------------------------------------"
-echo ""
+display_info ""
+display_info "---------------------------------------------------------------------------"
+display_info "------------------------ STARTING ${num_agents} AGENTS -----------------------"
+display_info "---------------------------------------------------------------------------"
+display_info ""
 
 
 for i in $(seq 1 $num_agents)
 do
-  echo "Starting agent ${i}" 
+  display_info "Starting agent ${i}" 
   start_agent "$i"
 done
 
 
 for i in $(seq 1 $num_agents)
 do
-  echo "Checking ${i}" 
+  display_info "Checking ${i}" 
   check_agent "$i"
 done
 
 if [[ ${num_agents} -gt 1 ]]; then
-  echo ""
-  echo "---------------------------------------------------------------------------"
-  echo "------------------ ADDING AGENTS AS RESOURCES AS ${topology^^} -----------------"
-  echo "---------------------------------------------------------------------------"
-  echo ""
+  display_info ""
+  display_info "---------------------------------------------------------------------------"
+  display_info "------------------ ADDING AGENTS AS RESOURCES AS ${topology^^} -----------------"
+  display_info "---------------------------------------------------------------------------"
+  display_info ""
   if [[ $topology == "tree" ]]; then
     create_tree_topology
   elif [[ $topology == "chain" ]]; then
@@ -725,13 +706,15 @@ if [[ ${num_agents} -gt 1 ]]; then
     # [[ "${topology}" == "plain" ]]
     create_plain_topology
   fi
-
   check_topology
 fi
-echo ""
-
 
 if [ -n "${executable}" ]; then
+  display_info ""
+  display_info "---------------------------------------------------------------------------"
+  display_info "----------------------------- CALLING OPERATION ---------------------------"
+  display_info "---------------------------------------------------------------------------"
+  display_info ""
   call_operation 1
   if [ -n "${tracing}" ]; then
     merge_traces

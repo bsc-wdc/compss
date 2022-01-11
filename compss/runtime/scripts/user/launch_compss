@@ -1619,6 +1619,10 @@ check_args() {
     ipython=${DEFAULT_IPYTHON}
   fi
 
+  if [ -z "${run_command}" ]; then
+    run_command=false
+  fi
+
   #
   # Application Checks
   #

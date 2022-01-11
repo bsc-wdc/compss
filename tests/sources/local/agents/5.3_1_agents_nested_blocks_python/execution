@@ -76,94 +76,21 @@
   touch "${error_log}"
 
   # Starting agent
-agent1_log_dir="${log_dir}/agent1/"
+agent1_log_dir="${log_dir}/COMPSsWorker01/"
 mkdir -p "${agent1_log_dir}" 
-agent1_output_log="${log_dir}agent1.outputlog"
-agent1_error_log="${log_dir}agent1.errorlog"
-compss_agent_start \
-  --hostname="COMPSsWorker01" \
+compss_agent_start_service \
   --pythonpath="${base_app_dir}/src" \
-  --log_dir="${agent1_log_dir}" \
+  --log_dir="${log_dir}" \
   --rest_port="46101" \
   --comm_port="46102" \
   -d \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
-  --resources="${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
-
-agent_pid="$!"
-AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
-
-
-    retries="${NUM_RETRIES}"
-  curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
-    ev=$?
-    while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
-      sleep 2s
-      retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
-      ev=$?
-    done
-
-
-  RESULT=$(grep "test invoked" "${agent1_output_log}")
-    if [ -z "${RESULT}" ]; then  
-      echo "Agent failed to start" > >(tee -a "${error_log}")
-      exit 1
-    fi
-    echo "Agent started" > >(tee -a "${output_log}")
-    sleep 2s
- 
-  # CHECK WHETHER THE PROJECT FILE HAS BEEN PROPERLY READ
-  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
-  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
-  if [ ! "${num_RESOURCES}" == "1" ]; then
-    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
-  if [ -z "${RESOURCE}" ]; then
-    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
-  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
-  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
-    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
-  if [ ! "${CPU_COUNT}" == "1" ]; then
-    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
-    exit 1
-  fi
-
-  # Invoking DemoFunction method
-  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+  --resources="${base_app_dir}/resources.xml" \
    --lang="PYTHON" \
-   --master_node="127.0.0.1" \
-   --master_port="46101" \
    --method_name="main" \
-   "simple" 3 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
-   ev=$?
+   "simple" 3
 
-   sleep 5s
-   if [ "$ev" != "0" ]; then
-    echo "Could not invoke main method." > >(tee -a "${error_log}")
-    exit $ev
-  fi
-  echo "main function invoked" > >(tee -a "${output_log}")
-
-  retries="3"
-  while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
-    sleep 2s
-    retries=$((retries - 1 ))
-  done
-  if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
-    echo "Could not invoke main method." > >(tee -a "${error_log}")
-    exit 1
-  fi
-  sleep 5
 
   job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
   if [ -n "${job1_method}" ]; then

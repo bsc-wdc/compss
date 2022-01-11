@@ -9,7 +9,7 @@
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
 
-  if grep -E "Error running application" "${output_file}"; then
+  if grep -E "Error running application" "${error_file}"; then
     echo "ERROR: TESTS FAILED." | tee -a "${output_file}"
     exit 1
   fi

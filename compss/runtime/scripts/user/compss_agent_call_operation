@@ -11,79 +11,68 @@ export COMPSS_HOME=${COMPSS_HOME}
 
 # Load auxiliar scripts
 source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 
-#---------------------------------------------------------------------------------------
+source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+
+
+
+###############################################
 # SCRIPT CONSTANTS DECLARATION
-#---------------------------------------------------------------------------------------
+###############################################
 APP_CMD="curl"
 DEFAULT_METHOD="main"
 DEFAULT_LANG="JAVA"
 
-#---------------------------------------------------------------------------------------
+###############################################
 # ERROR CONSTANTS DECLARATION
-#---------------------------------------------------------------------------------------
-ERROR_APPLICATION="Missing application name parameter"
-ERROR_MASTER_NODE="Missing master node parameter"
-ERROR_MASTER_PORT="Missing master port parameter"
+###############################################
+ERROR_APPLICATION="Missing EXECUTABLE argument"
+ERROR_MASTER_NODE="Missing master node argument"
+ERROR_MASTER_PORT="Missing master port argument"
 
-#---------------------------------------------------------------------------------------
-# GENERIC HELPER FUNCTIONS
-#---------------------------------------------------------------------------------------
+
+###############################################
+###############################################
+# Display functions
+###############################################
+###############################################
 
 ###############################################
 # Displays usage
 ###############################################
 usage() {
-  local exitValue=$1
-  SCRIPT_NAME=$(basename "$0")
-  cat <<EOT
-Usage: ${SCRIPT_NAME} [options] application_name application_arguments
+  cat <<EOF
+Usage: $0 [OPTION]... EXECUTABLE [EXECUTION_ARGUMENTS]...
+EOF
 
-* Options:
-  General:
-    --help, -h                              Print this help message
+  show_opts
 
-    --opts                                  Show available options
+  cat << EOF
+General options:
+    --help, -h                              Prints this message
 
-    --version, -v                           Print COMPSs version
-
-    --debug, -d                             Print details of the submitted invocation
-
-    --master_node=<string>                  Node where to run the COMPSs Master
-                                            Mandatory
-
-    --master_port=<string>                  Node where to run the COMPSs Master
-                                            Mandatory    
-
-    --stop                                  Stops the agent after the execution
-                                            of the task.   
-
-    --forward_to=<list>                     Forwards the stop action to other
-                                            agents, the list shoud follow the
-                                            format:
-                                            <ip1>:<port1>;<ip2>:<port2>...
-  Launch configuration:
-EOT
-
-  show_opts "$exitValue"
+    --version, v                            Prints COMPSs version
+EOF
 }
 
 ###############################################
-# Displays errors when treating arguments
+# Display Invocation details
 ###############################################
 display_invocation() {
-  echo "Invocation details:"
-  echo "    Host:               ${master_node}"
-  echo "    Port:               ${master_port}"
-  echo "    Lang:               ${lang}"
-  echo "    Class name:         ${fullAppPath}"
-  echo "    Method name:        ${method_name}"
-  if [ ! -z "${cei}" ]; then
-    echo "    COMPSs Interface    ${cei}"
+  msg=\
+"Invocation details:
+    Host:               ${master_node}
+    Port:               ${master_port}
+    Lang:               ${lang}
+    Class name:         ${fullAppPath}
+    Method name:        ${method_name}"
+  if [ -n "${cei}" ]; then
+    msg="${msg} 
+    COMPSs Interface    ${cei}"
   fi
-  echo "    Parameters:"
+  msg="${msg} 
+    Parameters:"
   if [ "${params_as_array}" == "true" ]; then
     local params="["
     if [ $# -gt 0 ]; then
@@ -94,22 +83,77 @@ display_invocation() {
       done
     fi 
     params="${params}]"
-    echo "        * $params"
+    msg="${msg} 
+        * $params"
   else
     for param in "$@"; do
-      echo "        * ${param}"
+      msg="${msg} 
+        * ${param}"
     done
   fi
+  display_info "${msg}"
+}
+
+
+###############################################
+###############################################
+# Option management functions
+###############################################
+###############################################
+
+###############################################
+# Display All Script Options
+############################################### 
+show_opts() {
+  cat <<EOF
+Target options:
+EOF
+  show_target_opts
+  cat <<EOF
+
+Action options:
+EOF
+  show_action_opts
+  cat <<EOF
+
+Execution options:
+EOF
+  show_execution_opts
 }
 
 ###############################################
-# Show Options
+# Display Script Target Options
 ###############################################
-show_opts() {
-  local exitValue=$1
+show_target_opts() {
+  cat <<EOF
+    --master_node=<string>                  Node where to run the COMPSs Master
+                                            Mandatory
 
-  # Show usage
-  cat <<EOT
+    --master_port=<string>                  Node where to run the COMPSs Master
+                                            Mandatory 
+EOF
+}
+
+###############################################
+# Display Script Action Options
+###############################################
+show_action_opts() {
+  cat <<EOF
+    --stop                                  Stops the agent after the execution
+                                            of the task.   
+
+    --forward_to=<list>                     Forwards the stop action to other
+                                            agents, the list shoud follow the
+                                            format:
+                                            <ip1>:<port1>;<ip2>:<port2>...
+EOF
+}
+
+###############################################
+# Display Script Execution Options
+###############################################  
+show_execution_opts() {
+  cat <<EOF
     --cei=<string>                          Canonical name of the interface declaring the methods
                                             Default: No interface declared
 
@@ -121,25 +165,19 @@ show_opts() {
 
     --parameters_array, --array             Parameters are encapsulated as an array
                                             Default: disabled
-EOT
-
-  exit "$exitValue"
+EOF
 }
 
-
-#---------------------------------------------------------------------------------------
-# MAIN FUNCTIONS
-#---------------------------------------------------------------------------------------
-
 ###############################################
-# Function to get the arguments
+# Parses the options from the commandline and updates the current option values
 ###############################################
 get_args() {
   # Avoid enqueue if there is no application
   if [ $# -eq 0 ]; then
-    usage 1
+    usage
+    exit 1
   fi
-  display_invocation="false"
+
   params_as_array="false"
   # Parse COMPSs Options
   while getopts hvgtmd-: flag; do
@@ -147,73 +185,89 @@ get_args() {
     case "$flag" in
       h)
         # Display help
-        usage 0
+        usage
+        exit 0
         ;;
       v)
         # Display version
         show_version
         exit 0
         ;;
-      d)
-        # Display invocation
-        display_invocation="true"
-        ;;
       -)
-      # Check more complex arguments
-      case "$OPTARG" in
-        array)
-          params_as_array="true"
-          ;;
-        parameters_array)
-          params_as_array="true"
-          ;;
-        debug)
-           display_invocation="true"
-          ;;
-        help)
-          # Display help
-          usage 0
-          ;;
-        version)
-          # Display version
-          show_full_version
-          exit 0
-          ;;
-        opts)
-          # Display options
-          show_opts 0
-          ;;
-        stop)
-          action="stop"
-          ;;
-        master_node=*)
-          master_node=${OPTARG//master_node=/}
-          ;;
-        master_port=*)
-          master_port=${OPTARG//master_port=/}
-          ;;
-        cei=*)
-          cei=${OPTARG//cei=/}
-          ;;
-        lang=*)
-          lang=${OPTARG//lang=/}
-          ;;
-        method_name=*)
-          method_name=${OPTARG//method_name=/}
-          ;;
-        forward_to=*)
-          forward_to=${OPTARG//forward_to=/}
-          ;;
-        *)
-          # Flag didn't match any patern. Add to COMPSs
-          args_pass="$args_pass --$OPTARG"
-          ;;
-      esac
-      ;;
-    *)
-      # Flag didn't match any patern. End of COMPSs flags
-      args_pass="$args_pass -$flag"
-      ;;
+        # Check more complex arguments
+        case "$OPTARG" in
+          # Options Description options
+          execution_opts)
+            # Display execution options
+            show_execution_opts
+            exit 0
+            ;;
+          help)
+            # Display help
+            usage
+            exit 0
+            ;;
+          opts)
+            # Display all options
+            show_opts
+            exit 0
+            ;;
+
+          # Version Options
+          flower)
+            # Display flower
+            show_flower
+            exit 0
+            ;;
+          recipe)
+            # Display recipe
+            show_recipe
+            exit 0
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+
+          # Invocation options
+          array)
+            params_as_array="true"
+            ;;
+          cei=*)
+            cei=${OPTARG//cei=/}
+            ;;
+          forward_to=*)
+            forward_to=${OPTARG//forward_to=/}
+            ;;
+          lang=*)
+            lang=${OPTARG//lang=/}
+            ;;
+          master_node=*)
+            master_node=${OPTARG//master_node=/}
+            ;;
+          master_port=*)
+            master_port=${OPTARG//master_port=/}
+            ;;
+          method_name=*)
+            method_name=${OPTARG//method_name=/}
+            ;;
+          parameters_array)
+            params_as_array="true"
+            ;;
+          stop)
+            action="stop"
+            ;;
+          *)
+            # Flag didn't match any patern. Add to COMPSs
+            args_pass="$args_pass --$OPTARG"
+            ;;
+        esac
+        ;;
+      *)
+        # Flag didn't match any patern. End of COMPSs flags
+        args_pass="$args_pass -$flag"
+        ;;
     esac
   done
 
@@ -227,7 +281,7 @@ get_args() {
 }
 
 ###############################################
-# Function to check the arguments
+# Validates the current script configuration
 ###############################################
 check_args() {
   if [ -z "${fullAppPath}" ]; then
@@ -256,12 +310,16 @@ check_args() {
 
 
 ###############################################
+###############################################
+# Secondary functions
+###############################################
+###############################################
+
+###############################################
 # Invoke remote method
 ###############################################
-call(){
-  if [ "${display_invocation}" == "true" ]; then
-    display_invocation "$@"
-  fi
+call() {
+  display_invocation "$@"
   local http_cei=""
   if [ ! -z "${cei}" ]; then
     http_cei="<ceiClass>${cei}</ceiClass>"
@@ -305,9 +363,12 @@ call(){
   "${APP_CMD}" "-s" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}"
 }
 
-#---------------------------------------------------------------------------------------
-# MAIN EXECUTION
-#---------------------------------------------------------------------------------------
+
+###############################################
+###############################################
+# Main code
+###############################################
+###############################################
 
 # Get command args
 get_args "$@"

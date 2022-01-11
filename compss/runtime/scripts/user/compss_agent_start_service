@@ -1,0 +1,728 @@
+#!/bin/bash
+
+# Command to simulate realpath
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
+  COMPSS_HOME="${COMPSS_HOME}/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+
+# Load auxiliar scripts
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+
+
+
+###############################################
+# SCRIPT CONSTANTS DECLARATION
+###############################################
+AGENTS_SCRIPTS_HOME="${COMPSS_HOME}Runtime/scripts/user/"
+DEFAULT_NUM_AGENTS=1
+
+DEFAULT_AGENTNAME_PREFIX="COMPSsWorker"
+DEFAULT_INITIAL_PORT=46000
+
+DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local/project.xml"
+DEFAULT_LOG_DIR="${HOME}/.COMPSs/$(date +"%Y.%m.%d.%H%M%S")"
+DEFAULT_TOPOLOGY="plain"
+
+NUM_CHECK_RETRIES="10"
+
+agentStartCommand="${AGENTS_SCRIPTS_HOME}compss_agent_start"
+callOperationCommand="${AGENTS_SCRIPTS_HOME}compss_agent_call_operation"
+
+
+
+###############################################
+# ERROR CONSTANTS DECLARATION
+###############################################
+
+
+###############################################
+###############################################
+# Display functions
+###############################################
+###############################################
+
+###############################################
+# Displays usage
+###############################################
+usage() {
+  cat << EOF
+Usage: $0 [OPTION]... [APPLICATION [APPLICATION_ARGUMENT]... ]
+
+Starts a service deploying COMPSs' agents (default: ${DEFAULT_NUM_AGENTS}) and sets them up to form a topology (default: ${DEFAULT_TOPOLOGY}).
+
+If APPLICATION is specified, once deployed, the script requests an execution of a function of such application (by default: the main) passing in the specified arguments. At the end of the execution the script undeploys the service and collects the traces, if tracing is enabled.
+
+EOF
+
+  show_opts
+
+  cat << EOF
+General options:
+    --help, -h                              Prints this message
+
+    --version, -v                           Prints COMPSs version
+
+    --verbose                               Makes this script verbose. Useful for debugging and seeing what's going on "under the hood".
+
+    --silent, -s                            Silent  or  quiet  mode.  Don't show progress meter or error messages.
+EOF
+}
+
+
+###############################################
+###############################################
+# Option management functions
+###############################################
+###############################################
+
+###############################################
+# Adds an option to the Agent start command
+############################################### 
+add_param_to_agent_start() {
+    if [ -n "${1}" ]; then
+        agentStartCommand="${agentStartCommand}
+    $1"
+    fi
+}
+
+###############################################
+# Adds an option to the call operation command
+############################################### 
+add_param_to_call_operation() {
+    if [ -n "${1}" ]; then
+        callOperationCommand="${callOperationCommand}
+    $1"
+    fi
+}
+
+###############################################
+# Display All Script Options
+############################################### 
+show_opts() {
+  cat <<EOF
+Service Deployment options:
+EOF
+  show_service_opts
+
+  cat << EOT
+Executable options:
+EOT
+  compss_agent_call_operation --execution_opts
+  cat << EOT
+
+Agent's Runtime deployment Options:
+EOT
+  compss_agent_start --opts
+}
+
+###############################################
+# Display Service Deployment Options
+###############################################
+show_service_opts() {
+  cat <<EOT
+    --num_agents=<int>                      Number of agents deployed.
+                                            Default: ${DEFAULT_NUM_AGENTS}
+
+    --topology=<string>                     Topology created for the agents deployed
+                                            Supported topologies:
+                                                ├── plain
+                                                ├── chain
+                                                └── tree
+                                            Default: ${DEFAULT_TOPOLOGY}
+
+    --log_dir=<string>                      Log directory.
+                                            Default: ${DEFAULT_LOG_DIR}
+EOT
+}
+
+###############################################
+# Parses the options from the commandline and updates the current option values
+###############################################
+get_args() {
+  verbose_level="1"
+  while getopts hvsgtmd-: flag; do
+    case "$flag" in
+      h)
+        # Display help
+        usage
+        exit 0
+        ;;
+      t)
+        # Enable tracing
+        tracing="true"
+        add_param_to_agent_start "-$flag"
+        ;;
+      s)
+        # Enable silent mode
+        verbose_level="0"
+        ;;
+      v)
+        # Display version
+        show_version
+        exit 0
+        ;;
+      -)
+        # Check more complex arguments
+        case "$OPTARG" in
+          # Options Description options
+          help)
+            usage
+            exit 0
+            ;;
+          opts)
+            show_opts
+            exit 0
+            ;;
+
+          # Version Options
+          flower)
+            # Display flower
+            show_flower
+            exit 0
+            ;;
+          recipe)
+            # Display recipe
+            show_recipe
+            exit 0
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+
+          # Invocation options
+          array)
+            add_param_to_call_operation "--array"
+            ;;
+          cei=*)
+            add_param_to_call_operation "--$OPTARG"
+            ;;
+          lang=*)
+            lang=${OPTARG//lang=/}
+            add_param_to_call_operation "--lang=${lang}"
+            ;;
+          log_dir=*)
+            log_dir=${OPTARG//log_dir=/}
+            ;;
+          method_name=*)
+            add_param_to_call_operation "--$OPTARG"
+            ;;
+          num_agents=*)
+            num_agents=${OPTARG//num_agents=/}
+            ;;
+          parameters_array)
+            add_param_to_call_operation "--array"
+            ;;
+          project=*)
+            project=${OPTARG//project=/}
+            add_param_to_agent_start "--$OPTARG"
+            ;;
+          silent)
+            verbose_level="0"
+            ;;
+          topology=*)
+            topology=${OPTARG//topology=/}
+            ;;
+          tracing*)
+            tracing="true"
+            add_param_to_agent_start "--$OPTARG"
+            ;;
+          verbose)
+            verbose_level="2"
+            ;;
+          *)
+            add_param_to_agent_start "--$OPTARG"
+            ;;
+        esac
+          ;;
+      *)
+        add_param_to_agent_start "-$flag"
+        ;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  executable=$1
+  if [ -n  "${executable}" ]; then
+    shift 1
+    execution_params=$@
+  fi
+}
+
+###############################################
+# Validates the current script configuration
+###############################################
+check_args() {
+  if [ -z "${num_agents}" ]; then
+    num_agents=${DEFAULT_NUM_AGENTS}
+  fi
+
+  if [ -z "${topology}" ]; then
+    topology=${DEFAULT_TOPOLOGY}
+  fi
+
+  if [[ "${topology}" != "tree" ]] && [[ "${topology}" != "chain" ]] && [[ "${topology}" != "plain" ]]; then
+    fatal_error "Topology not supported. Available options: tree, chain, plain (default)" 1
+  fi
+
+  if [ -z "${project}" ]; then
+    project=${DEFAULT_PROJECT}
+  fi
+
+  if [ -z "${log_dir}" ]; then
+   log_dir=${DEFAULT_LOG_DIR}
+  fi
+}
+
+
+###############################################
+###############################################
+# Secondary functions
+###############################################
+###############################################
+
+###############################################
+# Create log folder
+###############################################
+create_log_folder() {
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Generated service's log folder" 
+  fi
+  mkdir -p "${log_dir}"
+  output_log="${log_dir}/outputlog"
+  error_log="${log_dir}/errorlog"
+  touch "${output_log}"
+  touch "${error_log}"
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Generated service's log folder" "${output_log}"
+  fi
+}
+
+###############################################
+# Compute agent setup
+###############################################
+compute_agent_setup() {
+  local agent_id=${1}  
+
+  agent_name=""
+  # define agent name with 2 digits
+  if [ "${agent_id}" -lt 10 ]; then
+    agent_name="${DEFAULT_AGENTNAME_PREFIX}0${agent_id}"
+  else
+    agent_name="${DEFAULT_AGENTNAME_PREFIX}${agent_id}"
+  fi
+
+  agent_log="${log_dir}/${agent_name}"
+  agent_log_output="${agent_log}.outputlog"
+  agent_log_error="${agent_log}.errorlog"
+
+  local agent_ports=$((DEFAULT_INITIAL_PORT + agent_id * 100))
+  agent_rest_port=$(( agent_ports + 1 ))
+  agent_comm_port=$(( agent_ports + 2 ))
+}
+
+###############################################
+# Print and run command
+###############################################
+print_and_run_cmd() {
+  local cmd
+  local output
+  local error
+  cmd=${1}
+  output=${2}
+  error=${3}
+  
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Executing command:
+${cmd}    1>${output} 2>${error} &" "${output_log}"
+  fi
+
+  ${cmd} 1>"${output}" 2>"${error}" &
+  cmd_pid=$!
+}
+
+
+###############################################
+# Start Agent
+###############################################
+start_agent() {
+  compute_agent_setup "${1}"
+  rm -rf "${agent_log_output}"
+  rm -rf "${agent_log_error}"
+  rm -rf "${agent_log}"
+  
+  mkdir -p "${agent_log}"
+  touch "${agent_log_output}"
+  touch "${agent_log_error}"
+  
+  # delete previous Agent dir
+  if [ -d "${agent_log}" ]; then 
+    rm -r "${agent_log}"; 
+  fi
+
+specific_agent_start_command="${agentStartCommand}
+    --hostname=${agent_name}
+    --log_dir=${agent_log}
+    --rest_port=${agent_rest_port}
+    --comm_port=${agent_comm_port}"
+
+  print_and_run_cmd "${specific_agent_start_command}" "${agent_log_output}" "${agent_log_error}"
+  if [ -z "${pidAgent1}" ]; then
+    pidAgent1=${cmd_pid}
+  fi
+
+}
+
+
+###############################################
+# Check Agent Local Resources
+###############################################
+check_local_resources() {
+  local agent_name=${1}
+  local rest_port=${2}
+  local assumed_cpus=${3}
+
+  local retries
+
+  local resources
+  local resource
+  local num_resources
+  local description
+  local processors_count
+  local cpu_count
+
+  local retries=${NUM_CHECK_RETRIES}
+
+  resources=$(curl -XGET "http://${agent_name}:${rest_port}/COMPSs/resources" 2>/dev/null)
+  num_resources=$(echo "${resources}" | jq '.resources | length')
+
+  while [ "$num_resources" == "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    resources=$(curl -XGET "http://${agent_name}:${rest_port}/COMPSs/resources" 2>/dev/null)
+    num_resources=$(echo "${resources}" | jq '.resources | length')
+  done
+
+  if [ ! "${num_resources}" == "1" ]; then
+    fatal_error "Wrong number of RESOURCE tags on the agent's output. Found ${num_resources}; 1 expected."  1 "${error_log}"
+  fi
+  resource=$(echo "${resources}" | jq '.resources[] | select(.name=='\"${agent_name}\"')')
+  if [ -z "${resource}" ]; then
+    fatal_error "Wrong Resource on Agent; ${2} expected." 1 "${error_log}"
+  fi
+  description=$(echo "${resource}" | jq '.description ')
+  processors_count=$(echo "${description}" | jq '.processors | length')
+  if [ ! "${processors_count}" == "1" ]; then
+    fatal_error "Wrong number of Processors configured for the Agent. Found ${processors_count}; 1 expected." 1 "${error_log}"
+  fi
+  cpu_count=$(echo "${description}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${cpu_count}" == "${assumed_cpus}" ]; then
+    fatal_error "Wrong number of CPU cores configured for the Agent. Found ${cpu_count}; ${assumed_cpus} expected." 1 "${error_log}"
+  fi
+}
+
+###############################################
+# Check Agent started properly
+###############################################
+check_agent() {
+  compute_agent_setup "${1}"
+
+  local retries=${NUM_CHECK_RETRIES}
+
+  curl -XGET "http://127.0.0.1:${agent_rest_port}/COMPSs/test" 1>/dev/null 2>/dev/null
+  while [ ! "$?" == "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    curl -XGET "http://127.0.0.1:${agent_rest_port}/COMPSs/test" 1>/dev/null 2>/dev/null
+  done
+
+  RESULT=$(grep "test invoked" "${agent_log_output}")
+  while [ -z "${RESULT}" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    RESULT=$(grep "test invoked" "${agent_log_output}")
+  done
+  if [ -z "${RESULT}" ]; then
+    fatal_error "${agent_name} failed to start" >> "${error_log}" 1
+  fi
+
+  check_local_resources "${agent_name}" "${agent_rest_port}" "${num_cpu}"
+  if [ ${verbose_level} -gt 0 ]; then
+    display_success "${agent_name} started"
+  fi
+}
+
+###############################################
+# Adds resources from an agent onto another one
+###############################################
+add_resources() {
+  local parent_agent_id
+  parent_agent_id=${1}
+  local child_agent_id
+  child_agent_id=${2}
+  local child_cpus
+  child_cpus=${3}
+
+  compute_agent_setup "${parent_agent_id}"
+  local parent_agent_name
+  parent_agent_name=${agent_name}
+  local parent_agent_rest_port
+  parent_agent_rest_port=${agent_rest_port}
+  
+  compute_agent_setup "${child_agent_id}"
+  local child_agent_name
+  child_agent_name=${agent_name}
+  local child_agent_comm_port
+  child_agent_comm_port=${agent_comm_port}
+
+  local add_command
+  add_command="${AGENTS_SCRIPTS_HOME}compss_agent_add_resources
+--agent_node=${parent_agent_name}
+--agent_port=${parent_agent_rest_port}
+--comm=es.bsc.compss.agent.comm.CommAgentAdaptor
+--cpu=${child_cpus}
+${child_agent_name}
+Port=${child_agent_comm_port}"
+
+  print_and_run_cmd "${add_command}"  "/dev/null" "/dev/null"
+}
+
+###############################################
+# Create Plain Topology
+###############################################
+create_plain_topology() {
+  for child_agent_id in $(seq 2 ${num_agents})
+  do
+    add_resources "1" "${child_agent_id}" "${num_cpu}"
+  done
+}
+
+###############################################
+# Create Chain Topology
+###############################################
+create_chain_topology() { 
+  local sum_cpu=${num_cpu}
+  for child_agent_id in $(seq ${num_agents} -1 2)
+  do
+    parent_agent_id=$(( child_agent_id - 1))
+    add_resources "${parent_agent_id}" "${child_agent_id}" "${sum_cpu}"
+    sum_cpu=$(( sum_cpu + num_cpu ))
+  done
+}
+
+###############################################
+# Create Tree Topology
+###############################################
+create_tree_topology() { 
+  local cpus
+  cpus=()
+  cpus+=("0")
+  for i in $(seq 1 $num_agents); 
+  do
+   cpus+=("${num_cpu}")
+  done
+
+  for child_agent_id in $(seq ${num_agents} -1 1)
+  do
+    # calculte the parent node
+    parent_agent_id=$(echo "($child_agent_id + 1)/2" | bc)
+    child_cpus=${agent_cpu[${child_agent_id}]}
+
+    add_resources "${parent_agent_id}" "${child_agent_id}" "${child_cpus}"
+
+    # add to the parent node the number of cpus
+    agent_cpu[${parent_agent_id}]=$(( agent_cpu[parent_agent_id] + child_cpus))
+  done
+}
+
+###############################################
+# Check Topology
+###############################################
+check_topology() { 
+  local retries
+
+  compute_agent_setup "1"
+  cpus_num_agents=$(( num_agents * num_cpu ))
+
+  retries=${NUM_CHECK_RETRIES}
+  # Get all the cpus from the root agent merge them in a single line and add a + to use in bc
+  cpus_topology=$(curl -s -XGET "http://${agent_name}:${agent_rest_port}/COMPSs/resources" | jq '.resources | .[] | .description | .processors | .[] | .units' | paste -sd+ | bc)
+  while [ ! "${cpus_topology}" == "${cpus_num_agents}" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    cpus_topology=$(curl -s -XGET "http://${agent_name}:${agent_rest_port}/COMPSs/resources" | jq '.resources | .[] | .description | .processors | .[] | .units' | paste -sd+ | bc)
+  done
+
+  if [[ ${cpus_topology} -eq ${cpus_num_agents} ]]; then
+    if [ ${verbose_level} -gt 0 ]; then
+      display_success "${GREEN}Topology created successfully${NC}"
+    fi
+  else
+    fatal_error "${RED}Error creating topology${NC}" 1
+  fi
+}
+
+###############################################
+# Call operation
+###############################################
+call_operation() {
+  local agent_id
+  agent_id=${1}
+  local master_name
+  local master_rest_port
+  local master_log
+
+  compute_agent_setup "${agent_id}"
+  master_name=${agent_name}
+  master_rest_port=${agent_rest_port}
+  master_log=${agent_log}
+  add_param_to_call_operation "--master_node=${master_name}"
+  add_param_to_call_operation "--master_port=${master_rest_port}"
+
+  add_param_to_call_operation "--stop"
+  if [ "${num_agents}" -gt 1 ]; then
+    fwd_action_to=""
+    for i in $(seq 2 ${num_agents})
+    do
+      compute_agent_setup "${i}"
+      agent_rest_api="${agent_name}:${agent_rest_port}"
+      if [ -z "${fwd_action_to}" ]; then
+        fwd_action_to="${agent_rest_api}"
+      else
+        fwd_action_to="${fwd_action_to};${agent_rest_api}"
+      fi
+    done
+    add_param_to_call_operation "--forward_to=${fwd_action_to}"
+  fi
+
+  compute_agent_setup "${i}"
+  add_param_to_call_operation "${executable} ${execution_params}"
+  print_and_run_cmd "${callOperationCommand}" "${output_log}" "${error_log}"
+
+  # check execution start
+  retries=${NUM_CHECK_RETRIES}
+  while [ ! -f "${master_log}/jobs/job1_NEW.out" ]; do
+      sleep 3
+      retries=$((retries - 1 ))
+  done
+  
+  if [ -f "${master_log}/jobs/job1_NEW.out" ]; then
+    if [ ${verbose_level} -gt 0 ]; then
+      display_success "Execution properly started"
+    fi
+  else
+    fatal_error "Call operation didn't start any job" 1
+  fi
+
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "waiting for agent1 with pid: $pidAgent1"
+  fi
+  wait $pidAgent1
+
+  if grep -q "Job completed after" "${master_log}.outputlog"; then
+    if [ ${verbose_level} -gt 0 ]; then
+      display_success "Execution ended succesfully"
+    fi
+  else
+    fatal_error "${RED}Execution failed${NC}" 1
+  fi
+}
+
+###############################################
+# Merge Traces
+###############################################
+merge_traces() {
+  agents_log_dirs=""
+  for i in $(seq 1 ${num_agents})
+  do
+    compute_agent_setup "${i}"
+    agents_log_dirs="${agents_log_dirs} ${agent_log}"
+  done
+  
+  compss_agent_merge_traces \
+  --result_trace_name="${executable}" \
+  -f \
+  --output_dir="${log_dir}/resultatTraceMerge" \
+  ${agents_log_dirs}
+}
+
+
+###############################################
+###############################################
+# Main code
+###############################################
+###############################################
+get_args "$@"
+check_args
+
+create_log_folder
+
+num_cpu=$(grep "<Computing" "${project}" | cut -f2 -d">"|cut -f1 -d"<")
+
+shopt -s nocasematch
+if [ ${verbose_level} -gt 0 ]; then
+  if [[ ${num_agents} -gt 1 ]]; then
+    display_info "Starting ${num_agents} agents"
+  else
+    display_info "Starting 1 agent"
+  fi
+fi
+
+for i in $(seq 1 $num_agents)
+do
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Starting agent ${i}" 
+  fi
+  start_agent "$i"
+done
+
+
+for i in $(seq 1 $num_agents)
+do
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "Checking ${i}" 
+  fi
+  check_agent "$i"
+done
+
+if [[ ${num_agents} -gt 1 ]]; then
+  if [ ${verbose_level} -gt 0 ]; then
+    display_info "Organizing agents forming a ${topology} topology"
+  fi
+
+  if [[ $topology == "tree" ]]; then
+    create_tree_topology
+  elif [[ $topology == "chain" ]]; then
+    create_chain_topology
+  else
+    # [[ "${topology}" == "plain" ]]
+    create_plain_topology
+  fi
+  check_topology
+fi
+
+if [ -n "${executable}" ]; then
+  if [ ${verbose_level} -gt 0 ]; then
+    display_info "Calling operation"
+  fi
+  call_operation 1
+
+  if [ -n "${tracing}" ]; then
+    if [ ${verbose_level} -gt 0 ]; then
+      display_info "Merging traces"
+    fi
+    merge_traces
+  fi
+fi
+

@@ -86,69 +86,19 @@
   eval "agent1_output_log=${agent_output_log}"
   eval "agent1_errput_log=${agent_error_log}"
 
-  compss_agent_start \
-    --hostname="COMPSsWorker01" \
+  compss_agent_start_service \
+    --num_agents=1 \
     --classpath="${base_app_dir}/${jar_name}" \
     --log_dir="${agent_log_dir}" \
-    --rest_port="46101" \
-    --comm_port="46102" \
     --reuse_resources_on_block"=false" \
     -d \
     ${runcompss_opts} \
     --project="${base_app_dir}/project.xml" \
-    --resources="${base_app_dir}/resources.xml" 1>"${agent_output_log}" 2>"${agent_error_log}" &
-
-  agent_pid="$!"
-  AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
-
-  agent_port=46101
-  out_log_name=agent1_output_log
-  eval agent_output_log=${!out_log_name}
-
-  retries="${NUM_RETRIES}"
-  curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
-  ev=$?
-  while [ "$ev" != "0" ] && [ "${retries}" -gt "0" ]; do
-    sleep 2s
-    retries=$((retries - 1 ))
-    curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
-    ev=$?
-  done
-
-  RESULT=$(grep "test invoked" "${agent_output_log}")
-  if [ -z "${RESULT}" ]; then  
-    echo "Agent failed to start" > >(tee -a "${error_log}")
-    exit 1
-  fi
-  echo "Agent started" > >(tee -a "${output_log}")
-  sleep 2s
-
-  # Invoking DemoFunction method
-  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
-   --master_node="127.0.0.1" \
-   --master_port="46101" \
+    --resources="${base_app_dir}/resources.xml" \
     --cei=files.MainItf \
-    files.Main  > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
-   ev=$?
+    files.Main
 
-   sleep 5s
-   if [ "$ev" != "0" ]; then
-    echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
-    exit $ev
-  fi
-  echo "recursive.Count's main function invoked" > >(tee -a "${output_log}")
-
-  retries="3"
-  while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
-    sleep 2s
-    retries=$((retries - 1 ))
-  done
-  if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
-    echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
-    exit 1
-  fi
-
-  job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3 )
+  job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/COMPSsWorker01/jobs/job1_NEW.out" | cut -d '=' -f3 )
   if [ -n "${job1_method}" ]; then
     job1_method="${job1_method::-1}"
   fi
@@ -160,7 +110,7 @@
 
   sleep 10s
 
-  created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
+  created_jobs=$(ls "${agent1_log_dir}COMPSsWorker01/jobs" | grep -c NEW.out)
   if [ ! "${created_jobs}" == "123" ]; then
     echo "Agent1 has executed ${created_jobs} tasks and 123 expected." > >(tee -a "${error_log}")
     exit 1

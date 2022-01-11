@@ -2,16 +2,16 @@
 
 usage(){
   cat <<EOT
-  $0 <options> <log_dir1> <log_dir2> <log_dir3> ...
+  Usage:  $0 [OPTION]... LOG_DIR...
 
   Merges the traces of the specified agents into a new trace created at the directory <output_dir>
 
     options:                
-            -h/--help                                       shows this message
+            -h,--help                                       shows this message
 
             --output_dir=<output_dir>                       the directory where to store the merged traces
 
-            -f/--force_override                             overrides output_dir if it already exists without asking
+            -f,--force_override                             overrides output_dir if it already exists without asking
 
             --result_trace_name=<result_trace_name>         the name of the generated trace
 EOT

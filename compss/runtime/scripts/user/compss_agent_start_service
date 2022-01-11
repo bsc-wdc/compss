@@ -56,7 +56,12 @@ callOperationCommand="${AGENTS_SCRIPTS_HOME}compss_agent_call_operation"
 ###############################################
 usage() {
   cat << EOF
-Usage: $0 [OPTION]... [EXECUTABLE [EXECUTION_ARGUMENT]... ]
+Usage: $0 [OPTION]... [APPLICATION [APPLICATION_ARGUMENT]... ]
+
+Starts a service deploying COMPSs' agents (default: ${DEFAULT_NUM_AGENTS}) and sets them up to form a topology (default: ${DEFAULT_TOPOLOGY}).
+
+If APPLICATION is specified, once deployed, the script requests an execution of a function of such application (by default: the main) passing in the specified arguments. At the end of the execution the script undeploys the service and collects the traces, if tracing is enabled.
+
 EOF
 
   show_opts
@@ -110,12 +115,12 @@ EOF
   show_service_opts
 
   cat << EOT
-  Executable options:
+Executable options:
 EOT
-  compss_agent_call_operation --executable_opts
+  compss_agent_call_operation --execution_opts
   cat << EOT
 
-  Agent's Runtime deployment Options:
+Agent's Runtime deployment Options:
 EOT
   compss_agent_start --opts
 }
@@ -137,8 +142,6 @@ show_service_opts() {
 
     --log_dir=<string>                      Log directory.
                                             Default: ${DEFAULT_LOG_DIR}
-
-    --stop                                  Stop the whole deployment at the end of the EXECUTABLE execution.
 EOT
 }
 
@@ -227,10 +230,6 @@ get_args() {
             ;;
           silent)
             verbose_level="0"
-            ;;
-          stop)
-            action="stop" #there could be other actions in the future
-            add_param_to_call_operation "--stop"
             ;;
           topology=*)
             topology=${OPTARG//topology=/}
@@ -578,70 +577,67 @@ check_topology() {
 # Call operation
 ###############################################
 call_operation() {
-    local agent_id
-    agent_id=${1}
-    local master_name
-    local master_rest_port
-    local master_log
+  local agent_id
+  agent_id=${1}
+  local master_name
+  local master_rest_port
+  local master_log
 
-    compute_agent_setup "${agent_id}"
-    master_name=${agent_name}
-    master_rest_port=${agent_rest_port}
-    master_log=${agent_log}
-    add_param_to_call_operation "--master_node=${master_name}"
-    add_param_to_call_operation "--master_port=${master_rest_port}"
+  compute_agent_setup "${agent_id}"
+  master_name=${agent_name}
+  master_rest_port=${agent_rest_port}
+  master_log=${agent_log}
+  add_param_to_call_operation "--master_node=${master_name}"
+  add_param_to_call_operation "--master_port=${master_rest_port}"
 
-    if [ ${action} = "stop" ]; then
-        if [ "${num_agents}" -gt 1 ]; then
-            fwd_action_to=""
-            for i in $(seq 2 ${num_agents})
-            do
-                compute_agent_setup "${i}"
-                agent_rest_api="${agent_name}:${agent_rest_port}"
-                if [ -z "${fwd_action_to}" ]; then
-                    fwd_action_to="${agent_rest_api}"
-                else
-                    fwd_action_to="${fwd_action_to};${agent_rest_api}"
-                fi
-            done
-        add_param_to_call_operation "--forward_to=${fwd_action_to}"
-        fi
-    fi
-
-    compute_agent_setup "${i}"
-    add_param_to_call_operation "${executable} ${execution_params}"
-    print_and_run_cmd "${callOperationCommand}" "${output_log}" "${error_log}"
-
-    # check execution start
-    retries=${NUM_CHECK_RETRIES}
-    while [ ! -f "${master_log}/jobs/job1_NEW.out" ]; do
-        sleep 3
-        retries=$((retries - 1 ))
+  add_param_to_call_operation "--stop"
+  if [ "${num_agents}" -gt 1 ]; then
+    fwd_action_to=""
+    for i in $(seq 2 ${num_agents})
+    do
+      compute_agent_setup "${i}"
+      agent_rest_api="${agent_name}:${agent_rest_port}"
+      if [ -z "${fwd_action_to}" ]; then
+        fwd_action_to="${agent_rest_api}"
+      else
+        fwd_action_to="${fwd_action_to};${agent_rest_api}"
+      fi
     done
-    
-    if [ -f "${master_log}/jobs/job1_NEW.out" ]; then
-      if [ ${verbose_level} -gt 0 ]; then
-        display_success "Execution properly started"
-      fi
-    else
-      fatal_error "Call operation didn't start any job" 1
-    fi
+    add_param_to_call_operation "--forward_to=${fwd_action_to}"
+  fi
 
-    if [ ${verbose_level} -gt 1 ]; then
-      display_info "waiting for agent1 with pid: $pidAgent1"
-    fi
-    wait $pidAgent1
+  compute_agent_setup "${i}"
+  add_param_to_call_operation "${executable} ${execution_params}"
+  print_and_run_cmd "${callOperationCommand}" "${output_log}" "${error_log}"
 
-    if grep -q "Job completed after" "${master_log}.outputlog"; then
-      if [ ${verbose_level} -gt 0 ]; then
-        display_success "Execution ended succesfully"
-      fi
-    else
-      fatal_error "${RED}Execution failed${NC}" 1
+  # check execution start
+  retries=${NUM_CHECK_RETRIES}
+  while [ ! -f "${master_log}/jobs/job1_NEW.out" ]; do
+      sleep 3
+      retries=$((retries - 1 ))
+  done
+  
+  if [ -f "${master_log}/jobs/job1_NEW.out" ]; then
+    if [ ${verbose_level} -gt 0 ]; then
+      display_success "Execution properly started"
     fi
+  else
+    fatal_error "Call operation didn't start any job" 1
+  fi
+
+  if [ ${verbose_level} -gt 1 ]; then
+    display_info "waiting for agent1 with pid: $pidAgent1"
+  fi
+  wait $pidAgent1
+
+  if grep -q "Job completed after" "${master_log}.outputlog"; then
+    if [ ${verbose_level} -gt 0 ]; then
+      display_success "Execution ended succesfully"
+    fi
+  else
+    fatal_error "${RED}Execution failed${NC}" 1
+  fi
 }
-
-action=""
 
 ###############################################
 # Merge Traces

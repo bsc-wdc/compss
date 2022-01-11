@@ -197,9 +197,9 @@ get_args() {
         # Check more complex arguments
         case "$OPTARG" in
           # Options Description options
-          executable_opts)
+          execution_opts)
             # Display execution options
-            show_executable_opts
+            show_execution_opts
             exit 0
             ;;
           help)

@@ -2,32 +2,22 @@
 
   # # Obtain parameters
   output_file=$1
-  # error_file=$2
-  # target_log_folder=$3
-  # base_app_dir=$4
-
-  # if [ -f "${output_file}" ]; then
-  #    result_expected="Namespace(action='init', config='', debug=False, env='local', modules=None, name='envlocal', working_dir='')\nEnvironemnt ID: envlocal"
-  #    test_result=$(cat "${output_file}")
-  #    if [ "${result_expected}" != "${test_result}" ]; then
-  #       echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
-  #       exit 1
-  #    else
-  #       echo "OK"
-  #    fi
-  # else
-  #    echo "[ERROR] Output file not found" | tee -a "${output_file}"
-  #    exit 1
-  # fi
+  error_file=$2
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="------------------------------------------------------------"
+     result_expected="Deploying environment..."
      test_result=$(tail -1 "${output_file}")
      if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
+     fi
+
+     # Check if directory `cluster_env` exists in `~/.COMPSs/envs`
+     if [ ! -d "${HOME}/.COMPSs/envs/cluster_env" ]; then
+         echo "[ERROR] Directory `cluster_env` not found in `~/.COMPSs/envs`" | tee -a "${output_file}"
+         exit 1
      fi
   else
      echo "[ERROR] Output file not found" | tee -a "${output_file}"
@@ -39,8 +29,7 @@
       echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
       exit 1
     fi
-  else
-    # Empty error file, no exceptions could have been rai
+  fi
 
     
 

@@ -10,24 +10,23 @@
   target_log_folder=$6
   retry_num=$7
   execution_envs=$8
+  user_login=$9
+  modules=${10}
   
   # Global variables
   exit_value=1
-  jar_name="0_basic_graph.jar"
-  app_name="basic.BasicGraph"
-  
   
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** CREATING LOCAL ENVIRONMENT"
-  output_log="${target_log_folder}/basic_graph_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/basic_graph_0${retry_num}.errorlog"
+  echo "*** CREATING CLUSTER ENVIRONMENT"
+  output_log="${target_log_folder}/create_cluster_env_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/create_cluster_env_0${retry_num}.errorlog"
   expectedTime=60s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime \
-    pycompss init local > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+    /bin/bash -e "${base_app_dir}/src/test.sh" $user_login > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then

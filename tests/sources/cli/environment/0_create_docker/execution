@@ -1,0 +1,43 @@
+#!/bin/bash
+
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+  
+  # Global variables
+  exit_value=1
+  
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** CREATING DOCKER ENVIRONMENT"
+  output_log="${target_log_folder}/create_docker_env_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/create_docker_env_0${retry_num}.errorlog"
+  expectedTime=60s
+  
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime \
+    /bin/bash -e "${base_app_dir}/src/test.sh" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Report time out
+     echo "[WARNING] Initializing Docker Environment timed out" >> "${output_log}"
+     exit_value=124
+  else
+     # Check result
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${base_app_dir}"
+     exit_value=$?
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}
+

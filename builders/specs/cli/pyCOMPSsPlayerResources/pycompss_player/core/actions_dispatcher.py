@@ -13,8 +13,6 @@ class ActionsDispatcher(object):
         self.home_path = str(Path.home())
 
     def run_action(self, arguments, debug):
-        print(arguments)
-
         self.__ensure_default_env()
 
         if 'env' in arguments and arguments.env:
@@ -27,14 +25,10 @@ class ActionsDispatcher(object):
                 exit(1)
             env_conf = utils.get_current_env()
             self.__env = env_conf['env']
-            # print('SELECTED ENV', self.__env)
-
-        # print('ENV', self.__env)
         
         self.__actions_cmd = self.__getactions_cmd(arguments, debug, env_conf)
 
         action_name = utils.get_object_method_by_name(self.__actions_cmd, arguments.action)
-        # print('DISPATCH ACTION NAME', action_name)
 
         action_func = getattr(self.__actions_cmd, action_name)
         action_func()

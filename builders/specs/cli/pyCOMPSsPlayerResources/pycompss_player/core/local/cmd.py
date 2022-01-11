@@ -47,14 +47,11 @@ def local_run_app(cmd: List[str]) -> None:
 
     cmd = ';'.join(cmd)
 
-    print("Executing cmd: %s" % cmd)
-
     subprocess.run(cmd, shell=True)
 
 
 def local_jupyter(work_dir, jupyter_args):
     cmd = 'jupyter notebook --notebook-dir=' + work_dir
-    # run cmd in a subprocess, print the output and handle SIGINT signal for the subprocess
     process = subprocess.Popen(cmd + ' ' + jupyter_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     try:
         while True:

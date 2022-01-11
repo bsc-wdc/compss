@@ -156,7 +156,7 @@ class DockerCmd(object):
         :param cmd: Command to execute.
         :returns: The execution stdout.
         """
-        print("Executing cmd: %s" % cmd)
+
         if not self._is_running(master_name):
             self.docker_deploy_compss()
 

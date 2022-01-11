@@ -66,7 +66,7 @@ class LocalActions(Actions):
             "runcompss " + ' '.join(app_args)
         ]
 
-        if self.env_conf['working_dir']:
+        if 'working_dir' in self.env_conf:
             commands.insert(0, 'cd ' + self.env_conf['working_dir'])
                 
         local_run_app(commands)

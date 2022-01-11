@@ -251,7 +251,6 @@ def parse_sys_argv():
         sys.exit(1)
 
     arguments, leftovers = parser.parse_known_args()
-
     if leftovers:
         arguments.rest_args = leftovers + arguments.rest_args
 

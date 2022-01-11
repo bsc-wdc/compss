@@ -48,7 +48,6 @@ class Actions(ABC):
         self.arguments.env_path = env_path
 
         os.makedirs(env_path)
-        # print("MAKE DIRS", env_path)
 
         with open(env_path + '/env.json', 'w') as env_conf:
             json.dump(vars(self.arguments), env_conf)
@@ -61,7 +60,7 @@ class Actions(ABC):
 
         open(env_path + '/current', 'a').close()
 
-        print('Environemnt ID:', self.arguments.name)
+        print('Environment ID:', self.arguments.name)
 
     @abstractmethod
     def exec(self):
@@ -86,17 +85,8 @@ class Actions(ABC):
     @abstractmethod
     def monitor(self):
         pass
-
-    # @abstractmethod
-    # def gengraph(self):
-    #     pass
-
-    # @abstractmethod
-    # def component(self):
-    #     pass
     
     def environment(self):
-        # print('ABS ENV')
         action_name = 'list'
 
         if self.arguments.environment:
@@ -135,6 +125,7 @@ class Actions(ABC):
 
     @abstractmethod
     def env_remove(self):
+        self.env_change(env_id='default')
         for env_id in self.arguments.env_id:
             if env_id == 'default':
                 print('ERROR: `default` environment is required and cannot be deleted')
@@ -146,6 +137,5 @@ class Actions(ABC):
 
             env_dir_name = self.home_path + '/.COMPSs/envs/' + env_id
             
-            print(f'Deleting environemnt `{env_id}`...')
+            print(f'Deleting environment `{env_id}`...')
             shutil.rmtree(env_dir_name)
-        self.env_change(env_id='default')

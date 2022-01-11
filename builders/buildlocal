@@ -23,6 +23,7 @@ DEFAULT_TRACING=true
 DEFAULT_AUTOPARALLEL=true
 DEFAULT_KAFKA=true
 DEFAULT_JACOCO=true
+DEFAULT_CLI=true
 DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 DEFAULT_MVN_TESTS=""
@@ -429,6 +430,7 @@ warn_and_log_parameters() {
   echo "- Tracing        = ${tracing}"
   echo "- AutoParallel   = ${autoparallel}"
   echo "- Stream Backend = ${kafka}"
+  echo "- CLI            = ${cli}"
   echo "- SCRIPT_DIR     = ${SCRIPT_DIR}"
   echo "- SOURCES DIR    = ${SOURCES_DIR}"
   echo "- TMP_DIR        = ${TMP_DIR}"
@@ -741,13 +743,6 @@ install_compss() {
     mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
   fi
 
-  if [ "$cli" == "true" ]; then
-    echo "- Deploying CLI at Tools"
-    cd "${TMP_DIR}/builders/specs/cli"
-    ./install.sh
-    cd "${SCRIPT_DIR}"
-  fi
-
   # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ]; then
     echo "- Deploying bindings-common files"
@@ -804,6 +799,13 @@ install_compss() {
       fi
       cd "${SCRIPT_DIR}"
     fi
+  fi
+
+  if [ "$cli" == "true" ]; then
+    echo "- Deploying CLI at Tools"
+    cd "${TMP_DIR}/cli/pyCOMPSsPlayerResources"
+    ./install.sh
+    cd "${SCRIPT_DIR}"
   fi
 
   # ADD RUNCOMPSS TO PROFILE

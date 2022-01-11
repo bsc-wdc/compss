@@ -92,8 +92,6 @@ def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, 
     if envars:
         commands = [f'export {var}' for var in envars] + commands
 
-    print(commands)
-
     stdout = utils.ssh_run_commands(login_info, commands)
     job_id = stdout.strip().split('\n')[-1].split(' ')[-1]
     print('Job submitted:', job_id)
@@ -109,10 +107,11 @@ def remote_list_apps(env_id: str, login_info: str, remote_home: str):
     ]
 
     stdout = utils.ssh_run_commands(login_info, commands).strip()
-    if 'NO_APPS' in stdout:
+    apps = stdout.split('\n')
+    if 'NO_APPS' in stdout or (len(apps) == 1 and apps[0] == ''):
         return []
 
-    return stdout.split('\n')
+    return apps
 
 def remote_env_remove(login_info, env_id, env_apps):
     for app_name in env_apps:

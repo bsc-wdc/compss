@@ -189,6 +189,7 @@ class RemoteActions(Actions):
                 env_id = self.env_conf['name']
                 app_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
                 remote_app_remove(login_info, app_dir)
+                print(f'Application `{app_name}` removed successfully')
             else:
                 print('ERROR: Application not found')
                 exit(1)

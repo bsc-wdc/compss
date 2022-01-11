@@ -81,7 +81,6 @@ public class LoggerManager {
             LOGGER.debug("LoggerManager already initialized, no need for a second initialization");
             return;
         }
-        System.out.println("Loading LoggerManager");
         loggerAlreadyLoaded = true;
 
         // Gets user execution directory

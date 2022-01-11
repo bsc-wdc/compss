@@ -12,8 +12,9 @@
   # Default checker (application ends with : Error running application)
   if [ -f "${output_file}" ]; then
      result_expected="Error running application"
-     test_result=$(tail -n 2 < "${output_file}" | head -n 1)
-     if [ "${result_expected}" != "${test_result}" ]; then
+     test_result=$(tail -n 1 < "${error_file}" )
+     result_found=$(echo "${test_result}" | grep -c "${result_expected}")
+     if [ ! "${result_found}" == "1" ]; then
         echo "[ERROR] SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
      fi

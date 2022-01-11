@@ -14,7 +14,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  if ! grep "Error running application" "${output_file}"; then
+  if ! grep "Error running application" "${error_file}"; then
     echo "[ERROR] The application did not end with the Error message" | tee -a "${output_file}"
     exit 1
   fi

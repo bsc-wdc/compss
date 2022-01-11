@@ -90,7 +90,6 @@
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
-  --stop \
   --cei="recursive.CountItf" \
   "recursive.Count" 3
 

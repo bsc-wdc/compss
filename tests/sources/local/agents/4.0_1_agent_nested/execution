@@ -92,7 +92,6 @@
     --project="${base_app_dir}/project.xml" \
     --resources="${base_app_dir}/resources.xml" \
     --cei="recursive.CountItf" \
-    --stop \
     "recursive.Count" 3
 
   retries="3"

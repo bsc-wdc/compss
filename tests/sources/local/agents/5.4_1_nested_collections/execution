@@ -55,7 +55,6 @@ compss_agent_start_service \
   --resources="${base_app_dir}/resources.xml" \
    --lang="PYTHON" \
    --method_name="main" \
-   --stop \
    "nested_collection_detection"
 
 

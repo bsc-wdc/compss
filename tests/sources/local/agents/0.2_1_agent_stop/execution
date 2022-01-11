@@ -93,7 +93,6 @@ compss_agent_start_service \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
-  --stop \
   es.bsc.compss.test.DemoClass 1
 
 sleep 1
@@ -118,7 +117,6 @@ compss_agent_start_service \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
-  --stop \
   es.bsc.compss.test.DemoClass 1
 
 CONFIRMATION3=$(grep "Agent was shutdown" "${test3_log_dir}/COMPSsWorker01/agent.log")
@@ -147,7 +145,6 @@ compss_agent_start_service \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
-  --stop \
   es.bsc.compss.test.DemoClassError 1
 
 sleep 1

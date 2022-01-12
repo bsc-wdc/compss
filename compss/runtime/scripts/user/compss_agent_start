@@ -411,8 +411,7 @@ parse_options() {
         ;;
       *)
 	      # Flag didn't match any patern. Raise exception
-          shift $(( OPTIND - 1 ))
-          arguments_error "Bad argument: $1"
+          arguments_error "Bad argument: $flag"
 	      ;;
     esac
   done

@@ -80,3 +80,9 @@ def local_submit_job(modules, app_args):
     else:
         print('Job submitted:', job_id)
         return job_id
+
+def local_job_list(local_job_scripts_dir):
+    subprocess.run(f"python3 {local_job_scripts_dir}/find.py", shell=True)
+
+def local_cancel_job(local_job_scripts_dir, jobid):
+    subprocess.run(f"python3 {local_job_scripts_dir}/cancel.py {jobid}", shell=True)

@@ -8,6 +8,8 @@ from pycompss_player.core.local.cmd import local_run_app
 from pycompss_player.core.local.cmd import local_exec_app
 from pycompss_player.core.local.cmd import local_jupyter
 from pycompss_player.core.local.cmd import local_submit_job
+from pycompss_player.core.local.cmd import local_job_list
+from pycompss_player.core.local.cmd import local_cancel_job
 from pycompss_player.core.actions import Actions
 import pycompss_player.core.utils as utils
 import os
@@ -101,19 +103,22 @@ class LocalActions(Actions):
                 
     def job_submit(self):
         modules = [
-            'module load COMPs',
+            'module load COMPSs',
             'module load python/3.6.1'
         ]
-        app_args = self.arguments.rest_args
+        app_args = ' '.join(self.arguments.rest_args)
         local_submit_job(modules, app_args)
 
     def job_list(self):
-        pass
-        # local_list_job(login_info)
+        path = os.path.abspath(__file__)
+        local_job_scripts_dir = os.path.dirname(path) + '/../remote/job_scripts'
+        local_job_list(local_job_scripts_dir)
 
     def job_cancel(self):
         jobid = self.arguments.job_id
-        # local_cancel_job(jobid)
+        path = os.path.abspath(__file__)
+        local_job_scripts_dir = os.path.dirname(path) + '/../remote/job_scripts'
+        local_cancel_job(local_job_scripts_dir, jobid)
 
     def monitor(self):
         if self.arguments.option == 'start':

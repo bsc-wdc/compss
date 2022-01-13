@@ -56,8 +56,7 @@
   #----------------------------------------------------------------------------------
   jobs_logs="${target_log_folder}/jobs"
   echo $jobs_logs
-  echo "_________ ${output_file}"
-  sleep 3
+
   hello_file=$(grep -ir -l "hello mpmd mpi tests" "$jobs_logs")
   hello=$(grep -i "hello mpmd mpi tests" "$hello_file")
   if [ "$hello" = "" ]; then
@@ -113,6 +112,19 @@
       echo "  - GOT:      $appearances" | tee -a "${output_file}"
       echo "  - EXPECTED: 2 " | tee -a "${output_file}"
       exit 2
+    fi
+  fi
+
+  hellofile=$(grep -r -l "sed s/Hi/HELLO/g" "${jobs_logs}")
+  hello=$(grep -r -l "HELLO, this is a simple test to grep." "${hellofile}")
+  if [[ -z "$hello" ]]; then
+     echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a "${output_file}"
+    exit 1
+  else
+    appearances=$(grep -c "HELLO, this is a simple test to grep." "${hellofile}")
+    if [ ! "$appearances" -eq "12" ]; then
+      echo "ERROR: TASK FAILED: testFileManagementIN function processes parameter failed." | tee -a "${output_file}"
+      exit 1
     fi
   fi
 

@@ -37,6 +37,17 @@ def params(first, second):
     pass
 
 
+@mpmd_mpi(runner="mpirun",
+          working_dir=".",
+          programs=[
+               dict(binary="sed", processes=2, params="{{exp}} {{in_file}}"),
+               dict(binary="sed", params="{{exp}} {{in_file}}"),
+          ])
+@task(in_file=FILE_IN)
+def file_in(exp, in_file):
+    pass
+
+
 class TestMpmdDecorator(unittest.TestCase):
 
     def testBasic(self):
@@ -45,5 +56,10 @@ class TestMpmdDecorator(unittest.TestCase):
 
     def testParams(self):
         params("next monday", "next friday")
+        compss_barrier()
+
+    def testFileManagementIN(self):
+        infile = "src/infile"
+        file_in("s/Hi/HELLO/g", infile)
         compss_barrier()
 

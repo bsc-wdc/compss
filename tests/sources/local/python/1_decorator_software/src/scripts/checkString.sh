@@ -7,7 +7,7 @@ echo "a string before the string param: $1"
 echo "String param received: $2"
 echo ""
 
-if [[ "$1" != "test" ]] || [[ "$2" != "string" ]];then
+if [[ "$1" != "test" ]] || [[ "$2" != "this is a string with spaces" ]];then
     echo "ERROR: The string received does NOT match the expected string."
     exit 1
 else

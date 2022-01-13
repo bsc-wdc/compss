@@ -22,7 +22,7 @@
   echo "*** JUPYTER NOTEBOOK"
   output_log="${target_log_folder}/jupyter_notebook_0${retry_num}.outputlog"
   error_log="${target_log_folder}/jupyter_notebook_0${retry_num}.errorlog"
-  expectedTime=120s
+  expectedTime=300s
 
   export PATH=$PATH:$(pwd)/src
   

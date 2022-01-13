@@ -9,7 +9,10 @@
   if [ -f "${output_file}" ]; then
      result_expected="Environment ID: cluster_env
 Deploying environment...
-Deploying app..."
+Deploying app...
+Application \`matmul\` removed successfully
+Environment \`default\` is now active
+Deleting environment \`cluster_env\`..."
      test_result=$(cat "${output_file}")
      if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
@@ -26,8 +29,6 @@ Deploying app..."
       exit 1
     fi
   fi
-
-    
 
   #----------------------------------------------------------------------------------
   # Success

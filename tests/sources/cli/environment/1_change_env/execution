@@ -17,7 +17,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** CHANGING TO DOCKER ENVIRONMENT"
+  echo "*** CHANGING TO LOCAL ENVIRONMENT"
   output_log="${target_log_folder}/change_env_1${retry_num}.outputlog"
   error_log="${target_log_folder}/change_env_1${retry_num}.errorlog"
   expectedTime=60s

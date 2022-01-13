@@ -8,8 +8,8 @@
   # Check output standard out status
   if [ -f "${output_file}" ]; then
      test_result=$(cat "${output_file}")
-     echo ${test_result} | grep -q "Execution Finished"
-     if [ $? != 0 ]; then
+     # check if the word "ERROR" is in the output
+     if [[ "${test_result}" =~ "ERROR" ]]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
      fi

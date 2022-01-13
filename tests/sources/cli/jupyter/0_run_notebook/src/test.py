@@ -22,7 +22,6 @@ try:
 
     server = list(notebookapp.list_running_servers())[0]
 
-    print(server)
     url = server['url'] + f"?token={server['token']}"
 
     driver.get(url)
@@ -36,7 +35,7 @@ try:
     driver.find_element_by_css_selector('#run_all_cells > a').click()
 
 
-    WebDriverWait(driver, 50).until(lambda driver: driver.find_element_by_css_selector('#notebook-container > div.cell.code_cell.rendered.unselected > div.input > div.prompt_container > div.prompt.input_prompt').get_attribute("innerHTML") == "<bdi>In</bdi>&nbsp;[1]:")
+    WebDriverWait(driver, 60*3).until(lambda driver: driver.find_element_by_css_selector('#notebook-container > div.cell.code_cell.rendered.unselected > div.input > div.prompt_container > div.prompt.input_prompt').get_attribute("innerHTML") == "<bdi>In</bdi>&nbsp;[1]:")
 
     output = driver.find_element_by_css_selector('.output_subarea > pre:nth-child(1)').get_attribute("innerHTML")
     expected_lines = [

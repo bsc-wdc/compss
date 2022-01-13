@@ -7,11 +7,17 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     test_result=$(cat "${output_file}")
-     regexp="Job submitted:"
-     if [[ ! "${test_result}" =~ $regexp ]]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+     result_expected="ERROR: \`default\` environment is required and cannot be deleted"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "OUTPUT RESULT NOT AS EXPECTED." | tee -a "${output_file}"
         exit 1
+     fi
+
+     # Check if directory `default` exists in `~/.COMPSs/envs`
+     if [ ! -d "${HOME}/.COMPSs/envs/default" ]; then
+         echo "[ERROR] Directory \`default\` has been deleted from \`~/.COMPSs/envs\`" | tee -a "${output_file}"
+         exit 1
      fi
   else
      echo "[ERROR] Output file not found" | tee -a "${output_file}"
@@ -25,6 +31,9 @@
     fi
   fi
 
+    
+
   #----------------------------------------------------------------------------------
   # Success
   exit 0
+

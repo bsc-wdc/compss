@@ -1,12 +1,12 @@
 ========================================
-	pycompss-player PYPI DISTRIBUTABLE
+	pycompss-cli PYPI DISTRIBUTABLE
 ========================================
 
 This README contains information about the PIP distributable creation process.
 
-It is assumed that this README is placed (alongside with buildpipplayer and
-the whole pyCOMPSsPlayerResources directory) in framework/builders/specs/pip-player.
-If you want to install pycompss-player via distutils and/or PIP there are a
+It is assumed that this README is placed (alongside with buildpipcli and
+the whole PyCOMPSsCLIResources directory) in framework/builders/specs/pip-cli.
+If you want to install pycompss-cli via distutils and/or PIP there are a
 set of depedencies that must be met. Current version requires docker.
 
 It is encouraged to read all sections of this README before proceeding on any
@@ -18,63 +18,63 @@ modification or action on this package.
 ==============================
 
 The PyPI distributable can be created with the following command:
-	sudo -E ./buildpipplayer $VERSION
+	sudo -E ./buildpipcli $VERSION
 Where $VERSION contains the desired target version. For example, if
 you want to create a distributable for the 2.10 version then
 the following command should be executed:
-	sudo -E ./buildpipplayer 2.10
+	sudo -E ./buildpipcli 2.10
 
 This will create the following files and directories:
-	- A pyCOMPSsPlayer directory in /trunk/builders/packages/pip-player.
+	- A PyCOMPSsCLI directory in /trunk/builders/packages/pip-cli.
 	  This directory contains the scripts and files necessary to
-	  install pyCOMPSsPlayer via distutils and/or PIP.
+	  install PyCOMPSsCLI via distutils and/or PIP.
 
-	- A pycompss-player-2.10.tar.gz file in /trunk/builders/packages/pip-player/pyCOMPSsPlayer/dist
-	  This .tar.gz contains the whole pyCOMPSsPlayer directory (except for the dist
+	- A pycompss-cli-2.10.tar.gz file in /trunk/builders/packages/pip-cli/PyCOMPSsCLI/dist
+	  This .tar.gz contains the whole PyCOMPSsCLI directory (except for the dist
 		folder). This file is useful for testing. For example, if you type
-		 sudo -E python -m pip install pycompss-player-2.10.tar.gz -v
-	  pip will try to install pyCOMPSsPlayer from this .tar.gz
+		 sudo -E python -m pip install pycompss-cli-2.10.tar.gz -v
+	  pip will try to install PyCOMPSsCLI from this .tar.gz
 
 
 
 ================================
-	INSTALLING pycompss-player
+	INSTALLING pycompss-cli
 ================================
 
-In order to install pycompss-player from a distributable you must:
+In order to install pycompss-cli from a distributable you must:
 	- Have docker >= 17.12.0-ce
 
-A pyCOMPSsPlayer distributable can be installed in any of the following ways:
+A PyCOMPSsCLI distributable can be installed in any of the following ways:
 	- From a .tar.gz distributable. Let's assume you have a
-	  pycompss-player-<VERSION>.tar.gz created from the buildpipplayer script.
+	  pycompss-cli-<VERSION>.tar.gz created from the buildpipcli script.
 		Then the following command:
-		  sudo python -m pip install pycompss-player-<VERSION>.tar.gz
+		  sudo python -m pip install pycompss-cli-<VERSION>.tar.gz
 			or
-			python -m pip install pycompss-player --user
-	  Will install pyCOMPSsPlayer in your site-packages.
+			python -m pip install pycompss-cli --user
+	  Will install PyCOMPSsCLI in your site-packages.
 
 	- From a pyPI repository (this will be clarified later).
 	  For example, if you type
-		  sudo -E python -m pip install pycompss-player
-	  The latest pyCOMPSsPlayer version that was released on the live PyPI repository
+		  sudo -E python -m pip install pycompss-cli
+	  The latest PyCOMPSsCLI version that was released on the live PyPI repository
 		will be downloaded and installed.
 
-	- From the pyCOMPSsPlayer folder. The pyCOMPSsPlayer folder contains the
-	  very same files as the dist/pycompss-player-<VERSION>.tar.gz (except for
+	- From the PyCOMPSsCLI folder. The PyCOMPSsCLI folder contains the
+	  very same files as the dist/pycompss-cli-<VERSION>.tar.gz (except for
 		the tgz itself!).
-	  You can install pycompss-player from this folder with
+	  You can install pycompss-cli from this folder with
 		  python setup.py install
 
 
 ==================================
-	UNINSTALLING pycompss-player
+	UNINSTALLING pycompss-cli
 ==================================
 
-pycompss-player can be uninstalled (if it was previously installed with distutils
+pycompss-cli can be uninstalled (if it was previously installed with distutils
 and/or PIP) with the following command:
-	sudo -E python -m pip uninstall pycompss-player
+	sudo -E python -m pip uninstall pycompss-cli
   or
-	python -m pip uninstall pycompss-player --user
+	python -m pip uninstall pycompss-cli --user
 
 
 =============================
@@ -91,23 +91,23 @@ upload them to the test repository):
 And take a look at twine (and install it if necessary):
   https://pypi.org/project/twine/
 
-A pyCOMPSsPlayerdistributable can be uploaded to a repository and then be
+A PyCOMPSsCLIdistributable can be uploaded to a repository and then be
 downloadable and installable by anyone with python and pip.
 
 In order to upload a PyPI package the following command must be executed:
-  cd builders/packages/pip-player/pyCOMPSsPlayer/dist
+  cd builders/packages/pip-cli/PyCOMPSsCLI/dist
 	# Check that the package is valid (the result must be PASSED)
-	twine check pycompss-player-<version>.tar.gz
+	twine check pycompss-cli-<version>.tar.gz
 	# Upload to the test repository
-	twine upload --repository-url https://test.pypi.org/legacy/ pycompss-player-<version>.tar.gz
+	twine upload --repository-url https://test.pypi.org/legacy/ pycompss-cli-<version>.tar.gz
 	# Check that the installation works fine:
 
 	# Upload the definitive package to pypi:
-	twine upload pycompss-player-<version>.tar.gz
+	twine upload pycompss-cli-<version>.tar.gz
 
 The login credentials requested by twine are available at the wiki.
 
-WARNING: Be very careful when uploading pyCOMPSsPlayer distributables on pyPI.
+WARNING: Be very careful when uploading PyCOMPSsCLI distributables on pyPI.
 pyPI does not allow to re-upload a .tar.gz distributable for the same release.
 **Upload only well-tested installables!**
 
@@ -119,9 +119,9 @@ pyPI does not allow to re-upload a .tar.gz distributable for the same release.
 This folder contains the following folder hierarchy and files:
 
 .
-├── buildpipplayer
-├── pyCOMPSsPlayerResources
-│   ├── pycompss-player
+├── buildpipcli
+├── PyCOMPSsCLIResources
+│   ├── pycompss-cli
 │   |   ├── __init__.py
 │   |   ├── compss
 │   |   ├── pycompss
@@ -139,19 +139,19 @@ This folder contains the following folder hierarchy and files:
 README:
 	- This file.
 
-buildpipplayer:
-	- Main script. sudo -E ./buildpipplayer VERSION will create a PIP distributable
-	  named pycompss-player-${PyCOMPSs_VERSION}.tar.gz in
-		framework/builders/packages/pip-player/pyCOMPSsPlayer/dist/
-	  Example: sudo -E ./buildpipplayer 2.10 will create a pycompss-player-2.10.tar.gz
+buildpipcli:
+	- Main script. sudo -E ./buildpipcli VERSION will create a PIP distributable
+	  named pycompss-cli-${PyCOMPSs_VERSION}.tar.gz in
+		framework/builders/packages/pip-cli/PyCOMPSsCLI/dist/
+	  Example: sudo -E ./buildpipcli 2.10 will create a pycompss-cli-2.10.tar.gz
 
-PyCOMPSsResources/pycompss-player/compss:
+PyCOMPSsResources/pycompss-cli/compss:
 	- pycompss alias.
 
-PyCOMPSsResources/pycompss-player/pycompss:
+PyCOMPSsResources/pycompss-cli/pycompss:
 	- Main bash script which enables users to interact with the docker instances.
 
-PyCOMPSsResources/pycompss-player/pycompss_cmd.py:
+PyCOMPSsResources/pycompss-cli/pycompss_cmd.py:
 	- Auxiliary script which implements the functionalities offered by the
 	  "pycompss" script.
 
@@ -174,10 +174,10 @@ PyCOMPSsResources/requirements.txt:
 	- Required dependencies.
 
 PyCOMPSsResources/setup.py:
-		- Pip installable main script. This installs pyCOMPSsPlayer.
+		- Pip installable main script. This installs PyCOMPSsCLI.
 
 An additional file named VERSION.txt will be created (and NOT deleted) by the
-buildpipplayer script.
+buildpipcli script.
 A manual modification of this file will have no effect on future PIP
 distributable builds since it will be automatically replaced by a new one.
 
@@ -185,24 +185,24 @@ distributable builds since it will be automatically replaced by a new one.
 
 ======================================
 	           GENERATED
-      pyCOMPSsPlayer FOLDER
+      PyCOMPSsCLI FOLDER
 ======================================
 
-A succesfull buildpipplayer execution will leave in framework/builders/packages/pip-player
+A succesfull buildpipcli execution will leave in framework/builders/packages/pip-cli
 the folder hierarchy and files listed below.
 Do not modify, add or delete any file on this folder.
 
-pyCOMPSsPlayer
+PyCOMPSsCLI
 ├── dist
-│   └── pycompss-player-<VERSION>.tar.gz
+│   └── pycompss-cli-<VERSION>.tar.gz
 ├── LICENSE.txt
 ├── MANIFEST.in
-├── pycompss-player
+├── pycompss-cli
 │   ├── __init__.py
 │   ├── compss
 │   ├── pycompss
 │   └── pycompss_cmd.py
-├── pycompss_player.egg-info
+├── pycompss_cli.egg-info
 │   ├── dependency_links.txt
 │   ├── PKG-INFO
 │   ├── requires.txt

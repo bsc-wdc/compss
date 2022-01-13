@@ -10,28 +10,27 @@
   target_log_folder=$6
   retry_num=$7
   execution_envs=$8
-  user_login=$9
-  modules=${10}
   
   # Global variables
   exit_value=1
+  app_name="0_destroy_default_env"
   
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** JOB SUBMIT"
-  output_log="${target_log_folder}/job_submit_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/job_submit_0${retry_num}.errorlog"
+  echo "*** DELETING DEFAULT ENVIRONMENT"
+  output_log="${target_log_folder}/destroy_default_env_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/destroy_default_env_0${retry_num}.errorlog"
   expectedTime=60s
-  
+
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime \
-    /bin/bash -e "${base_app_dir}/src/test.sh" $user_login > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+    /bin/bash -e "${base_app_dir}/src/test.sh" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Report time out
-     echo "[WARNING] Submitting Job timed out" >> "${output_log}"
+     echo "[WARNING] Deleting ALL Environments timed out" >> "${output_log}"
      exit_value=124
   else
      # Check result

@@ -810,7 +810,7 @@ install_compss() {
 
   if [ "$cli" == "true" ]; then
     echo "- Deploying CLI at Tools"
-    cd "${TMP_DIR}/cli/pyCOMPSsPlayerResources"
+    cd "${TMP_DIR}/cli/pyCOMPSsCLIResources"
     ./install.sh
     cd "${SCRIPT_DIR}"
   fi

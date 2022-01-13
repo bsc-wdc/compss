@@ -1,3 +1,4 @@
 #!/bin/bash -e
 
-pycompss environment change docker_env
+pycompss init --name docker_env docker
+pycompss environment change default

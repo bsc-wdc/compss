@@ -31,7 +31,13 @@
     fi
   fi
 
-    
+   pycompss environment remove local_env
+   # check if directory `local_env` has been removed from `~/.COMPSs/envs`
+   if [ -d "${HOME}/.COMPSs/envs/local_env" ]; then
+      echo "[ERROR] Directory `local_env` not removed from `~/.COMPSs/envs`" | tee -a "${output_file}"
+      rm -rf "${HOME}/.COMPSs/envs/local_env"
+      exit 1
+   fi
 
   #----------------------------------------------------------------------------------
   # Success

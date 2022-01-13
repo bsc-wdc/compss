@@ -156,6 +156,7 @@ public class MpmdMPIInvoker extends Invoker {
             }
         }
 
+        String[] cmd = this.definition.generateCMD(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
         // Launch command
         this.br = new BinaryRunner();
 

@@ -58,9 +58,10 @@ def remote_app_deploy(app_dir: str, login_info: str, local_source: str, remote_d
     subprocess.run(cmd_copy_files, shell=True)
 
     if remote_dest_dir:
+        print('App deployed to', remote_dest_dir)
         utils.ssh_run_commands(login_info, [
-            f'echo {remote_dest_dir} > {app_dir}/.compss'
-            f'ln -s {app_dir} {remote_dest_dir}',
+            f'echo {remote_dest_dir} > {app_dir}/.compss',
+            f'ln -s {app_dir} {remote_dest_dir}'
         ])
 
 def remote_app_remove(login_info: str, app_dir: str):

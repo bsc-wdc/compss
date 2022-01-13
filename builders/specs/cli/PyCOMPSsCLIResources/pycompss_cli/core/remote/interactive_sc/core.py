@@ -127,8 +127,8 @@ def job_status(scripts_path, job_id, login_info, modules):
            str(scripts_path + '/' + STATUS_SCRIPT),
            job_id]
     return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
-    # if return_code != 0:
-    #     __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
+    if return_code != 0:
+        __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
 
     # Parse the output for fancy printing
     out = stdout.splitlines()
@@ -286,8 +286,6 @@ def _command_runner(cmd, login_info, modules=None, blocking=True, remote=True):
             if modules:
                 cmd = ';'.join([*modules, cmd])
             cmd = f"ssh {login_info} '{cmd}'"
-
-            print(cmd)
     else:
         # Execute the command as requested
         pass

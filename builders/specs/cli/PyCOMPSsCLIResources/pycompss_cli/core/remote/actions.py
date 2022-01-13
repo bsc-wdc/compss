@@ -113,9 +113,20 @@ class RemoteActions(Actions):
 
         app_args = app_args.replace('{COMPS_APP_PATH}', remote_dir)
 
+        app_args = f'--pythonpath={remote_dir} ' + app_args
+        app_args = f'--classpath={remote_dir} ' + app_args
+        app_args = f'--appdir={remote_dir} ' + app_args
+
         modules = self.__get_modules()
         env_vars = [item for sublist in self.arguments.env_var for item in sublist]
+        if 'COMPSS_PYTHON_VERSION' not in ''.join(env_vars):
+            env_vars = ['COMPSS_PYTHON_VERSION=3'] + env_vars
+        
         job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars)
+
+        if self.arguments.verbose:
+            print('envars', env_vars)
+            print('enqueue_compss', app_args)
 
         self.past_jobs[job_id] = {
             'app_name': app_name,
@@ -153,6 +164,14 @@ class RemoteActions(Actions):
         jobid = self.arguments.job_id
         modules = self.__get_modules()
         remote_cancel_job(login_info, jobid, modules)
+
+    def job_status(self):
+        login_info = self.env_conf['login']
+        jobid = self.arguments.job_id
+        modules = self.__get_modules()
+        scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
+        jupyter_job_status = core.job_status(scripts_path, jobid, login_info, modules)
+        print(jupyter_job_status)
 
     def app(self):
         action_name = 'list'

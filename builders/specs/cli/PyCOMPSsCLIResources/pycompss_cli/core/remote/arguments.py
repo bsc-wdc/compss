@@ -116,10 +116,15 @@ def cluster_parser_job():
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
 
+    submit_job_parser.add_argument("--verbose", "-v",
+                                    action='store_true',
+                                    help="Shows the final command that is executed on the remote")
+
     submit_job_parser.add_argument("--env_var", "-e",
                                     action='append',
                                     nargs=1,
                                     type=str,
+                                    default=[],
                                     help="Set environment variables")  # noqa: E501   
 
     submit_job_parser.add_argument("app_name",
@@ -131,11 +136,15 @@ def cluster_parser_job():
                             nargs=argparse.REMAINDER,   
                             help="Remote enqueue_compss arguments")
 
-    job_subparsers.add_parser("status",
+    status_parser = job_subparsers.add_parser("status",
                                 aliases=["st"],
                                 help="Check status of submitted job",
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
+
+    status_parser.add_argument("job_id",
+                             type=str,
+                             help="Job ID to check status")
 
     cancel_parser = job_subparsers.add_parser("cancel",
                                 aliases=["c"],

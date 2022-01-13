@@ -21,6 +21,7 @@ with Jupyter notebook.
 
 import os
 import sys
+import time
 from commons import VERBOSE
 from commons import SUCCESS_KEYWORD
 from commons import ERROR_KEYWORD
@@ -75,7 +76,11 @@ def info():
             print(" - Found master: " + str(master))
 
         jpy_server_out = ''
+        timeout = time.time() + 60
         while 'The Jupyter Notebook is running at' not in jpy_server_out:
+            if time.time() > timeout:
+                print(ERROR_KEYWORD)
+                exit(1)
             with open(f'{app_path}/compss-{job_id}.err', 'r') as of:
                 jpy_server_out = of.read()
 

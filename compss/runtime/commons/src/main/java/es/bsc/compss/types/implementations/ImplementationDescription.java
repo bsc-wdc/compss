@@ -163,7 +163,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                         throw new IllegalArgumentException("Incorrect parameters for type MPMDMPI on " + implSignature);
                     }
                     MpmdMPIDefinition mpmdDef = new MpmdMPIDefinition(implTypeArgs, 0);
-                    // implConstraints.scaleUpBy(mpmdDef.getPPN());
+                    implConstraints.scaleUpBy(mpmdDef.getPPN());
                     id = new ImplementationDescription<>((D) mpmdDef, implSignature, implConstraints);
                     break;
 

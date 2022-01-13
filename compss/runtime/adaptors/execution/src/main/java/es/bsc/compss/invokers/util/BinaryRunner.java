@@ -431,6 +431,7 @@ public class BinaryRunner {
         final String theoreticalHostnames = System.getProperty(Invoker.COMPSS_HOSTNAMES);
         final int theoreticalNumNodes = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_NODES));
         final int theoreticalNumThreads = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_THREADS));
+        final int theoreticalNumProcs = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_PROCS));
 
         // Re-compute real task properties
         final Map<String, Integer> hostnames2numThreads = new HashMap<>();
@@ -444,9 +445,10 @@ public class BinaryRunner {
             hostnames2numThreads.put(hostname, nt);
         }
         final int uniqueNumNodes = hostnames2numThreads.size();
-        final int maxNumThreads = hostnames2numThreads.entrySet().stream()
+        int maxNumProcsPerNode = hostnames2numThreads.entrySet().stream()
             .max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getValue();
 
+        maxNumProcsPerNode *= theoreticalNumProcs;
         // Re-set COMPSs properties
         // We do not reset COMPSs properties because it does not have to match SLURM
         // System.setProperty(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));
@@ -477,9 +479,9 @@ public class BinaryRunner {
         // Setup process environment -- SLURM entries (for elasticity with MPI in supercomputers)
         // WARN: WE ONLY RESET SLURM ENVIRONMENT BUT NOT COMPSS ENVIRONMENT
         // HOWEVER, INFORMATION IN COMPSS AND SLURM CAN BE INCONSISTENT
-        final String tasksPerNode = String.valueOf(maxNumThreads) + "(x" + String.valueOf(uniqueNumNodes) + ")";
+        final String tasksPerNode = String.valueOf(maxNumProcsPerNode) + "(x" + String.valueOf(uniqueNumNodes) + ")";
         final String hostnamesString = String.join(",", hostnames2numThreads.keySet());
-        final int totalProcs = uniqueNumNodes * maxNumThreads;
+        final int totalProcs = uniqueNumNodes * theoreticalNumProcs;
 
         builder.environment().put("SLURM_NODELIST", hostnamesString);
         builder.environment().put("SLURM_JOB_NODELIST", hostnamesString);

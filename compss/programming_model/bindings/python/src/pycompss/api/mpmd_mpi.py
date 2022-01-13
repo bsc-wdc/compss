@@ -139,7 +139,7 @@ class MPMDMPI(PyCOMPSsDecorator):
                 raise PyCOMPSsException("No binary file provided for MPMD MPI")
 
             params = program.get("params", "[unassigned]")
-            procs = str(program.get("processes", "[unassigned]"))
+            procs = str(program.get("processes", 1))
             programs_params.extend([binary, params, procs])
 
             # increase total # of processes for this mpmd task

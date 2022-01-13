@@ -57,6 +57,7 @@ public abstract class Invoker implements ApplicationRunner {
     public static final String COMPSS_NUM_NODES = "COMPSS_NUM_NODES";
     public static final String COMPSS_NODES = "COMPSS_NODES";
     public static final String COMPSS_HOSTNAMES = "COMPSS_HOSTNAMES";
+    public static final String COMPSS_NUM_PROCS = "COMPSS_NUM_PROCS";
     public static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
     public static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
     public static final String IB_SUFFIX = "-ib0";
@@ -360,6 +361,7 @@ public abstract class Invoker implements ApplicationRunner {
         System.setProperty(COMPSS_HOSTNAMES, this.workers);
         System.setProperty(COMPSS_NODES, buildWorkersString(hostnames, 1));
         System.setProperty(COMPSS_NUM_THREADS, String.valueOf(this.computingUnits));
+        System.setProperty(COMPSS_NUM_PROCS, "1");
         System.setProperty(OMP_NUM_THREADS, String.valueOf(this.computingUnits));
 
         // LOG ENV VARS
@@ -367,6 +369,7 @@ public abstract class Invoker implements ApplicationRunner {
             System.out.println("[INVOKER] COMPSS_HOSTNAMES: " + this.workers);
             System.out.println("[INVOKER] COMPSS_NUM_NODES: " + this.numWorkers);
             System.out.println("[INVOKER] COMPSS_NUM_THREADS: " + this.computingUnits);
+            System.out.println("[INVOKER] COMPSS_NUM_PROCS: 1");
         }
     }
 

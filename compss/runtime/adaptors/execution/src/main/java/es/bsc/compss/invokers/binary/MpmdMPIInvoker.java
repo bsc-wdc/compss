@@ -169,6 +169,11 @@ public class MpmdMPIInvoker extends Invoker {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = definition.getPPN();
+        if (LOGGER.isDebugEnabled()){
+            System.out.println("[MPMD MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
+        }
+        System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));
+
         if (ppn > 1) {
             int threads = this.computingUnits / ppn;
             System.setProperty(COMPSS_NUM_THREADS, String.valueOf(threads));
@@ -176,7 +181,7 @@ public class MpmdMPIInvoker extends Invoker {
 
             // LOG ENV VARS
             if (LOGGER.isDebugEnabled()) {
-                System.out.println("[INVOKER] OVEWRITING COMPSS_NUM_THREADS: " + threads);
+                System.out.println("[MPMD MPI INVOKER] OVERWRITING COMPSS_NUM_THREADS: " + threads);
             }
         }
     }

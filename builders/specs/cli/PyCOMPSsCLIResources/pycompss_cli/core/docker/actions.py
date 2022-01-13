@@ -9,9 +9,9 @@ from pycompss_cli.core.docker.cmd import DockerCmd
 class DockerActions(Actions):
 
     def __init__(self, arguments, debug=False, env_conf=None) -> None:
-        super().__init__(arguments, debug=debug, env_conf=env_conf)
         env_id = arguments.name if env_conf is None else env_conf['name']
         self.docker_cmd = DockerCmd(env_id)
+        super().__init__(arguments, debug=debug, env_conf=env_conf)
 
     def init(self):
         super().init()

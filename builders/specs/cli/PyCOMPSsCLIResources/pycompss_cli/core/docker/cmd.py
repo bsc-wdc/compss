@@ -4,11 +4,14 @@ import sys
 import tarfile
 import tempfile
 import shutil
-import traceback
-import docker
+try:
+    import docker
+    from docker.types import Mount
+    from docker.errors import DockerException
+except ImportError:
+    print('ERROR: Pip package `docker` is required for creating docker environments.')
+    exit(1)
 from uuid import uuid4
-from docker.types import Mount
-from docker.errors import DockerException
 import subprocess
 
 from pycompss_cli.core.cmd_helpers import command_runner

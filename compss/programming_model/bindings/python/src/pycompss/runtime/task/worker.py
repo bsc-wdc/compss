@@ -881,7 +881,13 @@ class TaskWorker(object):
                         user_returns, default_values = self.manage_exception()
                     else:
                         # Re-raise the exception
-                        raise exc
+                        t, v, tb = sys.exc_info()  # type: typing.Any, typing.Any, typing.Any
+                        try:
+                            raise t(v).with_traceback(tb)
+                        except AttributeError:
+                            # This looses the info from the real place where
+                            # the error happened. Only happens with python 2.
+                            raise exc
 
             # Reestablish the hook if it was disabled
             if restore_hook:

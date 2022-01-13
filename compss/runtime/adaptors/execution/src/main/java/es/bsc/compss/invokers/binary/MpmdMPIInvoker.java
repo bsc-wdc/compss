@@ -24,6 +24,7 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.types.MPIProgram;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -34,6 +35,7 @@ import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 
@@ -146,13 +148,32 @@ public class MpmdMPIInvoker extends Invoker {
 
         // Update params string for each program
         for (MPIProgram program : this.definition.getPrograms()) {
-            String[] tmp =
-                BinaryRunner.buildAppParams(this.invocation.getParams(), program.getParams(), pythonInterpreter);
-            program.setParams(String.join(" ", tmp));
+            if (program.hasParamsString()) {
+                String[] tmp =
+                    BinaryRunner.buildAppParams(this.invocation.getParams(), program.getParams(), pythonInterpreter);
+                program.setParams(String.join(" ", tmp));
+                program.setParamsArray(tmp);
+            }
         }
 
         // Launch command
         this.br = new BinaryRunner();
+
+        if (this.invocation.isDebugEnabled()) {
+            PrintStream outLog = this.context.getThreadOutStream();
+            outLog.println("");
+            outLog.println("[MPMD MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+            // Debug command
+            outLog.print("[MPMD MPI INVOKER] BINARY CMD: ");
+            for (int i = 0; i < cmd.length; ++i) {
+                outLog.print(cmd[i] + " ");
+            }
+            outLog.println("");
+            outLog.println("[MPMD MPI INVOKER] Binary STDIN: " + streamValues.getStdIn());
+            outLog.println("[MPMD MPI INVOKER] Binary STDOUT: " + streamValues.getStdOut());
+            outLog.println("[MPMD MPI INVOKER] Binary STDERR: " + streamValues.getStdErr());
+        }
+
         return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.definition.isFailByEV());
     }

@@ -30,6 +30,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -256,11 +258,19 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
 
         // binary in CMD, generate with a loop
         if (this.binaryInCmd) {
+            List<String> fullCmd = new ArrayList<>(Arrays.asList(cmd.toString().split(DUMMY_SEPARATOR)));
             for (MPIProgram program : this.programs) {
                 String tmp = buildSPString(program, hostnames);
                 cmd.append(tmp).append(DUMMY_SEPARATOR).append(this.programsSeparator).append(DUMMY_SEPARATOR);
+                fullCmd.addAll(Arrays.asList(tmp.split(DUMMY_SEPARATOR)));
+                // build single program part without args
+                if (program.hasParamsString()) {
+                    fullCmd.addAll(Arrays.asList(program.getParamsArray()));
+                }
+                fullCmd.add(this.programsSeparator);
             }
-            return cmd.toString().split(DUMMY_SEPARATOR);
+            String[] ret = new String[fullCmd.size()];
+            return fullCmd.toArray(ret);
         }
 
         if (this.hostStringInCmd) {
@@ -311,8 +321,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             }
 
             // args
-            if (program.getParams() != null && !program.getParams().isEmpty()
-                && program.getParams().equals(Constants.UNASSIGNED)) {
+            if (program.hasParamsString()) {
                 content.append(" ").append(program.getParams());
             }
 
@@ -381,11 +390,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         // binary
         ret.append(program.getBinary());
 
-        // args
-        if (program.getParams() != null && !program.getParams().isEmpty()
-            && !program.getParams().equals(Constants.UNASSIGNED)) {
-            ret.append(DUMMY_SEPARATOR).append(program.getParams());
-        }
+        // args should be added as an array, not by space, so do not add here!
 
         return ret.toString();
     }

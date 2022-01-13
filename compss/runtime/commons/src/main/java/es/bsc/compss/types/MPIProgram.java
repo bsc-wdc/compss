@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.types.annotations.Constants;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -28,6 +30,10 @@ public class MPIProgram implements Externalizable {
     private String binary;
     private String params;
     private int processes;
+
+    // when executed from cmd, spaces in the original params string should be kept
+    // and distinguished from the spaces inside parameter strings
+    private String[] paramsArray;
 
 
     /**
@@ -68,6 +74,14 @@ public class MPIProgram implements Externalizable {
         return processes;
     }
 
+    public String[] getParamsArray() {
+        return paramsArray;
+    }
+
+    public void setParamsArray(String[] paramsArray) {
+        this.paramsArray = paramsArray;
+    }
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.binary = (String) in.readObject();
@@ -96,5 +110,9 @@ public class MPIProgram implements Externalizable {
     public String toString() {
         return "MPIProgram{" + "binary='" + binary + '\'' + ", params='" + params + '\'' + ", processes=" + processes
             + '}';
+    }
+
+    public boolean hasParamsString() {
+        return this.params != null && !this.params.isEmpty() && !this.params.equals(Constants.UNASSIGNED);
     }
 }

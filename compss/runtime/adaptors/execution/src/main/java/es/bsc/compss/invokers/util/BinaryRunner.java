@@ -71,6 +71,8 @@ public class BinaryRunner {
 
     private static final String APP_PARAMETER_OPEN_TOKEN = "\\{\\{";
     private static final String APP_PARAMETER_CLOSE_TOKEN = "}}";
+    private static final String DUMMY_SEPARATOR = "<_<<>>_>";
+    private static final String DUMMY_SPACE_REPLACE = "<___>";
 
     private Process process;
 
@@ -119,14 +121,19 @@ public class BinaryRunner {
         String pythonInterpreter) throws InvokeExecutionException {
 
         StdIOStream streamValues = new StdIOStream();
-        String paramsString = params;
+
+        // mark spaces from the original 'params' string and don't mix them with spaces
+        // occurring in parameter strings
+        String paramsString = String.join(DUMMY_SPACE_REPLACE, params.split(" "));
+
         for (InvocationParam param : parameters) {
             ArrayList<String> tmp = processParam(param, streamValues, pythonInterpreter);
-            String value = String.join(" ", tmp);
+            String value = String.join(DUMMY_SEPARATOR, tmp);
             String replacement = APP_PARAMETER_OPEN_TOKEN + param.getName() + APP_PARAMETER_CLOSE_TOKEN;
             paramsString = paramsString.replaceAll(replacement, value);
         }
-        return paramsString == null || paramsString.equals(params) ? new String[0] : paramsString.split(" ");
+        paramsString = String.join(DUMMY_SPACE_REPLACE, paramsString.split(DUMMY_SEPARATOR));
+        return paramsString.split(DUMMY_SPACE_REPLACE);
     }
 
     // PRIVATE STATIC METHODS

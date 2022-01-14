@@ -48,6 +48,29 @@ def file_in(exp, in_file):
     pass
 
 
+@mpmd_mpi(runner="mpirun",
+          working_dir=".",
+          programs=[
+               dict(binary="grep", params="{{keyword}} {{in_file}}"),
+               dict(binary="grep", params="{{keyword}} {{in_file}}"),
+          ])
+@task(in_file=FILE_IN, result={Type: FILE_OUT_STDOUT})
+def std_out(keyword, in_file, result):
+    pass
+
+
+@mpmd_mpi(runner="mpirun", fail_by_exit_code=True,
+          programs=[
+               dict(binary=os.getcwd() + "/src/scripts/exit_with_code.sh",
+                    params="{{exit_code}}"),
+               dict(binary=os.getcwd() + "/src/scripts/exit_with_code.sh",
+                    params="{{exit_code}}")
+          ])
+@task(returns=int)
+def exit_with_code(exit_code):
+    pass
+
+
 class TestMpmdDecorator(unittest.TestCase):
 
     def testBasic(self):
@@ -58,8 +81,23 @@ class TestMpmdDecorator(unittest.TestCase):
         params("next monday", "next friday")
         compss_barrier()
 
-    def testFileManagementIN(self):
+    def testFileInParam(self):
         infile = "src/infile"
         file_in("s/Hi/HELLO/g", infile)
         compss_barrier()
 
+    def testStdOutFile(self):
+        infile = "src/infile"
+        outfile = "src/outfile"
+        std_out("Hi", infile, outfile)
+        compss_barrier()
+
+    def _testFailedBinaryExitValue(self):
+        ev = exit_with_code(19)
+        ev = compss_wait_on(ev)
+        self.assertEqual(ev, 19)  # own exit code for failed execution
+
+    def testFailedBinaryExitValue(self):
+        ev = exit_with_code(19)
+        ev = compss_wait_on(ev)
+        self.assertEqual(ev, 19)  # own exit code for failed execution

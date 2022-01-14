@@ -57,6 +57,7 @@
   jobs_logs="${target_log_folder}/jobs"
   echo $jobs_logs
 
+  # testBasic
   hello_file=$(grep -ir -l "hello mpmd mpi tests" "$jobs_logs")
   hello=$(grep -i "hello mpmd mpi tests" "$hello_file")
   if [ "$hello" = "" ]; then
@@ -72,7 +73,7 @@
     fi
   fi
 
-
+  # testParams
   monday_file=$(grep -r -l "date -d next monday" "$jobs_logs")
   mondayDate1=$(LANG=en_US date -d "next monday")
   mondayDate2=$(date -d "next monday")
@@ -86,7 +87,7 @@
   else
     appearances=$(grep -c "$mondayDate2" "$monday_file")
     if [ ! "$appearances" -eq "2" ]; then
-      echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function processes parameter failed." | tee -a "${output_file}"
+      echo "ERROR: TASK FAILED: testParams function processes parameter failed." | tee -a "${output_file}"
       echo "  - GOT:      $appearances" | tee -a "${output_file}"
       echo "  - EXPECTED: 2 " | tee -a "${output_file}"
       exit 2
@@ -99,7 +100,7 @@
 
   friday=$(grep -E "$fridayDate1|$fridayDate2" "$friday_file")
   if [ "$friday" = "" ]; then
-    echo "ERROR: TASK FAILED: testFunctionalUsage function failed." | tee -a "${output_file}"
+    echo "ERROR: TASK FAILED: testParams function failed." | tee -a "${output_file}"
     echo "  - FILE:     $friday_file" | tee -a "${output_file}"
     echo "  - GOT:      $friday" | tee -a "${output_file}"
     echo "  - EXPECTED: $fridayDate1 or $fridayDate2" | tee -a "${output_file}"
@@ -115,27 +116,27 @@
     fi
   fi
 
+  # testFileInParam
   hellofile=$(grep -r -l "sed s/Hi/HELLO/g" "${jobs_logs}")
   hello=$(grep -r -l "HELLO, this is a simple test to grep." "${hellofile}")
   if [[ -z "$hello" ]]; then
-     echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a "${output_file}"
+     echo "ERROR: TASK FAILED: testFileInParam function failed." | tee -a "${output_file}"
     exit 1
   else
     appearances=$(grep -c "HELLO, this is a simple test to grep." "${hellofile}")
     if [ ! "$appearances" -eq "12" ]; then
-      echo "ERROR: TASK FAILED: testFileManagementIN function processes parameter failed." | tee -a "${output_file}"
+      echo "ERROR: TASK FAILED: testFileInParam function processes parameter failed." | tee -a "${output_file}"
       exit 1
     fi
   fi
 
   exit 0
 
-
-
-
-
-
-
-
-
+  # testStdOutFile
+  std_out_file="src/outfile"
+  output_str=$(grep -i "simple test" "$std_out_file")
+  if [ "$output_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testStdOutFile function failed." | tee -a "${output_file}"
+    exit 1
+  fi
 

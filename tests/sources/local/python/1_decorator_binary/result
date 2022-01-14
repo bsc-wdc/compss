@@ -113,9 +113,14 @@
     fi
   fi
 
-  if grep -q "do" src/grepoutfile; then
+  if !(grep -q "Hi" src/grepoutfile;) then
     echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a "${output_file}"
     exit 1
+  else
+    if grep -q "do" src/grepoutfile; then
+      echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a "${output_file}"
+      exit 1
+    fi
   fi
 
   myLs=$(grep -r -l "ls -l --hide=.*infile.* --sort=size" "${jobs_logs}")

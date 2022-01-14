@@ -26,6 +26,7 @@ PyCOMPSs API - MPMD MPI
 
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.constants import *
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -41,11 +42,12 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'runner'}
-SUPPORTED_ARGUMENTS = {'programs',
-                       'working_dir',
-                       'processes_per_node',
-                       'fail_by_exit_value'}
+MANDATORY_ARGUMENTS = {RUNNER}
+SUPPORTED_ARGUMENTS = {RUNNER,
+                       PROGRAMS,
+                       WORKING_DIR,
+                       PROCESSES_PER_NODE,
+                       FAIL_BY_EXIT_VALUE}
 DEPRECATED_ARGUMENTS = set()
 
 
@@ -86,18 +88,19 @@ class MPMDMPI(PyCOMPSsDecorator):
                             self.decorator_name)
 
     def __call__(self, user_function):
+        # type: (typing.Callable) -> typing.Callable
         """ Parse and set the mpmd mpi parameters within the task core element.
 
-        :param user_function: Function to decorate.
-        :return: Decorated function.
+        :param user_function: User function to be decorated.
+        :return: Decorated dummy user function, which will invoke MPMD MPI task.
         """
 
         @wraps(user_function)
-        def mpmd_mpi(*args, **kwargs):
+        def mpmd_mpi_f(*args, **kwargs):
             return self.__decorator_body__(user_function, args, kwargs)
 
-        mpmd_mpi.__doc__ = user_function.__doc__
-        return mpmd_mpi
+        mpmd_mpi_f.__doc__ = user_function.__doc__
+        return mpmd_mpi_f
 
     def __decorator_body__(self, user_function, args, kwargs):
         if not self.scope:

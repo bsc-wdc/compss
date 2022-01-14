@@ -25,6 +25,9 @@ PyCOMPSs API - MPMD MPI
 """
 
 from functools import wraps
+
+from pycompss.api.commons.constants import RUNNER
+
 import pycompss.util.context as context
 from pycompss.api.commons.constants import *
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
@@ -114,8 +117,8 @@ class MPMDMPI(PyCOMPSsDecorator):
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs, user_function)
 
-        kwargs['processes_per_node'] = self.kwargs.get('processes_per_node', 1)
-        kwargs['computing_nodes'] = self.processes
+        kwargs[PROCESSES_PER_NODE] = self.kwargs.get(PROCESSES_PER_NODE, 1)
+        kwargs[COMPUTING_NODES] = self.processes
 
         with keep_arguments(args, kwargs, prepend_strings=False):
             # Call the method
@@ -130,23 +133,23 @@ class MPMDMPI(PyCOMPSsDecorator):
         :return: list(programs_length, binary, params, processes)
         :raises PyCOMPSsException: If programs are not dict objects.
         """
-        programs = self.kwargs["programs"]
+        programs = self.kwargs[PROGRAMS]
         programs_params = [str(len(programs))]
 
         for program in programs:
             if not isinstance(program, dict):
                 raise PyCOMPSsException("Incorrect 'program' param in MPMD MPI")
 
-            binary = program.get("binary", None)
+            binary = program.get(BINARY, None)
             if not binary:
                 raise PyCOMPSsException("No binary file provided for MPMD MPI")
 
-            params = program.get("params", "[unassigned]")
-            procs = str(program.get("processes", 1))
+            params = program.get(PARAMS, "[unassigned]")
+            procs = str(program.get(PROCESSES, 1))
             programs_params.extend([binary, params, procs])
 
             # increase total # of processes for this mpmd task
-            self.processes += program.get("processes", 1)
+            self.processes += program.get(PROCESSES, 1)
 
         return programs_params
 
@@ -165,22 +168,22 @@ class MPMDMPI(PyCOMPSsDecorator):
 
         # Resolve @mpmd_mpi specific parameters
         impl_type = "MPMDMPI"
-        runner = self.kwargs['runner']
+        runner = self.kwargs[RUNNER]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        ppn = str(self.kwargs.get("processes_per_node", 1))
+        ppn = str(self.kwargs.get(PROCESSES_PER_NODE, 1))
         impl_signature = '.'.join((impl_type, str(ppn)))
 
         prog_params = self._get_programs_params()
 
         impl_args = [runner,
-                     self.kwargs['working_dir'],
+                     self.kwargs[WORKING_DIR],
                      ppn,
-                     self.kwargs['fail_by_exit_value']]
+                     self.kwargs[FAIL_BY_EXIT_VALUE]]
         impl_args.extend(prog_params)
 
         if CORE_ELEMENT_KEY in kwargs:

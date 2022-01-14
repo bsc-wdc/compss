@@ -440,32 +440,6 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         return ret.toString();
     }
 
-    /**
-     * Setting the MPMD MPI runner properties.
-     *
-     * @param installDir COMPSs Installation dir in the execution environment.
-     */
-    public void setRunnerProperties(String installDir) {
-
-        // todo: nm remove this method
-        if (this.mpiRunner.endsWith("srun")) {
-            loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + "slurm.properties");
-        } else {
-            String type = System.getenv(COMPSsConstants.COMPSS_MPIRUN_TYPE);
-            if (type != null && !type.isEmpty()) {
-                LOGGER.info("Loading MPIRUN type: " + type);
-                if (type.startsWith(File.separator)) {
-                    loadMPIType(type);
-                } else {
-                    loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + type + ".properties");
-                }
-            } else {
-                LOGGER.warn("Loading default MPIRUN type. You can modify with " + COMPSsConstants.COMPSS_MPIRUN_TYPE
-                    + " environment variable.");
-            }
-        }
-    }
-
     private void loadMPIType(String file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             Properties props = new Properties();

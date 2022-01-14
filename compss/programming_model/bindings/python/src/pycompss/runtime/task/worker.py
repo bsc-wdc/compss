@@ -500,7 +500,8 @@ class TaskWorker(object):
                             ((_col_dir is None) and _col_dep > 0):
                         # if we are at the last level of COL_OUT param,
                         # create "empty" instances of elements
-                        if _col_dep == 1:
+                        if _col_dep == 1 or \
+                           content_type_elem != "collection:list":
                             temp = create_object_by_con_type(content_type_elem)
                             sub_arg.content = temp
                             # In case that only one element is used in this
@@ -608,7 +609,8 @@ class TaskWorker(object):
 
                     # if we are at the last level of DICT_COL_OUT param,
                     # create "empty" instances of elements
-                    if _dict_col_dep == 1:
+                    if _dict_col_dep == 1 or \
+                       content_type_elem != "collection:dict":
                         temp_k = create_object_by_con_type(content_type_key)    # noqa: E501
                         temp_v = create_object_by_con_type(content_type_value)  # noqa: E501
                         sub_arg_key.content = temp_k
@@ -879,7 +881,13 @@ class TaskWorker(object):
                         user_returns, default_values = self.manage_exception()
                     else:
                         # Re-raise the exception
-                        raise exc
+                        t, v, tb = sys.exc_info()  # type: typing.Any, typing.Any, typing.Any
+                        try:
+                            raise t(v).with_traceback(tb)
+                        except AttributeError:
+                            # This looses the info from the real place where
+                            # the error happened. Only happens with python 2.
+                            raise exc
 
             # Reestablish the hook if it was disabled
             if restore_hook:

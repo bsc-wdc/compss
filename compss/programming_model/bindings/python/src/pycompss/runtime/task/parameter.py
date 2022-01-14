@@ -135,7 +135,7 @@ class Parameter(object):
                  is_file_collection=False,                   # type: bool
                  collection_content="",                      # type: typing.Any
                  dict_collection_content=None,               # type: typing.Optional[dict]
-                 depth=1,                                    # type: int
+                 depth=PYTHON_MAX_INT,                       # type: int
                  extra_content_type=UNDEFINED_CONTENT_TYPE,  # type: str
                  weight="1.0",                               # type: str
                  keep_rename=True,                           # type: bool

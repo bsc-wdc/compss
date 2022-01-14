@@ -136,7 +136,7 @@ def increase_elements_depth(c):
 def increase_element(e):
     e.increase_content(1.0)
 
-@task(kol_out=COLLECTION_OUT)
+@task(kol_out={"type": COLLECTION_OUT, "depth": 1})
 def append(kol_out, value):
     for i in range(len(kol_out)):
         kol_out[i].append(value)

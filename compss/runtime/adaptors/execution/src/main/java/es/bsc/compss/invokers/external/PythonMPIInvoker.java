@@ -269,7 +269,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = this.mpiDef.getPPN();
-        if (LOGGER.isDebugEnabled()){
+        if (LOGGER.isDebugEnabled()) {
             System.out.println("[PYTHON MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
         }
         System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));

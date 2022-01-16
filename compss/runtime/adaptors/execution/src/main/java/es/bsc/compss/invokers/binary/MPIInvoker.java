@@ -235,7 +235,7 @@ public class MPIInvoker extends Invoker {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = mpiDef.getPPN();
-        if (LOGGER.isDebugEnabled()){
+        if (LOGGER.isDebugEnabled()) {
             System.out.println("[MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
         }
         System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));

@@ -191,7 +191,7 @@ public class MpmdMPIInvoker extends Invoker {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = definition.getPPN();
-        if (LOGGER.isDebugEnabled()){
+        if (LOGGER.isDebugEnabled()) {
             System.out.println("[MPMD MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
         }
         System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));

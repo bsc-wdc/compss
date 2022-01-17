@@ -166,8 +166,8 @@ public class MpmdMPIInvoker extends Invoker {
             outLog.println("[MPMD MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[MPMD MPI INVOKER] BINARY CMD: ");
-            for (int i = 0; i < cmd.length; ++i) {
-                outLog.print(cmd[i] + " ");
+            for (String s : cmd) {
+                outLog.print(s + " ");
             }
             outLog.println("");
             outLog.println("[MPMD MPI INVOKER] Binary STDIN: " + streamValues.getStdIn());

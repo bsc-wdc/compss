@@ -260,10 +260,9 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         if (this.binaryInCmd) {
             List<String> fullCmd = new ArrayList<>(Arrays.asList(cmd.toString().split(DUMMY_SEPARATOR)));
             for (MPIProgram program : this.programs) {
-                String tmp = buildSPString(program, hostnames);
-                cmd.append(tmp).append(DUMMY_SEPARATOR).append(this.programsSeparator).append(DUMMY_SEPARATOR);
-                fullCmd.addAll(Arrays.asList(tmp.split(DUMMY_SEPARATOR)));
                 // build single program part without args
+                String tmp = buildSPString(program, hostnames);
+                fullCmd.addAll(Arrays.asList(tmp.split(DUMMY_SEPARATOR)));
                 if (program.hasParamsString()) {
                     fullCmd.addAll(Arrays.asList(program.getParamsArray()));
                 }
@@ -438,6 +437,30 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             ret.append(program.getProcesses());
         }
         return ret.toString();
+    }
+
+    /**
+     * Setting the MPI runner properties.
+     *
+     * @param installDir COMPSs Installation dir in the execution environment.
+     */
+    public void setRunnerProperties(String installDir) {
+        if (this.mpiRunner.endsWith("srun")) {
+            loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + "slurm.properties");
+        } else {
+            String type = System.getenv(COMPSsConstants.COMPSS_MPIRUN_TYPE);
+            if (type != null && !type.isEmpty()) {
+                LOGGER.info("Loading MPIRUN type: " + type);
+                if (type.startsWith(File.separator)) {
+                    loadMPIType(type);
+                } else {
+                    loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + type + ".properties");
+                }
+            } else {
+                LOGGER.warn("Loading default MPIRUN type. You can modify with " + COMPSsConstants.COMPSS_MPIRUN_TYPE
+                    + " environment variable.");
+            }
+        }
     }
 
     private void loadMPIType(String file) {

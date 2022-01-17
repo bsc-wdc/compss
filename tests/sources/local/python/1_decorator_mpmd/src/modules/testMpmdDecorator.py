@@ -59,7 +59,7 @@ def std_out(keyword, in_file, result):
     pass
 
 
-@mpmd_mpi(runner="mpirun", fail_by_exit_code=True,
+@mpmd_mpi(runner="mpirun", fail_by_exit_value=False,
           programs=[
                dict(binary=os.getcwd() + "/src/scripts/exit_with_code.sh",
                     params="{{exit_code}}"),
@@ -91,11 +91,6 @@ class TestMpmdDecorator(unittest.TestCase):
         outfile = "src/outfile"
         std_out("Hi", infile, outfile)
         compss_barrier()
-
-    def _testFailedBinaryExitValue(self):
-        ev = exit_with_code(19)
-        ev = compss_wait_on(ev)
-        self.assertEqual(ev, 19)  # own exit code for failed execution
 
     def testFailedBinaryExitValue(self):
         ev = exit_with_code(19)

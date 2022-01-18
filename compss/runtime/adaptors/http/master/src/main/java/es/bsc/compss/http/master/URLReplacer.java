@@ -40,7 +40,9 @@ public class URLReplacer {
         String result = baseUrl;
 
         for (final Map.Entry<String, String> entry : replaceElements.entrySet()) {
-            final String wordToBeReplaced = entry.getKey().trim();
+            String wordToBeReplaced = entry.getKey().trim();
+            // in case it's a python kwarg param from default value, remove the prefix
+            wordToBeReplaced = wordToBeReplaced.replaceFirst("#kwarg_", "");
             final String fullStringToBeReplaced = openToken + wordToBeReplaced + closeToken;
             String replacement = entry.getValue();
             // todo: should we also replace other special characters?
@@ -70,7 +72,9 @@ public class URLReplacer {
         String result = payload;
 
         for (final Map.Entry<String, String> entry : replaceElements.entrySet()) {
-            final String wordToBeReplaced = entry.getKey().trim();
+            String wordToBeReplaced = entry.getKey().trim();
+            // in case it's a python kwarg param from default value, remove the prefix
+            wordToBeReplaced = wordToBeReplaced.replaceFirst("#kwarg_", "");
             final String fullStringToBeReplaced = openToken + wordToBeReplaced + closeToken;
             String replacement = entry.getValue();
             // remove python string extension #

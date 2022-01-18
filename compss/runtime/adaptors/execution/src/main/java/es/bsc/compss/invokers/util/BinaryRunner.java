@@ -130,7 +130,9 @@ public class BinaryRunner {
             ArrayList<String> tmp = processParam(param, streamValues, pythonInterpreter);
             String value = String.join(DUMMY_SEPARATOR, tmp);
             String replacement = APP_PARAMETER_OPEN_TOKEN + param.getName() + APP_PARAMETER_CLOSE_TOKEN;
-            paramsString = paramsString.replaceAll(replacement, value);
+            String kwargReplacement =
+                APP_PARAMETER_OPEN_TOKEN + param.getName().replaceFirst("#kwarg_", "") + APP_PARAMETER_CLOSE_TOKEN;
+            paramsString = paramsString.replaceAll(replacement, value).replaceAll(kwargReplacement, value);
         }
         paramsString = String.join(DUMMY_SPACE_REPLACE, paramsString.split(DUMMY_SEPARATOR));
         return paramsString.split(DUMMY_SPACE_REPLACE);

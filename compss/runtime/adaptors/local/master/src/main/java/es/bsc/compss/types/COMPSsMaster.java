@@ -40,6 +40,7 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.data.operation.copy.CompletedCopyException;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.ExecutionListener;
@@ -636,52 +637,18 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             for (Copy copy : copiesInProgress) {
                 if (copy != null) {
                     if (copy.getTargetLoc() != null && copy.getTargetLoc().getHosts().contains(Comm.getAppHost())) {
-                        if (DEBUG) {
-                            LOGGER.debug(
-                                "Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
+
+                        try {
+                            copy.addSiblingCopy(targetPath, target, tgtData, reason, listener);
+                            if (DEBUG) {
+                                LOGGER.debug(
+                                    "Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
+                            }
+                            return;
+                        } catch (CompletedCopyException cce) {
+                            // This copy already ended and its value may have been compromised. It is necessary to look
+                            // for another value source.
                         }
-                        EventListener el = new EventListener() {
-
-                            @Override
-                            public void notifyEnd(DataOperation fOp) {
-                                String endedPath = copy.getFinalTarget();
-                                if (DEBUG) {
-                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + endedPath + " to "
-                                        + targetPath);
-                                }
-                                try {
-                                    FileOpsManager.copySync(new File(endedPath), new File(targetPath));
-                                    if (tgtData != null) {
-                                        synchronized (tgtData) {
-                                            tgtData.addLocation(target);
-                                        }
-                                    }
-                                    LOGGER.debug("File copied set dataTarget " + targetPath);
-                                    reason.setDataTarget(targetPath);
-
-                                    listener.notifyEnd(null);
-                                } catch (IOException ex) {
-                                    ErrorManager.warn("Error master local copying file " + endedPath
-                                        + " from master to " + targetPath + " with replacing", ex);
-                                    listener.notifyFailure(fOp, ex);
-                                }
-
-                            }
-
-                            @Override
-                            public void notifyFailure(DataOperation fOp, Exception e) {
-                                String endedPath = copy.getFinalTarget();
-                                if (DEBUG) {
-                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + endedPath + " to "
-                                        + targetPath);
-                                }
-                                ErrorManager.warn("Error master local copying file " + endedPath + " from master to "
-                                    + targetPath + " with replacing", e);
-                                listener.notifyFailure(fOp, e);
-                            }
-                        };
-                        copy.addEventListener(el);
-                        return;
                     }
                 }
             }

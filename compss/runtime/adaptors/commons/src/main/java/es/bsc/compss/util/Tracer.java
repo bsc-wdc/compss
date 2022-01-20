@@ -33,7 +33,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -79,74 +78,6 @@ public abstract class Tracer {
     public static final String LD_PRELOAD = "LD_PRELOAD";
     public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
     public static final String EXTRAE_USE_POSIX_CLOCK = "EXTRAE_USE_POSIX_CLOCK";
-
-    // Description tags for Paraver
-    private static final String TASK_DESC = "Task";
-    private static final String API_DESC = "API";
-    private static final String RUNTIME_DESC = "Runtime";
-    private static final String TASKID_DESC = "Task IDs";
-    private static final String DATA_TRANSFERS_DESC = "Data Transfers";
-    private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
-    private static final String STORAGE_DESC = "Storage API";
-    private static final String AGENT_EVENTS_TYPE_DESC = "Agents events";
-    private static final String BINDING_INSIDE_TASK_DESC = "Binding events inside tasks";
-    private static final String BINDING_INSIDE_TASK_CPU_AFFINITY_DESC = "Binding Tasks CPU affinity";
-    private static final String BINDING_INSIDE_TASKS_CPU_COUNT_DESC = "Binding Tasks CPU count";
-    private static final String BINDING_INSIDE_TASK_GPU_AFFINITY_DESC = "Binding Tasks GPU affinity";
-    private static final String BINDING_TASKS_FUNC_DESC = "Binding Tasks at master";
-    private static final String BINDING_MASTER_DESC = "Binding master events";
-    private static final String BINDING_INSIDE_WORKER_DESC = "Binding events inside worker";
-    private static final String BINDING_SERIALIZATION_SIZE_DESC = "Binding serialization size events";
-    private static final String BINDING_DESERIALIZATION_SIZE_DESC = "Binding deserialization size events";
-    private static final String BINDING_SERIALIZATION_CACHE_SIZE_DESC = "Binding serialization cache size events";
-    private static final String BINDING_DESERIALIZATION_CACHE_SIZE_DESC = "Binding deserialization cache size events";
-    private static final String BINDING_SERIALIZATION_OBJECT_NUM = "Binding serialization object number";
-    private static final String BINDING_DESERIALIZATION_OBJECT_NUM = "Binding deserialization object number";
-    private static final String TASKTYPE_DESC = "Type of task";
-    private static final String READY_COUNT_DESC = "Ready queue count";
-    private static final String TASK_CPU_AFFINITY_DESC = "Tasks CPU affinity";
-    private static final String TASK_GPU_AFFINITY_DESC = "Tasks GPU affinity";
-    private static final String CPU_COUNT_DESC = "Number of requested CPUs";
-    private static final String GPU_COUNT_DESC = "Number of requested GPUs";
-    private static final String MEMORY_DESC = "Requested Memory";
-    private static final String DISK_BW_DESC = "Requested disk bandwidth";
-    private static final String RUNTIME_THREAD_EVENTS_DESC = "Thread type identifier";
-    private static final String EXECUTOR_COUNTS_DESC = "Executor threads count";
-
-    // Event codes
-    protected static final int TASKS_FUNC_TYPE = 8_000_000;
-    protected static final int API_EVENTS = 8_001_001;
-    protected static final int RUNTIME_EVENTS = 8_001_002;
-    protected static final int THREAD_IDENTIFICATION_EVENTS = 8_001_003; // Identifies the thread as AP, TD, executor...
-    protected static final int EXECUTOR_COUNTS = 8_001_004; // Marks the life and end of an executor thread
-    protected static final int TASKS_ID_TYPE = 8_000_002;
-    protected static final int TASK_TRANSFERS = 8_000_003;
-    protected static final int DATA_TRANSFERS = 8_000_004;
-    protected static final int STORAGE_TYPE = 8_000_005;
-    protected static final int READY_COUNTS = 8_000_006;
-    protected static final int TASKTYPE_EVENTS = 8_000_007;
-    protected static final int CPU_COUNTS = 8_000_008;
-    protected static final int GPU_COUNTS = 8_000_009;
-    protected static final int MEMORY = 8_000_010;
-    protected static final int DISK_BW = 8_000_011;
-    protected static final int SYNC_TYPE = 8_000_666;
-    protected static final int TASKS_CPU_AFFINITY_TYPE = 8_000_150; // Java assignment
-    protected static final int TASKS_GPU_AFFINITY_TYPE = 8_000_160; // Java assignment
-    protected static final int AGENT_EVENTS_TYPE = 8_006_000;
-    // PYTHON RELATED EVENT GROUPS
-    protected static final int BINDING_TASKS_FUNC_TYPE = 9_000_000; // tasks emitted from master
-    protected static final int BINDING_INSIDE_TASKS_TYPE = 9_000_100;
-    protected static final int BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE = 9_000_150;
-    protected static final int BINDING_INSIDE_TASKS_CPU_COUNT_TYPE = 9_000_151;
-    protected static final int BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE = 9_000_160;
-    protected static final int BINDING_INSIDE_WORKER_TYPE = 9_000_200;
-    protected static final int BINDING_MASTER_TYPE = 9_000_300;
-    protected static final int BINDING_SERIALIZATION_SIZE_TYPE = 9_000_600;
-    protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 9_000_601;
-    protected static final int BINDING_SERIALIZATION_CACHE_SIZE_TYPE = 9_000_602;
-    protected static final int BINDING_DESERIALIZATION_CACHE_SIZE_TYPE = 9_000_603;
-    protected static final int BINDING_SERIALIZATION_OBJECT_NUM_TYPE = 9_000_700;
-    protected static final int BINDING_DESERIALIZATION_OBJECT_NUM_TYPE = 9_000_701;
 
     public static final int EVENT_END = 0;
 
@@ -393,83 +324,83 @@ public abstract class Tracer {
     }
 
     public static int getRuntimeEventsType() {
-        return RUNTIME_EVENTS;
+        return TraceEventType.RUNTIME.code;
     }
 
     public static int getSyncType() {
-        return SYNC_TYPE;
+        return TraceEventType.SYNC.code;
     }
 
     public static int getTaskTransfersType() {
-        return TASK_TRANSFERS;
+        return TraceEventType.TASK_TRANSFERS.code;
     }
 
     public static int getDataTransfersType() {
-        return DATA_TRANSFERS;
+        return TraceEventType.DATA_TRANSFERS.code;
     }
 
     public static int getTaskEventsType() {
-        return TASKS_FUNC_TYPE;
+        return TraceEventType.TASKS_FUNC.code;
     }
 
     public static int getTaskSchedulingType() {
-        return TASKS_ID_TYPE;
+        return TraceEventType.TASKS_ID.code;
     }
 
     public static int getInsideTasksEventsType() {
-        return BINDING_INSIDE_TASKS_TYPE;
+        return TraceEventType.BINDING_INSIDE_TASKS.code;
     }
 
     public static int getTasksCPUAffinityEventsType() {
-        return TASKS_CPU_AFFINITY_TYPE;
+        return TraceEventType.TASKS_CPU_AFFINITY.code;
     }
 
     public static int getTasksGPUAffinityEventsType() {
-        return TASKS_GPU_AFFINITY_TYPE;
+        return TraceEventType.TASKS_GPU_AFFINITY.code;
     }
 
     public static int getInsideTasksCPUAffinityEventsType() {
-        return BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE;
+        return TraceEventType.BINDING_INSIDE_TASKS_CPU_AFFINITY.code;
     }
 
     public static int getInsideTasksGPUAffinityEventsType() {
-        return BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE;
+        return TraceEventType.BINDING_INSIDE_TASKS_GPU_AFFINITY.code;
     }
 
     public static int getBindingInsideWorkerEventsType() {
-        return BINDING_INSIDE_WORKER_TYPE;
+        return TraceEventType.BINDING_INSIDE_WORKER.code;
     }
 
     public static int getBindingMasterEventsType() {
-        return BINDING_MASTER_TYPE;
+        return TraceEventType.BINDING_MASTER.code;
     }
 
     public static int getTaskTypeEventsType() {
-        return TASKTYPE_EVENTS;
+        return TraceEventType.TASKTYPE.code;
     }
 
     public static int getCPUCountEventsType() {
-        return CPU_COUNTS;
+        return TraceEventType.CPU_COUNTS.code;
     }
 
     public static int getGPUCountEventsType() {
-        return GPU_COUNTS;
+        return TraceEventType.GPU_COUNTS.code;
     }
 
     public static int getReadyCountEventsType() {
-        return READY_COUNTS;
+        return TraceEventType.READY_COUNTS.code;
     }
 
     public static int getMemoryEventsType() {
-        return MEMORY;
+        return TraceEventType.MEMORY.code;
     }
 
     public static int getDiskBWEventsType() {
-        return DISK_BW;
+        return TraceEventType.DISK_BW.code;
     }
 
     public static int getThreadIdEventsType() {
-        return Tracer.THREAD_IDENTIFICATION_EVENTS;
+        return TraceEventType.THREAD_IDENTIFICATION.code;
     }
 
     public static TraceEvent getAcessProcessorRequestEvent(String eventType) {
@@ -657,16 +588,6 @@ public abstract class Tracer {
         }
     }
 
-    private static List<TraceEvent> getEventsByType(int eventsType) {
-        LinkedList<TraceEvent> eventsList = new LinkedList<>();
-        for (TraceEvent traceEvent : TraceEvent.values()) {
-            if (traceEvent.getType() == eventsType) {
-                eventsList.add(traceEvent);
-            }
-        }
-        return eventsList;
-    }
-
     /**
      * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
      *
@@ -676,49 +597,25 @@ public abstract class Tracer {
         if (DEBUG) {
             LOGGER.debug("SignatureToId size: " + runtimeEvents.size());
         }
-        defineEventsForType(API_EVENTS, API_DESC);
-        defineEventsForType(RUNTIME_EVENTS, RUNTIME_DESC);
-        defineEventsForFunctions(TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
-        // defineEventsForFunctions(BINDING_TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
-        defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
-        defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
-        defineEventsForType(TASKS_CPU_AFFINITY_TYPE, TASK_CPU_AFFINITY_DESC);
-        defineEventsForType(TASKS_GPU_AFFINITY_TYPE, TASK_GPU_AFFINITY_DESC);
-        defineEventsForType(BINDING_TASKS_FUNC_TYPE, BINDING_TASKS_FUNC_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_TYPE, BINDING_INSIDE_TASK_DESC);
-        defineEventsForType(AGENT_EVENTS_TYPE, AGENT_EVENTS_TYPE_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE, BINDING_INSIDE_TASK_CPU_AFFINITY_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_CPU_COUNT_TYPE, BINDING_INSIDE_TASKS_CPU_COUNT_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE, BINDING_INSIDE_TASK_GPU_AFFINITY_DESC);
-        defineEventsForType(BINDING_INSIDE_WORKER_TYPE, BINDING_INSIDE_WORKER_DESC);
-        defineEventsForType(BINDING_MASTER_TYPE, BINDING_MASTER_DESC);
-        defineEventsForType(THREAD_IDENTIFICATION_EVENTS, RUNTIME_THREAD_EVENTS_DESC);
-        defineEventsForType(EXECUTOR_COUNTS, EXECUTOR_COUNTS_DESC);
-        defineEventsForType(BINDING_SERIALIZATION_SIZE_TYPE, BINDING_SERIALIZATION_SIZE_DESC);
-        defineEventsForType(BINDING_DESERIALIZATION_SIZE_TYPE, BINDING_DESERIALIZATION_SIZE_DESC);
-        defineEventsForType(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, BINDING_SERIALIZATION_CACHE_SIZE_DESC);
-        defineEventsForType(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, BINDING_DESERIALIZATION_CACHE_SIZE_DESC);
-        defineEventsForType(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, BINDING_SERIALIZATION_OBJECT_NUM);
-        defineEventsForType(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE, BINDING_DESERIALIZATION_OBJECT_NUM);
 
-        defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
-        // Definition of Scheduling and Transfer time events
-        Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, new long[0], new String[0]);
-        // Definition of Data transfers
-        Wrapper.defineEventType(DATA_TRANSFERS, DATA_TRANSFERS_DESC, new long[0], new String[0]);
-        // Definition of Ready Counts
-        defineEventsForType(READY_COUNTS, READY_COUNT_DESC);
-        // Definition of CPU Counts
-        Wrapper.defineEventType(CPU_COUNTS, CPU_COUNT_DESC, new long[0], new String[0]);
-        // Definition of GPU Counts
-        Wrapper.defineEventType(GPU_COUNTS, GPU_COUNT_DESC, new long[0], new String[0]);
-        // Definition of Memory
-        Wrapper.defineEventType(MEMORY, MEMORY_DESC, new long[0], new String[0]);
-        // Definition of Disk BW
-        Wrapper.defineEventType(DISK_BW, DISK_BW_DESC, new long[0], new String[0]);
+        for (TraceEventType type : TraceEventType.values()) {
+            switch (type) {
+                case TASKS_FUNC:
+                    defineEventsForFunctions(type, runtimeEvents);
+                    break;
+                case BINDING_TASKS_FUNC:
+                    // defineEventsForFunctions(type, runtimeEvents);
+                    break;
+                case TASKTYPE:
+                    defineEventsForTaskType(type, MethodType.values());
+                    break;
+                default:
+                    defineEventsForType(type);
+            }
+        }
     }
 
-    private static void defineEventsForTaskType(int tasktypeEvents, String tasktypeDesc, MethodType[] types) {
+    private static void defineEventsForTaskType(TraceEventType type, MethodType[] types) {
         int size = types.length + 1;
         long[] values = new long[size];
         String[] descriptionValues = new String[size];
@@ -730,12 +627,11 @@ public abstract class Tracer {
             descriptionValues[i] = tp.name();
             ++i;
         }
-        Wrapper.defineEventType(tasktypeEvents, tasktypeDesc, values, descriptionValues);
+        Wrapper.defineEventType(type.code, type.desc, values, descriptionValues);
 
     }
 
-    private static void defineEventsForFunctions(int tasksFuncType, String taskDesc,
-        Map<String, Integer> runtimeEvents) {
+    private static void defineEventsForFunctions(TraceEventType type, Map<String, Integer> runtimeEvents) {
         int size = runtimeEvents.entrySet().size() + 1;
         long[] values = new long[size];
         String[] descriptionValues = new String[size];
@@ -761,30 +657,37 @@ public abstract class Tracer {
             i++;
         }
 
-        Wrapper.defineEventType(tasksFuncType, taskDesc, values, descriptionValues);
+        Wrapper.defineEventType(type.code, type.desc, values, descriptionValues);
     }
 
-    private static void defineEventsForType(int eventsType, String eventsDesc) {
-        List<TraceEvent> events = getEventsByType(eventsType);
-        // defined API events (plus the 0 which is the end task always).
-        int size = events.size() + 1;
-        long[] values = new long[size];
-        String[] descriptionValues = new String[size];
+    private static void defineEventsForType(TraceEventType type) {
+        boolean endable = type.endable;
+        List<TraceEvent> events = TraceEvent.getByType(type);
 
-        values[0] = 0;
-        descriptionValues[0] = "End";
-        int i = 1;
-        for (TraceEvent event : events) {
-            values[i] = event.getId();
-            descriptionValues[i] = event.getSignature();
-            if (DEBUG) {
-                LOGGER.debug("Tracing[API]: Type " + eventsType + " Event " + i + "=> value: " + values[i] + ", Desc: "
-                    + descriptionValues[i]);
-            }
-            ++i;
+        long[] values;
+        String[] descriptions;
+        int size = events.size();
+        int offset = 0;
+        if (endable) {
+            values = new long[size + 1];
+            values[0] = 0;
+            descriptions = new String[size + 1];
+            descriptions[0] = "End";
+            offset = 1;
+        } else {
+            values = new long[size];
+            descriptions = new String[size];
         }
-        Wrapper.defineEventType(eventsType, eventsDesc, values, descriptionValues);
-
+        for (TraceEvent event : events) {
+            values[offset] = event.getId();
+            descriptions[offset] = event.getSignature();
+            if (DEBUG) {
+                LOGGER.debug("Tracing[API]: Type " + type.code + " Event " + offset + "=> value: " + values[offset]
+                    + ", Desc: " + descriptions[offset]);
+            }
+            offset++;
+        }
+        Wrapper.defineEventType(type.code, type.desc, values, descriptions);
     }
 
     /**

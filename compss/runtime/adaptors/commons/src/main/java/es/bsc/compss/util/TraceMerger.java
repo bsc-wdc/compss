@@ -53,7 +53,7 @@ public abstract class TraceMerger {
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Info used for matching sync events
-    private static final Integer SYNC_TYPE = Tracer.SYNC_TYPE;
+    private static final Integer SYNC_TYPE = TraceEventType.SYNC.code;
     private static final String SYNC_REGEX = "(^\\d+:\\d+:\\d+):(\\d+):(\\d+):(\\d+).*:" + SYNC_TYPE + ":(\\d+)";
     private static final Pattern SYNC_PATTERN = Pattern.compile(SYNC_REGEX);
     // Selectors for replace Pattern
@@ -71,7 +71,7 @@ public abstract class TraceMerger {
     private static final Integer WORKER_LINE_INFO = 7;
 
     // CE identifier in .pcf
-    private static final String TASKS_FUNC_TYPE_STRING = Integer.toString(Tracer.TASKS_FUNC_TYPE);
+    private static final String TASKS_FUNC_TYPE_STRING = Integer.toString(TraceEventType.TASKS_FUNC.code);
     private static final String CE_FIXED_COUNTER = "0    " + TASKS_FUNC_TYPE_STRING + "    Task";
     private static final String CE_ID_VALUE_SEPARATOR = "      ";
 

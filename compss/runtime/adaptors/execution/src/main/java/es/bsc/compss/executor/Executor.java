@@ -41,6 +41,7 @@ import es.bsc.compss.invokers.external.PythonMPIInvoker;
 import es.bsc.compss.invokers.external.persistent.CPersistentInvoker;
 import es.bsc.compss.invokers.external.piped.CInvoker;
 import es.bsc.compss.invokers.external.piped.PythonInvoker;
+import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -833,7 +834,7 @@ public class Executor implements Runnable, InvocationRunner {
             }
             if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
                 // Binary has an specific working dir, set it
-                File workingDir = new File(specificWD);
+                File workingDir = BinaryRunner.getUpdatedWorkingDir(this.invocation.getParams(), specificWD);
                 taskWD = new TaskWorkingDir(workingDir, true);
 
                 // Create structures

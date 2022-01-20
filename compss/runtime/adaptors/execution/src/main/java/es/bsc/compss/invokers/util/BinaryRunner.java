@@ -70,6 +70,7 @@ public class BinaryRunner {
         Integer.valueOf(System.getProperty(COMPSsConstants.WORKER_BINARY_KILL_SIGNAL, DEFAULT_PB_KILL_SIGNAL));
 
     private static final String APP_PARAMETER_OPEN_TOKEN = "\\{\\{";
+    private static final String APP_PARAMETER_OPEN_TOKEN_ORIG = "{{";
     private static final String APP_PARAMETER_CLOSE_TOKEN = "}}";
     private static final String DUMMY_SEPARATOR = "<_<<>>_>";
     private static final String DUMMY_SPACE_REPLACE = "<___>";
@@ -129,13 +130,58 @@ public class BinaryRunner {
         for (InvocationParam param : parameters) {
             ArrayList<String> tmp = processParam(param, streamValues, pythonInterpreter);
             String value = String.join(DUMMY_SEPARATOR, tmp);
-            String replacement = APP_PARAMETER_OPEN_TOKEN + param.getName() + APP_PARAMETER_CLOSE_TOKEN;
-            String kwargReplacement =
+            String replacement =
                 APP_PARAMETER_OPEN_TOKEN + param.getName().replaceFirst("#kwarg_", "") + APP_PARAMETER_CLOSE_TOKEN;
-            paramsString = paramsString.replaceAll(replacement, value).replaceAll(kwargReplacement, value);
+            paramsString = paramsString.replaceAll(replacement, value);
         }
         paramsString = String.join(DUMMY_SPACE_REPLACE, paramsString.split(DUMMY_SEPARATOR));
         return paramsString.split(DUMMY_SPACE_REPLACE);
+    }
+
+    /**
+     * Replaces parameter names with their values in the working dir string.
+     *
+     * @param parameters Binary parameters
+     * @param workingDir original working dir string
+     * @return formatted string where param names are replaces with the values.
+     */
+    public static File getUpdatedWorkingDir(List<? extends InvocationParam> parameters, String workingDir) {
+        if (!(workingDir.contains(APP_PARAMETER_OPEN_TOKEN_ORIG) && workingDir.contains(APP_PARAMETER_CLOSE_TOKEN))) {
+            return new File(workingDir);
+        }
+        for (InvocationParam param : parameters) {
+            if (param.getStdIOStream() != es.bsc.compss.types.annotations.parameter.StdIOStream.UNSPECIFIED) {
+                continue;
+            }
+            if (param.getPrefix().equals(Constants.PREFIX_SKIP)) {
+                continue;
+            }
+            if (param.getValue() != null && param.getValue().getClass().isArray()) {
+                continue;
+            }
+            if (param.getValue() != null && param.getValue() instanceof Collection<?>) {
+                continue;
+            }
+            switch (param.getType()) {
+                case FILE_T:
+                case COLLECTION_T:
+                case STREAM_T:
+                case EXTERNAL_STREAM_T:
+                    continue;
+            }
+            String pv;
+            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+                pv = param.getPrefix() + String.valueOf(param.getValue());
+            } else {
+                pv = String.valueOf(param.getValue());
+            }
+            String replacement =
+                APP_PARAMETER_OPEN_TOKEN + param.getName().replaceFirst("#kwarg_", "") + APP_PARAMETER_CLOSE_TOKEN;
+            workingDir = workingDir.replaceAll(replacement, pv);
+        }
+
+        return new File(workingDir);
     }
 
     // PRIVATE STATIC METHODS

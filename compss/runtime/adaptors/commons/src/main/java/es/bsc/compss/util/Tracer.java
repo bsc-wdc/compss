@@ -23,6 +23,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.tracing.TraceScript;
 import es.bsc.compss.util.types.ThreadTranslator;
 import java.io.File;
 import java.io.IOException;
@@ -54,10 +55,7 @@ public abstract class Tracer {
 
     // Tracing script and file paths
     private static final String MASTER_TRACE_FILE = "master_compss_trace.tar.gz";
-    private static final String RUNTIME = "Runtime";
     protected static final String TRACE_PATH = File.separator + "trace" + File.separator;
-    protected static final String TRACE_SCRIPT_PATH =
-        File.separator + RUNTIME + File.separator + "scripts" + File.separator + "system" + TRACE_PATH + "trace.sh";
     protected static final String TRACE_OUT_RELATIVE_PATH = TRACE_PATH + "tracer.out";
     protected static final String TRACE_ERR_RELATIVE_PATH = TRACE_PATH + "tracer.err";
     public static final String TRACE_SUBDIR = "trace";
@@ -85,7 +83,7 @@ public abstract class Tracer {
     // Description tags for Paraver
     private static final String TASK_DESC = "Task";
     private static final String API_DESC = "API";
-    private static final String RUNTIME_DESC = RUNTIME;
+    private static final String RUNTIME_DESC = "Runtime";
     private static final String TASKID_DESC = "Task IDs";
     private static final String DATA_TRANSFERS_DESC = "Data Transfers";
     private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
@@ -153,11 +151,14 @@ public abstract class Tracer {
     public static final int EVENT_END = 0;
 
     // Tracing modes
+    public static final int ADVANCED_MODE = 2;
     public static final int BASIC_MODE = 1;
+    public static final int DISABLED = 0;
     public static final int SCOREP_MODE = -1;
     public static final int MAP_MODE = -2;
+    protected static int tracingLevel = DISABLED;
 
-    protected static int tracingLevel = 0;
+    private static String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
     protected static boolean tracingTaskDependencies;
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
@@ -208,12 +209,14 @@ public abstract class Tracer {
 
         if (Tracer.extraeEnabled()) {
             setUpWrapper(0, 1);
-        } else if (DEBUG) {
-            if (Tracer.scorepEnabled()) {
-                LOGGER.debug("Initializing scorep.");
-            } else {
-                if (Tracer.mapEnabled()) {
-                    LOGGER.debug("Initializing arm-map.");
+        } else {
+            if (DEBUG) {
+                if (Tracer.scorepEnabled()) {
+                    LOGGER.debug("Initializing scorep.");
+                } else {
+                    if (Tracer.mapEnabled()) {
+                        LOGGER.debug("Initializing arm-map.");
+                    }
                 }
             }
         }
@@ -583,16 +586,18 @@ public abstract class Tracer {
 
                 Tracer.stopWrapper();
 
-                generateMasterPackage("package");
+                generateMasterPackage();
                 transferMasterPackage();
-                generateTrace("gentrace");
+                generateTrace();
                 if (basicModeEnabled()) {
                     sortTrace();
                 }
                 cleanMasterPackage();
-            } else if (scorepEnabled()) {
-                // No master ScoreP trace - only Python Workers
-                generateTrace("gentrace-scorep");
+            } else {
+                if (scorepEnabled()) {
+                    // No master ScoreP trace - only Python Workers
+                    generateTrace();
+                }
             }
         }
     }
@@ -783,42 +788,34 @@ public abstract class Tracer {
     }
 
     /**
-     * Generate the tracing package for the master. The mode parameter enables to use different packaging methods. The
-     * currently supported modes are: "package" --------> for Extrae "package-scorep" -> for ScoreP "package-map" ---->
-     * for Map
-     *
-     * @param mode of the packaging (see trace.sh)
+     * Generate the tracing package for the master.
      */
-    private static void generateMasterPackage(String mode) {
+    private static void generateMasterPackage() {
         if (DEBUG) {
-            LOGGER.debug("Tracing: generating master package: " + mode);
+            LOGGER.debug("Tracing: generating master package");
         }
+        generatePackage(installDir, ".", "master", "0");
+    }
 
-        String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
-        ProcessBuilder pb = new ProcessBuilder(script, mode, ".", "master");
-        pb.environment().remove(LD_PRELOAD);
-        Process p;
+    protected static void generatePackage(String installDir, String workingDir, String nodeName, String hostId) {
         try {
-            p = pb.start();
-        } catch (IOException e) {
-            ErrorManager.warn("Error generating master package", e);
-            return;
-        }
-
-        if (DEBUG) {
-            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER, false);
-            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER, true);
-            outputGobbler.start();
-            errorGobbler.start();
-        }
-
-        try {
-            int exitCode = p.waitFor();
-            if (exitCode != 0) {
-                ErrorManager.warn("Error generating master package, exit code " + exitCode);
+            int exitCode = 0;
+            switch (tracingLevel) {
+                case ADVANCED_MODE:
+                case BASIC_MODE:
+                    exitCode = TraceScript.package_extrae(installDir, workingDir, nodeName, hostId);
+                    break;
+                default: // DISABLED, SCOREP and ARM-MAP
+                    // Do nothing
             }
+            if (exitCode != 0) {
+                ErrorManager.warn("Error generating " + nodeName + " package, exit code " + exitCode);
+            }
+        } catch (IOException e) {
+            ErrorManager.warn("Error generating " + nodeName + " package", e);
+
         } catch (InterruptedException e) {
-            ErrorManager.warn("Error generating master package (interruptedException)", e);
+            ErrorManager.warn("Error generating " + nodeName + " package (interruptedException)", e);
             Thread.currentThread().interrupt();
         }
     }
@@ -851,16 +848,11 @@ public abstract class Tracer {
         }
     }
 
-    /**
-     * Generate the final extrae tracefile with all transferred packages.
-     *
-     * @param mode of the trace generation (see trace.sh)
-     */
-    private static void generateTrace(String mode) {
+    private static void generateTrace() {
         if (DEBUG) {
-            LOGGER.debug("Tracing: Generating trace with mode " + mode);
+            LOGGER.debug("Tracing: Generating trace");
         }
-        String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
+
         String traceName = "";
         String appName = System.getProperty(COMPSsConstants.APP_NAME);
         String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
@@ -877,35 +869,35 @@ public abstract class Tracer {
             }
         }
 
-        ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName,
-            String.valueOf(hostToSlots.size() + 1));
-        Process p;
-        pb.environment().remove(LD_PRELOAD);
+        int exitCode = 0;
         try {
-            p = pb.start();
+            switch (tracingLevel) {
+                case ADVANCED_MODE:
+                case BASIC_MODE:
+                    exitCode = TraceScript.gentrace_extrae(installDir, System.getProperty(COMPSsConstants.APP_LOG_DIR),
+                        traceName, String.valueOf(hostToSlots.size() + 1));
+                    break;
+                case SCOREP_MODE:
+                    exitCode = TraceScript.gentrace_scorep(installDir, System.getProperty(COMPSsConstants.APP_LOG_DIR),
+                        traceName, String.valueOf(hostToSlots.size() + 1));
+                    break;
+                default: // DISABLEDand ARM-MAP
+                    // Do nothing
+            }
+            if (exitCode != 0) {
+                ErrorManager.warn("Error generating trace, exit code " + exitCode);
+                return;
+            }
         } catch (IOException e) {
             ErrorManager.warn("Error generating trace", e);
             return;
-        }
-
-        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER, false);
-        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER, true);
-        outputGobbler.start();
-        errorGobbler.start();
-
-        int exitCode = 0;
-        try {
-            exitCode = p.waitFor();
-            if (exitCode != 0) {
-                ErrorManager.warn("Error generating trace, exit code " + exitCode);
-            }
         } catch (InterruptedException e) {
             ErrorManager.warn("Error generating trace (interruptedException)", e);
-            Thread.currentThread().interrupt();
+            return;
         }
 
         String lang = System.getProperty(COMPSsConstants.LANG);
-        if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
+        if (lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
                 String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
                 PythonTraceMerger t = new PythonTraceMerger(appLogDir);

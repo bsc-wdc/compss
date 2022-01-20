@@ -29,8 +29,6 @@
   
   export CUS=2
 
-  export COMPSS_MPIRUN_TYPE=openmpi
-
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
@@ -65,6 +63,7 @@
       ${python_mpi_worker} \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
+      --env_script="${base_app_dir}"/env_script.sh \
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 

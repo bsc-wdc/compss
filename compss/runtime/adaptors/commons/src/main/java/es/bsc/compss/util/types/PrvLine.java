@@ -52,9 +52,9 @@ public class PrvLine {
     /**
      * Creates a PrvHeader with the parsed data from the string.
      * 
-     * @throws Exception Exception parsing the line
+     * @param line line to parse
      */
-    public PrvLine(String line) throws Exception {
+    public PrvLine(String line) {
         this.values = line.split(":");
     }
 

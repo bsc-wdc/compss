@@ -23,17 +23,9 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.types.PrvHeader;
-import es.bsc.compss.util.types.PrvLine;
-import es.bsc.compss.util.types.RowFile;
 import es.bsc.compss.util.types.ThreadTranslator;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,6 +47,7 @@ public abstract class Tracer {
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+
     private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
     private static final String ERROR_MASTER_PACKAGE_FILEPATH =
         "Cannot locate master tracing package " + "on working directory";
@@ -472,6 +465,10 @@ public abstract class Tracer {
         return DISK_BW;
     }
 
+    public static int getThreadIdEventsType() {
+        return Tracer.THREAD_IDENTIFICATION_EVENTS;
+    }
+
     public static TraceEvent getAcessProcessorRequestEvent(String eventType) {
         return TraceEvent.valueOf(eventType);
     }
@@ -590,7 +587,7 @@ public abstract class Tracer {
                 transferMasterPackage();
                 generateTrace("gentrace");
                 if (basicModeEnabled()) {
-                    updateThreads();
+                    sortTrace();
                 }
                 cleanMasterPackage();
             } else if (scorepEnabled()) {
@@ -604,7 +601,7 @@ public abstract class Tracer {
      * Updates the threads in .prv and .row classifying them in runtime or non runtime and assigning the corresponding
      * labels
      */
-    private static void updateThreads() {
+    private static void sortTrace() {
         String disable = System.getProperty(COMPSsConstants.DISABLE_CUSTOM_THREADS_TRACING);
         if (disable != null) {
             LOGGER.debug("Custom thread translation disabled");
@@ -627,9 +624,9 @@ public abstract class Tracer {
             if (rowFileArray != null && rowFileArray.length > 0) {
                 File rowFile = rowFileArray[0];
                 File prvFile = prvFileArray[0];
-                ThreadTranslator thTranslator = createThreadTranslations(prvFile);
-                writeTranslatedPrvThreads(prvFile, thTranslator);
-                updateRowLabels(rowFile, thTranslator.getRowLabels());
+                ThreadTranslator thTranslator = new ThreadTranslator(prvFile);
+                thTranslator.translatePrvFile(prvFile);
+                thTranslator.translateRowFile(rowFile);
             }
         } catch (Exception e) {
             LOGGER.debug(e);
@@ -637,73 +634,6 @@ public abstract class Tracer {
             ErrorManager.error("Could not update thread labels " + traceDirPath, e);
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Reads the .prv and creates a map from the old thread identifier to a new one based on
-     * THREAD_IDENTIFICATION_EVENTS
-     */
-    public static ThreadTranslator createThreadTranslations(File prvFile) throws Exception {
-        final BufferedReader br = new BufferedReader(new FileReader(prvFile));
-        final String threadIdEvent = Integer.toString(THREAD_IDENTIFICATION_EVENTS);
-        final ThreadTranslator thTranslator = new ThreadTranslator();
-        br.readLine(); // we don't need the header right now
-        String line;
-        // the isEmpty check should not be necessary if the .prv files are well constructed
-        while ((line = br.readLine()) != null && !line.isEmpty()) {
-            PrvLine prvLine = new PrvLine(line);
-            String oldThreadId = prvLine.getStateLineThreadIdentifier();
-            Map<String, String> events = prvLine.getEvents();
-            String identifierEventValue = events.get(threadIdEvent);
-            thTranslator.addThread(oldThreadId, identifierEventValue);
-        }
-        br.close();
-        return thTranslator;
-    }
-
-    /**
-     * Updates the threads in .prv with the information from translations.
-     * 
-     * @throws Exception Exception reading or parsing the files
-     */
-    public static void writeTranslatedPrvThreads(File prvFile, ThreadTranslator thThranslator) throws Exception {
-        Map<String, String> translations = thThranslator.createThreadTranslationMap();
-        LOGGER.debug("Tracing: Updating thread identifiers in .prv file");
-        final String oldFilePath = prvFile.getAbsolutePath();
-        final String newFilePath = oldFilePath + "_tmp_updatedThreadsId";
-        final File updatedPrvFile = new File(newFilePath);
-        if (!updatedPrvFile.exists()) {
-            updatedPrvFile.createNewFile();
-        }
-        final BufferedReader br = new BufferedReader(new FileReader(prvFile));
-        final PrintWriter prvWriter = new PrintWriter(new FileWriter(updatedPrvFile.getAbsolutePath(), true));
-        PrvHeader header = new PrvHeader(br.readLine());
-        // Needed in the case of the runcompss, won't do anything in agents
-        header.transformNodesToAplications();
-        header.splitRuntimeExecutors(thThranslator.createRuntimeThreadNumberPerApp());
-        prvWriter.println(header.toString());
-        String line;
-        // the isEmpty check should not be necessary if the .prv files are well constructed
-        while ((line = br.readLine()) != null && !line.isEmpty()) {
-            PrvLine prvLine = new PrvLine(line);
-            prvLine.translateLineThreads(translations);
-            prvWriter.println(prvLine.toString());
-        }
-
-        br.close();
-        prvWriter.close();
-        updatedPrvFile.renameTo(new File(oldFilePath));
-    }
-
-    /**
-     * Updates in the .row the threads changed in the .prv and apply the corresponding labels from LABEL_TRANSLATIONS.
-     * 
-     * @throws Exception Exception reading or parsing the files
-     */
-    public static void updateRowLabels(File rf, List<String> labels) throws IOException {
-        RowFile rowFile = new RowFile(rf);
-        rowFile.updateRowLabels(labels);
-        rowFile.printInfo(rf);
     }
 
     /**

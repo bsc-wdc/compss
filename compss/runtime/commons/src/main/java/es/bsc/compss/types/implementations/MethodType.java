@@ -23,6 +23,7 @@ public enum MethodType {
     METHOD, // For native methods
     BINARY, // For binary methods
     MPI, // For MPI methods
+    MPMDMPI, // For Multi Program MPI methods
     PYTHON_MPI, // For PYTHON MPI methods
     COMPSs, // For COMPSs nested applications
     DECAF, // For decaf methods

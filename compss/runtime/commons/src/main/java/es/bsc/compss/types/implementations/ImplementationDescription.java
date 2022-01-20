@@ -25,6 +25,7 @@ import es.bsc.compss.types.implementations.definition.HTTPDefinition;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
+import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
@@ -155,6 +156,15 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     MPIDefinition mpiDef = new MPIDefinition(implTypeArgs, 0);
                     implConstraints.scaleUpBy(mpiDef.getPPN());
                     id = new ImplementationDescription<>((D) mpiDef, implSignature, implConstraints);
+                    break;
+
+                case MPMDMPI:
+                    if (implTypeArgs.length < MpmdMPIDefinition.NUM_PARAMS) {
+                        throw new IllegalArgumentException("Incorrect parameters for type MPMDMPI on " + implSignature);
+                    }
+                    MpmdMPIDefinition mpmdDef = new MpmdMPIDefinition(implTypeArgs, 0);
+                    implConstraints.scaleUpBy(mpmdDef.getPPN());
+                    id = new ImplementationDescription<>((D) mpmdDef, implSignature, implConstraints);
                     break;
 
                 case COMPSs:

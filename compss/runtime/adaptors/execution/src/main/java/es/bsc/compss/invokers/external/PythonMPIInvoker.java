@@ -269,6 +269,10 @@ public class PythonMPIInvoker extends ExternalInvoker {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = this.mpiDef.getPPN();
+        if (LOGGER.isDebugEnabled()) {
+            System.out.println("[PYTHON MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
+        }
+        System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));
         if (ppn > 1) {
             int threads = this.computingUnits / ppn;
             System.setProperty(COMPSS_NUM_THREADS, String.valueOf(threads));

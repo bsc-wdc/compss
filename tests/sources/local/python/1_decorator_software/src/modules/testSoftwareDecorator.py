@@ -67,7 +67,7 @@ class TestSoftwareDecorator(unittest.TestCase):
         compss_barrier()
 
     def testStringParams(self):
-        string_param = "string"
+        string_param = "this is a string with spaces"
         exit_value1 = mpi_with_param(string_param)
         exit_value2 = mpi_with_param(string_param)
         exit_value1 = compss_wait_on(exit_value1)

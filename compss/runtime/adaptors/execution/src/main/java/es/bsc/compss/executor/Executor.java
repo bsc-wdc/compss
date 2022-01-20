@@ -35,11 +35,13 @@ import es.bsc.compss.invokers.binary.COMPSsInvoker;
 import es.bsc.compss.invokers.binary.ContainerInvoker;
 import es.bsc.compss.invokers.binary.DecafInvoker;
 import es.bsc.compss.invokers.binary.MPIInvoker;
+import es.bsc.compss.invokers.binary.MpmdMPIInvoker;
 import es.bsc.compss.invokers.binary.OmpSsInvoker;
 import es.bsc.compss.invokers.external.PythonMPIInvoker;
 import es.bsc.compss.invokers.external.persistent.CPersistentInvoker;
 import es.bsc.compss.invokers.external.piped.CInvoker;
 import es.bsc.compss.invokers.external.piped.PythonInvoker;
+import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -58,6 +60,7 @@ import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
 import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
@@ -444,6 +447,9 @@ public class Executor implements Runnable, InvocationRunner {
                 case MPI:
                     invoker = new MPIInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
                     break;
+                case MPMDMPI:
+                    invoker = new MpmdMPIInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    break;
                 case COMPSs:
                     invoker = new COMPSsInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
                     break;
@@ -789,6 +795,11 @@ public class Executor implements Runnable, InvocationRunner {
                     MPIDefinition mpiImpl = (MPIDefinition) invocation.getMethodImplementation().getDefinition();
                     specificWD = mpiImpl.getWorkingDir();
                     break;
+                case MPMDMPI:
+                    MpmdMPIDefinition mpmpdDef =
+                        (MpmdMPIDefinition) invocation.getMethodImplementation().getDefinition();
+                    specificWD = mpmpdDef.getWorkingDir();
+                    break;
                 case PYTHON_MPI:
                     PythonMPIDefinition nativeMPIImpl =
                         (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
@@ -823,7 +834,7 @@ public class Executor implements Runnable, InvocationRunner {
             }
             if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
                 // Binary has an specific working dir, set it
-                File workingDir = new File(specificWD);
+                File workingDir = BinaryRunner.getUpdatedWorkingDir(this.invocation.getParams(), specificWD);
                 taskWD = new TaskWorkingDir(workingDir, true);
 
                 // Create structures

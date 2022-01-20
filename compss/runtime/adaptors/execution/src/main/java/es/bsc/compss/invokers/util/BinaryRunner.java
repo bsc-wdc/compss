@@ -70,7 +70,10 @@ public class BinaryRunner {
         Integer.valueOf(System.getProperty(COMPSsConstants.WORKER_BINARY_KILL_SIGNAL, DEFAULT_PB_KILL_SIGNAL));
 
     private static final String APP_PARAMETER_OPEN_TOKEN = "\\{\\{";
+    private static final String APP_PARAMETER_OPEN_TOKEN_ORIG = "{{";
     private static final String APP_PARAMETER_CLOSE_TOKEN = "}}";
+    private static final String DUMMY_SEPARATOR = "<_<<>>_>";
+    private static final String DUMMY_SPACE_REPLACE = "<___>";
 
     private Process process;
 
@@ -119,14 +122,66 @@ public class BinaryRunner {
         String pythonInterpreter) throws InvokeExecutionException {
 
         StdIOStream streamValues = new StdIOStream();
-        String paramsString = params;
+
+        // mark spaces from the original 'params' string and don't mix them with spaces
+        // occurring in parameter strings
+        String paramsString = String.join(DUMMY_SPACE_REPLACE, params.split(" "));
+
         for (InvocationParam param : parameters) {
             ArrayList<String> tmp = processParam(param, streamValues, pythonInterpreter);
-            String value = String.join(" ", tmp);
-            String replacement = APP_PARAMETER_OPEN_TOKEN + param.getName() + APP_PARAMETER_CLOSE_TOKEN;
+            String value = String.join(DUMMY_SEPARATOR, tmp);
+            String replacement =
+                APP_PARAMETER_OPEN_TOKEN + param.getName().replaceFirst("#kwarg_", "") + APP_PARAMETER_CLOSE_TOKEN;
             paramsString = paramsString.replaceAll(replacement, value);
         }
-        return paramsString == null || paramsString.equals(params) ? new String[0] : paramsString.split(" ");
+        paramsString = String.join(DUMMY_SPACE_REPLACE, paramsString.split(DUMMY_SEPARATOR));
+        return paramsString.split(DUMMY_SPACE_REPLACE);
+    }
+
+    /**
+     * Replaces parameter names with their values in the working dir string.
+     *
+     * @param parameters Binary parameters
+     * @param workingDir original working dir string
+     * @return formatted string where param names are replaces with the values.
+     */
+    public static File getUpdatedWorkingDir(List<? extends InvocationParam> parameters, String workingDir) {
+        if (!(workingDir.contains(APP_PARAMETER_OPEN_TOKEN_ORIG) && workingDir.contains(APP_PARAMETER_CLOSE_TOKEN))) {
+            return new File(workingDir);
+        }
+        for (InvocationParam param : parameters) {
+            if (param.getStdIOStream() != es.bsc.compss.types.annotations.parameter.StdIOStream.UNSPECIFIED) {
+                continue;
+            }
+            if (param.getPrefix().equals(Constants.PREFIX_SKIP)) {
+                continue;
+            }
+            if (param.getValue() != null && param.getValue().getClass().isArray()) {
+                continue;
+            }
+            if (param.getValue() != null && param.getValue() instanceof Collection<?>) {
+                continue;
+            }
+            switch (param.getType()) {
+                case FILE_T:
+                case COLLECTION_T:
+                case STREAM_T:
+                case EXTERNAL_STREAM_T:
+                    continue;
+            }
+            String pv;
+            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+                pv = param.getPrefix() + String.valueOf(param.getValue());
+            } else {
+                pv = String.valueOf(param.getValue());
+            }
+            String replacement =
+                APP_PARAMETER_OPEN_TOKEN + param.getName().replaceFirst("#kwarg_", "") + APP_PARAMETER_CLOSE_TOKEN;
+            workingDir = workingDir.replaceAll(replacement, pv);
+        }
+
+        return new File(workingDir);
     }
 
     // PRIVATE STATIC METHODS
@@ -431,6 +486,7 @@ public class BinaryRunner {
         final String theoreticalHostnames = System.getProperty(Invoker.COMPSS_HOSTNAMES);
         final int theoreticalNumNodes = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_NODES));
         final int theoreticalNumThreads = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_THREADS));
+        final int theoreticalNumProcs = Integer.valueOf(System.getProperty(Invoker.COMPSS_NUM_PROCS));
 
         // Re-compute real task properties
         final Map<String, Integer> hostnames2numThreads = new HashMap<>();
@@ -444,9 +500,10 @@ public class BinaryRunner {
             hostnames2numThreads.put(hostname, nt);
         }
         final int uniqueNumNodes = hostnames2numThreads.size();
-        final int maxNumThreads = hostnames2numThreads.entrySet().stream()
+        int maxNumProcsPerNode = hostnames2numThreads.entrySet().stream()
             .max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getValue();
 
+        maxNumProcsPerNode *= theoreticalNumProcs;
         // Re-set COMPSs properties
         // We do not reset COMPSs properties because it does not have to match SLURM
         // System.setProperty(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));
@@ -477,9 +534,9 @@ public class BinaryRunner {
         // Setup process environment -- SLURM entries (for elasticity with MPI in supercomputers)
         // WARN: WE ONLY RESET SLURM ENVIRONMENT BUT NOT COMPSS ENVIRONMENT
         // HOWEVER, INFORMATION IN COMPSS AND SLURM CAN BE INCONSISTENT
-        final String tasksPerNode = String.valueOf(maxNumThreads) + "(x" + String.valueOf(uniqueNumNodes) + ")";
+        final String tasksPerNode = String.valueOf(maxNumProcsPerNode) + "(x" + String.valueOf(uniqueNumNodes) + ")";
         final String hostnamesString = String.join(",", hostnames2numThreads.keySet());
-        final int totalProcs = uniqueNumNodes * maxNumThreads;
+        final int totalProcs = uniqueNumNodes * theoreticalNumProcs;
 
         builder.environment().put("SLURM_NODELIST", hostnamesString);
         builder.environment().put("SLURM_JOB_NODELIST", hostnamesString);

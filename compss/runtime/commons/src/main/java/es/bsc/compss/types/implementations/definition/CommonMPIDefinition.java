@@ -124,7 +124,7 @@ public class CommonMPIDefinition {
         }
     }
 
-    private String loadProperty(Properties props, String key, String defaultValue) {
+    protected String loadProperty(Properties props, String key, String defaultValue) {
         String propValue = props.getProperty(key);
         if (propValue == null) {
             LOGGER.warn("Property " + key + " not found setting default value: " + defaultValue);
@@ -219,7 +219,7 @@ public class CommonMPIDefinition {
      * @param taskSandboxWorkingDir task execution sandbox directory
      * @param workers List of workers in mpi hostfile style
      * @return Returns the generated hostfile location inside the task sandbox
-     * @throws InvokeExecutionException Exception writting hostfile
+     * @throws IOException Exception writting hostfile
      */
     private static String writeHostfile(File taskSandboxWorkingDir, String workers) throws IOException {
         String uuid = UUID.randomUUID().toString();
@@ -242,7 +242,7 @@ public class CommonMPIDefinition {
      * @param ppn Number of processes per node.
      * @param procSeparator Hostname-processors separator.
      * @param hostSeparator Deparator between host definitions.
-     * @param sinleHost Flag to indicate if there is a single host no processors must be set.
+     * @param singleHost Flag to indicate if there is a single host no processors must be set.
      * @return location of the generated hostfile inside the task sandbox.
      * @throws IOException Exception writting hostfile.
      */

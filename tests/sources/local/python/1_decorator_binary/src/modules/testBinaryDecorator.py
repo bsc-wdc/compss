@@ -51,6 +51,12 @@ def myReturn():
     pass
 
 
+@binary(binary="pwd", working_dir=os.getcwd() + '{{wd}}')
+@task(result={Type: FILE_OUT_STDOUT})
+def myWd(wd, result):
+    pass
+
+
 @binary(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/')
 @task(returns=int)
 def failedBinary(code):
@@ -232,4 +238,10 @@ class testBinaryDecorator(unittest.TestCase):
         exit_value = checkStringParam4(string_param)
         exit_value = compss_wait_on(exit_value)
         self.assertEqual(exit_value, None)
+
+    def testParamInWD(self):
+        wd = '/test_param_in_wd'
+        outfile = "param_wd_out"
+        myWd(wd, outfile)
+        compss_barrier()
 

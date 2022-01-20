@@ -71,6 +71,17 @@ def exit_with_code(exit_code):
     pass
 
 
+@mpmd_mpi(runner="mpirun",
+          working_dir=os.getcwd() + '{{wd}}',
+          programs=[
+               dict(binary="pwd"),
+               dict(binary="pwd"),
+          ])
+@task(result={Type: FILE_OUT_STDOUT})
+def param_in_wd(wd, result):
+    pass
+
+
 class TestMpmdDecorator(unittest.TestCase):
 
     def testBasic(self):
@@ -96,3 +107,10 @@ class TestMpmdDecorator(unittest.TestCase):
         ev = exit_with_code(19)
         ev = compss_wait_on(ev)
         self.assertEqual(ev, 19)  # own exit code for failed execution
+
+    def testParamInWD(self):
+        wd = '/test_param_in_wd'
+        outfile = "param_wd_out"
+        param_in_wd(wd, outfile)
+        compss_barrier()
+

@@ -94,6 +94,12 @@ def checkStringParam(string_param):
     pass
 
 
+@mpi(runner="mpirun", binary="pwd", working_dir=os.getcwd() + '{{wd}}')
+@task(result={Type: FILE_OUT_STDOUT})
+def myWd(wd, result):
+    pass
+
+
 class testMpiDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
@@ -173,3 +179,9 @@ class testMpiDecorator(unittest.TestCase):
         exit_value2 = compss_wait_on(exit_value2)
         self.assertEqual(exit_value1, 0)
         self.assertEqual(exit_value2, 0)
+
+    def testParamInWD(self):
+        wd = '/test_param_in_wd'
+        outfile = "param_wd_out"
+        myWd(wd, outfile)
+        compss_barrier()

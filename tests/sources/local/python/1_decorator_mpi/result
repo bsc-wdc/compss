@@ -144,4 +144,12 @@
     fi
   fi
 
+  # testParamInWD
+  wd_out_file="param_wd_out"
+  output_str=$(grep -i "test_param_in_wd" "$wd_out_file")
+  if [ "$output_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testParamInWD function failed." | tee -a "${output_file}"
+    exit 1
+  fi
+
   exit 0

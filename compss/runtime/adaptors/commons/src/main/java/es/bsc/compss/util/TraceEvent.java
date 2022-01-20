@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.util;
 
+import es.bsc.compss.util.tracing.Threads;
+
+
 /**
  * Representation of a tracing event.
  */
@@ -201,19 +204,19 @@ public enum TraceEvent {
 
     // Thread identifier events
     // Identifies the thread as the Access Processor thread
-    AP_THREAD_ID(Tracer.AP_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Access Processor thread"),
+    AP_THREAD_ID(Threads.AP.id, Tracer.THREAD_IDENTIFICATION_EVENTS, Threads.AP.description),
     // Identifies the thread as the Task Dispacher thread
-    TD_THREAD_ID(Tracer.TD_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Task Dispacher thread"),
-    // Identifies the thread as an executor thread
-    EXECUTOR_THREAD_ID(Tracer.EXECUTOR_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Executor thread"),
+    TD_THREAD_ID(Threads.TD.id, Tracer.THREAD_IDENTIFICATION_EVENTS, Threads.TD.description),
     // Identifies the thread as the low priority file system thread
-    LOW_FILE_SYS_THREAD_ID(Tracer.FS_LOW_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "File system thread"),
+    LOW_FILE_SYS_THREAD_ID(Threads.FSL.id, Tracer.THREAD_IDENTIFICATION_EVENTS, Threads.FSL.description),
     // Identifies the thread as the high priority file system thread
-    HIGH_FILE_SYS_THREAD_ID(Tracer.FS_HIGH_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "File system thread"),
+    HIGH_FILE_SYS_THREAD_ID(Threads.FSH.id, Tracer.THREAD_IDENTIFICATION_EVENTS, Threads.FSH.description),
     // Identifies the thread as the Timer
-    TIMER_THREAD_ID(Tracer.TIMER_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "Timer thread"),
+    TIMER_THREAD_ID(Threads.TIMER.id, Tracer.THREAD_IDENTIFICATION_EVENTS, Threads.TIMER.description),
     // Identifies the thread as the Wallclock
-    WALLCLOCK_THREAD_ID(Tracer.WALLCLOCK_ID, Tracer.THREAD_IDENTIFICATION_EVENTS, "WallClock thread"),
+    WALLCLOCK_THREAD_ID(Threads.WC.id, Tracer.THREAD_IDENTIFICATION_EVENTS, Threads.WC.description),
+    // Identifies the thread as an executor thread
+    EXECUTOR_THREAD_ID(Threads.EXEC.id, Tracer.THREAD_IDENTIFICATION_EVENTS, Threads.EXEC.description),
 
     // Thread identifier events
     EXECUTOR_COUNTS(1, Tracer.EXECUTOR_COUNTS, "Executor counts"), // Executor start

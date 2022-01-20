@@ -17,7 +17,7 @@
 package es.bsc.compss.util.types;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.tracing.Threads;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +65,7 @@ public class ThreadTranslator {
         machineThreads.get(machineId - 1).add(threadId);
         if (threadTypeIdString != null) {
             Integer threadTypeId = new Integer(threadTypeIdString);
-            if (threadTypeId == Tracer.EXECUTOR_ID) {
+            if (threadTypeId == Threads.EXEC.id) {
                 machineExecutors.get(machineId - 1).add(threadId);
             } else if (threadTypeId != 0) { // != end event
                 machineRuntimeIdentifiers.get(machineId - 1).put(threadTypeId, threadId);
@@ -88,7 +88,7 @@ public class ThreadTranslator {
             Set<String> executorList = machineExecutors.get(i);
             Set<String> translatedUnknownList = translatedMachineUnknowns.get(i);
             int runtimeThreadsNum = 2;
-            for (int ident = 0; ident < Tracer.EXECUTOR_ID; ident++) {
+            for (int ident = 0; ident < Threads.EXEC.id; ident++) {
                 if (runtimeIdentifiers.containsKey(ident)) {
                     String oldThread = runtimeIdentifiers.get(ident);
                     String newThread = PrvLine.changeThreadNumber(oldThread, runtimeThreadsNum++);
@@ -118,34 +118,7 @@ public class ThreadTranslator {
     }
 
     private String createLabel(String threadId, int identifierEvent) {
-        String label;
-        switch (identifierEvent) {
-            case Tracer.AP_ID:
-                label = "RUNTIME AP";
-                break;
-            case Tracer.TD_ID:
-                label = "RUNTIME TD";
-                break;
-            case Tracer.FS_LOW_ID:
-                label = "RUNTIME FS L";
-                break;
-            case Tracer.FS_HIGH_ID:
-                label = "RUNTIME FS H";
-                break;
-            case Tracer.TIMER_ID:
-                label = "RUNTIME TIMER";
-                break;
-            case Tracer.WALLCLOCK_ID:
-                label = "RUNTIME WALLCLOCK";
-                break;
-            case Tracer.EXECUTOR_ID:
-                label = "EXECUTOR";
-                break;
-
-            default:
-                label = "";
-                break;
-        }
+        String label = Threads.getLabelByID(identifierEvent);
         return label + " (" + threadId + ")";
     }
 
@@ -177,7 +150,7 @@ public class ThreadTranslator {
         for (Set<String> executorIdentifiers : machineExecutors) {
             for (String exec : executorIdentifiers) {
                 String newThreadId = threadTranslations.get(exec).replace(":", ".");
-                String newLabel = createLabel(newThreadId, Tracer.EXECUTOR_ID);
+                String newLabel = createLabel(newThreadId, Threads.EXEC.id);
                 labels.add(newLabel);
             }
         }

@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -170,28 +169,6 @@ public abstract class Tracer {
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
-
-    // Globally defined thread identification numbers with their labels, needed for
-    // Paraver label updating
-    // Pairs where key is the id and value the label
-    public static final int AP_ID = 2;
-    public static final int TD_ID = 3;
-    public static final int FS_LOW_ID = 4;
-    public static final int FS_HIGH_ID = 5;
-    public static final int TIMER_ID = 6;
-    public static final int WALLCLOCK_ID = 7;
-    public static final int EXECUTOR_ID = 8; // executor must be bigger than any runtime id
-    public static final String appThread = "1:1:1";
-    public static final String APThread = "1:1:2";
-    public static final String TDThread = "1:1:3";
-    public static final String workerMainEnding = "1:1";
-    public static final String LastNumberFSThread = "2";
-    public static final String LastNumberTimerId = "4";
-
-    public static final String RUNTIME_ID = "1";
-    public static final String NON_RUNTIME_ID = "2";
-
-    public static final Pattern INSIDE_PARENTHESIS_PATTERN = Pattern.compile("\\(.+\\)");
 
     public static boolean tracerAlreadyLoaded = false;
 

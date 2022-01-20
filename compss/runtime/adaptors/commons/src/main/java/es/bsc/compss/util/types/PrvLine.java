@@ -17,7 +17,7 @@
 package es.bsc.compss.util.types;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.tracing.Threads;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -239,9 +239,9 @@ public class PrvLine {
     public static String changeRuntimeNumber(String threadId, boolean b) {
         String[] threadValues = threadId.split(":");
         if (b) {
-            return threadValues[0] + ":" + Tracer.RUNTIME_ID + ":" + threadValues[2];
+            return threadValues[0] + ":" + Threads.ExtraeTaskType.RUNTIME.getLabel() + ":" + threadValues[2];
         }
-        return threadValues[0] + ":" + Tracer.NON_RUNTIME_ID + ":" + threadValues[2];
+        return threadValues[0] + ":" + Threads.ExtraeTaskType.EXECUTOR.getLabel() + ":" + threadValues[2];
     }
 
 }

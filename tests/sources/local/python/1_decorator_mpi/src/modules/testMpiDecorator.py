@@ -50,7 +50,8 @@ def myReturn():
     pass
 
 
-@mpi(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", processes=1)
+@mpi(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun",
+     processes=1, fail_by_exit_value=False)
 @task(returns=int)
 def failedBinary(code):
     pass
@@ -82,13 +83,15 @@ def myLsWithoutType(flag, hide, sort):
     pass
 
 
-@mpi(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", processes=1)
+@mpi(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun",
+     processes=1, fail_by_exit_value=False)
 @task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
 def checkFileNames(f, fp, name, fout):
     pass
 
 
-@mpi(binary="./checkString.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", processes=1)
+@mpi(binary="./checkString.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun",
+     processes=1, fail_by_exit_value=False)
 @task(returns=int)
 def checkStringParam(string_param):
     pass

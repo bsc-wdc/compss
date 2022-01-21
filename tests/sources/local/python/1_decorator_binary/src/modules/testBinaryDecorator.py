@@ -57,7 +57,8 @@ def myWd(wd, result):
     pass
 
 
-@binary(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/')
+@binary(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/',
+        fail_by_exit_value=False)
 @task(returns=int)
 def failedBinary(code):
     pass
@@ -95,7 +96,7 @@ def checkFileNames(f, fp, name, fout):
     pass
 
 
-@binary(binary="./checkString.sh", working_dir=os.getcwd() + '/src/scripts/')
+@binary(binary="./checkString.sh", working_dir=os.getcwd() + '/src/scripts/', fail_by_exit_value=False)
 @task(returns=int)
 def checkStringParam(string_param):
     pass

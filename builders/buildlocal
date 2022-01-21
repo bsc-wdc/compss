@@ -743,13 +743,6 @@ install_compss() {
     mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
   fi
 
-  if [ "$cli" == "true" ]; then
-    echo "- Deploying CLI at Tools"
-    cd "${TMP_DIR}/builders/specs/cli"
-    ./install.sh
-    cd "${SCRIPT_DIR}"
-  fi
-
   # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ]; then
     echo "- Deploying bindings-common files"
@@ -810,7 +803,7 @@ install_compss() {
 
   if [ "$cli" == "true" ]; then
     echo "- Deploying CLI at Tools"
-    cd "${TMP_DIR}/cli/pyCOMPSsCLIResources"
+    cd "${TMP_DIR}/cli/PyCOMPSsCLIResources"
     ./install.sh
     cd "${SCRIPT_DIR}"
   fi

@@ -1,14 +1,6 @@
-import json
-import os
-import pickle
+import pycompss_cli.core.utils as utils
 import subprocess
-import sys
-import tarfile
-import tempfile
-import shutil
 from typing import List
-from uuid import uuid4
-import signal
 
 from pycompss_cli.core.cmd_helpers import command_runner
 
@@ -45,6 +37,8 @@ def local_run_app(cmd: List[str]) -> None:
     :returns: The execution stdout.
     """
 
+    if utils.check_exit_code('which enqueue_compss') == 1:
+        cmd = ['module load COMPSs'] + cmd
     cmd = ';'.join(cmd)
 
     subprocess.run(cmd, shell=True)
@@ -67,22 +61,47 @@ def local_jupyter(work_dir, jupyter_args):
         process.kill()
     
 
-def local_exec_app(command):
-    subprocess.run(command, shell=True)
+def local_exec_app(command, return_process=False):
+    p = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if return_process:
+        return p
+    return p.stdout.decode().strip()
 
 
-def local_submit_job(modules, app_args):
-    mod_cmds = ' && '.join(modules)
-    res = subprocess.run(f'{mod_cmds} && enqueue_compss {app_args}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    job_id = res.stdout.decode().strip().split('\n')[-1].split(' ')[-1]
-    if res.returncode != 0:
-        print('ERROR:', res.stderr.decode())
+def local_submit_job(app_args, env_vars):
+    cmd = f'enqueue_compss {app_args}'
+    if utils.check_exit_code('which enqueue_compss') == 1:
+        cmd = 'module load COMPSs;' + cmd
+        
+    if env_vars:
+        cmd = ' ; '.join([*[f'export {var}' for var in env_vars], cmd])
+
+    p = local_exec_app(cmd, return_process=True)
+    job_id = p.stdout.decode().strip().split('\n')[-1].split(' ')[-1]
+    if p.returncode != 0:
+        print('ERROR:', p.stderr.decode())
     else:
         print('Job submitted:', job_id)
         return job_id
 
 def local_job_list(local_job_scripts_dir):
-    subprocess.run(f"python3 {local_job_scripts_dir}/find.py", shell=True)
+    cmd = f"python3 {local_job_scripts_dir}/find.py"
+    if utils.check_exit_code('which enqueue_compss') == 1:
+        cmd = 'module load COMPSs;' + cmd
+    return local_exec_app(cmd)
 
 def local_cancel_job(local_job_scripts_dir, jobid):
-    subprocess.run(f"python3 {local_job_scripts_dir}/cancel.py {jobid}", shell=True)
+    cmd = f"python3 {local_job_scripts_dir}/cancel.py {jobid}"
+    if utils.check_exit_code('which enqueue_compss') == 1:
+        cmd = 'module load COMPSs;' + cmd
+    return local_exec_app(cmd)
+
+def local_job_status(local_job_scripts_dir, jobid):
+    cmd = f"python3 {local_job_scripts_dir}/status.py {jobid}"
+    if utils.check_exit_code('which enqueue_compss') == 1:
+        cmd = 'module load COMPSs;' + cmd
+    status = local_exec_app(cmd)
+
+    if status == 'SUCCESS\nSTATUS:':
+        return 'ERROR'
+    return status

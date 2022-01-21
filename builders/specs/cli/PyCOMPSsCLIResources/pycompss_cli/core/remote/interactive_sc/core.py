@@ -56,6 +56,7 @@ from pycompss_cli.core.remote.interactive_sc.defaults import ERROR_JUPYTER_SERVE
 from pycompss_cli.core.remote.interactive_sc.defaults import ERROR_BROWSER
 from pycompss_cli.core.remote.interactive_sc.defaults import ERROR_NO_BROWSER
 from pycompss_cli.core.remote.interactive_sc.defaults import ERROR_CANCELLING_JOB
+from pycompss_cli.core.remote.interactive_sc.defaults import ERROR_FORWARD_PORT
 
 from pycompss_cli.core.remote.interactive_sc.defaults import is_windows
 
@@ -176,8 +177,8 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
            str(scripts_path + '/' + INFO_SCRIPT),
            job_id, app_path]
     return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
-    # if return_code != 0:
-    #     __display_error(ERROR_INFO_JOB, return_code, stdout, stderr)
+    if return_code != 0:
+        __display_error(ERROR_INFO_JOB, return_code, stdout, stderr)
 
     # Parse the output
     out = stdout.splitlines()
@@ -285,7 +286,10 @@ def _command_runner(cmd, login_info, modules=None, blocking=True, remote=True):
             cmd = ' '.join(cmd)
             if modules:
                 cmd = ';'.join([*modules, cmd])
-            cmd = f"ssh {login_info} '{cmd}'"
+            if 'ssh' in cmd:
+                cmd = f"ssh {login_info} {cmd}"
+            else:
+                cmd = f"ssh {login_info} '{cmd}'"
     else:
         # Execute the command as requested
         pass

@@ -4,13 +4,6 @@ import sys
 import tarfile
 import tempfile
 import shutil
-try:
-    import docker
-    from docker.types import Mount
-    from docker.errors import DockerException
-except ImportError:
-    print('ERROR: Pip package `docker` is required for creating docker environments.')
-    exit(1)
 from uuid import uuid4
 import subprocess
 
@@ -32,16 +25,32 @@ default_image = default_workdir + "/" + default_image_file
 
 
 IMAGE_NAME = "compss/compss:2.10"  # Update when releasing new version
+DOCKER_AVAILABALE = True
 
+try:
+    import docker
+    from docker.types import Mount
+    from docker.errors import DockerException
+except ImportError:
+    DOCKER_AVAILABALE = False
 
 # ############# #
 # API FUNCTIONS #
 # ############# #
 
+class ErrorContainerNotRunning(Exception):
+    pass
+
 class DockerCmd(object):
     def __init__(self, env_id) -> None:
         global master_name
         global worker_name
+
+        self.env_id = env_id
+
+        if not DOCKER_AVAILABALE:
+            print('ERROR: Pip package `docker` is required for creating docker environments.')
+            exit(1)
         
         super().__init__()
 
@@ -54,8 +63,8 @@ class DockerCmd(object):
             exit(1)
 
         self.__setup_image_name()
-        master_name = master_name + "-" + env_id
-        worker_name = worker_name + "-" + env_id
+        master_name = master_name + "-" + self.env_id
+        worker_name = worker_name + "-" + self.env_id
 
     def __setup_image_name(self):
         global IMAGE_NAME
@@ -68,7 +77,7 @@ class DockerCmd(object):
             # If specified in an environment variable, take it
             IMAGE_NAME = os.environ["COMPSS_DOCKER_IMAGE"]
         elif len(self.client.containers.list(filters={"name": master_name})) > 0:
-            # Condition equivalent to: _is_running(master_name):
+            # Condition equivalent to: is_running(master_name):
             # But since it is undefined yet, we do it explicitly.
             # If exists in the file (means that has been defined with init)
             master = self.client.containers.list(filters={"name": master_name})[0]
@@ -76,7 +85,7 @@ class DockerCmd(object):
             # But since it is undefined yet, we do it explicitly.
             IMAGE_NAME = master.image.attrs["RepoTags"][0]
 
-    def docker_deploy_compss(self, working_dir: str = "",
+    def docker_deploy_compss(self, working_dir,
                             image: str = "",
                             restart: bool = True) -> None:
         """ Starts the main COMPSs image in Docker.
@@ -102,9 +111,7 @@ class DockerCmd(object):
         if restart or self._exists(master_name):
             self.docker_kill_compss(False)
 
-        if not self._is_running(master_name):
-            if not working_dir:
-                working_dir = os.getcwd()
+        if not self.is_running(master_name):
             print("Starting %s container in dir %s" % (master_name, working_dir))
             print("If this is your first time running PyCOMPSs it may take a " +
                 "while because it needs to download the docker image. " +
@@ -124,6 +131,10 @@ class DockerCmd(object):
             tmp_path, cfg_file = self._store_temp_cfg(cfg_content)
             self._copy_file(cfg_file, default_cfg)
             shutil.rmtree(tmp_path)
+
+    
+    def docker_start_compss(self):
+        self.client.containers.get(master_name).start()
 
 
     def docker_update_image(self) -> None:
@@ -151,8 +162,11 @@ class DockerCmd(object):
         """
         if clean:
             # Clean the cfg file
-            master = self._get_master()
-            self._remove_cfg(master)
+            try:
+                master = self._get_master()
+                self._remove_cfg(master)
+            except ErrorContainerNotRunning:
+                print("WARNING: No master container running.")
 
         self._stop_by_name(master_name)
         self._stop_by_name(worker_name)
@@ -165,8 +179,8 @@ class DockerCmd(object):
         :returns: The execution stdout.
         """
 
-        if not self._is_running(master_name):
-            self.docker_deploy_compss()
+        if not self.is_running(master_name):
+            self.docker_start_compss()
 
         master = self._get_master()
         _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
@@ -176,7 +190,7 @@ class DockerCmd(object):
             for line in output:
                 print(line.strip().decode())
         except KeyboardInterrupt:
-            pass
+            master.exec_run('compss_clean_procs')
 
 
     def docker_start_monitoring(self) -> None:
@@ -185,7 +199,7 @@ class DockerCmd(object):
         :returns: The monitoring initialization stdout.
         """
         print("Starting Monitor")
-        if not self._is_running(master_name):
+        if not self.is_running(master_name):
             self.start_daemon()
 
         cmd = "/etc/init.d/compss-monitor start"
@@ -250,11 +264,7 @@ class DockerCmd(object):
             raise Exception("Unexpected components option: " + option)
 
 
-    # ################# #
-    # PRIVATE FUNCTIONS #
-    # ################# #
-
-    def _is_running(self, name: str) -> bool:
+    def is_running(self, name: str = master_name) -> bool:
         """ Checks if a docker instance is running.
 
         :param name: Instance name.
@@ -262,6 +272,21 @@ class DockerCmd(object):
         """
         cs = self.client.containers.list(filters={"name": name})
         return len(cs) > 0
+
+    def exists(self, name: str = master_name) -> bool:
+        """ Checks if a docker instance exists.
+
+        :param name: Instance name.
+        :returns: True if exists. False otherwise.
+        """
+        cs = self.client.containers.list(all=True, filters={"name": name})
+        return len(cs) > 0
+
+
+    # ################# #
+    # PRIVATE FUNCTIONS #
+    # ################# #
+
 
 
     def _exists(self, name: str) -> bool:
@@ -282,7 +307,7 @@ class DockerCmd(object):
         try:
             master = self.client.containers.list(filters={"name": master_name})[0]
         except IndexError:
-            raise Exception("Master not running.")
+            raise ErrorContainerNotRunning(master_name)
         return master
 
 
@@ -294,7 +319,7 @@ class DockerCmd(object):
         try:
             workers = self.client.containers.list(filters={"name": worker_name})
         except IndexError:
-            raise Exception("Master not running.")
+            raise ErrorContainerNotRunning(worker_name)
         return workers
 
 
@@ -360,13 +385,13 @@ class DockerCmd(object):
                         source=user_working_dir,
                         type="bind")
         # WARNING: mounting .COMPSs makes it fail
-        # compss_dir = os.environ["HOME"] + "/.COMPSs"
-        # os.makedirs(compss_dir, exist_ok=True)
-        #
+        # compss_logs_dir = os.environ["HOME"] + f"/.COMPSs"
+        # os.makedirs(compss_logs_dir, exist_ok=True)
+
         # compss_log_dir = Mount(target="/root/.COMPSs",
-        #                        source=compss_dir,
+        #                        source=compss_logs_dir,
         #                        type="bind")
-        mounts = [user_dir]  # , compss_log_dir]
+        mounts = [user_dir] #, compss_log_dir]
         return mounts
 
 

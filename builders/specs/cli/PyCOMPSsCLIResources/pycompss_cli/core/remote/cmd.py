@@ -145,4 +145,4 @@ def remote_cancel_job(login_info: str, job_id: str, modules):
     print(stdout)
 
 def remote_exec_app(login_info: str, exec_cmd: str):
-    subprocess.run(f"ssh {login_info} {exec_cmd}", shell=True)
+   return utils.ssh_run_commands(login_info, [exec_cmd]).strip()

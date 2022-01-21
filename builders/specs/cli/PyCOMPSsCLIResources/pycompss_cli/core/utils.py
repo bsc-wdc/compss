@@ -2,6 +2,7 @@ import json
 from glob import glob
 from pathlib import Path
 import subprocess
+import time, os
 
 def get_object_method_by_name(obj, method_name, include_in_name=False):
     for class_method_name in dir(obj):
@@ -10,10 +11,11 @@ def get_object_method_by_name(obj, method_name, include_in_name=False):
                 return class_method_name
 
 def table_print(col_names, data):
-    row_format ="{:>15}" * (len(col_names) + 1)
-    print(row_format.format("", *col_names))
+    max_len = max(map(len, [item for sublist in data for item in sublist if item is not None])) + 1
+    row_format ="{:>{l}}" * (len(col_names) + 1)
+    print(row_format.format("", l=max_len, *col_names))
     for row in data:
-        print(row_format.format('-', *row))
+        print(row_format.format('-', l=max_len, *row))
 
 def get_current_env_conf(return_path=False):
     home_path = str(Path.home())
@@ -33,3 +35,15 @@ def ssh_run_commands(login_info, commands, **kwargs):
     cmd = ' ; '.join(commands)
     res = subprocess.run(f"ssh {login_info} '{cmd}'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
     return res.stdout.decode()
+
+def check_exit_code(command):
+    return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
+
+def poll_directory(directory, sleep_time=0.1):
+    files = []
+    while True:
+        new_query = os.listdir(directory)
+        if new_query != files:
+            files = new_query
+            yield set(files)
+        time.sleep(sleep_time)

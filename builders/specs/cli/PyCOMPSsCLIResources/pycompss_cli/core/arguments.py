@@ -28,8 +28,8 @@ def parse_sys_argv():
                                         help="Initialize COMPSs environment (default local).",
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
-
-    parser_init.set_defaults(action='init')
+                                        
+    parser_init.set_defaults(func=lambda: print(parser_init.format_help()))
     
     parser_init.add_argument("-cfg", "--config",
                              default="",
@@ -42,7 +42,7 @@ def parse_sys_argv():
                              help="Environment name")
 
     init_env_subparser = parser_init.add_subparsers(title="environment", dest="env")
-    init_env_subparser.default = "local"
+    # init_env_subparser.default = "local"
 
     init_env_subparser.add_parser("docker", add_help=False, 
                                     parents=[docker_init_parser()])
@@ -62,10 +62,10 @@ def parse_sys_argv():
     parser_exec.set_defaults(action='exec')
 
     
-    parser_exec.add_argument("-eid", "--env_id",
-                             default="",
-                             type=str,
-                             help="Environment ID")
+    # parser_exec.add_argument("-eid", "--env_id",
+    #                          default="",
+    #                          type=str,
+    #                          help="Environment ID")
     parser_exec.add_argument('exec_cmd', 
                             nargs=argparse.REMAINDER,   
                             help="Exec program arguments")
@@ -78,10 +78,10 @@ def parse_sys_argv():
     parser_run.set_defaults(action='run')
 
 
-    parser_run.add_argument("-eid", "--env_id",
-                             default="",
-                             type=str,
-                             help="Environment ID")
+    # parser_run.add_argument("-eid", "--env_id",
+    #                          default="",
+    #                          type=str,
+    #                          help="Environment ID")
 
     parser_run.add_argument("-app", "--app_name",
                              default="",
@@ -107,10 +107,10 @@ def parse_sys_argv():
     parser_job.set_defaults(action='job')
     
 
-    parser_job.add_argument("-eid", "--env_id",
-                             default="",
-                             type=str,
-                             help="Environment ID")
+    # parser_job.add_argument("-eid", "--env_id",
+    #                          default="",
+    #                          type=str,
+    #                          help="Environment ID")
 
     # MONITOR
     parser_monitor = subparsers.add_parser("monitor",
@@ -134,10 +134,10 @@ def parse_sys_argv():
                                            formatter_class=FORMATTER_CLASS)
     parser_jupyter.set_defaults(action='jupyter')
     
-    parser_jupyter.add_argument("-eid", "--env_id",
-                             default="",
-                             type=str,
-                             help="Environment ID")
+    # parser_jupyter.add_argument("-eid", "--env_id",
+    #                          default="",
+    #                          type=str,
+    #                          help="Environment ID")
     parser_jupyter.add_argument("-app", "--app_name",
                              default="",
                              type=str,
@@ -153,10 +153,10 @@ def parse_sys_argv():
                                             formatter_class=FORMATTER_CLASS)
     parser_gengraph.set_defaults(action='gengraph')
 
-    parser_gengraph.add_argument("-eid", "--env_id",
-                             default="",
-                             type=str,
-                             help="Environment ID")                                            
+    # parser_gengraph.add_argument("-eid", "--env_id",
+    #                          default="",
+    #                          type=str,
+    #                          help="Environment ID")                                            
     parser_gengraph.add_argument("dot_file",
                                  type=str,
                                  help="Dot file to convert to pdf")
@@ -168,10 +168,10 @@ def parse_sys_argv():
                                               formatter_class=FORMATTER_CLASS)
     parser_components.set_defaults(action='components')
 
-    parser_components.add_argument("-eid", "--env_id",
-                             default="",
-                             type=str,
-                             help="Environment ID")                                                  
+    # parser_components.add_argument("-eid", "--env_id",
+    #                          default="",
+    #                          type=str,
+    #                          help="Environment ID")                                                  
     subparsers_components = parser_components.add_subparsers(dest="components")
     
     subparsers_components.add_parser("list",

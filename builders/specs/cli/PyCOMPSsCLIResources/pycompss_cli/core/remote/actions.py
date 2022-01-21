@@ -15,7 +15,7 @@ from pycompss_cli.core.remote.cmd import remote_env_remove
 from pycompss_cli.core.actions import Actions
 from pycompss_cli.core import utils
 from pycompss_cli.core.remote.interactive_sc import core, defaults
-import os, json, time, datetime
+import os, json, time, datetime, traceback
 from collections import defaultdict
 
 class RemoteActions(Actions):
@@ -55,11 +55,17 @@ class RemoteActions(Actions):
             self.arguments.modules.append('COMPSs')
         
         print('Deploying environment...')
-        remote_deploy_compss(self.arguments.name, self.arguments.login, self.arguments.modules)
+        
+        try:
+            remote_deploy_compss(self.arguments.name, self.arguments.login, self.arguments.modules)
 
-        remote_home_path = remote_get_home(self.arguments.login)
+            remote_home_path = remote_get_home(self.arguments.login)
 
-        self.env_add_conf({'remote_home':  remote_home_path})
+            self.env_add_conf({'remote_home':  remote_home_path})
+        except:
+            traceback.print_exc()
+            print("ERROR: Cluster deployment failed")
+            self.env_remove(self.arguments.name)
 
     def run(self):
         app_name = self.arguments.app_name
@@ -86,16 +92,17 @@ class RemoteActions(Actions):
             return mod_file.read().strip().split('\n')
 
     def job(self):
-        action_name = 'list'
+        super().job()
 
-        if self.arguments.job:
-            action_name = self.arguments.job
-
+        action_name = self.arguments.job
         action_name = utils.get_object_method_by_name(self, 'job_' + action_name, include_in_name=True)
         getattr(self, action_name)()
                 
     def job_submit(self):
         app_name = self.arguments.app_name
+        if not app_name:
+            print(f"ERROR: Application ID argument (-app) is required for executing runcompss in cluster")
+            exit(1)
 
         if app_name not in self.get_apps():
             print(f"ERROR: Application {app_name} not found")
@@ -125,8 +132,8 @@ class RemoteActions(Actions):
         job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars)
 
         if self.arguments.verbose:
-            print('envars', env_vars)
-            print('enqueue_compss', app_args)
+            print('\t-\tenvars:', env_vars)
+            print('\t-\tenqueue_compss:', app_args)
 
         self.past_jobs[job_id] = {
             'app_name': app_name,
@@ -143,15 +150,22 @@ class RemoteActions(Actions):
         if job_id:
             app_jobs = self.past_jobs[job_id]
             print('\tApp name:', app_jobs['app_name'])
+            print('\tApp path:', app_jobs['path'])
             print('\tSubmit time:', app_jobs['timestamp'])
             print('\tEnvironment Variables:', app_jobs['env_vars'])
             print('\tEnqueue Args:', app_jobs['enqueue_args'])
             print()
         else:
-            col_names = ['JobIDs', 'App']
+            col_names = ['JobIDs', 'AppName', 'Status']
             rows = []
             for job_id, app_job in self.past_jobs.items():
-                rows.append([job_id, app_job['app_name']])
+                if 'status' not in app_job:
+                    job_status = self.job_status(job_id)
+                else:
+                    job_status = app_job['status']
+                    if 'COMPLETED' not in job_status:
+                        job_status = self.job_status(job_id)
+                rows.append([job_id, app_job['app_name'], job_status])
             utils.table_print(col_names, rows)
 
     def job_list(self):
@@ -165,31 +179,48 @@ class RemoteActions(Actions):
         modules = self.__get_modules()
         remote_cancel_job(login_info, jobid, modules)
 
-    def job_status(self):
+    def job_status(self, job_id=None):
         login_info = self.env_conf['login']
-        jobid = self.arguments.job_id
-        modules = self.__get_modules()
+        job_id = self.arguments.job_id if job_id is None else job_id
+        modules = self.__get_modules(      )
         scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
-        jupyter_job_status = core.job_status(scripts_path, jobid, login_info, modules)
-        print(jupyter_job_status)
+        job_status = core.job_status(scripts_path, job_id, login_info, modules)
+        if job_status == 'ERROR' and job_id in self.past_jobs:
+            app_path = self.past_jobs[job_id]['path']
+            cmd = f'grep -iF "error" {app_path}/compss-{job_id}.err'
+            status = 'ERROR' if remote_exec_app(cmd) else 'SUCCESS'
+            job_status = 'COMPLETED:' + status
+        
+        if job_id is None:
+            print(job_status)
+
+        self.past_jobs[job_id]['status'] = job_status
+        with open(self.env_conf['env_path'] + '/jobs.json', 'w') as f:
+            json.dump(self.past_jobs, f)
+
+        return job_status
 
     def app(self):
-        action_name = 'list'
+        if not self.arguments.app:
+            self.arguments.func()
+            exit(1)
 
-        if self.arguments.app:
-            action_name = self.arguments.app
-
+        action_name = self.arguments.app
         action_name = utils.get_object_method_by_name(self, 'app_' + action_name, include_in_name=True)
         getattr(self, action_name)()
 
     def app_deploy(self):
         if self.arguments.local_source == 'current directory':
             self.arguments.local_source = os.getcwd()
+        else:
+            if not os.path.isdir(self.arguments.local_source):
+                print(f"ERROR: Local source directory {self.arguments.local_source} does not exist")
+                exit(1)
 
         app_name = self.arguments.app_name
         if app_name in self.get_apps():
             print(f'ERROR: There is already another application named `{app_name}`')
-            exit(0)
+            exit(1)
 
         # if self.arguments.remote_dir:
         #     self.arguments.remote_dir = self.arguments.remote_dir.replace('{COMPSS_REMOTE_HOME}', )
@@ -219,7 +250,7 @@ class RemoteActions(Actions):
         if not apps:
             print('INFO: There are no applications binded to this environment yet')
             print('       Try deploying an application to the cluster')
-            exit(0)
+            exit(1)
 
         utils.table_print(['Name'], [[a] for a in apps])
 
@@ -228,8 +259,8 @@ class RemoteActions(Actions):
         command = ' '.join(self.arguments.exec_cmd)
         remote_exec_app(login_info, command)
 
-    def env_remove(self):
-        env_id = self.arguments.env_id
+    def env_remove(self, env_id=None):
+        env_id = self.arguments.env_id if env_id is None else env_id
         env_apps = self.get_apps(env_id=env_id)
         if len(env_apps) > 0:
             print('WARNING: There are still applications binded to this environment')
@@ -243,7 +274,7 @@ class RemoteActions(Actions):
         else:
             super().env_remove()
 
-    def component(self):
+    def components(self):
         print('ERROR: Not Implemented Yet')
         exit(1)
 

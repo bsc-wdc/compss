@@ -36,6 +36,12 @@ class Actions(ABC):
 
     @abstractmethod
     def init(self):
+        if not self.arguments.env:
+            self.arguments.func()
+            exit(0)
+
+        del self.arguments.func
+
         if os.path.isdir(self.home_path + '/.COMPSs/envs'):
             envs = os.listdir(self.home_path + '/.COMPSs/envs')
 
@@ -50,6 +56,7 @@ class Actions(ABC):
 
         with open(env_path + '/env.json', 'w') as env_conf:
             json.dump(vars(self.arguments), env_conf)
+        self.env_conf = vars(self.arguments)
 
         if self.arguments.config:
             shutil.copy2(self.arguments.config, env_path)
@@ -71,7 +78,9 @@ class Actions(ABC):
 
     @abstractmethod
     def job(self):
-        pass
+        if not self.arguments.job:
+            self.arguments.func()
+            exit(0)
 
     @abstractmethod
     def app(self):
@@ -84,6 +93,14 @@ class Actions(ABC):
     @abstractmethod
     def monitor(self):
         pass
+
+    @abstractmethod
+    def gengraph(self):
+        pass
+
+    @abstractmethod
+    def components(self):
+        pass
     
     def environment(self):
         action_name = 'list'
@@ -95,15 +112,14 @@ class Actions(ABC):
         getattr(self, action_name)()
 
     def env_list(self):
-        env_dir_tree = list(os.walk(self.home_path + '/.COMPSs/envs'))
-        envs_names = env_dir_tree[0][1]
-        env_dir_tree = env_dir_tree[1:]
+        envs_path = self.home_path + '/.COMPSs/envs'
+        envs_files = os.listdir(envs_path)
 
         env_info = []
-        for i in range(len(env_dir_tree)):
-            env_type = json.load(open(env_dir_tree[i][0] + '/env.json'))['env']
-            env_current = '*' if 'current' in env_dir_tree[i][2] else ''
-            env_info.append([envs_names[i], env_type, env_current])
+        for env_name in envs_files:
+            env_type = json.load(open(envs_path + f'/{env_name}/env.json'))['env']
+            env_current = '*' if 'current' in os.listdir(envs_path + f'/{env_name}') else ''
+            env_info.append([env_name, env_type, env_current])
         
         col_names = ['ID', 'Type', 'Active']
         utils.table_print(col_names, env_info)
@@ -123,9 +139,9 @@ class Actions(ABC):
         print(f'Environment `{env_id}` is now active')
 
     @abstractmethod
-    def env_remove(self):
+    def env_remove(self, env_id=None):
         self.env_change(env_id='default')
-        env_id = self.arguments.env_id
+        env_id = self.arguments.env_id if env_id is None else env_id
 
         env_dir_name = self.home_path + '/.COMPSs/envs/' + env_id
         

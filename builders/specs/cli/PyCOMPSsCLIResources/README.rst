@@ -52,10 +52,7 @@ For creating docker environments pycompss-cli currently requires:
 
 -  docker >= 17.12.0-ce
 
-Installation steps
-^^^^^^^^^^^^^^^^^^
-
-1. Install docker (continue with step 2 if already installed)
+1. Install docker
 
    -  pycompss-cli requires **docker 17.12.0-ce** or greater.
 
@@ -81,17 +78,17 @@ Installation steps
 
    3. Check that docker is correctly installed
 
-        .. code:: bash
-    
-            docker --version
-            docker ps # this should be empty as no docker processes are yet running.
+      .. code:: bash
+   
+         docker --version
+         docker ps # this should be empty as no docker processes are yet running.
 
-   1. Install
+   4. Install
       `docker-py <https://docker-py.readthedocs.io/en/stable/>`__
 
-        .. code:: bash
-    
-            python3 -m pip install docker
+      .. code:: bash
+   
+         python3 -m pip install docker
 
 
 Usage

@@ -105,7 +105,7 @@ ERROR_JUPYTER_SERVER = "The notebook server is not running."
 ERROR_BROWSER = "Could not open the browser. Please check that you have defined properly the browser to use."
 ERROR_NO_BROWSER = "Wrong no_web_browser flag type!"
 ERROR_CANCELLING_JOB = "Could not cancel the job. Please, cancel it manually."
-
+ERROR_FORWARD_PORT = "Could not forward the port. Please check that you have defined properly the port to forward."
 
 # --------------------------------------------------
 # FUNCTIONS

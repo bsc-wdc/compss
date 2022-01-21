@@ -24,7 +24,7 @@ def local_init_parser():
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
     parser_init.add_argument("-w", "--working_dir",
-                             default="",
+                             default='current directory',
                              type=str,
                              help="Working directory")
 

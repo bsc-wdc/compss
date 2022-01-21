@@ -5,13 +5,16 @@ They are invoked from cli/pycompss.py and uses core/cmd.py.
 
 from pycompss_cli.core.actions import Actions
 from pycompss_cli.core.docker.cmd import DockerCmd
-
+from glob import glob
+import os, traceback
+ 
 class DockerActions(Actions):
 
     def __init__(self, arguments, debug=False, env_conf=None) -> None:
+        super().__init__(arguments, debug=debug, env_conf=env_conf)
         env_id = arguments.name if env_conf is None else env_conf['name']
         self.docker_cmd = DockerCmd(env_id)
-        super().__init__(arguments, debug=debug, env_conf=env_conf)
+
 
     def init(self):
         super().init()
@@ -22,12 +25,20 @@ class DockerActions(Actions):
         :returns: None
         """
 
-        self.docker_cmd.docker_deploy_compss(self.arguments.working_dir,
-                            self.arguments.image,
-                            self.arguments.restart)
+        if self.arguments.working_dir == 'current directory':
+            self.arguments.working_dir = os.getcwd()
 
-        master_ip = self.docker_cmd.docker_exec_in_daemon("hostname -i", return_output=True)
-        self.env_add_conf({'master_ip': master_ip})
+        try:
+            self.docker_cmd.docker_deploy_compss(self.arguments.working_dir,
+                                self.arguments.image,
+                                self.arguments.restart)
+
+            master_ip = self.docker_cmd.docker_exec_in_daemon("hostname -i", return_output=True)
+            self.env_add_conf({'master_ip': master_ip})
+        except:
+            traceback.print_exc()
+            print("ERROR: Docker deployment failed")
+            self.env_remove(env_id=self.arguments.name)
 
 
     def update(self):
@@ -88,6 +99,8 @@ class DockerActions(Actions):
 
         self.docker_cmd.docker_exec_in_daemon(command)
 
+        self.docker_cmd.docker_exec_in_daemon('cp -a /home/user/.COMPSs/. /root/.COMPSs/')
+
 
     def monitor(self):
         """ Starts or stops the monitor in the COMPSs infrastructure at docker
@@ -119,12 +132,19 @@ class DockerActions(Actions):
         self.docker_cmd.docker_exec_in_daemon('pkill jupyter')
         
         arguments = " ".join(self.arguments.rest_args)
-        command = "jupyter-notebook " + \
+        working_dir = self.env_conf['working_dir']
+        for arg in self.arguments.rest_args:
+            dir = working_dir + '/' + arg
+            if os.path.isdir(dir):
+                print(f"Opening jupyter server in `{dir}`")
+                break
+
+        jupyter_cmd = "jupyter-notebook " + \
                 arguments + " " + \
                 f"--ip={self.env_conf['master_ip']} " + \
                 "--allow-root " + \
                 "--NotebookApp.token="
-        self.docker_cmd.docker_exec_in_daemon(command)
+        self.docker_cmd.docker_exec_in_daemon(jupyter_cmd)
 
         self.docker_cmd.docker_exec_in_daemon('pkill jupyter')
 
@@ -137,11 +157,9 @@ class DockerActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if self.debug:
-            print("Converting graph...")
-            print("Parameters:")
-            print("\t- Dot file: " + self.arguments.dot_file)
-        command = "compss_gengraph " + self.arguments.dot_file
+        dot_path = self.arguments.dot_file
+        
+        command = "compss_gengraph " + dot_path
         self.docker_cmd.docker_exec_in_daemon(command)
 
     def app(self):
@@ -175,9 +193,11 @@ class DockerActions(Actions):
                             self.arguments.remove,
                             self.arguments.worker)
 
-    def env_remove(self):
-        super().env_remove()
-        self.docker_cmd.docker_kill_compss()
+    def env_remove(self, env_id=None):
+        if self.docker_cmd.exists():
+            self.docker_cmd.docker_exec_in_daemon('rm -rf .COMPSs')
+            self.docker_cmd.docker_kill_compss()
+        super().env_remove(env_id=env_id)
 
     def job(self):
         print("ERROR: Wrong Environment! Try using a `cluster` environment")

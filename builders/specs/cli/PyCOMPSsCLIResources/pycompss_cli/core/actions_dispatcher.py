@@ -24,8 +24,9 @@ class ActionsDispatcher(object):
                 print("There are no environments created. Try using `pycompss init`")
                 exit(1)
 
-            if arguments.action == 'environment' and arguments.environment.startswith('r'):
-                self.__delete_envs(arguments.env_id, arguments)
+            if arguments.action == 'environment':
+                if arguments.environment and arguments.environment.startswith('r'):
+                    self.__delete_envs(arguments.env_id, arguments)
                 
             env_conf = utils.get_current_env_conf()
             env_type = env_conf['env']

@@ -48,6 +48,7 @@ def cluster_parser_app():
                                         aliases=["a"],
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
+    parser_app.set_defaults(func=lambda: print(parser_app.format_help()))
 
     app_subparsers = parser_app.add_subparsers(dest="app")
 
@@ -107,6 +108,7 @@ def cluster_parser_job():
                                         aliases=["j"],
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
+    parser_job.set_defaults(func=lambda: print(parser_job.format_help()))
 
     job_subparsers = parser_job.add_subparsers(dest="job")
 
@@ -127,10 +129,10 @@ def cluster_parser_job():
                                     default=[],
                                     help="Set environment variables")  # noqa: E501   
 
-    submit_job_parser.add_argument("app_name",
+    submit_job_parser.add_argument("-app", "--app_name",
+                             default="",
                              type=str,
-                             help="Name of the application on which to submit the job")
-
+                             help="Name of the app where to execute runcompss. Only required for `cluster` type environment")
 
     submit_job_parser.add_argument('rest_args', 
                             nargs=argparse.REMAINDER,   

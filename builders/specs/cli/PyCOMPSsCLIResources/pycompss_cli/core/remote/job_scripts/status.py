@@ -25,8 +25,6 @@ from commons import SUCCESS_KEYWORD
 from commons import ERROR_KEYWORD
 from commons import get_job_status
 from commons import setup_supercomputer_configuration
-from commons import is_notebook_job
-from commons import not_a_notebook
 
 
 def status():

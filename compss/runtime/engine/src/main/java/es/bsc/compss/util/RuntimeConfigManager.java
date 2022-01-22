@@ -531,6 +531,24 @@ public class RuntimeConfigManager {
         config.setProperty(COMPSsConstants.TRACING, tracing);
     }
 
+    /**
+     * Returns Extrae's working directory path.
+     *
+     * @return Extrae's working directory path.
+     */
+    public String getExtraeWDir() {
+        return config.getString(COMPSsConstants.EXTRAE_WORKING_DIR, ".");
+    }
+
+    /**
+     * Sets a new path as Extrae's working directory.
+     *
+     * @param extraeWDir New Extrae's working directory path.
+     */
+    public void setExtraeWDir(String extraeWDir) {
+        config.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, extraeWDir);
+    }
+
     public boolean getTracingTaskDep() {
         return config.getBoolean(COMPSsConstants.TRACING_TASK_DEPENDENCIES, false);
     }

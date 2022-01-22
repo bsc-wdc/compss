@@ -253,6 +253,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 if (System.getProperty(COMPSsConstants.TRACING) == null) {
                     System.setProperty(COMPSsConstants.TRACING, String.valueOf(manager.getTracing()));
                 }
+                if (System.getProperty(COMPSsConstants.EXTRAE_WORKING_DIR) == null) {
+                    System.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, manager.getExtraeWDir());
+                }
                 if (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) == null) {
                     System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
                 }
@@ -295,6 +298,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         setDefaultProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
         setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
         setDefaultProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);
+        setDefaultProperty(COMPSsConstants.EXTRAE_WORKING_DIR, ".");
         setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
         setDefaultProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
     }

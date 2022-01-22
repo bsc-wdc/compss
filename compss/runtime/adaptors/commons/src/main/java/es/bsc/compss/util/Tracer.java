@@ -449,6 +449,21 @@ public abstract class Tracer {
     /**
      * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
      *
+     * @param event event being emitted
+     */
+    public static void emitEvent(TraceEvent event) {
+        synchronized (Tracer.class) {
+            Wrapper.Event(event.getId(), event.getType());
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Emitting synchronized event [type, id] = [" + event.getId() + " , " + event.getType() + "]");
+        }
+    }
+
+    /**
+     * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     *
      * @param eventID ID of the event
      * @param eventType type of the event.
      */
@@ -477,6 +492,21 @@ public abstract class Tracer {
         if (DEBUG) {
             LOGGER.debug(
                 "Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
+        }
+    }
+
+    /**
+     * Emits the end of an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     *
+     * @param event event being emitted
+     */
+    public static void emitEventEnd(TraceEvent event) {
+        synchronized (Tracer.class) {
+            Wrapper.Event(EVENT_END, event.getType());
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Emitting synchronized event [type, id] = [" + EVENT_END + " , " + event.getType() + "]");
         }
     }
 

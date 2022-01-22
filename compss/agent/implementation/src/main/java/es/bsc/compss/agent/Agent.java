@@ -286,6 +286,9 @@ public class Agent {
                 if (System.getProperty(COMPSsConstants.TRACING) == null) {
                     System.setProperty(COMPSsConstants.TRACING, String.valueOf(manager.getTracing()));
                 }
+                if (System.getProperty(COMPSsConstants.EXTRAE_WORKING_DIR) == null) {
+                    System.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, manager.getExtraeWDir());
+                }
                 if (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) == null) {
                     System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
                 }

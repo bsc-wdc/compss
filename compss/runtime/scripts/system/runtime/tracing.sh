@@ -86,9 +86,19 @@ check_tracing_setup () {
     extraeFile="${custom_extrae_config_file}"
   fi
 
+  extraeWDir="${specific_log_dir}/trace"
+
   # Set tracing env
   if [ "${tracing}" -gt "${TRACING_DEACTIVATED}" ]; then
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
+    export EXTRAE_HOME=${EXTRAE_HOME}
+    export EXTRAE_CONFIG_FILE=${extraeFile}
+    export EXTRAE_USE_POSIX_CLOCK=0
+
+    # Where the intermediate trace files will be stored during the execution of the application
+    export EXTRAE_DIR=${extraeWDir}
+    # Where the intermediate trace files will be stored once the execution has been finished.
+    export EXTRAE_FINAL_DIR=${extraeWDir}
   fi
 }
 
@@ -107,6 +117,7 @@ append_tracing_jvm_options_to_file() {
   local jvm_options_file=${1}
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.tracing=${tracing}
+-Dcompss.extrae.working_dir=${extraeWDir}
 -Dcompss.tracing.task.dependencies=${tracing_task_dependencies}
 -Dcompss.trace.label=${trace_label}
 -Dcompss.extrae.file=${custom_extrae_config_file}
@@ -118,11 +129,7 @@ EOT
 # STARTS TRACING ENGINE
 #----------------------------------------------
 start_tracing() {
-  if [ "${tracing}" -gt "${TRACING_DEACTIVATED}" ]; then
-    export EXTRAE_HOME=${EXTRAE_HOME}
-    export EXTRAE_CONFIG_FILE=${extraeFile}
-    export EXTRAE_USE_POSIX_CLOCK=0
-    
+  if [ "${tracing}" -gt "${TRACING_DEACTIVATED}" ]; then   
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
     if [ "${lang}" == "python" ]; then
       export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}

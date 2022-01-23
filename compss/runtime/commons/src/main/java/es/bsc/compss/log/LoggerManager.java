@@ -81,7 +81,6 @@ public class LoggerManager {
             LOGGER.debug("LoggerManager already initialized, no need for a second initialization");
             return;
         }
-        System.out.println("Loading LoggerManager");
         loggerAlreadyLoaded = true;
 
         // Gets user execution directory
@@ -118,94 +117,54 @@ public class LoggerManager {
         // Load working directory. Different for regular applications and
         // services
         if (mustCreateExecutionSandbox) {
-            String appName = System.getProperty(COMPSsConstants.APP_NAME);
+            String appName;
             if (System.getProperty(COMPSsConstants.SERVICE_NAME) != null) {
                 /*
                  * SERVICE - Gets appName - Overloads the service folder for different executions - MAX_OVERLOAD raises
                  * warning - Changes working directory to serviceName !!!!
                  */
-                String serviceName = System.getProperty(COMPSsConstants.SERVICE_NAME);
-                int overloadCode = 1;
-                String appLog = LoggerManager.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
-                    + File.separator;
-                String oldest = appLog;
-                while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
-                    // Check oldest file (for overload if needed)
-                    if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
-                        oldest = appLog;
-                    }
-                    // Next step
-                    overloadCode = overloadCode + 1;
-                    if (overloadCode < 10) {
-                        appLog = LoggerManager.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
-                            + File.separator;
-                    } else {
-                        appLog = LoggerManager.compssLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode)
-                            + File.separator;
-                    }
-                }
-                if (overloadCode > MAX_OVERLOAD) {
-                    // Select the last modified folder
-                    appLog = oldest;
-
-                    // Overload
-                    System.err.println(WARN_FOLDER_OVERLOAD);
-                    System.err.println("Overwriting entry: " + appLog);
-
-                    // Clean previous results to avoid collisions
-                    if (!deleteDirectory(new File(appLog))) {
-                        ErrorManager.error(ERROR_APP_OVERLOAD);
-                    }
-                }
-
-                // We have the final appLogDirPath
-                LoggerManager.appLogDirPath = appLog;
-                if (!new File(LoggerManager.appLogDirPath).mkdir()) {
-                    ErrorManager.error(ERROR_APP_LOG_DIR);
-                }
+                appName = System.getProperty(COMPSsConstants.SERVICE_NAME);
             } else {
-                /*
-                 * REGULAR APPLICATION - Gets appName - Overloads the app folder for different executions - MAX_OVERLOAD
-                 * raises warning - Changes working directory to appName !!!!
-                 */
-                int overloadCode = 1;
-                String appLog =
-                    LoggerManager.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
-                String oldest = appLog;
-                while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
-                    // Check oldest file (for overload if needed)
-                    if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
-                        oldest = appLog;
-                    }
-                    // Next step
-                    overloadCode = overloadCode + 1;
-                    if (overloadCode < 10) {
-                        appLog = LoggerManager.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
-                            + File.separator;
-                    } else {
-                        appLog = LoggerManager.compssLogBaseDirPath + appName + "_" + String.valueOf(overloadCode)
-                            + File.separator;
-                    }
-                }
-                if (overloadCode > MAX_OVERLOAD) {
-                    // Select the last modified folder
-                    appLog = oldest;
+                appName = System.getProperty(COMPSsConstants.APP_NAME);
+            }
 
-                    // Overload
-                    System.err.println(WARN_FOLDER_OVERLOAD);
-                    System.err.println("Overwriting entry: " + appLog);
-
-                    // Clean previous results to avoid collisions
-                    if (!deleteDirectory(new File(appLog))) {
-                        ErrorManager.error(ERROR_APP_OVERLOAD);
-                    }
+            int overloadCode = 1;
+            String appLog =
+                LoggerManager.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+            String oldest = appLog;
+            while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
+                // Check oldest file (for overload if needed)
+                if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
+                    oldest = appLog;
                 }
-
-                // We have the final appLogDirPath
-                LoggerManager.appLogDirPath = appLog;
-                if (!new File(LoggerManager.appLogDirPath).mkdir()) {
-                    ErrorManager.error(ERROR_APP_LOG_DIR);
+                // Next step
+                overloadCode = overloadCode + 1;
+                if (overloadCode < 10) {
+                    appLog = LoggerManager.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
+                        + File.separator;
+                } else {
+                    appLog = LoggerManager.compssLogBaseDirPath + appName + "_" + String.valueOf(overloadCode)
+                        + File.separator;
                 }
+            }
+            if (overloadCode > MAX_OVERLOAD) {
+                // Select the last modified folder
+                appLog = oldest;
+
+                // Overload
+                System.err.println(WARN_FOLDER_OVERLOAD);
+                System.err.println("Overwriting entry: " + appLog);
+
+                // Clean previous results to avoid collisions
+                if (!deleteDirectory(new File(appLog))) {
+                    ErrorManager.error(ERROR_APP_OVERLOAD);
+                }
+            }
+
+            // We have the final appLogDirPath
+            LoggerManager.appLogDirPath = appLog;
+            if (!new File(LoggerManager.appLogDirPath).mkdir()) {
+                ErrorManager.error(ERROR_APP_LOG_DIR);
             }
         } else {
             // The option specific_log_dir has been given. NO sandbox created

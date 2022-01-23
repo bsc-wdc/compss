@@ -20,12 +20,10 @@ import static java.lang.Math.abs;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
-import java.io.IOException;
 
 
 public class NIOTracer extends Tracer {
@@ -162,7 +160,6 @@ public class NIOTracer extends Tracer {
      * Generates the tracing package on the worker side.
      */
     public static void generatePackage() {
-        String mode = "package";
         if (DEBUG) {
             LOGGER.debug("[NIOTracer] Generating trace package of " + nodeName);
         }
@@ -176,16 +173,13 @@ public class NIOTracer extends Tracer {
                 // Nothing to do
             }
             Tracer.stopWrapper();
-            mode = "package";
         } else {
             if (Tracer.scorepEnabled()) {
-                mode = "package-scorep";
                 if (DEBUG) {
                     LOGGER.debug("[NIOTracer] Finishing scorep");
                 }
             } else {
                 if (Tracer.mapEnabled()) {
-                    mode = "package-map";
                     if (DEBUG) {
                         LOGGER.debug("[NIOTracer] Finishing map");
                     }
@@ -193,40 +187,7 @@ public class NIOTracer extends Tracer {
             }
         }
 
-        // Generate package
-        if (DEBUG) {
-            LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " " + mode + " "
-                + workingDir + " " + nodeName + " " + hostID);
-        }
-
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, mode, workingDir, nodeName, hostID);
-        pb.environment().remove(LD_PRELOAD);
-        Process p = null;
-        try {
-            p = pb.start();
-        } catch (IOException e) {
-            LOGGER.error("Error generating " + nodeName + " package", e);
-            return;
-        }
-
-        // capture output/error (means 2 more threads to support large outputs (e.g. with dataClay events))
-        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER, false);
-        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER, true);
-        outputGobbler.start();
-        errorGobbler.start();
-        if (DEBUG) {
-            LOGGER.debug("Created globbers");
-        }
-
-        // Wait completion
-        try {
-            int exitCode = p.waitFor();
-            if (exitCode != 0) {
-                LOGGER.error("Error generating " + nodeName + " package, exit code " + exitCode);
-            }
-        } catch (InterruptedException e) {
-            LOGGER.error("Error generating " + nodeName + " package, interruptedException", e);
-        }
+        generatePackage(scriptDir, workingDir, nodeName, hostID);
 
         // End
         LOGGER.debug("Finish generating");

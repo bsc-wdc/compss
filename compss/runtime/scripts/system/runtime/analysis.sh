@@ -10,26 +10,26 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # DEFAULT VALUES
 #----------------------------------------------
 # Available Logger levels
-LOG_LEVEL_TRACE=trace
-LOG_LEVEL_DEBUG=debug
-LOG_LEVEL_INFO=info
-LOG_LEVEL_API=api
-LOG_LEVEL_OFF=off
+LOG_LEVEL_TRACE="trace"
+LOG_LEVEL_DEBUG="debug"
+LOG_LEVEL_INFO="info"
+LOG_LEVEL_API="api"
+LOG_LEVEL_OFF="off"
 
-DEFAULT_LOG_LEVEL=${LOG_LEVEL_OFF}
+DEFAULT_LOG_LEVEL="${LOG_LEVEL_OFF}"
 
 # Enable COMPSs execution summary at the end of the execution
-DEFAULT_SUMMARY=false
+DEFAULT_SUMMARY="false"
 
 # Graph Generation
-DEFAULT_GRAPH=false
+DEFAULT_GRAPH="false"
 
 # Monitoring
-DEFAULT_MONITORING_INTERVAL=0
+DEFAULT_MONITORING_INTERVAL="0"
 
 # External debugger options
-DEFAULT_DEBUGGER=false
-DEFAULT_DEBUGGER_PORT=9999
+DEFAULT_DEBUGGER="false"
+DEFAULT_DEBUGGER_PORT="9999"
 
 #----------------------------------------------
 # ERROR MESSAGES
@@ -48,6 +48,77 @@ check_analysis_env() {
   :
 }
 
+#----------------------------------------------
+# Creating Log directory
+#----------------------------------------------
+create_log_folder() {
+  # specific_log_dir can be empty. If so, specified uses ${base_log_dir}/<application_name>_<overload offset>
+  # base_log_dir can be empty. If so, placing it in user's home folder .COMPSs
+  if [ -n  "${specific_log_dir}" ]; then
+    mkdir -p "${specific_log_dir}"
+  else
+    local final_log_dir
+    if [ -n  "${base_log_dir}" ]; then
+      final_log_dir="${base_log_dir}"
+    else
+      final_log_dir="${HOME}/.COMPSs"
+    fi
+    base_log_dir="${final_log_dir}"
+    mkdir -p "${final_log_dir}"
+
+    if [ ! "${final_log_dir: -1}" == "/" ]; then
+      final_log_dir="${final_log_dir}/"
+    fi
+
+    local folder_creation_exit_code
+    folder_creation_exit_code="-1"
+    while [ ! "${folder_creation_exit_code}" == "0" ]; do
+      local app_folder_name
+      local oldest_date=""
+      local override="true"
+
+      for overload_id in  $(seq 1 99); do
+        local overload_tag
+        if [ "${overload_id}" -gt "9" ]; then
+          overload_tag="_${overload_id}"
+        else
+          overload_tag="_0${overload_id}"
+        fi
+        overload_tag="${appName}${overload_tag}"
+        overload_log_dir="${final_log_dir}${overload_tag}"
+
+
+        if [ -d "${overload_log_dir}" ]; then
+          overload_date=$(stat -c %.9Y "${overload_log_dir}" )
+          overload_date="${overload_date//./}"
+          overload_date="${overload_date//,/}"
+          if [ -z "${oldest_date}" ]; then
+            app_folder_name=${overload_tag}
+            oldest_date=${overload_date}
+          else
+            if [ "${oldest_date}" -gt "${overload_date}" ]; then
+              app_folder_name=${overload_tag}
+              oldest_date=${overload_date}
+            fi
+          fi
+        else
+          app_folder_name=${overload_tag}
+          override="false"
+          break
+        fi
+      done
+
+      if [ "${override}" == "true" ]; then
+        display_warning "${WARN_LOG_OVERRIDE} ${final_log_dir}"
+        rm -rf "${final_log_dir}${app_folder_name}"
+      fi
+
+      specific_log_dir="${final_log_dir}${app_folder_name}"
+      mkdir "${specific_log_dir}"
+      folder_creation_exit_code="${?}"
+    done
+  fi
+}
 
 #----------------------------------------------
 # CHECK ANALYSIS-RELATED SETUP values
@@ -55,32 +126,26 @@ check_analysis_env() {
 check_analysis_setup () {
  
   if [ -z "${log_level}" ]; then
-    log_level=${DEFAULT_LOG_LEVEL}
+    log_level="${DEFAULT_LOG_LEVEL}"
   fi
 
   if [ -z "${summary}" ]; then
-    summary=${DEFAULT_SUMMARY}
+    summary="${DEFAULT_SUMMARY}"
   fi
 
-  if [ -z "$graph" ]; then
-    graph=${DEFAULT_GRAPH}
+  if [ -z "${graph}" ]; then
+    graph="${DEFAULT_GRAPH}"
   fi
 
-  # base_log_dir can be empty. Placement according to Runtime decision (currently, user's home folder)
-  # specific_log_dir can be empty. If not specified uses base log dir
-
-  # If specific_log_dir is provided, ensure it exists
-  if [ -n "${specific_log_dir}" ]; then
-    mkdir -p "${specific_log_dir}"
-  fi
+  create_log_folder
 
   if [ -z "$monitoring" ]; then
-    monitoring=${DEFAULT_MONITORING_INTERVAL}
+    monitoring="${DEFAULT_MONITORING_INTERVAL}"
   else
     # If monitor has been activated trigger final graph generation and log_level = at least info
-    graph=${DEFAULT_GRAPH_ARGUMENT}
+    graph="${DEFAULT_GRAPH_ARGUMENT}"
     if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ] || [ "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
-       log_level=${LOG_LEVEL_INFO}
+       log_level="${LOG_LEVEL_INFO}"
     fi
   fi
 
@@ -97,12 +162,12 @@ check_analysis_setup () {
 
   # External debugger
   if [ -z "$external_debugger" ]; then
-    external_debugger=${DEFAULT_DEBUGGER}
+    external_debugger="${DEFAULT_DEBUGGER}"
   fi
 
   if [ "${external_debugger}" == "true" ]; then
     if [ -z "${external_debugger_port}" ]; then
-      external_debugger_port=${DEFAULT_DEBUGGER_PORT}
+      external_debugger_port="${DEFAULT_DEBUGGER_PORT}"
     fi
   fi
 

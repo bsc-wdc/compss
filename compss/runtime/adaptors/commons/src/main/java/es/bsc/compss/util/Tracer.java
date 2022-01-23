@@ -23,29 +23,20 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.types.PrvHeader;
-import es.bsc.compss.util.types.PrvLine;
-import es.bsc.compss.util.types.RowFile;
+import es.bsc.compss.util.tracing.TraceScript;
 import es.bsc.compss.util.types.ThreadTranslator;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,16 +47,14 @@ public abstract class Tracer {
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+
     private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
     private static final String ERROR_MASTER_PACKAGE_FILEPATH =
         "Cannot locate master tracing package " + "on working directory";
 
     // Tracing script and file paths
     private static final String MASTER_TRACE_FILE = "master_compss_trace.tar.gz";
-    private static final String RUNTIME = "Runtime";
     protected static final String TRACE_PATH = File.separator + "trace" + File.separator;
-    protected static final String TRACE_SCRIPT_PATH =
-        File.separator + RUNTIME + File.separator + "scripts" + File.separator + "system" + TRACE_PATH + "trace.sh";
     protected static final String TRACE_OUT_RELATIVE_PATH = TRACE_PATH + "tracer.out";
     protected static final String TRACE_ERR_RELATIVE_PATH = TRACE_PATH + "tracer.err";
     public static final String TRACE_SUBDIR = "trace";
@@ -90,108 +79,21 @@ public abstract class Tracer {
     public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
     public static final String EXTRAE_USE_POSIX_CLOCK = "EXTRAE_USE_POSIX_CLOCK";
 
-    // Description tags for Paraver
-    private static final String TASK_DESC = "Task";
-    private static final String API_DESC = "API";
-    private static final String RUNTIME_DESC = RUNTIME;
-    private static final String TASKID_DESC = "Task IDs";
-    private static final String DATA_TRANSFERS_DESC = "Data Transfers";
-    private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
-    private static final String STORAGE_DESC = "Storage API";
-    private static final String AGENT_EVENTS_TYPE_DESC = "Agents events";
-    private static final String BINDING_INSIDE_TASK_DESC = "Binding events inside tasks";
-    private static final String BINDING_INSIDE_TASK_CPU_AFFINITY_DESC = "Binding Tasks CPU affinity";
-    private static final String BINDING_INSIDE_TASKS_CPU_COUNT_DESC = "Binding Tasks CPU count";
-    private static final String BINDING_INSIDE_TASK_GPU_AFFINITY_DESC = "Binding Tasks GPU affinity";
-    private static final String BINDING_TASKS_FUNC_DESC = "Binding Tasks at master";
-    private static final String BINDING_MASTER_DESC = "Binding master events";
-    private static final String BINDING_INSIDE_WORKER_DESC = "Binding events inside worker";
-    private static final String BINDING_SERIALIZATION_SIZE_DESC = "Binding serialization size events";
-    private static final String BINDING_DESERIALIZATION_SIZE_DESC = "Binding deserialization size events";
-    private static final String BINDING_SERIALIZATION_CACHE_SIZE_DESC = "Binding serialization cache size events";
-    private static final String BINDING_DESERIALIZATION_CACHE_SIZE_DESC = "Binding deserialization cache size events";
-    private static final String BINDING_SERIALIZATION_OBJECT_NUM = "Binding serialization object number";
-    private static final String BINDING_DESERIALIZATION_OBJECT_NUM = "Binding deserialization object number";
-    private static final String TASKTYPE_DESC = "Type of task";
-    private static final String READY_COUNT_DESC = "Ready queue count";
-    private static final String TASK_CPU_AFFINITY_DESC = "Tasks CPU affinity";
-    private static final String TASK_GPU_AFFINITY_DESC = "Tasks GPU affinity";
-    private static final String CPU_COUNT_DESC = "Number of requested CPUs";
-    private static final String GPU_COUNT_DESC = "Number of requested GPUs";
-    private static final String MEMORY_DESC = "Requested Memory";
-    private static final String DISK_BW_DESC = "Requested disk bandwidth";
-    private static final String RUNTIME_THREAD_EVENTS_DESC = "Thread type identifier";
-    private static final String EXECUTOR_COUNTS_DESC = "Executor threads count";
-
-    // Event codes
-    protected static final int TASKS_FUNC_TYPE = 8_000_000;
-    protected static final int API_EVENTS = 8_001_001;
-    protected static final int RUNTIME_EVENTS = 8_001_002;
-    protected static final int THREAD_IDENTIFICATION_EVENTS = 8_001_003; // Identifies the thread as AP, TD, executor...
-    protected static final int EXECUTOR_COUNTS = 8_001_004; // Marks the life and end of an executor thread
-    protected static final int TASKS_ID_TYPE = 8_000_002;
-    protected static final int TASK_TRANSFERS = 8_000_003;
-    protected static final int DATA_TRANSFERS = 8_000_004;
-    protected static final int STORAGE_TYPE = 8_000_005;
-    protected static final int READY_COUNTS = 8_000_006;
-    protected static final int TASKTYPE_EVENTS = 8_000_007;
-    protected static final int CPU_COUNTS = 8_000_008;
-    protected static final int GPU_COUNTS = 8_000_009;
-    protected static final int MEMORY = 8_000_010;
-    protected static final int DISK_BW = 8_000_011;
-    protected static final int SYNC_TYPE = 8_000_666;
-    protected static final int TASKS_CPU_AFFINITY_TYPE = 8_000_150; // Java assignment
-    protected static final int TASKS_GPU_AFFINITY_TYPE = 8_000_160; // Java assignment
-    protected static final int AGENT_EVENTS_TYPE = 8_006_000;
-    // PYTHON RELATED EVENT GROUPS
-    protected static final int BINDING_TASKS_FUNC_TYPE = 9_000_000; // tasks emitted from master
-    protected static final int BINDING_INSIDE_TASKS_TYPE = 9_000_100;
-    protected static final int BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE = 9_000_150;
-    protected static final int BINDING_INSIDE_TASKS_CPU_COUNT_TYPE = 9_000_151;
-    protected static final int BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE = 9_000_160;
-    protected static final int BINDING_INSIDE_WORKER_TYPE = 9_000_200;
-    protected static final int BINDING_MASTER_TYPE = 9_000_300;
-    protected static final int BINDING_SERIALIZATION_SIZE_TYPE = 9_000_600;
-    protected static final int BINDING_DESERIALIZATION_SIZE_TYPE = 9_000_601;
-    protected static final int BINDING_SERIALIZATION_CACHE_SIZE_TYPE = 9_000_602;
-    protected static final int BINDING_DESERIALIZATION_CACHE_SIZE_TYPE = 9_000_603;
-    protected static final int BINDING_SERIALIZATION_OBJECT_NUM_TYPE = 9_000_700;
-    protected static final int BINDING_DESERIALIZATION_OBJECT_NUM_TYPE = 9_000_701;
-
     public static final int EVENT_END = 0;
 
     // Tracing modes
+    public static final int ADVANCED_MODE = 2;
     public static final int BASIC_MODE = 1;
+    public static final int DISABLED = 0;
     public static final int SCOREP_MODE = -1;
     public static final int MAP_MODE = -2;
+    protected static int tracingLevel = DISABLED;
 
-    protected static int tracingLevel = 0;
+    private static String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
     protected static boolean tracingTaskDependencies;
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
-
-    // Globally defined thread identification numbers with their labels, needed for
-    // Paraver label updating
-    // Pairs where key is the id and value the label
-    public static final int AP_ID = 2;
-    public static final int TD_ID = 3;
-    public static final int FS_LOW_ID = 4;
-    public static final int FS_HIGH_ID = 5;
-    public static final int TIMER_ID = 6;
-    public static final int WALLCLOCK_ID = 7;
-    public static final int EXECUTOR_ID = 8; // executor must be bigger than any runtime id
-    public static final String appThread = "1:1:1";
-    public static final String APThread = "1:1:2";
-    public static final String TDThread = "1:1:3";
-    public static final String workerMainEnding = "1:1";
-    public static final String LastNumberFSThread = "2";
-    public static final String LastNumberTimerId = "4";
-
-    public static final String RUNTIME_ID = "1";
-    public static final String NON_RUNTIME_ID = "2";
-
-    public static final Pattern INSIDE_PARENTHESIS_PATTERN = Pattern.compile("\\(.+\\)");
 
     public static boolean tracerAlreadyLoaded = false;
 
@@ -238,12 +140,14 @@ public abstract class Tracer {
 
         if (Tracer.extraeEnabled()) {
             setUpWrapper(0, 1);
-        } else if (DEBUG) {
-            if (Tracer.scorepEnabled()) {
-                LOGGER.debug("Initializing scorep.");
-            } else {
-                if (Tracer.mapEnabled()) {
-                    LOGGER.debug("Initializing arm-map.");
+        } else {
+            if (DEBUG) {
+                if (Tracer.scorepEnabled()) {
+                    LOGGER.debug("Initializing scorep.");
+                } else {
+                    if (Tracer.mapEnabled()) {
+                        LOGGER.debug("Initializing arm-map.");
+                    }
                 }
             }
         }
@@ -420,79 +324,83 @@ public abstract class Tracer {
     }
 
     public static int getRuntimeEventsType() {
-        return RUNTIME_EVENTS;
+        return TraceEventType.RUNTIME.code;
     }
 
     public static int getSyncType() {
-        return SYNC_TYPE;
+        return TraceEventType.SYNC.code;
     }
 
     public static int getTaskTransfersType() {
-        return TASK_TRANSFERS;
+        return TraceEventType.TASK_TRANSFERS.code;
     }
 
     public static int getDataTransfersType() {
-        return DATA_TRANSFERS;
+        return TraceEventType.DATA_TRANSFERS.code;
     }
 
     public static int getTaskEventsType() {
-        return TASKS_FUNC_TYPE;
+        return TraceEventType.TASKS_FUNC.code;
     }
 
     public static int getTaskSchedulingType() {
-        return TASKS_ID_TYPE;
+        return TraceEventType.TASKS_ID.code;
     }
 
     public static int getInsideTasksEventsType() {
-        return BINDING_INSIDE_TASKS_TYPE;
+        return TraceEventType.BINDING_INSIDE_TASKS.code;
     }
 
     public static int getTasksCPUAffinityEventsType() {
-        return TASKS_CPU_AFFINITY_TYPE;
+        return TraceEventType.TASKS_CPU_AFFINITY.code;
     }
 
     public static int getTasksGPUAffinityEventsType() {
-        return TASKS_GPU_AFFINITY_TYPE;
+        return TraceEventType.TASKS_GPU_AFFINITY.code;
     }
 
     public static int getInsideTasksCPUAffinityEventsType() {
-        return BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE;
+        return TraceEventType.BINDING_INSIDE_TASKS_CPU_AFFINITY.code;
     }
 
     public static int getInsideTasksGPUAffinityEventsType() {
-        return BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE;
+        return TraceEventType.BINDING_INSIDE_TASKS_GPU_AFFINITY.code;
     }
 
     public static int getBindingInsideWorkerEventsType() {
-        return BINDING_INSIDE_WORKER_TYPE;
+        return TraceEventType.BINDING_INSIDE_WORKER.code;
     }
 
     public static int getBindingMasterEventsType() {
-        return BINDING_MASTER_TYPE;
+        return TraceEventType.BINDING_MASTER.code;
     }
 
     public static int getTaskTypeEventsType() {
-        return TASKTYPE_EVENTS;
+        return TraceEventType.TASKTYPE.code;
     }
 
     public static int getCPUCountEventsType() {
-        return CPU_COUNTS;
+        return TraceEventType.CPU_COUNTS.code;
     }
 
     public static int getGPUCountEventsType() {
-        return GPU_COUNTS;
+        return TraceEventType.GPU_COUNTS.code;
     }
 
     public static int getReadyCountEventsType() {
-        return READY_COUNTS;
+        return TraceEventType.READY_COUNTS.code;
     }
 
     public static int getMemoryEventsType() {
-        return MEMORY;
+        return TraceEventType.MEMORY.code;
     }
 
     public static int getDiskBWEventsType() {
-        return DISK_BW;
+        return TraceEventType.DISK_BW.code;
+    }
+
+    public static int getThreadIdEventsType() {
+        return TraceEventType.THREAD_IDENTIFICATION.code;
     }
 
     public static TraceEvent getAcessProcessorRequestEvent(String eventType) {
@@ -541,6 +449,21 @@ public abstract class Tracer {
     /**
      * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
      *
+     * @param event event being emitted
+     */
+    public static void emitEvent(TraceEvent event) {
+        synchronized (Tracer.class) {
+            Wrapper.Event(event.getId(), event.getType());
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Emitting synchronized event [type, id] = [" + event.getId() + " , " + event.getType() + "]");
+        }
+    }
+
+    /**
+     * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     *
      * @param eventID ID of the event
      * @param eventType type of the event.
      */
@@ -569,6 +492,21 @@ public abstract class Tracer {
         if (DEBUG) {
             LOGGER.debug(
                 "Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
+        }
+    }
+
+    /**
+     * Emits the end of an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     *
+     * @param event event being emitted
+     */
+    public static void emitEventEnd(TraceEvent event) {
+        synchronized (Tracer.class) {
+            Wrapper.Event(EVENT_END, event.getType());
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Emitting synchronized event [type, id] = [" + EVENT_END + " , " + event.getType() + "]");
         }
     }
 
@@ -609,16 +547,18 @@ public abstract class Tracer {
 
                 Tracer.stopWrapper();
 
-                generateMasterPackage("package");
+                generateMasterPackage();
                 transferMasterPackage();
-                generateTrace("gentrace");
+                generateTrace();
                 if (basicModeEnabled()) {
-                    updateThreads();
+                    sortTrace();
                 }
                 cleanMasterPackage();
-            } else if (scorepEnabled()) {
-                // No master ScoreP trace - only Python Workers
-                generateTrace("gentrace-scorep");
+            } else {
+                if (scorepEnabled()) {
+                    // No master ScoreP trace - only Python Workers
+                    generateTrace();
+                }
             }
         }
     }
@@ -627,7 +567,7 @@ public abstract class Tracer {
      * Updates the threads in .prv and .row classifying them in runtime or non runtime and assigning the corresponding
      * labels
      */
-    private static void updateThreads() {
+    private static void sortTrace() {
         String disable = System.getProperty(COMPSsConstants.DISABLE_CUSTOM_THREADS_TRACING);
         if (disable != null) {
             LOGGER.debug("Custom thread translation disabled");
@@ -650,9 +590,9 @@ public abstract class Tracer {
             if (rowFileArray != null && rowFileArray.length > 0) {
                 File rowFile = rowFileArray[0];
                 File prvFile = prvFileArray[0];
-                ThreadTranslator thTranslator = createThreadTranslations(prvFile);
-                writeTranslatedPrvThreads(prvFile, thTranslator);
-                updateRowLabels(rowFile, thTranslator.getRowLabels());
+                ThreadTranslator thTranslator = new ThreadTranslator(prvFile);
+                thTranslator.translatePrvFile(prvFile);
+                thTranslator.translateRowFile(rowFile);
             }
         } catch (Exception e) {
             LOGGER.debug(e);
@@ -660,73 +600,6 @@ public abstract class Tracer {
             ErrorManager.error("Could not update thread labels " + traceDirPath, e);
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Reads the .prv and creates a map from the old thread identifier to a new one based on
-     * THREAD_IDENTIFICATION_EVENTS
-     */
-    public static ThreadTranslator createThreadTranslations(File prvFile) throws Exception {
-        final BufferedReader br = new BufferedReader(new FileReader(prvFile));
-        final String threadIdEvent = Integer.toString(THREAD_IDENTIFICATION_EVENTS);
-        final ThreadTranslator thTranslator = new ThreadTranslator();
-        br.readLine(); // we don't need the header right now
-        String line;
-        // the isEmpty check should not be necessary if the .prv files are well constructed
-        while ((line = br.readLine()) != null && !line.isEmpty()) {
-            PrvLine prvLine = new PrvLine(line);
-            String oldThreadId = prvLine.getStateLineThreadIdentifier();
-            Map<String, String> events = prvLine.getEvents();
-            String identifierEventValue = events.get(threadIdEvent);
-            thTranslator.addThread(oldThreadId, identifierEventValue);
-        }
-        br.close();
-        return thTranslator;
-    }
-
-    /**
-     * Updates the threads in .prv with the information from translations.
-     * 
-     * @throws Exception Exception reading or parsing the files
-     */
-    public static void writeTranslatedPrvThreads(File prvFile, ThreadTranslator thThranslator) throws Exception {
-        Map<String, String> translations = thThranslator.createThreadTranslationMap();
-        LOGGER.debug("Tracing: Updating thread identifiers in .prv file");
-        final String oldFilePath = prvFile.getAbsolutePath();
-        final String newFilePath = oldFilePath + "_tmp_updatedThreadsId";
-        final File updatedPrvFile = new File(newFilePath);
-        if (!updatedPrvFile.exists()) {
-            updatedPrvFile.createNewFile();
-        }
-        final BufferedReader br = new BufferedReader(new FileReader(prvFile));
-        final PrintWriter prvWriter = new PrintWriter(new FileWriter(updatedPrvFile.getAbsolutePath(), true));
-        PrvHeader header = new PrvHeader(br.readLine());
-        // Needed in the case of the runcompss, won't do anything in agents
-        header.transformNodesToAplications();
-        header.splitRuntimeExecutors(thThranslator.createRuntimeThreadNumberPerApp());
-        prvWriter.println(header.toString());
-        String line;
-        // the isEmpty check should not be necessary if the .prv files are well constructed
-        while ((line = br.readLine()) != null && !line.isEmpty()) {
-            PrvLine prvLine = new PrvLine(line);
-            prvLine.translateLineThreads(translations);
-            prvWriter.println(prvLine.toString());
-        }
-
-        br.close();
-        prvWriter.close();
-        updatedPrvFile.renameTo(new File(oldFilePath));
-    }
-
-    /**
-     * Updates in the .row the threads changed in the .prv and apply the corresponding labels from LABEL_TRANSLATIONS.
-     * 
-     * @throws Exception Exception reading or parsing the files
-     */
-    public static void updateRowLabels(File rf, List<String> labels) throws IOException {
-        RowFile rowFile = new RowFile(rf);
-        rowFile.updateRowLabels(labels);
-        rowFile.printInfo(rf);
     }
 
     /**
@@ -745,16 +618,6 @@ public abstract class Tracer {
         }
     }
 
-    private static List<TraceEvent> getEventsByType(int eventsType) {
-        LinkedList<TraceEvent> eventsList = new LinkedList<>();
-        for (TraceEvent traceEvent : TraceEvent.values()) {
-            if (traceEvent.getType() == eventsType) {
-                eventsList.add(traceEvent);
-            }
-        }
-        return eventsList;
-    }
-
     /**
      * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
      *
@@ -764,49 +627,25 @@ public abstract class Tracer {
         if (DEBUG) {
             LOGGER.debug("SignatureToId size: " + runtimeEvents.size());
         }
-        defineEventsForType(API_EVENTS, API_DESC);
-        defineEventsForType(RUNTIME_EVENTS, RUNTIME_DESC);
-        defineEventsForFunctions(TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
-        // defineEventsForFunctions(BINDING_TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
-        defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
-        defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
-        defineEventsForType(TASKS_CPU_AFFINITY_TYPE, TASK_CPU_AFFINITY_DESC);
-        defineEventsForType(TASKS_GPU_AFFINITY_TYPE, TASK_GPU_AFFINITY_DESC);
-        defineEventsForType(BINDING_TASKS_FUNC_TYPE, BINDING_TASKS_FUNC_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_TYPE, BINDING_INSIDE_TASK_DESC);
-        defineEventsForType(AGENT_EVENTS_TYPE, AGENT_EVENTS_TYPE_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_CPU_AFFINITY_TYPE, BINDING_INSIDE_TASK_CPU_AFFINITY_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_CPU_COUNT_TYPE, BINDING_INSIDE_TASKS_CPU_COUNT_DESC);
-        defineEventsForType(BINDING_INSIDE_TASKS_GPU_AFFINITY_TYPE, BINDING_INSIDE_TASK_GPU_AFFINITY_DESC);
-        defineEventsForType(BINDING_INSIDE_WORKER_TYPE, BINDING_INSIDE_WORKER_DESC);
-        defineEventsForType(BINDING_MASTER_TYPE, BINDING_MASTER_DESC);
-        defineEventsForType(THREAD_IDENTIFICATION_EVENTS, RUNTIME_THREAD_EVENTS_DESC);
-        defineEventsForType(EXECUTOR_COUNTS, EXECUTOR_COUNTS_DESC);
-        defineEventsForType(BINDING_SERIALIZATION_SIZE_TYPE, BINDING_SERIALIZATION_SIZE_DESC);
-        defineEventsForType(BINDING_DESERIALIZATION_SIZE_TYPE, BINDING_DESERIALIZATION_SIZE_DESC);
-        defineEventsForType(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, BINDING_SERIALIZATION_CACHE_SIZE_DESC);
-        defineEventsForType(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, BINDING_DESERIALIZATION_CACHE_SIZE_DESC);
-        defineEventsForType(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, BINDING_SERIALIZATION_OBJECT_NUM);
-        defineEventsForType(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE, BINDING_DESERIALIZATION_OBJECT_NUM);
 
-        defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
-        // Definition of Scheduling and Transfer time events
-        Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, new long[0], new String[0]);
-        // Definition of Data transfers
-        Wrapper.defineEventType(DATA_TRANSFERS, DATA_TRANSFERS_DESC, new long[0], new String[0]);
-        // Definition of Ready Counts
-        defineEventsForType(READY_COUNTS, READY_COUNT_DESC);
-        // Definition of CPU Counts
-        Wrapper.defineEventType(CPU_COUNTS, CPU_COUNT_DESC, new long[0], new String[0]);
-        // Definition of GPU Counts
-        Wrapper.defineEventType(GPU_COUNTS, GPU_COUNT_DESC, new long[0], new String[0]);
-        // Definition of Memory
-        Wrapper.defineEventType(MEMORY, MEMORY_DESC, new long[0], new String[0]);
-        // Definition of Disk BW
-        Wrapper.defineEventType(DISK_BW, DISK_BW_DESC, new long[0], new String[0]);
+        for (TraceEventType type : TraceEventType.values()) {
+            switch (type) {
+                case TASKS_FUNC:
+                    defineEventsForFunctions(type, runtimeEvents);
+                    break;
+                case BINDING_TASKS_FUNC:
+                    // defineEventsForFunctions(type, runtimeEvents);
+                    break;
+                case TASKTYPE:
+                    defineEventsForTaskType(type, MethodType.values());
+                    break;
+                default:
+                    defineEventsForType(type);
+            }
+        }
     }
 
-    private static void defineEventsForTaskType(int tasktypeEvents, String tasktypeDesc, MethodType[] types) {
+    private static void defineEventsForTaskType(TraceEventType type, MethodType[] types) {
         int size = types.length + 1;
         long[] values = new long[size];
         String[] descriptionValues = new String[size];
@@ -818,12 +657,11 @@ public abstract class Tracer {
             descriptionValues[i] = tp.name();
             ++i;
         }
-        Wrapper.defineEventType(tasktypeEvents, tasktypeDesc, values, descriptionValues);
+        Wrapper.defineEventType(type.code, type.desc, values, descriptionValues);
 
     }
 
-    private static void defineEventsForFunctions(int tasksFuncType, String taskDesc,
-        Map<String, Integer> runtimeEvents) {
+    private static void defineEventsForFunctions(TraceEventType type, Map<String, Integer> runtimeEvents) {
         int size = runtimeEvents.entrySet().size() + 1;
         long[] values = new long[size];
         String[] descriptionValues = new String[size];
@@ -849,69 +687,68 @@ public abstract class Tracer {
             i++;
         }
 
-        Wrapper.defineEventType(tasksFuncType, taskDesc, values, descriptionValues);
+        Wrapper.defineEventType(type.code, type.desc, values, descriptionValues);
     }
 
-    private static void defineEventsForType(int eventsType, String eventsDesc) {
-        List<TraceEvent> events = getEventsByType(eventsType);
-        // defined API events (plus the 0 which is the end task always).
-        int size = events.size() + 1;
-        long[] values = new long[size];
-        String[] descriptionValues = new String[size];
+    private static void defineEventsForType(TraceEventType type) {
+        boolean endable = type.endable;
+        List<TraceEvent> events = TraceEvent.getByType(type);
 
-        values[0] = 0;
-        descriptionValues[0] = "End";
-        int i = 1;
-        for (TraceEvent event : events) {
-            values[i] = event.getId();
-            descriptionValues[i] = event.getSignature();
-            if (DEBUG) {
-                LOGGER.debug("Tracing[API]: Type " + eventsType + " Event " + i + "=> value: " + values[i] + ", Desc: "
-                    + descriptionValues[i]);
-            }
-            ++i;
+        long[] values;
+        String[] descriptions;
+        int size = events.size();
+        int offset = 0;
+        if (endable) {
+            values = new long[size + 1];
+            values[0] = 0;
+            descriptions = new String[size + 1];
+            descriptions[0] = "End";
+            offset = 1;
+        } else {
+            values = new long[size];
+            descriptions = new String[size];
         }
-        Wrapper.defineEventType(eventsType, eventsDesc, values, descriptionValues);
-
+        for (TraceEvent event : events) {
+            values[offset] = event.getId();
+            descriptions[offset] = event.getSignature();
+            if (DEBUG) {
+                LOGGER.debug("Tracing[API]: Type " + type.code + " Event " + offset + "=> value: " + values[offset]
+                    + ", Desc: " + descriptions[offset]);
+            }
+            offset++;
+        }
+        Wrapper.defineEventType(type.code, type.desc, values, descriptions);
     }
 
     /**
-     * Generate the tracing package for the master. The mode parameter enables to use different packaging methods. The
-     * currently supported modes are: "package" --------> for Extrae "package-scorep" -> for ScoreP "package-map" ---->
-     * for Map
-     *
-     * @param mode of the packaging (see trace.sh)
+     * Generate the tracing package for the master.
      */
-    private static void generateMasterPackage(String mode) {
+    private static void generateMasterPackage() {
         if (DEBUG) {
-            LOGGER.debug("Tracing: generating master package: " + mode);
+            LOGGER.debug("Tracing: generating master package");
         }
+        generatePackage(installDir, ".", "master", "0");
+    }
 
-        String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
-        ProcessBuilder pb = new ProcessBuilder(script, mode, ".", "master");
-        pb.environment().remove(LD_PRELOAD);
-        Process p;
+    protected static void generatePackage(String installDir, String workingDir, String nodeName, String hostId) {
         try {
-            p = pb.start();
-        } catch (IOException e) {
-            ErrorManager.warn("Error generating master package", e);
-            return;
-        }
-
-        if (DEBUG) {
-            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER, false);
-            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER, true);
-            outputGobbler.start();
-            errorGobbler.start();
-        }
-
-        try {
-            int exitCode = p.waitFor();
-            if (exitCode != 0) {
-                ErrorManager.warn("Error generating master package, exit code " + exitCode);
+            int exitCode = 0;
+            switch (tracingLevel) {
+                case ADVANCED_MODE:
+                case BASIC_MODE:
+                    exitCode = TraceScript.package_extrae(installDir, workingDir, nodeName, hostId);
+                    break;
+                default: // DISABLED, SCOREP and ARM-MAP
+                    // Do nothing
             }
+            if (exitCode != 0) {
+                ErrorManager.warn("Error generating " + nodeName + " package, exit code " + exitCode);
+            }
+        } catch (IOException e) {
+            ErrorManager.warn("Error generating " + nodeName + " package", e);
+
         } catch (InterruptedException e) {
-            ErrorManager.warn("Error generating master package (interruptedException)", e);
+            ErrorManager.warn("Error generating " + nodeName + " package (interruptedException)", e);
             Thread.currentThread().interrupt();
         }
     }
@@ -944,16 +781,11 @@ public abstract class Tracer {
         }
     }
 
-    /**
-     * Generate the final extrae tracefile with all transferred packages.
-     *
-     * @param mode of the trace generation (see trace.sh)
-     */
-    private static void generateTrace(String mode) {
+    private static void generateTrace() {
         if (DEBUG) {
-            LOGGER.debug("Tracing: Generating trace with mode " + mode);
+            LOGGER.debug("Tracing: Generating trace");
         }
-        String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
+
         String traceName = "";
         String appName = System.getProperty(COMPSsConstants.APP_NAME);
         String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
@@ -970,35 +802,35 @@ public abstract class Tracer {
             }
         }
 
-        ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName,
-            String.valueOf(hostToSlots.size() + 1));
-        Process p;
-        pb.environment().remove(LD_PRELOAD);
+        int exitCode = 0;
         try {
-            p = pb.start();
+            switch (tracingLevel) {
+                case ADVANCED_MODE:
+                case BASIC_MODE:
+                    exitCode = TraceScript.gentrace_extrae(installDir, System.getProperty(COMPSsConstants.APP_LOG_DIR),
+                        traceName, String.valueOf(hostToSlots.size() + 1));
+                    break;
+                case SCOREP_MODE:
+                    exitCode = TraceScript.gentrace_scorep(installDir, System.getProperty(COMPSsConstants.APP_LOG_DIR),
+                        traceName, String.valueOf(hostToSlots.size() + 1));
+                    break;
+                default: // DISABLEDand ARM-MAP
+                    // Do nothing
+            }
+            if (exitCode != 0) {
+                ErrorManager.warn("Error generating trace, exit code " + exitCode);
+                return;
+            }
         } catch (IOException e) {
             ErrorManager.warn("Error generating trace", e);
             return;
-        }
-
-        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER, false);
-        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER, true);
-        outputGobbler.start();
-        errorGobbler.start();
-
-        int exitCode = 0;
-        try {
-            exitCode = p.waitFor();
-            if (exitCode != 0) {
-                ErrorManager.warn("Error generating trace, exit code " + exitCode);
-            }
         } catch (InterruptedException e) {
             ErrorManager.warn("Error generating trace (interruptedException)", e);
-            Thread.currentThread().interrupt();
+            return;
         }
 
         String lang = System.getProperty(COMPSsConstants.LANG);
-        if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
+        if (lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
                 String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
                 PythonTraceMerger t = new PythonTraceMerger(appLogDir);

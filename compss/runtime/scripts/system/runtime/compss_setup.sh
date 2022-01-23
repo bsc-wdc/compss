@@ -65,6 +65,7 @@ AGENT_ERROR="Error running the agent"
 JAVA_HOME_ERROR="ERROR: Cannot find Java JRE installation. Please set JAVA_HOME."
 RUNTIME_ERROR="Error running application"
 TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
+LD_LIBRARY_PATH_NOT_SET_WARN="LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
 
 ###############################################
 ###############################################
@@ -76,22 +77,22 @@ TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
 #----------------------------------------------
 check_compss_env() {
   # JAVA HOME
-  if [[ -z "$JAVA_HOME" ]]; then
-    JAVA=java
-  elif [ -f "$JAVA_HOME"/jre/bin/java ]; then
-    JAVA=$JAVA_HOME/jre/bin/java
-  elif [ -f "$JAVA_HOME"/bin/java ]; then
-    JAVA=$JAVA_HOME/bin/java
+  if [[ -z "${JAVA_HOME}" ]]; then
+    JAVA="java"
+  elif [ -f "${JAVA_HOME}/jre/bin/java" ]; then
+    JAVA="${JAVA_HOME}/jre/bin/java"
+  elif [ -f "${JAVA_HOME}/bin/java" ]; then
+    JAVA="${JAVA_HOME}/bin/java"
   else
     fatal_error "${JAVA_HOME_ERROR}" 1
   fi
 
   # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
-  if [ -z "$LD_LIBRARY_PATH" ]; then
+  if [ -z "${LD_LIBRARY_PATH}" ]; then
      # shellcheck disable=SC2153
-     if [ -n "$LIBRARY_PATH" ]; then
+     if [ -n "${LIBRARY_PATH}" ]; then
          export LD_LIBRARY_PATH=$LIBRARY_PATH
-         display_info "LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
+         display_warning "${LD_LIBRARY_PATH_NOT_SET_WARN}"
      fi
   fi
 
@@ -104,9 +105,9 @@ check_compss_env() {
   check_bindings_env
   # AutoParallel environment
   if [ -z "${PLUTO_HOME}" ]; then
-    PLUTO_HOME=${COMPSS_HOME}/Dependencies/pluto/
-    export PLUTO_HOME=${PLUTO_HOME}
-    export PATH=${PLUTO_HOME}/bin:${PATH}
+    PLUTO_HOME="${COMPSS_HOME}/Dependencies/pluto/"
+    export PLUTO_HOME="${PLUTO_HOME}"
+    export PATH="${PLUTO_HOME}/bin:${PATH}"
   fi
   check_stream_env
   check_storage_env
@@ -120,6 +121,7 @@ check_compss_env() {
 # CHECK COMPSS-RELATED SETUP values
 #----------------------------------------------
 check_compss_setup () {
+  appName=$(basename "${fullAppPath}")
   if [ -z "${uuid}" ]; then
     get_uuid
   fi
@@ -129,16 +131,16 @@ check_compss_setup () {
     jvm_master_opts=${DEFAULT_JVM_MASTER}
   fi
   # Change jvm master opts separation character "," by " "
-  jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
+  jvm_master_opts=$(echo "${jvm_master_opts}" | tr "," "\\n")
 
   # Application Dir
   if [ -z "$appdir" ]; then
-    appdir=$DEFAULT_APPDIR
+    appdir="${DEFAULT_APPDIR}"
   fi
 
   # Classpath
-  if [ -z "$cp" ]; then
-    cp=${DEFAULT_CLASSPATH}
+  if [ -z "${cp}" ]; then
+    cp="${DEFAULT_CLASSPATH}"
     for jar in "${DEFAULT_CLASSPATH}"/*.jar; do
        cp=$cp:$jar
     done
@@ -148,10 +150,10 @@ check_compss_setup () {
     cp="${fcp}"
     display_info "Relative Classpath resolved: $cp"
   fi
-  export CLASSPATH=${cp}:${CLASSPATH}
+  export CLASSPATH="${cp}:${CLASSPATH}"
 
   # Library Path
-  if [ -z "$library_path" ]; then
+  if [ -z "${library_path}" ]; then
     library_path=${DEFAULT_LIBRARY_PATH}
   fi
   if [ -z "${LD_LIBRARY_PATH}" ]; then
@@ -161,24 +163,24 @@ check_compss_setup () {
   fi
 
   # Python Path
-  if [ -z "$pythonpath" ]; then
-    pythonpath=${DEFAULT_PYTHONPATH}
+  if [ -z "${pythonpath}" ]; then
+    pythonpath="${DEFAULT_PYTHONPATH}"
   else
     # Adds execution dir by default to pythonpath
-    pythonpath=$pythonpath":${DEFAULT_PYTHONPATH}"
+    pythonpath="${pythonpath}:${DEFAULT_PYTHONPATH}"
   fi
   if [ -z "${PYTHONPATH}" ]; then
-    export PYTHONPATH=${pythonpath}
+    export PYTHONPATH="${pythonpath}"
   else
-    export PYTHONPATH=${pythonpath}:${PYTHONPATH}
+    export PYTHONPATH="${pythonpath}:${PYTHONPATH}"
   fi
 
   if [ -z "${agent_config}" ]; then
-    agent_config=${DEFAULT_AGENT_CONFIG}
+    agent_config="${DEFAULT_AGENT_CONFIG}"
   fi
   
   if [ -z "${wall_clock_limit}" ]; then
-    wall_clock_limit=${DEFAULT_WALL_CLOCK_LIMIT}
+    wall_clock_limit="${DEFAULT_WALL_CLOCK_LIMIT}"
   fi
 
   check_analysis_setup
@@ -236,7 +238,7 @@ EOT
 
 
 prepare_coverage() {
-    jacoco_master_expression=$(echo ${jacoco_agent_expression} | tr "#" "," | tr "@" ",")
+    jacoco_master_expression=$(echo "${jacoco_agent_expression}" | tr "#" "," | tr "@" ",")
     if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];then 
 	    jvm_master_opts="-javaagent:${jacoco_master_expression}"
     else 
@@ -245,28 +247,28 @@ prepare_coverage() {
 	   else
 		   jvm_master_opts+=",-javaagent:"
 		   jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
-		   jvm_master_opts+=${jacoco_master_expression}
+		   jvm_master_opts+="${jacoco_master_expression}"
 	   fi
     fi
 
     #Adding worker jacoco agent in jvm options
     IFS='#'
     aux=$jacoco_agent_expression
-    read -ra ADDR <<< ${aux}
+    read -ra ADDR <<< "${aux}"
     location=${ADDR[0]}
     options=${ADDR[1]}
     IFS='/'
-    read -ra ADDR <<< ${ADDR[0]}
+    read -ra ADDR <<< "${ADDR[0]}"
     IFS=''
     p=0
-    text=${ADDR[-1]}
+    text="${ADDR[-1]}"
     ADDR[-1]="${ADDR[-1]:0:p}"workerffff"${ADDR[-1]:p}"
     for i in "${ADDR[@]}"; do
         final+="${i}/"
     done
     final=${final%?}
     IFS=','
-    read -ra ADDR <<< ${aux}
+    read -ra ADDR <<< "${aux}"
     IFS=' '
     ADDR[0]=${final}
     for i in "${ADDR[@]}"; do
@@ -289,15 +291,15 @@ prepare_coverage() {
     fi
 
     #Adding coverage for python
-    destfile=${location}
+    destfile="${location}"
     IFS='='
-    read -ra ADDR <<< ${location}
+    read -ra ADDR <<< "${location}"
     IFS=' '
     IFS='.'
-    read -ra ADDR <<< ${ADDR[2]}
+    read -ra ADDR <<< "${ADDR[2]}"
     IFS=' '
     final=""
-    final=$(echo ${ADDR[0]} | rev | cut -d"/" -f2- | rev)
+    final=$(echo "${ADDR[0]}" | rev | cut -d"/" -f2- | rev)
     #echo "[run]" > /tmp/coverage_rc
     #echo "parallel=true" >> /tmp/coverage_rc
     #echo "data_file=${final}/coverage" >> /tmp/coverage_rc
@@ -310,7 +312,7 @@ prepare_coverage() {
 #----------------------------------------------
 prepare_runtime_environment() {
   # Create tmp dir for initial loggers configuration
-  mkdir -p /tmp/"$uuid"
+  mkdir -p "/tmp/$uuid"
 
 
   #Coverage Mode logic
@@ -364,7 +366,7 @@ EOT
 
 append_wall_clock_jvm_options_to_file() {
   # Add Application-specific options
-  if [ ${lang} = python ]; then
+  if [ "${lang}" == "python" ]; then
   	cat >> "${jvm_options_file}" << EOT
 -Dcompss.wcl=0
 EOT
@@ -397,7 +399,7 @@ clean_runtime_environment() {
   rm -f "${jvm_options_file}"
 
   # Remove folder with initial loggers
-  rm -rf /tmp/"$uuid"
+  rm -rf "/tmp/$uuid"
 }
 
 
@@ -408,8 +410,8 @@ clean_runtime_environment() {
 start_compss_agent() {
 
   # Go to specific_log_dir for extrae's wrapper to generate temporal tracefiles in different directories for each agent (needed for concurrent execution on the same machine)
-  if [ -n ${specific_log_dir} ]; then
-    cd ${specific_log_dir}
+  if [ -n "${specific_log_dir}" ]; then
+    cd "${specific_log_dir}"
   fi
 
   # Prepare COMPSs Runtime + Bindings environment
@@ -434,8 +436,6 @@ start_compss_agent() {
 }
 
 start_compss_app() {
-  appName=$(basename "${fullAppPath}")
-
   # Prepare COMPSs Runtime + Bindings environment
   prepare_runtime_environment
 
@@ -449,11 +449,11 @@ start_compss_app() {
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
  # Launch application execution
-  if [ ${lang} = java ]; then
+  if [ "${lang}" == "java" ]; then
     exec_java
-  elif [ ${lang} = c ]; then
+  elif [ "${lang}" == "c" ]; then
     exec_c
-  elif [ ${lang} = python ]; then
+  elif [ "${lang}" == "python" ]; then
     exec_python
   fi
 
@@ -484,10 +484,10 @@ exec_java() {
 exec_c() {
   # Export needed variables
   if [ -d "${COMPSS_HOME}/Bindings/c" ]; then
-    local CPP_COMPSS_HOME=${COMPSS_HOME}/Bindings/c
-    export CPP_PATH=${CPP_COMPSS_HOME}:$cp
+    local CPP_COMPSS_HOME="${COMPSS_HOME}/Bindings/c"
+    export CPP_PATH="${CPP_COMPSS_HOME}:${cp}"
   else
-    export CPP_PATH=$cp
+    export CPP_PATH=${cp}
   fi
 
   cat >> "${jvm_options_file}" << EOT
@@ -495,9 +495,9 @@ exec_c() {
 EOT
 
   # Launch application
-  echo "JVM_OPTIONS_FILE: $JVM_OPTIONS_FILE"
-  echo "COMPSS_HOME: $COMPSS_HOME"
-  echo "Args: $application_args"
+  echo "JVM_OPTIONS_FILE: ${JVM_OPTIONS_FILE}"
+  echo "COMPSS_HOME: ${COMPSS_HOME}"
+  echo "Args: ${application_args}"
   echo " "
 
   start_tracing
@@ -512,19 +512,19 @@ EOT
 }
 
 exec_python() {
-  PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python/${python_version}
+  PYCOMPSS_HOME="${COMPSS_HOME}/Bindings/python/${python_version}"
   export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
   #CHANGED TO SUPPORT coverage#run as command
-  python_interpreter=$(echo $python_interpreter | tr "#" " ")
+  python_interpreter=$(echo "${python_interpreter}" | tr "#" " ")
 
   # Initialize python flags
   if [ "${coverage}" != "true" ]; then
-    if [ "$log_level" != "debug" ] && [ "$log_level" != "trace" ] ; then
+    if [ "${log_level}" != "debug" ] && [ "${log_level}" != "trace" ] ; then
       py_flags="-u -O"
     else
       py_flags="-u"
     fi
-    if [ "$python_memory_profile" == "true" ]; then
+    if [ "${python_memory_profile}" == "true" ]; then
       py_flags="${py_flags} -m mprof run --multiprocess --include-children"
     fi
   fi
@@ -532,7 +532,7 @@ exec_python() {
   # Launch application
   start_tracing
   # shellcheck disable=SC2086
-  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${wall_clock_limit} ${log_level} ${tracing} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
+  ${python_interpreter} ${py_flags} "${PYCOMPSS_HOME}/pycompss/runtime/launch.py" ${wall_clock_limit} ${log_level} ${tracing} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
   endCode=$?
   stop_tracing
 

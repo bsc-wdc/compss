@@ -21,6 +21,7 @@ import es.bsc.compss.gat.master.utils.GATScriptExecutor;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.tracing.TraceScript;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -69,7 +70,7 @@ public class GATTracer extends Tracer {
         SoftwareDescription sd = new SoftwareDescription();
         String uriString = ProtocolType.ANY_URI.getSchema() + user + worker.getHost();
         sd.addAttribute("uri", uriString);
-        sd.setExecutable(worker.getInstallDir() + Tracer.TRACE_SCRIPT_PATH);
+        sd.setExecutable(worker.getInstallDir() + TraceScript.RELATIVE_PATH);
         sd.setArguments(new String[] { "init",
             worker.getWorkingDir(),
             String.valueOf(hostId),
@@ -179,8 +180,8 @@ public class GATTracer extends Tracer {
         }
 
         try {
-            traceScripts.add(new URI(
-                ProtocolType.ANY_URI.getSchema() + user + host + File.separator + installDir + TRACE_SCRIPT_PATH));
+            traceScripts.add(new URI(ProtocolType.ANY_URI.getSchema() + user + host + File.separator + installDir
+                + TraceScript.RELATIVE_PATH));
         } catch (URISyntaxException e) {
             LOGGER.error("Error deleting tracing host", e);
             return false;

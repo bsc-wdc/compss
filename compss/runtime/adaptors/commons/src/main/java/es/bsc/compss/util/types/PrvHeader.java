@@ -17,12 +17,12 @@
 package es.bsc.compss.util.types;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,6 +32,7 @@ public class PrvHeader {
 
     // Splits the string on ":" not contained inside parenthesis
     private static final String SPLIT_HEADER_REGEX = ":\\s*(?![^()]*\\))";
+    public static final Pattern INSIDE_PARENTHESIS_PATTERN = Pattern.compile("\\(.+\\)");
 
     // Paraver trace header follows the following format
     // #Paraver (dd/mm/yy at hh:mm):traceTime:nNodes(nCpus1,nCpus2n...nCpusN):nAppl:applicationList
@@ -95,7 +96,7 @@ public class PrvHeader {
     }
 
     private String getInsideParenthresis(String block) {
-        Matcher numThreadMatcher = Tracer.INSIDE_PARENTHESIS_PATTERN.matcher(block);
+        Matcher numThreadMatcher = INSIDE_PARENTHESIS_PATTERN.matcher(block);
         numThreadMatcher.find();
         String inside = numThreadMatcher.group(0);
         inside = inside.substring(1, inside.length() - 1);

@@ -103,6 +103,7 @@ public class COMPSsConstants {
     public static final String TRACING = "compss.tracing";
     public static final String TRACING_TASK_DEPENDENCIES = "compss.tracing.task.dependencies";
     public static final String TRACE_LABEL = "compss.trace.label";
+    public static final String EXTRAE_WORKING_DIR = "compss.extrae.working_dir";
     public static final String EXTRAE_CONFIG_FILE = "compss.extrae.file";
     public static final String PRESCHED = "compss.presched";
     public static final String GRAPH = "compss.graph";

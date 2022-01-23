@@ -17,7 +17,8 @@
 package es.bsc.compss.util.types;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.tracing.ThreadIdentifier;
+import es.bsc.compss.util.tracing.Threads;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,9 +53,9 @@ public class PrvLine {
     /**
      * Creates a PrvHeader with the parsed data from the string.
      * 
-     * @throws Exception Exception parsing the line
+     * @param line line to parse
      */
-    public PrvLine(String line) throws Exception {
+    public PrvLine(String line) {
         this.values = line.split(":");
     }
 
@@ -62,58 +63,57 @@ public class PrvLine {
         this.values[STATE_MACHINE_POS] = s;
     }
 
-    public String getStateLineThreadIdentifier() {
-        return values[STATE_MACHINE_POS] + ":" + values[STATE_RUNTIME_EXECUTOR_POS] + ":"
-            + values[STATE_THREAD_NUMBER_POS];
+    /**
+     * Parses the thread identifier of a state line.
+     * 
+     * @return the thread identifier of a state line.
+     */
+    public ThreadIdentifier getStateLineThreadIdentifier() {
+        String machine = values[STATE_MACHINE_POS];
+        String task = values[STATE_RUNTIME_EXECUTOR_POS];
+        String thread = values[STATE_THREAD_NUMBER_POS];
+        return new ThreadIdentifier(machine, task, thread);
     }
 
     /**
      * Sets values corresponding to the thread identifier with the values in the string separated by ":".
      */
-    private void setStateLineThreadIdentifier(String s) throws Exception {
-        String[] threadId = s.split(":");
-        if (threadId.length != 3) {
-            throw new Exception("Malformed thread identifier (wrong number of parts): " + s);
-        }
-        values[STATE_MACHINE_POS] = threadId[0];
-        values[STATE_RUNTIME_EXECUTOR_POS] = threadId[1];
-        values[STATE_THREAD_NUMBER_POS] = threadId[2];
+    private void setStateLineThreadIdentifier(ThreadIdentifier id) {
+        values[STATE_MACHINE_POS] = id.getApp();
+        values[STATE_RUNTIME_EXECUTOR_POS] = id.getTask();
+        values[STATE_THREAD_NUMBER_POS] = id.getThread();
     }
 
-    private String getComSenderThreadIdentifier() {
-        return values[COM_SEND_MACHINE_POS] + ":" + values[COM_SEND_RUNTIME_EXECUTOR_POS] + ":"
-            + values[COM_SEND_THREAD_NUMBER_POS];
-    }
-
-    /**
-     * Sets values corresponding to the thread identifier with the values in the string separated by ":".
-     */
-    private void setComSenderThreadIdentifier(String s) throws Exception {
-        String[] threadId = s.split(":");
-        if (threadId.length != 3) {
-            throw new Exception("Malformed thread identifier (wrong number of parts): " + s);
-        }
-        values[COM_SEND_MACHINE_POS] = threadId[0];
-        values[COM_SEND_RUNTIME_EXECUTOR_POS] = threadId[1];
-        values[COM_SEND_THREAD_NUMBER_POS] = threadId[2];
-    }
-
-    private String getComRecivThreadIdentifier() {
-        return values[COM_RECIV_MACHINE_POS] + ":" + values[COM_RECIV_RUNTIME_EXECUTOR_POS] + ":"
-            + values[COM_RECIV_THREAD_NUMBER_POS];
+    private ThreadIdentifier getComSenderThreadIdentifier() {
+        String machine = values[COM_SEND_MACHINE_POS];
+        String task = values[COM_SEND_RUNTIME_EXECUTOR_POS];
+        String thread = values[COM_SEND_THREAD_NUMBER_POS];
+        return new ThreadIdentifier(machine, task, thread);
     }
 
     /**
      * Sets values corresponding to the thread identifier with the values in the string separated by ":".
      */
-    private void setComRecivThreadIdentifier(String s) throws Exception {
-        String[] threadId = s.split(":");
-        if (threadId.length != 3) {
-            throw new Exception("Malformed thread identifier (wrong number of parts): " + s);
-        }
-        values[COM_RECIV_MACHINE_POS] = threadId[0];
-        values[COM_RECIV_RUNTIME_EXECUTOR_POS] = threadId[1];
-        values[COM_RECIV_THREAD_NUMBER_POS] = threadId[2];
+    private void setComSenderThreadIdentifier(ThreadIdentifier id) {
+        values[COM_SEND_MACHINE_POS] = id.getApp();
+        values[COM_SEND_RUNTIME_EXECUTOR_POS] = id.getTask();
+        values[COM_SEND_THREAD_NUMBER_POS] = id.getThread();
+    }
+
+    private ThreadIdentifier getComRecivThreadIdentifier() {
+        String machine = values[COM_RECIV_MACHINE_POS];
+        String task = values[COM_RECIV_RUNTIME_EXECUTOR_POS];
+        String thread = values[COM_RECIV_THREAD_NUMBER_POS];
+        return new ThreadIdentifier(machine, task, thread);
+    }
+
+    /**
+     * Sets values corresponding to the thread identifier with the values in the string separated by ":".
+     */
+    private void setComRecivThreadIdentifier(ThreadIdentifier id) throws Exception {
+        values[COM_RECIV_MACHINE_POS] = id.getApp();
+        values[COM_RECIV_RUNTIME_EXECUTOR_POS] = id.getTask();
+        values[COM_RECIV_THREAD_NUMBER_POS] = id.getThread();
     }
 
     /**
@@ -152,16 +152,6 @@ public class PrvLine {
         }
     }
 
-    /**
-     * Returns a thread id with the node id in the position of the machine id.
-     */
-    public static String moveNodeIdToFirstPosition(String threadId) {
-        String[] thValues = threadId.split(":");
-        thValues[COM_SEND_MACHINE_POS - 2] = thValues[COM_SEND_RUNTIME_EXECUTOR_POS - 2];
-        thValues[COM_SEND_RUNTIME_EXECUTOR_POS - 2] = "1";
-        return String.join(":", thValues);
-    }
-
     public String toString() {
         return String.join(":", values);
     }
@@ -169,20 +159,20 @@ public class PrvLine {
     /**
      * Translates de thread identifiers in the line acording to translations.
      */
-    public void translateLineThreads(Map<String, String> translations) throws Exception {
+    public void translateLineThreads(Map<ThreadIdentifier, ThreadIdentifier> translations) throws Exception {
         if (!"3".equals(this.values[0])) {
             // the line is an state change event
-            String oldThreadId = this.getStateLineThreadIdentifier();
+            ThreadIdentifier oldThreadId = this.getStateLineThreadIdentifier();
             if (translations.containsKey(oldThreadId)) {
                 this.setStateLineThreadIdentifier(translations.get(oldThreadId));
             }
         } else {
             // line is a comunication
-            String senderThreadId = this.getComSenderThreadIdentifier();
+            ThreadIdentifier senderThreadId = this.getComSenderThreadIdentifier();
             if (translations.containsKey(senderThreadId)) {
                 this.setComSenderThreadIdentifier(translations.get(senderThreadId));
             }
-            String recivThreadId = this.getComRecivThreadIdentifier();
+            ThreadIdentifier recivThreadId = this.getComRecivThreadIdentifier();
             if (translations.containsKey(recivThreadId)) {
                 this.setComRecivThreadIdentifier(translations.get(recivThreadId));
             }
@@ -214,34 +204,6 @@ public class PrvLine {
         int typeA = new Integer(this.values[EVENT_TYPE]);
         int typeB = new Integer(otherLine.values[EVENT_TYPE]);
         return typeA <= typeB;
-    }
-
-    /**
-     * Returns the number of the machine of a threadId.
-     */
-    public static String getNodeId(String threadId) {
-        String[] threadValues = threadId.split(":");
-        // - 2 because it's only the threadId not the whole line
-        return threadValues[STATE_RUNTIME_EXECUTOR_POS - 2];
-    }
-
-    /**
-     * Returns the thread id with n as the thread identifier number.
-     */
-    public static String changeThreadNumber(String threadId, int n) {
-        String[] threadValues = threadId.split(":");
-        return threadValues[0] + ":" + threadValues[1] + ":" + Integer.toString(n);
-    }
-
-    /**
-     * Returns the thread id classified as runtime when b or as executor when !b.
-     */
-    public static String changeRuntimeNumber(String threadId, boolean b) {
-        String[] threadValues = threadId.split(":");
-        if (b) {
-            return threadValues[0] + ":" + Tracer.RUNTIME_ID + ":" + threadValues[2];
-        }
-        return threadValues[0] + ":" + Tracer.NON_RUNTIME_ID + ":" + threadValues[2];
     }
 
 }

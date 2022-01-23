@@ -18,6 +18,15 @@ package es.bsc.compss.util.types;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.tracing.ThreadIdentifier;
+import es.bsc.compss.util.tracing.Threads;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,156 +43,215 @@ import org.apache.logging.log4j.Logger;
 /**
  * Stores the threads information with addThread and creates the maps needed to translate the threads in both the .prv
  * and .row files.
- * 
+ *
  * @throws Exception Exception parsing the line
  */
 public class ThreadTranslator {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
+
+    private static final String THREAD_ID_EVENT_TYPE = Integer.toString(Tracer.getThreadIdEventsType());
+
     // machineRuntimeIdentifiers returns for each machineId a map from a threadIdEvent to the thread
-    private List<Map<Integer, String>> machineRuntimeIdentifiers = new ArrayList<Map<Integer, String>>();
-    private List<Set<String>> machineThreads = new ArrayList<Set<String>>();
-    private List<Set<String>> machineExecutors = new ArrayList<Set<String>>();
-    private List<Set<String>> translatedMachineUnknowns = new ArrayList<Set<String>>();
-    public Map<String, String> threadTranslations;
+    private final List<Machine> machines = new ArrayList<>();
+    public Map<ThreadIdentifier, ThreadIdentifier> threadTranslations;
 
 
     public ThreadTranslator() {
     }
 
     /**
-     * Processes the thread information.
+     * Constructs a new ThreadTranslator and sets up the mappings with the content of a prv file.
+     * 
+     * @param prvFile prv file to parse
+     * @throws FileNotFoundException prvFile doesn't exist
+     * @throws IOException error raised during prv file reading
      */
-    public void addThread(String threadId, String threadTypeIdString) {
-        int machineId = Integer.parseInt(PrvLine.getNodeId(threadId));
-        while (machineThreads.size() < (machineId)) {
-            machineThreads.add(new HashSet<String>());
-            machineExecutors.add(new HashSet<String>());
-            translatedMachineUnknowns.add(new HashSet<String>());
-            machineRuntimeIdentifiers.add(new HashMap<Integer, String>());
+    public ThreadTranslator(File prvFile) throws FileNotFoundException, IOException {
+        this();
+        parsePrvFile(prvFile);
+    }
+
+    /**
+     * Parses the prv file and to set up the translation mappings.
+     * 
+     * @param prvFile PRV file to parse.
+     * @throws FileNotFoundException prvFile doesn't exist
+     * @throws IOException error raised during prv file reading
+     */
+    public final void parsePrvFile(File prvFile) throws FileNotFoundException, IOException {
+        try (BufferedReader br = new BufferedReader(new FileReader(prvFile))) {
+            br.readLine(); // we don't need the header right now
+            String line;
+            // the isEmpty check should not be necessary if the .prv files are well constructed
+            while ((line = br.readLine()) != null && !line.isEmpty()) {
+                PrvLine prvLine = new PrvLine(line);
+                ThreadIdentifier threadId = prvLine.getStateLineThreadIdentifier();
+
+                Map<String, String> events = prvLine.getEvents();
+                String identifierEventValue = events.get(THREAD_ID_EVENT_TYPE);
+
+                registerThread(threadId, identifierEventValue);
+            }
+        } // we don't need the header right now
+        computeTranslationMap();
+    }
+
+    /**
+     * Updates the threads in .prv with the information from translations.
+     *
+     * @param prvFile prv file to update
+     * @throws FileNotFoundException prvFile doesn't exist
+     * @throws IOException error raised during prv file reading or new file writing
+     * @throws Exception PRV line has a wrong format
+     */
+    public void translatePrvFile(File prvFile) throws FileNotFoundException, IOException, Exception {
+        LOGGER.debug("Tracing: Updating thread identifiers in .prv file");
+        final String oldFilePath = prvFile.getAbsolutePath();
+        final String newFilePath = oldFilePath + "_tmp_updatedThreadsId";
+        final File updatedPrvFile = new File(newFilePath);
+        if (!updatedPrvFile.exists()) {
+            updatedPrvFile.createNewFile();
         }
-        machineThreads.get(machineId - 1).add(threadId);
+        final PrintWriter prvWriter;
+        try (BufferedReader br = new BufferedReader(new FileReader(prvFile))) {
+            prvWriter = new PrintWriter(new FileWriter(updatedPrvFile.getAbsolutePath(), true));
+            PrvHeader header = new PrvHeader(br.readLine());
+            // Needed in the case of the runcompss, won't do anything in agents
+            header.transformNodesToAplications();
+            header.splitRuntimeExecutors(createRuntimeThreadNumberPerApp());
+            prvWriter.println(header.toString());
+            String line;
+            // the isEmpty check should not be necessary if the .prv files are well constructed
+            while ((line = br.readLine()) != null && !line.isEmpty()) {
+                PrvLine prvLine = new PrvLine(line);
+                prvLine.translateLineThreads(this.threadTranslations);
+                prvWriter.println(prvLine.toString());
+            }
+        }
+        prvWriter.close();
+        updatedPrvFile.renameTo(new File(oldFilePath));
+    }
+
+    /**
+     * Updates a row file according to the translator setup.
+     *
+     * @param rowFile Row file to update
+     * @throws IOException error arised writing new row file
+     * @throws Exception could not update the row file
+     */
+    public final void translateRowFile(File rowFile) throws IOException, Exception {
+        List<String> labels = getRowLabels();
+        RowFile rFile = new RowFile(rowFile);
+        rFile.updateRowLabels(labels);
+        rFile.printInfo(rowFile);
+    }
+
+    private void registerThread(ThreadIdentifier threadId, String threadTypeIdString) {
+        int machineId = Integer.parseInt(threadId.getTask());
+        while (machines.size() < machineId) {
+            machines.add(new Machine());
+        }
+        Machine machine = machines.get(machineId - 1);
+        machine.addThread(threadId);
         if (threadTypeIdString != null) {
             Integer threadTypeId = new Integer(threadTypeIdString);
-            if (threadTypeId == Tracer.EXECUTOR_ID) {
-                machineExecutors.get(machineId - 1).add(threadId);
-            } else if (threadTypeId != 0) { // != end event
-                machineRuntimeIdentifiers.get(machineId - 1).put(threadTypeId, threadId);
+            if (threadTypeId == Threads.EXEC.id) {
+                machine.addExecutor(threadId);
+            } else {
+                if (threadTypeId != 0) { // != end event
+                    machine.putRuntimeIdentifier(threadTypeId, threadId);
+                }
             }
         }
     }
 
-    /**
-     * Returns the maps needed to translate the threads of the .prv based on the information received with addThread().
-     */
-    public Map<String, String> createThreadTranslationMap() {
+    private void computeTranslationMap() {
 
-        threadTranslations = new HashMap<String, String>();
-        for (int i = 0; i < machineRuntimeIdentifiers.size(); i++) {
+        threadTranslations = new HashMap<>();
+        for (int i = 0; i < machines.size(); i++) {
             // for thread 1.X.1 -> X.1.1, main thread has no event and thus is not by addThread()
-            String iString = Integer.toString(i + 1);
-            threadTranslations.put("1:" + iString + ":1", iString + ":1:1");
-            Map<Integer, String> runtimeIdentifiers = machineRuntimeIdentifiers.get(i);
-            Set<String> runtimeList = machineThreads.get(i);
-            Set<String> executorList = machineExecutors.get(i);
-            Set<String> translatedUnknownList = translatedMachineUnknowns.get(i);
+            String machineId = Integer.toString(i + 1);
+            ThreadIdentifier oldMainId = new ThreadIdentifier("1", machineId, "1");
+            ThreadIdentifier newMainId = computeNewThreadId(oldMainId, Threads.ExtraeTaskType.RUNTIME, 1);
+            threadTranslations.put(oldMainId, newMainId);
+
+            Machine m = machines.get(i);
+            Map<Integer, ThreadIdentifier> runtimeIdentifiers = m.getRuntimeIdentifiers();
+            Set<ThreadIdentifier> translatedUnknownList = m.getTranslatedMachineUnknowns();
             int runtimeThreadsNum = 2;
-            for (int ident = 0; ident < Tracer.EXECUTOR_ID; ident++) {
+            for (int ident = 0; ident < Threads.EXEC.id; ident++) {
                 if (runtimeIdentifiers.containsKey(ident)) {
-                    String oldThread = runtimeIdentifiers.get(ident);
-                    String newThread = PrvLine.changeThreadNumber(oldThread, runtimeThreadsNum++);
-                    newThread = PrvLine.moveNodeIdToFirstPosition(newThread);
-                    newThread = PrvLine.changeRuntimeNumber(newThread, true);
+                    ThreadIdentifier oldThread = runtimeIdentifiers.get(ident);
+                    int threadId = runtimeThreadsNum++;
+                    Threads.ExtraeTaskType task = Threads.ExtraeTaskType.RUNTIME;
+                    ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
                     threadTranslations.put(oldThread, newThread);
                 }
             }
             int executorsNum = 1;
-            for (String oldThread : executorList) {
-                String newThread = PrvLine.changeThreadNumber(oldThread, executorsNum++);
-                newThread = PrvLine.moveNodeIdToFirstPosition(newThread);
-                newThread = PrvLine.changeRuntimeNumber(newThread, false);
+            for (ThreadIdentifier oldThread : m.getExecutors()) {
+                int threadId = executorsNum++;
+                Threads.ExtraeTaskType task = Threads.ExtraeTaskType.EXECUTOR;
+                ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
                 threadTranslations.put(oldThread, newThread);
             }
-            for (String oldThread : runtimeList) {
+            for (ThreadIdentifier oldThread : m.getThreads()) {
                 if (!threadTranslations.containsKey(oldThread)) {
-                    String newThread = PrvLine.changeThreadNumber(oldThread, runtimeThreadsNum++);
-                    newThread = PrvLine.moveNodeIdToFirstPosition(newThread);
-                    newThread = PrvLine.changeRuntimeNumber(newThread, true);
+                    int threadId = runtimeThreadsNum++;
+                    Threads.ExtraeTaskType task = Threads.ExtraeTaskType.RUNTIME;
+                    ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
                     translatedUnknownList.add(newThread);
                     threadTranslations.put(oldThread, newThread);
                 }
             }
         }
-        return threadTranslations;
+    }
+
+    private static ThreadIdentifier computeNewThreadId(ThreadIdentifier id, Threads.ExtraeTaskType type, int threadId) {
+        String thread = Integer.toString(threadId++);
+        String task = type.getLabel();
+        String app = id.getTask();
+        return new ThreadIdentifier(app, task, thread);
     }
 
     private String createLabel(String threadId, int identifierEvent) {
-        String label;
-        switch (identifierEvent) {
-            case Tracer.AP_ID:
-                label = "RUNTIME AP";
-                break;
-            case Tracer.TD_ID:
-                label = "RUNTIME TD";
-                break;
-            case Tracer.FS_LOW_ID:
-                label = "RUNTIME FS L";
-                break;
-            case Tracer.FS_HIGH_ID:
-                label = "RUNTIME FS H";
-                break;
-            case Tracer.TIMER_ID:
-                label = "RUNTIME TIMER";
-                break;
-            case Tracer.WALLCLOCK_ID:
-                label = "RUNTIME WALLCLOCK";
-                break;
-            case Tracer.EXECUTOR_ID:
-                label = "EXECUTOR";
-                break;
-
-            default:
-                label = "";
-                break;
-        }
+        String label = Threads.getLabelByID(identifierEvent);
         return label + " (" + threadId + ")";
     }
 
     /**
      * Returns the maps needed to translate the threads of the .row based on the information received with addThread().
-     * 
+     *
      * @throws Exception createThreadTranslationMap() not called before
      */
-    public List<String> getRowLabels() throws Exception {
-        if (this.threadTranslations == null) {
-            throw new Exception(
-                "createThreadTranslationMap() must be created before invocking createLabelTranslationMap()");
-        }
-        List<String> labels = new ArrayList<String>();
+    private List<String> getRowLabels() throws Exception {
+        List<String> labels = new ArrayList<>();
         labels.add("MAIN APP (1.1.1)");
-        for (int i = 1; i < machineRuntimeIdentifiers.size(); i++) {
+        for (int i = 1; i < machines.size(); i++) {
             String iString = Integer.toString(i + 1);
             labels.add("WORKER MAIN (" + iString + ".1.1)");
         }
 
-        for (Map<Integer, String> runtimeIdentifiers : machineRuntimeIdentifiers) {
-            for (Entry<Integer, String> identifier : runtimeIdentifiers.entrySet()) {
+        for (Machine m : machines) {
+            for (Entry<Integer, ThreadIdentifier> identifier : m.getRuntimeIdentifiers().entrySet()) {
                 int eventIdentifier = identifier.getKey();
-                String newThreadId = threadTranslations.get(identifier.getValue()).replace(":", ".");
+                String oldLabel = threadTranslations.get(identifier.getValue()).toString();
+                String newThreadId = oldLabel.replace(":", ".");
                 String newLabel = createLabel(newThreadId, eventIdentifier);
                 labels.add(newLabel);
             }
-        }
-        for (Set<String> executorIdentifiers : machineExecutors) {
-            for (String exec : executorIdentifiers) {
-                String newThreadId = threadTranslations.get(exec).replace(":", ".");
-                String newLabel = createLabel(newThreadId, Tracer.EXECUTOR_ID);
+            for (ThreadIdentifier exec : m.getExecutors()) {
+                ThreadIdentifier newThread = threadTranslations.get(exec);
+                String oldLabel = newThread.toString();
+                String newThreadId = oldLabel.replace(":", ".");
+                String newLabel = createLabel(newThreadId, Threads.EXEC.id);
                 labels.add(newLabel);
             }
-        }
-        for (Set<String> unknownIdentifiers : translatedMachineUnknowns) {
-            for (String unkn : unknownIdentifiers) {
-                labels.add("THREAD " + unkn.replace(":", "."));
+            for (ThreadIdentifier unkn : m.getTranslatedMachineUnknowns()) {
+                ThreadIdentifier newThread = threadTranslations.get(unkn);
+                String oldLabel = newThread.toString();
+                labels.add("THREAD " + oldLabel.replace(":", "."));
             }
         }
         return labels;
@@ -192,11 +260,66 @@ public class ThreadTranslator {
     /**
      * Returns the number of runtime threads that each app should have.
      */
-    public int[] createRuntimeThreadNumberPerApp() {
-        int[] result = new int[machineRuntimeIdentifiers.size()];
+    private int[] createRuntimeThreadNumberPerApp() {
+        int[] result = new int[machines.size()];
         for (int i = 0; i < result.length; i++) {
-            result[i] = machineThreads.get(i).size() - machineExecutors.get(i).size();
+            Machine machine = machines.get(i);
+            result[i] = machine.getNumThreads() - machine.getNumExecutors();
         }
         return result;
+    }
+
+
+    private static class Machine {
+
+        private Map<Integer, ThreadIdentifier> runtimeIdentifiers;
+        private Set<ThreadIdentifier> threads;
+        private Set<ThreadIdentifier> executors;
+        private Set<ThreadIdentifier> translatedMachineUnknowns;
+
+
+        public Machine() {
+            threads = new HashSet<>();
+            executors = new HashSet<>();
+            translatedMachineUnknowns = new HashSet<>();
+            runtimeIdentifiers = new HashMap<>();
+        }
+
+        private void addThread(ThreadIdentifier threadId) {
+            threads.add(threadId);
+        }
+
+        private Set<ThreadIdentifier> getThreads() {
+            return this.threads;
+        }
+
+        private int getNumThreads() {
+            return this.threads.size();
+        }
+
+        private void addExecutor(ThreadIdentifier threadId) {
+            this.executors.add(threadId);
+        }
+
+        private Set<ThreadIdentifier> getExecutors() {
+            return this.executors;
+        }
+
+        private int getNumExecutors() {
+            return this.executors.size();
+        }
+
+        private void putRuntimeIdentifier(Integer threadTypeId, ThreadIdentifier threadId) {
+            runtimeIdentifiers.put(threadTypeId, threadId);
+        }
+
+        private Map<Integer, ThreadIdentifier> getRuntimeIdentifiers() {
+            return this.runtimeIdentifiers;
+        }
+
+        private Set<ThreadIdentifier> getTranslatedMachineUnknowns() {
+            return this.translatedMachineUnknowns;
+        }
+
     }
 }

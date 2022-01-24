@@ -5,11 +5,7 @@
 #---------------------------------------------------
 SHARED_DISK_NAME="shared_disk"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-generate_resources() {
-  source "${SCRIPT_DIR}"/../xmls/generate_resources.sh
-  echo "[XML] Generating project at ${PROJECT_FILE}"
-}
+source "${SCRIPT_DIR}/../commons/logger.sh"
 
 ###############################################
 # Identifies other agents which it may interact

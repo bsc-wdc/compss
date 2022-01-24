@@ -1,11 +1,12 @@
 import sys
 import argparse
+import subprocess
 
 from pycompss_cli.core.docker.arguments import docker_init_parser
 from pycompss_cli.core.local.arguments import local_init_parser
 from pycompss_cli.core.remote.arguments import cluster_init_parser, cluster_parser_job, cluster_parser_app
 
-FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
+FORMATTER_CLASS = argparse.RawTextHelpFormatter
 
 def parse_sys_argv():
     """ Parses the sys.argv.
@@ -77,7 +78,7 @@ def parse_sys_argv():
                                        formatter_class=FORMATTER_CLASS)
     parser_run.set_defaults(action='run')
 
-
+    parser_run.epilog = subprocess.check_output('runcompss -h', shell=True).decode()
     # parser_run.add_argument("-eid", "--env_id",
     #                          default="",
     #                          type=str,
@@ -246,7 +247,6 @@ def parse_sys_argv():
 
     # Check if the user does not include any argument
     if len(sys.argv) < 2:
-        #  Show the usage
         print(parser.print_help())
         sys.exit(1)
 

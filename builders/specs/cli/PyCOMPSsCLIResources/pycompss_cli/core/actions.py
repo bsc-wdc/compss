@@ -82,6 +82,11 @@ class Actions(ABC):
             self.arguments.func()
             exit(0)
 
+    def job_submit(self):
+        if not self.arguments.rest_args:
+            print(self.arguments.enqueue_args)
+            exit(0)
+
     @abstractmethod
     def app(self):
         raise NotImplementedError("Wrong Environment! Try switching to a `cluster` environment")

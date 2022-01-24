@@ -33,6 +33,8 @@ class RemoteActions(Actions):
             return self.apps
 
         if env_id is not None:
+            if 'remote_home' not in self.env_conf:
+                return []
             return remote_list_apps(env_id, self.env_conf['login'], self.env_conf['remote_home'])
         
         self.apps = remote_list_apps(self.env_conf['name'], self.env_conf['login'], self.env_conf['remote_home'])
@@ -99,7 +101,10 @@ class RemoteActions(Actions):
         getattr(self, action_name)()
                 
     def job_submit(self):
+        super().job_submit()
+
         app_name = self.arguments.app_name
+        
         if not app_name:
             print(f"ERROR: Application ID argument (-app) is required for executing runcompss in cluster")
             exit(1)

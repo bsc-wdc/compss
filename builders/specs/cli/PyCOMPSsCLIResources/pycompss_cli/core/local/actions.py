@@ -78,6 +78,10 @@ class LocalActions(Actions):
         local_run_app(commands)
 
     def jupyter(self):
+        if utils.check_exit_code('jupyter') == 127:
+            print('ERROR: Jupyter not found!')
+            exit(1)
+            
         working_dir = '.'
         if 'working_dir' in self.env_conf:
             working_dir = self.env_conf['working_dir']
@@ -104,6 +108,8 @@ class LocalActions(Actions):
         getattr(self, action_name)()
                 
     def job_submit(self):
+        super().job_submit()
+
         app_name = None
 
         working_dir = os.getcwd()

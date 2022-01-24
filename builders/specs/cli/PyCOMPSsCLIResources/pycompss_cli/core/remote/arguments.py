@@ -1,8 +1,7 @@
-import sys
 import argparse
-import pathlib
+import subprocess
 
-FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
+FORMATTER_CLASS = argparse.RawDescriptionHelpFormatter
 
 def cluster_init_parser():
     """ Parses the sys.argv.
@@ -117,6 +116,10 @@ def cluster_parser_job():
                                 help="Submit a job to a cluster or remote environment",
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
+    
+    enqueue_args = subprocess.check_output('enqueue_compss -h', shell=True).decode()
+    submit_job_parser.set_defaults(enqueue_args=enqueue_args)
+    submit_job_parser.epilog = enqueue_args
 
     submit_job_parser.add_argument("--verbose", "-v",
                                     action='store_true',

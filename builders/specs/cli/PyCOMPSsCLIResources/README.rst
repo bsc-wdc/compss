@@ -5,7 +5,7 @@ PyCOMPSs programming model CLI
 Introduction
 ============
 
-The PyCOMPSs cli (pycompss) provides a standalone tool to use PyCOMPSs interactively within
+The PyCOMPSs CLI (pycompss) provides a standalone tool to use PyCOMPSs interactively within
 docker environments, local machines and remote clusters. This tool has been
 implemented on top of `PyCOMPSs programming
 model <http://compss.bsc.es>`__, and it is being developed by the

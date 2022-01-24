@@ -129,12 +129,15 @@ def job_status(scripts_path, job_id, login_info, modules):
            job_id]
     return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
     if return_code != 0:
-        __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
+        # __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
+        return 'ERROR'
 
     # Parse the output for fancy printing
     out = stdout.splitlines()
     if out[-2] == SUCCESS_KEYWORD:
-        status = out[-1].split(':')[1]
+        status = out[-1].split(':')[1].strip()
+        if not status:
+            return 'ERROR'
         return status
     return ERROR_STATUS_JOB
 

@@ -81,7 +81,7 @@ class LocalActions(Actions):
         if utils.check_exit_code('jupyter') == 127:
             print('ERROR: Jupyter not found!')
             exit(1)
-            
+
         working_dir = '.'
         if 'working_dir' in self.env_conf:
             working_dir = self.env_conf['working_dir']
@@ -170,7 +170,7 @@ class LocalActions(Actions):
                         job_status = self.job_status(job_id)
                 if job_status is None:
                     job_status = 'Unknown'
-                rows.append([job_id, app_job['app_name'], job_status])
+                rows.append([job_id, app_job['app_name'], f'\t{job_status}'])
             utils.table_print(col_names, rows)
 
     def job_list(self):
@@ -178,8 +178,8 @@ class LocalActions(Actions):
         print(list_jobs)
         return list_jobs
 
-    def job_status(self, job_id=None):
-        job_id = self.arguments.job_id if job_id is None else job_id
+    def job_status(self, jid=None):
+        job_id = self.arguments.job_id if jid is None else jid
         job_status = local_job_status(self.local_job_scripts_dir, job_id)
         if job_status == 'ERROR' and job_id in self.past_jobs:
             app_path = self.past_jobs[job_id]['path']
@@ -187,7 +187,7 @@ class LocalActions(Actions):
             status = 'ERROR' if local_exec_app(cmd) else 'SUCCESS'
             job_status = 'COMPLETED:' + status
 
-        if job_id is None:
+        if jid is None:
             print(job_status)
 
         self.past_jobs[job_id]['status'] = job_status

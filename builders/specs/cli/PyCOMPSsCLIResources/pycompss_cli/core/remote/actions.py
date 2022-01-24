@@ -155,7 +155,6 @@ class RemoteActions(Actions):
         if job_id:
             app_jobs = self.past_jobs[job_id]
             print('\tApp name:', app_jobs['app_name'])
-            print('\tApp path:', app_jobs['path'])
             print('\tSubmit time:', app_jobs['timestamp'])
             print('\tEnvironment Variables:', app_jobs['env_vars'])
             print('\tEnqueue Args:', app_jobs['enqueue_args'])
@@ -170,7 +169,9 @@ class RemoteActions(Actions):
                     job_status = app_job['status']
                     if 'COMPLETED' not in job_status:
                         job_status = self.job_status(job_id)
-                rows.append([job_id, app_job['app_name'], job_status])
+                if job_status is None:
+                    job_status = 'Unknown'
+                rows.append([job_id, app_job['app_name'], f'\t{job_status}'])
             utils.table_print(col_names, rows)
 
     def job_list(self):
@@ -184,19 +185,21 @@ class RemoteActions(Actions):
         modules = self.__get_modules()
         remote_cancel_job(login_info, jobid, modules)
 
-    def job_status(self, job_id=None):
+    def job_status(self, jid=None):
         login_info = self.env_conf['login']
-        job_id = self.arguments.job_id if job_id is None else job_id
-        modules = self.__get_modules(      )
+        job_id = self.arguments.job_id if jid is None else jid
+        modules = self.__get_modules()
         scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
         job_status = core.job_status(scripts_path, job_id, login_info, modules)
         if job_status == 'ERROR' and job_id in self.past_jobs:
-            app_path = self.past_jobs[job_id]['path']
+            app_name = self.past_jobs[job_id]['app_name']
+            env_id = self.env_conf['name']
+            app_path = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
             cmd = f'grep -iF "error" {app_path}/compss-{job_id}.err'
-            status = 'ERROR' if remote_exec_app(cmd) else 'SUCCESS'
+            status = 'ERROR' if remote_exec_app(login_info, cmd) else 'SUCCESS'
             job_status = 'COMPLETED:' + status
         
-        if job_id is None:
+        if jid is None:
             print(job_status)
 
         self.past_jobs[job_id]['status'] = job_status

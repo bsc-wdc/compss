@@ -134,7 +134,7 @@ def resolve_fail_by_exit_value(kwargs):
                 "Incorrect format for fail_by_exit_value property. "
                 "It should be boolean or an environment variable")
     else:
-        kwargs[FAIL_BY_EXIT_VALUE] = "false"
+        kwargs[FAIL_BY_EXIT_VALUE] = "true"
 
 
 def process_computing_nodes(decorator_name, kwargs):

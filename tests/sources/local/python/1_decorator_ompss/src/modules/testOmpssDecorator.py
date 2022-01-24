@@ -50,7 +50,8 @@ def myReturn():
     pass
 
 
-@ompss(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/')
+@ompss(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/',
+       fail_by_exit_value=False)
 @task(returns=int)
 def failedBinary(code):
     pass

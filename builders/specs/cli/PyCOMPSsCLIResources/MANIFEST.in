@@ -1,0 +1,15 @@
+include pycompss-cli/__init__.py
+include pycompss-cli/compss
+include pycompss-cli/dislib
+include pycompss-cli/pycompss
+include pycompss-cli/pycompss_cmd.py
+
+include LICENSE.txt
+include MANIFEST.in
+include README.rst
+include VERSION.txt
+include requirements.txt
+include setup.py
+
+global-exclude *.pyc
+global-exclude *.class

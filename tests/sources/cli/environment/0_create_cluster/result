@@ -1,0 +1,45 @@
+#!/bin/bash -e
+
+  # # Obtain parameters
+  output_file=$1
+  error_file=$2
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="Deploying environment..."
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+
+     # Check if directory `cluster_env` exists in `~/.COMPSs/envs`
+     if [ ! -d "${HOME}/.COMPSs/envs/cluster_env" ]; then
+         echo "[ERROR] Directory `cluster_env` not found in `~/.COMPSs/envs`" | tee -a "${output_file}"
+         exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  fi
+
+   pycompss environment remove cluster_env
+   # check if directory `cluster_env` has been removed from `~/.COMPSs/envs`
+   if [ -d "${HOME}/.COMPSs/envs/cluster_env" ]; then
+      echo "[ERROR] Directory `cluster_env` not removed from `~/.COMPSs/envs`" | tee -a "${output_file}"
+      rm -rf "${HOME}/.COMPSs/envs/cluster_env"
+      exit 1
+   fi
+
+  #----------------------------------------------------------------------------------
+  # Success
+  exit 0
+

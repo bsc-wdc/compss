@@ -1,0 +1,55 @@
+#!/bin/bash -e
+
+  # This script is intended to be called by the buildpackages script
+  # However, it can be invoked alone and still function properly
+  # An example usage would be ./buildpip 2.0
+  # It needs as a command line argument with the version of the target distributable
+  # The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
+  # exist in the specified repository in PyCOMPSsCLIResources/url file
+
+  # Define script variables
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+  # Retrieve script parameters
+  if [ $# -ne 1 ]; then
+    echo "[ERROR] Invalid usage"
+    echo "  Usage: $0 <COMPSs_VERSION>"
+    exit 1
+  fi
+  COMPSS_VERSION=$1
+
+  # Add the version number as a resource
+  echo "$COMPSS_VERSION" > PyCOMPSsCLIResources/VERSION.txt
+
+  # Create distributable folder
+  mkdir -p PyCOMPSsCLI
+
+  # Copy scripts and other files into the PyCOMPSs directory
+  # Please, resist the temptation to replace all these lines by
+  # cp -rf PyCOMPSsCLIResources/* PyCOMPSsCLI/ or something equivalent
+  # It may be possible that not all of the files in that folder are
+  # necessary or even appropriate for the installation
+  cp -r PyCOMPSsCLIResources/pycompss_cli PyCOMPSsCLI/
+  cp PyCOMPSsCLIResources/LICENSE.txt PyCOMPSsCLI/
+  cp PyCOMPSsCLIResources/MANIFEST.in PyCOMPSsCLI/
+    cp PyCOMPSsCLIResources/README.rst PyCOMPSsCLI/
+  cp PyCOMPSsCLIResources/VERSION.txt PyCOMPSsCLI/
+  cp PyCOMPSsCLIResources/requirements.txt PyCOMPSsCLI/
+  cp PyCOMPSsCLIResources/setup.py PyCOMPSsCLI/
+
+  # Change permissions. This will avoid issues with, for example, python's subprocess.call
+  cd PyCOMPSsCLI
+  chmod -R 777 *
+  # Create the tar.gz distributable
+  # This should leave a .tar.gz in PyCOMPSsCLI/dist
+  python3 setup.py sdist
+  cd "${SCRIPT_DIR}"
+
+  # Finally, move the PyCOMPSsCLI distributable to packages/pip (tgz included)
+  # Delete previous versions (if any)
+  rm -rf ../../packages/pip-cli
+  mkdir -p ../../packages/pip-cli
+  # Change permissions
+  chmod -R 777 PyCOMPSsCLI
+  # Move it to its final destination
+  mv PyCOMPSsCLI ../../packages/pip-cli/

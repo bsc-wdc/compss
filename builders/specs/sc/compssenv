@@ -1,7 +1,7 @@
 export COMPSS_HOME=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
-export PATH=$PATH:${COMPSS_HOME}/Runtime/scripts/user:${COMPSS_HOME}/Runtime/scripts/utils
+export PATH=$PATH:${COMPSS_HOME}/Runtime/scripts/user:${COMPSS_HOME}/Runtime/scripts/utils:${COMPSS_HOME}/CLI
 export CLASSPATH=$CLASSPATH:${COMPSS_HOME}/Runtime/compss-engine.jar
 export PATH=$PATH:${COMPSS_HOME}/Bindings/c/bin
-export PYTHONPATH=$PYTHONPATH:${COMPSS_HOME}/Bindings/python/
+export PYTHONPATH=$PYTHONPATH:${COMPSS_HOME}/Bindings/python/:${COMPSS_HOME}/cli/lib/python3.6/site-packages/
 
 echo "COMPSS_HOME=${COMPSS_HOME}"

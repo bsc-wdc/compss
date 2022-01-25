@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse
 import subprocess
@@ -5,6 +6,7 @@ import subprocess
 from pycompss_cli.core.docker.arguments import docker_init_parser
 from pycompss_cli.core.local.arguments import local_init_parser
 from pycompss_cli.core.remote.arguments import cluster_init_parser, cluster_parser_job, cluster_parser_app
+from pycompss_cli.core import utils
 
 FORMATTER_CLASS = argparse.RawTextHelpFormatter
 
@@ -78,7 +80,13 @@ def parse_sys_argv():
                                        formatter_class=FORMATTER_CLASS)
     parser_run.set_defaults(action='run')
 
-    parser_run.epilog = subprocess.check_output('runcompss -h', shell=True).decode()
+    if utils.check_exit_code('runcompss -h') == 0:
+        parser_run.epilog = subprocess.check_output('runcompss -h', shell=True).decode()
+    else:
+        assets_folder = os.path.dirname(os.path.abspath(__file__)) + '/..'
+        with open(assets_folder + '/assets/runcompss_args.txt', 'r') as f:
+            parser_run.epilog = f.read()
+
     # parser_run.add_argument("-eid", "--env_id",
     #                          default="",
     #                          type=str,

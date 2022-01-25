@@ -146,7 +146,8 @@ class DockerActions(Actions):
                 "--NotebookApp.token="
         self.docker_cmd.docker_exec_in_daemon(jupyter_cmd)
 
-        self.docker_cmd.docker_exec_in_daemon('pkill jupyter')
+        if self.docker_cmd.exists():
+            self.docker_cmd.docker_exec_in_daemon('pkill jupyter')
 
 
     def gengraph(self):

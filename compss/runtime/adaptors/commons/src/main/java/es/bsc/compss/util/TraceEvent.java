@@ -17,8 +17,6 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.util.tracing.Threads;
-import java.util.LinkedList;
-import java.util.List;
 
 
 /**
@@ -26,188 +24,193 @@ import java.util.List;
  */
 public enum TraceEvent {
 
-    STATIC_IT(1, TraceEventType.API, "Loading Runtime"), START(2, TraceEventType.API, "Start"),
-    STOP(3, TraceEventType.API, "Stop"), TASK(4, TraceEventType.API, "Execute Task"),
-    NO_MORE_TASKS(5, TraceEventType.API, "Waiting for tasks end"), WAIT_FOR_ALL_TASKS(6, TraceEventType.API, "Barrier"),
-    OPEN_FILE(7, TraceEventType.API, "Waiting for open file"),
-    OPEN_DIRECTORY(57, TraceEventType.API, "Waiting for open directory"),
-    GET_FILE(8, TraceEventType.API, "Waiting for get file"),
-    GET_OBJECT(9, TraceEventType.API, "Waiting for get object"),
-    GET_DIRECTORY(58, TraceEventType.API, "Waiting for get Directory"), DELETE(12, TraceEventType.API, "Delete File"),
-    WAIT_FOR_CONCURRENT(59, TraceEventType.API, "Wait on concurrent"),
+    STATIC_IT(1, TraceEventType.API, "Loading Runtime"), //
+    START(2, TraceEventType.API, "Start"), //
+    STOP(3, TraceEventType.API, "Stop"), //
+    TASK(4, TraceEventType.API, "Execute Task"), //
+    NO_MORE_TASKS(5, TraceEventType.API, "Waiting for tasks end"), //
+    WAIT_FOR_ALL_TASKS(6, TraceEventType.API, "Barrier"), //
+    OPEN_FILE(7, TraceEventType.API, "Waiting for open file"), //
+    OPEN_DIRECTORY(57, TraceEventType.API, "Waiting for open directory"), //
+    GET_FILE(8, TraceEventType.API, "Waiting for get file"), //
+    GET_OBJECT(9, TraceEventType.API, "Waiting for get object"), //
+    GET_DIRECTORY(58, TraceEventType.API, "Waiting for get Directory"), //
+    DELETE(12, TraceEventType.API, "Delete File"), //
+    WAIT_FOR_CONCURRENT(59, TraceEventType.API, "Wait on concurrent"), //
 
     // Worker runtime events
-    TASK_RUNNING(11, TraceEventType.RUNTIME, "Task Running"),
-    WORKER_RECEIVED_NEW_TASK(13, TraceEventType.RUNTIME, "Received new task"),
+    TASK_RUNNING(11, TraceEventType.RUNTIME, "Task Running"), //
+    WORKER_RECEIVED_NEW_TASK(13, TraceEventType.RUNTIME, "Received new task"), //
 
     // Runtime Task Events
-    CREATING_TASK_SANDBOX(54, TraceEventType.RUNTIME, "Worker: Creating task sandbox"),
-    REMOVING_TASK_SANDBOX(55, TraceEventType.RUNTIME, "Worker: Removing task sandbox"),
-    FETCH_PARAM(60, TraceEventType.RUNTIME, "Fetch task parameter"),
-    REMOVE_OBSOLETES(61, TraceEventType.RUNTIME, "Remove Obsoletes"),
-    BIND_ORIG_NAME(62, TraceEventType.RUNTIME, "Bind Original File names To Renames.."),
-    UNBIND_ORIG_NAME(63, TraceEventType.RUNTIME, "Unbind Original File names To Renames.."),
-    CHECK_OUT_PARAM(64, TraceEventType.RUNTIME, "Check OUT parameters."),
+    CREATING_TASK_SANDBOX(54, TraceEventType.RUNTIME, "Worker: Creating task sandbox"), //
+    REMOVING_TASK_SANDBOX(55, TraceEventType.RUNTIME, "Worker: Removing task sandbox"), //
+    FETCH_PARAM(60, TraceEventType.RUNTIME, "Fetch task parameter"), //
+    REMOVE_OBSOLETES(61, TraceEventType.RUNTIME, "Remove Obsoletes"), //
+    BIND_ORIG_NAME(62, TraceEventType.RUNTIME, "Bind Original File names To Renames.."), //
+    UNBIND_ORIG_NAME(63, TraceEventType.RUNTIME, "Unbind Original File names To Renames.."), //
+    CHECK_OUT_PARAM(64, TraceEventType.RUNTIME, "Check OUT parameters."), //
 
     // Runtime FS Events
-    INIT_FS(65, TraceEventType.RUNTIME, "Init Thread for synch file system operations"),
-    LOCAL_COPY(66, TraceEventType.RUNTIME, "Local copy"), LOCAL_MOVE(67, TraceEventType.RUNTIME, "Local move"),
-    LOCAL_DELETE(68, TraceEventType.RUNTIME, "Local delete"),
-    LOCAL_SERIALIZE(69, TraceEventType.RUNTIME, "Serializing Object"),
+    INIT_FS(65, TraceEventType.RUNTIME, "Init Thread for synch file system operations"), //
+    LOCAL_COPY(66, TraceEventType.RUNTIME, "Local copy"), //
+    LOCAL_MOVE(67, TraceEventType.RUNTIME, "Local move"), //
+    LOCAL_DELETE(68, TraceEventType.RUNTIME, "Local delete"), //
+    LOCAL_SERIALIZE(69, TraceEventType.RUNTIME, "Serializing Object"), //
 
     // Access Processor Events which are not in the API
-    DEBUG(17, TraceEventType.RUNTIME, "Access Processor: Debug"),
-    ANALYSE_TASK(18, TraceEventType.RUNTIME, "Access Processor: Analyse task"),
-    UPDATE_GRAPH(19, TraceEventType.RUNTIME, "Access Processor: Update graph"),
-    WAIT_FOR_DATA(20, TraceEventType.RUNTIME, "Access Processor: Wait for data"),
-    END_OF_APP(21, TraceEventType.RUNTIME, "Access Processor: End of app"),
-    ALREADY_ACCESSED(22, TraceEventType.RUNTIME, "Access Processor: Already accessed"),
-    REGISTER_DATA_ACCESS(23, TraceEventType.RUNTIME, "Access Processor: Register data access"),
-    TRANSFER_OPEN_FILE(24, TraceEventType.RUNTIME, "Access Processor: Transfer open file"),
-    TRANSFER_RAW_FILE(25, TraceEventType.RUNTIME, "Access Processor: Transfer raw file"),
-    TRANSFER_OBJECT(26, TraceEventType.RUNTIME, "Access Processor: Transfer object"),
-    NEW_VERSION_SAME_VALUE(27, TraceEventType.RUNTIME, "Access Processor: New version same value"),
-    IS_OBJECT_HERE(28, TraceEventType.RUNTIME, "Access Processor: Is object here"),
-    SET_OBJECT_VERSION_VALUE(29, TraceEventType.RUNTIME, "Access Processor: Set object version value"),
-    GET_LAST_RENAMING(30, TraceEventType.RUNTIME, "Access Processor: Get last renaming"),
-    BLOCK_AND_GET_RESULT_FILES(31, TraceEventType.RUNTIME, "Access Processor: Block and get result files"),
-    UNBLOCK_RESULT_FILES(32, TraceEventType.RUNTIME, "Access Processor: Unblock result files"),
-    SHUTDOWN(33, TraceEventType.RUNTIME, "Access Processor: Shutdown"),
-    GRAPHSTATE(34, TraceEventType.RUNTIME, "Access Processor: Graphstate"),
-    TASKSTATE(35, TraceEventType.RUNTIME, "Access Processor: Taskstate"),
-    DELETE_FILE(36, TraceEventType.RUNTIME, "Access Processor: Delete file"),
-    FINISH_DATA_ACCESS(37, TraceEventType.RUNTIME, "Access Processor: Finish access to file"),
-    REGISTER_REMOTE_OBJECT(38, TraceEventType.RUNTIME, "Access Processor: Register remote object access"),
-    REGISTER_REMOTE_FILE(39, TraceEventType.RUNTIME, "Access Processor: Resgister remote file access"),
-    DEREGISTER_OBJECT(40, TraceEventType.RUNTIME, "Access Processor: Deregister object"),
-    CANCEL_TASK_GROUP(41, TraceEventType.RUNTIME, "Access Processor: Cancel task group"),
-    REMOVE_APP_DATA(42, TraceEventType.RUNTIME, "Access Processor: Remove application data"),
-    CANCEL_ALL_TASKS(56, TraceEventType.RUNTIME, "Acces Processor: Cancel all tasks"),
+    DEBUG(17, TraceEventType.RUNTIME, "Access Processor: Debug"), //
+    ANALYSE_TASK(18, TraceEventType.RUNTIME, "Access Processor: Analyse task"), //
+    UPDATE_GRAPH(19, TraceEventType.RUNTIME, "Access Processor: Update graph"), //
+    WAIT_FOR_DATA(20, TraceEventType.RUNTIME, "Access Processor: Wait for data"), //
+    END_OF_APP(21, TraceEventType.RUNTIME, "Access Processor: End of app"), //
+    ALREADY_ACCESSED(22, TraceEventType.RUNTIME, "Access Processor: Already accessed"), //
+    REGISTER_DATA_ACCESS(23, TraceEventType.RUNTIME, "Access Processor: Register data access"), //
+    TRANSFER_OPEN_FILE(24, TraceEventType.RUNTIME, "Access Processor: Transfer open file"), //
+    TRANSFER_RAW_FILE(25, TraceEventType.RUNTIME, "Access Processor: Transfer raw file"), //
+    TRANSFER_OBJECT(26, TraceEventType.RUNTIME, "Access Processor: Transfer object"), //
+    NEW_VERSION_SAME_VALUE(27, TraceEventType.RUNTIME, "Access Processor: New version same value"), //
+    IS_OBJECT_HERE(28, TraceEventType.RUNTIME, "Access Processor: Is object here"), //
+    SET_OBJECT_VERSION_VALUE(29, TraceEventType.RUNTIME, "Access Processor: Set object version value"), //
+    GET_LAST_RENAMING(30, TraceEventType.RUNTIME, "Access Processor: Get last renaming"), //
+    BLOCK_AND_GET_RESULT_FILES(31, TraceEventType.RUNTIME, "Access Processor: Block and get result files"), //
+    UNBLOCK_RESULT_FILES(32, TraceEventType.RUNTIME, "Access Processor: Unblock result files"), //
+    SHUTDOWN(33, TraceEventType.RUNTIME, "Access Processor: Shutdown"), //
+    GRAPHSTATE(34, TraceEventType.RUNTIME, "Access Processor: Graphstate"), //
+    TASKSTATE(35, TraceEventType.RUNTIME, "Access Processor: Taskstate"), //
+    DELETE_FILE(36, TraceEventType.RUNTIME, "Access Processor: Delete file"), //
+    FINISH_DATA_ACCESS(37, TraceEventType.RUNTIME, "Access Processor: Finish access to file"), //
+    REGISTER_REMOTE_OBJECT(38, TraceEventType.RUNTIME, "Access Processor: Register remote object access"), //
+    REGISTER_REMOTE_FILE(39, TraceEventType.RUNTIME, "Access Processor: Resgister remote file access"), //
+    DEREGISTER_OBJECT(40, TraceEventType.RUNTIME, "Access Processor: Deregister object"), //
+    CANCEL_TASK_GROUP(41, TraceEventType.RUNTIME, "Access Processor: Cancel task group"), //
+    REMOVE_APP_DATA(42, TraceEventType.RUNTIME, "Access Processor: Remove application data"), //
+    CANCEL_ALL_TASKS(56, TraceEventType.RUNTIME, "Acces Processor: Cancel all tasks"), //
 
     // Storage Events
-    STORAGE_GETBYID(38, TraceEventType.STORAGE_TYPE, "getByID"),
-    STORAGE_NEWREPLICA(39, TraceEventType.STORAGE_TYPE, "newReplica"),
-    STORAGE_NEWVERSION(40, TraceEventType.STORAGE_TYPE, "newVersion"),
-    STORAGE_INVOKE(41, TraceEventType.STORAGE_TYPE, "invoke"),
-    STORAGE_EXECUTETASK(42, TraceEventType.STORAGE_TYPE, "executeTask"),
-    STORAGE_GETLOCATIONS(43, TraceEventType.STORAGE_TYPE, "getLocations"),
-    STORAGE_CONSOLIDATE(44, TraceEventType.STORAGE_TYPE, "consolidateVersion"),
+    STORAGE_GETBYID(38, TraceEventType.STORAGE_TYPE, "getByID"), //
+    STORAGE_NEWREPLICA(39, TraceEventType.STORAGE_TYPE, "newReplica"), //
+    STORAGE_NEWVERSION(40, TraceEventType.STORAGE_TYPE, "newVersion"), //
+    STORAGE_INVOKE(41, TraceEventType.STORAGE_TYPE, "invoke"), //
+    STORAGE_EXECUTETASK(42, TraceEventType.STORAGE_TYPE, "executeTask"), //
+    STORAGE_GETLOCATIONS(43, TraceEventType.STORAGE_TYPE, "getLocations"), //
+    STORAGE_CONSOLIDATE(44, TraceEventType.STORAGE_TYPE, "consolidateVersion"), //
 
     // Task Dispatcher Events
-    ACTION_UPDATE(45, TraceEventType.RUNTIME, "Task Dispatcher: Action update"),
-    CE_REGISTRATION(46, TraceEventType.RUNTIME, "Task Dispatcher: CE registration"),
-    EXECUTE_TASKS(47, TraceEventType.RUNTIME, "Task Dispatcher: Execute tasks"),
-    GET_CURRENT_SCHEDULE(48, TraceEventType.RUNTIME, "Task Dispatcher: Get current schedule"),
-    PRINT_CURRENT_GRAPH(49, TraceEventType.RUNTIME, "Task Dispatcher: Print current graph"),
-    MONITORING_DATA(50, TraceEventType.RUNTIME, "Task Dispatcher: Monitoring data"),
-    TD_SHUTDOWN(51, TraceEventType.RUNTIME, "Task Dispatcher: Shutdown"),
-    UPDATE_CEI_LOCAL(52, TraceEventType.RUNTIME, "Task Dispatcher: Update CEI local"),
-    WORKER_UPDATE_REQUEST(53, TraceEventType.RUNTIME, "Task Dispatcher: Worker update request"),
-    CANCEL_TASKS(57, TraceEventType.RUNTIME, "Task Dispatcher: Cancel tasks"),
+    ACTION_UPDATE(45, TraceEventType.RUNTIME, "Task Dispatcher: Action update"), //
+    CE_REGISTRATION(46, TraceEventType.RUNTIME, "Task Dispatcher: CE registration"), //
+    EXECUTE_TASKS(47, TraceEventType.RUNTIME, "Task Dispatcher: Execute tasks"), //
+    GET_CURRENT_SCHEDULE(48, TraceEventType.RUNTIME, "Task Dispatcher: Get current schedule"), //
+    PRINT_CURRENT_GRAPH(49, TraceEventType.RUNTIME, "Task Dispatcher: Print current graph"), //
+    MONITORING_DATA(50, TraceEventType.RUNTIME, "Task Dispatcher: Monitoring data"), //
+    TD_SHUTDOWN(51, TraceEventType.RUNTIME, "Task Dispatcher: Shutdown"), //
+    UPDATE_CEI_LOCAL(52, TraceEventType.RUNTIME, "Task Dispatcher: Update CEI local"), //
+    WORKER_UPDATE_REQUEST(53, TraceEventType.RUNTIME, "Task Dispatcher: Worker update request"), //
+    CANCEL_TASKS(57, TraceEventType.RUNTIME, "Task Dispatcher: Cancel tasks"), //
 
     // Timer events
-    TASK_TIMEOUT(58, TraceEventType.RUNTIME, "Timer: Task timed out"),
+    TASK_TIMEOUT(58, TraceEventType.RUNTIME, "Timer: Task timed out"), //
 
     // Python Events Inside Worker
-    WORKER_RUNNING(1, TraceEventType.BINDING_INSIDE_WORKER, "Worker running"),
+    WORKER_RUNNING(1, TraceEventType.BINDING_INSIDE_WORKER, "Worker running"), //
 
-    PROCESS_TASK_PYTHON(2, TraceEventType.BINDING_INSIDE_WORKER, "Process task"),
-    PROCESS_PING_PYTHON(3, TraceEventType.BINDING_INSIDE_WORKER, "Process ping"),
-    PROCESS_QUIT_PYTHON(4, TraceEventType.BINDING_INSIDE_WORKER, "Process quit"),
+    PROCESS_TASK_PYTHON(2, TraceEventType.BINDING_INSIDE_WORKER, "Process task"), //
+    PROCESS_PING_PYTHON(3, TraceEventType.BINDING_INSIDE_WORKER, "Process ping"), //
+    PROCESS_QUIT_PYTHON(4, TraceEventType.BINDING_INSIDE_WORKER, "Process quit"), //
 
-    INIT_STORAGE(5, TraceEventType.BINDING_INSIDE_WORKER, "Init storage"),
-    STOP_STORAGE(6, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage"),
-    INIT_STORAGE_WORKER(7, TraceEventType.BINDING_INSIDE_WORKER, "Init storage at worker"),
-    STOP_STORAGE_WORKER(8, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker"),
-    INIT_STORAGE_WORKER_PROCESS(9, TraceEventType.BINDING_INSIDE_WORKER, "Init storage at worker process"),
-    STOP_STORAGE_WORKER_PROCESS(10, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker process"),
+    INIT_STORAGE(5, TraceEventType.BINDING_INSIDE_WORKER, "Init storage"), //
+    STOP_STORAGE(6, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage"), //
+    INIT_STORAGE_WORKER(7, TraceEventType.BINDING_INSIDE_WORKER, "Init storage at worker"), //
+    STOP_STORAGE_WORKER(8, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker"), //
+    INIT_STORAGE_WORKER_PROCESS(9, TraceEventType.BINDING_INSIDE_WORKER, "Init storage at worker process"), //
+    STOP_STORAGE_WORKER_PROCESS(10, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker process"), //
 
     // Python Events Inside Tasks
-    CPU_BINDING_PYTHON(1, TraceEventType.BINDING_INSIDE_TASKS, "CPU binding"),
-    GPU_BINDING_PYTHON(2, TraceEventType.BINDING_INSIDE_TASKS, "GPU binding"),
-    SETUP_ENVIRONMENT_PYTHON(3, TraceEventType.BINDING_INSIDE_TASKS, "Setup environment variables"),
-    GET_TASK_PARAMETERS(4, TraceEventType.BINDING_INSIDE_TASKS, "Get parameters"),
-    IMPORT_USER_MODULE(5, TraceEventType.BINDING_INSIDE_TASKS, "Import user module"),
-    EXECUTE_USER_CODE_PYTHON(6, TraceEventType.BINDING_INSIDE_TASKS, "User code"),
-    DESERIALIZE_STRING_PYTHON(7, TraceEventType.BINDING_INSIDE_TASKS, "Deserializing string"),
-    DESERIALIZE_OBJECT_PYTHON(8, TraceEventType.BINDING_INSIDE_TASKS, "Deserializing object"),
-    SERIALIZE_OBJECT_PYTHON(9, TraceEventType.BINDING_INSIDE_TASKS, "Serializing object"),
-    SERIALIZE_MPIENV_PYTHON(10, TraceEventType.BINDING_INSIDE_TASKS, "Serializing object MPI env"),
-    BUILD_SUCCESS_MESSAGE(11, TraceEventType.BINDING_INSIDE_TASKS, "Build success message"),
-    BUILD_COMPSS_EXCEPTION_MESSAGE(12, TraceEventType.BINDING_INSIDE_TASKS, "Build COMPSs exception message"),
-    BUILD_EXCEPTION_MESSAGE(13, TraceEventType.BINDING_INSIDE_TASKS, "Build exception message"),
-    CLEAN_ENVIRONMENT_PYTHON(14, TraceEventType.BINDING_INSIDE_TASKS, "Clean environment"),
+    CPU_BINDING_PYTHON(1, TraceEventType.BINDING_INSIDE_TASKS, "CPU binding"), //
+    GPU_BINDING_PYTHON(2, TraceEventType.BINDING_INSIDE_TASKS, "GPU binding"), //
+    SETUP_ENVIRONMENT_PYTHON(3, TraceEventType.BINDING_INSIDE_TASKS, "Setup environment variables"), //
+    GET_TASK_PARAMETERS(4, TraceEventType.BINDING_INSIDE_TASKS, "Get parameters"), //
+    IMPORT_USER_MODULE(5, TraceEventType.BINDING_INSIDE_TASKS, "Import user module"), //
+    EXECUTE_USER_CODE_PYTHON(6, TraceEventType.BINDING_INSIDE_TASKS, "User code"), //
+    DESERIALIZE_STRING_PYTHON(7, TraceEventType.BINDING_INSIDE_TASKS, "Deserializing string"), //
+    DESERIALIZE_OBJECT_PYTHON(8, TraceEventType.BINDING_INSIDE_TASKS, "Deserializing object"), //
+    SERIALIZE_OBJECT_PYTHON(9, TraceEventType.BINDING_INSIDE_TASKS, "Serializing object"), //
+    SERIALIZE_MPIENV_PYTHON(10, TraceEventType.BINDING_INSIDE_TASKS, "Serializing object MPI env"), //
+    BUILD_SUCCESS_MESSAGE(11, TraceEventType.BINDING_INSIDE_TASKS, "Build success message"), //
+    BUILD_COMPSS_EXCEPTION_MESSAGE(12, TraceEventType.BINDING_INSIDE_TASKS, "Build COMPSs exception message"), //
+    BUILD_EXCEPTION_MESSAGE(13, TraceEventType.BINDING_INSIDE_TASKS, "Build exception message"), //
+    CLEAN_ENVIRONMENT_PYTHON(14, TraceEventType.BINDING_INSIDE_TASKS, "Clean environment"), //
 
-    GET_BY_ID(15, TraceEventType.BINDING_INSIDE_TASKS, "Get by ID persistent object"),
-    GET_ID(16, TraceEventType.BINDING_INSIDE_TASKS, "Get object ID"),
-    MAKE_PERSISTENT(17, TraceEventType.BINDING_INSIDE_TASKS, "Make persistent object"),
-    DELETE_PERSISTENT(18, TraceEventType.BINDING_INSIDE_TASKS, "Delete persistent object"),
-    RETRIEVE_OBJECT_INTO_CACHE(19, TraceEventType.BINDING_INSIDE_TASKS, "Get object from cache"),
-    INSERT_OBJECT_INTO_CACHE(20, TraceEventType.BINDING_INSIDE_TASKS, "Put object in cache"),
-    REMOVE_OBJECT_FROM_CACHE(21, TraceEventType.BINDING_INSIDE_TASKS, "Remove object from cache"),
+    GET_BY_ID(15, TraceEventType.BINDING_INSIDE_TASKS, "Get by ID persistent object"), //
+    GET_ID(16, TraceEventType.BINDING_INSIDE_TASKS, "Get object ID"), //
+    MAKE_PERSISTENT(17, TraceEventType.BINDING_INSIDE_TASKS, "Make persistent object"), //
+    DELETE_PERSISTENT(18, TraceEventType.BINDING_INSIDE_TASKS, "Delete persistent object"), //
+    RETRIEVE_OBJECT_INTO_CACHE(19, TraceEventType.BINDING_INSIDE_TASKS, "Get object from cache"), //
+    INSERT_OBJECT_INTO_CACHE(20, TraceEventType.BINDING_INSIDE_TASKS, "Put object in cache"), //
+    REMOVE_OBJECT_FROM_CACHE(21, TraceEventType.BINDING_INSIDE_TASKS, "Remove object from cache"), //
 
-    TASK_INSTANTIATION_PYTHON(25, TraceEventType.BINDING_INSIDE_TASKS, "Task instantiation"),
+    TASK_INSTANTIATION_PYTHON(25, TraceEventType.BINDING_INSIDE_TASKS, "Task instantiation"), //
 
     // Python Master Events
-    PYTHON_START_RUNTIME(1, TraceEventType.BINDING_MASTER, "Start runtime"),
-    PYTHON_STOP_RUNTIME(2, TraceEventType.BINDING_MASTER, "Stop runtime"),
-    PYTHON_APPLICATION_RUNNING(3, TraceEventType.BINDING_MASTER, "Application running"),
+    PYTHON_START_RUNTIME(1, TraceEventType.BINDING_MASTER, "Start runtime"), //
+    PYTHON_STOP_RUNTIME(2, TraceEventType.BINDING_MASTER, "Stop runtime"), //
+    PYTHON_APPLICATION_RUNNING(3, TraceEventType.BINDING_MASTER, "Application running"), //
     // 4 is empty
-    PYTHON_MASTER_INIT_STORAGE(5, TraceEventType.BINDING_MASTER, "Start storage"),
-    PYTHON_MASTER_STOP_STORAGE(6, TraceEventType.BINDING_MASTER, "Stop storage"),
-    PYTHON_ACCESSED_FILE(7, TraceEventType.BINDING_MASTER, "Accessed file"),
-    PYTHON_OPEN_FILE(8, TraceEventType.BINDING_MASTER, "Open file"),
-    PYTHON_DELETE_FILE(9, TraceEventType.BINDING_MASTER, "Delete file"),
-    PYTHON_GET_FILE(10, TraceEventType.BINDING_MASTER, "Get file"),
-    PYTHON_GET_DIRECTORY(11, TraceEventType.BINDING_MASTER, "Get directory"),
-    PYTHON_DELETE_OBJECT(12, TraceEventType.BINDING_MASTER, "Delete object"),
-    PYTHON_BARRIER(13, TraceEventType.BINDING_MASTER, "Barrier"),
-    PYTHON_BARRIER_GROUP(14, TraceEventType.BINDING_MASTER, "Barrier group"),
-    PYTHON_OPEN_TASK_GROUP(15, TraceEventType.BINDING_MASTER, "Open task group"),
-    PYTHON_CLOSE_TASK_GROUP(16, TraceEventType.BINDING_MASTER, "Close task group"),
-    PYTHON_GET_LOG_PATH(17, TraceEventType.BINDING_MASTER, "Get log path"),
-    PYTHON_GET_NUMBER_RESOURCES(18, TraceEventType.BINDING_MASTER, "Get number of resources"),
-    PYTHON_REQUEST_RESOURCES(19, TraceEventType.BINDING_MASTER, "Request resources"),
-    PYTHON_FREE_RESOURCES(20, TraceEventType.BINDING_MASTER, "Free resources"),
-    PYTHON_REGISTER_CORE_ELEMENT(21, TraceEventType.BINDING_MASTER, "Register Core Element"),
-    PYTHON_WAIT_ON(22, TraceEventType.BINDING_MASTER, "Wait on"),
-    PYTHON_PROCESS_TASK(23, TraceEventType.BINDING_MASTER, "Call to process task"),
-    PYTHON_WALL_CLOCK_LIMIT(24, TraceEventType.BINDING_MASTER, "Wall clock limit"),
+    PYTHON_MASTER_INIT_STORAGE(5, TraceEventType.BINDING_MASTER, "Start storage"), //
+    PYTHON_MASTER_STOP_STORAGE(6, TraceEventType.BINDING_MASTER, "Stop storage"), //
+    PYTHON_ACCESSED_FILE(7, TraceEventType.BINDING_MASTER, "Accessed file"), //
+    PYTHON_OPEN_FILE(8, TraceEventType.BINDING_MASTER, "Open file"), //
+    PYTHON_DELETE_FILE(9, TraceEventType.BINDING_MASTER, "Delete file"), //
+    PYTHON_GET_FILE(10, TraceEventType.BINDING_MASTER, "Get file"), //
+    PYTHON_GET_DIRECTORY(11, TraceEventType.BINDING_MASTER, "Get directory"), //
+    PYTHON_DELETE_OBJECT(12, TraceEventType.BINDING_MASTER, "Delete object"), //
+    PYTHON_BARRIER(13, TraceEventType.BINDING_MASTER, "Barrier"), //
+    PYTHON_BARRIER_GROUP(14, TraceEventType.BINDING_MASTER, "Barrier group"), //
+    PYTHON_OPEN_TASK_GROUP(15, TraceEventType.BINDING_MASTER, "Open task group"), //
+    PYTHON_CLOSE_TASK_GROUP(16, TraceEventType.BINDING_MASTER, "Close task group"), //
+    PYTHON_GET_LOG_PATH(17, TraceEventType.BINDING_MASTER, "Get log path"), //
+    PYTHON_GET_NUMBER_RESOURCES(18, TraceEventType.BINDING_MASTER, "Get number of resources"), //
+    PYTHON_REQUEST_RESOURCES(19, TraceEventType.BINDING_MASTER, "Request resources"), //
+    PYTHON_FREE_RESOURCES(20, TraceEventType.BINDING_MASTER, "Free resources"), //
+    PYTHON_REGISTER_CORE_ELEMENT(21, TraceEventType.BINDING_MASTER, "Register Core Element"), //
+    PYTHON_WAIT_ON(22, TraceEventType.BINDING_MASTER, "Wait on"), //
+    PYTHON_PROCESS_TASK(23, TraceEventType.BINDING_MASTER, "Call to process task"), //
+    PYTHON_WALL_CLOCK_LIMIT(24, TraceEventType.BINDING_MASTER, "Wall clock limit"), //
 
     // Internal events
-    PYTHON_TASK_INSTANTIATION(100, TraceEventType.BINDING_MASTER, "Task instantiation"),
-    PYTHON_INSPECT_FUNCTION_ARGUMENTS(101, TraceEventType.BINDING_MASTER, "Inspect function arguments"),
-    PYTHON_GET_FUNCTION_INFORMATION(102, TraceEventType.BINDING_MASTER, "Get function information"),
-    PYTHON_GET_FUNCTION_SIGNATURE(103, TraceEventType.BINDING_MASTER, "Check function signature"),
-    PYTHON_CHECK_INTERACTIVE(104, TraceEventType.BINDING_MASTER, "Check interactive"),
-    PYTHON_EXTRACT_CORE_ELEMENT(105, TraceEventType.BINDING_MASTER, "Extract core element"),
-    PYTHON_PREPARE_CORE_ELEMENT(106, TraceEventType.BINDING_MASTER, "Prepare Core Element"),
-    PYTHON_UPDATE_CORE_ELEMENT(107, TraceEventType.BINDING_MASTER, "Update Core Element"),
-    PYTHON_POP_TASK_PARAMETERS(108, TraceEventType.BINDING_MASTER, "Pop task parameters"),
-    PYTHON_PROCESS_OTHER_ARGUMENTS(109, TraceEventType.BINDING_MASTER, "Process task hints"),
-    PYTHON_PROCESS_PARAMETERS(110, TraceEventType.BINDING_MASTER, "Process function parameters"),
-    PYTHON_PROCESS_RETURN(111, TraceEventType.BINDING_MASTER, "Process return"),
-    PYTHON_BUILD_RETURN_OBJECTS(112, TraceEventType.BINDING_MASTER, "Build return objects"),
-    PYTHON_SERIALIZE_OBJECTS(113, TraceEventType.BINDING_MASTER, "Serialize objects"),
-    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(114, TraceEventType.BINDING_MASTER, "Build COMPSs types and directions"),
-    PYTHON_PROCESS_TASK_BINDING(115, TraceEventType.BINDING_MASTER, "Process task binding"),
-    PYTHON_ATTRIBUTES_CLEANUP(116, TraceEventType.BINDING_MASTER, "Cleanup"),
+    PYTHON_TASK_INSTANTIATION(100, TraceEventType.BINDING_MASTER, "Task instantiation"), //
+    PYTHON_INSPECT_FUNCTION_ARGUMENTS(101, TraceEventType.BINDING_MASTER, "Inspect function arguments"), //
+    PYTHON_GET_FUNCTION_INFORMATION(102, TraceEventType.BINDING_MASTER, "Get function information"), //
+    PYTHON_GET_FUNCTION_SIGNATURE(103, TraceEventType.BINDING_MASTER, "Check function signature"), //
+    PYTHON_CHECK_INTERACTIVE(104, TraceEventType.BINDING_MASTER, "Check interactive"), //
+    PYTHON_EXTRACT_CORE_ELEMENT(105, TraceEventType.BINDING_MASTER, "Extract core element"), //
+    PYTHON_PREPARE_CORE_ELEMENT(106, TraceEventType.BINDING_MASTER, "Prepare Core Element"), //
+    PYTHON_UPDATE_CORE_ELEMENT(107, TraceEventType.BINDING_MASTER, "Update Core Element"), //
+    PYTHON_POP_TASK_PARAMETERS(108, TraceEventType.BINDING_MASTER, "Pop task parameters"), //
+    PYTHON_PROCESS_OTHER_ARGUMENTS(109, TraceEventType.BINDING_MASTER, "Process task hints"), //
+    PYTHON_PROCESS_PARAMETERS(110, TraceEventType.BINDING_MASTER, "Process function parameters"), //
+    PYTHON_PROCESS_RETURN(111, TraceEventType.BINDING_MASTER, "Process return"), //
+    PYTHON_BUILD_RETURN_OBJECTS(112, TraceEventType.BINDING_MASTER, "Build return objects"), //
+    PYTHON_SERIALIZE_OBJECTS(113, TraceEventType.BINDING_MASTER, "Serialize objects"), //
+    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(114, TraceEventType.BINDING_MASTER, "Build COMPSs types and directions"), //
+    PYTHON_PROCESS_TASK_BINDING(115, TraceEventType.BINDING_MASTER, "Process task binding"), //
+    PYTHON_ATTRIBUTES_CLEANUP(116, TraceEventType.BINDING_MASTER, "Cleanup"), //
 
     // Agent events
-    AGENT_ADD_RESOURCE(6002, TraceEventType.AGENT, "Add resources agent"),
-    AGENT_STOP(6003, TraceEventType.AGENT, "Stop agent"),
-    AGENT_REMOVE_NODE(6004, TraceEventType.AGENT, "Remove node agent"),
-    AGENT_REMOVE_RESOURCES(6005, TraceEventType.AGENT, "Remove resources agent"),
-    AGENT_RUN_TASK(6006, TraceEventType.AGENT, "Run task agent"),
+    AGENT_ADD_RESOURCE(6002, TraceEventType.AGENT, "Add resources agent"), //
+    AGENT_STOP(6003, TraceEventType.AGENT, "Stop agent"), //
+    AGENT_REMOVE_NODE(6004, TraceEventType.AGENT, "Remove node agent"), //
+    AGENT_REMOVE_RESOURCES(6005, TraceEventType.AGENT, "Remove resources agent"), //
+    AGENT_RUN_TASK(6006, TraceEventType.AGENT, "Run task agent"), //
 
     // Thread identifier events
-    AP_THREAD_ID(Threads.AP.id, TraceEventType.THREAD_IDENTIFICATION, Threads.AP.description),
-    TD_THREAD_ID(Threads.TD.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TD.description),
-    LOW_FILE_SYS_THREAD_ID(Threads.FSL.id, TraceEventType.THREAD_IDENTIFICATION, Threads.FSL.description),
-    HIGH_FILE_SYS_THREAD_ID(Threads.FSH.id, TraceEventType.THREAD_IDENTIFICATION, Threads.FSH.description),
-    TIMER_THREAD_ID(Threads.TIMER.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TIMER.description),
-    WALLCLOCK_THREAD_ID(Threads.WC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.WC.description),
-    EXECUTOR_THREAD_ID(Threads.EXEC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.EXEC.description),
+    AP_THREAD_ID(Threads.AP.id, TraceEventType.THREAD_IDENTIFICATION, Threads.AP.description), //
+    TD_THREAD_ID(Threads.TD.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TD.description), //
+    LOW_FILE_SYS_THREAD_ID(Threads.FSL.id, TraceEventType.THREAD_IDENTIFICATION, Threads.FSL.description), //
+    HIGH_FILE_SYS_THREAD_ID(Threads.FSH.id, TraceEventType.THREAD_IDENTIFICATION, Threads.FSH.description), //
+    TIMER_THREAD_ID(Threads.TIMER.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TIMER.description), //
+    WALLCLOCK_THREAD_ID(Threads.WC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.WC.description), //
+    EXECUTOR_THREAD_ID(Threads.EXEC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.EXEC.description), //
 
     // Thread identifier events
     EXECUTOR_COUNTS(1, TraceEventType.EXECUTOR_COUNTS, "Executor counts"), // Executor start
@@ -225,6 +228,7 @@ public enum TraceEvent {
         this.id = id;
         this.type = type;
         this.signature = signature;
+        type.addEvent(this);
     }
 
     public int getId() {
@@ -243,20 +247,4 @@ public enum TraceEvent {
         return this.signature;
     }
 
-    /**
-     * Gathers all the registered events from a given type.
-     * 
-     * @param eventsType type of the events to gather
-     * @return all the registered events from a given type.
-     */
-    public static List<TraceEvent> getByType(TraceEventType eventsType) {
-        List<TraceEvent> typeEvents = new LinkedList<>();
-
-        for (TraceEvent traceEvent : TraceEvent.values()) {
-            if (traceEvent.getTraceEventType() == eventsType) {
-                typeEvents.add(traceEvent);
-            }
-        }
-        return typeEvents;
-    }
 }

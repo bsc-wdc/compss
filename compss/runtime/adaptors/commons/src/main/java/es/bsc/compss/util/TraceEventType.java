@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.util;
 
+import java.util.LinkedList;
+import java.util.List;
+
+
 public enum TraceEventType {
 
     // Event codes
@@ -32,11 +36,16 @@ public enum TraceEventType {
     // Task Ids
     TASKS_ID(8_000_002, "Task IDs", false),
 
-    TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), DATA_TRANSFERS(8_000_004, "Data Transfers", false),
-    STORAGE_TYPE(8_000_005, "Storage API", true), READY_COUNTS(8_000_006, "Ready queue count", true),
-    TASKTYPE(8_000_007, "Type of task", true), CPU_COUNTS(8_000_008, "Number of requested CPUs", false),
-    GPU_COUNTS(8_000_009, "Number of requested GPUs", false), MEMORY(8_000_010, "Requested Memory", false),
-    DISK_BW(8_000_011, "Requested disk bandwidth", false), SYNC(8_000_666, "Trace Synchronization event", true),
+    TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), //
+    DATA_TRANSFERS(8_000_004, "Data Transfers", false), //
+    STORAGE_TYPE(8_000_005, "Storage API", true), //
+    READY_COUNTS(8_000_006, "Ready queue count", true), //
+    TASKTYPE(8_000_007, "Type of task", true), //
+    CPU_COUNTS(8_000_008, "Number of requested CPUs", false), //
+    GPU_COUNTS(8_000_009, "Number of requested GPUs", false), //
+    MEMORY(8_000_010, "Requested Memory", false), //
+    DISK_BW(8_000_011, "Requested disk bandwidth", false), //
+    SYNC(8_000_666, "Trace Synchronization event", true), //
     TASKS_CPU_AFFINITY(8_000_150, "Tasks CPU affinity", true), // Java assignment
     TASKS_GPU_AFFINITY(8_000_160, "Tasks GPU affinity", true), // Java assignment
     AGENT(8_006_000, "Agents events", true),
@@ -60,12 +69,21 @@ public enum TraceEventType {
     public final int code;
     public final String desc;
     public final boolean endable;
+    private final List<TraceEvent> events;
 
 
     private TraceEventType(int code, String desc, boolean endable) {
         this.code = code;
         this.desc = desc;
         this.endable = endable;
+        this.events = new LinkedList<>();
     }
 
+    protected final void addEvent(TraceEvent event) {
+        events.add(event);
+    }
+
+    public final List<TraceEvent> getEvents() {
+        return events;
+    }
 }

@@ -564,45 +564,6 @@ public abstract class Tracer {
     }
 
     /**
-     * Updates the threads in .prv and .row classifying them in runtime or non runtime and assigning the corresponding
-     * labels
-     */
-    private static void sortTrace() {
-        String disable = System.getProperty(COMPSsConstants.DISABLE_CUSTOM_THREADS_TRACING);
-        if (disable != null) {
-            LOGGER.debug("Custom thread translation disabled");
-            return;
-        }
-        LOGGER.debug("Tracing: Updating thread labels");
-        File[] rowFileArray;
-        File[] prvFileArray;
-        try {
-            String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
-            File dir = new File(appLogDir + TRACE_SUBDIR);
-            final String traceNamePrefix = Tracer.getTraceNamePrefix();
-            rowFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_ROW_FILE_EXTENTION));
-            prvFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_PRV_FILE_EXTENTION));
-        } catch (Exception e) {
-            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
-            return;
-        }
-        try {
-            if (rowFileArray != null && rowFileArray.length > 0) {
-                File rowFile = rowFileArray[0];
-                File prvFile = prvFileArray[0];
-                ThreadTranslator thTranslator = new ThreadTranslator(prvFile);
-                thTranslator.translatePrvFile(prvFile);
-                thTranslator.translateRowFile(rowFile);
-            }
-        } catch (Exception e) {
-            LOGGER.debug(e);
-            LOGGER.debug(e.toString());
-            ErrorManager.error("Could not update thread labels " + traceDirPath, e);
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Stops the extrae wrapper.
      */
     protected static void stopWrapper() {
@@ -692,7 +653,7 @@ public abstract class Tracer {
 
     private static void defineEventsForType(TraceEventType type) {
         boolean endable = type.endable;
-        List<TraceEvent> events = TraceEvent.getByType(type);
+        List<TraceEvent> events = type.getEvents();
 
         long[] values;
         String[] descriptions;
@@ -838,6 +799,45 @@ public abstract class Tracer {
             } catch (Exception e) {
                 ErrorManager.warn("Error while trying to merge files", e);
             }
+        }
+    }
+
+    /**
+     * Updates the threads in .prv and .row classifying them in runtime or non runtime and assigning the corresponding
+     * labels
+     */
+    private static void sortTrace() {
+        String disable = System.getProperty(COMPSsConstants.DISABLE_CUSTOM_THREADS_TRACING);
+        if (disable != null) {
+            LOGGER.debug("Custom thread translation disabled");
+            return;
+        }
+        LOGGER.debug("Tracing: Updating thread labels");
+        File[] rowFileArray;
+        File[] prvFileArray;
+        try {
+            String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
+            File dir = new File(appLogDir + TRACE_SUBDIR);
+            final String traceNamePrefix = Tracer.getTraceNamePrefix();
+            rowFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_ROW_FILE_EXTENTION));
+            prvFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_PRV_FILE_EXTENTION));
+        } catch (Exception e) {
+            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
+            return;
+        }
+        try {
+            if (rowFileArray != null && rowFileArray.length > 0) {
+                File rowFile = rowFileArray[0];
+                File prvFile = prvFileArray[0];
+                ThreadTranslator thTranslator = new ThreadTranslator(prvFile);
+                thTranslator.translatePrvFile(prvFile);
+                thTranslator.translateRowFile(rowFile);
+            }
+        } catch (Exception e) {
+            LOGGER.debug(e);
+            LOGGER.debug(e.toString());
+            ErrorManager.error("Could not update thread labels " + traceDirPath, e);
+            e.printStackTrace();
         }
     }
 

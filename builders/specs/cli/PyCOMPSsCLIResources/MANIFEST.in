@@ -1,8 +1,5 @@
-include pycompss-cli/__init__.py
-include pycompss-cli/compss
-include pycompss-cli/dislib
-include pycompss-cli/pycompss
-include pycompss-cli/pycompss_cmd.py
+include pycompss_cli/assets/runcompss_args.txt
+include pycompss_cli/assets/enqueue_compss_args.txt
 
 include LICENSE.txt
 include MANIFEST.in

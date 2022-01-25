@@ -1,5 +1,8 @@
 import argparse
+import os
 import subprocess
+
+from pycompss_cli.core import utils
 
 FORMATTER_CLASS = argparse.RawDescriptionHelpFormatter
 
@@ -117,7 +120,13 @@ def cluster_parser_job():
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
     
-    enqueue_args = subprocess.check_output('enqueue_compss -h', shell=True).decode()
+    if utils.check_exit_code('enqueue_compss -h') == 0:
+        enqueue_args = subprocess.check_output('enqueue_compss -h', shell=True).decode()
+    else:
+        assets_folder = os.path.dirname(os.path.abspath(__file__)) + '/../..'
+        with open(assets_folder + '/assets/enqueue_compss_args.txt', 'r') as f:
+            enqueue_args = f.read()
+
     submit_job_parser.set_defaults(enqueue_args=enqueue_args)
     submit_job_parser.epilog = enqueue_args
 

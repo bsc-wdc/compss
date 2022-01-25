@@ -15,7 +15,7 @@ setuptools.setup(
     license="Apache 2.0",
 
     # Build
-    #packages=["pycompss_cli", "pycompss_cli"],
+    include_package_data=True,
     packages=setuptools.find_packages(),
     classifiers=["Development Status :: 5 - Production/Stable",
                  "Environment :: Console",

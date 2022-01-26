@@ -299,7 +299,9 @@ def register_core_element(
     impl_constraints: typing.Optional[str],
     impl_type: typing.Optional[str],
     impl_io: str,
-    impl_type_args: typing.List[str],
+    prolog: typing.List[str],
+    epilog: typing.List[str],
+    impl_type_args: typing.List[str]
 ) -> None:
     """Call to register_core_element.
 
@@ -308,6 +310,8 @@ def register_core_element(
     :param impl_constraints: Implementation constraints
     :param impl_type: Implementation type
     :param impl_io: Implementation IO
+    :param prolog: Prolog; a list containing the binary and params
+    :param epilog: epilog; a list containing the binary and params
     :param impl_type_args: Implementation type arguments
     :return: None
     """
@@ -317,6 +321,8 @@ def register_core_element(
         impl_constraints,
         impl_type,
         impl_io,
+        prolog,
+        epilog,
         impl_type_args,
     )
 

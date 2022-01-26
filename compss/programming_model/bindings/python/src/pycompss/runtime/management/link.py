@@ -394,7 +394,9 @@ class COMPSs(object):
         impl_constraints: typing.Optional[str],
         impl_type: typing.Optional[str],
         impl_io: str,
-        impl_type_args: typing.List[str],
+        prolog: typing.List[str],
+        epilog: typing.List[str],
+        impl_type_args: typing.List[str]
     ) -> None:
         IN_QUEUE.put(
             (
@@ -404,6 +406,8 @@ class COMPSs(object):
                 impl_constraints,
                 impl_type,
                 impl_io,
+                prolog,
+                epilog,
                 impl_type_args,
             )
         )

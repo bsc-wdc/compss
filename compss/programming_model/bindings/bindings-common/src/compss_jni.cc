@@ -1198,7 +1198,7 @@ void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeo
 }
 
 
-void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, int numParams, char** implTypeArgs) {
+void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, char** prolog, char** epilog, int numParams, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - ceSignature:     %s\n", ceSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implSignature:   %s\n", implSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implConstraints: %s\n", implConstraints);
@@ -1208,6 +1208,19 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
+
+    // Array of Objects to pass to the register
+    jobjectArray prologArr;
+    jobjectArray epilogArr;
+    prologArr = (jobjectArray)status->localJniEnv->NewObjectArray(2, clsString, status->localJniEnv->NewStringUTF(""));
+    epilogArr = (jobjectArray)status->localJniEnv->NewObjectArray(2, clsString, status->localJniEnv->NewStringUTF(""));
+    for (int i = 0; i < 2; i++) {
+        //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
+        jstring tmpro = status->localJniEnv->NewStringUTF(prolog[i]);
+        jstring tmpepi = status->localJniEnv->NewStringUTF(epilog[i]);
+        status->localJniEnv->SetObjectArrayElement(prologArr, i, tmpro);
+        status->localJniEnv->SetObjectArrayElement(epilogArr, i, tmpepi);
+    }
 
     // Array of Objects to pass to the register
     jobjectArray implArgs;
@@ -1226,6 +1239,8 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
                               status->localJniEnv->NewStringUTF(implConstraints),
                               status->localJniEnv->NewStringUTF(implType),
                               status->localJniEnv->NewStringUTF(implIO),
+                              prolog,
+                              epilog,
                               implArgs);
     check_exception(status, "Exception received when calling registerCE");
 

@@ -43,6 +43,7 @@
      --resources="${base_app_dir}"/resources.xml \
      \
      --comm="$comm" \
+     --scheduler="es.bsc.compss.scheduler.lookahead.locality.LocalityTS" \
      \
      --debug \
      ${runcompss_opts} \

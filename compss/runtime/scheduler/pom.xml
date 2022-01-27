@@ -33,19 +33,9 @@
     <!-- SUB-MODULES -->
     <modules>
         <module>commons</module>
-        <!-- <module>fullGraphScheduler</module> -->
-        <module>newFifoScheduler</module>
-        <module>newLifoScheduler</module>
-        <module>newReadyScheduler</module>
-        <module>newFifoDataScheduler</module>
-        <module>newFifoDataLocationScheduler</module>
-        <module>multiobjectiveScheduler</module>
-        <module>readyScheduler</module>
-        <module>dataLocalityScheduler</module>
-        <module>fifoScheduler</module>
-        <module>lifoScheduler</module>
-        <module>fifoDataScheduler</module>
-        <module>loadBalancingScheduler</module>
-        <module>dependencyConstraintFifoScheduler</module>
+        <module>test</module>
+        <module>fullgraph</module>
+        <module>orderstrict</module>
+        <module>lookahead</module>
     </modules>
 </project>

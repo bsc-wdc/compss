@@ -88,7 +88,7 @@ class Loggers:
             CREATE = "Registering new AllocatableAction"
 
         class AssignAction:
-            label = "schedule"
+            label = "gnWorkerAndImpl"
             ASSIGN = "Assigning action"
 
         class HostAction:

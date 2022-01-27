@@ -31,6 +31,7 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -879,7 +880,8 @@ public abstract class AllocatableAction {
     }
 
     public abstract List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
-        Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException;
+        Set<ResourceScheduler<? extends WorkerResourceDescription>> availableWorkers)
+        throws BlockedActionException, UnassignedActionException;
 
     /**
      * Operations to perform when AA has raised an error. Calls specific operation doError.
@@ -1206,28 +1208,35 @@ public abstract class AllocatableAction {
     public abstract void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
 
     /**
+     * Schedules the action considering a list of potential candidates where to run the task using the score
+     * {@code actionScore}.
+     *
+     * @param candidates List of possible workers to host the action.
+     * @param actionScore Scheduling action score.
+     * @throws UnassignedActionException When the action is not assigned to any candidate worker.
+     */
+    public abstract void schedule(Collection<ResourceScheduler<? extends WorkerResourceDescription>> candidates,
+        Score actionScore) throws UnassignedActionException;
+
+    /**
      * Schedules the action to a given {@code targetWorker} with score {@code actionScore}.
      *
-     * @param <T> WorkerResourceDescription.
      * @param targetWorker Target worker.
      * @param actionScore Scheduling action score.
-     * @throws BlockedActionException When the action is blocked.
      * @throws UnassignedActionException When the action is not assigned to a target worker.
      */
-    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Score actionScore) throws BlockedActionException, UnassignedActionException;
+    public abstract void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker,
+        Score actionScore) throws UnassignedActionException;
 
     /**
      * Schedules the implementation {@code impl} of the action to a given {@code targetWorker}.
      *
-     * @param <T> WorkerResourceDescription.
      * @param targetWorker Target worker.
      * @param impl Implementation to schedule.
-     * @throws BlockedActionException When the action is blocked.
      * @throws UnassignedActionException When the action is not assigned to a target worker.
      */
-    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Implementation impl) throws BlockedActionException, UnassignedActionException;
+    public abstract void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker,
+        Implementation impl) throws UnassignedActionException;
 
     @Override
     public String toString() {

@@ -59,7 +59,7 @@
       ${runcompss_opts} \
       -g \
       --summary \
-      --scheduler=es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler \
+      --scheduler=es.bsc.compss.scheduler.lookahead.mt.successors.fifolocality.FifoLocalityTS \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
       ${python_mpi_worker} \

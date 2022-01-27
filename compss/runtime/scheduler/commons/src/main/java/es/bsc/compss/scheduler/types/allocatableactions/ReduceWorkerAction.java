@@ -38,6 +38,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -206,19 +207,30 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
     }
 
+    @Override
+    public void schedule(Collection<ResourceScheduler<? extends WorkerResourceDescription>> candidates,
+        Score actionScore) throws UnassignedActionException {
+        if (!candidates.contains(this.worker)) {
+            throw new UnassignedActionException();
+        }
+        schedule(this.worker, this.impl);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
-        throws BlockedActionException, UnassignedActionException {
-
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Score actionScore)
+        throws UnassignedActionException {
+        if (targetWorker != this.worker) {
+            throw new UnassignedActionException();
+        }
         schedule((ResourceScheduler<WorkerResourceDescription>) targetWorker, impl);
     }
 
     @Override
-    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
-        throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Implementation impl)
+        throws UnassignedActionException {
 
-        if (targetWorker != getEnforcedTargetResource()) {
+        if (targetWorker != this.worker) {
             throw new UnassignedActionException();
         }
         // WARN: Parameter impl is ignored

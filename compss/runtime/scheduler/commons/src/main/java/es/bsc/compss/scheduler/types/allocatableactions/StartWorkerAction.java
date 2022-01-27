@@ -31,6 +31,7 @@ import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.Worker;
@@ -39,6 +40,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -77,7 +79,23 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             case WORKER:
             case MASTER:
                 Worker<T> mw = worker.getResource();
-                this.impl = AbstractMethodImplementation.generateDummy((MethodResourceDescription) mw.getDescription());
+                if (mw.getDescription() instanceof MethodResourceDescription) {
+                    this.impl =
+                        AbstractMethodImplementation.generateDummy((MethodResourceDescription) mw.getDescription());
+                } else {
+                    this.impl = new Implementation() {
+
+                        @Override
+                        public TaskType getTaskType() {
+                            return null;
+                        }
+
+                        @Override
+                        public WorkerResourceDescription getRequirements() {
+                            return mw.getDescription();
+                        }
+                    };
+                }
                 break;
             case HTTP:
                 this.impl = HTTPImplementation.generateDummy();
@@ -160,8 +178,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
         ResourceDescription rd = this.worker.getResource().getDescription();
         rd.reduce(rd);
+        this.worker.getResource().updatedFeatures();
         SchedulingInformation.changesOnWorker(this.worker);
-        // SchedulingInformation.removeWorker(this.worker);
 
         Worker wNode = this.worker.getResource();
         ResourceManager.removeWorker(wNode);
@@ -233,16 +251,28 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
-    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
-        throws BlockedActionException, UnassignedActionException {
+    public void schedule(Collection<ResourceScheduler<? extends WorkerResourceDescription>> candidates,
+        Score actionScore) throws UnassignedActionException {
+        if (!candidates.contains(this.worker)) {
+            throw new UnassignedActionException();
+        }
+        schedule(this.worker, this.impl);
+    }
+
+    @Override
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Score actionScore)
+        throws UnassignedActionException {
+        if (targetWorker != this.worker) {
+            throw new UnassignedActionException();
+        }
         schedule(targetWorker, this.impl);
     }
 
     @Override
-    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
-        throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Implementation impl)
+        throws UnassignedActionException {
 
-        if (targetWorker != getEnforcedTargetResource()) {
+        if (targetWorker != this.worker) {
             throw new UnassignedActionException();
         }
         // WARN: Parameter impl is ignored

@@ -200,9 +200,9 @@ Advanced options:
     --classpath=<path>                      Path for the application classes / modules
                                             Default: Working Directory
     --appdir=<path>                         Path for the application class folder.
-                                            Default: /home/bscuser/Documents/framework/builders/specs/cli/pyCOMPSsCLIResources
+                                            Default: /home/bscuser/Documents/framework/builders/specs/cli/PyCOMPSsCLIResources
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
-                                            Default: /home/bscuser/Documents/framework/builders/specs/cli/pyCOMPSsCLIResources
+                                            Default: /home/bscuser/Documents/framework/builders/specs/cli/PyCOMPSsCLIResources
     --env_script=<path>                     Path to the script file where the application environment variables are defined.
                                             COMPSs sources this script before running the application.
                                             Default: Empty

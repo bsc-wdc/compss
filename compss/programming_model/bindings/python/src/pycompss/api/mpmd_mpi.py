@@ -24,13 +24,19 @@ PyCOMPSs API - MPMD MPI
     definition through the decorator.
 """
 
+from pycompss.util.typing_helper import typing
 from functools import wraps
 
-from pycompss.api.commons.constants import RUNNER
-
 import pycompss.util.context as context
-from pycompss.api.commons.constants import *
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.constants import RUNNER
+from pycompss.api.commons.constants import PROGRAMS
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import PROCESSES_PER_NODE
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import PARAMS
+from pycompss.api.commons.constants import PROCESSES
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import resolve_working_dir
@@ -51,16 +57,21 @@ SUPPORTED_ARGUMENTS = {RUNNER,
                        WORKING_DIR,
                        PROCESSES_PER_NODE,
                        FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = set()
+DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class MPMDMPI(PyCOMPSsDecorator):
+class MPMDMPI(object):
     """
+    This decorator also preserves the argspec, but includes the __init__ and
+    __call__ methods, useful on mpmd_mpi task creation.
     """
 
-    __slots__ = ['task_type', 'decorator_name', 'processes']
+    __slots__ = ["decorator_name", "args", "kwargs", "scope",
+                 "core_element", "core_element_configured",
+                 "task_type", "processes"]
 
     def __init__(self, *args, **kwargs):
+        # type: (*typing.Any, **typing.Any) -> None
         """ Store arguments passed to the decorator.
 
         self = itself.
@@ -70,10 +81,17 @@ class MPMDMPI(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
+        decorator_name = "".join(("@", MPMDMPI.__name__.lower()))
+        # super(MPMDMPI, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
+        # MPMD_MPI specific:
         self.task_type = "mpmd_mpi"
-        self.decorator_name = "".join(('@', MPMDMPI.__name__.lower()))
         self.processes = 0
-        super(MPMDMPI, self).__init__(self.decorator_name, *args, **kwargs)
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpmd_mpi decorator...")
@@ -100,12 +118,14 @@ class MPMDMPI(PyCOMPSsDecorator):
 
         @wraps(user_function)
         def mpmd_mpi_f(*args, **kwargs):
+            # type: (*typing.Any, **typing.Any) -> typing.Any
             return self.__decorator_body__(user_function, args, kwargs)
 
         mpmd_mpi_f.__doc__ = user_function.__doc__
         return mpmd_mpi_f
 
     def __decorator_body__(self, user_function, args, kwargs):
+        # type: (typing.Callable, tuple, dict) -> typing.Any
         if not self.scope:
             raise NotImplementedError
 
@@ -115,7 +135,7 @@ class MPMDMPI(PyCOMPSsDecorator):
         if (context.in_master() or context.is_nesting_enabled()) \
                 and not self.core_element_configured:
             # master code - or worker with nesting enabled
-            self.__configure_core_element__(kwargs, user_function)
+            self.__configure_core_element__(kwargs)
 
         kwargs[PROCESSES_PER_NODE] = self.kwargs.get(PROCESSES_PER_NODE, 1)
         kwargs[COMPUTING_NODES] = self.processes
@@ -126,7 +146,7 @@ class MPMDMPI(PyCOMPSsDecorator):
 
         return ret
 
-    def _get_programs_params(self):
+    def __get_programs_params__(self):
         # type: () -> list
         """ Resolve the collection layout, such as blocks, strides, etc.
 
@@ -153,14 +173,13 @@ class MPMDMPI(PyCOMPSsDecorator):
 
         return programs_params
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(self, kwargs):
+        # type: (dict) -> None
         """ Include the registering info related to @mpmd_mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -178,7 +197,7 @@ class MPMDMPI(PyCOMPSsDecorator):
         ppn = str(self.kwargs.get(PROCESSES_PER_NODE, 1))
         impl_signature = '.'.join((impl_type, str(ppn)))
 
-        prog_params = self._get_programs_params()
+        prog_params = self.__get_programs_params__()
 
         impl_args = [runner,
                      self.kwargs[WORKING_DIR],

@@ -29,7 +29,11 @@ from sys import getsizeof
 from sys import stderr
 from itertools import chain
 from collections import deque
-from collections import Iterator
+try:
+    from collections import Iterator  # type: ignore
+except ImportError:
+    # New place since python >= 3.9
+    from collections.abc import Iterator
 
 try:
     from reprlib import repr  # noqa

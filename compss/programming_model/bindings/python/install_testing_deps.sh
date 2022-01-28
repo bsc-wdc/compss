@@ -7,6 +7,9 @@ python2 -m pip install nose --user
 python3 -m pip install nose --user
 python2 -m pip install coverage --user
 python3 -m pip install coverage --user
+python3 -m pip install pycodestyle --user
+python3 -m pip install mpi4py --user
+python3 -m pip install numpy dill guppy3 memory_profiler matplotlib decorator --user
 
 # Jupyter specific
 python2 -m pip install nbval --user

@@ -1,0 +1,46 @@
+# Name with capital letters (in github is in lower-case)
+name: PyCOMPSs/COMPSs # will use GitHub repository name if not provided
+
+# Take the github logo
+# icon: <url_to_workflow_system_logo> # will use GitHub organization icon if not provided
+
+headline: Easy task-based parallelization and efficient execution in distributed infrastructures. # will use GitHub repository description if not provided
+
+description: COMP Superscalar (COMPSs) is a task-based programming model which aims to ease the development of applications for distributed infrastructures, such as large High-Performance Clusters (HPC), Clouds and Container managed clusters. PyCOMPSs is the Python binding of COMPSs.<br> COMPSs provides a programming interface for the development of the applications in Python/Java/C/C++, a runtime system that exploits the inherent parallelism of applications at execution time, and a rich ecosystem for the operation monitoring, performance evaluation and integration with Jupyter/Jupyterlab. # will use GitHub repository description if not provided
+
+language:  # will attempt to fetch GitHub repository main language if not provided
+    - Python
+    - Java
+    - C/C++
+
+# Take automatically the latest release
+# release: # will attempt to fetch latest release from GitHub repository if not provided
+#   version: <release_name>
+#   date: <release_date> # format: YYYY-MM-DD
+#   url: <release_url>
+
+documentation: # nothing will be used if not provided
+  general: https://compss-doc.readthedocs.io/en/stable/
+  installation: https://compss-doc.readthedocs.io/en/stable/Sections/00_Quickstart.html
+  tutorial: https://compss-doc.readthedocs.io/en/stable/Sections/10_Tutorial.html
+
+social: # nothing will be used if not provided
+  twitter: https://twitter.com/bsc_compss
+  youtube: https://www.youtube.com/channel/UCxx5hojMjCNqKRJclMaJbHQ
+
+execution_environment: # nothing will be used if not provided
+  interfaces: # list of interfaces
+    - Local
+    - High Performance Cluster (HPC)
+    - Clouds
+    - Docker
+    - Mesos
+  resource_managers: # list of supported resource managers
+    - SLURM
+    - PBS
+    - LSF
+    - SGE
+    - TCS
+  transfer_protocols: # list of supported transfer protocols
+    - NIO
+    - SCP

@@ -17,8 +17,11 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.api.ApplicationRunner;
+import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
+import es.bsc.compss.invokers.types.StdIOStream;
+import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
@@ -26,6 +29,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -393,6 +397,22 @@ public abstract class Invoker implements ApplicationRunner {
     protected abstract void invokeMethod() throws JobExecutionException, COMPSsException;
 
     protected abstract void cancelMethod();
+
+    private Object executeBinary(ExecType executable) throws JobExecutionException {
+        BinaryRunner br = new BinaryRunner();
+        String[] cmd = new String[2];
+
+        cmd[0] = executable.getBinary();
+        cmd[1] = executable.getParams();
+
+        try {
+            return br.executeCMD(cmd, new StdIOStream(), this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+                this.context.getThreadErrStream(), null, true);
+        } catch (InvokeExecutionException iee) {
+            throw new JobExecutionException(iee);
+        }
+
+    }
 
     @Override
     public void stalledApplication() {

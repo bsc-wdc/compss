@@ -35,7 +35,7 @@ public class ServiceImplementation extends Implementation {
      */
     public static ServiceImplementation generateDummy() {
         return new ServiceImplementation(null, null, new ImplementationDescription<>(
-            new ServiceDefinition("", "", "", ""), "", new ServiceResourceDescription("", "", "", 0)));
+            new ServiceDefinition("", "", "", ""), "", new ServiceResourceDescription("", "", "", 0), null, null));
     }
 
     public ServiceImplementation() {

@@ -37,7 +37,7 @@ public class AbstractMethodImplementation extends Implementation {
      */
     public static AbstractMethodImplementation generateDummy(MethodResourceDescription constraints) {
         return new AbstractMethodImplementation(null, null,
-            new ImplementationDescription<>(new MethodDefinition("", ""), "", constraints));
+            new ImplementationDescription<>(new MethodDefinition("", ""), "", constraints, null, null));
     }
 
     public AbstractMethodImplementation() {

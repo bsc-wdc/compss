@@ -62,6 +62,9 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
     private T constraints;
     private D implDefinition;
 
+    private ExecType prolog;
+    private ExecType epilog;
+
 
     /**
      * Creates a new implementation from the given parameters.
@@ -78,7 +81,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
     @SuppressWarnings("unchecked")
     public static final <T extends WorkerResourceDescription, D extends ImplementationDefinition>
         ImplementationDescription<T, D> defineImplementation(String implType, String implSignature, T implConstraints,
-            String... implTypeArgs) throws IllegalArgumentException {
+            ExecType prolog, ExecType epilog, String... implTypeArgs) throws IllegalArgumentException {
 
         ImplementationDescription<T, D> id = null;
 
@@ -92,7 +95,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
             String port = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
 
             id = new ImplementationDescription<>((D) new ServiceDefinition(namespace, serviceName, operation, port),
-                implSignature, (T) new ServiceResourceDescription(serviceName, namespace, port, 1));
+                implSignature, (T) new ServiceResourceDescription(serviceName, namespace, port, 1), prolog, epilog);
 
         } else if (implType.toUpperCase().compareTo(TaskType.HTTP.toString()) == 0) {
             if (implTypeArgs.length != HTTPDefinition.NUM_PARAMS) {
@@ -102,7 +105,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
             List<String> servicesList = new ArrayList<String>();
             servicesList.add(serviceName);
             id = new ImplementationDescription<>((D) new HTTPDefinition(implTypeArgs, 0), implSignature,
-                (T) new HTTPResourceDescription(servicesList, 1));
+                (T) new HTTPResourceDescription(servicesList, 1), prolog, epilog);
         } else {
             MethodType mt;
             try {
@@ -118,7 +121,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
 
                     id = new ImplementationDescription<>((D) new MethodDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
 
                 case PYTHON_MPI:
@@ -128,7 +131,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
                     PythonMPIDefinition pyMPIDef = new PythonMPIDefinition(implTypeArgs, 0);
                     implConstraints.scaleUpBy(pyMPIDef.getPPN());
-                    id = new ImplementationDescription<>((D) pyMPIDef, implSignature, implConstraints);
+                    id = new ImplementationDescription<>((D) pyMPIDef, implSignature, implConstraints, prolog, epilog);
                     break;
 
                 case CONTAINER:
@@ -137,7 +140,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                             "Incorrect parameters for type CONTAINER on " + implSignature);
                     }
                     id = new ImplementationDescription<>((D) new ContainerDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
 
                 case BINARY:
@@ -146,7 +149,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
 
                     id = new ImplementationDescription<>((D) new BinaryDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
 
                 case MPI:
@@ -155,16 +158,17 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
                     MPIDefinition mpiDef = new MPIDefinition(implTypeArgs, 0);
                     implConstraints.scaleUpBy(mpiDef.getPPN());
-                    id = new ImplementationDescription<>((D) mpiDef, implSignature, implConstraints);
+                    id = new ImplementationDescription<>((D) mpiDef, implSignature, implConstraints, prolog, epilog);
                     break;
 
                 case MPMDMPI:
                     if (implTypeArgs.length < MpmdMPIDefinition.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type MPMDMPI on " + implSignature);
                     }
+                    // todo: nm_1
                     MpmdMPIDefinition mpmdDef = new MpmdMPIDefinition(implTypeArgs, 0);
                     implConstraints.scaleUpBy(mpmdDef.getPPN());
-                    id = new ImplementationDescription<>((D) mpmdDef, implSignature, implConstraints);
+                    id = new ImplementationDescription<>((D) mpmdDef, implSignature, implConstraints, prolog, epilog);
                     break;
 
                 case COMPSs:
@@ -172,7 +176,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                         throw new IllegalArgumentException("Incorrect parameters for type MPI on " + implSignature);
                     }
                     id = new ImplementationDescription<>((D) new COMPSsDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
 
                 case DECAF:
@@ -181,7 +185,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
 
                     id = new ImplementationDescription<>((D) new DecafDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
 
                 case OMPSS:
@@ -190,7 +194,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
 
                     id = new ImplementationDescription<>((D) new OmpSsDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
 
                 case OPENCL:
@@ -199,7 +203,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
 
                     id = new ImplementationDescription<>((D) new OpenCLDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
 
                 case MULTI_NODE:
@@ -208,7 +212,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                             "Incorrect parameters for type MultiNode on " + implSignature);
                     }
                     id = new ImplementationDescription<>((D) new MultiNodeDefinition(implTypeArgs, 0), implSignature,
-                        implConstraints);
+                        implConstraints, prolog, epilog);
                     break;
             }
         }
@@ -225,10 +229,13 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
      * @param signature Signature of the implementation.
      * @param constraints requirements to run the implementation
      */
-    public ImplementationDescription(D implDefinition, String signature, T constraints) {
+    public ImplementationDescription(D implDefinition, String signature, T constraints, ExecType prolog,
+        ExecType epilog) {
         this.signature = signature;
         this.constraints = constraints;
         this.implDefinition = implDefinition;
+        this.prolog = prolog;
+        this.epilog = epilog;
     }
 
     /**
@@ -238,6 +245,14 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
      */
     public String getSignature() {
         return signature;
+    }
+
+    public ExecType getProlog() {
+        return this.prolog;
+    }
+
+    public ExecType getEpilog() {
+        return this.epilog;
     }
 
     /**
@@ -280,6 +295,8 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
         this.signature = (String) in.readObject();
         this.constraints = (T) in.readObject();
         this.implDefinition = (D) in.readObject();
+        this.prolog = (ExecType) in.readObject();
+        this.epilog = (ExecType) in.readObject();
 
     }
 
@@ -288,6 +305,8 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
         out.writeObject(this.signature);
         out.writeObject(this.constraints);
         out.writeObject(this.implDefinition);
+        out.writeObject(this.prolog);
+        out.writeObject(this.epilog);
     }
 
     @Override

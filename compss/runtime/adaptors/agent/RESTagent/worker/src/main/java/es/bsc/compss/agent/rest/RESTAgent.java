@@ -394,7 +394,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(ceSignature);
         ImplementationDescription<?, ?> implDef =
-            ImplementationDescription.defineImplementation("METHOD", implSignature, requirements, typeArgs);
+            ImplementationDescription.defineImplementation("METHOD", implSignature, requirements, null, null, typeArgs);
         ced.addImplementation(implDef);
         try {
             appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, OnFailure.FAIL);

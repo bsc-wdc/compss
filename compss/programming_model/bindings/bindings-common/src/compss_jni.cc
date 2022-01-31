@@ -364,7 +364,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find cancelApplicationTasks");
 
     // RegisterCE method
-    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
+    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
     check_exception(status, "Cannot find registerCoreElement");
 
     // isFileAccessed method
@@ -1239,8 +1239,8 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
                               status->localJniEnv->NewStringUTF(implConstraints),
                               status->localJniEnv->NewStringUTF(implType),
                               status->localJniEnv->NewStringUTF(implIO),
-                              prolog,
-                              epilog,
+                              prologArr,
+                              epilogArr,
                               implArgs);
     check_exception(status, "Exception received when calling registerCE");
 

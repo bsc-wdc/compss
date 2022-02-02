@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 
 public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMethodImplementationDefinition {
 
@@ -220,7 +218,8 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
 
     @Override
     public String generateNumberOfProcesses(int numWorkers, int computingUnits) {
-        throw new NotImplementedException();
+        // not required for MPMD MPI tasks.
+        return null;
     }
 
     /**

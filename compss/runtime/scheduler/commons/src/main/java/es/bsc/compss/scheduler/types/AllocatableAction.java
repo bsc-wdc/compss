@@ -587,13 +587,13 @@ public abstract class AllocatableAction {
     public void tryToLaunch() throws InvalidSchedulingException {
         // Gets the lock on the action
         this.lock.lock();
-        boolean readyForExecution = taskIsReadyForExecution();
 
         if (selectedResource != null // has an assigned resource where to run
             && state == State.RUNNABLE // has not been started yet
-            && !hasDataPredecessors() // has no data dependencies with other methods
+            && !hasDataPredecessors() // has no pending data dependencies with other methods
+            && !hasStreamProducers() // does not consume data from a stream from an unstarted producer
             && schedulingInfo.isExecutable() // scheduler does not block the execution
-            && readyForExecution // there are no tasks being executed in a commutative group
+            && taskIsReadyForExecution() // there are no tasks being executed in a commutative group
         ) {
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
             // task is not to stop; or the assigned resource is not the required

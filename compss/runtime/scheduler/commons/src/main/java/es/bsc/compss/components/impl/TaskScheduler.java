@@ -398,7 +398,7 @@ public class TaskScheduler {
             scheduleAction(action, actionScore);
             tryToLaunch(action);
         } catch (BlockedActionException bae) {
-            if (!action.hasDataPredecessors()) {
+            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
                 removeFromReady(action);
             }
             addToBlocked(action);

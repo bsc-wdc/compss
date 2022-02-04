@@ -533,16 +533,16 @@ create_tree_topology() {
    cpus+=("${num_cpu}")
   done
 
-  for child_agent_id in $(seq ${num_agents} -1 1)
+  for child_agent_id in $(seq ${num_agents} -1 2)
   do
+    compute_agent_setup ${child_agent_id}
     # calculte the parent node
-    parent_agent_id=$(echo "($child_agent_id + 1)/2" | bc)
-    child_cpus=${agent_cpu[${child_agent_id}]}
+    parent_agent_id=$(echo "($child_agent_id)/2" | bc)
+    child_cpus=${cpus[${child_agent_id}]}
 
     add_resources "${parent_agent_id}" "${child_agent_id}" "${child_cpus}"
+    cpus[${parent_agent_id}]=$(( cpus[parent_agent_id] + child_cpus))
 
-    # add to the parent node the number of cpus
-    agent_cpu[${parent_agent_id}]=$(( agent_cpu[parent_agent_id] + child_cpus))
   done
 }
 
@@ -563,6 +563,7 @@ check_topology() {
     retries=$((retries - 1 ))
     cpus_topology=$(curl -s -XGET "http://${agent_name}:${agent_rest_port}/COMPSs/resources" | jq '.resources | .[] | .description | .processors | .[] | .units' | paste -sd+ | bc)
   done
+
 
   if [[ ${cpus_topology} -eq ${cpus_num_agents} ]]; then
     if [ ${verbose_level} -gt 0 ]; then

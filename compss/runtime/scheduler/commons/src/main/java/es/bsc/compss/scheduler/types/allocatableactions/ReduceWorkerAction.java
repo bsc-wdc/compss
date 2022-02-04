@@ -27,9 +27,7 @@ import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.ServiceImplementation;
-import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
@@ -250,16 +248,6 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
-    public boolean taskIsReadyForExecution() {
-        return true;
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-
-    }
-
-    @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }
@@ -273,7 +261,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
         Set<ResourceScheduler<? extends WorkerResourceDescription>> availableResources)
         throws BlockedActionException, UnassignedActionException {
         this.schedule(actionScore);
-        List<ResourceScheduler<?>> uselessWorkers = new LinkedList<ResourceScheduler<?>>();
+        List<ResourceScheduler<?>> uselessWorkers = new LinkedList<>();
         if (!this.worker.canRunSomething()) {
             uselessWorkers.add(this.worker);
         }

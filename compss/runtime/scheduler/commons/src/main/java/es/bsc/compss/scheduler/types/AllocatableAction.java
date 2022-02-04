@@ -24,6 +24,7 @@ import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
@@ -93,6 +94,8 @@ public abstract class AllocatableAction {
     private final List<AllocatableAction> streamDataConsumers;
     // Allocatable actions that are members of the same task group
     private final List<AllocatableAction> groupMembers;
+    //
+    private final List<MutexGroup> mutexGroups;
 
     private State state;
     private ResourceScheduler<? extends WorkerResourceDescription> selectedResource;
@@ -133,6 +136,7 @@ public abstract class AllocatableAction {
         this.executingResources = new LinkedList<>();
         this.schedulingInfo = schedulingInformation;
         this.profile = null;
+        this.mutexGroups = new LinkedList<>();
     }
 
     /*
@@ -265,13 +269,6 @@ public abstract class AllocatableAction {
     public final boolean hasStreamProducers() {
         return !this.streamDataProducers.isEmpty();
     }
-
-    /**
-     * Returns whether the task is ready for execution or not.
-     *
-     * @return {@literal true} if the task is ready for execution, {@literal false} otherwise.
-     */
-    public abstract boolean taskIsReadyForExecution();
 
     /**
      * Adds a data predecessor.
@@ -593,7 +590,7 @@ public abstract class AllocatableAction {
             && !hasDataPredecessors() // has no pending data dependencies with other methods
             && !hasStreamProducers() // does not consume data from a stream from an unstarted producer
             && schedulingInfo.isExecutable() // scheduler does not block the execution
-            && taskIsReadyForExecution() // there are no tasks being executed in a commutative group
+            && areMutexLocksAvailable() // there are no tasks being executed in a mutex group
         ) {
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
             // task is not to stop; or the assigned resource is not the required
@@ -619,6 +616,15 @@ public abstract class AllocatableAction {
             }
             this.lock.unlock();
         }
+    }
+
+    private boolean areMutexLocksAvailable() {
+        for (MutexGroup group : this.mutexGroups) {
+            if (!group.testLock(this)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void execute() {
@@ -679,7 +685,9 @@ public abstract class AllocatableAction {
         this.selectedResource.hostAction(this);
 
         doAction();
-
+        for (MutexGroup group : this.mutexGroups) {
+            group.acquireLock(this);
+        }
         // Notify the orchestrator that task is running (to free the stream data consumers if necessary)
         notifyRunning();
     }
@@ -796,10 +804,17 @@ public abstract class AllocatableAction {
             if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                 freeTasks.add(aa);
             }
-            this.treatDependencyFreeAction(freeTasks);
         }
-        if (dataSuccessors.isEmpty()) {
-            this.treatDependencyFreeAction(freeTasks);
+
+        for (ActionGroup group : this.mutexGroups) {
+            group.removeMember(this);
+            for (AllocatableAction aa : group.getMembers()) {
+                if (!aa.hasDataPredecessors()) {
+                    if (!freeTasks.contains(aa)) {
+                        freeTasks.add(aa);
+                    }
+                }
+            }
         }
 
         this.dataSuccessors.clear();
@@ -833,6 +848,10 @@ public abstract class AllocatableAction {
         // Mark as finished
         this.state = State.FINISHED;
         List<AllocatableAction> freeActions = releaseDataSuccessors();
+
+        for (MutexGroup group : this.mutexGroups) {
+            group.releaseLock();
+        }
         // Action notification
         doCompleted();
         return freeActions;
@@ -849,8 +868,6 @@ public abstract class AllocatableAction {
             selectedResource.tryToLaunchBlockedActions();
         }
     }
-
-    protected abstract void treatDependencyFreeAction(List<AllocatableAction> freeTasks);
 
     public abstract List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
         Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException;

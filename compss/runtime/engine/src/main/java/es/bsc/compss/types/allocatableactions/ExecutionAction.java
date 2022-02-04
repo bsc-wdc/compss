@@ -29,6 +29,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionGroup;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
@@ -150,7 +151,6 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
         }
-
     }
 
     private void registerDataDependencies() {
@@ -159,23 +159,24 @@ public class ExecutionAction extends AllocatableAction {
             if (!(predecessor instanceof CommutativeGroupTask)) {
                 treatStandardPredecessor(predecessor);
             } else {
-                treatCommutativePredecessor(predecessor);
+                treatCommutativePredecessor((CommutativeGroupTask) predecessor);
             }
         }
-
     }
 
-    private void treatCommutativePredecessor(AbstractTask predecessor) {
+    private void treatCommutativePredecessor(CommutativeGroupTask predecessor) {
         if (DEBUG) {
             LOGGER.debug("Task has a commutative group as a predecessor");
         }
-        for (Task t : ((CommutativeGroupTask) predecessor).getCommutativeTasks()) {
+        for (Task t : predecessor.getCommutativeTasks()) {
             for (AllocatableAction com : t.getExecutions()) {
                 if (!com.getDataPredecessors().contains(this)) {
                     this.addDataPredecessor(com);
                 }
             }
         }
+        ActionGroup commutativeActions = predecessor.getActions();
+        commutativeActions.addMember(this);
     }
 
     private void treatStandardPredecessor(AbstractTask predecessor) {
@@ -184,10 +185,8 @@ public class ExecutionAction extends AllocatableAction {
                 addDataPredecessor(e);
             } else {
                 addAlreadyDoneAction(e);
-
             }
         }
-
     }
 
     /**
@@ -227,14 +226,6 @@ public class ExecutionAction extends AllocatableAction {
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSubmission();
         doInputTransfers();
-        for (CommutativeGroupTask com : this.getTask().getCommutativeGroupList()) {
-            com.taskBeingExecuted(this.getTask().getId());
-        }
-    }
-
-    @Override
-    public boolean taskIsReadyForExecution() {
-        return this.task.canBeExecuted();
     }
 
     @Override
@@ -954,10 +945,6 @@ public class ExecutionAction extends AllocatableAction {
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSuccesfulExecution();
 
-        for (CommutativeGroupTask com : this.getTask().getCommutativeGroupList()) {
-            com.taskEndedExecution();
-        }
-
         // Decrease the execution counter and set the task as finished and notify the producer
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
@@ -1356,23 +1343,6 @@ public class ExecutionAction extends AllocatableAction {
 
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSchedule();
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        for (CommutativeGroupTask cgt : this.getTask().getCommutativeGroupList()) {
-            for (Task t : cgt.getCommutativeTasks()) {
-                if (t.getStatus() == TaskState.TO_EXECUTE) {
-                    for (AllocatableAction aa : t.getExecutions()) {
-                        if (!aa.hasDataPredecessors()) {
-                            if (!freeTasks.contains(aa)) {
-                                freeTasks.add(aa);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /*

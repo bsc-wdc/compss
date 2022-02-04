@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.scheduler.types.ActionGroup;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.parameter.Parameter;
 
@@ -39,8 +40,7 @@ public class CommutativeGroupTask extends AbstractTask {
     private DataAccessId registeredVersion;
 
     // Task currently being executed
-    private boolean currentlyExecuting;
-    private int taskExecuting;
+    private final ActionGroup actions;
 
     private boolean graphDrawn;
 
@@ -55,13 +55,12 @@ public class CommutativeGroupTask extends AbstractTask {
         super(app);
         this.commutativeTasks = new LinkedList<>();
         this.finalVersion = 0;
-        this.currentlyExecuting = false;
         this.executionCount = 0;
         this.versions = new LinkedList<>();
         this.registeredVersion = null;
         this.comId = comId;
         this.graphDrawn = false;
-        this.taskExecuting = 0;
+        this.actions = new ActionGroup();
     }
 
     /**
@@ -107,24 +106,6 @@ public class CommutativeGroupTask extends AbstractTask {
      */
     public void removePredecessor(Task t) {
         super.getPredecessors().remove(t);
-    }
-
-    /**
-     * Group starts processing execution.
-     *
-     * @param taskId Task being executed.
-     */
-    public void taskBeingExecuted(int taskId) {
-        this.currentlyExecuting = true;
-        this.taskExecuting = taskId;
-    }
-
-    /**
-     * The group ends processing execution.
-     */
-    public void taskEndedExecution() {
-        this.currentlyExecuting = false;
-        this.taskExecuting = 0;
     }
 
     /**
@@ -216,19 +197,6 @@ public class CommutativeGroupTask extends AbstractTask {
         this.parentDataDependency = t;
     }
 
-    /**
-     * Returns whether the group is processing the given task or not.
-     *
-     * @param taskId Task to ask if it is being executed.
-     * @return {@literal true} if the group is executing the given task, {@literal false} otherwise.
-     */
-    public boolean processingExecution(int taskId) {
-        if (this.currentlyExecuting && taskId == this.taskExecuting) {
-            return false;
-        }
-        return this.currentlyExecuting;
-    }
-
     public List<Parameter> getParameterDataToRemove() {
         return new LinkedList<>();
     }
@@ -253,6 +221,15 @@ public class CommutativeGroupTask extends AbstractTask {
      */
     public int getFinalVersion() {
         return this.finalVersion;
+    }
+
+    /**
+     * Returns the group of actions representing the tasks of the group.
+     * 
+     * @return the group of actions that belong to the Commutative task group
+     */
+    public final ActionGroup getActions() {
+        return actions;
     }
 
     @Override

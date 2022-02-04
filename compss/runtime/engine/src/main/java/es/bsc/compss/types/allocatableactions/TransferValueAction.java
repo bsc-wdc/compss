@@ -408,17 +408,6 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
 
     @Override
-    public boolean taskIsReadyForExecution() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-
-    }
-
-    @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }

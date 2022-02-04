@@ -57,17 +57,20 @@ class RemoteActions(Actions):
             self.arguments.modules.append('COMPSs')
         
         print('Deploying environment...')
+
+        env_id = self.arguments.name
         
         try:
-            remote_deploy_compss(self.arguments.name, self.arguments.login, self.arguments.modules)
+            remote_deploy_compss(env_id, self.arguments.login, self.arguments.modules)
 
             remote_home_path = remote_get_home(self.arguments.login)
 
             self.env_add_conf({'remote_home':  remote_home_path})
         except:
             traceback.print_exc()
-            print("ERROR: Cluster deployment failed")
-            self.env_remove(self.arguments.name)
+            
+            print("ERROR: Cluster({}) deployment failed".format(env_id))
+            self.env_remove(env_id)
 
     def run(self):
         app_name = self.arguments.app_name
@@ -267,8 +270,8 @@ class RemoteActions(Actions):
         command = ' '.join(self.arguments.exec_cmd)
         remote_exec_app(login_info, command)
 
-    def env_remove(self, env_id=None):
-        env_id = self.arguments.env_id if env_id is None else env_id
+    def env_remove(self, eid=None):
+        env_id = self.arguments.env_id if eid is None else eid
         env_apps = self.get_apps(env_id=env_id)
         if len(env_apps) > 0:
             print('WARNING: There are still applications binded to this environment')
@@ -278,9 +281,9 @@ class RemoteActions(Actions):
             if answer == 'Y' or answer == 'y' or answer == 'yes':
                 login_info = self.env_conf['login']
                 remote_env_remove(login_info, env_id, env_apps)
-                super().env_remove()
+                super().env_remove(eid=eid)
         else:
-            super().env_remove()
+            super().env_remove(eid=eid)
 
     def components(self):
         print('ERROR: Not Implemented Yet')

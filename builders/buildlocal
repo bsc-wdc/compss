@@ -90,6 +90,7 @@ show_opts() {
 
     --cli, -c                   Enable Command Line Interface module installation
     --no-cli, -C                Disable Command Line Interface module installation
+                                Default: ${DEFAULT_CLI}
 
     --nothing, -N               Disable all previous options
                                 Default: unused

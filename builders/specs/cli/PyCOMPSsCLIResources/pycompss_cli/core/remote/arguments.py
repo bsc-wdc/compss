@@ -124,7 +124,7 @@ def cluster_parser_job():
         enqueue_args = subprocess.check_output('enqueue_compss -h', shell=True).decode()
     else:
         assets_folder = os.path.dirname(os.path.abspath(__file__)) + '/../..'
-        with open(assets_folder + '/assets/enqueue_compss_args.txt', 'r') as f:
+        with open(assets_folder + '/assets/enqueue_compss_args.txt', 'r', encoding='utf-8') as f:
             enqueue_args = f.read()
 
     submit_job_parser.set_defaults(enqueue_args=enqueue_args)

@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.scheduler.types.ActionGroup;
+import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.parameter.Parameter;
 
@@ -40,7 +40,7 @@ public class CommutativeGroupTask extends AbstractTask {
     private DataAccessId registeredVersion;
 
     // Task currently being executed
-    private final ActionGroup actions;
+    private final MutexGroup actions;
 
     private boolean graphDrawn;
 
@@ -53,6 +53,7 @@ public class CommutativeGroupTask extends AbstractTask {
      */
     public CommutativeGroupTask(Application app, CommutativeIdentifier comId) {
         super(app);
+
         this.commutativeTasks = new LinkedList<>();
         this.finalVersion = 0;
         this.executionCount = 0;
@@ -60,7 +61,7 @@ public class CommutativeGroupTask extends AbstractTask {
         this.registeredVersion = null;
         this.comId = comId;
         this.graphDrawn = false;
-        this.actions = new ActionGroup();
+        this.actions = new MutexGroup();
     }
 
     /**
@@ -228,7 +229,7 @@ public class CommutativeGroupTask extends AbstractTask {
      * 
      * @return the group of actions that belong to the Commutative task group
      */
-    public final ActionGroup getActions() {
+    public final MutexGroup getActions() {
         return actions;
     }
 

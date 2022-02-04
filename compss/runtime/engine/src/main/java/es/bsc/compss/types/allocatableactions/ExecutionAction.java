@@ -29,7 +29,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.compss.scheduler.types.ActionGroup;
+import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
@@ -116,7 +116,6 @@ public class ExecutionAction extends AllocatableAction {
         AccessProcessor ap, Task task) {
 
         super(schedulingInformation, orchestrator);
-
         this.ap = ap;
         this.task = task;
         this.jobs = new LinkedList<>();
@@ -131,6 +130,8 @@ public class ExecutionAction extends AllocatableAction {
             registerDataDependencies();
             // Register stream producers
             registerStreamProducers();
+            // Register mutex condition
+            registerMutex();
         }
 
         // Scheduling constraints
@@ -140,6 +141,13 @@ public class ExecutionAction extends AllocatableAction {
             for (AllocatableAction e : resourceConstraintTask.getExecutions()) {
                 addResourceConstraint(e);
             }
+        }
+    }
+
+    private void registerMutex() {
+        for (CommutativeGroupTask group : this.task.getCommutativeGroupList()) {
+            MutexGroup mGroup = group.getActions();
+            this.addToMutexGroup(mGroup);
         }
     }
 
@@ -175,8 +183,6 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
         }
-        ActionGroup commutativeActions = predecessor.getActions();
-        commutativeActions.addMember(this);
     }
 
     private void treatStandardPredecessor(AbstractTask predecessor) {

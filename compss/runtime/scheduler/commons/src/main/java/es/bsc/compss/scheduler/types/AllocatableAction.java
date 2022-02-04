@@ -291,6 +291,18 @@ public abstract class AllocatableAction {
     }
 
     /**
+     * Registers the action into a mutexGroup.
+     * 
+     * @param group group to which the task belongs
+     */
+    protected void addToMutexGroup(MutexGroup group) {
+        if (!this.mutexGroups.contains(group)) {
+            this.mutexGroups.add(group);
+        }
+        group.addMember(this);
+    }
+
+    /**
      * Adds a stream producer.
      * 
      * @param predecessor Stream producer Allocatable Action.
@@ -806,17 +818,6 @@ public abstract class AllocatableAction {
             }
         }
 
-        for (ActionGroup group : this.mutexGroups) {
-            group.removeMember(this);
-            for (AllocatableAction aa : group.getMembers()) {
-                if (!aa.hasDataPredecessors()) {
-                    if (!freeTasks.contains(aa)) {
-                        freeTasks.add(aa);
-                    }
-                }
-            }
-        }
-
         this.dataSuccessors.clear();
         return freeTasks;
     }
@@ -850,6 +851,14 @@ public abstract class AllocatableAction {
         List<AllocatableAction> freeActions = releaseDataSuccessors();
 
         for (MutexGroup group : this.mutexGroups) {
+            group.removeMember(this);
+            for (AllocatableAction aa : group.getMembers()) {
+                if (!aa.hasDataPredecessors()) {
+                    if (!freeActions.contains(aa)) {
+                        freeActions.add(aa);
+                    }
+                }
+            }
             group.releaseLock();
         }
         // Action notification
@@ -978,6 +987,18 @@ public abstract class AllocatableAction {
 
         // Release data dependencies of the task of all the successors that need to be executed
         List<AllocatableAction> releasedSuccessors = releaseDataSuccessors();
+
+        for (MutexGroup group : this.mutexGroups) {
+            group.removeMember(this);
+            for (AllocatableAction aa : group.getMembers()) {
+                if (!aa.hasDataPredecessors()) {
+                    if (!releasedSuccessors.contains(aa)) {
+                        releasedSuccessors.add(aa);
+                    }
+                }
+            }
+            group.releaseLock();
+        }
         this.dataPredecessors.clear();
 
         return releasedSuccessors;

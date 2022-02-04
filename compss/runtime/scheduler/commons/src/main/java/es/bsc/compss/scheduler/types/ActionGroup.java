@@ -31,7 +31,7 @@ public class ActionGroup {
 
     /**
      * Adds a new action to the group.
-     * 
+     *
      * @param newMember new action added to the group
      */
     public final void addMember(AllocatableAction newMember) {
@@ -40,7 +40,7 @@ public class ActionGroup {
 
     /**
      * Removes an action from the group.
-     * 
+     *
      * @param member action to be removed
      */
     public final void removeMember(AllocatableAction member) {
@@ -49,11 +49,20 @@ public class ActionGroup {
 
     /**
      * Returns all the members of the group.
-     * 
+     *
      * @return members of the group
      */
     public final Iterable<AllocatableAction> getMembers() {
         return actions;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("ActionGroup@").append(this.hashCode());
+        for (AllocatableAction action : getMembers()) {
+            sb.append(action.toString());
+        }
+        return sb.toString();
     }
 
 
@@ -90,6 +99,16 @@ public class ActionGroup {
          */
         public void releaseLock() {
             lockHolder = null;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("MutexGroup@").append(this.hashCode()).append("[");
+            for (AllocatableAction action : getMembers()) {
+                sb.append(" ").append((action == lockHolder) ? "-" + action.toString() + "-" : action.toString());
+            }
+            sb.append("]");
+            return sb.toString();
         }
     }
 }

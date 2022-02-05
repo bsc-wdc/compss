@@ -73,15 +73,15 @@ def main():
     if log_level == "true" or log_level == "debug":
         # Debug
         log_json = "".join((worker_path,
-                            "/../../../log/logging_container_worker_debug.json"))
+                            "/log/logging_container_worker_debug.json"))
     elif log_level == "info" or log_level == "off":
         # Info or no debug
         log_json = "".join((worker_path,
-                            "/../../../log/logging_container_worker_off.json"))
+                            "/log/logging_container_worker_off.json"))
     else:
         # Default
         log_json = "".join((worker_path,
-                            "/../../../log/logging_container_worker.json"))
+                            "/log/logging_container_worker.json"))
     init_logging_worker(log_json, tracing)
     if __debug__:
         logger = logging.getLogger('pycompss.worker.container.container_worker')  # noqa: E501

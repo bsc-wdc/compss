@@ -24,10 +24,13 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.InvocationParamCollection;
+import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
@@ -36,9 +39,12 @@ import es.bsc.compss.types.resources.ContainerDescription;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 
 public class ContainerInvoker extends Invoker {
@@ -197,7 +203,7 @@ public class ContainerInvoker extends Invoker {
         // Setup PyCOMPSs directory
         String pyCompssDir = this.context.getInstallDir();
         pyCompssDir = pyCompssDir.endsWith(File.separator) ? pyCompssDir : pyCompssDir + File.separator;
-        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python" + File.separator + pythonVersion;
+        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python";
 
         // Setup Python CET execution flags
         boolean hasTarget = false;
@@ -386,21 +392,179 @@ public class ContainerInvoker extends Invoker {
     }
 
     private void addParamInfo(List<String> paramsList, InvocationParam p) {
-        paramsList.add(String.valueOf(p.getType().ordinal()));
-        paramsList.add(String.valueOf(p.getStdIOStream().ordinal()));
-        paramsList.add(p.getPrefix());
-        paramsList.add(p.getName());
-        paramsList.add("null");
-        String value = String.valueOf(p.getValue());
-        if (p.getType().equals(DataType.STRING_T)) {
-            // TODO: There is always one substring (legacy code)
-            paramsList.add("1");
-            byte[] sharpedValue = ("#" + value).getBytes(); // Pre-pend # to avoid empty strings on binding
-            String encodedValue = Base64.getEncoder().encodeToString(sharpedValue);
-            paramsList.add(encodedValue);
+    	///// TODO: AQUI HABRIA QUE LLAMAR AL convertParameter
+    	
+    	paramsList.addAll(convertParameter(p));
+    	
+//        paramsList.add(String.valueOf(p.getType().ordinal()));
+//        paramsList.add(String.valueOf(p.getStdIOStream().ordinal()));
+//        paramsList.add(p.getPrefix());
+//        paramsList.add(p.getName());
+//        paramsList.add("null");
+//        String value = String.valueOf(p.getValue());
+//        if (p.getType().equals(DataType.STRING_T)) {
+//            // TODO: There is always one substring (legacy code)
+//            paramsList.add("1");
+//            byte[] sharpedValue = ("#" + value).getBytes(); // Pre-pend # to avoid empty strings on binding
+//            String encodedValue = Base64.getEncoder().encodeToString(sharpedValue);
+//            paramsList.add(encodedValue);
+//        } else {
+//            paramsList.add(value);
+//        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private static ArrayList<String> convertParameter(InvocationParam np) {
+        ArrayList<String> paramArgs = new ArrayList<>();
+
+        DataType type = np.getType();
+        paramArgs.add(Integer.toString(type.ordinal()));
+        paramArgs.add(Integer.toString(np.getStdIOStream().ordinal()));
+        paramArgs.add(np.getPrefix());
+        String name = np.getName();
+        if (name == null || name.isEmpty()) {
+            paramArgs.add("null");
         } else {
-            paramsList.add(value);
+            paramArgs.add(name);
         }
+        if (name == null || name.isEmpty()) {
+            paramArgs.add("null");
+        } else {
+            paramArgs.add(np.getContentType());
+        }
+        switch (type) {
+            case FILE_T:
+                // Passing originalName link instead of renamed file
+                // String originalFile = np.getOriginalName();
+                String originalFile = "null";
+                if (np.getSourceDataId() != null) {
+                    originalFile = np.getOriginalName();
+                }
+                String destFile = new File(np.getRenamedName()).getName();
+                if (!isRuntimeRenamed(destFile)) {
+                    // Treat corner case: Destfile is original name. Parameter is INPUT with shared disk, so
+                    // destfile should be the same as the input.
+                    destFile = originalFile;
+                }
+                paramArgs.add(originalFile + ":" + destFile + ":" + np.isPreserveSourceData() + ":"
+                    + np.isWriteFinalValue() + ":" + np.getOriginalName());
+                break;
+            case OBJECT_T:
+            case PSCO_T:
+            case STREAM_T:
+            case EXTERNAL_STREAM_T:
+            case EXTERNAL_PSCO_T:
+                paramArgs.add(np.getValue().toString());
+                paramArgs.add(np.isWriteFinalValue() ? "W" : "R");
+                break;
+            case BINDING_OBJECT_T:
+                String extObjValue = np.getValue().toString();
+                LOGGER.debug("Generating command args for Binding_object " + extObjValue);
+                BindingObject bo = BindingObject.generate(extObjValue);
+
+                String originalData = "";
+                if (np.getSourceDataId() != null) { // IN or INOUT
+                    originalData = np.getSourceDataId();
+                }
+
+                String destData = bo.getName();
+                if (!isRuntimeRenamed(destData)) {
+                    // TODO: check if it happens also with binding_objects
+                    // Corner case: destData is original name. Parameter is IN with shared disk, so
+                    // destfile should be the same as the input.
+                    destData = originalData;
+                }
+                paramArgs.add(originalData + ":" + destData + ":" + np.isPreserveSourceData() + ":"
+                    + np.isWriteFinalValue() + ":" + np.getOriginalName());
+                paramArgs.add(Integer.toString(bo.getType()));
+                paramArgs.add(Integer.toString(bo.getElements()));
+                break;
+            case STRING_T:
+                String value = np.getValue().toString();
+                String[] vals = value.split(" ");
+                int numSubStrings = vals.length;
+                paramArgs.add(Integer.toString(numSubStrings));
+                for (String v : vals) {
+                    paramArgs.add(v);
+                }
+                break;
+            case COLLECTION_T:
+                InvocationParamCollection<InvocationParam> ipc = (InvocationParamCollection<InvocationParam>) np;
+                writeCollection(ipc);
+                paramArgs.add(np.getValue().toString());
+                break;
+            case DICT_COLLECTION_T:
+                InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc =
+                    (InvocationParamDictCollection<InvocationParam, InvocationParam>) np;
+                writeDictCollection(ipdc);
+                paramArgs.add(np.getValue().toString());
+                break;
+            default:
+                paramArgs.add(np.getValue().toString());
+        }
+        return paramArgs;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void writeCollection(InvocationParamCollection<InvocationParam> ipc) {
+        String pathToWrite = (String) ipc.getValue();
+        LOGGER.debug("Writting Collection file " + pathToWrite + " ");
+        if (new File(pathToWrite).exists()) {
+            LOGGER.debug("Collection file " + pathToWrite + " already written");
+        } else {
+            try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
+                for (InvocationParam subParam : ipc.getCollectionParameters()) {
+                    writer.println(
+                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
+                    if (subParam.getType() == DataType.COLLECTION_T) {
+                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
+                    } else if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error writting collection to file", e);
+                e.printStackTrace(); // NOSONAR need to print in the job out/err
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void writeDictCollection(InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc) {
+        String pathToWrite = (String) ipdc.getValue();
+        LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
+        if (new File(pathToWrite).exists()) {
+            LOGGER.debug("Dictionary Collection file " + pathToWrite + " already written");
+        } else {
+            try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
+                for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictCollectionParameters()
+                    .entrySet()) {
+                    InvocationParam subParam = entry.getKey();
+                    writer.println(
+                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
+                    if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                    } else if (subParam.getType() == DataType.COLLECTION_T) {
+                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
+                    }
+                    subParam = entry.getValue();
+                    writer.println(
+                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
+                    if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                    } else if (subParam.getType() == DataType.COLLECTION_T) {
+                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error writting dictionary collection to file");
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    private static boolean isRuntimeRenamed(String filename) {
+        return filename.startsWith("d") && filename.endsWith(".IT");
     }
 
     @Override

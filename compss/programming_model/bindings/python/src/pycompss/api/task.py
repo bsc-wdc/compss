@@ -24,7 +24,9 @@ PyCOMPSs API - Task
 """
 
 from __future__ import print_function
+import os
 import sys
+import inspect
 from pycompss.util.typing_helper import typing
 from pycompss.util.typing_helper import dummy_function
 from functools import wraps
@@ -46,6 +48,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.objects.properties import get_module_name
 
 if __debug__:
     import logging
@@ -328,8 +331,7 @@ class Task(object):
         d_t = dummy_task(args, kwargs)
         return d_t.__call__(self.user_function)(*args, **kwargs)
 
-    @staticmethod
-    def __check_core_element__(kwargs, user_function):
+    def __check_core_element__(self, kwargs, user_function):
         # type: (dict, typing.Callable) -> None
         """ Check Core Element for containers.
 
@@ -347,7 +349,7 @@ class Task(object):
                 _engine = impl_args[0]
                 _image = impl_args[1]
                 _type = "CET_PYTHON"
-                _func_complete = "%s&%s" % (str(user_function.__module__),
+                _func_complete = "%s&%s" % (str(self.__get_module_name__(user_function)),  # noqa: E501
                                             str(user_function.__name__))
                 impl_args = [_engine,         # engine
                              _image,          # image
@@ -357,6 +359,28 @@ class Task(object):
                              UNASSIGNED,      # working_dir
                              UNASSIGNED]      # fail_by_ev
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+
+    @staticmethod
+    def __get_module_name__(user_function):
+        # type: (typing.Callable) -> str
+        """
+        Gets the module name from the user function.
+        """
+        mod = inspect.getmodule(user_function)
+        module_name = mod.__name__
+        if module_name == "__main__":
+            # The module where the function is defined was run as __main__,
+            # We need to find out the real module name
+            # Get the real module name from our launch.py APP_PATH global
+            # variable
+            # It is guaranteed that this variable will always exist because
+            # this code is only executed when we know we are in the master
+            path = getattr(mod, "APP_PATH")
+            # Get the file name
+            file_name = os.path.splitext(os.path.basename(path))[0]
+            # Get the module
+            module_name = get_module_name(path, file_name)
+        return module_name
 
 
 # task can be also typed as Task

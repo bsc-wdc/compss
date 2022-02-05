@@ -174,15 +174,6 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public boolean taskIsReadyForExecution() {
-        return false;
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-    }
-
-    @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }

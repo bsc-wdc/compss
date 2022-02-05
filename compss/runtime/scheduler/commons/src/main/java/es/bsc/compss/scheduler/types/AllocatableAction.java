@@ -24,6 +24,7 @@ import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
@@ -93,6 +94,8 @@ public abstract class AllocatableAction {
     private final List<AllocatableAction> streamDataConsumers;
     // Allocatable actions that are members of the same task group
     private final List<AllocatableAction> groupMembers;
+    //
+    private final List<MutexGroup> mutexGroups;
 
     private State state;
     private ResourceScheduler<? extends WorkerResourceDescription> selectedResource;
@@ -133,6 +136,7 @@ public abstract class AllocatableAction {
         this.executingResources = new LinkedList<>();
         this.schedulingInfo = schedulingInformation;
         this.profile = null;
+        this.mutexGroups = new LinkedList<>();
     }
 
     /*
@@ -267,13 +271,6 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Returns whether the task is ready for execution or not.
-     *
-     * @return {@literal true} if the task is ready for execution, {@literal false} otherwise.
-     */
-    public abstract boolean taskIsReadyForExecution();
-
-    /**
      * Adds a data predecessor.
      *
      * @param predecessor Predecessor Allocatable Action.
@@ -291,6 +288,18 @@ public abstract class AllocatableAction {
 
     public void addAlreadyDoneAction(AllocatableAction predecessor) {
         // Nothing to do by default. Has different implementations.
+    }
+
+    /**
+     * Registers the action into a mutexGroup.
+     * 
+     * @param group group to which the task belongs
+     */
+    protected void addToMutexGroup(MutexGroup group) {
+        if (!this.mutexGroups.contains(group)) {
+            this.mutexGroups.add(group);
+        }
+        group.addMember(this);
     }
 
     /**
@@ -587,13 +596,13 @@ public abstract class AllocatableAction {
     public void tryToLaunch() throws InvalidSchedulingException {
         // Gets the lock on the action
         this.lock.lock();
-        boolean readyForExecution = taskIsReadyForExecution();
 
         if (selectedResource != null // has an assigned resource where to run
             && state == State.RUNNABLE // has not been started yet
-            && !hasDataPredecessors() // has no data dependencies with other methods
+            && !hasDataPredecessors() // has no pending data dependencies with other methods
+            && !hasStreamProducers() // does not consume data from a stream from an unstarted producer
             && schedulingInfo.isExecutable() // scheduler does not block the execution
-            && readyForExecution // there are no tasks being executed in a commutative group
+            && areMutexLocksAvailable() // there are no tasks being executed in a mutex group
         ) {
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
             // task is not to stop; or the assigned resource is not the required
@@ -619,6 +628,15 @@ public abstract class AllocatableAction {
             }
             this.lock.unlock();
         }
+    }
+
+    private boolean areMutexLocksAvailable() {
+        for (MutexGroup group : this.mutexGroups) {
+            if (!group.testLock(this)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void execute() {
@@ -679,7 +697,9 @@ public abstract class AllocatableAction {
         this.selectedResource.hostAction(this);
 
         doAction();
-
+        for (MutexGroup group : this.mutexGroups) {
+            group.acquireLock(this);
+        }
         // Notify the orchestrator that task is running (to free the stream data consumers if necessary)
         notifyRunning();
     }
@@ -796,10 +816,6 @@ public abstract class AllocatableAction {
             if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                 freeTasks.add(aa);
             }
-            this.treatDependencyFreeAction(freeTasks);
-        }
-        if (dataSuccessors.isEmpty()) {
-            this.treatDependencyFreeAction(freeTasks);
         }
 
         this.dataSuccessors.clear();
@@ -833,6 +849,18 @@ public abstract class AllocatableAction {
         // Mark as finished
         this.state = State.FINISHED;
         List<AllocatableAction> freeActions = releaseDataSuccessors();
+
+        for (MutexGroup group : this.mutexGroups) {
+            group.removeMember(this);
+            for (AllocatableAction aa : group.getMembers()) {
+                if (!aa.hasDataPredecessors()) {
+                    if (!freeActions.contains(aa)) {
+                        freeActions.add(aa);
+                    }
+                }
+            }
+            group.releaseLock();
+        }
         // Action notification
         doCompleted();
         return freeActions;
@@ -849,8 +877,6 @@ public abstract class AllocatableAction {
             selectedResource.tryToLaunchBlockedActions();
         }
     }
-
-    protected abstract void treatDependencyFreeAction(List<AllocatableAction> freeTasks);
 
     public abstract List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
         Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException;
@@ -961,6 +987,18 @@ public abstract class AllocatableAction {
 
         // Release data dependencies of the task of all the successors that need to be executed
         List<AllocatableAction> releasedSuccessors = releaseDataSuccessors();
+
+        for (MutexGroup group : this.mutexGroups) {
+            group.removeMember(this);
+            for (AllocatableAction aa : group.getMembers()) {
+                if (!aa.hasDataPredecessors()) {
+                    if (!releasedSuccessors.contains(aa)) {
+                        releasedSuccessors.add(aa);
+                    }
+                }
+            }
+            group.releaseLock();
+        }
         this.dataPredecessors.clear();
 
         return releasedSuccessors;

@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.scheduler.types.allocatableactions;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
@@ -29,7 +28,6 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
-import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceType;
@@ -42,7 +40,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -272,16 +269,6 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
-    }
-
-    @Override
-    public boolean taskIsReadyForExecution() {
-        return true;
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-
     }
 
     @Override

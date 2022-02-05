@@ -347,22 +347,6 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Returns if the task can be executed depending on if the groups are executing other tasks.
-     *
-     * @return {@literal true} if the task can be executed, {@literal false} otherwise.
-     */
-    public boolean canBeExecuted() {
-        if (!this.commutativeGroup.isEmpty()) {
-            for (CommutativeGroupTask com : commutativeGroup.values()) {
-                if (com.processingExecution(this.getId())) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * Sets new version for the data {@code daId}.
      *
      * @param daId New data version.

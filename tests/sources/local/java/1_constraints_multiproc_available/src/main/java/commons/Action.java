@@ -183,16 +183,6 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public boolean taskIsReadyForExecution() {
-        return true;
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-
-    }
-
-    @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }

@@ -31,7 +31,6 @@ import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
-import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.Worker;
@@ -270,16 +269,6 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
-    }
-
-    @Override
-    public boolean taskIsReadyForExecution() {
-        return true;
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-
     }
 
     @Override

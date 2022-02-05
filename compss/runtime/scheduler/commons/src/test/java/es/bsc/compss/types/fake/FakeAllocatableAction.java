@@ -221,16 +221,6 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    public boolean taskIsReadyForExecution() {
-        return true;
-    }
-
-    @Override
-    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // Nothing to do
-    }
-
-    @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }

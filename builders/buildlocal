@@ -505,7 +505,7 @@ install_compss() {
     echo "- Checking pycodestyle in Python Binding"
     if command_exists "pycodestyle" ; then
       cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
-      pycodestyle . --max-line-length=120 --exclude=dds/heapq3.py --statistics --count
+      env $PATH=PATH pycodestyle . --max-line-length=120 --exclude=dds/heapq3.py --statistics --count
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding pycodestyle errors. Please, fix them and reinstall."

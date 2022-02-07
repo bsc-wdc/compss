@@ -160,9 +160,9 @@ public class TaskScheduler {
     }
 
     /**
-     * Returns the Action Orchestator assigned to this scheduler.
+     * Returns the Action Orchestrator assigned to this scheduler.
      *
-     * @return The Action Orchestator assigned to this scheduler.
+     * @return The Action Orchestrator assigned to this scheduler.
      */
     public final ActionOrchestrator getOrchestrator() {
         return this.orchestrator;
@@ -171,7 +171,8 @@ public class TaskScheduler {
     /**
      * Shutdown the Task Scheduler.
      */
-    public void shutdown() {
+    public final void shutdown() {
+        customSchedulerShutdown();
         // Stop Resource Optimizer
         this.ro.shutdown();
         this.so.shutdown();
@@ -184,6 +185,10 @@ public class TaskScheduler {
         } catch (Exception e) {
             LOGGER.error(e);
         }
+    }
+    
+    protected void customSchedulerShutdown(){
+        // Do nothing. Overriden if necessary by Task Scheduler extension.
     }
 
     /*
@@ -327,6 +332,11 @@ public class TaskScheduler {
             SchedulingInformation.changesOnWorker(rs);
         }
         ro.coreElementsUpdated();
+        customCoreElementsUpdated();
+    }
+    
+    public void customCoreElementsUpdated(){
+        // Do nothing. Overriden if necessary by Task Scheduler extension.
     }
 
     /**

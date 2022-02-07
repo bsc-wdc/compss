@@ -35,7 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 public class SchedulingInformation {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
     // List of active resources per core
     private static final List<List<ResourceScheduler<? extends WorkerResourceDescription>>> CORE_TO_WORKERS;

@@ -344,7 +344,18 @@ public abstract class Invoker implements ApplicationRunner {
         emitStartTask();
         try {
             setEnvironmentVariables();
+            LOGGER.info("_________ executing prolog before invocation..");
+            ExecType prolog = this.invocation.getMethodImplementation().getDescription().getProlog();
+            Object pro = executeBinary(prolog);
+            LOGGER.info("_________ prolog done..: " + pro.toString());
+
             invokeMethod();
+
+            LOGGER.info("_________ executing epilog after invocation..");
+            ExecType epilog = this.invocation.getMethodImplementation().getDescription().getEpilog();
+            Object epi = executeBinary(epilog);
+            LOGGER.info("____________ epilog done.. : " + epi.toString());
+
         } catch (JobExecutionException jee) {
             throw jee;
         } catch (COMPSsException e) {

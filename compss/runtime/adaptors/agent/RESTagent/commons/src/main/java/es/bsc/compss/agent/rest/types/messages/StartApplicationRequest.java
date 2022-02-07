@@ -25,6 +25,7 @@ import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.implementations.ExecType;
 
 import java.io.Serializable;
 
@@ -55,6 +56,8 @@ public class StartApplicationRequest implements Serializable {
     private ApplicationParameterImpl target;
     private boolean hasResult;
     private RESTAgentRequestListener requestListener;
+    private ExecType prolog;
+    private ExecType epilog;
 
 
     public StartApplicationRequest() {
@@ -116,6 +119,22 @@ public class StartApplicationRequest implements Serializable {
 
     public void setTarget(ApplicationParameterImpl target) {
         this.target = target;
+    }
+
+    public ExecType getProlog() {
+        return prolog;
+    }
+
+    public void setProlog(ExecType prolog) {
+        this.prolog = prolog;
+    }
+
+    public ExecType getEpilog() {
+        return epilog;
+    }
+
+    public void setEpilog(ExecType epilog) {
+        this.epilog = epilog;
     }
 
     public void addParameter(String name, String prefix, boolean value) {

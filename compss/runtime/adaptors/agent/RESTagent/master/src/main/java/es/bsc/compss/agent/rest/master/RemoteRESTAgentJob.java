@@ -86,6 +86,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         sar.setClassName(className);
         sar.setMethodName(methodName);
         sar.setCeiClass(null); // It is a task and we are not supporting Nested parallelism yet
+        sar.setProlog(this.impl.getDescription().getProlog());
+        sar.setEpilog(this.impl.getDescription().getEpilog());
 
         List<Parameter> params = taskParams.getParameters();
         int numParams = params.size();

@@ -203,7 +203,8 @@ public class ContainerInvoker extends Invoker {
         // Setup PyCOMPSs directory
         String pyCompssDir = this.context.getInstallDir();
         pyCompssDir = pyCompssDir.endsWith(File.separator) ? pyCompssDir : pyCompssDir + File.separator;
-        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python";
+        // TODO: FORCED TO USE PYTHON 2 SINCE 3 HAS A SYMBOLIC LINK AND IT IS NOT MOUNTED
+        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python" + File.separator + "2";
 
         // Setup Python CET execution flags
         boolean hasTarget = false;
@@ -392,27 +393,27 @@ public class ContainerInvoker extends Invoker {
     }
 
     private void addParamInfo(List<String> paramsList, InvocationParam p) {
-    	///// TODO: AQUI HABRIA QUE LLAMAR AL convertParameter
-    	
-    	paramsList.addAll(convertParameter(p));
-    	
-//        paramsList.add(String.valueOf(p.getType().ordinal()));
-//        paramsList.add(String.valueOf(p.getStdIOStream().ordinal()));
-//        paramsList.add(p.getPrefix());
-//        paramsList.add(p.getName());
-//        paramsList.add("null");
-//        String value = String.valueOf(p.getValue());
-//        if (p.getType().equals(DataType.STRING_T)) {
-//            // TODO: There is always one substring (legacy code)
-//            paramsList.add("1");
-//            byte[] sharpedValue = ("#" + value).getBytes(); // Pre-pend # to avoid empty strings on binding
-//            String encodedValue = Base64.getEncoder().encodeToString(sharpedValue);
-//            paramsList.add(encodedValue);
-//        } else {
-//            paramsList.add(value);
-//        }
+        ///// TODO: AQUI HABRIA QUE LLAMAR AL convertParameter
+
+        paramsList.addAll(convertParameter(p));
+
+        // paramsList.add(String.valueOf(p.getType().ordinal()));
+        // paramsList.add(String.valueOf(p.getStdIOStream().ordinal()));
+        // paramsList.add(p.getPrefix());
+        // paramsList.add(p.getName());
+        // paramsList.add("null");
+        // String value = String.valueOf(p.getValue());
+        // if (p.getType().equals(DataType.STRING_T)) {
+        // // TODO: There is always one substring (legacy code)
+        // paramsList.add("1");
+        // byte[] sharpedValue = ("#" + value).getBytes(); // Pre-pend # to avoid empty strings on binding
+        // String encodedValue = Base64.getEncoder().encodeToString(sharpedValue);
+        // paramsList.add(encodedValue);
+        // } else {
+        // paramsList.add(value);
+        // }
     }
-    
+
     @SuppressWarnings("unchecked")
     private static ArrayList<String> convertParameter(InvocationParam np) {
         ArrayList<String> paramArgs = new ArrayList<>();
@@ -562,7 +563,7 @@ public class ContainerInvoker extends Invoker {
             }
         }
     }
-    
+
     private static boolean isRuntimeRenamed(String filename) {
         return filename.startsWith("d") && filename.endsWith(".IT");
     }

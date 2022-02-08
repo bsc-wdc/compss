@@ -25,10 +25,24 @@ def params(first, second):
     pass
 
 
+@mpmd_mpi(runner="srun",
+          programs=[
+               dict(binary="date", processes=2, params="-d {{first}}"),
+               dict(binary="date", processes=2, params="-d {{second}}")
+          ])
+@task()
+def test_slurm(first, second):
+    pass
+
+
 class MpmdMPITest(unittest.TestCase):
 
     def testParams(self):
         params("next+monday", "next+friday")
+        cb()
+
+    def testSlurm(self):
+        test_slurm("next+wednesday", "next+saturday")
         cb()
 
 

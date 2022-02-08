@@ -28,7 +28,7 @@ def params(first, second):
 class MpmdMPITest(unittest.TestCase):
 
     def testParams(self):
-        params("next monday", "next friday")
+        params("next+monday", "next+friday")
         cb()
 
 

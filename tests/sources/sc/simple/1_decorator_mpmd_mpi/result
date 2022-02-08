@@ -8,6 +8,8 @@
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
+  jobs_logs="${target_log_folder}/jobs"
+  echo $jobs_logs
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
@@ -44,23 +46,16 @@
   #----------------------------------------------------------------------------------
 
   # testParams
-  monday_file=$(grep -r -l "date -d next monday" "$jobs_logs")
+  monday_file=$(grep -r -l "Parameter values: next+monday next+friday" "$jobs_logs")
   mondayDate1=$(LANG=en_US date -d "next monday")
   mondayDate2=$(date -d "next monday")
   monday=$(grep -E "$mondayDate1|$mondayDate2" "$monday_file")
   if [ "$monday" = "" ]; then
-    echo "ERROR: TASK FAILED: testParams function failed." | tee -a "${output_file}"
-    echo "  - FILE:     $monday_file" | tee -a "${output_file}"
-    echo "  - GOT:      $monday" | tee -a "${output_file}"
-    echo "  - EXPECTED: $mondayDate1 or $mondayDate2" | tee -a "${output_file}"
     exit 1
   else
     appearances=$(grep -c "$mondayDate2" "$monday_file")
     if [ ! "$appearances" -eq "2" ]; then
-      echo "ERROR: TASK FAILED: testParams function processes parameter failed." | tee -a "${output_file}"
-      echo "  - GOT:      $appearances" | tee -a "${output_file}"
-      echo "  - EXPECTED: 2 " | tee -a "${output_file}"
-      exit 2
+      exit 1
     fi
   fi
 

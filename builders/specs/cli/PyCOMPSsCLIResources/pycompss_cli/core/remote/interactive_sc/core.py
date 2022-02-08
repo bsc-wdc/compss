@@ -6,6 +6,7 @@ import re
 import time
 import signal
 import getpass
+from pycompss_cli.core import utils
 
 from pycompss_cli.core.remote.interactive_sc.defaults import INTERPRETER
 from pycompss_cli.core.remote.interactive_sc.defaults import SUBMIT_SCRIPT
@@ -206,6 +207,12 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
     cmd = ['-L', f'{port_forward}:localhost:{port_forward}',
            'ssh', node,
            '-L', f'{port_forward}:localhost:8888']
+
+    if utils.is_debug():
+        print('****** DEBUG ******')
+        print("\t -> Connecting to node: " + node)
+        print("\t -> Token: " + token)
+    
     _command_runner(cmd, login_info, blocking=False)
 
     time.sleep(5)  # Wait 5 seconds
@@ -296,6 +303,11 @@ def _command_runner(cmd, login_info, modules=None, blocking=True, remote=True):
     else:
         # Execute the command as requested
         pass
+
+    if utils.is_debug():
+        print('****** DEBUG ******')
+        print("\t -> Command: " + cmd)
+        print('********************')
 
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if blocking:

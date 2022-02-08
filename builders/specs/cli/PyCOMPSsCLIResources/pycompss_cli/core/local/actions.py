@@ -98,7 +98,7 @@ class LocalActions(Actions):
         exit(1)
 
     def env_remove(self, env_id=None):
-        super().env_remove(env_id=env_id)
+        super().env_remove(eid=env_id)
 
     def job(self):
         super().job()

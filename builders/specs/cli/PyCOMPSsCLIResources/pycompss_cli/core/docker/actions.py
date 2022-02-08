@@ -198,7 +198,7 @@ class DockerActions(Actions):
         if self.docker_cmd.exists():
             self.docker_cmd.docker_exec_in_daemon('rm -rf .COMPSs')
             self.docker_cmd.docker_kill_compss()
-        super().env_remove(env_id=env_id)
+        super().env_remove(eid=env_id)
 
     def job(self):
         print("ERROR: Wrong Environment! Try using a `cluster` environment")

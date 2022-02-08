@@ -16,7 +16,7 @@ run('pycompss environment change default', shell=True)
 try:
 
     jupyter_process = Popen('pycompss jupyter --no-browser ./src', shell=True, preexec_fn=os.setsid)
-    time.sleep(1)
+    time.sleep(3)
     while not list(notebookapp.list_running_servers()):
         pass
 

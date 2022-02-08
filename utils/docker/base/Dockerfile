@@ -10,10 +10,18 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
 # Install Packages
     apt-get install -y --no-install-recommends \
-    git vim wget jq curl openssh-server sudo software-properties-common unzip && \
+    git vim wget curl openssh-server sudo software-properties-common unzip && \
     add-apt-repository universe && \
+    apt-get install -y jq && \
 # Enable repo compression
     git config --global core.compression 9 && \
+# Firefox
+    apt install -y firefox && \
+# Geckodriver
+    curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep "browser_download_url.*linux64.tar.gz" | cut -d : -f 2,3 | tr -d '\"' | head -1 | wget -i - && \
+    tar -xvf *linux64.tar.gz && \
+    rm *linux64.tar.gz && \
+    mv geckodriver /usr/local/bin/ && \
 # =============================================================================
 # Dependencies for building COMPSs
 # =============================================================================
@@ -38,19 +46,21 @@ RUN apt-get update && \
     python3 python3-setuptools python3-dev python3-pip \
 # AutoParallel dependencies
     libgmp3-dev flex bison libbison-dev texinfo libffi-dev && \
-
 # Python modules
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+#    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \  WARNING: python 2 support has been removed.
+    curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py && \
     python2 get-pip.py && \
     rm get-pip.py && \
     python2 -m pip install --upgrade pip && \
     python3 -m pip install --upgrade pip && \
     pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy==0.1.11 decorator mpi4py==1.3.1 && \
-    pip3 install --no-cache-dir wheel numpy==1.15.4 dill guppy3==3.1.0 decorator mpi4py==3.0.1 && \
+    pip3 install --no-cache-dir wheel numpy==1.15.4 dill guppy3==3.1.0 decorator mpi4py==3.0.1 selenium && \
 #Ubuntu:20
 #    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy==0.1.11 decorator mpi4py && \
 #    pip3 install --no-cache-dir wheel numpy==1.15.4 dill guppy3==3.1.0 decorator mpi4py && \
-
+# mpmath dependencies: TODO: To be removed if python2 support is dropped
+    pip2 install --no-cache-dir setuptools-scm==5.0.2 && \
+    pip3 install --no-cache-dir setuptools-scm==5.0.2 && \
 # Python-redis dependencies
     pip2 install --no-cache-dir redis==2.10.6 redis-py-cluster && \
     pip3 install --no-cache-dir redis==2.10.6 redis-py-cluster && \
@@ -60,14 +70,13 @@ RUN apt-get update && \
 #Ubuntu:20
 #    pip2 install --no-cache-dir scipy scikit-learn pandas && \
 #    pip3 install --no-cache-dir scipy scikit-learn pandas && \
-
 # AutoParallel dependencies
     pip2 install --no-cache-dir astor sympy enum34 islpy && \
-
 # Pycodestyle
     pip2 --no-cache-dir install install pycodestyle && \
     pip3 --no-cache-dir install install pycodestyle && \
-
+# Mypy
+    # pip3 --no-cache-dir install install mypy mypy-extensions types-tabulate types-decorator && \
 # Streaming dependencies
     wget https://services.gradle.org/distributions/gradle-5.4.1-bin.zip && \
     unzip -d /opt gradle-5.4.1-bin.zip && \
@@ -96,7 +105,6 @@ RUN apt-get update && \
 # Coverage
     pip2 --no-cache-dir install coverage && \
     pip3 --no-cache-dir install coverage && \
-
 # Create Jenkins User for CI/CD
     useradd jenkins -m -s /bin/bash && \
 # Add the jenkins user to sudoers
@@ -108,6 +116,17 @@ RUN apt-get update && \
 # Make sure jenkins owns his files
     chown -R jenkins /home/jenkins/ && \
     chgrp -R jenkins /home/jenkins/ && \
+# Docker-CLI
+    apt-get install -y ca-certificates curl gnupg lsb-release && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+    echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y docker-ce-cli && \
+    groupadd docker && \
+    usermod -aG docker jenkins && \
+    newgrp docker && \
 # Configure user environment
 # =============================================================================
 # System configuration

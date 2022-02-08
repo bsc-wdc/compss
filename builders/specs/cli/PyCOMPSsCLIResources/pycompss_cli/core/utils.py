@@ -4,6 +4,9 @@ from pathlib import Path
 import subprocess
 import time, os
 
+def is_debug():
+    return os.getenv('PYCOMPSS_CLI_DEBUG', 'false').lower() == 'true'
+
 def get_object_method_by_name(obj, method_name, include_in_name=False):
     for class_method_name in dir(obj):
         if not '__' in class_method_name and callable(getattr(obj, class_method_name)):
@@ -11,7 +14,10 @@ def get_object_method_by_name(obj, method_name, include_in_name=False):
                 return class_method_name
 
 def table_print(col_names, data):
-    max_len = max(map(len, [item for sublist in data for item in sublist if item is not None])) + 1
+    col_widths = list(map(len, [item for sublist in data for item in sublist if item is not None]))
+    if not col_widths:
+        col_widths = [14]
+    max_len = max(col_widths) + 1
     row_format ="{:>{l}}" * (len(col_names) + 1)
     print(row_format.format("", l=max_len, *col_names))
     for row in data:

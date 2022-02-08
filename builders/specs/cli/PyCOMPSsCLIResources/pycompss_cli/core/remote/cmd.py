@@ -15,7 +15,7 @@ import pycompss_cli.core.utils as utils
 # API FUNCTIONS #
 # ############# #
 
-def remote_deploy_compss(env_id: str, login_info: str, modules) -> None:
+def remote_deploy_compss(env_id: str, login_info: str, modules, envars=[]) -> None:
     """ Deploy environment COMPSs in remote cluster.
     It stops any existing one since it can not coexist with itself.
 
@@ -31,7 +31,9 @@ def remote_deploy_compss(env_id: str, login_info: str, modules) -> None:
         modules_file = modules
     else:
         tmp_modules = tempfile.NamedTemporaryFile(delete=False)
+        env_vars = '\n'.join([f'export {var}' for var in envars])
         mod_script = '\n'.join([f'module load {m}' for m in modules])
+        tmp_modules.write((env_vars + '\n').encode())
         tmp_modules.write((mod_script + '\n').encode())
         tmp_modules.close()
         modules_file = tmp_modules.name
@@ -84,14 +86,24 @@ def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, 
     :param cmd: Command to execute.
     :returns: The execution stdout.
     """
+
+    enqueue_debug = '-d' if utils.is_debug() else ''
+
     commands = [
         f'cd {remote_dir}',
         *modules,
-        f'enqueue_compss {app_args}'
+        f'enqueue_compss {enqueue_debug} {app_args}'
     ]
 
     if envars:
         commands = [f'export {var}' for var in envars] + commands
+
+    if utils.is_debug():
+        print('********* DEBUG *********')
+        print('Remote submit job commands:')
+        for cmd in commands:
+            print('\t', '->', cmd)
+        print('***************************')
 
     stdout = utils.ssh_run_commands(login_info, commands)
     job_id = stdout.strip().split('\n')[-1].split(' ')[-1]

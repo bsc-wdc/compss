@@ -144,9 +144,9 @@ class Actions(ABC):
         print(f'Environment `{env_id}` is now active')
 
     @abstractmethod
-    def env_remove(self, env_id=None):
+    def env_remove(self, eid=None):
         self.env_change(env_id='default')
-        env_id = self.arguments.env_id if env_id is None else env_id
+        env_id = self.arguments.env_id if eid is None else eid
 
         env_dir_name = self.home_path + '/.COMPSs/envs/' + env_id
         

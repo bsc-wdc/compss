@@ -15,7 +15,7 @@ from pycompss_cli.core.remote.cmd import remote_env_remove
 from pycompss_cli.core.actions import Actions
 from pycompss_cli.core import utils
 from pycompss_cli.core.remote.interactive_sc import core, defaults
-import os, json, time, datetime, traceback
+import os, json, time, datetime, traceback, re
 from collections import defaultdict
 
 class RemoteActions(Actions):
@@ -23,10 +23,10 @@ class RemoteActions(Actions):
         super().__init__(arguments, debug=debug, env_conf=env_conf)
 
         self.apps = None
-        self.past_jobs = defaultdict(list)
+        self.past_jobs = defaultdict(dict)
         if self.env_conf and os.path.isfile(self.env_conf['env_path'] + '/jobs.json'):
             with open(self.env_conf['env_path'] + '/jobs.json') as f:
-                self.past_jobs = defaultdict(list, json.load(f))
+                self.past_jobs = defaultdict(dict, json.load(f))
 
     def get_apps(self, env_id=None):
         if self.apps is not None:
@@ -57,17 +57,23 @@ class RemoteActions(Actions):
             self.arguments.modules.append('COMPSs')
         
         print('Deploying environment...')
+
+        env_id = self.arguments.name
+        envars = []
+        if re.search(r'mn\d\.bsc\.es', self.env_conf['login']) is not None:
+            envars.append('COMPSS_PYTHON_VERSION=2-3-jupyter')
         
         try:
-            remote_deploy_compss(self.arguments.name, self.arguments.login, self.arguments.modules)
+            remote_deploy_compss(env_id, self.arguments.login, self.arguments.modules, envars=envars)
 
             remote_home_path = remote_get_home(self.arguments.login)
 
             self.env_add_conf({'remote_home':  remote_home_path})
         except:
             traceback.print_exc()
-            print("ERROR: Cluster deployment failed")
-            self.env_remove(self.arguments.name)
+            
+            print("ERROR: Cluster({}) deployment failed".format(env_id))
+            self.env_remove(env_id)
 
     def run(self):
         app_name = self.arguments.app_name
@@ -202,9 +208,10 @@ class RemoteActions(Actions):
         if jid is None:
             print(job_status)
 
-        self.past_jobs[job_id]['status'] = job_status
-        with open(self.env_conf['env_path'] + '/jobs.json', 'w') as f:
-            json.dump(self.past_jobs, f)
+        if job_id in self.past_jobs:
+            self.past_jobs[job_id]['status'] = job_status
+            with open(self.env_conf['env_path'] + '/jobs.json', 'w') as f:
+                json.dump(self.past_jobs, f)
 
         return job_status
 
@@ -267,8 +274,8 @@ class RemoteActions(Actions):
         command = ' '.join(self.arguments.exec_cmd)
         remote_exec_app(login_info, command)
 
-    def env_remove(self, env_id=None):
-        env_id = self.arguments.env_id if env_id is None else env_id
+    def env_remove(self, eid=None):
+        env_id = self.arguments.env_id if eid is None else eid
         env_apps = self.get_apps(env_id=env_id)
         if len(env_apps) > 0:
             print('WARNING: There are still applications binded to this environment')
@@ -278,9 +285,9 @@ class RemoteActions(Actions):
             if answer == 'Y' or answer == 'y' or answer == 'yes':
                 login_info = self.env_conf['login']
                 remote_env_remove(login_info, env_id, env_apps)
-                super().env_remove()
+                super().env_remove(eid=eid)
         else:
-            super().env_remove()
+            super().env_remove(eid=eid)
 
     def components(self):
         print('ERROR: Not Implemented Yet')
@@ -303,44 +310,51 @@ class RemoteActions(Actions):
         if app_name not in self.get_apps():
             print(f"ERROR: Application `{app_name}` not found")
             exit(1)
-        
-        app_args = self.arguments.rest_args
-        if len(app_args) > 2:
-            print(f"ERROR: Only accepted argument for jupyter command is --port")
-            exit(1)
-
-        port = '8888'
-
-        if len(app_args) == 2:
-            if not app_args[0].startswith('--port'):
-                print(f"ERROR: Only accepted argument for jupyter command is --port")
-                exit(1)
-            else:
-                port = app_args[1]
+    
 
         login_info = self.env_conf['login']
         env_id = self.env_conf['name']
         remote_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
         job_name = app_name + '-PyCOMPSsInteractive'
-        app_args = ' '.join(['--jupyter_notebook='+remote_dir, '--job_name='+job_name, '--lang=python', f'--master_working_dir={remote_dir}', '--tracing=false'])
-        modules = self.__get_modules()
-        if 'module load python' not in [m[:len('module load python')] for m in modules]:
-            modules.append('module load python/3.6.1')
+        app_args = ['--jupyter_notebook='+remote_dir, 
+                    '--job_name='+job_name, 
+                    '--lang=python',
+                    f'--master_working_dir={remote_dir}',
+                    f'--pythonpath={remote_dir}']
+        app_args += self.arguments.rest_args
 
-        job_id = remote_submit_job(login_info, remote_dir, app_args, modules)
+        port = '8888'
+        for arg in app_args:
+            if '--port=' in arg:
+                port = arg.split('=')[1]
+                app_args.remove(arg)
+                break
+
+        app_args = ' '.join(app_args)
+        modules = self.__get_modules()
+        envars = []
+        if re.search(r'mn\d\.bsc\.es', self.env_conf['login']) is not None:
+            envars.append('COMPSS_PYTHON_VERSION=2-3-jupyter')
+
+        job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars)
 
         scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
 
         print('Waiting for jupyter to start...')
         jupyter_job_status = defaults.NOT_RUNNING_KEYWORD
-        while jupyter_job_status != 'RUNNING':
-            jupyter_job_status = core.job_status(scripts_path, job_id, login_info, modules)
+        try:
+            while jupyter_job_status != 'RUNNING':
+                jupyter_job_status = core.job_status(scripts_path, job_id, login_info, modules)
+        except:
+            print('ERROR while waiting for jupyter to start')
+            core.cancel_job(scripts_path, [job_id], login_info, modules)
+            exit(1)
+        else:
+            print('Jupyter started')
 
-        print('Jupyter started')
+            print('Connecting to jupyter server...')
+            time.sleep(5)
 
-        print('Connecting to jupyter server...')
-        time.sleep(5)
-
-        core.connect_job(scripts_path, job_id, login_info, modules, remote_dir, port_forward=port, web_browser=None)
-        
-        core.cancel_job(scripts_path, [job_id], login_info, modules)
+            core.connect_job(scripts_path, job_id, login_info, modules, remote_dir, port_forward=port, web_browser=None)
+            
+            core.cancel_job(scripts_path, [job_id], login_info, modules)

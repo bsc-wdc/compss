@@ -76,13 +76,15 @@ def info():
             print(" - Found master: " + str(master))
 
         jpy_server_out = ''
-        timeout = time.time() + 60
+        timeout = time.time() + 60*2
+        jup_out_file = f'{app_path}/compss-{job_id}.err'
         while 'The Jupyter Notebook is running at' not in jpy_server_out:
             if time.time() > timeout:
                 print(ERROR_KEYWORD)
                 exit(1)
-            with open(f'{app_path}/compss-{job_id}.err', 'r') as of:
-                jpy_server_out = of.read()
+            if os.path.isfile(jup_out_file):
+                with open(jup_out_file, 'r') as of:
+                    jpy_server_out = of.read()
 
         if VERBOSE:
             print("Finished checking the information.")

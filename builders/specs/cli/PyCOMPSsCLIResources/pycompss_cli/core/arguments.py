@@ -84,7 +84,7 @@ def parse_sys_argv():
         parser_run.epilog = subprocess.check_output('runcompss -h', shell=True).decode()
     else:
         assets_folder = os.path.dirname(os.path.abspath(__file__)) + '/..'
-        with open(assets_folder + '/assets/runcompss_args.txt', 'r') as f:
+        with open(assets_folder + '/assets/runcompss_args.txt', 'r', encoding='utf-8') as f:
             parser_run.epilog = f.read()
 
     # parser_run.add_argument("-eid", "--env_id",

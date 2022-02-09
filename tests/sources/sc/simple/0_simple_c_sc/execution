@@ -25,6 +25,9 @@
   # Load COMPSs module + application modules
 
   module load ${compss_module}
+  module load python/3.6.1
+  module load boost
+
   # module load xxx
 
   #----------------------------------------------------------------------------------

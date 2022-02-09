@@ -117,7 +117,7 @@ void GS_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeou
 void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, char** prolog, char** epilog, int numArgs, char** implTypeArgs) {
 	if (PIPES) {
 	    // todo: is it necessary here too?
-		PIPE_RegisterCE(ceSignature, implSignature, implConstraints, implType, implIO, numArgs, implTypeArgs);
+		PIPE_RegisterCE(ceSignature, implSignature, implConstraints, implType, implIO, prolog, epilog, numArgs, implTypeArgs);
 	} else {
 		JNI_RegisterCE(ceSignature, implSignature, implConstraints, implType, implIO, prolog, epilog, numArgs, implTypeArgs);
 	}

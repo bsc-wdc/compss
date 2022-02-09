@@ -102,10 +102,11 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             String implConstraints = rcpc.getConstraints();
                             String implType = rcpc.getImplType();
                             String implIO = rcpc.getImplIO();
+                            String[] prolog = rcpc.getProlog();
+                            String[] epilog = rcpc.getEpilog();
                             String[] implTypeArgs = rcpc.getTypeArgs();
-                            String[] fake = new String[1];
                             this.context.getRuntimeAPI().registerCoreElement(ceSignature, implSignature,
-                                implConstraints, implType, implIO, fake, fake, implTypeArgs);
+                                implConstraints, implType, implIO, prolog, epilog, implTypeArgs);
                         }
                             break;
                         case EXECUTE_NESTED_TASK: {

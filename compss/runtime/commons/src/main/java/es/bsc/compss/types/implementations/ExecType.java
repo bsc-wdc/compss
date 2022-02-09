@@ -27,10 +27,11 @@ import java.io.ObjectOutput;
  */
 public class ExecType implements Externalizable {
 
-    public static int ARRAY_LENGTH = 2;
+    public static int ARRAY_LENGTH = 3;
 
     private String binary;
     private String params;
+    private boolean failByExitValue;
     private ExecutionOrder order;
 
 
@@ -41,10 +42,11 @@ public class ExecType implements Externalizable {
      * @param binary executable binary
      * @param params binary arguments
      */
-    public ExecType(ExecutionOrder order, String binary, String params) {
+    public ExecType(ExecutionOrder order, String binary, String params, boolean failByExitValue) {
         this.binary = binary;
         this.params = params;
         this.order = order;
+        this.failByExitValue = failByExitValue;
     }
 
     public ExecType() {
@@ -70,11 +72,20 @@ public class ExecType implements Externalizable {
         return order;
     }
 
+    public boolean isFailByExitValue() {
+        return failByExitValue;
+    }
+
+    public void setFailByExitValue(boolean failByExitValue) {
+        this.failByExitValue = failByExitValue;
+    }
+
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(this.order);
         out.writeObject(this.binary);
         out.writeObject(this.params);
+        out.writeBoolean(this.failByExitValue);
     }
 
     @Override
@@ -82,5 +93,6 @@ public class ExecType implements Externalizable {
         this.order = (ExecutionOrder) in.readObject();
         this.binary = (String) in.readObject();
         this.params = (String) in.readObject();
+        this.failByExitValue = in.readBoolean();
     }
 }

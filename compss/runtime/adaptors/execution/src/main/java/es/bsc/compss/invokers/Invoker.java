@@ -418,7 +418,7 @@ public abstract class Invoker implements ApplicationRunner {
 
         try {
             return br.executeCMD(cmd, new StdIOStream(), this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-                this.context.getThreadErrStream(), null, true);
+                this.context.getThreadErrStream(), null, executable.isFailByExitValue());
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

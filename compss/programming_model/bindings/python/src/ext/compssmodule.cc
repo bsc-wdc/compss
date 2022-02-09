@@ -887,12 +887,14 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
     debug("- Implementation Constraints: %s\n", ImplConstraints);
     debug("- Implementation Type: %s\n", ImplType);
     debug("- Implementation IO: %s\n", ImplIO);
-    char** pro = new char*[2];
-    char** epi = new char*[2];
+    char** pro = new char*[3];
+    char** epi = new char*[3];
     pro[0] = _pystring_to_char(PyList_GetItem(prolog, 0));
     pro[1] = _pystring_to_char(PyList_GetItem(prolog, 1));
+    pro[2] = _pystring_to_char(PyList_GetItem(prolog, 2));
     epi[0] = _pystring_to_char(PyList_GetItem(epilog, 0));
     epi[1] = _pystring_to_char(PyList_GetItem(epilog, 1));
+    epi[2] = _pystring_to_char(PyList_GetItem(epilog, 2));
     debug("- Prolog: %s %s\n", pro[0], pro[1]);
     debug("- Epilog: %s %s\n", epi[0], epi[1]);
 

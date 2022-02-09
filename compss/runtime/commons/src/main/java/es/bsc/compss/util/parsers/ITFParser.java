@@ -456,13 +456,13 @@ public class ITFParser {
         ExecType prolog = null;
         if (m.isAnnotationPresent(Prolog.class)) {
             Prolog pAnnot = m.getAnnotation(Prolog.class);
-            prolog = new ExecType(ExecutionOrder.PROLOG, pAnnot.binary(), pAnnot.params());
+            prolog = new ExecType(ExecutionOrder.PROLOG, pAnnot.binary(), pAnnot.params(), pAnnot.failByExitValue());
         }
 
         ExecType epilog = null;
         if (m.isAnnotationPresent(Epilog.class)) {
             Epilog eAnnot = m.getAnnotation(Epilog.class);
-            epilog = new ExecType(ExecutionOrder.EPILOG, eAnnot.binary(), eAnnot.params());
+            epilog = new ExecType(ExecutionOrder.EPILOG, eAnnot.binary(), eAnnot.params(), eAnnot.failByExitValue());
         }
 
         /*

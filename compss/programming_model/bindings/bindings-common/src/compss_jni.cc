@@ -1212,9 +1212,9 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
     // Array of Objects to pass to the register
     jobjectArray prologArr;
     jobjectArray epilogArr;
-    prologArr = (jobjectArray)status->localJniEnv->NewObjectArray(2, clsString, status->localJniEnv->NewStringUTF(""));
-    epilogArr = (jobjectArray)status->localJniEnv->NewObjectArray(2, clsString, status->localJniEnv->NewStringUTF(""));
-    for (int i = 0; i < 2; i++) {
+    prologArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    epilogArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    for (int i = 0; i < 3; i++) {
         //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
         jstring tmpro = status->localJniEnv->NewStringUTF(prolog[i]);
         jstring tmpepi = status->localJniEnv->NewStringUTF(epilog[i]);

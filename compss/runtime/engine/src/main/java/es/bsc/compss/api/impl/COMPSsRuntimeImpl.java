@@ -603,8 +603,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);
 
-        ExecType pro = new ExecType(ExecutionOrder.PROLOG, prolog[0], prolog[1]);
-        ExecType epi = new ExecType(ExecutionOrder.EPILOG, epilog[0], epilog[1]);
+        ExecType pro = new ExecType(ExecutionOrder.PROLOG, prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
+        ExecType epi = new ExecType(ExecutionOrder.EPILOG, epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
 
         ImplementationDescription<?, ?> implDef =
             ImplementationDescription.defineImplementation(implType, implSignature, mrd, pro, epi, implTypeArgs);

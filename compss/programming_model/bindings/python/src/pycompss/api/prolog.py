@@ -25,15 +25,15 @@ todo: write a proper description
 
 from functools import wraps
 
-from pycompss.api.commons.constants import RUNNER
-
-import pycompss.util.context as context
 from pycompss.api.commons.constants import *
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
+
+import pycompss.util.context as context
 
 
 if __debug__:
@@ -42,7 +42,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {BINARY}
-SUPPORTED_ARGUMENTS = {PARAMS}
+SUPPORTED_ARGUMENTS = {PARAMS, FAIL_BY_EXIT_VALUE}
 DEPRECATED_ARGUMENTS = set()
 
 
@@ -122,9 +122,13 @@ class Prolog(PyCOMPSsDecorator):
         if __debug__:
             logger.debug("Configuring @prolog core element.")
 
+        # Resolve the fail by exit value
+        resolve_fail_by_exit_value(self.kwargs)
+
         binary = self.kwargs[BINARY]
-        params = self.kwargs[PARAMS]
-        _prolog = [binary, params]
+        params = self.kwargs.get(PARAMS, UNASSIGNED)
+        fail_by = self.kwargs.get(FAIL_BY_EXIT_VALUE)
+        _prolog = [binary, params, fail_by]
 
         ce = kwargs.get(CORE_ELEMENT_KEY, CE())
         ce.set_prolog(_prolog)

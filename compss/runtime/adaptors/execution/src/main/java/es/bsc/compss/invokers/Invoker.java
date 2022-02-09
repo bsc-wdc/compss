@@ -360,6 +360,8 @@ public abstract class Invoker implements ApplicationRunner {
             throw jee;
         } catch (COMPSsException e) {
             throw e;
+        } catch (InvokeExecutionException e) {
+            throw new JobExecutionException(e);
         } finally {
             emitEndTask();
         }
@@ -409,20 +411,14 @@ public abstract class Invoker implements ApplicationRunner {
 
     protected abstract void cancelMethod();
 
-    private Object executeBinary(ExecType executable) throws JobExecutionException {
+    private Object executeBinary(ExecType executable) throws InvokeExecutionException {
         BinaryRunner br = new BinaryRunner();
-        String[] cmd = new String[2];
-
+        String[] params = BinaryRunner.buildAppParams(this.invocation.getParams(), executable.getParams(), null);
+        String[] cmd = new String[1 + params.length];
         cmd[0] = executable.getBinary();
-        cmd[1] = executable.getParams();
-
-        try {
-            return br.executeCMD(cmd, new StdIOStream(), this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-                this.context.getThreadErrStream(), null, executable.isFailByExitValue());
-        } catch (InvokeExecutionException iee) {
-            throw new JobExecutionException(iee);
-        }
-
+        System.arraycopy(params, 0, cmd, 1, params.length);
+        return br.executeCMD(cmd, new StdIOStream(), this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+            this.context.getThreadErrStream(), null, executable.isFailByExitValue());
     }
 
     @Override

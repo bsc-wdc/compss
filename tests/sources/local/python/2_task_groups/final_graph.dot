@@ -11,17 +11,17 @@ Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor
 subgraph clusterTasksbigGroup {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="bigGroup";
 
 subgraph clusterTasksgroup0 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="group0";
 
 1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro0 -> 1 [label="d1v1"];
+Synchro0 -> 1;
 2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 1 -> 2 [label="d1v2"];
 3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -31,7 +31,7 @@ Synchro0 -> 1 [label="d1v1"];
 subgraph clusterTasksgroup1 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="group1";
 
 4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -45,7 +45,7 @@ label="group1";
 subgraph clusterTasksgroup2 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="group2";
 
 7[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -73,11 +73,11 @@ Synchro3 -> Synchro4 [color=grey];
 subgraph clusterTasksindividualGroup {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="individualGroup";
 
 10[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-Synchro4 -> 10 [label="d1v10"];
+Synchro4 -> 10;
 11[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 10 -> 11 [label="d1v11"];
 12[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
@@ -90,17 +90,17 @@ Synchro4 -> Synchro5 [color=grey];
 subgraph clusterTasksbigGroup2 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="bigGroup2";
 
 subgraph clusterTasksgroup4 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="group4";
 
 13[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro5 -> 13 [label="d1v13"];
+Synchro5 -> 13;
 14[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 13 -> 14 [label="d1v14"];
 15[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -113,11 +113,11 @@ Synchro5 -> Synchro6 [color=grey];
 subgraph clusterTasksgroup5 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="group5";
 
 16[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro6 -> 16 [label="d1v16"];
+Synchro6 -> 16;
 17[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 16 -> 17 [label="d1v17"];
 18[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -130,11 +130,11 @@ Synchro6 -> Synchro7 [color=grey];
 subgraph clusterTasksgroup6 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="group6";
 
 19[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro7 -> 19 [label="d1v19"];
+Synchro7 -> 19;
 20[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 19 -> 20 [label="d1v20"];
 21[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -152,11 +152,11 @@ Synchro8 -> Synchro9 [color=grey];
 subgraph clusterTasksindividualGroup2 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="individualGroup2";
 
 22[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-Synchro9 -> 22 [label="d1v22"];
+Synchro9 -> 22;
 23[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 22 -> 23 [label="d1v23"];
 24[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];

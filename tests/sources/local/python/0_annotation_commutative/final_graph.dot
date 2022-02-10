@@ -20,12 +20,9 @@ Synchro0 -> 4;
 Synchro0 -> 5;
 2 -> 6 [label="d2v2"];
 3 -> 6 [label="d3v2"];
-Synchro0 -> 6 [label="d6v1"];
-4 -> 8 [label="d4v2"];
-5 -> 8 [label="d5v2"];
-Synchro0 -> 8 [label="d6v1"];
-9[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-6 -> 9 [label="d6v3"][ ltail="clusterCommutative6_2" ];
+4 -> 7 [label="d4v2"];
+5 -> 7 [label="d5v2"];
+8[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
 subgraph clusterCommutative6_2 {
 shape=rect;
 node[height=0.75];
@@ -34,13 +31,13 @@ rank=same;
 label="CGT6_2";
 
 6[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-8[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+7[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 }
 
-9 -> 10 [label="d6v4"];
-9 -> 12 [label="d6v4"];
-9 -> 13 [label="d6v4"];
-10 -> 14 [label="d6v7"][ ltail="clusterCommutative6_4" ];
+6 -> 8 [label="d6v3"][ ltail="clusterCommutative6_2" ];
+8 -> 9 [label="d6v4"];
+8 -> 10 [label="d6v4"];
+8 -> 11 [label="d6v4"];
 subgraph clusterCommutative6_4 {
 shape=rect;
 node[height=0.75];
@@ -48,16 +45,17 @@ color="#A9A9A9";
 rank=same;
 label="CGT6_4";
 
+9[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
 10[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-12[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-13[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+11[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
 }
 
+9 -> 12 [label="d6v7"][ ltail="clusterCommutative6_4" ];
+1 -> 12 [label="d1v2"];
+9 -> 13 [label="d6v7"][ ltail="clusterCommutative6_4" ];
+1 -> 13 [label="d1v2"];
+9 -> 14 [label="d6v7"][ ltail="clusterCommutative6_4" ];
 1 -> 14 [label="d1v2"];
-10 -> 16 [label="d6v7"][ ltail="clusterCommutative6_4" ];
-1 -> 16 [label="d1v2"];
-10 -> 17 [label="d6v7"][ ltail="clusterCommutative6_4" ];
-1 -> 17 [label="d1v2"];
 subgraph clusterCommutative1_5 {
 shape=rect;
 node[height=0.75];
@@ -65,16 +63,15 @@ color="#A9A9A9";
 rank=same;
 label="CGT1_5";
 
+12[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
+13[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
 14[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
-16[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
-17[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
 }
 
-14 -> 18 [label="d1v5"][ ltail="clusterCommutative1_5" ];
-14 -> 20 [label="d1v5"][ ltail="clusterCommutative1_5" ];
-14 -> 21 [label="d1v5"][ ltail="clusterCommutative1_5" ];
-22[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
-18 -> 22 [label="d1v8"][ ltail="clusterCommutative1_4" ];
+12 -> 15 [label="d1v5"][ ltail="clusterCommutative1_5" ];
+12 -> 16 [label="d1v5"][ ltail="clusterCommutative1_5" ];
+12 -> 17 [label="d1v5"][ ltail="clusterCommutative1_5" ];
+18[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
 subgraph clusterCommutative1_4 {
 shape=rect;
 node[height=0.75];
@@ -82,42 +79,26 @@ color="#A9A9A9";
 rank=same;
 label="CGT1_4";
 
-18[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-20[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-21[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+15[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+16[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+17[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
 }
 
+15 -> 18 [label="d1v8"][ ltail="clusterCommutative1_4" ];
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1;
-10 -> Synchro1 [label="d6v7"][ ltail="clusterCommutative6_4" ];
-18 -> Synchro1 [label="d1v8"][ ltail="clusterCommutative1_4" ];
-Synchro1 -> 23 [label="d8v1"];
-Synchro1 -> 25 [label="d8v1"];
-Synchro1 -> 26 [label="d8v1"];
-Synchro1 -> 27 [label="d8v1"];
-Synchro1 -> 28 [label="d8v1"];
-Synchro1 -> 29 [label="d8v1"];
-Synchro1 -> 30 [label="d8v1"];
+9 -> Synchro1 [label="d6v7"][ ltail="clusterCommutative6_4" ];
+15 -> Synchro1 [label="d1v8"][ ltail="clusterCommutative1_4" ];
+Synchro1 -> 19;
+Synchro1 -> 20;
+Synchro1 -> 21;
+Synchro1 -> 22;
+Synchro1 -> 23;
+Synchro1 -> 24;
+Synchro1 -> 25;
 Synchro2[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro1 -> Synchro2;
-23 -> Synchro2 [label="d8v9"][ ltail="clusterCommutative8_7" ];
-31[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-Synchro2 -> 31 [label="d9v1"];
-32[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-31 -> 32 [label="d9v2"];
-33[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-32 -> 33 [label="d9v3"];
-34[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-33 -> 34 [label="d9v4"];
-35[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-34 -> 35 [label="d9v5"];
-36[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-35 -> 36 [label="d9v6"];
-37[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-36 -> 37 [label="d9v7"];
-Synchro3[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro2 -> Synchro3;
-37 -> Synchro3 [label="d9v9"];
+19 -> Synchro2 [label="d8v9"][ ltail="clusterCommutative8_7" ];
 subgraph clusterCommutative8_7 {
 shape=rect;
 node[height=0.75];
@@ -125,15 +106,32 @@ color="#A9A9A9";
 rank=same;
 label="CGT8_7";
 
+19[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
+20[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
+21[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
+22[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
 23[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
+24[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
 25[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
-26[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
-27[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
-28[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
-29[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
-30[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
 }
-  }
+
+26[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
+Synchro2 -> 26;
+27[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
+26 -> 27 [label="d9v2"];
+28[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
+27 -> 28 [label="d9v3"];
+29[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
+28 -> 29 [label="d9v4"];
+30[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
+29 -> 30 [label="d9v5"];
+31[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
+30 -> 31 [label="d9v6"];
+32[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
+31 -> 32 [label="d9v7"];
+Synchro3[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro2 -> Synchro3;
+32 -> Synchro3 [label="d9v9"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];
@@ -170,12 +168,12 @@ label="CGT8_7";
 <td bgcolor="#ffff00">&nbsp;</td>
 </tr>
 <tr>
-<td align="right">models.PersistentObject.write_four</td>
-<td bgcolor="#00a200">&nbsp;</td>
-</tr>
-<tr>
 <td align="right">models.PersistentObject.write_three</td>
 <td bgcolor="#eb0000">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">models.PersistentObject.write_four</td>
+<td bgcolor="#00a200">&nbsp;</td>
 </tr>
       </table>
     >]

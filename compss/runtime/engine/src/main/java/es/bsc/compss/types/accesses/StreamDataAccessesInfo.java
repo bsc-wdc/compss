@@ -48,12 +48,12 @@ public class StreamDataAccessesInfo extends DataAccessesInfo {
     }
 
     @Override
-    public void completedProducer(AbstractTask task) {
+    public void completedProducer(AbstractTask task, GraphHandler gh) {
         this.streamWriters.remove(task);
     }
 
     @Override
-    public void readValue(Task task, DependencyParameter dp, boolean isConcurrent, GraphHandler gh) {
+    public boolean readValue(Task task, DependencyParameter dp, boolean isConcurrent, GraphHandler gh) {
         int dataId = dp.getDataAccessId().getDataId();
         if (!streamWriters.isEmpty()) {
             if (DEBUG) {
@@ -94,16 +94,17 @@ public class StreamDataAccessesInfo extends DataAccessesInfo {
 
         // Add edge to graph
         if (IS_DRAW_GRAPH) {
-            gh.drawStreamEdge(task, dp, false);
-            gh.checkIfPreviousGroupInGraph(dataId);
+            gh.drawStreamEdge(task, dataId, false);
         }
+        return true;
     }
 
     @Override
-    public void writeValue(AbstractTask t, DependencyParameter dp, boolean isConcurrent, GraphHandler gh) {
+    public void writeValue(Task t, DependencyParameter dp, boolean isConcurrent, GraphHandler gh) {
         this.streamWriters.add(t);
         if (IS_DRAW_GRAPH) {
-            gh.drawStreamEdge(t, dp, true);
+            Integer dataId = dp.getDataAccessId().getDataId();
+            gh.drawStreamEdge(t, dataId, true);
         }
     }
 

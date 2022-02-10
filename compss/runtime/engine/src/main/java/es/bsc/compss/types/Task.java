@@ -33,12 +33,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
  * Representation of a Task.
  */
 public class Task extends AbstractTask {
+
+    // Task ID management
+    private static final int FIRST_TASK_ID = 1;
+    private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
     private final TaskDescription taskDescription;
 
@@ -52,11 +57,25 @@ public class Task extends AbstractTask {
     private final TaskMonitor taskMonitor;
 
     // Commutative groups of the task
-    private TreeMap<Integer, CommutativeGroupTask> commutativeGroup;
+    private final TreeMap<Integer, CommutativeGroupTask> commutativeGroup;
 
     // List of task groups
-    private LinkedList<TaskGroup> taskGroups;
+    private final LinkedList<TaskGroup> taskGroups;
 
+
+    private Task(Application app, TaskMonitor monitor, TaskType type, Lang lang, String signature, boolean isPrioritary,
+        int numNodes, boolean isReduction, boolean isReplicated, boolean isDistributed, OnFailure onFailure,
+        long timeOut, boolean hasTarget, int numReturns, List<Parameter> parameters) {
+        super(app, nextTaskId.getAndIncrement());
+        this.taskMonitor = monitor;
+        this.commutativeGroup = new TreeMap<>();
+        this.taskGroups = new LinkedList<>();
+
+        CoreElement core = CoreManager.getCore(signature);
+        String parallelismSource = app.getParallelismSource();
+        this.taskDescription = new TaskDescription(type, lang, signature, core, parallelismSource, isPrioritary,
+            numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
+    }
 
     /**
      * Creates a new METHOD task with the given parameters.
@@ -80,15 +99,16 @@ public class Task extends AbstractTask {
         boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
         TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
-        super(app);
-        CoreElement core = CoreManager.getCore(signature);
-        String parallelismSource = app.getParallelismSource();
-        this.taskDescription =
-            new TaskDescription(TaskType.METHOD, lang, signature, core, parallelismSource, isPrioritary, numNodes,
-                isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
-        this.taskMonitor = monitor;
-        this.commutativeGroup = new TreeMap<>();
-        this.taskGroups = new LinkedList<>();
+        this(app, monitor,
+            // Taks type
+            TaskType.METHOD, lang,
+            // Signature
+            signature,
+            // Scheduler hints
+            isPrioritary, numNodes, isReduction, isReplicated, isDistributed, onFailure, timeOut,
+            // Parameters
+            hasTarget, numReturns, parameters);
+
     }
 
     /**
@@ -111,22 +131,17 @@ public class Task extends AbstractTask {
         boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
         long timeOut) {
 
-        super(app);
-        String signature = SignatureBuilder.getServiceSignature(namespace, service, port, operation, hasTarget,
-            numReturns, parameters);
-        CoreElement core = CoreManager.getCore(signature);
-
-        int numNodes = Constants.SINGLE_NODE;
-        boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
-        boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
-        boolean isReduction = false;
-        String parallelismSource = app.getParallelismSource();
-        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core, parallelismSource,
-            isPrioritary, numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut,
-            parameters);
-        this.taskMonitor = monitor;
-        this.commutativeGroup = new TreeMap<>();
-        this.taskGroups = new LinkedList<>();
+        this(app, monitor,
+            // Task type
+            TaskType.SERVICE, Lang.UNKNOWN,
+            // Signature
+            SignatureBuilder.getServiceSignature(namespace, service, port, operation, hasTarget, numReturns,
+                parameters),
+            // Scheduler hints
+            isPrioritary, Constants.SINGLE_NODE, false, Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK),
+            Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), onFailure, timeOut,
+            // Parameters
+            hasTarget, numReturns, parameters);
     }
 
     /**
@@ -144,18 +159,16 @@ public class Task extends AbstractTask {
     public Task(Application app, String declareMethodFullyQualifiedName, boolean isPrioritary, boolean hasTarget,
         int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
-        super(app);
+        this(app, monitor,
+            // Task type
+            TaskType.HTTP, Lang.UNKNOWN,
+            // Signature
+            SignatureBuilder.getHTTPSignature(declareMethodFullyQualifiedName, hasTarget, numReturns, parameters),
+            // Scheduler hints
+            isPrioritary, Constants.SINGLE_NODE, false, false, false, onFailure, timeOut,
+            // Parameters
+            hasTarget, numReturns, parameters);
 
-        String signature =
-            SignatureBuilder.getHTTPSignature(declareMethodFullyQualifiedName, hasTarget, numReturns, parameters);
-
-        this.taskDescription = new TaskDescription(TaskType.HTTP, Lang.UNKNOWN, signature,
-            CoreManager.getCore(signature), app.getParallelismSource(), isPrioritary, Constants.SINGLE_NODE, false,
-            false, false, hasTarget, numReturns, onFailure, timeOut, parameters);
-
-        this.taskMonitor = monitor;
-        this.commutativeGroup = new TreeMap<>();
-        this.taskGroups = new LinkedList<>();
     }
 
     /**

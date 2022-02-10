@@ -18,6 +18,8 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.parameter.Parameter;
 
 import java.util.LinkedList;
@@ -26,60 +28,72 @@ import java.util.List;
 
 public class CommutativeGroupTask extends AbstractTask {
 
+    private static int commGroupTaskId = -1;
     private final CommutativeIdentifier comId;
+    private final DataAccessId accessPlaceholder = new CommutativeDataAccessId();
 
     // Tasks that access the data
     private final List<Task> commutativeTasks;
+    private boolean closed = false;
 
-    private AbstractTask parentDataDependency;
-    private int executionCount;
+    private AbstractTask groupPredecessor;
+    private RWAccessId groupPredecessorAccess;
 
-    // Version control
-    private int finalVersion;
-    private LinkedList<DataAccessId> versions;
-    private DataAccessId registeredVersion;
+    // Intermediate Accesses
+    private RWAccessId firstAccess;
+    private LinkedList<RWAccessId> accesses;
 
     // Task currently being executed
     private final MutexGroup actions;
 
-    private boolean graphDrawn;
-
 
     /**
      * Creates a new CommutativeTaskGroup instance.
-     * 
+     *
      * @param app Application.
      * @param comId Commutative group identifier.
      */
     public CommutativeGroupTask(Application app, CommutativeIdentifier comId) {
-        super(app);
-
+        super(app, commGroupTaskId--);
         this.commutativeTasks = new LinkedList<>();
-        this.finalVersion = 0;
-        this.executionCount = 0;
-        this.versions = new LinkedList<>();
-        this.registeredVersion = null;
+        firstAccess = null;
+        this.accesses = new LinkedList<>();
         this.comId = comId;
-        this.graphDrawn = false;
         this.actions = new MutexGroup();
     }
 
     /**
-     * Returns the commutative tasks associated to the group.
-     * 
-     * @return The commutative tasks associated to the group.
-     */
-    public List<Task> getCommutativeTasks() {
-        return this.commutativeTasks;
-    }
-
-    /**
      * Returns the commutative identifier.
-     * 
+     *
      * @return The commutative identifier.
      */
     public CommutativeIdentifier getCommutativeIdentifier() {
         return this.comId;
+    }
+
+    /**
+     * Returns whether the group is closed or new tasks can be added.
+     * 
+     * @return {@literal true}, if the group has been closed; {@literal false}, otherwise.
+     */
+    public boolean isClosed() {
+        return closed;
+    }
+
+    /**
+     * Closes the group.
+     */
+    public void close() {
+        this.closed = true;
+    }
+
+    /**
+     * Returns the commutative tasks associated to the group.
+     *
+     * @return The commutative tasks associated to the group.
+     */
+    public List<Task> getCommutativeTasks() {
+        return this.commutativeTasks;
     }
 
     /**
@@ -92,12 +106,45 @@ public class CommutativeGroupTask extends AbstractTask {
     }
 
     /**
-     * Sets the final version.
+     * Sets the parent task causing a data dependency.
      *
-     * @param version Final version.
+     * @param predecessor last Task producing the group value
+     * @param access first access of the commutative group to the data
      */
-    public void setFinalVersion(int version) {
-        this.finalVersion = version;
+    public void setGroupPredecessor(AbstractTask predecessor, RWAccessId access) {
+        this.groupPredecessor = predecessor;
+        this.groupPredecessorAccess = access;
+    }
+
+    /**
+     * Returns the parent task causing a data dependency.
+     *
+     * @return The parent task causing a data dependency.
+     */
+    public AbstractTask getGroupPredecessor() {
+        return this.groupPredecessor;
+    }
+
+    /**
+     * Return the first access of the commutative group to the data.
+     * 
+     * @return first access of the commutative group to the data
+     */
+    public DataAccessId getGroupPredecessorAccess() {
+        return this.groupPredecessorAccess;
+    }
+
+    /**
+     * Registers a subsequent access to the group.
+     *
+     * @param access data access performed by a task of the commutative group.
+     */
+    public synchronized void addAccess(RWAccessId access) {
+        if (firstAccess == null) {
+            firstAccess = access;
+        } else {
+            this.accesses.add(access);
+        }
     }
 
     /**
@@ -109,103 +156,48 @@ public class CommutativeGroupTask extends AbstractTask {
         super.getPredecessors().remove(t);
     }
 
-    /**
-     * Adds version to list of versions.
-     */
-    public void addVersionToList(DataAccessId daId) {
-        this.versions.add(daId);
+    public DataAccessId getAccessPlaceHolder() {
+        return accessPlaceholder;
     }
 
     /**
-     * Returns the current version.
+     * Updates the access to perform by the group.
+     *
+     * @return the access before being updated
      */
-    public DataAccessId getRegisteredVersion() {
-        if (this.registeredVersion == null) {
-            this.registeredVersion = this.versions.get(0);
+    public synchronized DataAccessId nextAccess() {
+        DataAccessId oldAccess = this.firstAccess;
+        if (!this.accesses.isEmpty()) {
+            this.firstAccess = this.accesses.remove();
+        } else {
+            this.firstAccess = null;
         }
-        return this.registeredVersion;
+        return oldAccess;
     }
 
+    // ---------------------------------------------------------------
+    // -------------------- Scheduling support -----------------------
+    // ---------------------------------------------------------------
     /**
-     * Sets the current version.
+     * Returns the group of actions representing the tasks of the group.
      *
-     * @param daId Data Id of the current version.
+     * @return the group of actions that belong to the Commutative task group
      */
-    public void setRegisteredVersion(DataAccessId daId) {
-        this.registeredVersion = daId;
+    public final MutexGroup getActions() {
+        return actions;
     }
 
-    /**
-     * Changes the current version of the data.
-     */
-    public void nextVersion() {
-        if (!this.versions.isEmpty()) {
-            this.registeredVersion = this.versions.getFirst();
-            this.versions.remove(this.registeredVersion);
-            for (Task t : this.commutativeTasks) {
-                t.setVersion(this.registeredVersion);
-            }
-        }
-    }
-
-    /**
-     * Sets the graph of the group as drawn.
-     */
-    public void setGraphDrawn() {
-        this.graphDrawn = true;
-    }
-
-    /**
-     * Returns whether the graph of the group has been drawn or not.
-     *
-     * @return {@literal true} if the group has already been drawn, {@literal false} otherwise.
-     */
-    public boolean getGraphDrawn() {
-        return this.graphDrawn;
-    }
-
-    /**
-     * Returns the number of executions of the group.
-     *
-     * @return The number of executions of the group.
-     */
-    public int getExecutionCount() {
-        return this.executionCount;
-    }
-
-    /**
-     * Increases the number of executions of the group.
-     */
-    public void increaseExecutionCount() {
-        this.executionCount = this.executionCount + 1;
-    }
-
-    /**
-     * Returns the parent task causing a data dependency.
-     *
-     * @return The parent task causing a data dependency.
-     */
-    public AbstractTask getParentDataDependency() {
-        return this.parentDataDependency;
-    }
-
-    /**
-     * Sets parent task.
-     *
-     * @param t Parent task.
-     */
-    public void setParentDataDependency(AbstractTask t) {
-        this.parentDataDependency = t;
-    }
-
+    @Override
     public List<Parameter> getParameterDataToRemove() {
         return new LinkedList<>();
     }
 
+    @Override
     public List<Parameter> getIntermediateParameters() {
         return new LinkedList<>();
     }
 
+    @Override
     public List<Parameter> getUnusedIntermediateParameters() {
         return new LinkedList<>();
     }
@@ -215,24 +207,9 @@ public class CommutativeGroupTask extends AbstractTask {
         return false;
     }
 
-    /**
-     * Returns the final version of the data.
-     *
-     * @return The final version of the data.
-     */
-    public int getFinalVersion() {
-        return this.finalVersion;
-    }
-
-    /**
-     * Returns the group of actions representing the tasks of the group.
-     * 
-     * @return the group of actions that belong to the Commutative task group
-     */
-    public final MutexGroup getActions() {
-        return actions;
-    }
-
+    // ---------------------------------------------------------------
+    // ------------------------ Graph handling -----------------------
+    // ---------------------------------------------------------------
     @Override
     public String getDotDescription() {
         return null;
@@ -248,4 +225,53 @@ public class CommutativeGroupTask extends AbstractTask {
         return null;
     }
 
+
+    private class CommutativeDataAccessId extends RWAccessId {
+
+        @Override
+        public int getDataId() {
+            return firstAccess.getDataId();
+        }
+
+        @Override
+        public Direction getDirection() {
+            return firstAccess.getDirection();
+        }
+
+        @Override
+        public boolean isPreserveSourceData() {
+            return firstAccess.isPreserveSourceData();
+        }
+
+        @Override
+        public boolean isWrite() {
+            return firstAccess.isWrite();
+        }
+
+        @Override
+        public DataInstanceId getReadDataInstance() {
+            return firstAccess.getReadDataInstance();
+        }
+
+        @Override
+        public DataInstanceId getWrittenDataInstance() {
+            return firstAccess.getWrittenDataInstance();
+        }
+
+        @Override
+        public int getRVersionId() {
+            return firstAccess.getRVersionId();
+        }
+
+        @Override
+        public int getWVersionId() {
+            return firstAccess.getWVersionId();
+        }
+
+        @Override
+        public String toString() {
+            return "CommutativeAccessId-->" + firstAccess.toString();
+        }
+
+    }
 }

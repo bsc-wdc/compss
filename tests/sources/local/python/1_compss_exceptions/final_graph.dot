@@ -11,11 +11,11 @@ Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor
 subgraph clusterTasksexceptionGroup1 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="exceptionGroup1";
 
 1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro0 -> 1 [label="d1v1"];
+Synchro0 -> 1;
 2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 1 -> 2 [label="d1v2"];
 3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -26,13 +26,13 @@ Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontco
 Synchro0 -> Synchro1 [color=grey];
 3 -> Synchro1 [color=grey][ ltail="clusterTasksexceptionGroup1" ];
 4[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-Synchro1 -> 4 [label="d1v2"];
+Synchro1 -> 4;
 5[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 4 -> 5 [label="d1v3"];
 subgraph clusterTasksexceptionGroup2 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="exceptionGroup2";
 
 6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -47,13 +47,13 @@ Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontco
 Synchro1 -> Synchro2 [color=grey];
 8 -> Synchro2 [color=grey][ ltail="clusterTasksexceptionGroup2" ];
 9[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-Synchro2 -> 9 [label="d1v5"];
+Synchro2 -> 9;
 10[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 9 -> 10 [label="d1v6"];
 subgraph clusterTasksexceptionGroup3 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="exceptionGroup3";
 
 11[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];

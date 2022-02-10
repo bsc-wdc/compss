@@ -11,13 +11,13 @@ Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor
 subgraph clusterTasksFailedGroup {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="FailedGroup";
 
 1[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-Synchro0 -> 1 [label="d1v1"];
+Synchro0 -> 1;
 2[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-Synchro0 -> 2 [label="d1v1"];
+Synchro0 -> 2;
 3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 Synchro0 -> 3;
 4[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
@@ -32,7 +32,7 @@ Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontco
 Synchro0 -> Synchro1 [color=grey];
 6 -> Synchro1 [color=grey][ ltail="clusterTasksFailedGroup" ];
 7[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-Synchro1 -> 7 [label="d1v3"];
+Synchro1 -> 7;
 8[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
 7 -> 8 [label="d1v4"];
 9[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
@@ -43,13 +43,13 @@ Synchro1 -> Synchro2 [color=grey];
 subgraph clusterTasksFailedGroup2 {
 shape=rect;
 node[height=0.75];
-color="#A9A9A9";
+color="#A9A9A9"; 
 label="FailedGroup2";
 
 10[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-Synchro2 -> 10 [label="d1v6"];
+Synchro2 -> 10;
 11[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-Synchro2 -> 11 [label="d1v6"];
+Synchro2 -> 11;
 12[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 Synchro2 -> 12;
 13[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
@@ -64,7 +64,7 @@ Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontco
 Synchro2 -> Synchro3 [color=grey];
 15 -> Synchro3 [color=grey][ ltail="clusterTasksFailedGroup2" ];
 16[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-Synchro3 -> 16 [label="d1v8"];
+Synchro3 -> 16;
 17[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
 16 -> 17 [label="d1v9"];
 18[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];

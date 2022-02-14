@@ -71,7 +71,13 @@ public abstract class DataAccessesInfo {
         return this.dataType;
     }
 
-    public abstract void completedProducer(AbstractTask task);
+    /**
+     * Registers a data producer as completed.
+     * 
+     * @param task Data Producer
+     * @param gh class handling the requests to add edges to the monitoring graph
+     */
+    public abstract void completedProducer(AbstractTask task, GraphHandler gh);
 
     public abstract AbstractTask getConstrainingProducer();
 
@@ -82,8 +88,9 @@ public abstract class DataAccessesInfo {
      * @param dp parameter corresponding to the data value
      * @param isConcurrent {@literal true} if the reading was due to a concuerrent access; {@literal false} otherwise.
      * @param gh class handling the requests to add edges to the monitoring graph
+     * @return {@literal true}, if an edge has been printed; {@literal false}, otherwise.
      */
-    public abstract void readValue(Task t, DependencyParameter dp, boolean isConcurrent, GraphHandler gh);
+    public abstract boolean readValue(Task t, DependencyParameter dp, boolean isConcurrent, GraphHandler gh);
 
     /**
      * Registers a task writting on the data value.
@@ -93,7 +100,7 @@ public abstract class DataAccessesInfo {
      * @param isConcurrent {@literal true} if the writting was due to a concuerrent access; {@literal false} otherwise.
      * @param gh class handling the requests to add edges to the monitoring graph
      */
-    public abstract void writeValue(AbstractTask t, DependencyParameter dp, boolean isConcurrent, GraphHandler gh);
+    public abstract void writeValue(Task t, DependencyParameter dp, boolean isConcurrent, GraphHandler gh);
 
     /**
      * Registers an access from the application main code to the value.

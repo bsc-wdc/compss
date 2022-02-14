@@ -56,7 +56,27 @@ public class CommutativeIdentifier implements Comparable<CommutativeIdentifier> 
         if (comId == null) {
             throw new NullPointerException();
         }
-        return (this.coreId == comId.getCoreId() && this.dataId == comId.getDataId()) ? 1 : 0;
+
+        return this.toString().compareTo(comId.toString());
+    }
+
+    /**
+     * Checks whether two Commutative Identifiers are the same.
+     *
+     * @param comId1 Commutative Identifier to compare
+     * @param comId2 Commutative Identifier to compare
+     * @return {@literal true}, if both Commutative Identifiers are the same; {@literal false}, otherwise.
+     */
+    public static boolean equals(CommutativeIdentifier comId1, CommutativeIdentifier comId2) {
+        if (comId1 == null) {
+            return comId2 == null;
+        } else {
+            if (comId2 == null) {
+                return false;
+            } else {
+                return (comId1.coreId == comId2.coreId && comId1.dataId == comId2.dataId);
+            }
+        }
     }
 
     @Override

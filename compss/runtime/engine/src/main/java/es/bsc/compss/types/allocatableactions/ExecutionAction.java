@@ -640,6 +640,7 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     private final void doOutputTransfers(Job<?> job) {
+        commitCommutativeAccesses(job);
         switch (job.getType()) {
             case METHOD:
                 doMethodOutputTransfers(job);
@@ -651,6 +652,48 @@ public class ExecutionAction extends AllocatableAction {
                 doServiceOutputTransfers(job);
                 break;
         }
+    }
+
+    private void commitCommutativeAccesses(Job<?> job) {
+        for (Parameter p : this.task.getParameters()) {
+            if (p.isPotentialDependency()) {
+                commitCommutativeAccesses((DependencyParameter) p);
+            }
+        }
+    }
+
+    private void commitCommutativeAccesses(DependencyParameter dp) {
+        switch (dp.getType()) {
+            case COLLECTION_T:
+                CollectionParameter cp = (CollectionParameter) dp;
+                for (Parameter elem : cp.getParameters()) {
+                    if (elem.isPotentialDependency()) {
+                        commitCommutativeAccesses((DependencyParameter) elem);
+                    }
+                }
+                break;
+            case DICT_COLLECTION_T:
+                DictCollectionParameter dcp = (DictCollectionParameter) dp;
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    Parameter k = entry.getKey();
+                    if (k.isPotentialDependency()) {
+                        commitCommutativeAccesses((DependencyParameter) k);
+                    }
+                    Parameter v = entry.getValue();
+                    if (v.isPotentialDependency()) {
+                        commitCommutativeAccesses((DependencyParameter) v);
+                    }
+                }
+                break;
+            default:
+                if (dp.getDirection() == Direction.COMMUTATIVE) {
+                    DataAccessId placeHolder = dp.getDataAccessId();
+                    CommutativeGroupTask cgt = this.getTask().getCommutativeGroup(placeHolder.getDataId());
+                    DataAccessId performedAccess = cgt.nextAccess();
+                    dp.setDataAccessId(performedAccess);
+                }
+        }
+
     }
 
     private void doMethodOutputTransfers(Job<?> job) {
@@ -702,10 +745,6 @@ public class ExecutionAction extends AllocatableAction {
                     dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                     break;
                 case COMMUTATIVE:
-                    CommutativeGroupTask cgt =
-                        this.getTask().getCommutativeGroup(((DependencyParameter) p).getDataAccessId().getDataId());
-                    cgt.getCommutativeTasks().remove(this.getTask());
-                    cgt.nextVersion();
                     dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                     break;
                 case INOUT:
@@ -720,7 +759,7 @@ public class ExecutionAction extends AllocatableAction {
         return name;
     }
 
-    private final DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
+    private DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
         String dataName, DependencyParameter p) {
         DependencyParameter dp = (DependencyParameter) p;
 
@@ -853,10 +892,12 @@ public class ExecutionAction extends AllocatableAction {
             DataInstanceId dId = null;
             if (p.getDirection() == Direction.INOUT) {
                 dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-            } else if (p.getDirection() == Direction.OUT) {
-                dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
             } else {
-                continue;
+                if (p.getDirection() == Direction.OUT) {
+                    dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                } else {
+                    continue;
+                }
             }
 
             String dataName = getOuputRename(p);
@@ -899,13 +940,17 @@ public class ExecutionAction extends AllocatableAction {
                     case OBJECT_T:
                         if (dp.getContentType().equals("int")) {
                             value = gson.fromJson(primValue, int.class);
-                        } else if (dp.getContentType().equals("long")) {
-                            value = gson.fromJson(primValue, long.class);
-                        } else if (dp.getContentType().equals("String")) {
-                            value = gson.fromJson(primValue, String.class);
                         } else {
-                            // todo: Strings fall here too.. why??
-                            value = gson.fromJson(primValue, Object.class);
+                            if (dp.getContentType().equals("long")) {
+                                value = gson.fromJson(primValue, long.class);
+                            } else {
+                                if (dp.getContentType().equals("String")) {
+                                    value = gson.fromJson(primValue, String.class);
+                                } else {
+                                    // todo: Strings fall here too.. why??
+                                    value = gson.fromJson(primValue, Object.class);
+                                }
+                            }
                         }
                         break;
                     default:

@@ -78,6 +78,7 @@ public class GraphGenerator {
     private static HashSet<Integer> legendTasks;
     private static int openCollectivesEdges = 0;
     private static HashMap<String, List<String>> pendingGroupDependencies = new HashMap<>();
+    private static HashMap<String, List<Task>> openCommutativeGroups = new HashMap<>();
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.ALL_COMP);
     private static final String ERROR_MONITOR_DIR = "ERROR: Cannot create monitor directory";
@@ -152,7 +153,6 @@ public class GraphGenerator {
      ****************************************************************************************************************
      * PUBLIC STATIC METHODS
      ****************************************************************************************************************/
-
     /**
      * Returns whether the graph generator is enabled or not.
      *
@@ -297,6 +297,13 @@ public class GraphGenerator {
      * @param task New task.
      */
     public void addTaskToGraph(Task task) {
+        if (!task.hasCommutativeParams()) {
+            addTask(task);
+        }
+        // else (has Commutative Params) -> the task is added when a group is assigned
+    }
+
+    private void addTask(Task task) {
         try {
             full_graph.newLine();
             full_graph.write(task.getDotDescription());
@@ -308,6 +315,21 @@ public class GraphGenerator {
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
+    }
+
+    /**
+     * Adds a task in a commutative grpu of to the graph.
+     *
+     * @param task New task.
+     * @param identifier identifier of the commutative group
+     */
+    public void addTaskToCommutativeGroup(Task task, String identifier) {
+        List<Task> tasks = openCommutativeGroups.get(identifier);
+        if (tasks == null) {
+            tasks = new LinkedList<>();
+            openCommutativeGroups.put(identifier, tasks);
+        }
+        tasks.add(task);
     }
 
     /**
@@ -327,7 +349,7 @@ public class GraphGenerator {
 
     /**
      * Start a group collection.
-     **/
+     */
     public void startGroupingEdges() {
         openCollectivesEdges += 1;
     }
@@ -456,11 +478,28 @@ public class GraphGenerator {
     }
 
     /**
-     * Adds a commutative group to the graph.
-     *
-     * @param identifier Identifier of the group.
+     * Closes all the open Commutative Groups in the graph.
      */
-    public void addCommutativeGroupToGraph(String identifier) {
+    public void closeCommutativeGroups() {
+        for (java.util.Map.Entry<String, List<Task>> entry : openCommutativeGroups.entrySet()) {
+            String identifier = entry.getKey();
+            List<Task> tasks = entry.getValue();
+            printCommutativeGroup(identifier, tasks);
+        }
+        openCommutativeGroups.clear();
+    }
+
+    /**
+     * Closes the given commutative group in the graph.
+     *
+     * @param identifier name of the group to close
+     */
+    public void closeCommutativeGroup(String identifier) {
+        List<Task> tasks = openCommutativeGroups.remove(identifier);
+        printCommutativeGroup(identifier, tasks);
+    }
+
+    private void printCommutativeGroup(String identifier, List<Task> tasks) {
         try {
             full_graph.newLine();
 
@@ -475,6 +514,17 @@ public class GraphGenerator {
             msg2.append("rank=same;\n");
             msg2.append("label=\"CGT").append(identifier).append("\";\n");
             full_graph.write(msg2.toString());
+        } catch (IOException e) {
+            LOGGER.error(ERROR_ADDING_DATA, e);
+        }
+        if (tasks != null) {
+            for (Task task : tasks) {
+                addTask(task);
+            }
+        }
+        try {
+            full_graph.newLine();
+            full_graph.write("}\n");
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }

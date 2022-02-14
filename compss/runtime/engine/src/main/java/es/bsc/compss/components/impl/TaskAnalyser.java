@@ -24,7 +24,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CommutativeGroupTask;
-import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskListener;
@@ -59,10 +58,8 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -95,13 +92,9 @@ public class TaskAnalyser implements GraphHandler {
 
     // Map: data Id -> WritersInfo
     private final Map<Integer, DataAccessesInfo> accessesInfo;
-    // Tasks that are accessed commutatively. Map: data id -> commutative group tasks
-    private Map<String, CommutativeGroupTask> commutativeGroup;
-    // Tasks that are accessed commutatively and are pending to be drawn in graph. Map: commutative group identifier ->
-    // list of tasks from group
-    private Map<String, LinkedList<Task>> pendingToDrawCommutative;
+
     // List of submitted reduce tasks
-    private List<String> reduceTasksNames;
+    private final List<String> reduceTasksNames;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -114,8 +107,6 @@ public class TaskAnalyser implements GraphHandler {
      */
     public TaskAnalyser() {
         this.accessesInfo = new TreeMap<>();
-        this.commutativeGroup = new TreeMap<>();
-        this.pendingToDrawCommutative = new TreeMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
         this.reduceTasksNames = new ArrayList<>();
@@ -191,8 +182,8 @@ public class TaskAnalyser implements GraphHandler {
         boolean taskHasEdge = false;
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             boolean isConstraining = paramIdx == constrainingParam;
-            boolean paramHasEdge =
-                registerParameterAccessAndAddDependencies(app, currentTask, parameters.get(paramIdx), isConstraining);
+            Parameter param = parameters.get(paramIdx);
+            boolean paramHasEdge = registerParameterAccessAndAddDependencies(app, currentTask, param, isConstraining);
             taskHasEdge = taskHasEdge || paramHasEdge;
         }
         return taskHasEdge;
@@ -534,6 +525,7 @@ public class TaskAnalyser implements GraphHandler {
     private void releaseCommutativeGroups(Task task) {
         if (!task.getCommutativeGroupList().isEmpty()) {
             for (CommutativeGroupTask group : task.getCommutativeGroupList()) {
+                group.getCommutativeTasks().remove(task);
                 group.setStatus(TaskState.FINISHED);
                 group.removePredecessor(task);
                 if (group.getPredecessors().isEmpty()) {
@@ -551,17 +543,6 @@ public class TaskAnalyser implements GraphHandler {
                     }
                 }
             }
-        }
-    }
-
-    private void addMissingCommutativeTasksToGraph() {
-        LinkedList<String> identifiers = new LinkedList<>();
-        for (String identifier : this.pendingToDrawCommutative.keySet()) {
-            addCommutativeGroupTaskToGraph(identifier);
-            identifiers.add(identifier);
-        }
-        for (String identifier : identifiers) {
-            this.pendingToDrawCommutative.remove(identifier);
         }
     }
 
@@ -591,9 +572,6 @@ public class TaskAnalyser implements GraphHandler {
                 am = AccessMode.CV;
                 break;
         }
-
-        // First DataAccess registered on a commutative group
-        DataAccessId firstRegistered = null;
 
         // Inform the Data Manager about the new accesses
         boolean hasParamEdge = false;
@@ -688,33 +666,8 @@ public class TaskAnalyser implements GraphHandler {
         if (daId != null) {
             // Add parameter dependencies
             DependencyParameter dp = (DependencyParameter) p;
-            if (am == AccessMode.CV) {
-                // Register commutative access
-                Integer coreId = currentTask.getTaskDescription().getCoreElement().getCoreId();
-                CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
-                CommutativeGroupTask com = null;
-                for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
-                    if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
-                        com = cgt;
-                    }
-                }
-                if (com == null) {
-                    firstRegistered = daId;
-                    LOGGER.debug(
-                        "The FIRST registered daId in the commutative group " + comId.toString() + " is " + daId);
-                } else {
-                    com.addVersionToList(daId);
-                    daId = com.getRegisteredVersion();
-                    LOGGER.debug("Registering daId " + daId + " in commutative group " + comId.toString());
-                }
-
-                dp.setDataAccessId(daId);
-                hasParamEdge = addCommutativeDependencies(currentTask, dp, firstRegistered, coreId);
-            } else {
-                // Register regular access
-                dp.setDataAccessId(daId);
-                hasParamEdge = addDependencies(am, currentTask, isConstraining, dp);
-            }
+            dp.setDataAccessId(daId);
+            hasParamEdge = addDependencies(am, currentTask, isConstraining, dp);
         } else {
             // Basic types do not produce access dependencies
         }
@@ -723,7 +676,6 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     private boolean addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp) {
-
         // Add dependencies to the graph and register output values for future dependencies
         boolean hasParamEdge = false;
         DataAccessId daId = dp.getDataAccessId();
@@ -731,12 +683,10 @@ public class TaskAnalyser implements GraphHandler {
         DataAccessesInfo dai = this.accessesInfo.get(dataId);
         switch (am) {
             case R:
-                checkInputDependency(currentTask, dp, false, dataId, dai, isConstraining);
-                hasParamEdge = true;
+                hasParamEdge = checkInputDependency(currentTask, dp, false, dataId, dai, isConstraining);
                 break;
             case RW:
-                checkInputDependency(currentTask, dp, false, dataId, dai, isConstraining);
-                hasParamEdge = true;
+                hasParamEdge = checkInputDependency(currentTask, dp, false, dataId, dai, isConstraining);
                 registerOutputValues(currentTask, dp, false, dai);
                 break;
             case W:
@@ -744,24 +694,25 @@ public class TaskAnalyser implements GraphHandler {
                 registerOutputValues(currentTask, dp, false, dai);
                 break;
             case C:
-                checkInputDependency(currentTask, dp, true, dataId, dai, isConstraining);
-                hasParamEdge = true;
+                hasParamEdge = checkInputDependency(currentTask, dp, true, dataId, dai, isConstraining);
                 registerOutputValues(currentTask, dp, true, dai);
                 break;
             case CV:
-                // Commutative accesses are processed in addCommutativeDependencies
+                hasParamEdge = checkInputDependency(currentTask, dp, false, dataId, dai, isConstraining);
+                registerOutputValues(currentTask, dp, false, dai);
                 break;
         }
         return hasParamEdge;
     }
 
-    private void checkInputDependency(Task currentTask, DependencyParameter dp, boolean isConcurrent, int dataId,
+    private boolean checkInputDependency(Task currentTask, DependencyParameter dp, boolean isConcurrent, int dataId,
         DataAccessesInfo dai, boolean isConstraining) {
         if (DEBUG) {
             LOGGER.debug("Checking READ dependency for datum " + dataId + " and task " + currentTask.getId());
         }
+        boolean hasEdge = false;
         if (dai != null) {
-            dai.readValue(currentTask, dp, isConcurrent, this);
+            hasEdge = dai.readValue(currentTask, dp, isConcurrent, this);
             if (isConstraining) {
                 AbstractTask lastWriter = dai.getConstrainingProducer();
                 currentTask.setEnforcingTask((Task) lastWriter);
@@ -772,11 +723,8 @@ public class TaskAnalyser implements GraphHandler {
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
             currentTask.registerFreeParam(dp);
-            if (IS_DRAW_GRAPH) {
-                // Add edge from last sync point to task
-                drawEdges(currentTask, dp, null);
-            }
         }
+        return hasEdge;
     }
 
     /**
@@ -787,7 +735,7 @@ public class TaskAnalyser implements GraphHandler {
      * @param isConcurrent data access was done in concurrent mode
      * @param dai AccessInfo related to the data being accessed
      */
-    private void registerOutputValues(AbstractTask currentTask, DependencyParameter dp, boolean isConcurrent,
+    private void registerOutputValues(Task currentTask, DependencyParameter dp, boolean isConcurrent,
         DataAccessesInfo dai) {
         int currentTaskId = currentTask.getId();
         int dataId = dp.getDataAccessId().getDataId();
@@ -823,82 +771,6 @@ public class TaskAnalyser implements GraphHandler {
         }
     }
 
-    private boolean addCommutativeDependencies(Task currentTask, DependencyParameter dp, DataAccessId firstRegistered,
-        int coreId) {
-
-        // Add dependencies to the graph and register output values for future dependencies
-        DataAccessId daId = dp.getDataAccessId();
-        CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
-        CommutativeGroupTask com = null;
-        LinkedList<Task> pendingToDraw = null;
-        for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
-            if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
-                com = cgt;
-                if (IS_DRAW_GRAPH) {
-                    pendingToDraw = this.pendingToDrawCommutative.get(comId.toString());
-                }
-            }
-        }
-        if (IS_DRAW_GRAPH) {
-            if (pendingToDraw == null) {
-                pendingToDraw = new LinkedList<>();
-            }
-            pendingToDraw.add(currentTask);
-            this.pendingToDrawCommutative.put(comId.toString(), pendingToDraw);
-        }
-
-        DataAccessesInfo dai = this.accessesInfo.get(daId.getDataId());
-        if (com == null) {
-            LOGGER.info("Creating a new commutative group " + comId);
-            com = new CommutativeGroupTask(currentTask.getApplication(), comId);
-
-            if (IS_DRAW_GRAPH) {
-                LOGGER.debug("Checking if previous group in graph");
-                checkIfPreviousGroupInGraph(daId.getDataId());
-            }
-            if (dai != null) {
-                List<AbstractTask> predecessors = dai.getDataWriters();
-                AbstractTask predecessor = null;
-                if (!predecessors.isEmpty()) {
-                    predecessor = predecessors.get(0);
-                }
-                com.setParentDataDependency(predecessor);
-                LOGGER.debug("Setting parent data dependency");
-            }
-            this.commutativeGroup.put(comId.toString(), com);
-            com.setRegisteredVersion(firstRegistered);
-        }
-
-        com.setFinalVersion(((RWAccessId) daId).getWVersionId());
-        boolean hasParamEdge = checkDependencyForCommutative(currentTask, dp, com);
-
-        registerOutputValues(com, dp, false, dai);
-
-        return hasParamEdge;
-    }
-
-    private boolean checkDependencyForCommutative(Task currentTask, DependencyParameter dp,
-        CommutativeGroupTask commutativeGroup) {
-
-        // Addition of a dependency to the task which generates commutative data
-        AbstractTask t = commutativeGroup.getParentDataDependency();
-        if (t != null) {
-            LOGGER.debug("Adding dependency with parent task of commutative group");
-            currentTask.addDataDependency(t, dp);
-        }
-        if (IS_DRAW_GRAPH) {
-            drawEdges(currentTask, dp, t);
-        }
-
-        // Addition of a dependency between the task and the commutative group
-        commutativeGroup.addDataDependency(currentTask, dp);
-        commutativeGroup.addCommutativeTask(currentTask);
-        currentTask.setCommutativeGroup(commutativeGroup, dp.getDataAccessId());
-
-        // A commutative dependency is always written in the task graph
-        return true;
-    }
-
     private void updateLastWritters(AbstractTask task, Parameter p) {
         DataType type = p.getType();
         int currentTaskId = task.getId();
@@ -928,7 +800,7 @@ public class TaskAnalyser implements GraphHandler {
                 switch (dp.getDirection()) {
                     case OUT:
                     case INOUT:
-                        dai.completedProducer(task);
+                        dai.completedProducer(task, this);
                         break;
                     default:
                         break;
@@ -1024,56 +896,54 @@ public class TaskAnalyser implements GraphHandler {
      **************************************************************************************************************
      * GRAPH WRAPPERS
      **************************************************************************************************************/
+
+    private void addMissingCommutativeTasksToGraph() {
+        this.gm.closeCommutativeGroups();
+    }
+
     @Override
-    public void drawEdges(Task currentTask, DependencyParameter dp, AbstractTask lastWriter) {
+    public void drawTaskInCommutativeGroup(Task task, CommutativeGroupTask group) {
+        this.gm.addTaskToCommutativeGroup(task, group.getCommutativeIdentifier().toString());
+    }
+
+    @Override
+    public void closeCommutativeTasksGroup(CommutativeGroupTask group) {
+        this.gm.closeCommutativeGroup(group.getCommutativeIdentifier().toString());
+    }
+
+    @Override
+    public void drawStandardEdge(Task consumer, DataAccessId daId, AbstractTask producer) {
         // Retrieve common information
-        int dataId = dp.getDataAccessId().getDataId();
-        Direction d = dp.getDataAccessId().getDirection();
+        int dataId = daId.getDataId();
+        Direction d = daId.getDirection();
         int dataVersion;
         switch (d) {
             case C:
             case R:
-                dataVersion = ((RAccessId) dp.getDataAccessId()).getRVersionId();
+                dataVersion = ((RAccessId) daId).getRVersionId();
                 break;
             case W:
-                dataVersion = ((WAccessId) dp.getDataAccessId()).getWVersionId();
+                dataVersion = ((WAccessId) daId).getWVersionId();
                 break;
             default:
-                dataVersion = ((RWAccessId) dp.getDataAccessId()).getRVersionId();
+                dataVersion = ((RWAccessId) daId).getRVersionId();
                 break;
         }
 
-        // Add edges on graph depending on the dependency type
-        switch (dp.getType()) {
-            case STREAM_T:
-            case EXTERNAL_STREAM_T:
-                drawStreamEdge(currentTask, dp, !d.equals(Direction.R));
-                break;
-            default:
-                if (lastWriter != null && lastWriter != currentTask) {
-                    if (lastWriter instanceof Task) {
-                        if (lastWriter.getSuccessors().contains(currentTask.getCommutativeGroup(dataId))) {
-                            addEdgeFromCommutativeToTask(currentTask, dataId, dataVersion,
-                                ((CommutativeGroupTask) lastWriter), false);
-                        } else {
-                            addDataEdgeFromTaskToTask((Task) lastWriter, currentTask, dataId, dataVersion);
-                        }
-                    } else {
-                        if (!(lastWriter instanceof Task && !currentTask.hasCommutativeParams())) {
-                            addEdgeFromCommutativeToTask(currentTask, dataId, dataVersion,
-                                ((CommutativeGroupTask) lastWriter), true);
-                        }
-                    }
-                } else {
-                    addDataEdgeFromMainToTask(currentTask, dataId, dataVersion);
-                }
-                break;
+        if (producer != null && producer != consumer) {
+            if (producer instanceof Task) {
+                addDataEdgeFromTaskToTask((Task) producer, consumer, dataId, dataVersion);
+            } else {
+                addEdgeFromCommutativeToTask(consumer, dataId, dataVersion, ((CommutativeGroupTask) producer), true);
+            }
+        } else {
+            addDataEdgeFromMainToTask(consumer, dataId, dataVersion);
         }
     }
 
     @Override
-    public void drawStreamEdge(AbstractTask currentTask, DependencyParameter dp, boolean isWrite) {
-        String stream = "Stream" + dp.getDataAccessId().getDataId();
+    public void drawStreamEdge(AbstractTask currentTask, Integer dataId, boolean isWrite) {
+        String stream = "Stream" + dataId;
 
         // Add stream node even if it exists
         addStreamToGraph(stream);
@@ -1094,12 +964,7 @@ public class TaskAnalyser implements GraphHandler {
         this.taskDetectedAfterSync = true;
 
         // Add task to graph
-        if (task.hasCommutativeParams()) {
-            // In case task has commutative params, it will be added to graph with the group
-        } else {
-            // Add node to graph
-            addTaskToGraph(task);
-        }
+        addTaskToGraph(task);
     }
 
     /**
@@ -1119,41 +984,6 @@ public class TaskAnalyser implements GraphHandler {
     private void addStreamToGraph(String stream) {
         // Add stream to graph
         this.gm.addStreamToGraph(stream);
-    }
-
-    @Override
-    public void checkIfPreviousGroupInGraph(int dataId) {
-        DataAccessesInfo dai = this.accessesInfo.get(dataId);
-        if (dai != null) {
-            List<AbstractTask> lastWriters = dai.getDataWriters();
-            AbstractTask lastWriter = null;
-            if (!lastWriters.isEmpty()) {
-                lastWriter = lastWriters.get(0);
-            }
-
-            if (lastWriter instanceof CommutativeGroupTask && !((CommutativeGroupTask) lastWriter).getGraphDrawn()) {
-                CommutativeIdentifier comId = ((CommutativeGroupTask) lastWriter).getCommutativeIdentifier();
-                // Adds the group to the graph and removes task from pendingToDraw
-                addCommutativeGroupTaskToGraph(comId.toString());
-                ((CommutativeGroupTask) lastWriter).setGraphDrawn();
-                this.pendingToDrawCommutative
-                    .remove(((CommutativeGroupTask) lastWriter).getCommutativeIdentifier().toString());
-            }
-        }
-    }
-
-    /**
-     * Puts a new commutative group to the graph.
-     *
-     * @param identifier Commutative group Id.
-     */
-    private void addCommutativeGroupTaskToGraph(String identifier) {
-        LOGGER.debug("Adding commutative group to graph");
-        this.gm.addCommutativeGroupToGraph(identifier);
-        for (Task t : this.pendingToDrawCommutative.get(identifier)) {
-            addTaskToGraph(t);
-        }
-        this.gm.closeGroupInGraph();
     }
 
     /**

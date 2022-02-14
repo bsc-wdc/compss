@@ -25,17 +25,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
  * Representation of a Task.
  */
 public abstract class AbstractTask implements Comparable<AbstractTask> {
-
-    // Task ID management
-    private static final int FIRST_TASK_ID = 1;
-    private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
     // Task fields
     private final Application app;
@@ -70,10 +65,11 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
      * Creates a new Abstract Method Task with the given parameters.
      *
      * @param app Application to which the task belongs.
+     * @param taskId Id of the task
      */
-    public AbstractTask(Application app) {
+    public AbstractTask(Application app, int taskId) {
         this.app = app;
-        this.taskId = nextTaskId.getAndIncrement();
+        this.taskId = taskId;
         this.status = TaskState.TO_ANALYSE;
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
@@ -83,15 +79,6 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
         this.dependentTasks = new HashMap<>();
         this.freeParams = new LinkedList<>();
         this.listeners = new LinkedList<>();
-    }
-
-    /**
-     * Returns the current number of generated tasks.
-     *
-     * @return The current number of generated tasks.
-     */
-    public static int getCurrentTaskCount() {
-        return nextTaskId.get();
     }
 
     /**

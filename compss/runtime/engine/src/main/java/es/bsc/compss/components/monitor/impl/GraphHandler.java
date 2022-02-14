@@ -17,8 +17,9 @@
 package es.bsc.compss.components.monitor.impl;
 
 import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.data.DataAccessId;
 
 
 /**
@@ -38,28 +39,36 @@ public interface GraphHandler {
     public void addEdgeFromTaskToMain(AbstractTask task, EdgeType edgeType, int dataId, int dataVersion);
 
     /**
+     * Adds edges to graph.
+     *
+     * @param consumer Consumer task
+     * @param daId DataAccess causing the dependency
+     * @param producer Producer task
+     */
+    public void drawStandardEdge(Task consumer, DataAccessId daId, AbstractTask producer);
+
+    /**
      * Adds the stream node and edge to the graph.
      *
      * @param currentTask Writer or reader task.
-     * @param dp Stream parameter.
+     * @param dataId id of the stream generating the edge
      * @param isWrite Whether the task is reading or writing the stream parameter.
      */
-    public void drawStreamEdge(AbstractTask currentTask, DependencyParameter dp, boolean isWrite);
+    public void drawStreamEdge(AbstractTask currentTask, Integer dataId, boolean isWrite);
 
     /**
-     * Checks if the previous group was printed on the graph.
+     * Adds a task in a commutative Group.
      *
-     * @param dataId Data Id.
+     * @param task Task to be drawn in the graph
+     * @param group group to whom the task belongs.
      */
-    public void checkIfPreviousGroupInGraph(int dataId);
+    public void drawTaskInCommutativeGroup(Task task, CommutativeGroupTask group);
 
     /**
-     * Adds edges to graph.
+     * Closes a commutative group in the graph.
      *
-     * @param currentTask New task.
-     * @param dp Dependency parameter causing the dependency.
-     * @param lastWriter Last writer task.
+     * @param group group to close in the graph.
      */
-    public void drawEdges(Task currentTask, DependencyParameter dp, AbstractTask lastWriter);
+    public void closeCommutativeTasksGroup(CommutativeGroupTask group);
 
 }

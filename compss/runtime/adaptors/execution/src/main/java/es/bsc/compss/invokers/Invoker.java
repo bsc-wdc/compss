@@ -344,17 +344,13 @@ public abstract class Invoker implements ApplicationRunner {
         emitStartTask();
         try {
             setEnvironmentVariables();
-            LOGGER.info("_________ executing prolog before invocation..");
             ExecType prolog = this.invocation.getMethodImplementation().getDescription().getProlog();
-            Object pro = executeBinary(prolog);
-            LOGGER.info("_________ prolog done..: " + pro.toString());
+            executeBinary(prolog);
 
             invokeMethod();
 
-            LOGGER.info("_________ executing epilog after invocation..");
             ExecType epilog = this.invocation.getMethodImplementation().getDescription().getEpilog();
-            Object epi = executeBinary(epilog);
-            LOGGER.info("____________ epilog done.. : " + epi.toString());
+            executeBinary(epilog);
 
         } catch (JobExecutionException jee) {
             throw jee;
@@ -412,6 +408,9 @@ public abstract class Invoker implements ApplicationRunner {
     protected abstract void cancelMethod();
 
     private Object executeBinary(ExecType executable) throws InvokeExecutionException {
+        if (!executable.isAssigned()) {
+            return new Object();
+        }
         BinaryRunner br = new BinaryRunner();
         String[] params = BinaryRunner.buildAppParams(this.invocation.getParams(), executable.getParams(), null);
         String[] cmd = new String[1 + params.length];

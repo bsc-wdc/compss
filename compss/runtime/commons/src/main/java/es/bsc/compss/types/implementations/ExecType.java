@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.annotations.Constants;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -74,6 +76,10 @@ public class ExecType implements Externalizable {
 
     public boolean isFailByExitValue() {
         return failByExitValue;
+    }
+
+    public boolean isAssigned() {
+        return this.binary != null && !this.binary.isEmpty() && !this.binary.equals(Constants.UNASSIGNED);
     }
 
     public void setFailByExitValue(boolean failByExitValue) {

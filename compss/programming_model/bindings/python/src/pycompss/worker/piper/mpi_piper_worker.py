@@ -52,6 +52,7 @@ from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
 from pycompss.worker.piper.cache.setup import stop_cache
+from pycompss.util.exceptions import PyCOMPSsException
 
 from mpi4py import MPI
 
@@ -121,6 +122,8 @@ def compss_persistent_worker(config):
     :return: None
     """
     pids = COMM.gather(str(os.getpid()), root=0)
+    if not pids:
+        raise PyCOMPSsException("Could not gather MPI COMM.")
 
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)

@@ -30,14 +30,15 @@ def fix_pythonpath():
 
     :return: None
     """
+    version = "%s.%s" % sys.version_info[0:2]
     # Default Python installation in Docker containers
-    default_container_pythonpath = ["/usr/lib/python2.7",
-                                    "/usr/lib/python2.7/plat-x86_64-linux-gnu",
-                                    "/usr/lib/python2.7/lib-tk",
-                                    "/usr/lib/python2.7/lib-old",
-                                    "/usr/lib/python2.7/lib-dynload",
-                                    "/usr/local/lib/python2.7/dist-packages",
-                                    "/usr/lib/python2.7/dist-packages"]
+    default_container_pythonpath = ["/usr/lib/python%s" % version,
+                                    "/usr/lib/python%s/plat-x86_64-linux-gnu" % version,
+                                    "/usr/lib/python%s/lib-tk" % version,
+                                    "/usr/lib/python%s/lib-old" % version,
+                                    "/usr/lib/python%s/lib-dynload" % version,
+                                    "/usr/local/lib/python%s/dist-packages" % version,
+                                    "/usr/lib/python%s/dist-packages" % version]
 
     # Build new PYTHONPATH
     new_pythonpath = []

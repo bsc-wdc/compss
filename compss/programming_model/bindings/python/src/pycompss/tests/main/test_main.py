@@ -66,6 +66,36 @@ def call_main_run(stdout, stderr):
     sys.stderr = backup_err
 
 
+def call_main_run_with_python_interpreter(stdout, stderr):
+    backup_out = sys.stdout
+    backup_err = sys.stderr
+    f_out = open(stdout, "a")
+    f_err = open(stderr, "a")
+    sys.stdout = f_out
+    sys.stderr = f_err
+    sys.argv = [MAIN_NAME, "run", "--python_interpreter=python3"]
+    main()
+    f_out.close()
+    f_err.close()
+    sys.stdout = backup_out
+    sys.stderr = backup_err
+
+
+def call_main_run_without_run(stdout, stderr):
+    backup_out = sys.stdout
+    backup_err = sys.stderr
+    f_out = open(stdout, "a")
+    f_err = open(stderr, "a")
+    sys.stdout = f_out
+    sys.stderr = f_err
+    sys.argv = [MAIN_NAME, "undefined"]  # assumes the user does not say run
+    main()
+    f_out.close()
+    f_err.close()
+    sys.stdout = backup_out
+    sys.stderr = backup_err
+
+
 def call_main_enqueue(stdout, stderr):
     backup_out = sys.stdout
     backup_err = sys.stderr
@@ -91,6 +121,10 @@ def test_main_script():
     # Check that can call runcompss and enqueue_compss, but they will fail
     # since they are not supposed to be available during unit testing.
     call_main_run(stdout, stderr)
+    check_output(stdout, stderr, error_expected=True)
+    call_main_run_with_python_interpreter(stdout, stderr)
+    check_output(stdout, stderr, error_expected=True)
+    call_main_run_without_run(stdout, stderr)
     check_output(stdout, stderr, error_expected=True)
     call_main_enqueue(stdout, stderr)
     check_output(stdout, stderr, error_expected=True)

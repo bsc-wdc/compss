@@ -57,14 +57,6 @@
   jobs_logs="${target_log_folder}/jobs"
   echo $jobs_logs
 
-  # testMpi
-  success_str=$(grep -r -l "prolog failed successfully" "$jobs_logs")
-  if [ "$success_str" = "" ]; then
-    echo "ERROR: TASK FAILED: testMpi function failed." | tee -a "${output_file}"
-    echo "  - Prolog failure shouldn't have stopper the execution!" | tee -a "${output_file}"
-    exit 1
-  fi
-
   # testBasic (one print per epilog and prolog)
   job_file=$(grep -r -l "just a prolog" "$jobs_logs")
   if [ "$job_file" = "" ]; then
@@ -98,13 +90,45 @@
   friday_file=$(grep -r -l "Parameter values: next monday next friday" "$jobs_logs")
   fridayDate1=$(LANG=en_US date -d "next friday")
   fridayDate2=$(date -d "next friday")
-
   friday=$(grep -E "$fridayDate1|$fridayDate2" "$friday_file")
   if [ "$friday" = "" ]; then
     echo "ERROR: TASK FAILED: testParams function failed." | tee -a "${output_file}"
     echo "  - FILE:     $friday_file" | tee -a "${output_file}"
     echo "  - GOT:      $friday" | tee -a "${output_file}"
     echo "  - EXPECTED: $fridayDate1 or $fridayDate2" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # testMpiSkipFailure
+  success_str=$(grep -r -l "prolog failed successfully" "$jobs_logs")
+  if [ "$success_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testMpiSkipFailure function failed." | tee -a "${output_file}"
+    echo "  - Prolog failure shouldn't have stopped the execution!" | tee -a "${output_file}"
+    exit 1
+  fi
+  # testFileInParam
+  p_str=$(grep -r -l "greetings from the prolog" "$jobs_logs")
+  if [ "$p_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testFileInParam function failed." | tee -a "${output_file}"
+    echo "  - Prolog file in param has not been read!" | tee -a "${output_file}"
+    exit 1
+  fi
+  echo "________________________"
+  e_str=$(grep -r -l "greetings from the epilog" "$jobs_logs")
+  if [ "$e_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testFileInParam function failed." | tee -a "${output_file}"
+    echo "  - Epilog file in param has not been read!" | tee -a "${output_file}"
+    exit 1
+  fi
+  echo "________________________"
+
+  # testStdOutFile
+  std_out_file="src/misc/outfile"
+  cat "src/misc/outfile"
+  output_str=$(grep -i "some text for epilog" "$std_out_file")
+  if [ "$output_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testStdOutFile function failed." | tee -a "${output_file}"
+    echo "  - Epilog STD OUT file doesn't contain the expected string!" | tee -a "${output_file}"
     exit 1
   fi
 

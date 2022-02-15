@@ -17,6 +17,7 @@ from pycompss.api.binary import binary
 from pycompss.api.mpi import mpi
 from pycompss.api.mpmd_mpi import mpmd_mpi
 from pycompss.api.prolog import prolog
+from pycompss.api.parameter import *
 from pycompss.api.epilog import epilog
 
 
@@ -60,12 +61,39 @@ def mpi_skip_failure():
     pass
 
 
+@prolog(binary="cat", params="{{p_file}}")
+@epilog(binary="cat", params="{{e_file}}")
+@task(p_file=FILE_IN, e_file=FILE_IN)
+def file_in(p_file, e_file):
+    return 1
+
+
+@epilog(binary=os.getcwd() + "/src/misc/hello.sh",
+        params="{{text}} {{file_out}}")
+@task(returns=1, file_out=FILE_OUT)
+def std_out(ret_value, text, file_out):
+    return ret_value
+
+
 class TestPrologEpilog(unittest.TestCase):
 
-    def testFBEV(self):
+    def _testFBEV(self):
         ev = cwo(skip_failure())
         self.assertTrue(ev, "ERROR: Prolog / Epilog failure shouldn't have "
                             "stopped the task execution")
+
+    def testStdOutFile(self):
+        text = "some text for epilog"
+        outfile = "src/misc/outfile"
+        ret_val = cwo(std_out(10, text, outfile))
+        self.assertEqual(10, ret_val, "ERROR: testStdOutFile return value "
+                                      "is NOT correct ")
+
+    def testFileInParam(self):
+        p_file = "src/misc/p_file"
+        e_file = "src/misc/e_file"
+        ret = cwo(file_in(p_file, e_file))
+        self.assertEqual(ret, 1, "ERROR: testFileInParam ret value NOT correct")
 
     def testParams(self):
         params_mpmd("next monday", "next friday")
@@ -75,6 +103,6 @@ class TestPrologEpilog(unittest.TestCase):
         ret = basic()
         self.assertTrue(ret)
 
-    def testSomeMpi(self):
+    def testMpiSkipFailure(self):
         cwo(mpi_skip_failure())
         cb()

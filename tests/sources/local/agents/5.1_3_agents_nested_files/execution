@@ -13,6 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
+  expected_time="60"
   NUM_RETRIES="50"
   jar_name="5.1_3_agents_nested_files.jar"
   app_name="5.1_3_agents_nested_files"
@@ -20,7 +21,7 @@
   # Traps and Handlers
   function kill_agents() {
     for pid in ${AGENT_PIDS}; do
-      kill -SIGINT ${pid}
+      kill -SIGINT ${pid} 2>/dev/null
     done
   }
   trap kill_agents EXIT
@@ -105,8 +106,6 @@
 
   for agent_id in $(seq 1 3); do
     agent_port=46${agent_id}01
-    out_log_name=agent${agent_id}_output_log
-    eval agent_output_log=${!out_log_name}
 
     retries="${NUM_RETRIES}"
     curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
@@ -117,7 +116,11 @@
       curl -XGET http://127.0.0.1:${agent_port}/COMPSs/test 1>/dev/null 2>/dev/null
       ev=$?
     done
-
+  done
+  sleep 1
+  for agent_id in $(seq 1 3); do
+    out_log_name=agent${agent_id}_output_log
+    eval agent_output_log=${!out_log_name}
 
     RESULT=$(grep "test invoked" "${agent_output_log}")
     if [ -z "${RESULT}" ]; then  
@@ -125,9 +128,8 @@
       exit 1
     fi
     echo "Agent started" > >(tee -a "${output_log}")
-    sleep 2s
-
   done
+  sleep 2
 
   for agent_id in $(seq 1 2); do
     agent_port=46${agent_id}01
@@ -139,16 +141,19 @@
    --master_node="127.0.0.1" \
    --master_port="46101" \
     --cei=files.MainItf \
+    --stop \
+    --forward_to="COMPSsWorker02:46201;COMPSsWorker03:46301" \
     files.Main  > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
    ev=$?
 
-   sleep 5s
+
    if [ "$ev" != "0" ]; then
     echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit $ev
   fi
   echo "recursive.Count's main function invoked" > >(tee -a "${output_log}")
 
+  sleep 5
   retries="3"
   while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
     sleep 2s
@@ -169,7 +174,17 @@
   fi
   echo  "recursive.Count's main method properly started" > >(tee -a "${output_log}")
 
-  sleep 20s
+  echo "Waiting for Agent processes (PIDs: ${AGENT_PIDS}) to end" > >(tee -a "${output_log}")
+  (sleep ${expected_time} && kill_agents) 1>/dev/null 2>/dev/null &
+  timeoutPID=$!
+  wait ${AGENT_PIDS} 1>/dev/null 2>/dev/null
+  kill -9 ${timeoutPID} 1>/dev/null 2>/dev/null
+  exit_kill_timeout=$?
+  wait ${timeoutPID} 1>/dev/null 2>/dev/null
+  if [ "${exit_kill_timeout}" == "1" ]; then
+    echo "At least one agent process has not yet finished its work after ${expected_time} seconds."  > >(tee -a "${error_log}")
+    exit 124
+  fi
 
   created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
   if [ ! "${created_jobs}" == "1" ]; then

@@ -25,7 +25,7 @@ documentation: # nothing will be used if not provided
   tutorial: https://compss-doc.readthedocs.io/en/stable/Sections/10_Tutorial.html
 
 social: # nothing will be used if not provided
-  twitter: https://twitter.com/bsc_compss
+  twitter: bsc_compss
   youtube: https://www.youtube.com/channel/UCxx5hojMjCNqKRJclMaJbHQ
 
 execution_environment: # nothing will be used if not provided

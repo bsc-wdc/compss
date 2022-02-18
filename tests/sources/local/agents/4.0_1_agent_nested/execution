@@ -16,6 +16,7 @@
   NUM_RETRIES="50"
   jar_name="4.0_1_agent_nested.jar"
   app_name="4.0_1_agent_nested"
+  expectedTime="60s"
 
   # Traps and Handlers
   function kill_agents() {
@@ -88,17 +89,13 @@
     --log_dir="${agent1_log_dir}" \
     --reuse_resources_on_block="false" \
     -d \
+    --exec_time=${expectedTime} \
     ${runcompss_opts} \
     --project="${base_app_dir}/project.xml" \
     --resources="${base_app_dir}/resources.xml" \
     --cei="recursive.CountItf" \
     "recursive.Count" 3
 
-  retries="3"
-  while [ ! -f "${agent1_log_dir}/COMPSsWorker01/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
-    sleep 2s
-    retries=$((retries - 1 ))
-  done
   if [ ! -f "${agent1_log_dir}/COMPSsWorker01/jobs/job1_NEW.out" ]; then
     echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit 1

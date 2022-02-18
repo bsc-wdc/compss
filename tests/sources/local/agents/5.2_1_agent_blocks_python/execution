@@ -15,6 +15,7 @@
   exit_value=0
   NUM_RETRIES="50"
   app_name="5.2_1_agent_blocks_python"
+  expectedTime="60s"
 
   # Traps and Handlers
   function kill_agents() {
@@ -84,6 +85,7 @@
     --pythonpath="${base_app_dir}/src" \
     --log_dir="${log_dir}" \
     -d \
+    --exec_time=${expectedTime} \
     ${runcompss_opts} \
     --project="${base_app_dir}/project.xml" \
     --resources="${base_app_dir}/resources.xml" \

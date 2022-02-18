@@ -16,7 +16,7 @@
   NUM_RETRIES="50"
   jar_name="5.0_4_agent_nested.jar"
   app_name="5.0_4_agent_nested"
-  expected_time=60
+  expected_time="60s"
 
   # Traps and Handlers
   function kill_agents() {
@@ -82,25 +82,15 @@
     --classpath="${base_app_dir}/${jar_name}" \
     --log_dir=${log_dir} \
     -d \
+    --exec_time=${expectedTime} \
     ${runcompss_opts} \
     --reuse_resources_on_block=false \
     --project="${base_app_dir}/project.xml" \
     --resources="${base_app_dir}/resources.xml" \
     --topology=chain \
    --cei="recursive.CountItf" \
-   "recursive.Count" 3 &
+   "recursive.Count" 3
   run_pid=$!
-
-  (sleep ${expected_time} && kill -9 ${run_pid}) 1>/dev/null 2>/dev/null &
-  timeoutPID=$!
-  wait ${run_pid} 1>/dev/null 2>/dev/null
-  kill -9 ${timeoutPID} 1>/dev/null 2>/dev/null
-  exit_kill_timeout=$?
-  wait ${timeoutPID} 1>/dev/null 2>/dev/null
-  if [ "${exit_kill_timeout}" == "1" ]; then
-    echo "Execution did not finished after ${expected_time} seconds."  > >(tee -a "${error_log}")
-    exit 124
-  fi
 
   agent1_log_dir="${log_dir}/COMPSsWorker01/"
   agent2_log_dir="${log_dir}/COMPSsWorker02/"

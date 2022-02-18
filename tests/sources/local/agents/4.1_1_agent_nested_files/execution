@@ -16,6 +16,7 @@
   NUM_RETRIES="50"
   jar_name="4.1_1_agent_nested_files.jar"
   app_name="4.1_1_agent_nested_files"
+  expectedTime="60s"
 
   # Traps and Handlers
   function kill_agents() {
@@ -92,6 +93,7 @@
     --log_dir="${agent_log_dir}" \
     --reuse_resources_on_block"=false" \
     -d \
+    --exec_time=${expectedTime} \
     ${runcompss_opts} \
     --project="${base_app_dir}/project.xml" \
     --resources="${base_app_dir}/resources.xml" \

@@ -16,6 +16,7 @@
   NUM_RETRIES="50"
   jar_name="5.1_4_agent_nested_inout_object.jar"
   app_name="5.1_4_agent_nested_inout_object"
+  expectedTime="60s"
 
   # Traps and Handlers
   function kill_agents() {
@@ -86,6 +87,7 @@
     --log_dir="${log_dir}" \
     --reuse_resources_on_block="false" \
     -d \
+    --exec_time=${expectedTime} \
     ${runcompss_opts} \
     --project="${base_app_dir}/project.xml" \
     --resources="${base_app_dir}/resources.xml" \

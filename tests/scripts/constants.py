@@ -23,7 +23,6 @@ DEFAULT_SC_FAMILIES = [
 DEFAULT_SC_IGNORED = [".target", "target", ".idea", ".settings", ".git", "geneDetection"]
 DEFAULT_FAMILIES = [
                     "agents",
-                    "autoparallel",
                     "c",
                     "cloud",
                     "gat",
@@ -47,7 +46,7 @@ DEFAULT_COMPSS_HOME = "/opt/COMPSs/"
 DEFAULT_REL_COMPSS_LOG_DIR = ".COMPSs"
 DEFAULT_REL_TARGET_TESTS_DIR = "tests_execution_sandbox"
 DEFAULT_COMM = "es.bsc.compss.nio.master.NIOAdaptor"
-DEFAULT_EXECUTION_ENVS = ["python2", "python3", "python2_mpi", "python3_mpi"]
+DEFAULT_EXECUTION_ENVS = ["python3"]
 DEFAULT_SC_EXECUTION_ENVS = ["shared_disk", "local_disk"]
 DEFAULT_COMPSS_MODULE = "COMPSs/Trunk"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))

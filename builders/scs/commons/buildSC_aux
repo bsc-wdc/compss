@@ -194,19 +194,6 @@
   fi
   cd "${SCRIPT_DIR}" || exit 1
 
-  # PLUTO (for autoparallel)
-  if [ "${autoparallel}" == "true" ]; then
-    echo "---- Install PLUTO ----"
-    cd "${TMP_DIR}"/dependencies/pluto || exit 1
-    ./install_pluto "${targetDir}"/Dependencies/pluto
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install PLUTO dependency"
-      exit $ev
-    fi
-    cd "${SCRIPT_DIR}" || exit 1
-  fi
-
   # Streaming dependencies
   cp -r "${TMP_DIR}"/dependencies/kafka "${targetDir}"/Dependencies/
 

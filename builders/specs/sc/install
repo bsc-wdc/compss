@@ -21,7 +21,6 @@ usage() {
     echo " --help, -h                  Print this help message"
     echo " --no-bindings, -B           Disable bindings installation"
     echo " --no-tracing, -T            Disable tracing system installation"
-    echo " --no-autoparallel, -A       Disable autoparallel module installation"
     echo " --nothing, -N               Disable all previous options"
     echo " --only-python-2	       Install PyCOMPSs for Python 2"
     echo " --only-python-3             Install PyCOMPSs for Python 3"
@@ -64,15 +63,10 @@ get_args() {
         # Custom tracing value
         tracing=false
         ;;
-      A)
-        # Custom autoparallel value
-        autoparallel=false
-        ;;
       N)
         # Disables all flags
         tracing=false
         bindings=false
-        autoparallel=false
         ;;
       -)
         # Check more complex arguments
@@ -96,15 +90,10 @@ get_args() {
             # Custom tracing value
             tracing=false
             ;;
-	  no-autoparallel)
-            # Custom autoparallel value
-            autoparallel=false
-            ;;
 	  nothing)
             # Disables all flags
             tracing=false
             bindings=false
-            autoparallel=false
             ;;
     	  *)
 	  # Flag didn't match any patern. End of COMPSs flags
@@ -137,7 +126,6 @@ get_args() {
   ####################
   tracing=true
   bindings=true
-  autoparallel=true
   
   system_os=$(uname)
   if [[ "$system_os" == "Darwin" ]]; then
@@ -152,7 +140,6 @@ get_args() {
   echo "Options:"
   echo "  - Tracing: $tracing"
   echo "  - Bindings: $bindings"
-  echo "  - Autoparallel: $autoparallel"
   echo " "
   echo "Parameters:"
   echo "  - Target Installation Folder = $targetDir"
@@ -220,14 +207,6 @@ get_args() {
     cd "${SCRIPT_DIR}"
     echo "   Success"
   fi 
-  if [ "${autoparallel}" == "true" ]; then
-    # Install PLUTO
-    echo "- Install Pluto"
-    cd "${SCRIPT_DIR}"/Dependencies/pluto
-    ./install_pluto "${targetDir}"/Dependencies/pluto
-    cd "${SCRIPT_DIR}"
-    echo "   Success"
-  fi
   # Set permissions
   echo "- Set COMPSs permissions"
   chmod -R 755 "${targetDir}"

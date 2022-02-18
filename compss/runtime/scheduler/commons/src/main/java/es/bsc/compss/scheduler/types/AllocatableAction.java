@@ -879,10 +879,6 @@ public abstract class AllocatableAction {
         }
     }
 
-    public abstract List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
-        Set<ResourceScheduler<? extends WorkerResourceDescription>> availableWorkers)
-        throws BlockedActionException, UnassignedActionException;
-
     /**
      * Operations to perform when AA has raised an error. Calls specific operation doError.
      *

@@ -21,7 +21,6 @@ import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
@@ -53,7 +52,6 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;

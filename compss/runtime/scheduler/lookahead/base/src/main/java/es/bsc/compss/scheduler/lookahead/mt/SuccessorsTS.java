@@ -17,7 +17,6 @@
 package es.bsc.compss.scheduler.lookahead.mt;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
@@ -64,20 +63,11 @@ public abstract class SuccessorsTS extends LookaheadTS {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
             try {
-                List<ResourceScheduler<?>> uselessWorkers =
-                    freeAction.tryToSchedule(obj.getScore(), this.availableWorkers);
-                for (ResourceScheduler<?> worker : uselessWorkers) {
-                    this.availableWorkers.remove(worker);
+                if (freeAction.getCompatibleWorkers().isEmpty()) {
+                    blockedCandidates.add(freeAction);
                 }
-                ResourceScheduler<? extends WorkerResourceDescription> assignedResource =
-                    freeAction.getAssignedResource();
+                freeAction.schedule(this.getAvailableWorkers(), generateActionScore(freeAction));
                 tryToLaunch(freeAction);
-                if (!assignedResource.canRunSomething()) {
-                    this.availableWorkers.remove(assignedResource);
-                }
-            } catch (BlockedActionException e) {
-                removeFromReady(freeAction);
-                addToBlocked(freeAction);
             } catch (UnassignedActionException e) {
                 dataFreeActions.add(freeAction);
             }

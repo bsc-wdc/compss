@@ -1203,51 +1203,6 @@ public class ExecutionAction extends AllocatableAction {
 
     @SuppressWarnings("unchecked")
     @Override
-    public final List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
-        Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
-        // COMPUTE RESOURCE CANDIDATES
-        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
-        List<ResourceScheduler<? extends WorkerResourceDescription>> uselessWorkers = new LinkedList<>();
-
-        if (this.isTargetResourceEnforced()) {
-            // The scheduling is forced to a given resource
-            candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
-        } else {
-            if (this.isSchedulingConstrained()) {
-                // The scheduling is constrained by dependencies
-                for (AllocatableAction a : this.getConstrainingPredecessors()) {
-                    candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
-                }
-            } else {
-                // Free scheduling
-                List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleCandidates =
-                    getCompatibleWorkers();
-                if (compatibleCandidates.size() == 0) {
-                    throw new BlockedActionException();
-                }
-                for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : availableResources) {
-                    if (currentWorker.getResource().canRunSomething()) {
-                        if (compatibleCandidates.contains(currentWorker)) {
-                            candidates.add(currentWorker);
-                        }
-                    } else {
-                        uselessWorkers.add(currentWorker);
-                    }
-                }
-                if (candidates.size() == 0) {
-                    throw new UnassignedActionException();
-                }
-            }
-        }
-
-        Collections.shuffle(candidates);
-        schedule(candidates, actionScore);
-
-        return uselessWorkers;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         // COMPUTE RESOURCE CANDIDATES
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();

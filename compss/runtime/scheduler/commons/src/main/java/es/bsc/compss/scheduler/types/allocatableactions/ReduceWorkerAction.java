@@ -268,15 +268,4 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     protected void stopAction() throws Exception {
     }
 
-    @Override
-    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
-        Set<ResourceScheduler<? extends WorkerResourceDescription>> availableResources)
-        throws BlockedActionException, UnassignedActionException {
-        this.schedule(actionScore);
-        List<ResourceScheduler<?>> uselessWorkers = new LinkedList<>();
-        if (!this.worker.canRunSomething()) {
-            uselessWorkers.add(this.worker);
-        }
-        return uselessWorkers;
-    }
 }

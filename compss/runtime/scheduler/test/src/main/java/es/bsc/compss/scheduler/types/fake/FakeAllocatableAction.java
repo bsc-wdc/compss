@@ -399,9 +399,4 @@ public class FakeAllocatableAction extends AllocatableAction {
     protected void stopAction() throws Exception {
     }
 
-    @Override
-    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers)
-        throws BlockedActionException, UnassignedActionException {
-        return null;
-    }
 }

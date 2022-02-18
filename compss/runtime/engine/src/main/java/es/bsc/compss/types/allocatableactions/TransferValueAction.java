@@ -428,10 +428,4 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     protected void stopAction() throws Exception {
 
     }
-
-    @Override
-    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers)
-        throws BlockedActionException, UnassignedActionException {
-        return null;
-    }
 }

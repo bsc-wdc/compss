@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildMN
+  # Description: SCRIPT FOR Nord 3 COMPSs BUILD
+  # Parameters: <Nord_user> Nord 3 account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Nord 3 for deployment
+  #             <FullTargetPath> Base Target Installation folder on Nord 3
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildNord3 <Nord_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  
+  MNuser=$1
+  MNtmpDir=$2
+  MNtargetDir=$3
+  MNloginNode=nord3.bsc.es
+  MNauxScript=${SCRIPT_DIR}/buildNord3_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus
+

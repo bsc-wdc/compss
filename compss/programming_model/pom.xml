@@ -74,7 +74,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>python</executable>
+                            <executable>python3</executable>
                             <arguments>
                                 <argument>${basedir}/generate_datatype_enums.py</argument>
                             </arguments>

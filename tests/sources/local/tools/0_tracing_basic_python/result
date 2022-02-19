@@ -131,7 +131,7 @@
   if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
     echo "IMPROVED EVENTS CHECK:"
 
-    python events_checker.py expected_events.txt "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv
+    python3 events_checker.py expected_events.txt "${target_log_folder}"/trace/task_tracing_kmeans.py_compss*.prv
     exit_value=$?
     if [ ${exit_value} -ne 0 ]; then
       exit ${exit_value}

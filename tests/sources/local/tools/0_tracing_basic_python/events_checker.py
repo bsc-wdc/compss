@@ -1,11 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 """
 THIS SCRIPT PARSES THE expected_events.txt FILE AND PERFORMS ALL INDICATED
 CHECKS INTO THE TEST TRACE ACHIEVED IN THIS TEST.
 
 INVOCATION:
-    python events_checker.py expecte_events.txt
+    python3 events_checker.py expecte_events.txt
 """
 
 import sys

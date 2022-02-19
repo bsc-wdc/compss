@@ -39,7 +39,7 @@
     expectedTime=60s
 
     # Check that the pycompss module is available in the environment
-    python -c "import pycompss"
+    ${python_interpreter} -c "import pycompss"
     errCode=$?
     if [ $errCode -ne  0 ] ; then
       echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM." | tee -a "${output_log}"
@@ -49,7 +49,7 @@
 
     # Sequential execution
     timeout --signal=2 "$expectedTime" \
-      python "${base_app_dir}/src/${app_name}" > >(tee "${output_log_seq}") 2> >(tee "${error_log_seq}" >&2)
+       ${python_interpreter} "${base_app_dir}/src/${app_name}" > >(tee "${output_log_seq}") 2> >(tee "${error_log_seq}" >&2)
     seq_exit_value=$?
 
     # Check segmentation fault

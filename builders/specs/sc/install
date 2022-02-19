@@ -22,8 +22,6 @@ usage() {
     echo " --no-bindings, -B           Disable bindings installation"
     echo " --no-tracing, -T            Disable tracing system installation"
     echo " --nothing, -N               Disable all previous options"
-    echo " --only-python-2	       Install PyCOMPSs for Python 2"
-    echo " --only-python-3             Install PyCOMPSs for Python 3"
     echo " "
     echo " Parameters:"
     echo "   - targetFolder : Target folder of the COMPSs installation."
@@ -78,13 +76,6 @@ get_args() {
           no-bindings)
             # Custom bindings value
             bindings=false
-            ;;
-          only-python-2)
-            # Custom PyCOMPSs value
-            python_version=2
-            ;;
-          only-python-3)
-	    python_version=3
             ;;
           no-tracing)
             # Custom tracing value
@@ -188,16 +179,9 @@ get_args() {
     # Install Python-binding
     echo "- Install Python binding"
     cd "${SCRIPT_DIR}"/Bindings/python
-    # add python_version check
-    if [ -z "$python_version" ]; then
-      ./install "${targetDir}"/Bindings/python false
-      cd "${SCRIPT_DIR}"
-      echo "   Success"
-    else
-      ./install "${targetDir}"/Bindings/python false false python${python_version}
-      cd "${SCRIPT_DIR}"
-      echo "   Success"
-    fi
+    ./install "${targetDir}"/Bindings/python false false python3
+    cd "${SCRIPT_DIR}"
+    echo "   Success"
   fi
   if [ "${tracing}" == "true" ]; then
     # Install extrae

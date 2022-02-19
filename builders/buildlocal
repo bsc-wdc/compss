@@ -734,26 +734,14 @@ install_compss() {
     if [ "${pycompss}" == "true" ]; then
       echo "- Deploying python-binding files"
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
-      if command_exists "python2" ; then
-        if command_exists "python3" ; then
-          # Install python binding for both python2 and python3
-          ./install "${targetDir}/Bindings/python" true true
-          ev=$?
-        else
-          # Install python binding only for python2
-          ./install "${targetDir}/Bindings/python" true false python2
-          ev=$?
-        fi
+      if command_exists "python3" ; then
+        # Install python binding only for python3
+        ./install "${targetDir}/Bindings/python" true false python3
+        ev=$?
       else
-        if command_exists "python3" ; then
-          # Install python binding only for python3
-          ./install "${targetDir}/Bindings/python" true false python3
-          ev=$?
-        else
-          # Error no python 2 nor 3
-          echo "ERROR: Could not find python2 nor python3 commands."
-          ev=1
-        fi
+        # Error no python 2 nor 3
+        echo "ERROR: Could not find python2 nor python3 commands."
+        ev=1
       fi
       if [ $ev -ne 0 ]; then
         echo "ERROR: Failed to install Python-binding"

@@ -89,7 +89,6 @@
 		<module>4_scheduler_lifo</module>
 		<module>9_concurrent_procs</module>
 		<module>9_concurrent_threads</module>
-		<module>9_services</module>
 		<module>9_stream_files</module>
 		<module>9_stream_objects</module>
 		<module>9_stream_non_native</module>

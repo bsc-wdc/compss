@@ -23,10 +23,10 @@
 
   # Set parameters
   version=$1
-  buildFolder="nord"
-  buildScript="buildNord"
+  buildFolder="nord3"
+  buildScript="buildNord3"
   nordUser=compss
-  nordEndpoint=nord1.bsc.es
+  nordEndpoint=nord3.bsc.es
 
   # Call generic script
   ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${nordUser} ${nordEndpoint}

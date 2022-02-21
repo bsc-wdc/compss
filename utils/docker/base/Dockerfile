@@ -53,8 +53,8 @@ RUN apt-get update && \
     rm get-pip.py && \
     python2 -m pip install --upgrade pip && \
     python3 -m pip install --upgrade pip && \
-    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy==0.1.11 decorator mpi4py==1.3.1 && \
-    pip3 install --no-cache-dir wheel numpy==1.15.4 dill guppy3==3.1.0 decorator mpi4py==3.0.1 selenium && \
+    pip2 install --no-cache-dir wheel numpy dill guppy==0.1.11 decorator mpi4py==1.3.1 && \
+    pip3 install --no-cache-dir wheel numpy dill guppy3==3.1.0 decorator mpi4py==3.0.1 selenium && \
 #Ubuntu:20
 #    pip2 install --no-cache-dir wheel numpy==1.15.4 dill guppy==0.1.11 decorator mpi4py && \
 #    pip3 install --no-cache-dir wheel numpy==1.15.4 dill guppy3==3.1.0 decorator mpi4py && \
@@ -102,6 +102,16 @@ RUN apt-get update && \
     # Patch guppy for python2
     file_to_patch=$(python2 -c "from __future__ import print_function; import guppy.heapy.View as hpv; print(hpv.__file__[:-1]) if hpv.__file__.endswith('c') else print(hpv.__file__)") && \
     sed -i -E 's/if mod is None:/if mod is None or getattr(mod, "__dict__", None) is None:/g' $file_to_patch  && \
+# FIXES: Rollback to latest snapshot running versions. Updates numpy for numba.
+    pip3 install charset-normalizer==2.0.11 --upgrade  && \
+    pip3 install jupyter-core==4.9.1 --upgrade && \
+    pip3 uninstall -y pathlib2 && \
+    pip3 install prompt-toolkit==3.0.26 --upgrade && \
+    pip3 install pytest==7.0.0 --upgrade && \
+    pip3 install typing_extensions==4.0.1 --upgrade && \
+    pip3 install jupyter-client==6.1.12 --upgrade && \
+    pip3 install pytest-asyncio==0.16.0 --upgrade && \
+    pip2 install pathlib2==2.3.6 --upgrade && \
 # Coverage
     pip2 --no-cache-dir install coverage && \
     pip3 --no-cache-dir install coverage && \

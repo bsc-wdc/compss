@@ -105,7 +105,7 @@ RUN apt-get update && \
 # FIXES: Rollback to latest snapshot running versions. Updates numpy for numba.
     pip3 install charset-normalizer==2.0.11 --upgrade  && \
     pip3 install jupyter-core==4.9.1 --upgrade && \
-    pip3 uninstall pathlib2 && \
+    pip3 uninstall -y pathlib2 && \
     pip3 install prompt-toolkit==3.0.26 --upgrade && \
     pip3 install pytest==7.0.0 --upgrade && \
     pip3 install typing_extensions==4.0.1 --upgrade && \

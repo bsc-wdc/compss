@@ -37,6 +37,7 @@ NUM_CHECK_RETRIES="10"
 
 agentStartCommand="${AGENTS_SCRIPTS_HOME}compss_agent_start"
 callOperationCommand="${AGENTS_SCRIPTS_HOME}compss_agent_call_operation"
+pidsAllAgents=""
 
 
 
@@ -207,6 +208,9 @@ get_args() {
             ;;
           cei=*)
             add_param_to_call_operation "--$OPTARG"
+            ;;
+          exec_time=*)
+            exec_time=${OPTARG//exec_time=/}
             ;;
           lang=*)
             lang=${OPTARG//lang=/}
@@ -381,8 +385,19 @@ specific_agent_start_command="${agentStartCommand}
   if [ -z "${pidAgent1}" ]; then
     pidAgent1=${cmd_pid}
   fi
-
+  pidsAllAgents="${pidsAllAgents} ${cmd_pid}"
 }
+
+###############################################
+# Kill all agents
+###############################################
+kill_agents() {
+  display_error "Killing all agents"
+  kill -9 ${pidsAllAgents}
+  compss_clean_procs # not ideal but killing only the agents left a bunch of processes of the runtime/executors/bindings
+  exit 1
+}
+
 
 
 ###############################################
@@ -431,6 +446,7 @@ check_local_resources() {
     fatal_error "Wrong number of CPU cores configured for the Agent. Found ${cpu_count}; ${assumed_cpus} expected." 1 "${error_log}"
   fi
 }
+
 
 ###############################################
 # Check Agent started properly
@@ -567,10 +583,10 @@ check_topology() {
 
   if [[ ${cpus_topology} -eq ${cpus_num_agents} ]]; then
     if [ ${verbose_level} -gt 0 ]; then
-      display_success "${GREEN}Topology created successfully${NC}"
+      display_success "Topology created successfully"
     fi
   else
-    fatal_error "${RED}Error creating topology${NC}" 1
+    fatal_error "Error creating topology" 1
   fi
 }
 
@@ -611,6 +627,21 @@ call_operation() {
   add_param_to_call_operation "${executable} ${execution_params}"
   print_and_run_cmd "${callOperationCommand}" "${output_log}" "${error_log}"
 
+  if [ ! -z ${exec_time} ]; then
+    if [ ${exec_time: -1} == "s" ]; then
+      exec_time=${exec_time::-1}
+    fi
+    if [ ${exec_time: -1} == "m" ]; then
+      exec_time=$(( 60*${exec_time::-1} ))
+    fi
+    if [ ${exec_time: -1} == "h" ]; then
+      exec_time=$(( 3600*${exec_time::-1} ))
+    fi
+    #timeout process for the agents ("timeout" command doesn't allow for a shell command such as "wait")
+    (sleep ${exec_time} && kill_agents) 1>/dev/null 2>/dev/null &
+    timeoutPID=$!
+  fi
+
   # check execution start
   retries=${NUM_CHECK_RETRIES}
   while [ ! -f "${master_log}/jobs/job1_NEW.out" ]; do
@@ -629,14 +660,23 @@ call_operation() {
   if [ ${verbose_level} -gt 1 ]; then
     display_info "waiting for agent1 with pid: $pidAgent1"
   fi
-  wait $pidAgent1
+
+  wait ${pidsAllAgents} 1>/dev/null 2>/dev/null
+  kill -9 ${timeoutPID} 1>/dev/null 2>/dev/null
+  exit_kill_timeout=$?
+  wait ${timeoutPID} 1>/dev/null 2>/dev/null #this supresses the output of the previous kill
+
+  # if the kill of the timeout process fails it means the timeout process ended and that the agents were killed by it
+  if [ "${exit_kill_timeout}" == "1" ]; then
+    fatal_error "At least one agent process has not yet finished its work after ${exec_time} seconds."  124
+  fi
 
   if grep -q "Job completed after" "${master_log}.outputlog"; then
     if [ ${verbose_level} -gt 0 ]; then
       display_success "Execution ended succesfully"
     fi
   else
-    fatal_error "${RED}Execution failed${NC}" 1
+    fatal_error "Execution failed."  1
   fi
 }
 

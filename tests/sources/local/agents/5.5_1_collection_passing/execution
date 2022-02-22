@@ -15,6 +15,7 @@ AGENT_PIDS=""
 exit_value=0
 NUM_RETRIES="50"
 app_name="5.4_1_collection_passing"
+expected_time="60s"
 
 # Traps and Handlers
 function kill_agents() {
@@ -193,8 +194,18 @@ echo "Calling operation on Agent 1" > >(tee -a "${output_log}")
 "collection_passing" > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 ev=$?
 
+
 echo "Waiting for Agent 1 to finish" > >(tee -a "${output_log}")
-wait ${agent1_pid}
+(sleep ${expected_time} && kill_agents) 1>/dev/null 2>/dev/null &
+timeoutPID=$!
+wait ${agent1_pid} 1>/dev/null 2>/dev/null
+kill -9 ${timeoutPID} 1>/dev/null 2>/dev/null
+exit_kill_timeout=$?
+wait ${timeoutPID} 1>/dev/null 2>/dev/null
+if [ "${exit_kill_timeout}" == "1" ]; then
+  echo "At least one agent process has not yet finished its work after ${expected_time} seconds."  > >(tee -a "${error_log}")
+  exit 124
+fi
 
 echo "Call operation ended, agents shut down"
 

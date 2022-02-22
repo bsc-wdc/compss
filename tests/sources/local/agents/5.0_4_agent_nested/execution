@@ -16,6 +16,7 @@
   NUM_RETRIES="50"
   jar_name="5.0_4_agent_nested.jar"
   app_name="5.0_4_agent_nested"
+  expected_time="60s"
 
   # Traps and Handlers
   function kill_agents() {
@@ -81,6 +82,7 @@
     --classpath="${base_app_dir}/${jar_name}" \
     --log_dir=${log_dir} \
     -d \
+    --exec_time=${expectedTime} \
     ${runcompss_opts} \
     --reuse_resources_on_block=false \
     --project="${base_app_dir}/project.xml" \
@@ -88,7 +90,7 @@
     --topology=chain \
    --cei="recursive.CountItf" \
    "recursive.Count" 3
-
+  run_pid=$!
 
   agent1_log_dir="${log_dir}/COMPSsWorker01/"
   agent2_log_dir="${log_dir}/COMPSsWorker02/"

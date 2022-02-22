@@ -16,6 +16,7 @@ exit_value=0
 NUM_RETRIES="50"
 jar_name="0.2_1_agent_stop.jar"
 app_name="0.2_1_agent_stop"
+expectedTime="60s"
 
 # Traps and Handlers
 function kill_agents() {
@@ -72,16 +73,20 @@ echo "Agent started" > >(tee -a "${output_log}")
 
 # STOPING AGENT WITH CURL AND CHECKING IF IT WORKED
 curl -XDELETE http://127.0.0.1:46101/COMPSs 1>/dev/null 2>/dev/null
-CONFIRMATION=""
-while [ -z "${CONFIRMATION}" ]; do
+CONFIRMATION=$(grep "Agent was shutdown" "${test1_log_dir}/COMPSsWorker01/agent.log")
+retries="${NUM_RETRIES}"
+while [ -z "${CONFIRMATION}" ] && [ "${retries}" -gt "0" ]; do
   sleep 1
   CONFIRMATION=$(grep "Agent was shutdown" "${test1_log_dir}/COMPSsWorker01/agent.log")
 done
+if [ -z "${CONFIRMATION}" ]; then  
+  echo "Agent failed to stop with curl" > >(tee -a "${error_log}")
+  exit 1
+fi
 echo  "The agent properly shuts down with curl" > >(tee -a "${output_log}")
 AGENT_PIDS=""
 
 # STARTING AGENT TO STOP IT WITH A --stop OPERATION CALL
-
 
 agent2_log_dir="${log_dir}/test2"
 
@@ -90,6 +95,7 @@ compss_agent_start_service \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir=${agent2_log_dir} \
   -d \
+  --exec_time=${expectedTime} \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
@@ -97,11 +103,11 @@ compss_agent_start_service \
 
 sleep 1
 pid_info=""
-CONFIRMATION=""
-while [ -z "${CONFIRMATION}" ]; do
-  sleep 1
-  CONFIRMATION=$(grep "Agent was shutdown" "${agent2_log_dir}/COMPSsWorker01/agent.log")
-done
+CONFIRMATION=$(grep "Agent was shutdown" "${test1_log_dir}/COMPSsWorker01/agent.log")
+if [ -z "${CONFIRMATION}" ]; then  
+  echo "Agent failed to stop with --stop operation" > >(tee -a "${error_log}")
+  exit 1
+fi
 echo  "The agent properly shuts down calling operation with flag --stop" > >(tee -a "${output_log}")
 AGENT_PIDS=""
 
@@ -114,6 +120,7 @@ compss_agent_start_service \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir="${test3_log_dir}" \
   -d \
+  --exec_time=${expectedTime} \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
@@ -142,17 +149,18 @@ compss_agent_start_service \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir=${test4_log_dir} \
   -d \
+  --exec_time=${expectedTime} \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
   es.bsc.compss.test.DemoClassError 1
 
 sleep 1
-CONFIRMATION=""
-while [ -z "${CONFIRMATION}" ]; do
-  sleep 1
-  CONFIRMATION=$(grep "Agent was shutdown" "${test4_log_dir}/COMPSsWorker01/agent.log")
-done
+CONFIRMATION=$(grep "Agent was shutdown" "${test4_log_dir}/COMPSsWorker01/agent.log")
+if [ -z "${CONFIRMATION}" ]; then
+  echo "Failed to stop agent with a failure on the execution of compss_agent_call_operation." > >(tee -a "${error_log}")
+  exit 1
+fi
 echo  "The agent properly shuts when an error occurs on the execution" > >(tee -a "${output_log}")
 AGENT_PIDS=""
 

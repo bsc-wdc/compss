@@ -41,7 +41,7 @@ class RemoteActions(Actions):
         return self.apps
 
     def init(self):
-        """ Deploys COMPSs infrastructure on remote|cluster env
+        """ Deploys COMPSs infrastructure on remote environment
 
         :param arguments: Command line arguments
         :param debug: Debug mode
@@ -53,32 +53,32 @@ class RemoteActions(Actions):
             self.arguments.modules = ['COMPSs']
         elif len(self.arguments.modules) == 1 and os.path.isfile(self.arguments.modules[0]):
             self.arguments.modules = self.arguments.modules[0]
-        elif 'COMPSs' not in [m[:len('COMPSs')] for m in self.arguments.modules]:
-            self.arguments.modules.append('COMPSs')
+        # elif 'COMPSs' not in [m[:len('COMPSs')] for m in self.arguments.modules]:
+        #     self.arguments.modules.insert(0, 'COMPSs')
         
         print('Deploying environment...')
 
         env_id = self.arguments.name
         envars = []
         if re.search(r'mn\d\.bsc\.es', self.env_conf['login']) is not None:
-            envars.append('COMPSS_PYTHON_VERSION=2-3-jupyter')
+            envars.append('COMPSS_PYTHON_VERSION=3.7.4')
         
         try:
             remote_deploy_compss(env_id, self.arguments.login, self.arguments.modules, envars=envars)
 
             remote_home_path = remote_get_home(self.arguments.login)
 
-            self.env_add_conf({'remote_home':  remote_home_path})
+            self.env_add_conf({'remote_home': remote_home_path})
         except:
             traceback.print_exc()
             
-            print("ERROR: Cluster({}) deployment failed".format(env_id))
+            print("ERROR: Remote({}) deployment failed".format(env_id))
             self.env_remove(env_id)
 
     def run(self):
         app_name = self.arguments.app_name
         if not app_name:
-            print(f"ERROR: Application ID argument (-app) is required for executing runcompss in cluster")
+            print(f"ERROR: Application ID argument (-app) is required for executing runcompss in remote")
             exit(1)
 
         if app_name not in self.get_apps():
@@ -112,7 +112,7 @@ class RemoteActions(Actions):
         app_name = self.arguments.app_name
         
         if not app_name:
-            print(f"ERROR: Application ID argument (-app) is required for executing runcompss in cluster")
+            print(f"ERROR: Application ID argument (-app) is required for executing runcompss in remote")
             exit(1)
 
         if app_name not in self.get_apps():
@@ -138,7 +138,7 @@ class RemoteActions(Actions):
         modules = self.__get_modules()
         env_vars = [item for sublist in self.arguments.env_var for item in sublist]
         if 'COMPSS_PYTHON_VERSION' not in ''.join(env_vars):
-            env_vars = ['COMPSS_PYTHON_VERSION=3'] + env_vars
+            env_vars = ['COMPSS_PYTHON_VERSION=3.7.4'] + env_vars
         
         job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars)
 
@@ -225,11 +225,11 @@ class RemoteActions(Actions):
         getattr(self, action_name)()
 
     def app_deploy(self):
-        if self.arguments.local_source == 'current directory':
-            self.arguments.local_source = os.getcwd()
+        if self.arguments.source_dir == 'current directory':
+            self.arguments.source_dir = os.getcwd()
         else:
-            if not os.path.isdir(self.arguments.local_source):
-                print(f"ERROR: Local source directory {self.arguments.local_source} does not exist")
+            if not os.path.isdir(self.arguments.source_dir):
+                print(f"ERROR: Local source directory {self.arguments.source_dir} does not exist")
                 exit(1)
 
         app_name = self.arguments.app_name
@@ -237,13 +237,13 @@ class RemoteActions(Actions):
             print(f'ERROR: There is already another application named `{app_name}`')
             exit(1)
 
-        # if self.arguments.remote_dir:
-        #     self.arguments.remote_dir = self.arguments.remote_dir.replace('{COMPSS_REMOTE_HOME}', )
+        # if self.arguments.destination_dir:
+        #     self.arguments.destination_dir = self.arguments.destination_dir.replace('{COMPSS_REMOTE_HOME}', )
 
         env_id = self.env_conf['name']
         app_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
 
-        remote_app_deploy(app_dir, self.env_conf['login'], self.arguments.local_source, self.arguments.remote_dir)
+        remote_app_deploy(app_dir, self.env_conf['login'], self.arguments.source_dir, self.arguments.destination_dir)
 
 
     def app_remove(self):
@@ -256,7 +256,7 @@ class RemoteActions(Actions):
                 remote_app_remove(login_info, app_dir)
                 print(f'Application `{app_name}` removed successfully')
             else:
-                print('ERROR: Application not found')
+                print(f'ERROR: Application `{app_name}` not found')
                 exit(1)
 
     def app_list(self):
@@ -264,7 +264,7 @@ class RemoteActions(Actions):
 
         if not apps:
             print('INFO: There are no applications binded to this environment yet')
-            print('       Try deploying an application to the cluster')
+            print('       Try deploying an application first with `pycompss app deploy`')
             exit(1)
 
         utils.table_print(['Name'], [[a] for a in apps])
@@ -272,7 +272,7 @@ class RemoteActions(Actions):
     def exec(self):
         login_info = self.env_conf['login']
         command = ' '.join(self.arguments.exec_cmd)
-        remote_exec_app(login_info, command)
+        print(remote_exec_app(login_info, command))
 
     def env_remove(self, eid=None):
         env_id = self.arguments.env_id if eid is None else eid
@@ -304,7 +304,7 @@ class RemoteActions(Actions):
     def jupyter(self):
         app_name = self.arguments.app_name
         if not app_name:
-            print(f"ERROR: Application ID argument (-app) is required for starting jupyter on cluster")
+            print(f"ERROR: Application ID argument (-app) is required for starting jupyter on remote environment")
             exit(1)
 
         if app_name not in self.get_apps():
@@ -334,7 +334,7 @@ class RemoteActions(Actions):
         modules = self.__get_modules()
         envars = []
         if re.search(r'mn\d\.bsc\.es', self.env_conf['login']) is not None:
-            envars.append('COMPSS_PYTHON_VERSION=2-3-jupyter')
+            envars.append('COMPSS_PYTHON_VERSION=3.7.4')
 
         job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars)
 

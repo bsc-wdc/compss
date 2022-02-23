@@ -16,7 +16,7 @@ import pycompss_cli.core.utils as utils
 # ############# #
 
 def remote_deploy_compss(env_id: str, login_info: str, modules, envars=[]) -> None:
-    """ Deploy environment COMPSs in remote cluster.
+    """ Deploy environment COMPSs in remote.
     It stops any existing one since it can not coexist with itself.
 
     :param working_dir: Given working directory
@@ -63,12 +63,13 @@ def remote_app_deploy(app_dir: str, login_info: str, local_source: str, remote_d
         print('App deployed to', remote_dest_dir)
         utils.ssh_run_commands(login_info, [
             f'echo {remote_dest_dir} > {app_dir}/.compss',
+            f'mkdir -p {os.path.dirname(remote_dest_dir)}',
             f'ln -s {app_dir} {remote_dest_dir}'
         ])
 
 def remote_app_remove(login_info: str, app_dir: str):
     utils.ssh_run_commands(login_info, [
-            f'cat {app_dir}/.compss | xargs rm',
+            f'cat {app_dir}/.compss | xargs rm -rf',
             f'rm -rf {app_dir}'
         ])
 
@@ -81,7 +82,7 @@ def remote_run_app(remote_dir: str, login_info: str, env_name: str, command: str
     return utils.ssh_run_commands(login_info, commands)
 
 def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, envars=None) -> None:
-    """ Execute the given command in the cluster COMPSs environment.
+    """ Execute the given command in the remote COMPSs environment.
 
     :param cmd: Command to execute.
     :returns: The execution stdout.

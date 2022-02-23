@@ -1,6 +1,4 @@
-import sys
 import argparse
-import os
 
 FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
 
@@ -35,5 +33,9 @@ def docker_init_parser():
                              dest="restart",
                              action="store_false",
                              help='Do not restart if already deployed.')
+    parser_init.add_argument("-p", "--privileged",
+                             dest="privileged",
+                             action="store_true",
+                             help='Run container with privileged permissions.')
     
     return parser_init

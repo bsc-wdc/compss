@@ -17,11 +17,11 @@ master_name = "pycompss-master"
 worker_name = "pycompss-worker"
 service_name = "pycompss-service"
 default_workdir = "/home/user/"
-default_worker_workdir = "/home/user/.COMPSsWorker"
+default_worker_workdir = default_workdir + ".COMPSsWorker"
 default_cfg_file = "cfg"
-default_cfg = default_workdir + "/" + default_cfg_file
+default_cfg = default_workdir + default_cfg_file
 default_image_file = "image"
-default_image = default_workdir + "/" + default_image_file
+default_image = default_workdir + default_image_file
 
 
 IMAGE_NAME = "compss/compss:2.10"  # Update when releasing new version
@@ -87,7 +87,8 @@ class DockerCmd(object):
 
     def docker_deploy_compss(self, working_dir,
                             image: str = "",
-                            restart: bool = True) -> None:
+                            restart: bool = True,
+                            privileged: bool = False) -> None:
         """ Starts the main COMPSs image in Docker.
         It stops any existing one since it can not coexist with itself.
 
@@ -121,7 +122,7 @@ class DockerCmd(object):
             ports = {"8888/tcp": 8888,  # required for jupyter notebooks
                     "8080/tcp": 8080}  # required for monitor
             m = self.client.containers.run(image=docker_image, name=master_name,
-                                    mounts=mounts, detach=True, ports=ports)
+                                    mounts=mounts, detach=True, ports=ports, privileged=privileged)
             self._generate_resources_cfg(ips=["localhost"])
             self._generate_project_cfg(ips=["localhost"])
             # don't pass configs because they need to be  overwritten when adding
@@ -391,7 +392,7 @@ class DockerCmd(object):
         # compss_log_dir = Mount(target="/root/.COMPSs",
         #                        source=compss_logs_dir,
         #                        type="bind")
-        mounts = [user_dir] #, compss_log_dir]
+        mounts = [user_dir]
         return mounts
 
 
@@ -464,10 +465,10 @@ class DockerCmd(object):
         :param master: Master docker instance object.
         :returns: None
         """
-        exit_code, output = master.exec_run(cmd="rm " + default_cfg)
-        if exit_code != 0:
-            for line in output:
-                print(line.strip().decode())
+        exit_code, output = master.exec_run(cmd="rm -f" + default_cfg)
+        # if exit_code != 0:
+        #     for line in output:
+        #         print(line.strip().decode())
 
 
     def _update_cfg(self, master, cfg: dict, ips, cpus) -> None:

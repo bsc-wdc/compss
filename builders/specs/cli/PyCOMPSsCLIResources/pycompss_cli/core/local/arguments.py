@@ -30,6 +30,6 @@ def local_init_parser():
 
     parser_init.add_argument("-m", "--modules",
                              nargs='*',
-                             help="Module list or file to load in cluster")
+                             help="Module list or file to load in remote environment")
     
     return parser_init

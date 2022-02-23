@@ -6,7 +6,7 @@ from pycompss_cli.core import utils
 
 FORMATTER_CLASS = argparse.RawDescriptionHelpFormatter
 
-def cluster_init_parser():
+def remote_init_parser():
     """ Parses the sys.argv.
 
     :returns: All arguments as namespace.
@@ -21,22 +21,22 @@ def cluster_init_parser():
     # INIT
     parser_init = subparsers.add_parser("init",
                                         aliases=["i"],
-                                        help="Initialize COMPSs within a given cluster node.",
+                                        help="Initialize COMPSs within a given remote node.",
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
 
     parser_init.add_argument("-l", "--login",
                              type=str,
                              required=True,
-                             help="Login info username@cluster_hostname")
+                             help="Login info username@remote_hostname")
 
     parser_init.add_argument("-m", "--modules",
                              nargs='*',
-                             help="Module list or file to load in cluster")
+                             help="Module list or file to load in remote environment")
 
     return parser_init
 
-def cluster_parser_app():
+def remote_parser_app():
     parser = argparse.ArgumentParser(formatter_class=FORMATTER_CLASS)
 
     # Parent parser - includes all arguments which are common to all actions
@@ -56,7 +56,7 @@ def cluster_parser_app():
 
     app_deploy_parser = app_subparsers.add_parser("deploy",
                                 aliases=["d"],
-                                help="Deploy an application to a cluster or remote environment",
+                                help="Deploy an application to a remote environment",
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
 
@@ -64,12 +64,12 @@ def cluster_parser_app():
                              type=str,
                              help="Name of the application")
 
-    app_deploy_parser.add_argument("-ls", "--local_source",
+    app_deploy_parser.add_argument("-s", "--source_dir",
                              default='current directory',
                              type=str,
-                             help="Path from which the files will be copied. Can be a directory or a single file")
+                             help="Directory from which the files will be copied.")
 
-    app_deploy_parser.add_argument("-rd", "--remote_dir",
+    app_deploy_parser.add_argument("-d", "--destination_dir",
                              type=str,
                              help="Remote destination directory to copy the local app files")
 
@@ -92,7 +92,7 @@ def cluster_parser_app():
 
     return parser_app
 
-def cluster_parser_job():
+def remote_parser_job():
     """ Parses the sys.argv.
 
     :returns: All arguments as namespace.
@@ -116,7 +116,7 @@ def cluster_parser_job():
 
     submit_job_parser = job_subparsers.add_parser("submit",
                                 aliases=["sub"],
-                                help="Submit a job to a cluster or remote environment",
+                                help="Submit a job to a remote environment",
                                 parents=[parent_parser],
                                 formatter_class=FORMATTER_CLASS)
     
@@ -144,7 +144,7 @@ def cluster_parser_job():
     submit_job_parser.add_argument("-app", "--app_name",
                              default="",
                              type=str,
-                             help="Name of the app where to execute runcompss. Only required for `cluster` type environment")
+                             help="Name of the app where to execute runcompss. Only required for `remote` environments")
 
     submit_job_parser.add_argument('rest_args', 
                             nargs=argparse.REMAINDER,   

@@ -68,7 +68,7 @@ class ActionsDispatcher(object):
             return LocalActions(arguments, debug, env_conf)
         elif env_type == "docker":
             return DockerActions(arguments, debug, env_conf)
-        elif env_type == "cluster":
+        elif env_type == "remote":
             return RemoteActions(arguments, debug, env_conf)
 
     

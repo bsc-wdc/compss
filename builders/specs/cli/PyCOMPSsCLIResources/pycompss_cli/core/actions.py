@@ -89,7 +89,7 @@ class Actions(ABC):
 
     @abstractmethod
     def app(self):
-        raise NotImplementedError("Wrong Environment! Try switching to a `cluster` environment")
+        raise NotImplementedError("Wrong Environment! Try switching to a `remote` environment")
 
     @abstractmethod
     def jupyter(self):

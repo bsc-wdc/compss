@@ -5,7 +5,7 @@ import subprocess
 
 from pycompss_cli.core.docker.arguments import docker_init_parser
 from pycompss_cli.core.local.arguments import local_init_parser
-from pycompss_cli.core.remote.arguments import cluster_init_parser, cluster_parser_job, cluster_parser_app
+from pycompss_cli.core.remote.arguments import remote_init_parser, remote_parser_job, remote_parser_app
 from pycompss_cli.core import utils
 
 FORMATTER_CLASS = argparse.RawTextHelpFormatter
@@ -53,8 +53,8 @@ def parse_sys_argv():
     init_env_subparser.add_parser("local", add_help=False, 
                                     parents=[local_init_parser()])
 
-    init_env_subparser.add_parser("cluster", add_help=False, 
-                                    parents=[cluster_init_parser()])
+    init_env_subparser.add_parser("remote", add_help=False, 
+                                    parents=[remote_init_parser()])
 
     # EXEC
     parser_exec = subparsers.add_parser("exec",
@@ -95,23 +95,23 @@ def parse_sys_argv():
     parser_run.add_argument("-app", "--app_name",
                              default="",
                              type=str,
-                             help="Name of the app where to execute runcompss. Only required for `cluster` type environment")
+                             help="Name of the app where to execute runcompss. Only required for `remote` type environment")
     parser_run.add_argument('rest_args',
                             nargs=argparse.REMAINDER,   
                             help="Runcompss program arguments")
 
-    # APP  cluster_parser_app
+    # APP  remote_parser_app
     parser_app = subparsers.add_parser("app", aliases=["a"], add_help=False,
-                                    help="Manage applications within cluster environments.",  # noqa: E501
-                                    parents=[cluster_parser_app()],
+                                    help="Manage applications within remote environments.",  # noqa: E501
+                                    parents=[remote_parser_app()],
                                     formatter_class=FORMATTER_CLASS)
     parser_app.set_defaults(action='app')
 
 
     # JOB
     parser_job = subparsers.add_parser("job", aliases=["j"], add_help=False,
-                                    help="Manage jobs within cluster environments.",  # noqa: E501
-                                    parents=[cluster_parser_job()],
+                                    help="Manage jobs within remote environments.",  # noqa: E501
+                                    parents=[remote_parser_job()],
                                     formatter_class=FORMATTER_CLASS)
     parser_job.set_defaults(action='job')
     
@@ -150,7 +150,7 @@ def parse_sys_argv():
     parser_jupyter.add_argument("-app", "--app_name",
                              default="",
                              type=str,
-                             help="Name of the app where the notebook will be deployed. Only required for `cluster` type environment")
+                             help="Name of the app where the notebook will be deployed. Only required for `remote` type environment")
     parser_jupyter.add_argument('rest_args', 
                             nargs=argparse.REMAINDER,   
                             help="Jupyter arguments")

@@ -1,5 +1,5 @@
 import pycompss_cli.core.utils as utils
-import subprocess
+import subprocess, os, shutil
 from typing import List
 
 from pycompss_cli.core.cmd_helpers import command_runner
@@ -105,3 +105,16 @@ def local_job_status(local_job_scripts_dir, jobid):
     if status == 'SUCCESS\nSTATUS:':
         return 'ERROR'
     return status
+
+def local_app_deploy(local_source: str, app_dir: str, dest_dir: str = None):
+    dst = os.path.abspath(dest_dir) if dest_dir else app_dir
+    os.makedirs(dst, exist_ok=True)
+    for f in os.listdir(local_source):
+        if os.path.isfile(os.path.join(local_source, f)):
+            shutil.copy(os.path.join(local_source, f), os.path.join(dst, f))
+        else:
+            shutil.copytree(os.path.join(local_source, f), os.path.join(dst, f))
+    if dest_dir is not None:
+        with open(app_dir + '/.compss', 'w') as f:
+            f.write(dst)
+    print('App deployed from ' + local_source + ' to ' + dst)

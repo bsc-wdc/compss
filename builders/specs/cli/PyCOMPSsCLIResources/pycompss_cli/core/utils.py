@@ -1,8 +1,9 @@
 import json
 from glob import glob
+from tabulate import tabulate
 from pathlib import Path
 import subprocess
-import time, os
+import os
 
 def is_debug():
     return os.getenv('PYCOMPSS_CLI_DEBUG', 'false').lower() == 'true'
@@ -14,14 +15,7 @@ def get_object_method_by_name(obj, method_name, include_in_name=False):
                 return class_method_name
 
 def table_print(col_names, data):
-    col_widths = list(map(len, [item for sublist in data for item in sublist if item is not None]))
-    if not col_widths:
-        col_widths = [14]
-    max_len = max(col_widths) + 1
-    row_format ="{:>{l}}" * (len(col_names) + 1)
-    print(row_format.format("", l=max_len, *col_names))
-    for row in data:
-        print(row_format.format('-', l=max_len, *row))
+    print(tabulate(data, headers=col_names))
 
 def get_current_env_conf(return_path=False):
     home_path = str(Path.home())
@@ -45,11 +39,5 @@ def ssh_run_commands(login_info, commands, **kwargs):
 def check_exit_code(command):
     return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
 
-def poll_directory(directory, sleep_time=0.1):
-    files = []
-    while True:
-        new_query = os.listdir(directory)
-        if new_query != files:
-            files = new_query
-            yield set(files)
-        time.sleep(sleep_time)
+def is_inside_docker():
+    return ':/docker/' in subprocess.check_output(['cat', '/proc/self/cgroup']).decode('utf-8')

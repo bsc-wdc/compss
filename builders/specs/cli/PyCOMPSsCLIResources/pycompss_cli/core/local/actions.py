@@ -6,7 +6,10 @@ They are invoked from cli/pycompss.py and uses core/cmd.py.
 from collections import defaultdict
 import datetime
 import json
+import shutil
 import traceback
+from typing import List
+from pycompss_cli.models.app import App
 from pycompss_cli.core.local.cmd import local_deploy_compss
 from pycompss_cli.core.local.cmd import local_run_app
 from pycompss_cli.core.local.cmd import local_exec_app
@@ -15,9 +18,11 @@ from pycompss_cli.core.local.cmd import local_submit_job
 from pycompss_cli.core.local.cmd import local_job_list
 from pycompss_cli.core.local.cmd import local_cancel_job
 from pycompss_cli.core.local.cmd import local_job_status
+from pycompss_cli.core.local.cmd import local_app_deploy
 from pycompss_cli.core.actions import Actions
 import pycompss_cli.core.utils as utils
 import os, sys
+
 
 
 class LocalActions(Actions):
@@ -25,6 +30,8 @@ class LocalActions(Actions):
         super().__init__(arguments, debug=debug, env_conf=env_conf)
         path = os.path.abspath(__file__)
         self.local_job_scripts_dir = os.path.dirname(path) + '/../remote/job_scripts'
+
+        self.apps = None
 
         self.past_jobs = defaultdict(list)
         if self.env_conf and os.path.isfile(self.env_conf['env_path'] + '/jobs.json'):
@@ -94,8 +101,67 @@ class LocalActions(Actions):
         local_exec_app(command)
 
     def app(self):
-        print("ERROR: Wrong Environment! Try switching to a `cluster` environment")
-        exit(1)
+        if not self.arguments.app:
+            self.arguments.func()
+            exit(1)
+
+        action_name = self.arguments.app
+        action_name = utils.get_object_method_by_name(self, 'app_' + action_name, include_in_name=True)
+        getattr(self, action_name)()
+
+    def app_deploy(self):
+        if self.arguments.source_dir == 'current directory':
+            self.arguments.source_dir = os.getcwd()
+        else:
+            if not os.path.isdir(self.arguments.source_dir):
+                print(f"ERROR: Local source directory {self.arguments.source_dir} does not exist")
+                exit(1)
+
+        app_name = self.arguments.app_name
+        for app in self.get_apps():
+            if app.name == app_name:
+                print(f'ERROR: There is already another application named `{app_name}`')
+                exit(1)
+
+        env_id = self.env_conf['name']
+        app_dir = os.path.expanduser('~') + f'/.COMPSsApps/{env_id}/{app_name}'
+        os.makedirs(app_dir, exist_ok=True)
+
+        local_app_deploy(self.arguments.source_dir, app_dir, self.arguments.destination_dir)
+
+
+    def app_remove(self):
+        app_names = self.arguments.app_name
+        for app_name in app_names:
+            apps_name = list(filter(lambda a: a.name == app_name, self.get_apps()))
+            if len(apps_name) > 0:
+                app: App = apps_name[0]
+                env_id = self.env_conf['name']
+                app_dir = os.path.expanduser('~') + f'/.COMPSsApps/{env_id}/{app_name}'
+                shutil.rmtree(app_dir)
+                if app.remote_dir:
+                    shutil.rmtree(app.remote_dir)
+                print(f'Application `{app_name}` removed successfully')
+            else:
+                print(f'ERROR: Application `{app_name}` not found')
+                exit(1)
+
+    def app_list(self):
+        apps = self.get_apps()
+
+        if not apps:
+            print('INFO: There are no applications binded to this environment yet')
+            print('       Try deploying an application with `pycompss app deploy`')
+            exit(1)
+
+        app_data = []
+        env_id = self.env_conf['name']
+        for app in apps:
+            app_dir = os.path.expanduser('~') + f'/.COMPSsApps/{env_id}/{app.name}'
+            dest_dir = app.remote_dir if app.remote_dir else app_dir
+            app_data.append([ app.name, dest_dir ])
+
+        utils.table_print(['Name', 'Location'], app_data)
 
     def env_remove(self, env_id=None):
         super().env_remove(eid=env_id)
@@ -110,20 +176,20 @@ class LocalActions(Actions):
     def job_submit(self):
         super().job_submit()
 
-        app_name = None
+        app_name = self.arguments.app_name
 
         working_dir = os.getcwd()
         if 'working_dir' in self.env_conf:
             working_dir = self.env_conf['working_dir']
 
         for arg in reversed(self.arguments.rest_args):
-            file_path = working_dir + '/' + arg
+            if os.path.isabs(arg):
+                file_path = arg
+            else:
+                file_path = working_dir + '/' + arg
             if os.path.isfile(file_path):
                 app_name = arg
                 break
-
-        if app_name is None:
-            print('WARNING: No application found in the working directory!')
 
         app_args = ' '.join(self.arguments.rest_args)
         env_vars = [item for sublist in self.arguments.env_var for item in sublist]
@@ -138,7 +204,7 @@ class LocalActions(Actions):
         job_id = local_submit_job(app_args, env_vars)
 
         self.past_jobs[job_id] = {
-                'app_name': app_name if app_name else 'error',
+                'app_name': app_name if app_name else 'unknown',
                 'env_vars': '; '.join(env_vars) if env_vars else 'Empty',
                 'enqueue_args': app_args,
                 'timestamp': str(datetime.datetime.utcnow())[:-7] + ' UTC',
@@ -215,3 +281,29 @@ class LocalActions(Actions):
     def gengraph(self):
         command = "compss_gengraph " + self.arguments.dot_file
         local_exec_app(command)
+
+    def get_apps(self, env_id=None) -> List[App]:
+        if self.apps is not None:
+            return self.apps
+
+        app_dir = os.path.expanduser('~') + f'/.COMPSsApps/'
+
+        if not os.path.isdir(app_dir):
+            return []
+            
+        if env_id is not None:
+            app_dir += str(env_id)
+        else:
+            app_dir += self.env_conf['name']
+
+        apps: List[App] = []
+        for app_dir_name in os.listdir(app_dir):
+            app_dir_path = app_dir + '/' + app_dir_name
+            if os.path.isfile(app_dir_path + '/.compss'):
+                with open(app_dir_path + '/.compss', 'r') as dest_dir_file:
+                    dest_dir = dest_dir_file.read().strip()
+                apps.append(App(app_dir_name, dest_dir))
+            else:
+                apps.append(App(app_dir_name))
+        self.apps = apps
+        return apps

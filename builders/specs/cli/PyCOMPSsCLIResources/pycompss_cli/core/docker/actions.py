@@ -31,7 +31,8 @@ class DockerActions(Actions):
         try:
             self.docker_cmd.docker_deploy_compss(self.arguments.working_dir,
                                 self.arguments.image,
-                                self.arguments.restart)
+                                self.arguments.restart,
+                                self.arguments.privileged)
 
             master_ip = self.docker_cmd.docker_exec_in_daemon("hostname -i", return_output=True)
             self.env_add_conf({'master_ip': master_ip})
@@ -164,7 +165,7 @@ class DockerActions(Actions):
         self.docker_cmd.docker_exec_in_daemon(command)
 
     def app(self):
-        print("ERROR: Wrong Environment! Try using a `cluster` environment")
+        print("ERROR: Wrong Environment! Try using a `remote` or `local` environment")
         exit(1)
 
     def components(self):
@@ -201,5 +202,5 @@ class DockerActions(Actions):
         super().env_remove(eid=env_id)
 
     def job(self):
-        print("ERROR: Wrong Environment! Try using a `cluster` environment")
+        print("ERROR: Wrong Environment! Try using a `remote` environment")
         exit(1)

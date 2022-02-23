@@ -15,6 +15,7 @@ AGENT_PIDS=""
 exit_value=0
 jar_name="1_tracing_agents.jar"
 app_name="tracing.Agents"
+expectedTime="60s"
 
 
 # Traps and Handlers
@@ -58,6 +59,7 @@ compss_agent_start_service \
     --classpath="${base_app_dir}/${jar_name}" \
     --log_dir="${log_dir}" \
     --debug \
+    --exec_time=${expectedTime} \
     --tracing \
     ${runcompss_opts} \
     --reuse_resources_on_block="false" \
